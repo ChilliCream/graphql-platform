@@ -71,7 +71,7 @@ public abstract class ProjectionProvider
 
     protected internal override void Complete(IConventionContext context)
     {
-        if (Configuration!.HandlerFactories.Count == 0)
+        if (Configuration!.FieldHandlerConfigurations.Count == 0)
         {
             throw ProjectionProvider_NoHandlersConfigured(this);
         }
@@ -82,54 +82,48 @@ public abstract class ProjectionProvider
             context.DescriptorContext,
             context.DescriptorContext.TypeInspector);
 
-        foreach (var factory in Configuration.HandlerFactories)
+        foreach (var handlerConfiguration in Configuration.FieldHandlerConfigurations)
         {
             try
             {
-                var handler = factory(providerContext);
+                var handler = handlerConfiguration.Create(providerContext);
 
                 _fieldHandlers.Add(handler);
             }
-            catch
+            catch (Exception exception)
             {
-                // TODO: Proper exception
-                throw new InvalidOperationException();
-                // throw new SchemaException(
-                //     ProjectionConvention_UnableToCreateFieldHandler(this, type));
+                throw new SchemaException(
+                    ErrorHelper.ProjectionConvention_UnableToCreateFieldHandler(this, exception));
             }
         }
 
-        foreach (var factory in Configuration.InterceptorFactories)
+        foreach (var interceptorConfiguration in Configuration.FieldInterceptorConfigurations)
         {
             try
             {
-                var interceptor = factory(providerContext);
+                var interceptor = interceptorConfiguration.Create(providerContext);
 
                 _fieldInterceptors.Add(interceptor);
             }
-            catch
+            catch (Exception exception)
             {
-                // TODO: Proper exception
-                throw new InvalidOperationException();
-                // throw new SchemaException(
-                //     ProjectionConvention_UnableToCreateFieldHandler(this, type));
+                throw new SchemaException(
+                    ErrorHelper.ProjectionConvention_UnableToCreateFieldHandler(this, exception));
             }
         }
 
-        foreach (var factory in Configuration.OptimizerFactories)
+        foreach (var optimizerConfiguration in Configuration.OptimizerConfigurations)
         {
             try
             {
-                var optimizer = factory(providerContext);
+                var optimizer = optimizerConfiguration.Create(providerContext);
 
                 _optimizers.Add(optimizer);
             }
-            catch
+            catch (Exception exception)
             {
-                // TODO: Proper exception
-                throw new InvalidOperationException();
-                // throw new SchemaException(
-                //     ProjectionConvention_UnableToCreateFieldHandler(this, type));
+                throw new SchemaException(
+                    ErrorHelper.ProjectionConvention_UnableToCreateFieldHandler(this, exception));
             }
         }
     }

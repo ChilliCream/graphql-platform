@@ -40,7 +40,7 @@ builder.Services.AddGraphQLServer()
 
 ## Clearer separation between schema and application services
 
-Hot Chocolate has long maintained two `IServiceProvider` instances: the application service provider where you register your services and configuration, and the schema service provider that is scoped to a particular schema and contains all of Hot Chocolate's internal services.
+Hot Chocolate has long maintained a second `IServiceProvider` for schema services, separate from the application service provider where you register your services and configuration. This schema service provider is scoped to a particular schema and contains all of Hot Chocolate's internal services.
 
 To access application services within schema services like diagnostic event listeners or error filters, we previously used a combined service provider for activating various Hot Chocolate components. However, this approach made it difficult to track service origins and created challenges for AOT compatibility.
 

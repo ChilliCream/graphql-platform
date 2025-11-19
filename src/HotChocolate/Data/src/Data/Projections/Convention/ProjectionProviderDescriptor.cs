@@ -21,8 +21,7 @@ public class ProjectionProviderDescriptor : IProjectionProviderDescriptor
         Func<ProjectionProviderContext, THandler> factory)
         where THandler : IProjectionFieldHandler
     {
-        // TODO: Find a better way
-        Configuration.HandlerFactories.Add(ctx => factory(ctx));
+        Configuration.FieldHandlerConfigurations.Add(new ProjectionFieldHandlerConfiguration(ctx => factory(ctx)));
         return this;
     }
 
@@ -30,8 +29,7 @@ public class ProjectionProviderDescriptor : IProjectionProviderDescriptor
     public IProjectionProviderDescriptor RegisterFieldHandler<THandler>(THandler handler)
         where THandler : IProjectionFieldHandler
     {
-        // TODO: Find a better way
-        Configuration.HandlerFactories.Add(_ => handler);
+        Configuration.FieldHandlerConfigurations.Add(new ProjectionFieldHandlerConfiguration(handler));
         return this;
     }
 
@@ -40,8 +38,7 @@ public class ProjectionProviderDescriptor : IProjectionProviderDescriptor
         Func<ProjectionProviderContext, THandler> factory)
         where THandler : IProjectionFieldInterceptor
     {
-        // TODO: Find a better way
-        Configuration.InterceptorFactories.Add(ctx => factory(ctx));
+        Configuration.FieldInterceptorConfigurations.Add(new ProjectionFieldInterceptorConfiguration(ctx => factory(ctx)));
         return this;
     }
 
@@ -49,8 +46,7 @@ public class ProjectionProviderDescriptor : IProjectionProviderDescriptor
     public IProjectionProviderDescriptor RegisterFieldInterceptor<THandler>(THandler handler)
         where THandler : IProjectionFieldInterceptor
     {
-        // TODO: Find a better way
-        Configuration.InterceptorFactories.Add(_ => handler);
+        Configuration.FieldInterceptorConfigurations.Add(new ProjectionFieldInterceptorConfiguration(handler));
         return this;
     }
 
@@ -59,8 +55,7 @@ public class ProjectionProviderDescriptor : IProjectionProviderDescriptor
         Func<ProjectionProviderContext, THandler> factory)
         where THandler : IProjectionOptimizer
     {
-        // TODO: Find a better way
-        Configuration.OptimizerFactories.Add(ctx => factory(ctx));
+        Configuration.OptimizerConfigurations.Add(new ProjectionOptimizerConfiguration(ctx => factory(ctx)));
         return this;
     }
 
@@ -68,8 +63,7 @@ public class ProjectionProviderDescriptor : IProjectionProviderDescriptor
     public IProjectionProviderDescriptor RegisterOptimizer<THandler>(THandler handler)
         where THandler : IProjectionOptimizer
     {
-        // TODO: Find a better way
-        Configuration.OptimizerFactories.Add(_ => handler);
+        Configuration.OptimizerConfigurations.Add(new ProjectionOptimizerConfiguration(handler));
         return this;
     }
 

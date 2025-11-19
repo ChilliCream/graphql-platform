@@ -6,10 +6,9 @@ public class ProjectionProviderConfiguration : IHasScope
 {
     public string? Scope { get; set; }
 
-    public IList<Func<ProjectionProviderContext, IProjectionFieldHandler>> HandlerFactories { get; } = [];
+    public IList<ProjectionFieldHandlerConfiguration> FieldHandlerConfigurations { get; } = [];
 
-    public IList<Func<ProjectionProviderContext, IProjectionFieldInterceptor>> InterceptorFactories { get; } =
-        [];
+    public IList<ProjectionFieldInterceptorConfiguration> FieldInterceptorConfigurations { get; } = [];
 
-    public IList<Func<ProjectionProviderContext, IProjectionOptimizer>> OptimizerFactories { get; } = [];
+    public IList<ProjectionOptimizerConfiguration> OptimizerConfigurations { get; } = [];
 }

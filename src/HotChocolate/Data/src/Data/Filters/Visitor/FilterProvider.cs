@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Filters;
 /// </summary>
 /// <typeparam name="TContext">The type of the context</typeparam>
 public abstract class FilterProvider<TContext>
-    : Convention<FilterProviderConfiguration<TContext>>
+    : Convention<FilterProviderConfiguration>
         , IFilterProvider
         , IFilterProviderConvention
     where TContext : IFilterVisitorContext
@@ -31,13 +31,13 @@ public abstract class FilterProvider<TContext>
     protected FilterProvider(Action<IFilterProviderDescriptor<TContext>> configure)
         => _configure = configure ?? throw new ArgumentNullException(nameof(configure));
 
-    internal new FilterProviderConfiguration<TContext>? Configuration => base.Configuration;
+    internal new FilterProviderConfiguration? Configuration => base.Configuration;
 
     /// <inheritdoc />
     public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers => _fieldHandlers;
 
     /// <inheritdoc />
-    protected override FilterProviderConfiguration<TContext> CreateConfiguration(IConventionContext context)
+    protected override FilterProviderConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -68,7 +68,7 @@ public abstract class FilterProvider<TContext>
     /// <inheritdoc />
     protected internal override void Complete(IConventionContext context)
     {
-        if (Configuration!.HandlerFactories.Count == 0)
+        if (Configuration!.FieldHandlerConfigurations.Count == 0)
         {
             throw FilterProvider_NoHandlersConfigured(this);
         }
@@ -92,19 +92,17 @@ public abstract class FilterProvider<TContext>
             context.DescriptorContext.InputFormatter
         );
 
-        foreach (var factory in Configuration.HandlerFactories)
+        foreach (var handlerConfiguration in Configuration.FieldHandlerConfigurations)
         {
             try
             {
-                var handler = factory(providerContext);
+                var handler = handlerConfiguration.Create<TContext>(providerContext);
 
                 _fieldHandlers.Add(handler);
             }
-            catch
+            catch (Exception exception)
             {
-                // TODO: Proper exception
-                throw new InvalidOperationException();
-                // throw FilterProvider_UnableToCreateFieldHandler(this, type);
+                throw FilterProvider_UnableToCreateFieldHandler(this, exception);
             }
         }
     }

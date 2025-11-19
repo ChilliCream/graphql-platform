@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Sorting;
 /// </summary>
 /// <typeparam name="TContext">The type of the context</typeparam>
 public abstract class SortProvider<TContext>
-    : Convention<SortProviderConfiguration<TContext>>
+    : Convention<SortProviderConfiguration>
     , ISortProvider
     , ISortProviderConvention
     where TContext : ISortVisitorContext
@@ -33,7 +33,7 @@ public abstract class SortProvider<TContext>
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new SortProviderConfiguration<TContext>? Configuration => base.Configuration;
+    internal new SortProviderConfiguration? Configuration => base.Configuration;
 
     /// <inheritdoc />
     public IReadOnlyCollection<ISortFieldHandler> FieldHandlers => _fieldHandlers;
@@ -47,7 +47,7 @@ public abstract class SortProvider<TContext>
     }
 
     /// <inheritdoc />
-    protected override SortProviderConfiguration<TContext> CreateConfiguration(IConventionContext context)
+    protected override SortProviderConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -76,12 +76,12 @@ public abstract class SortProvider<TContext>
     /// <inheritdoc />
     protected internal override void Complete(IConventionContext context)
     {
-        if (Configuration!.HandlerFactories.Count == 0)
+        if (Configuration!.FieldHandlerConfigurations.Count == 0)
         {
             throw SortProvider_NoFieldHandlersConfigured(this);
         }
 
-        if (Configuration.OperationHandlerFactories.Count == 0)
+        if (Configuration.OperationHandlerConfigurations.Count == 0)
         {
             throw SortProvider_NoOperationHandlersConfigured(this);
         }
@@ -102,35 +102,31 @@ public abstract class SortProvider<TContext>
             context.DescriptorContext.TypeInspector,
             context.DescriptorContext.InputParser);
 
-        foreach (var factory in Configuration.HandlerFactories)
+        foreach (var handlerConfiguration in Configuration.FieldHandlerConfigurations)
         {
             try
             {
-                var handler = factory(providerContext);
+                var handler = handlerConfiguration.Create<TContext>(providerContext);
 
                 _fieldHandlers.Add(handler);
             }
-            catch
+            catch (Exception exception)
             {
-                // TODO: Proper exception
-                throw new InvalidOperationException();
-                // throw SortProvider_UnableToCreateFieldHandler(this, type);
+                throw SortProvider_UnableToCreateFieldHandler(this, exception);
             }
         }
 
-        foreach (var factory in Configuration.OperationHandlerFactories)
+        foreach (var operationHandlerConfiguration in Configuration.OperationHandlerConfigurations)
         {
             try
             {
-                var handler = factory(providerContext);
+                var handler = operationHandlerConfiguration.Create<TContext>(providerContext);
 
                 _operationHandlers.Add(handler);
             }
-            catch
+            catch (Exception exception)
             {
-                // TODO: Proper exception
-                throw new InvalidOperationException();
-                // throw SortProvider_UnableToCreateOperationHandler(this, type);
+                throw SortProvider_UnableToCreateOperationHandler(this, exception);
             }
         }
     }

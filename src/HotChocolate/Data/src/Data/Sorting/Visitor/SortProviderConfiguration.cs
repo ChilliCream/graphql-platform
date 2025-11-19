@@ -1,8 +1,8 @@
 namespace HotChocolate.Data.Sorting;
 
-public class SortProviderConfiguration<TContext> where TContext : ISortVisitorContext
+public class SortProviderConfiguration
 {
-    public IList<Func<SortProviderContext, ISortFieldHandler<TContext>>> HandlerFactories { get; } = [];
+    public IList<SortFieldHandlerConfiguration> FieldHandlerConfigurations { get; } = [];
 
-    public IList<Func<SortProviderContext, ISortOperationHandler<TContext>>> OperationHandlerFactories { get; } = [];
+    public IList<SortOperationHandlerConfiguration> OperationHandlerConfigurations { get; } = [];
 }

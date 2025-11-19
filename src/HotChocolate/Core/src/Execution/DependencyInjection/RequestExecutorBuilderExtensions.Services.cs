@@ -36,7 +36,7 @@ public static partial class RequestExecutorBuilderExtensions
 
     /// <summary>
     /// Resolves an instance of <typeparamref name="TService"/> from the application
-    /// service provider and makes it available as a singleton through the schema
+    /// service provider and makes it available as a Singleton through the schema
     /// service provider.
     /// </summary>
     /// <typeparam name="TService">

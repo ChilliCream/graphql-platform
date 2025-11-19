@@ -8,16 +8,15 @@ public class SortProviderDescriptor<TContext>
     {
     }
 
-    protected SortProviderConfiguration<TContext> Configuration { get; } = new();
+    protected SortProviderConfiguration Configuration { get; } = new();
 
-    public SortProviderConfiguration<TContext> CreateConfiguration() => Configuration;
+    public SortProviderConfiguration CreateConfiguration() => Configuration;
 
     public ISortProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>(
         Func<SortProviderContext, TFieldHandler> factory)
         where TFieldHandler : ISortFieldHandler<TContext>
     {
-        // TODO: Find a better way
-        Configuration.HandlerFactories.Add(ctx => factory(ctx));
+        Configuration.FieldHandlerConfigurations.Add(new SortFieldHandlerConfiguration(ctx => factory(ctx)));
         return this;
     }
 
@@ -25,8 +24,7 @@ public class SortProviderDescriptor<TContext>
         TFieldHandler fieldHandler)
         where TFieldHandler : ISortFieldHandler<TContext>
     {
-        // TODO: Find a better way
-        Configuration.HandlerFactories.Add(_ => fieldHandler);
+        Configuration.FieldHandlerConfigurations.Add(new SortFieldHandlerConfiguration(fieldHandler));
         return this;
     }
 
@@ -34,8 +32,7 @@ public class SortProviderDescriptor<TContext>
         Func<SortProviderContext, TOperationHandler> factory)
         where TOperationHandler : ISortOperationHandler<TContext>
     {
-        // TODO: Find a better way
-        Configuration.OperationHandlerFactories.Add(ctx => factory(ctx));
+        Configuration.OperationHandlerConfigurations.Add(new SortOperationHandlerConfiguration(ctx => factory(ctx)));
         return this;
     }
 
@@ -43,8 +40,7 @@ public class SortProviderDescriptor<TContext>
         TOperationHandler operationHandler)
         where TOperationHandler : ISortOperationHandler<TContext>
     {
-        // TODO: Find a better way
-        Configuration.OperationHandlerFactories.Add(_ => operationHandler);
+        Configuration.OperationHandlerConfigurations.Add(new SortOperationHandlerConfiguration(operationHandler));
         return this;
     }
 

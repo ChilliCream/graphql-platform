@@ -4,7 +4,7 @@ using static HotChocolate.Data.DataResources;
 namespace HotChocolate.Data.Sorting;
 
 public abstract class SortProviderExtensions<TContext>
-    : ConventionExtension<SortProviderConfiguration<TContext>>,
+    : ConventionExtension<SortProviderConfiguration>,
       ISortProviderExtension,
       ISortProviderConvention
     where TContext : ISortVisitorContext
@@ -32,7 +32,7 @@ public abstract class SortProviderExtensions<TContext>
         Complete(context);
     }
 
-    protected override SortProviderConfiguration<TContext> CreateConfiguration(IConventionContext context)
+    protected override SortProviderConfiguration CreateConfiguration(IConventionContext context)
     {
         if (_configure is null)
         {
@@ -60,14 +60,14 @@ public abstract class SortProviderExtensions<TContext>
         // Provider extensions should be applied by default before the default handlers, as
         // the interceptor picks up the first handler. A provider extension should add more
         // specific handlers than the default providers
-        for (var i = Configuration.HandlerFactories.Count - 1; i >= 0; i--)
+        for (var i = Configuration.FieldHandlerConfigurations.Count - 1; i >= 0; i--)
         {
-            target.HandlerFactories.Insert(0, Configuration.HandlerFactories[i]);
+            target.FieldHandlerConfigurations.Insert(0, Configuration.FieldHandlerConfigurations[i]);
         }
 
-        for (var i = Configuration.OperationHandlerFactories.Count - 1; i >= 0; i--)
+        for (var i = Configuration.OperationHandlerConfigurations.Count - 1; i >= 0; i--)
         {
-            target.OperationHandlerFactories.Insert(0, Configuration.OperationHandlerFactories[i]);
+            target.OperationHandlerConfigurations.Insert(0, Configuration.OperationHandlerConfigurations[i]);
         }
     }
 }
