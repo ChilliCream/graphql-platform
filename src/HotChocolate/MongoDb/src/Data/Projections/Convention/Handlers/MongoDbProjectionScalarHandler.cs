@@ -28,4 +28,6 @@ public class MongoDbProjectionScalarHandler
         action = SelectionVisitor.SkipAndLeave;
         return true;
     }
+
+    public static MongoDbProjectionScalarHandler Create(ProjectionProviderContext context) => new();
 }

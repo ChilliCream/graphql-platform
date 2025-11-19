@@ -31,6 +31,9 @@ public class MartenQueryableComparableNotInHandler : QueryableComparableOperatio
     /// </summary>
     protected override int Operation => DefaultFilterOperations.NotIn;
 
+    public static MartenQueryableComparableNotInHandler Create(FilterProviderContext context)
+        => new(context.TypeConverter, context.InputParser);
+
     /// <inheritdoc cref="QueryableOperationHandlerBase"/>
     public override Expression HandleOperation(
         QueryableFilterContext context,

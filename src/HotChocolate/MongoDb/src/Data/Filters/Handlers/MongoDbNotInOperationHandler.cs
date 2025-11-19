@@ -17,6 +17,9 @@ public class MongoDbNotInOperationHandler
     {
     }
 
+    public static MongoDbNotInOperationHandler Create(FilterProviderContext context)
+        => new(context.InputParser);
+
     /// <inheritdoc />
     public override bool CanHandle(
         ITypeCompletionContext context,

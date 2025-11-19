@@ -154,6 +154,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 // we register the multiplexer on the application services
                 .AddSingleton(_multiplexer)
                 .AddGraphQL()
+                .AddApplicationService<IConnectionMultiplexer>()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 // and in the redis storage setup refer to that instance.
                 .AddRedisOperationDocumentStorage(sp => sp.GetRequiredService<IConnectionMultiplexer>())

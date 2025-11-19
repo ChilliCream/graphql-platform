@@ -30,8 +30,7 @@ public static partial class RequestExecutorBuilderExtensions
         ArgumentNullException.ThrowIfNull(factory);
 
         return builder.ConfigureSchemaServices(
-            s => s.AddSingleton<IErrorFilter, T>(
-                sp => factory(sp.GetCombinedServices())));
+            s => s.AddSingleton<IErrorFilter, T>(factory));
     }
 
     public static IRequestExecutorBuilder AddErrorFilter<T>(
@@ -42,8 +41,7 @@ public static partial class RequestExecutorBuilderExtensions
 
         builder.Services.TryAddSingleton<T>();
         return builder.ConfigureSchemaServices(
-            s => s.AddSingleton<IErrorFilter, T>(
-                sp => sp.GetRootServiceProvider().GetRequiredService<T>()));
+            s => s.AddSingleton<IErrorFilter, T>());
     }
 
     public static IServiceCollection AddErrorFilter(

@@ -28,10 +28,10 @@ public static class MongoDbProjectionProviderDescriptorExtensions
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
-        descriptor.RegisterFieldHandler<MongoDbProjectionScalarHandler>();
-        descriptor.RegisterFieldHandler<MongoDbProjectionFieldHandler>();
-        descriptor.RegisterOptimizer<QueryablePagingProjectionOptimizer>();
-        descriptor.RegisterOptimizer<IsProjectedProjectionOptimizer>();
+        descriptor.RegisterFieldHandler(MongoDbProjectionScalarHandler.Create);
+        descriptor.RegisterFieldHandler(MongoDbProjectionFieldHandler.Create);
+        descriptor.RegisterOptimizer(QueryablePagingProjectionOptimizer.Create);
+        descriptor.RegisterOptimizer(IsProjectedProjectionOptimizer.Create);
         return descriptor;
     }
 }

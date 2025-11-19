@@ -10,4 +10,6 @@ public class MatchAnyQueryableFieldHandler
         ITypeCompletionContext context,
         ISortInputTypeConfiguration typeConfiguration,
         ISortFieldConfiguration fieldConfiguration) => true;
+
+    public static MatchAnyQueryableFieldHandler Create(SortProviderContext context) => new();
 }

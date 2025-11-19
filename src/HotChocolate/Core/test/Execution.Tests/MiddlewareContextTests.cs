@@ -113,7 +113,9 @@ public class MiddlewareContextTests
     public async Task CustomServiceProvider()
     {
         // arrange
-        var services = new DictionaryServiceProvider(typeof(string), "hello");
+        var services = new ServiceCollection()
+            .AddSingleton(typeof(string), "hello")
+            .BuildServiceProvider();
 
         // assert
         var result =

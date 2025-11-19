@@ -21,4 +21,6 @@ public class QueryableStringNotEqualsHandler : QueryableStringOperationHandler
         var property = context.GetInstance();
         return FilterExpressionBuilder.NotEquals(property, parsedValue);
     }
+
+    public static QueryableStringNotEqualsHandler Create(FilterProviderContext context) => new(context.InputParser);
 }

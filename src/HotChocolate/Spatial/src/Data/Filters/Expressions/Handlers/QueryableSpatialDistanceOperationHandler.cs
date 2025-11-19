@@ -48,4 +48,7 @@ public class QueryableSpatialDistanceOperationHandler
         result = null;
         return false;
     }
+
+    public static QueryableSpatialDistanceOperationHandler Create(FilterProviderContext context) =>
+        new(context.FilterConvention, context.TypeInspector, context.InputParser);
 }

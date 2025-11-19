@@ -24,8 +24,7 @@ public static partial class RequestExecutorBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
 
         builder.ConfigureSchemaServices(
-            sc => sc.AddSingleton<IOperationCompilerOptimizer>(
-                sp => factory(sp.GetCombinedServices())));
+            sc => sc.AddSingleton<IOperationCompilerOptimizer>(factory));
         return builder;
     }
 }

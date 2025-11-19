@@ -8,4 +8,6 @@ public class QueryableSingleOrDefaultInterceptor
         : base(SelectionFlags.SingleOrDefault, 2)
     {
     }
+
+    public static QueryableSingleOrDefaultInterceptor Create(ProjectionProviderContext context) => new();
 }
