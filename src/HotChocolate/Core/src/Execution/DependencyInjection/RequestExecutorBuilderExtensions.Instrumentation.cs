@@ -32,14 +32,22 @@ public static partial class RequestExecutorBuilderExtensions
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
-            builder.ConfigureSchemaServices(static s =>
-            {
-                var attribute = typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
-                var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
+            var attribute = (DiagnosticEventSourceAttribute)typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
+            var listener = attribute.Listener;
 
-                s.TryAddSingleton<T>();
-                s.AddSingleton(listener, sp => sp.GetRequiredService<T>());
-            });
+            if (attribute.IsSchemaService)
+            {
+                builder.ConfigureSchemaServices(s =>
+                {
+                    s.TryAddSingleton<T>();
+                    s.AddSingleton(listener, sp => sp.GetRequiredService<T>());
+                });
+            }
+            else
+            {
+                builder.Services.TryAddSingleton<T>();
+                builder.Services.AddSingleton(listener, sp => sp.GetRequiredService<T>());
+            }
         }
         else
         {
@@ -69,13 +77,17 @@ public static partial class RequestExecutorBuilderExtensions
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
-            builder.ConfigureSchemaServices(s =>
-            {
-                var attribute = typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
-                var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
+            var attribute = (DiagnosticEventSourceAttribute)typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
+            var listener = attribute.Listener;
 
-                s.AddSingleton(listener, factory);
-            });
+            if (attribute.IsSchemaService)
+            {
+                builder.ConfigureSchemaServices(s => s.AddSingleton(listener, factory));
+            }
+            else
+            {
+                builder.Services.AddSingleton(listener, factory);
+            }
         }
         else
         {
