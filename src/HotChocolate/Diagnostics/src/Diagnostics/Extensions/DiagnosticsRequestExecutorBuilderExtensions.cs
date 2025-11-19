@@ -48,7 +48,6 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(options);
 
-        // TODO: This must be scoped globally because of DataLoader
         builder.Services.TryAddSingleton(sp =>
         {
             var optionInst = new InstrumentationOptions();

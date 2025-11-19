@@ -224,7 +224,6 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    // TODO: Should this be just SetServices?
     public ISchemaBuilder AddServices(IServiceProvider services)
     {
         ArgumentNullException.ThrowIfNull(services);

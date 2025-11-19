@@ -15,6 +15,8 @@ public readonly struct SortOperationHandlerConfiguration
         _factory = factory;
     }
 
+    public ISortOperationHandler? Instance => _instance;
+
     public ISortOperationHandler<TContext> Create<TContext>(SortProviderContext context)
         where TContext : ISortVisitorContext
     {

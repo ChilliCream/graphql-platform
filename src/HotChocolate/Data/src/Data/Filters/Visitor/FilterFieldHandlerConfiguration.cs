@@ -15,6 +15,8 @@ public readonly struct FilterFieldHandlerConfiguration
         _factory = factory;
     }
 
+    public IFilterFieldHandler? Instance => _instance;
+
     public IFilterFieldHandler<TContext> Create<TContext>(FilterProviderContext context)
         where TContext : IFilterVisitorContext
     {
