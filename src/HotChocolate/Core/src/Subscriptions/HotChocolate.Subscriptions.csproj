@@ -7,6 +7,10 @@
     <Description>Contains Hot Chocolate GraphQL subscriptions abstractions.</Description>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Subscriptions.Tests" />
   </ItemGroup>

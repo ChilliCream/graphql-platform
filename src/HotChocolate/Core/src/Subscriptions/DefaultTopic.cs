@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
@@ -331,6 +332,8 @@ public abstract class DefaultTopic<TMessage> : ITopic
     /// <param name="serializedMessage">
     /// The serialized message.
     /// </param>
+    [RequiresUnreferencedCode("Message deserialization might require types that cannot be statically analyzed.")]
+    [RequiresDynamicCode("Message deserialization might require types that cannot be statically analyzed and might need runtime code generation.")]
     protected void DispatchMessage(IMessageSerializer serializer, string? serializedMessage)
     {
         // we ensure that if there is noise on the channel we filter it out.
@@ -352,6 +355,8 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
     }
 
+    [RequiresUnreferencedCode("Message deserialization might require types that cannot be statically analyzed.")]
+    [RequiresDynamicCode("Message deserialization might require types that cannot be statically analyzed and might need runtime code generation.")]
     private MessageEnvelope<TMessage> DeserializeMessage(IMessageSerializer serializer, string serializedMessage)
     {
         try
