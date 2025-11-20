@@ -7,10 +7,6 @@
     <Description>Contains internal helper classes for Microsoft's dependency injection used by the Hot Chocolate GraphQL type system and the GraphQL query execution engine.</Description>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <IsAotCompatible>true</IsAotCompatible>
-  </PropertyGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
     <InternalsVisibleTo Include="HotChocolate.Execution" />

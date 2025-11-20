@@ -12,7 +12,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <IsAotCompatible>true</IsAotCompatible>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
