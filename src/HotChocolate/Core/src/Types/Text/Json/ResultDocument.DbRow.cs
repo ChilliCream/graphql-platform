@@ -2,9 +2,9 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace HotChocolate.Fusion.Text.Json;
+namespace HotChocolate.Text.Json;
 
-public sealed partial class CompositeResultDocument
+public sealed partial class ResultDocument
 {
     [StructLayout(LayoutKind.Sequential)]
     internal readonly struct DbRow
@@ -74,10 +74,10 @@ public sealed partial class CompositeResultDocument
             => (OperationReferenceType)((_locationAndOpRefType >> 27) & 0x03);
 
         /// <summary>
-        /// Byte offset in source data OR metaDb row index for references
+        /// Byte offset in source data OR metaDb row index for references.
         /// </summary>
         /// <remarks>
-        /// 27 bits = 134M limit
+        /// 2 bits = 4 possible values
         /// </remarks>
         public int Location => _locationAndOpRefType & 0x07FFFFFF;
 
@@ -85,7 +85,7 @@ public sealed partial class CompositeResultDocument
         /// Length of data in JSON payload, number of elements if array or number of properties in an object.
         /// </summary>
         /// <remarks>
-        /// 31 bits = 2GB limit
+        /// 27 bits = 134M limit
         /// </remarks>
         public int SizeOrLength => _sizeOrLengthUnion & int.MaxValue;
 
@@ -108,14 +108,6 @@ public sealed partial class CompositeResultDocument
         public int NumberOfRows => _numberOfRowsTypeAndReserved & 0x07FFFFFF;
 
         /// <summary>
-        /// Which source JSON document contains the data.
-        /// </summary>
-        /// <remarks>
-        /// 15 bits = 32K documents
-        /// </remarks>
-        public int SourceDocumentId => _sourceAndParentHigh & 0x7FFF;
-
-        /// <summary>
         /// Index of parent element in metadb for navigation and null propagation.
         /// </summary>
         /// <remarks>
@@ -126,10 +118,8 @@ public sealed partial class CompositeResultDocument
 
         /// <summary>
         /// Reference to GraphQL selection set or selection metadata.
-        /// </summary>
-        /// <remarks>
         /// 15 bits = 32K selections
-        /// </remarks>
+        /// </summary>
         public int OperationReferenceId => _selectionSetFlagsAndParentLow & 0x7FFF;
 
         /// <summary>

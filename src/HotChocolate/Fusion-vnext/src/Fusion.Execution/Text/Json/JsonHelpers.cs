@@ -1,6 +1,10 @@
 using System.Runtime.CompilerServices;
 
+#if Fusion
 namespace HotChocolate.Fusion.Text.Json;
+#else
+namespace HotChocolate.Text.Json;
+#endif
 
 internal static class JsonHelpers
 {
