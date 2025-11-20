@@ -1,0 +1,267 @@
+title: Fetch_OneOf_Lookup_With_Id
+request:
+  document: |
+    {
+      books {
+        author {
+          id
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "books": [
+          {
+            "author": {
+              "id": 1,
+              "name": "Jon Skeet"
+            }
+          },
+          {
+            "author": {
+              "id": 2,
+              "name": "JRR Tolkien"
+            }
+          },
+          {
+            "author": {
+              "id": 2,
+              "name": "JRR Tolkien"
+            }
+          },
+          {
+            "author": {
+              "id": 2,
+              "name": "JRR Tolkien"
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author @key(fields: "id") {
+        id: Int!
+      }
+
+      type Book {
+        id: Int!
+        title: String!
+        author: Author! @shareable
+      }
+
+      type Query {
+        books: [Book!]!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_fb4f667e_1 {
+              books {
+                author {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "books": [
+                    {
+                      "author": {
+                        "id": 1
+                      }
+                    },
+                    {
+                      "author": {
+                        "id": 2
+                      }
+                    },
+                    {
+                      "author": {
+                        "id": 2
+                      }
+                    },
+                    {
+                      "author": {
+                        "id": 2
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: Int!
+        name: String!
+      }
+
+      type InternalLookups @internal {
+        author(by: AuthorByInput! @is(field: "{\n  id\n} | {\n  name\n}")): Author! @lookup @internal
+      }
+
+      type Query {
+        lookups: InternalLookups! @internal
+      }
+
+      input AuthorByInput @oneOf {
+        id: Int
+        name: String
+      }
+
+      "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
+      directive @oneOf on INPUT_OBJECT
+    interactions:
+      - request:
+          document: |
+            query Op_fb4f667e_2(
+              $__fusion_1_by: AuthorByInput!
+            ) {
+              lookups {
+                author(by: $__fusion_1_by) {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_by": {
+                  "id": 1
+                }
+              },
+              {
+                "__fusion_1_by": {
+                  "id": 2
+                }
+              },
+              {
+                "__fusion_1_by": {
+                  "id": 2
+                }
+              },
+              {
+                "__fusion_1_by": {
+                  "id": 2
+                }
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "lookups": {
+                    "author": {
+                      "name": "Jon Skeet"
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "lookups": {
+                    "author": {
+                      "name": "JRR Tolkien"
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "lookups": {
+                    "author": {
+                      "name": "JRR Tolkien"
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "lookups": {
+                    "author": {
+                      "name": "JRR Tolkien"
+                    }
+                  }
+                }
+              }
+  - name: c
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        name: String! @shareable
+      }
+
+      type Query {
+        topAuthor: Author!
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          books {
+            author {
+              id
+              id @fusion__requirement
+              name
+            }
+          }
+        }
+      hash: fb4f667e3d4167a23589ae9f3b3f9182
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_fb4f667e_1 {
+          books {
+            author {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: b
+      operation: |
+        query Op_fb4f667e_2(
+          $__fusion_1_by: AuthorByInput!
+        ) {
+          lookups {
+            author(by: $__fusion_1_by) {
+              name
+            }
+          }
+        }
+      source: $.lookups.author
+      target: $.books.author
+      requirements:
+        - name: __fusion_1_by
+          selectionMap: >-
+            {
+              id
+            }
+      dependencies:
+        - id: 1
