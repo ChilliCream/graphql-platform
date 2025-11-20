@@ -1,4 +1,4 @@
-#if Fusion
+#if FUSION
 namespace HotChocolate.Fusion.Text.Json;
 #else
 namespace HotChocolate.Text.Json;

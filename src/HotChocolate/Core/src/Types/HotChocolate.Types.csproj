@@ -67,7 +67,7 @@
     <ProjectReference Include="..\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
     <ProjectReference Include="..\Types.Shared\HotChocolate.Types.Shared.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonConstants.cs">
       <Link>Text\Json\JsonConstants.cs</Link>
@@ -77,8 +77,8 @@
       <Link>Text\Json\JsonHelpers.cs</Link>
     </Compile>
 
-    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonConstants.cs">
-      <Link>Text\Json\JsonConstants.cs</Link>
+    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\MetaDbEventSource.cs">
+      <Link>Text\Json\MetaDbEventSource.cs</Link>
     </Compile>
 
     <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonConstants.cs">
