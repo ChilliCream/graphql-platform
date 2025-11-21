@@ -123,6 +123,25 @@ type ProductType {
   products: [Product!]!
 }
 
+"A connection to a list of items."
+type ProductTypeConnection @shareable {
+  "A list of edges."
+  edges: [ProductTypeEdge!]
+  "A flattened list of the nodes"
+  nodes: [ProductType!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
+}
+
+type ProductTypeEdge @shareable {
+  "The item at the end of the edge."
+  node: ProductType!
+  "A cursor for use in pagination."
+  cursor: String!
+}
+
 type Query {
   "Fetches an object given its ID."
   node("ID of the object." id: ID!): Node @lookup @shareable @cost(weight: "10")
@@ -134,6 +153,7 @@ type Query {
   products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   productById(id: ID!): Product @lookup @internal @cost(weight: "10")
   productsNonRelative("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  productTypes("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductTypeFilterInput @cost(weight: "10") order: [ProductTypeSortInput!] @cost(weight: "10")): ProductTypeConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   singleProperties: [SingleProperty!]! @cost(weight: "10")
 }
 
@@ -226,6 +246,11 @@ input ProductTypeFilterInput {
   products: ListFilterInputTypeOfProductFilterInput
 }
 
+input ProductTypeSortInput {
+  id: SortEnumType @cost(weight: "10")
+  name: SortEnumType @cost(weight: "10")
+}
+
 input StringOperationFilterInput {
   and: [StringOperationFilterInput!]
   or: [StringOperationFilterInput!]
@@ -278,8 +303,8 @@ composite schema.
 
 
 type User @internal {
-  id: ID!
-  name: String!
+id: ID!
+name: String!
 }
 
 directive @internal on OBJECT | FIELD_DEFINITION
