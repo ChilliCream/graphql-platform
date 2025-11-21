@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Reactive.Linq;
 using HotChocolate.Adapters.Mcp.Diagnostics;
@@ -5,8 +6,7 @@ using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
-using ModelContextProtocol;
-using ModelContextProtocol.AspNetCore;
+using ModelContextProtocol.Server;
 using static ModelContextProtocol.Protocol.NotificationMethods;
 
 namespace HotChocolate.Adapters.Mcp;
@@ -19,7 +19,7 @@ internal sealed class ToolStorageObserver : IDisposable
     private readonly ISchemaDefinition _schema;
     private readonly ToolRegistry _registry;
     private readonly OperationToolFactory _toolFactory;
-    private readonly StreamableHttpHandler _httpHandler;
+    private readonly ConcurrentDictionary<string, McpServer> _mcpServers;
     private readonly IOperationToolStorage _storage;
     private readonly IMcpDiagnosticEvents _diagnosticEvents;
     private IDisposable? _subscription;
@@ -36,16 +36,16 @@ internal sealed class ToolStorageObserver : IDisposable
         ISchemaDefinition schema,
         ToolRegistry registry,
         OperationToolFactory toolFactory,
-        StreamableHttpHandler httpHandler,
+        ConcurrentDictionary<string, McpServer> mcpServers,
         IOperationToolStorage storage,
         IMcpDiagnosticEvents diagnosticEvents)
     {
         _schema = schema;
         _registry = registry;
         _toolFactory = toolFactory;
+        _mcpServers = mcpServers;
         _storage = storage;
         _diagnosticEvents = diagnosticEvents;
-        _httpHandler = httpHandler;
         _ct = _cts.Token;
     }
 
@@ -137,9 +137,9 @@ internal sealed class ToolStorageObserver : IDisposable
             _semaphore.Release();
         }
 
-        foreach (var session in _httpHandler.Sessions.Values)
+        foreach (var mcpServer in _mcpServers.Values)
         {
-            session.Server?.SendNotificationAsync(ToolListChangedNotification, cancellationToken: _ct).FireAndForget();
+            mcpServer.SendNotificationAsync(ToolListChangedNotification, cancellationToken: _ct).FireAndForget();
         }
     }
 

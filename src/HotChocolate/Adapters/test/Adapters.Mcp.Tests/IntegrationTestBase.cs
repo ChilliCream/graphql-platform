@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
@@ -11,7 +12,6 @@ using HotChocolate.Types;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using ModelContextProtocol.AspNetCore;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -513,8 +513,8 @@ public abstract class IntegrationTestBase
                 configureMcpServerOptions: o => o.InitializationTimeout = TimeSpan.FromSeconds(10));
         await CreateMcpClientAsync(server.CreateClient());
         var executor = await server.Services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
-        var handler = executor.Schema.Services.GetRequiredService<StreamableHttpHandler>();
-        var options = handler.Sessions.Values.First().Server!.ServerOptions;
+        var mcpServers = executor.Schema.Services.GetRequiredService<ConcurrentDictionary<string, McpServer>>();
+        var options = mcpServers.Values.First().ServerOptions;
 
         // assert
         Assert.Equal(TimeSpan.FromSeconds(10), options.InitializationTimeout);
@@ -527,14 +527,14 @@ public abstract class IntegrationTestBase
         Action<McpServerOptions>? configureMcpServerOptions = null,
         Action<IMcpServerBuilder>? configureMcpServer = null);
 
-    protected static async Task<IMcpClient> CreateMcpClientAsync(
+    protected static async Task<McpClient> CreateMcpClientAsync(
         HttpClient httpClient,
         string? token = null)
     {
         return
-            await McpClientFactory.CreateAsync(
-                new SseClientTransport(
-                    new SseClientTransportOptions
+            await McpClient.CreateAsync(
+                new HttpClientTransport(
+                    new HttpClientTransportOptions
                     {
                         Endpoint = new Uri(httpClient.BaseAddress!, "/graphql/mcp"),
                         AdditionalHeaders = new Dictionary<string, string>()
