@@ -69,6 +69,40 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonConstants.cs">
+      <Link>Text\Json\JsonConstants.cs</Link>
+    </Compile>
+
+    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonHelpers.cs">
+      <Link>Text\Json\JsonHelpers.cs</Link>
+    </Compile>
+
+    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\MetaDbEventSource.cs">
+      <Link>Text\Json\MetaDbEventSource.cs</Link>
+    </Compile>
+
+    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonConstants.cs">
+      <Link>Text\Json\JsonConstants.cs</Link>
+    </Compile>
+
+    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonConstants.cs">
+      <Link>Text\Json\JsonConstants.cs</Link>
+    </Compile>
+
+    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonConstants.cs">
+      <Link>Text\Json\JsonConstants.cs</Link>
+    </Compile>
+
+    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonConstants.cs">
+      <Link>Text\Json\JsonConstants.cs</Link>
+    </Compile>
+
+    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonConstants.cs">
+      <Link>Text\Json\JsonConstants.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Types\ObjectType.Initialization.cs">
       <DependentUpon>ObjectType.cs</DependentUpon>
     </Compile>
@@ -150,6 +184,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TypeResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Text\" />
   </ItemGroup>
 
 </Project>
