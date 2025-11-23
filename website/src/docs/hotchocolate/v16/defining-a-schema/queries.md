@@ -2,7 +2,7 @@
 title: "Queries"
 ---
 
-The query type in GraphQL represents a read-only view of all of our entities and ways to retrieve them. A query type is required for every GraphQL server.
+The query type is one of the three GraphQL operation types and the only one that is required. In GraphQL, the query type is the entry point for fetching data from your server. Query fields are expected to perform side-effect free read operations.
 
 ```sdl
 type Query {
@@ -10,6 +10,8 @@ type Query {
   author(id: Int!): Author
 }
 ```
+
+> Fields in GraphQL are like methods in C# and can have arguments. The key difference is that fields always return a value, so there is no `void` in GraphQL.
 
 Clients can query one or more fields through the query type.
 
@@ -25,7 +27,9 @@ query {
 }
 ```
 
-Queries are expected to be side-effect free and are therefore parallelized by the execution engine.
+Since query fields are expected to be side‑effect free, the executor is allowed to parallelize and reorder their execution.
+
+> The term “query field” can be ambiguous in GraphQL. All fields in GraphQL are technically query fields, except for fields defined directly on the Mutation or Subscription operation types. This distinction is important because the executor may also parallelize and reorder nested fields as they are expected to be side‑effect free read operations.
 
 # Usage
 
@@ -35,6 +39,7 @@ A query type can be defined like the following.
 <Implementation>
 
 ```csharp
+[QueryType]
 public class Query
 {
     public Book GetBook()
@@ -94,10 +99,13 @@ builder.Services
 ```
 
 </Code>
-<Schema>
+</ExampleTabs>
+
+When using our source generator with the implementation-first approach, the query type must be decorated with the `[QueryType]` attribute.
 
 ```csharp
-public class Query
+[QueryType]
+public static partial class Query
 {
     public Book GetBook()
     {
@@ -106,30 +114,30 @@ public class Query
 }
 ```
 
-```csharp
-builder.Services
-    .AddGraphQLServer()
-    .AddDocumentFromString(@"
-        type Query {
-          book: Book
-        }
+> The query type can also be defined as a non-static class in which case the source generator also registers it as a singleton service on the service collection. Types cannot be registered as scoped services.
 
-        type Book {
-          title: String
-          author: String
-        }
-    ")
-    .BindRuntimeType<Query>()
-    .BindRuntimeType<Book>();
+When using the source generator, you can annotate multiple classes with the `[QueryType]` attribute. The source generator will merge all of these classes into a single GraphQL query type, since the GraphQL type system allows only a single query operation type in the GraphQL schema. This approach lets you structure semantic query classes in C#, grouping them by topic, entity, or any other organization that fits your domain.
+
+```csharp
+[QueryType]
+public static partial class BookQueries
+{
+    public Book GetBook()
+    {
+        return new Book { Title  = "C# in depth" };
+    }
+}
+
+[QueryType]
+public static partial class AuthorQueries
+{
+    public Author GetAuthor()
+    {
+        return new Author { Name = "Jon Skeet" };
+    }
+}
 ```
 
-</Schema>
-</ExampleTabs>
+These semantic operation types can also be split across multiple assemblies, when each of these assemblies uses the Hot Chocolate source generator.
 
-> Warning: Only **one** query type can be registered using `AddQueryType()`. If we want to split up our query type into multiple classes, we can do so using type extensions.
->
-> [Learn more about extending types](/docs/hotchocolate/v16/defining-a-schema/extending-types)
-
-A query type is just a regular object type, so everything that applies to an object type also applies to the query type (this is true for all root types).
-
-[Learn more about object types](/docs/hotchocolate/v16/defining-a-schema/object-types)
+While the GraphQL operation types have semantic importance in the schema, they are also standard GraphQL object types. You can [learn more about object types here.](/docs/hotchocolate/v16/defining-a-schema/object-types)
