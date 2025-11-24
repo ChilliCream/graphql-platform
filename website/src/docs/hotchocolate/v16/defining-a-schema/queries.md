@@ -101,7 +101,7 @@ builder.Services
 </Code>
 </ExampleTabs>
 
-When using our source generator with the implementation-first approach, the query type must be decorated with the `[QueryType]` attribute.
+When using our source generator with the implementation-first approach, the Query type must be decorated with the `[QueryType]` attribute.
 
 ```csharp
 [QueryType]
