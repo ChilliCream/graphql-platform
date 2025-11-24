@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -111,9 +112,6 @@ internal static partial class TestHelper
             // HotChocolate.Authorization
             MetadataReference.CreateFromFile(typeof(Authorization.AuthorizeAttribute).Assembly.Location)
         ];
-
-        // Compile errors are localized, so pin the culture since otherwise the snapshot comparison may fail
-        using var cultureScope = new UseSpecificCulture("en-US");
 
         // Create a Roslyn compilation for the syntax tree.
         var parseOptions = !enableInterceptors
@@ -319,22 +317,15 @@ internal static partial class TestHelper
     [GeneratedRegex("MiddlewareFactories([a-z0-9]{32})")]
     private static partial Regex MiddlewareFactoryHashRegex();
 
-    private sealed class UseSpecificCulture : IDisposable
+    internal static class ForceInvariantDefaultCultureModuleInitializer
     {
-        private readonly CultureInfo _previousCurrentCulture;
-        private readonly CultureInfo _previousCurrentUiCulture;
-        public UseSpecificCulture(string cultureName)
+        [ModuleInitializer]
+        internal static void Initialize()
         {
-            _previousCurrentCulture = CultureInfo.CurrentCulture;
-            _previousCurrentUiCulture = CultureInfo.CurrentUICulture;
-            var culture = CultureInfo.GetCultureInfo(cultureName);
-            CultureInfo.CurrentCulture = CultureInfo.CurrentUICulture = culture;
-        }
-
-        public void Dispose()
-        {
-            CultureInfo.CurrentCulture = _previousCurrentCulture;
-            CultureInfo.CurrentUICulture = _previousCurrentUiCulture;
+            // Compile errors are localized, so enforce a common default culture,
+            // since otherwise the snapshot comparison may fail
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
         }
     }
 }
