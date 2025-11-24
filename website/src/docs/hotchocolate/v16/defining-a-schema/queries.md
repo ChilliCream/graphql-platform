@@ -124,7 +124,7 @@ public static partial class BookQueries
 {
     public Book GetBook()
     {
-        return new Book { Title  = "C# in depth" };
+        return new Book { Title = "C# in depth" };
     }
 }
 
