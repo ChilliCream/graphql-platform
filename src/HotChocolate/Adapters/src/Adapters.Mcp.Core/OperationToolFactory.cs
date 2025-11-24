@@ -1,4 +1,6 @@
 using System.Collections.Frozen;
+using System.Text;
+using System.Text.Json.Nodes;
 using CaseConverter;
 using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
@@ -7,6 +9,7 @@ using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using Json.Schema;
 using ModelContextProtocol.Protocol;
+using static HotChocolate.Adapters.Mcp.Properties.McpAdapterResources;
 using static HotChocolate.Adapters.Mcp.WellKnownFieldNames;
 
 namespace HotChocolate.Adapters.Mcp;
@@ -22,6 +25,16 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
         var inputSchema = CreateInputSchema(operationNode);
         var outputSchema = CreateOutputSchema(CreateDataSchema(result.Properties, result.RequiredProperties));
 
+        JsonObject? meta = null;
+        Resource? openAiComponentResource = null;
+
+        if (toolDefinition.OpenAiComponent is { } openAiComponent)
+        {
+            meta = new JsonObject();
+            AddOpenAiComponentMetadata(meta, openAiComponent);
+            openAiComponentResource = CreateOpenAiComponentResource(openAiComponent);
+        }
+
         var tool = new Tool
         {
             Name = toolDefinition.Name,
@@ -35,10 +48,15 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
                 IdempotentHint = toolDefinition.IdempotentHint ?? result.IdempotentHint,
                 OpenWorldHint = toolDefinition.OpenWorldHint ?? result.OpenWorldHint,
                 ReadOnlyHint = operationNode.Operation is not OperationType.Mutation
-            }
+            },
+            Meta = meta
         };
 
-        return new OperationTool(toolDefinition.Document, tool);
+        return new OperationTool(toolDefinition.Document, tool)
+        {
+            OpenAiComponentResource = openAiComponentResource,
+            OpenAiComponentHtml = toolDefinition.OpenAiComponent?.HtmlTemplateText
+        };
     }
 
     private JsonSchema CreateInputSchema(OperationDefinitionNode operation)
@@ -103,6 +121,85 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
                 .Properties(properties)
                 .AdditionalProperties(false)
                 .Required(requiredProperties);
+    }
+
+    private static void AddOpenAiComponentMetadata(JsonObject meta, OpenAiComponent openAiComponent)
+    {
+        meta.Add("openai/outputTemplate", openAiComponent.OutputTemplate);
+
+        if (openAiComponent.AllowToolCalls)
+        {
+            meta.Add("openai/widgetAccessible", openAiComponent.AllowToolCalls);
+        }
+
+        if (openAiComponent.ToolInvokingStatusText is not null)
+        {
+            meta.Add("openai/toolInvocation/invoking", openAiComponent.ToolInvokingStatusText);
+        }
+
+        if (openAiComponent.ToolInvokedStatusText is not null)
+        {
+            meta.Add("openai/toolInvocation/invoked", openAiComponent.ToolInvokedStatusText);
+        }
+    }
+
+    private static Resource CreateOpenAiComponentResource(OpenAiComponent openAiComponent)
+    {
+        JsonObject? meta = null;
+
+        if (openAiComponent.Description is not null)
+        {
+            meta ??= new JsonObject();
+            meta["openai/widgetDescription"] = openAiComponent.Description;
+        }
+
+        if (openAiComponent.PrefersBorder is not null)
+        {
+            meta ??= new JsonObject();
+            meta["openai/widgetPrefersBorder"] = openAiComponent.PrefersBorder;
+        }
+
+        if (openAiComponent.ContentSecurityPolicy is { } contentSecurityPolicy)
+        {
+            JsonObject? csp = null;
+
+            if (contentSecurityPolicy.ConnectDomains is { Length: > 0 } connectDomains)
+            {
+                csp ??= new JsonObject();
+                csp.Add(
+                    "connect_domains",
+                    new JsonArray(connectDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
+            }
+
+            if (contentSecurityPolicy.ResourceDomains is { Length: > 0 } resourceDomains)
+            {
+                csp ??= new JsonObject();
+                csp.Add(
+                    "resource_domains",
+                    new JsonArray(resourceDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
+            }
+
+            if (csp is not null)
+            {
+                meta ??= new JsonObject();
+                meta.Add("openai/widgetCSP", csp);
+            }
+        }
+
+        if (openAiComponent.Domain is not null)
+        {
+            meta ??= new JsonObject();
+            meta.Add("openai/widgetDomain", openAiComponent.Domain);
+        }
+
+        return new Resource
+        {
+            Name = string.Format(OperationToolFactory_OpenAiComponentResourceName, openAiComponent.Name),
+            Uri = openAiComponent.OutputTemplate,
+            MimeType = "text/html+skybridge",
+            Size = Encoding.UTF8.GetByteCount(openAiComponent.HtmlTemplateText),
+            Meta = meta
+        };
     }
 
     private static readonly JsonSchema s_integerSchema =

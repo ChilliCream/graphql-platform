@@ -29,7 +29,7 @@
   <ItemGroup>
     <EmbeddedResource Update="Properties\McpAdapterResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ModelContextProtocolResources.Designer.cs</LastGenOutput>
+      <LastGenOutput>McpAdapterResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 
@@ -37,7 +37,7 @@
     <Compile Update="Properties\McpAdapterResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>ModelContextProtocolResources.resx</DependentUpon>
+      <DependentUpon>McpAdapterResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 
