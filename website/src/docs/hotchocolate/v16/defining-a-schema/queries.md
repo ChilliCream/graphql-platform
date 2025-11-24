@@ -140,4 +140,4 @@ public static partial class AuthorQueries
 
 These semantic operation types can also be split across multiple assemblies, when each of these assemblies uses the Hot Chocolate source generator.
 
-While the GraphQL operation types have semantic importance in the schema, they are also standard GraphQL object types. You can [learn more about object types here.](/docs/hotchocolate/v16/defining-a-schema/object-types)
+While the GraphQL operation types have semantic importance in the schema, they are also standard GraphQL Object types. You can [learn more about Object types here.](/docs/hotchocolate/v16/defining-a-schema/object-types)
