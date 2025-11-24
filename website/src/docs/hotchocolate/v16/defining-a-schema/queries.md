@@ -114,7 +114,7 @@ public static partial class Query
 }
 ```
 
-> The query type can also be defined as a non-static class in which case the source generator also registers it as a singleton service on the service collection. Types cannot be registered as scoped services.
+> The Query type can also be defined as a non-static class, in which case the source generator also registers it as a singleton service on the service collection. Types cannot be registered as scoped services.
 
 When using the source generator, you can annotate multiple classes with the `[QueryType]` attribute. The source generator will merge all of these classes into a single GraphQL query type, since the GraphQL type system allows only a single query operation type in the GraphQL schema. This approach lets you structure semantic query classes in C#, grouping them by topic, entity, or any other organization that fits your domain.
 
