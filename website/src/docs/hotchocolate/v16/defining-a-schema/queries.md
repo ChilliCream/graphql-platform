@@ -27,7 +27,7 @@ query {
 }
 ```
 
-Since query fields are expected to be side‑effect free, the executor is allowed to parallelize and reorder their execution.
+Since query fields are expected to be side‑effect-free, the executor is allowed to parallelize and reorder their execution.
 
 > The term “query field” can be ambiguous in GraphQL. All fields in GraphQL are technically query fields, except for fields defined directly on the Mutation or Subscription operation types. This distinction is important because the executor may also parallelize and reorder nested fields as they are expected to be side‑effect free read operations.
 
