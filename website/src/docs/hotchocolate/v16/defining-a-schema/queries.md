@@ -2,7 +2,7 @@
 title: "Queries"
 ---
 
-The query type is one of the three GraphQL operation types and the only one that is required. In GraphQL, the query type is the entry point for fetching data from your server. Query fields are expected to perform side-effect free read operations.
+The Query type is one of the three GraphQL operation types and the only one that is required. In GraphQL, the Query type is the entry point for fetching data from your server. Query fields are expected to perform side-effect-free read operations.
 
 ```sdl
 type Query {
