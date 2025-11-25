@@ -27,7 +27,7 @@ internal sealed class SourceSchemaMerger
 {
     private static readonly FusionFieldDefinitionSyntaxRewriter s_fieldDefinitionRewriter = new();
     private readonly ImmutableSortedSet<MutableSchemaDefinition> _schemas;
-    private readonly FrozenDictionary<MutableSchemaDefinition, string> _schemaConstantNames;
+    private readonly FrozenDictionary<string, string> _schemaConstantNames;
     private readonly SourceSchemaMergerOptions _options;
     private readonly FrozenDictionary<string, ITypeDefinition> _fusionTypeDefinitions;
     private readonly FrozenDictionary<string, MutableDirectiveDefinition>
@@ -42,7 +42,7 @@ internal sealed class SourceSchemaMerger
         SourceSchemaMergerOptions? options = null)
     {
         _schemas = schemas;
-        _schemaConstantNames = schemas.ToFrozenDictionary(s => s, s => ToConstantCase(s.Name));
+        _schemaConstantNames = CreateSchemaConstantNames(schemas);
         _options = options ?? new SourceSchemaMergerOptions();
         _fusionTypeDefinitions = CreateFusionTypeDefinitions();
         _fusionDirectiveDefinitions = CreateFusionDirectiveDefinitions();
@@ -98,6 +98,30 @@ internal sealed class SourceSchemaMerger
         }
 
         return mergedSchema;
+    }
+
+    private static FrozenDictionary<string, string> CreateSchemaConstantNames(
+        ImmutableSortedSet<MutableSchemaDefinition> schemas)
+    {
+        var schemaConstantNames = new Dictionary<string, string>();
+        var counters = new Dictionary<string, int>();
+
+        foreach (var schema in schemas)
+        {
+            var constantName = ToConstantCase(schema.Name);
+
+            if (schemaConstantNames.ContainsValue(constantName))
+            {
+                var counterValue = counters.GetValueOrDefault(constantName, 0);
+                counters[constantName] = ++counterValue;
+
+                constantName += $"_{counterValue}";
+            }
+
+            schemaConstantNames[schema.Name] = constantName;
+        }
+
+        return schemaConstantNames.ToFrozenDictionary();
     }
 
     private void MergeDirectiveDefinitions(MutableSchemaDefinition mergedSchema)
@@ -187,7 +211,7 @@ internal sealed class SourceSchemaMerger
 
                 foreach (var (sourceField, sourcePath, sourceSchema) in lookupFieldGroup)
                 {
-                    var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema]);
+                    var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema.Name]);
 
                     var fieldArgument =
                         s_fieldDefinitionRewriter
@@ -1140,7 +1164,7 @@ internal sealed class SourceSchemaMerger
     {
         foreach (var (_, _, sourceSchema) in enumValueGroup)
         {
-            var schema = new EnumValueNode(_schemaConstantNames[sourceSchema]);
+            var schema = new EnumValueNode(_schemaConstantNames[sourceSchema.Name]);
 
             enumValue.Directives.Add(
                 new Directive(
@@ -1156,7 +1180,11 @@ internal sealed class SourceSchemaMerger
         foreach (var (sourceField, _, sourceSchema) in fieldGroup)
         {
             List<ArgumentAssignment> arguments =
-                [new(ArgumentNames.Schema, new EnumValueNode(_schemaConstantNames[sourceSchema]))];
+            [
+                new(
+                    ArgumentNames.Schema,
+                    new EnumValueNode(_schemaConstantNames[sourceSchema.Name]))
+            ];
 
             if (!sourceField.Type.Equals(field.Type, TypeComparison.Structural))
             {
@@ -1192,7 +1220,7 @@ internal sealed class SourceSchemaMerger
                     _fusionDirectiveDefinitions[DirectiveNames.FusionImplements],
                     new ArgumentAssignment(
                         ArgumentNames.Schema,
-                        new EnumValueNode(_schemaConstantNames[sourceSchema])),
+                        new EnumValueNode(_schemaConstantNames[sourceSchema.Name])),
                     new ArgumentAssignment(ArgumentNames.Interface, sourceInterface.Name)));
         }
     }
@@ -1204,7 +1232,11 @@ internal sealed class SourceSchemaMerger
         foreach (var (sourceArgument, _, _, sourceSchema) in argumentGroup)
         {
             List<ArgumentAssignment> arguments =
-                [new(ArgumentNames.Schema, new EnumValueNode(_schemaConstantNames[sourceSchema]))];
+            [
+                new(
+                    ArgumentNames.Schema,
+                    new EnumValueNode(_schemaConstantNames[sourceSchema.Name]))
+            ];
 
             if (!sourceArgument.Type.Equals(argument.Type, TypeComparison.Structural))
             {
@@ -1228,7 +1260,11 @@ internal sealed class SourceSchemaMerger
         foreach (var (sourceInputField, _, sourceSchema) in inputFieldGroup)
         {
             List<ArgumentAssignment> arguments =
-                [new(ArgumentNames.Schema, new EnumValueNode(_schemaConstantNames[sourceSchema]))];
+            [
+                new(
+                    ArgumentNames.Schema,
+                    new EnumValueNode(_schemaConstantNames[sourceSchema.Name]))
+            ];
 
             if (!sourceInputField.Type.Equals(inputField.Type, TypeComparison.Structural))
             {
@@ -1270,7 +1306,7 @@ internal sealed class SourceSchemaMerger
 
             if (map.Any(v => v is not null))
             {
-                var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema]);
+                var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema.Name]);
                 var requiresMap = map.Where(f => f is not null);
                 var selectedValues =
                     requiresMap.Select(a => new FieldSelectionMapParser(a).Parse());
@@ -1314,7 +1350,7 @@ internal sealed class SourceSchemaMerger
     {
         foreach (var (_, sourceSchema) in typeGroup)
         {
-            var schema = new EnumValueNode(_schemaConstantNames[sourceSchema]);
+            var schema = new EnumValueNode(_schemaConstantNames[sourceSchema.Name]);
 
             type.Directives.Add(
                 new Directive(
@@ -1329,7 +1365,7 @@ internal sealed class SourceSchemaMerger
     {
         foreach (var (sourceMemberType, _, sourceSchema) in unionMemberGroup)
         {
-            var schema = new EnumValueNode(_schemaConstantNames[sourceSchema]);
+            var schema = new EnumValueNode(_schemaConstantNames[sourceSchema.Name]);
 
             unionType.Directives.Add(
                 new Directive(
@@ -1363,7 +1399,7 @@ internal sealed class SourceSchemaMerger
             // Enum type definitions.
             {
                 TypeNames.FusionSchema,
-                new FusionSchemaMutableEnumTypeDefinition([.. _schemas.Select(s => s.Name)])
+                new FusionSchemaMutableEnumTypeDefinition(_schemaConstantNames)
             }
         }.ToFrozenDictionary();
     }
