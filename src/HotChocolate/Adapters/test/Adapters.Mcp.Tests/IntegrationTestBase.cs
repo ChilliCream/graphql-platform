@@ -671,9 +671,11 @@ public abstract class IntegrationTestBase
         async Task Action() => await mcpClient.ReadResourceAsync("ui://components/missing.html");
 
         // assert
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(Action);
+        Assert.Equal(-32002, (int)exception.ErrorCode);
         Assert.EndsWith(
             "The resource with URI 'ui://components/missing.html' was not found.",
-            (await Assert.ThrowsAsync<McpProtocolException>(Action)).Message);
+            exception.Message);
     }
 
     [Fact]
