@@ -56,7 +56,7 @@ public readonly ref struct TypeDiscoveryInfo
     public Type RuntimeType { get; }
 
     /// <summary>
-    /// The the type attribute if one was annotated to the <see cref="RuntimeType"/>.
+    /// The type attribute if one was annotated to the <see cref="RuntimeType"/>.
     /// </summary>
     public ITypeAttribute? Attribute { get; }
 

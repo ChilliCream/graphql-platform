@@ -33,6 +33,12 @@ response:
             },
             {
               "__typename": "__Directive"
+            },
+            {
+              "__typename": "__Directive"
+            },
+            {
+              "__typename": "__Directive"
             }
           ],
           "types": [
@@ -326,9 +332,6 @@ response:
             {
               "__typename": "__Type",
               "fields": [
-                {
-                  "__typename": "__Field"
-                },
                 {
                   "__typename": "__Field"
                 },

@@ -27,8 +27,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                     x.AddDefaults();
                     x.Provider(
                         new QueryableFilterProvider(
-                            p => p.AddFieldHandler<QueryableSimpleMethodTest>()
-                                .AddFieldHandler<QueryableComplexMethodTest>()
+                            p => p.AddFieldHandler(QueryableSimpleMethodTest.Create)
+                                .AddFieldHandler(QueryableComplexMethodTest.Create)
                                 .AddDefaultFieldHandlers()));
                 }));
 
@@ -57,8 +57,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
                     x.AddDefaults();
                     x.Provider(
                         new QueryableFilterProvider(
-                            p => p.AddFieldHandler<QueryableSimpleMethodTest>()
-                                .AddFieldHandler<QueryableComplexMethodTest>()
+                            p => p.AddFieldHandler(QueryableSimpleMethodTest.Create)
+                                .AddFieldHandler(QueryableComplexMethodTest.Create)
                                 .AddDefaultFieldHandlers()));
                 }));
 
@@ -125,6 +125,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
             action = SyntaxVisitor.Continue;
             return true;
         }
+
+        public new static QueryableSimpleMethodTest Create(FilterProviderContext context) => new(context.TypeInspector);
     }
 
     private sealed class QueryableComplexMethodTest : QueryableDefaultFieldHandler
@@ -205,6 +207,8 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
             action = null!;
             return false;
         }
+
+        public new static QueryableComplexMethodTest Create(FilterProviderContext context) => new(context.InputParser);
     }
 
     public class Foo

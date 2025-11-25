@@ -1,7 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -83,7 +82,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                 .AddInMemoryConfiguration(schemaDocument)
                 .UseDefaultPipeline()
                 .InsertUseRequest(
-                    before: nameof(OperationExecutionMiddleware),
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
                     (_, _) =>
                     {
                         return context =>
@@ -309,7 +308,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         cts.Dispose();
     }
 
-    [Fact(Skip = "SomeService needs to be registered with the schema services")]
+    [Fact]
     public async Task WarmupTask_Should_Be_Able_To_Access_Schema_And_Regular_Services()
     {
         // arrange
@@ -320,6 +319,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         services
             .AddGraphQLGateway()
             .AddInMemoryConfiguration(CreateConfiguration().Schema)
+            .AddApplicationService<SomeService>()
             .AddWarmupTask<CustomWarmupTask>();
         var provider = services.BuildServiceProvider();
         var manager = provider.GetRequiredService<FusionRequestExecutorManager>();

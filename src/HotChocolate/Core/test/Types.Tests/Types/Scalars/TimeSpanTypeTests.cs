@@ -311,7 +311,7 @@ public class TimeSpanTypeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
             descriptor.Extend().OnBeforeCreate(
                 d => d.Type = new SyntaxTypeReference(

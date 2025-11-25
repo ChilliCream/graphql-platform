@@ -48,9 +48,8 @@ internal static class LookupDirectiveParser
                 case "path":
                     if (argument.Value is StringValueNode pathValueNode)
                     {
-                        path = pathValueNode.Value.Trim().Split('.').ToImmutableArray();
+                        path = [.. pathValueNode.Value.Trim().Split('.')];
                     }
-
                     break;
 
                 case "internal":

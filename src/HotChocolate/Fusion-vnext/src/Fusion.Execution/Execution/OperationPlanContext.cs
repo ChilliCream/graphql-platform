@@ -17,7 +17,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
-// TODO : make poolable
 public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 {
     private static readonly JsonOperationPlanFormatter s_planFormatter = new();
@@ -262,7 +261,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal IOperationResult Complete()
+    internal IOperationResult Complete(bool reusable = false)
     {
         var environment = Schema.TryGetEnvironment();
 
@@ -279,7 +278,15 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
         var result = _resultStore.Result;
         var operationResult = new RawOperationResult(result, contextData: null);
-        operationResult.RegisterForCleanup(_resultStore.MemoryOwners);
+
+        // we take over the memory owners from the result context
+        // and store them on the response so that the server can
+        // dispose them when it disposes of the result itself.
+        while (_resultStore.MemoryOwners.TryPop(out var disposable))
+        {
+            operationResult.RegisterForCleanup(disposable);
+        }
+
         operationResult.Features.Set(OperationPlan);
 
         if (RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeOperationPlan))
@@ -287,6 +294,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             var writer = new PooledArrayWriter();
             s_planFormatter.Format(writer, OperationPlan, trace);
             var value = new RawJsonValue(writer.WrittenMemory);
+            result.Extensions ??= [];
             result.Extensions.Add("fusion", new Dictionary<string, object?> { { "operationPlan", value } });
             operationResult.RegisterForCleanup(writer);
         }
@@ -298,11 +306,15 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
         Debug.Assert(
             !result.Data.IsInvalidated
-                || (result.Errors.Count > 0),
+                || result.Errors?.Count > 0,
             "Expected to either valid data or errors");
 
-        _clientScope = RequestContext.CreateClientScope();
-        _resultStore.Reset();
+        // resets the store and client scope for another execution.
+        if (reusable)
+        {
+            _clientScope = RequestContext.CreateClientScope();
+            _resultStore.Reset();
+        }
 
         return operationResult;
     }
@@ -370,18 +382,5 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         public Uri? Uri { get; init; }
 
         public string? ContentType { get; init; }
-    }
-}
-
-file static class OperationPlanContextExtensions
-{
-    public static void RegisterForCleanup(
-        this RawOperationResult result,
-        ConcurrentStack<IDisposable> disposables)
-    {
-        while (disposables.TryPop(out var disposable))
-        {
-            result.RegisterForCleanup(disposable.Dispose);
-        }
     }
 }

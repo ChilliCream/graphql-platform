@@ -22,8 +22,8 @@ internal sealed class ExternalRequireCollisionRule : IEventHandler<OutputFieldEv
     {
         var (field, _, schema) = @event;
 
-        if (field.HasExternalDirective()
-            && field.Arguments.AsEnumerable().Any(a => a.HasRequireDirective()))
+        if (field.HasExternalDirective
+            && field.Arguments.AsEnumerable().Any(a => a.HasRequireDirective))
         {
             context.Log.Write(ExternalRequireCollision(field, schema));
         }

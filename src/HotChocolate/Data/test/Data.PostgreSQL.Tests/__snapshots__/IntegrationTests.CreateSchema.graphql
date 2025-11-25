@@ -13,20 +13,20 @@ type Brand implements Node {
   name: String!
 }
 
-type BrandConnection {
+type BrandConnection @shareable {
   edges: [BrandEdge!]!
   nodes: [Brand!]!
   pageInfo: ConnectionPageInfo!
   totalCount: Int! @cost(weight: "10")
 }
 
-type BrandEdge {
+type BrandEdge @shareable {
   node: Brand!
   cursor: String!
 }
 
 "A connection to a list of items."
-type BrandProductsConnection {
+type BrandProductsConnection @shareable {
   "A list of edges."
   edges: [BrandProductsEdge!]
   "A flattened list of the nodes"
@@ -37,7 +37,7 @@ type BrandProductsConnection {
   totalCount: Int! @cost(weight: "10")
 }
 
-type BrandProductsEdge {
+type BrandProductsEdge @shareable {
   "The item at the end of the edge."
   node: Product!
   "A cursor for use in pagination."
@@ -74,7 +74,7 @@ type PageCursor {
 }
 
 "Information about pagination in a connection."
-type PageInfo {
+type PageInfo @shareable {
   "Indicates whether more edges exist following the set defined by the clients arguments."
   hasNextPage: Boolean!
   "Indicates whether more edges exist prior the set defined by the clients arguments."
@@ -92,6 +92,7 @@ type PageInfo {
 type Product implements Node {
   id: ID!
   brand: Brand @cost(weight: "10")
+  brandName: String
   name: String!
   description: String
   price: Decimal!
@@ -100,28 +101,19 @@ type Product implements Node {
   availableStock: Int!
   restockThreshold: Int!
   maxStockThreshold: Int!
-  "True if item is on reorder"
   onReorder: Boolean!
 }
 
-"A connection to a list of items."
-type ProductConnection {
-  "A list of edges."
+type ProductConnection @shareable {
   edges: [ProductEdge!]
-  "A flattened list of the nodes."
   nodes: [Product!]
-  "Information to aid in pagination."
   pageInfo: ConnectionPageInfo!
-  "Identifies the total count of items in the connection."
   totalCount: Int! @cost(weight: "10")
   endCursors(count: Int!): [String!]!
 }
 
-"An edge in a connection."
-type ProductEdge {
-  "The item at the end of the edge."
+type ProductEdge @shareable {
   node: Product!
-  "A cursor for use in pagination."
   cursor: String!
 }
 
@@ -133,12 +125,14 @@ type ProductType {
 
 type Query {
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node @lookup @cost(weight: "10")
+  node("ID of the object." id: ID!): Node @lookup @shareable @cost(weight: "10")
   "Lookup nodes by a list of IDs."
-  nodes("The list of node IDs." ids: [ID!]!): [Node]! @cost(weight: "10")
+  nodes("The list of node IDs." ids: [ID!]!): [Node]! @shareable @cost(weight: "10")
   brands("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: BrandFilterInput @cost(weight: "10")): BrandConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
-  brandById(id: ID!): Brand @cost(weight: "10")
+  brandById(id: ID!): Brand @lookup @cost(weight: "10")
+  brandByIdWithDL(id: ID!): Brand @lookup @cost(weight: "10")
   products("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  productById(id: ID!): Product @lookup @internal @cost(weight: "10")
   productsNonRelative("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: ProductFilterInput @cost(weight: "10") order: [ProductSortInput!] @cost(weight: "10")): ProductConnection! @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   singleProperties: [SingleProperty!]! @cost(weight: "10")
 }
@@ -216,7 +210,6 @@ input ProductFilterInput {
   availableStock: IntOperationFilterInput
   restockThreshold: IntOperationFilterInput
   maxStockThreshold: IntOperationFilterInput
-  "True if item is on reorder"
   onReorder: BooleanOperationFilterInput
 }
 
@@ -248,6 +241,22 @@ input StringOperationFilterInput {
   nendsWith: String @cost(weight: "20")
 }
 
+"Defines the possible serialization types for GraphQL scalar values."
+enum ScalarSerializationType {
+  "The scalar serializes to a string value."
+  STRING
+  "The scalar serializes to a boolean value."
+  BOOLEAN
+  "The scalar serializes to an integer value."
+  INT
+  "The scalar serializes to a floating-point value."
+  FLOAT
+  "The scalar serializes to an object value."
+  OBJECT
+  "The scalar serializes to a list value."
+  LIST
+}
+
 enum SortEnumType {
   ASC
   DESC
@@ -256,8 +265,29 @@ enum SortEnumType {
 "The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
 directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
 
+"""
+The @internal directive is used in combination with lookup fields and allows you
+to declare internal types and fields. Internal types and fields do not appear in
+the final client-facing composite schema and do not participate in the standard
+schema-merging process. This allows a source schema to define lookup fields for
+resolving entities that should not be accessible through the client-facing
+composite schema.
+
+
+
+
+
+type User @internal {
+  id: ID!
+  name: String!
+}
+
+directive @internal on OBJECT | FIELD_DEFINITION
+"""
+directive @internal on OBJECT | FIELD_DEFINITION
+
 "The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information."
-directive @listSize("The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field." assumedSize: Int "The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments." slicingArguments: [String!] "The `slicingArgumentDefaultValue` argument can be used to define a default value for a slicing argument, which is used if the argument is not present in a query." slicingArgumentDefaultValue: Int "The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields." sizedFields: [String!] "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error." requireOneSlicingArgument: Boolean! = true) on FIELD_DEFINITION
+directive @listSize("The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field." assumedSize: Int "The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments." slicingArguments: [String!] "The `slicingArgumentDefaultValue` argument can be used to define a default value for a slicing argument, which is used if the argument is not present in a query." slicingArgumentDefaultValue: Int "The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields." sizedFields: [String!] "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error." requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION
 
 """
 The @lookup directive is used within a source schema to specify output fields
@@ -266,5 +296,25 @@ a stable key.
 """
 directive @lookup on FIELD_DEFINITION
 
+directive @serializeAs("The primitive type a scalar is serialized to." type: [ScalarSerializationType!]! "The ECMA-262 regex pattern that the serialized scalar value conforms to." pattern: String) on SCALAR
+
+"""
+By default, only a single source schema is allowed to contribute
+a particular field to an object type.
+
+
+This prevents source schemas from inadvertently defining similarly named
+fields that are not semantically equivalent.
+
+
+Fields must be explicitly marked as @shareable to allow multiple source
+schemas to define them, ensuring that the decision to serve a field from
+more than one source schema is intentional and coordinated.
+
+
+directive @shareable repeatable on OBJECT | FIELD_DEFINITION
+"""
+directive @shareable repeatable on OBJECT | FIELD_DEFINITION
+
 "The `Decimal` scalar type represents a decimal floating-point number."
-scalar Decimal
+scalar Decimal @serializeAs(type: FLOAT)

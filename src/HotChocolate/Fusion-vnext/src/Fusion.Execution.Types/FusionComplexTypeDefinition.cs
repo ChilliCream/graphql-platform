@@ -4,13 +4,14 @@ using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Types;
 
 /// <summary>
 /// Represents the base class for a GraphQL object type definition or an interface type definition.
 /// </summary>
-public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
+public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition, IFusionTypeDefinition
 {
     private FusionDirectiveCollection _directives = null!;
     private FusionInterfaceTypeDefinitionCollection _implements = null!;
@@ -19,23 +20,46 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
     protected FusionComplexTypeDefinition(
         string name,
         string? description,
+        bool isInaccessible,
         FusionOutputFieldDefinitionCollection fieldsDefinition)
     {
+        name.EnsureGraphQLName();
+        ArgumentNullException.ThrowIfNull(fieldsDefinition);
+
         Name = name;
         Description = description;
+        IsInaccessible = isInaccessible;
         Fields = fieldsDefinition;
     }
 
+    /// <summary>
+    /// Gets the kind of this type.
+    /// </summary>
     public abstract TypeKind Kind { get; }
 
-    public abstract bool IsEntity { get; }
-
+    /// <summary>
+    /// Gets the name of this type.
+    /// </summary>
     public string Name { get; }
 
+    /// <summary>
+    /// Gets the description of this type.
+    /// </summary>
     public string? Description { get; }
 
+    /// <summary>
+    /// Gets the schema coordinate of this type.
+    /// </summary>
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    /// <summary>
+    /// Gets a value indicating whether this type is marked as inaccessible.
+    /// </summary>
+    public bool IsInaccessible { get; }
+
+    /// <summary>
+    /// Gets the directives applied to this type.
+    /// </summary>
     public FusionDirectiveCollection Directives
     {
         get => _directives;
@@ -79,11 +103,10 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
         => Fields;
 
     /// <summary>
-    /// Gets the source type definition of this type.
+    /// Gets metadata about this complex type in its source schemas.
+    /// Each entry in the collection provides information about this complex type
+    /// that is specific to the source schemas the type was composed of.
     /// </summary>
-    /// <value>
-    /// The source type definition of this type.
-    /// </value>
     public ISourceComplexTypeCollection<ISourceComplexType> Sources
     {
         get;
@@ -95,6 +118,9 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
         }
     } = null!;
 
+    /// <summary>
+    /// Gets the feature collection associated with this type.
+    /// </summary>
     public IFeatureCollection Features
     {
         get;
@@ -138,7 +164,7 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition
     /// Gets the string representation of this instance.
     /// </summary>
     /// <returns>
-    ///  The string representation of this instance.
+    /// The string representation of this instance.
     /// </returns>
     public override string ToString()
         => ToSyntaxNode().ToString(true);

@@ -13,6 +13,9 @@ public class MongoDbListAllOperationHandler : MongoDbListOperationHandlerBase
     /// <inheritdoc />
     protected override int Operation => DefaultFilterOperations.All;
 
+    public static MongoDbListAllOperationHandler Create(FilterProviderContext context)
+        => new();
+
     /// <inheritdoc />
     protected override MongoDbFilterDefinition HandleListOperation(
         MongoDbFilterVisitorContext context,

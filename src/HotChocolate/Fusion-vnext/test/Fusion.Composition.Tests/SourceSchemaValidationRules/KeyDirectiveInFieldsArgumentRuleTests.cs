@@ -40,7 +40,7 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : RuleTestBase
                 """
                 {
                     "message": "A @key directive on type 'User' in schema 'A' references field 'name', which must not include directive applications.",
-                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARG",
+                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARGUMENT",
                     "severity": "Error",
                     "coordinate": "User",
                     "member": "key",
@@ -76,7 +76,7 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : RuleTestBase
                 """
                 {
                     "message": "A @key directive on type 'User' in schema 'A' references field 'name.firstName', which must not include directive applications.",
-                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARG",
+                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARGUMENT",
                     "severity": "Error",
                     "coordinate": "User",
                     "member": "key",
@@ -106,7 +106,7 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : RuleTestBase
                 """
                 {
                     "message": "A @key directive on type 'User' in schema 'A' references field 'id', which must not include directive applications.",
-                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARG",
+                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARGUMENT",
                     "severity": "Error",
                     "coordinate": "User",
                     "member": "key",
@@ -117,7 +117,7 @@ public sealed class KeyDirectiveInFieldsArgumentRuleTests : RuleTestBase
                 """
                 {
                     "message": "A @key directive on type 'User' in schema 'A' references field 'name', which must not include directive applications.",
-                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARG",
+                    "code": "KEY_DIRECTIVE_IN_FIELDS_ARGUMENT",
                     "severity": "Error",
                     "coordinate": "User",
                     "member": "key",

@@ -107,5 +107,5 @@ internal sealed class OperationPlanMiddleware
                 var middleware = new OperationPlanMiddleware(fc.Schema, planner, interceptors, diagnosticEvents);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },
-            nameof(OperationPlanMiddleware));
+            WellKnownRequestMiddleware.OperationPlanMiddleware);
 }

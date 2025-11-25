@@ -18,6 +18,7 @@ using HotChocolate.Types.Pagination;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
@@ -34,7 +35,8 @@ internal static partial class TestHelper
     public static Snapshot GetGeneratedSourceSnapshot(
         string[] sourceTexts,
         string? assemblyName = "Tests",
-        bool enableInterceptors = false)
+        bool enableInterceptors = false,
+        bool enableAnalyzers = false)
     {
         IEnumerable<PortableExecutableReference> references =
         [
@@ -100,7 +102,13 @@ internal static partial class TestHelper
             MetadataReference.CreateFromFile(typeof(WebApplication).Assembly.Location),
 
             // Microsoft.Extensions.DependencyInjection.Abstractions
-            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
+
+            // Microsoft.AspNetCore.Authorization
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute).Assembly.Location),
+
+            // HotChocolate.Authorization
+            MetadataReference.CreateFromFile(typeof(Authorization.AuthorizeAttribute).Assembly.Location)
         ];
 
         // Create a Roslyn compilation for the syntax tree.
@@ -128,7 +136,7 @@ internal static partial class TestHelper
         driver = driver.RunGenerators(compilation);
 
         // Create a snapshot.
-        var snapshot = CreateSnapshot(compilation, driver);
+        var snapshot = CreateSnapshot(compilation, driver, enableAnalyzers);
 
         // Finally, compile the entire assembly (original code + generated code) to check
         // if the sample is valid as a whole
@@ -136,6 +144,7 @@ internal static partial class TestHelper
             driver.GetRunResult()
                 .Results
                 .SelectMany(r => r.GeneratedSources)
+                .OrderBy(gs => gs.HintName)
                 .Select(gs => CSharpSyntaxTree.ParseText(gs.SourceText, parseOptions, path: gs.HintName))
         );
 
@@ -149,7 +158,7 @@ internal static partial class TestHelper
         return snapshot;
     }
 
-    private static Snapshot CreateSnapshot(CSharpCompilation compilation, GeneratorDriver driver)
+    private static Snapshot CreateSnapshot(CSharpCompilation compilation, GeneratorDriver driver, bool enableAnalyzers)
     {
         var snapshot = new Snapshot();
 
@@ -186,6 +195,35 @@ internal static partial class TestHelper
             }
         }
 
+        // Run diagnostic analyzers if enabled
+        if (enableAnalyzers)
+        {
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(
+                new RootTypePartialAnalyzer(),
+                new NodeResolverIdAttributeAnalyzer(),
+                new NodeResolverPublicAnalyzer(),
+                new NodeResolverIdParameterAnalyzer(),
+                new BindMemberAnalyzer(),
+                new ExtendObjectTypeAnalyzer(),
+                new ParentAttributeAnalyzer(),
+                new ParentMethodAnalyzer(),
+                new QueryContextProjectionAnalyzer(),
+                new QueryContextConnectionAnalyzer(),
+                new ShareableInterfaceTypeAnalyzer(),
+                new ShareableScopedOnMemberAnalyzer(),
+                new DataAttributeOrderAnalyzer(),
+                new IdAttributeOnRecordParameterAnalyzer(),
+                new WrongAuthorizationAttributeAnalyzer());
+
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
+            var analyzerDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;
+
+            if (analyzerDiagnostics.Any())
+            {
+                AddDiagnosticsToSnapshot(snapshot, analyzerDiagnostics, "Analyzer Diagnostics");
+            }
+        }
+
         return snapshot;
     }
 
@@ -207,7 +245,10 @@ internal static partial class TestHelper
 
         jsonWriter.WriteStartArray();
 
-        foreach (var diagnostic in diagnostics)
+        foreach (var diagnostic in diagnostics
+            .OrderBy(d => d.Location.SourceTree?.FilePath)
+            .ThenBy(d => d.Location.GetLineSpan().StartLinePosition.Line)
+            .ThenBy(d => d.Location.GetLineSpan().StartLinePosition.Character))
         {
             if (s_ignoreCodes.Contains(diagnostic.Id))
             {

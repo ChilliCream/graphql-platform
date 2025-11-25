@@ -4,34 +4,68 @@ using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
+/// <summary>
+/// Represents a GraphQL scalar type definition in a fusion schema.
+/// </summary>
+public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionTypeDefinition
 {
     private FusionDirectiveCollection _directives = null!;
     private bool _completed;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="FusionScalarTypeDefinition"/>.
+    /// </summary>
+    /// <param name="name">The name of the scalar type.</param>
+    /// <param name="description">The description of the scalar type.</param>
+    /// <param name="isInaccessible">A value indicating whether the scalar type is marked as inaccessible.</param>
     public FusionScalarTypeDefinition(
         string name,
-        string? description)
+        string? description,
+        bool isInaccessible)
     {
+        name.EnsureGraphQLName();
+
         Name = name;
         Description = description;
+        IsInaccessible = isInaccessible;
 
         // these properties are initialized
         // in the type complete step.
         Features = null!;
     }
 
+    /// <summary>
+    /// Gets the kind of this type.
+    /// </summary>
     public TypeKind Kind => TypeKind.Scalar;
 
+    /// <summary>
+    /// Gets the name of this scalar type.
+    /// </summary>
     public string Name { get; }
 
+    /// <summary>
+    /// Gets the description of this scalar type.
+    /// </summary>
     public string? Description { get; }
 
+    /// <summary>
+    /// Gets the schema coordinate of this scalar type.
+    /// </summary>
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    /// <summary>
+    /// Gets a value indicating whether this scalar type is marked as inaccessible.
+    /// </summary>
+    public bool IsInaccessible { get; }
+
+    /// <summary>
+    /// Gets the directives applied to this scalar type.
+    /// </summary>
     public FusionDirectiveCollection Directives
     {
         get => _directives;
@@ -45,10 +79,29 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives
         => _directives;
 
+    /// <summary>
+    /// Gets the URL that specifies the behavior of this scalar type.
+    /// </summary>
     public Uri? SpecifiedBy { get; private set; }
 
+    /// <summary>
+    /// Gets the serialization type for this scalar.
+    /// </summary>
+    public ScalarSerializationType SerializationType { get; private set; }
+
+    /// <summary>
+    /// Gets the pattern for this scalar type, if applicable.
+    /// </summary>
+    public string? Pattern { get; private set; }
+
+    /// <summary>
+    /// Gets the value kind that this scalar type can represent.
+    /// </summary>
     public ScalarValueKind ValueKind { get; private set; }
 
+    /// <summary>
+    /// Gets the feature collection associated with this scalar type.
+    /// </summary>
     public IFeatureCollection Features
     {
         get;
@@ -62,6 +115,12 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
     internal void Complete(CompositeScalarTypeCompletionContext context)
     {
         ThrowHelper.EnsureNotSealed(_completed);
+
+        if (context.Directives is null)
+        {
+            ThrowHelper.InvalidCompletionContext();
+        }
+
         Directives = context.Directives;
         ValueKind = context.ValueKind;
         SpecifiedBy = context.SpecifiedBy;
@@ -80,6 +139,9 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
                 _ => ScalarValueKind.Any
             };
         }
+
+        SerializationType = context.SerializationType;
+        Pattern = context.Pattern;
 
         _completed = true;
     }
@@ -125,6 +187,7 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition
     public bool Equals(IType? other)
         => Equals(other, TypeComparison.Reference);
 
+    /// <inheritdoc />
     public bool Equals(IType? other, TypeComparison comparison)
     {
         if (comparison is TypeComparison.Reference)

@@ -30,9 +30,9 @@ jobs:
         run: |
           changes=$(git diff --name-only HEAD~1 HEAD -- ./website)
           if [[ -n "$changes" ]]; then
-            echo "::set-output name=website_changes::true"
+            echo "website_changes=true" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=website_changes::false"
+            echo "website_changes=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Check for changes outside website directory
@@ -40,19 +40,21 @@ jobs:
         run: |
           changes=$(git diff --name-only HEAD~1 HEAD -- ':!./website')
           if [[ -n "$changes" ]]; then
-            echo "::set-output name=library_changes::true"
+            echo "library_changes=true" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=library_changes::false"
+            echo "library_changes=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Check for changes in src directory
+      - name: Check for changes in src directory or CI workflow
         id: check-src
         run: |
-          changes=$(git diff --name-only HEAD~1 HEAD -- ./src)
-          if [[ -n "$changes" ]]; then
-            echo "::set-output name=src_changes::true"
+          src_changes=$(git diff --name-only HEAD~1 HEAD -- ./src)
+          ci_changes=$(git diff --name-only HEAD~1 HEAD -- .github/workflows/ci.yml)
+
+          if [[ -n "$src_changes" ]] || [[ -n "$ci_changes" ]]; then
+            echo "src_changes=true" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=src_changes::false"
+            echo "src_changes=false" >> $GITHUB_OUTPUT
           fi
 
   spellcheck:
@@ -89,7 +91,7 @@ jobs:
         name: Setup node
         with:
           node-version: 22
-      - run: npm install -g markdownlint-cli2
+      - run: npm install -g markdownlint-cli2@0.19.0
         name: Install markdownlint-cli2
       - run: markdownlint-cli2 "*.md" "website/src/**/*.md"
         name: run Markdownlint

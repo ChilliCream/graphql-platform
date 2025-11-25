@@ -19,6 +19,9 @@ public sealed class SourceSchemaPreprocessorTests
                     productById(id: ID!): Product @lookup
                     productByIdAgain(id: ID!): Product @lookup
                     productByIdAndCategoryId(id: ID!, categoryId: Int): Product @lookup
+                    productByIdOrCategoryId(
+                        idOrCategoryId: IdOrCategoryIdInput! @is(field: "{ id } | { categoryId }")
+                    ): Product @lookup
                     petById(id: ID!): Pet @lookup # interface
                     fruitById(id: ID!): Fruit @lookup # union
                 }
@@ -34,6 +37,11 @@ public sealed class SourceSchemaPreprocessorTests
 
                 type Product {
                     id: ID!
+                    categoryId: Int
+                }
+
+                input IdOrCategoryIdInput @oneOf {
+                    id: ID
                     categoryId: Int
                 }
 
@@ -101,5 +109,116 @@ public sealed class SourceSchemaPreprocessorTests
 
         // assert
         Assert.False(schema.Types["Person"].Directives.ContainsName(WellKnownDirectiveNames.Key));
+    }
+
+    [Fact]
+    public void Preprocess_InheritInterfaceKeysEnabled_InheritsInterfaceKeys()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                interface Animal @key(fields: "id") @key(fields: "age") {
+                    id: ID!
+                    age: Int
+                }
+
+                interface Pet implements Animal @key(fields: "name") {
+                    id: ID!
+                    age: Int
+                    name: String
+                }
+
+                type Dog implements Pet & Animal {
+                    id: ID!
+                    age: Int
+                    name: String
+                }
+
+                type Cat implements Pet & Animal {
+                    id: ID!
+                    age: Int
+                    name: String
+                }
+                """);
+        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value.Single();
+        var preprocessor = new SourceSchemaPreprocessor(schema);
+
+        // act
+        preprocessor.Process();
+        schema.Types.Remove("FieldSelectionMap");
+        schema.Types.Remove("FieldSelectionSet");
+        schema.DirectiveDefinitions.Clear();
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            // lang=graphql
+            """
+            type Cat implements Pet & Animal
+                @key(fields: "name")
+                @key(fields: "id")
+                @key(fields: "age") {
+                age: Int
+                id: ID!
+                name: String
+            }
+
+            type Dog implements Pet & Animal
+                @key(fields: "name")
+                @key(fields: "id")
+                @key(fields: "age") {
+                age: Int
+                id: ID!
+                name: String
+            }
+
+            interface Animal
+                @key(fields: "id")
+                @key(fields: "age") {
+                age: Int
+                id: ID!
+            }
+
+            interface Pet implements Animal
+                @key(fields: "name")
+                @key(fields: "id")
+                @key(fields: "age") {
+                age: Int
+                id: ID!
+                name: String
+            }
+            """);
+    }
+
+    [Fact]
+    public void Preprocess_InheritInterfaceKeysDisabled_DoesNotInheritInterfaceKeys()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                interface Pet @key(fields: "id") {
+                    id: ID!
+                }
+
+                type Cat implements Pet {
+                    id: ID!
+                }
+                """);
+        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value.Single();
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                new SourceSchemaPreprocessorOptions { InheritInterfaceKeys = false });
+
+        // act
+        preprocessor.Process();
+
+        // assert
+        Assert.False(schema.Types["Cat"].Directives.ContainsName(WellKnownDirectiveNames.Key));
     }
 }

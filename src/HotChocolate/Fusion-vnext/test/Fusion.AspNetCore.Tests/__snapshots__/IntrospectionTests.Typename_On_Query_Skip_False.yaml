@@ -20,18 +20,18 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
+      type Author @key(fields: "id") {
         id: Int!
       }
 
       type Book {
         id: Int!
         title: String!
-        author: Author!
+        author: Author! @shareable
       }
 
       "A connection to a list of items."
-      type BooksConnection {
+      type BooksConnection @shareable {
         "Information to aid in pagination."
         pageInfo: PageInfo!
         "A list of edges."
@@ -41,7 +41,7 @@ sourceSchemas:
       }
 
       "An edge in a connection."
-      type BooksEdge {
+      type BooksEdge @shareable {
         "A cursor for use in pagination."
         cursor: String!
         "The item at the end of the edge."
@@ -49,7 +49,7 @@ sourceSchemas:
       }
 
       "Information about pagination in a connection."
-      type PageInfo {
+      type PageInfo @shareable {
         "Indicates whether more edges exist following the set defined by the clients arguments."
         hasNextPage: Boolean!
         "Indicates whether more edges exist prior the set defined by the clients arguments."
@@ -77,7 +77,7 @@ sourceSchemas:
       }
 
       "A connection to a list of items."
-      type AuthorsConnection {
+      type AuthorsConnection @shareable {
         "Information to aid in pagination."
         pageInfo: PageInfo!
         "A list of edges."
@@ -87,20 +87,20 @@ sourceSchemas:
       }
 
       "An edge in a connection."
-      type AuthorsEdge {
+      type AuthorsEdge @shareable {
         "A cursor for use in pagination."
         cursor: String!
         "The item at the end of the edge."
         node: Author!
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         id: Int!
-        author: Author!
+        author: Author! @shareable
       }
 
       "Information about pagination in a connection."
-      type PageInfo {
+      type PageInfo @shareable {
         "Indicates whether more edges exist following the set defined by the clients arguments."
         hasNextPage: Boolean!
         "Indicates whether more edges exist prior the set defined by the clients arguments."

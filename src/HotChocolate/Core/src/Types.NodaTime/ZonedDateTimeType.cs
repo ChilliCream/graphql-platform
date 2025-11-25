@@ -37,6 +37,7 @@ public class ZonedDateTimeType : StringToStructBaseType<ZonedDateTime>
             allowedPatterns,
             NodaTimeResources.ZonedDateTimeType_Description,
             NodaTimeResources.ZonedDateTimeType_Description_Extended);
+        SerializationType = ScalarSerializationType.String;
     }
 
     /// <summary>

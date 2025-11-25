@@ -278,7 +278,9 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         public static ImmutableArray<MediaTypeWithQualityHeaderValue> VariableBatching { get; } =
         [
             new("application/jsonl") { CharSet = "utf-8" },
-            new("text/event-stream") { CharSet = "utf-8" }
+            new("text/event-stream") { CharSet = "utf-8" },
+            new("application/graphql-response+json") { CharSet = "utf-8" },
+            new("application/json") { CharSet = "utf-8" }
         ];
 
         public static ImmutableArray<MediaTypeWithQualityHeaderValue> Subscription { get; } =

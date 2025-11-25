@@ -82,7 +82,7 @@ sourceSchemas:
       }
 
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
@@ -149,7 +149,7 @@ sourceSchemas:
       }
 
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:

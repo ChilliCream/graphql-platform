@@ -1,4 +1,5 @@
 using System.Buffers.Text;
+using System.Diagnostics;
 using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -34,7 +35,6 @@ public class UuidType : ScalarType<Guid, StringValueNode>
             enforceFormat: enforceFormat,
             bind: BindingBehavior.Implicit)
     {
-        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>
@@ -72,8 +72,19 @@ public class UuidType : ScalarType<Guid, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.String;
+        SpecifiedBy = new Uri(SpecifiedByUri);
         _format = CreateFormatString(defaultFormat);
         _enforceFormat = enforceFormat;
+
+        Pattern = _format switch
+        {
+            "B" => @"^\{[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}\}$",
+            "D" => @"^[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}$",
+            "N" => @"^[\da-fA-F]{32}$",
+            "P" => @"^\([\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}\)$",
+            _ => throw new UnreachableException()
+        };
     }
 
     /// <summary>

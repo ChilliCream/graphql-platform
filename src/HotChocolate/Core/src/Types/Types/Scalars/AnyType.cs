@@ -23,6 +23,7 @@ public class AnyType : ScalarType
         : base(name, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.Any;
     }
 
     /// <summary>

@@ -27,6 +27,7 @@ public class PeriodType : StringToClassBaseType<Period>
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.PeriodType_Description;
+        SerializationType = ScalarSerializationType.String;
     }
 
     /// <summary>

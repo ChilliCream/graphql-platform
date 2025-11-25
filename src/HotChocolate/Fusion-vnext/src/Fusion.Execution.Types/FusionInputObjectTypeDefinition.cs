@@ -4,22 +4,43 @@ using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using static HotChocolate.Fusion.Types.ThrowHelper;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition
+/// <summary>
+/// Represents a GraphQL input object type definition in a fusion schema.
+/// </summary>
+public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition, IFusionTypeDefinition
 {
+    private InputObjectFlags _flags;
     private bool _completed;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="FusionInputObjectTypeDefinition"/>.
+    /// </summary>
+    /// <param name="name">The name of the input object type.</param>
+    /// <param name="description">The description of the input object type.</param>
+    /// <param name="isInaccessible">A value indicating whether the input object type is marked as inaccessible.</param>
+    /// <param name="fields">The collection of input fields.</param>
     public FusionInputObjectTypeDefinition(
         string name,
         string? description,
+        bool isInaccessible,
         FusionInputFieldDefinitionCollection fields)
     {
+        name.EnsureGraphQLName();
+        ArgumentNullException.ThrowIfNull(fields);
+
         Name = name;
         Description = description;
         Fields = fields;
+
+        if (isInaccessible)
+        {
+            _flags = InputObjectFlags.Inaccessible;
+        }
 
         // these properties are initialized
         // in the type complete step.
@@ -33,17 +54,34 @@ public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition
     /// <inheritdoc />
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    /// <summary>
+    /// Gets the name of this input object type.
+    /// </summary>
     public string Name { get; }
 
+    /// <summary>
+    /// Gets the description of this input object type.
+    /// </summary>
     public string? Description { get; }
 
+    /// <summary>
+    /// Gets the collection of input fields for this input object type.
+    /// </summary>
     public FusionInputFieldDefinitionCollection Fields { get; }
 
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IInputObjectTypeDefinition.Fields => Fields;
 
     /// <inheritdoc />
-    public bool IsOneOf { get; }
+    public bool IsOneOf => (InputObjectFlags.OneOf & _flags) == InputObjectFlags.OneOf;
 
+    /// <summary>
+    /// Gets a value indicating whether this input object type is marked as inaccessible.
+    /// </summary>
+    public bool IsInaccessible => (InputObjectFlags.Inaccessible & _flags) == InputObjectFlags.Inaccessible;
+
+    /// <summary>
+    /// Gets the directives applied to this input object type.
+    /// </summary>
     public FusionDirectiveCollection Directives
     {
         get;
@@ -57,6 +95,9 @@ public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives
         => Directives;
 
+    /// <summary>
+    /// Gets the feature collection associated with this input object type.
+    /// </summary>
     public IFeatureCollection Features
     {
         get;
@@ -71,8 +112,18 @@ public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition
     {
         EnsureNotSealed(_completed);
 
+        if (context.Directives is null || context.Features is null)
+        {
+            InvalidCompletionContext();
+        }
+
         Directives = context.Directives;
         Features = context.Features;
+
+        if (context.Directives.ContainsName(WellKnownDirectiveNames.OneOf))
+        {
+            _flags |= InputObjectFlags.OneOf;
+        }
 
         _completed = true;
     }
@@ -100,6 +151,7 @@ public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition
     public bool Equals(IType? other)
         => Equals(other, TypeComparison.Reference);
 
+    /// <inheritdoc />
     public bool Equals(IType? other, TypeComparison comparison)
     {
         if (comparison is TypeComparison.Reference)
@@ -120,5 +172,13 @@ public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition
         }
 
         return false;
+    }
+
+    [Flags]
+    private enum InputObjectFlags
+    {
+        None = 0,
+        OneOf = 2,
+        Inaccessible = 4
     }
 }

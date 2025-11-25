@@ -36,4 +36,7 @@ public class QueryableComparableGreaterThanOrEqualsHandler
             property,
             parsedValue);
     }
+
+    public static QueryableComparableGreaterThanOrEqualsHandler Create(FilterProviderContext context)
+        => new(context.TypeConverter, context.InputParser);
 }

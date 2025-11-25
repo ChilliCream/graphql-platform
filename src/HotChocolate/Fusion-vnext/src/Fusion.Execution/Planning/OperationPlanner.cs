@@ -597,7 +597,7 @@ public sealed partial class OperationPlanner
         {
             // arguments that are exposed on the composite schema
             // are not requirements, and we can skip them.
-            if (compositeField.Arguments.ContainsName(argument.Name))
+            if (compositeField.Arguments.ContainsName(argument.Name, allowInaccessibleFields: true))
             {
                 continue;
             }
@@ -744,7 +744,7 @@ public sealed partial class OperationPlanner
         {
             // arguments that are exposed on the composite schema
             // are not requirements, and we can skip them.
-            if (compositeField.Arguments.ContainsName(argument.Name))
+            if (compositeField.Arguments.ContainsName(argument.Name, allowInaccessibleFields: true))
             {
                 continue;
             }
@@ -1514,9 +1514,9 @@ public sealed partial class OperationPlanner
             (node, path) =>
             {
                 if (node is FieldNode { SelectionSet: not null } fieldNode
-                    && path.Peek() is IComplexTypeDefinition complexType)
+                    && path.Peek() is FusionComplexTypeDefinition complexType)
                 {
-                    var field = complexType.Fields[fieldNode.Name.Value];
+                    var field = complexType.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
 
                     path.Push(field.Type.NamedType());
                 }
@@ -1790,7 +1790,7 @@ file static class Extensions
 
         foreach (var (schemaName, resolutionCost) in compositeSchema.GetPossibleSchemas(workItem.SelectionSet))
         {
-            // If we have multiple by id lookups in a single schema,
+            // If we have multiple id lookups in a single schema,
             // we try to choose one that returns the desired type directly
             // and not an abstract type.
             var byIdLookup = compositeSchema.GetPossibleLookups(type, schemaName)
@@ -1818,10 +1818,9 @@ file static class Extensions
         if (!hasEnqueuedLookup)
         {
             var byIdLookup = compositeSchema.GetPossibleLookups(type)
-                    .FirstOrDefault(l =>
-                        l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal) ??
-                throw new InvalidOperationException(
-                    $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
+                .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal)
+                    ?? throw new InvalidOperationException(
+                        $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
 
             possiblePlans.Enqueue(
                 planNodeTemplate with
@@ -1947,7 +1946,7 @@ file static class Extensions
                             continue;
                         }
 
-                        var field = complexType!.Fields[fieldNode.Name.Value];
+                        var field = complexType!.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
 
                         if (field is { Name: "node", Type: IInterfaceTypeDefinition { Name: "Node" } })
                         {
@@ -2145,7 +2144,7 @@ file static class Extensions
                     }
 
                     if (currentType is not FusionComplexTypeDefinition complexType
-                        || !complexType.Fields.TryGetField(fieldSelection.Name.Value, out var field))
+                        || !complexType.Fields.TryGetField(fieldSelection.Name.Value, allowInaccessibleFields: true, out var field))
                     {
                         return null;
                     }

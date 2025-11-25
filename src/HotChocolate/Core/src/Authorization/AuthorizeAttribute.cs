@@ -68,7 +68,7 @@ public class AuthorizeAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         if (descriptor is IObjectTypeDescriptor type)
         {

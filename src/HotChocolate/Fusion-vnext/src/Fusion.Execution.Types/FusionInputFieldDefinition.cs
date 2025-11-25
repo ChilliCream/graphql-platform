@@ -4,25 +4,33 @@ using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Types;
 
-public sealed class FusionInputFieldDefinition : IInputValueDefinition
+public sealed class FusionInputFieldDefinition : IInputValueDefinition, IInaccessibleProvider
 {
     private bool _completed;
 
     public FusionInputFieldDefinition(
+        int index,
         string name,
         string? description,
         IValueNode? defaultValue,
         bool isDeprecated,
-        string? deprecationReason)
+        string? deprecationReason,
+        bool isInaccessible)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(index, 0);
+        name.EnsureGraphQLName();
+
+        Index = index;
         Name = name;
         Description = description;
         DefaultValue = defaultValue;
         IsDeprecated = isDeprecated;
         DeprecationReason = deprecationReason;
+        IsInaccessible = isInaccessible;
 
         // these properties are initialized
         // in the type complete step.
@@ -31,6 +39,8 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition
         Type = null!;
         Features = null!;
     }
+
+    public int Index { get; }
 
     public string Name { get; }
 
@@ -77,6 +87,8 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition
 
     public string? DeprecationReason { get; }
 
+    public bool IsInaccessible { get; }
+
     public FusionDirectiveCollection Directives
     {
         get;
@@ -116,6 +128,15 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition
     internal void Complete(CompositeInputFieldCompletionContext context)
     {
         ThrowHelper.EnsureNotSealed(_completed);
+
+        if (context.DeclaringMember is null
+            || context.Directives is null
+            || context.Type is null
+            || context.Features is null)
+        {
+            ThrowHelper.InvalidCompletionContext();
+        }
+
         DeclaringMember = context.DeclaringMember;
         Directives = context.Directives;
         Type = context.Type;

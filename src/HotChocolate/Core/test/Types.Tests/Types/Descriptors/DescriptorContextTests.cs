@@ -1,6 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -15,9 +16,9 @@ public class DescriptorContextTests
             new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver(),
                 new NoOpStringBuilderPool()));
-        var services = new DictionaryServiceProvider(
-            typeof(INamingConventions),
-            namingConventions);
+        var services = new ServiceCollection()
+            .AddSingleton(typeof(INamingConventions), namingConventions)
+            .BuildServiceProvider();
 
         // act
         var context = DescriptorContext.Create(
@@ -70,9 +71,9 @@ public class DescriptorContextTests
         // arrange
         var options = new SchemaOptions();
         var inspector = new DefaultTypeInspector();
-        var services = new DictionaryServiceProvider(
-            typeof(ITypeInspector),
-            inspector);
+        var services = new ServiceCollection()
+            .AddSingleton(typeof(ITypeInspector), inspector)
+            .BuildServiceProvider();
 
         // act
         var context = DescriptorContext.Create(

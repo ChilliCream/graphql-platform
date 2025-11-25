@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
 
@@ -75,6 +76,63 @@ public class OperationRequestBuilderTests
             OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .SetVariableValues(new Dictionary<string, object?> { ["one"] = "bar" })
+                .Build();
+
+        // assert
+        // one should be bar
+        request.MatchSnapshot();
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndSetNewVariableJson_RequestIsCreated()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                      foo
+                    }
+                    """)
+                .SetVariableValuesJson(
+                    """
+                    {
+                      "one": "bar"
+                    }
+                    """)
+                .Build();
+
+        // assert
+        // one should be bar
+        request.MatchSnapshot();
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndSetNewVariableSetJson_RequestIsCreated()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    {
+                      foo
+                    }
+                    """)
+                .SetVariableValuesSetJson(
+                    """
+                    [
+                      {
+                        "one": "bar"
+                      },
+                      {
+                        "one": "baz"
+                      }
+                    ]
+                    """)
                 .Build();
 
         // assert
@@ -245,10 +303,7 @@ public class OperationRequestBuilderTests
         var request =
             OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
-                .SetServices(
-                    new DictionaryServiceProvider(
-                        service.GetType(),
-                        service))
+                .SetServices(new ServiceCollection().AddSingleton(service.GetType(), service).BuildServiceProvider())
                 .Build();
 
         // assert
@@ -268,7 +323,7 @@ public class OperationRequestBuilderTests
                 .SetOperationName("bar")
                 .AddGlobalState("one", "foo")
                 .SetVariableValues(new Dictionary<string, object?> { { "two", "bar" } })
-                .SetServices(new DictionaryServiceProvider(service.GetType(), service))
+                .SetServices(new ServiceCollection().AddSingleton(service.GetType(), service).BuildServiceProvider())
                 .Build();
 
         // assert

@@ -10,18 +10,30 @@ namespace HotChocolate.Language;
 /// </summary>
 public ref struct JsonValueParser
 {
+    private const int DefaultMaxAllowedDepth = 64;
     private readonly int _maxAllowedDepth;
     private Utf8MemoryBuilder? _memory;
     private readonly PooledArrayWriter? _externalBuffer;
 
-    public JsonValueParser(int maxAllowedDepth = 64)
+    public JsonValueParser()
+    {
+        _maxAllowedDepth = DefaultMaxAllowedDepth;
+    }
+
+    public JsonValueParser(int maxAllowedDepth)
     {
         _maxAllowedDepth = maxAllowedDepth;
     }
 
-    public JsonValueParser(int maxAllowedDepth = 64, PooledArrayWriter? buffer = null)
+    public JsonValueParser(int maxAllowedDepth, PooledArrayWriter buffer)
     {
         _maxAllowedDepth = maxAllowedDepth;
+        _externalBuffer = buffer;
+    }
+
+    public JsonValueParser(PooledArrayWriter buffer)
+    {
+        _maxAllowedDepth = DefaultMaxAllowedDepth;
         _externalBuffer = buffer;
     }
 
@@ -180,8 +192,7 @@ public ref struct JsonValueParser
     {
         try
         {
-            var parser = new JsonValueParser();
-            return parser.Parse(ref reader, 0);
+            return Parse(ref reader, 0);
         }
         catch
         {
@@ -196,14 +207,14 @@ public ref struct JsonValueParser
         }
     }
 
-    private IValueNode Parse(ref Utf8JsonReader reader, int depth)
+    private IValueNode Parse(ref Utf8JsonReader reader, int depth, bool skipReading = false)
     {
         if (depth > _maxAllowedDepth)
         {
             throw new InvalidOperationException("Max allowed depth reached.");
         }
 
-        if (!reader.Read())
+        if (!skipReading && !reader.Read())
         {
             throw new JsonException("Unexpected end of JSON.");
         }
@@ -265,7 +276,7 @@ public ref struct JsonValueParser
                             ArrayPool<IValueNode>.Shared.Return(temp);
                         }
 
-                        buffer[count++] = Parse(ref reader, depth + 1);
+                        buffer[count++] = Parse(ref reader, depth + 1, true);
                     }
 
                     return new ListValueNode(buffer.AsSpan(0, count).ToArray());
@@ -293,11 +304,6 @@ public ref struct JsonValueParser
 
                         var name = reader.GetString()!;
                         var fieldName = name;
-
-                        if (!reader.Read())
-                        {
-                            throw new JsonException("Unexpected end of JSON after property name.");
-                        }
 
                         if (count == buffer.Length)
                         {

@@ -5,6 +5,7 @@ accessibilities
 agrc
 Alderaan
 Andi
+andimarek
 ASPDEPR004
 ASPDEPR008
 aspnetcore
@@ -114,6 +115,7 @@ NSwag
 ntouches
 nwithin
 oncall
+opencover
 OpenIddict
 opensgid
 OPTOUT

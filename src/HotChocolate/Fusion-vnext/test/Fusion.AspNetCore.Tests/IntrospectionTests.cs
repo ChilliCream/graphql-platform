@@ -522,8 +522,9 @@ public class IntrospectionTests : FusionTestBase
 
     public static class SourceSchema1
     {
-        public record Book(int Id, string Title, Author Author);
+        public record Book(int Id, string Title, [property: Shareable] Author Author);
 
+        [EntityKey("id")]
         public record Author(int Id);
 
         public class Query
@@ -585,6 +586,7 @@ public class IntrospectionTests : FusionTestBase
                 => _authors.Values;
         }
 
-        public record Book(int Id, Author Author);
+        [EntityKey("id")]
+        public record Book(int Id, [property: Shareable] Author Author);
     }
 }

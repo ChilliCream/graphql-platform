@@ -6,7 +6,6 @@ using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Requirements;
 using HotChocolate.Fetching;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Validation;
@@ -34,7 +33,7 @@ public static class RequestExecutorServiceCollectionExtensions
         services.TryAddSingleton<DefaultRequestContextAccessor>();
         services.TryAddSingleton<IRequestContextAccessor>(sp => sp.GetRequiredService<DefaultRequestContextAccessor>());
         services.TryAddSingleton<AggregateServiceScopeInitializer>();
-        services.TryAddSingleton<IParameterBindingResolver, DefaultParameterBindingResolver>();
+        services.TryAddSingleton<ParameterBindingResolver>();
 
         services.TryAddSingleton(sp =>
         {
@@ -48,8 +47,7 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddTypeConverter()
             .TryAddInputFormatter()
             .TryAddInputParser()
-            .TryAddDefaultDocumentHashProvider()
-            .TryAddDefaultBatchDispatcher()
+            .TryAddDefaultBatchDispatcher(default)
             .TryAddDefaultDataLoaderRegistry()
             .TryAddDataLoaderParameterExpressionBuilder()
             .AddSingleton<ResolverProvider>();
@@ -168,36 +166,6 @@ public static class RequestExecutorServiceCollectionExtensions
         return builder;
     }
 
-    public static IServiceCollection AddMD5DocumentHashProvider(
-        this IServiceCollection services,
-        HashFormat format = HashFormat.Base64)
-    {
-        services.RemoveAll<IDocumentHashProvider>();
-        services.AddSingleton<IDocumentHashProvider>(
-            new MD5DocumentHashProvider(format));
-        return services;
-    }
-
-    public static IServiceCollection AddSha1DocumentHashProvider(
-        this IServiceCollection services,
-        HashFormat format = HashFormat.Base64)
-    {
-        services.RemoveAll<IDocumentHashProvider>();
-        services.AddSingleton<IDocumentHashProvider>(
-            new Sha1DocumentHashProvider(format));
-        return services;
-    }
-
-    public static IServiceCollection AddSha256DocumentHashProvider(
-        this IServiceCollection services,
-        HashFormat format = HashFormat.Base64)
-    {
-        services.RemoveAll<IDocumentHashProvider>();
-        services.AddSingleton<IDocumentHashProvider>(
-            new Sha256DocumentHashProvider(format));
-        return services;
-    }
-
     public static IServiceCollection AddBatchDispatcher<T>(this IServiceCollection services)
         where T : class, IBatchDispatcher
     {
@@ -214,10 +182,32 @@ public static class RequestExecutorServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddDefaultBatchDispatcher(this IServiceCollection services)
+    /// <summary>
+    /// Adds the batch dispatcher to the request executor.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="options">
+    ///  The batch dispatcher options.
+    /// </param>
+    /// <returns>
+    /// The request executor builder.
+    /// </returns>
+    public static IRequestExecutorBuilder AddDefaultBatchDispatcher(
+        this IRequestExecutorBuilder builder,
+        BatchDispatcherOptions options = default)
+    {
+        builder.Services.AddDefaultBatchDispatcher(options);
+        return builder;
+    }
+
+    public static IServiceCollection AddDefaultBatchDispatcher(
+        this IServiceCollection services,
+        BatchDispatcherOptions options = default)
     {
         services.RemoveAll<IBatchScheduler>();
-        services.TryAddDefaultBatchDispatcher();
+        services.TryAddDefaultBatchDispatcher(options);
         return services;
     }
 }

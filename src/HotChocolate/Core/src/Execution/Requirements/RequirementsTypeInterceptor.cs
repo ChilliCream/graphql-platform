@@ -34,18 +34,7 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
         {
             if ((fieldDef.Flags & CoreFieldFlags.WithRequirements) == CoreFieldFlags.WithRequirements)
             {
-                var fieldCoordinate = new SchemaCoordinate(
-                    typeDef.Name,
-                    fieldDef.Name);
-
-                // if the source generator already compiled the
-                // requirements we will take it and skip compilation.
-                if (fieldDef.Features.TryGet<TypeNode>(out var value))
-                {
-                    _metadata.TryAddRequirements(fieldCoordinate, value);
-                    continue;
-                }
-
+                var fieldCoordinate = new SchemaCoordinate(typeDef.Name, fieldDef.Name);
                 var feature = fieldDef.Features.GetRequired<FieldRequirementFeature>();
                 var requirements = feature.Requirements;
                 var entityType = runtimeType ?? feature.EntityType;

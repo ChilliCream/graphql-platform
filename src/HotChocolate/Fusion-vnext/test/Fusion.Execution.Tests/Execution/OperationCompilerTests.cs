@@ -1,13 +1,13 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Mutable.Serialization;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Fusion.Execution;
 
-public class OperationCompilerTests
+public class OperationCompilerTests : FusionTestBase
 {
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldMapPool =
         new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(new FieldMapPooledObjectPolicy());
@@ -160,7 +160,7 @@ public class OperationCompilerTests
         Assert.True(id.IsInternal);
     }
 
-    public static ISchemaDefinition CreateSchema()
+    public static FusionSchemaDefinition CreateSchema()
     {
         const string sourceText =
             """
@@ -176,6 +176,6 @@ public class OperationCompilerTests
             scalar Boolean
             """;
 
-        return SchemaParser.Parse(sourceText);
+        return ComposeSchema(sourceText);
     }
 }

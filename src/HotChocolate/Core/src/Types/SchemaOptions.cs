@@ -177,14 +177,25 @@ public class SchemaOptions : IReadOnlySchemaOptions
         }
     } = 256;
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToPageInfo"/>
+    public bool ApplyShareableToPageInfo { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToConnections"/>
+    public bool ApplyShareableToConnections { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToNodeFields"/>
+    public bool ApplyShareableToNodeFields { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplySerializeAsToScalars"/>
+    public bool ApplySerializeAsToScalars { get; set; }
+
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
     /// <param name="options">The read-only options object.</param>
     /// <returns>Returns a new mutable options object.</returns>
     public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
-    {
-        return new()
+        => new()
         {
             QueryTypeName = options.QueryTypeName,
             MutationTypeName = options.MutationTypeName,
@@ -215,7 +226,10 @@ public class SchemaOptions : IReadOnlySchemaOptions
             DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
             LazyInitialization = options.LazyInitialization,
             PreparedOperationCacheSize = options.PreparedOperationCacheSize,
-            OperationDocumentCacheSize = options.OperationDocumentCacheSize
+            OperationDocumentCacheSize = options.OperationDocumentCacheSize,
+            ApplyShareableToPageInfo = options.ApplyShareableToPageInfo,
+            ApplyShareableToConnections = options.ApplyShareableToConnections,
+            ApplyShareableToNodeFields = options.ApplyShareableToNodeFields,
+            ApplySerializeAsToScalars = options.ApplySerializeAsToScalars
         };
-    }
 }

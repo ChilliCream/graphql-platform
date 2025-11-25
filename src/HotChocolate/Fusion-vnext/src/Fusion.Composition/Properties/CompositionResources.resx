@@ -210,6 +210,12 @@
   <data name="LogEntryHelper_ExternalArgumentDefaultMismatch" xml:space="preserve">
     <value>The default value '{0}' of external argument '{1}' in schema '{2}' differs from the default value of '{3}' in schema '{4}'.</value>
   </data>
+  <data name="LogEntryHelper_ExternalArgumentMissing" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' must define the argument '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_ExternalArgumentTypeMismatch" xml:space="preserve">
+    <value>The argument '{0}' on external field '{1}' in schema '{2}' has a different type ({3}) than it does in schema '{4}' ({5}).</value>
+  </data>
   <data name="LogEntryHelper_ExternalMissingOnBase" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' is not defined (non-external) in any other schema.</value>
   </data>
@@ -224,6 +230,9 @@
   </data>
   <data name="LogEntryHelper_ExternalRequireCollision" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' must not have arguments that are annotated with the @require directive.</value>
+  </data>
+  <data name="LogEntryHelper_ExternalTypeMismatch" xml:space="preserve">
+    <value>The external field '{0}' in schema '{1}' has a different type ({2}) than it does in schema '{3}' ({4}).</value>
   </data>
   <data name="LogEntryHelper_ExternalUnused" xml:space="preserve">
     <value>The external field '{0}' in schema '{1}' is not referenced by a @provides directive in the schema.</value>
@@ -249,11 +258,14 @@
   <data name="LogEntryHelper_InterfaceFieldNoImplementation" xml:space="preserve">
     <value>The merged object type '{0}' must implement the field '{1}' on interface '{2}'.</value>
   </data>
+  <data name="LogEntryHelper_InvalidFieldSharing" xml:space="preserve">
+    <value>The field '{0}' in schema '{1}' must be shareable.</value>
+  </data>
   <data name="LogEntryHelper_InvalidGraphQL" xml:space="preserve">
     <value>Invalid GraphQL in source schema. Exception message: {0}.</value>
   </data>
   <data name="LogEntryHelper_InvalidShareableUsage" xml:space="preserve">
-    <value>The interface field '{0}' in schema '{1}' must not be marked as shareable.</value>
+    <value>The field '{0}' in schema '{1}' must not be marked as shareable.</value>
   </data>
   <data name="LogEntryHelper_IsInvalidFields" xml:space="preserve">
     <value>The @is directive on argument '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
@@ -329,6 +341,18 @@
   </data>
   <data name="LogEntryHelper_QueryRootTypeInaccessible" xml:space="preserve">
     <value>The root query type in schema '{0}' must be accessible.</value>
+  </data>
+  <data name="LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument" xml:space="preserve">
+    <value>The merged field argument '{0}' on field '{1}' cannot reference the inaccessible type '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_ReferenceToInaccessibleTypeFromInputField" xml:space="preserve">
+    <value>The merged input field '{0}' in type '{1}' cannot reference the inaccessible type '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField" xml:space="preserve">
+    <value>The merged output field '{0}' in type '{1}' cannot reference the inaccessible type '{2}'.</value>
+  </data>
+  <data name="LogEntryHelper_ReferenceToInternalType" xml:space="preserve">
+    <value>The merged field '{0}' in type '{1}' cannot reference the internal type '{2}'.</value>
   </data>
   <data name="LogEntryHelper_RequireInvalidFields" xml:space="preserve">
     <value>The @require directive on argument '{0}' in schema '{1}' specifies an invalid field selection against the composed schema.</value>
@@ -423,7 +447,13 @@
   <data name="ShareableMutableDirectiveDefinition_Description" xml:space="preserve">
     <value>The @shareable directive allows multiple source schemas to define the same field, ensuring that this decision is both intentional and coordinated by requiring fields to be explicitly marked.</value>
   </data>
+  <data name="TagDirective_NameArgument_Invalid" xml:space="preserve">
+    <value>The @tag directive must have a 'name' argument of type String.</value>
+  </data>
   <data name="TypeDefinitionExtensions_TheSpecifiedTypeIsNotAnAbstractType" xml:space="preserve">
     <value>The specified type is not an abstract type.</value>
+  </data>
+  <data name="LogEntryHelper_InputWithMissingOneOf" xml:space="preserve">
+    <value>The input type '{0}' in schema '{1}' must be annotated with the '@oneOf` directive, since the same type has been annotated with it in schema '{2}'.</value>
   </data>
 </root>

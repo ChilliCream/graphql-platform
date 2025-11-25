@@ -107,9 +107,13 @@ public static class SyntaxNodeExtensions
         this ISyntaxNode node,
         ISyntaxNode? other,
         SyntaxComparison comparison)
-        => comparison is SyntaxComparison.Syntax
-            ? SyntaxComparer.BySyntax.Equals(node, other)
-            : SyntaxComparer.ByReference.Equals(node, other);
+        => comparison switch
+        {
+            SyntaxComparison.Reference => SyntaxComparer.ByReference.Equals(node, other),
+            SyntaxComparison.Syntax => SyntaxComparer.BySyntax.Equals(node, other),
+            SyntaxComparison.SyntaxIgnoreDescriptions => SyntaxComparer.BySyntaxIgnoreDescriptions.Equals(node, other),
+            _ => throw new ArgumentOutOfRangeException(nameof(comparison), comparison, null)
+        };
 
     public static string ToString(this ISyntaxNode node, SyntaxSerializerOptions options)
     {

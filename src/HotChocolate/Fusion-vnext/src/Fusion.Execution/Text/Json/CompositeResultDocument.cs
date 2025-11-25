@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -28,22 +29,16 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     public CompositeResultElement Data { get; }
 
-    public List<IError> Errors
+    public List<IError>? Errors
     {
-        get
-        {
-            _errors ??= [];
-            return _errors;
-        }
+        get => _errors;
+        internal set => _errors = value;
     }
 
-    public Dictionary<string, object?> Extensions
+    public Dictionary<string, object?>? Extensions
     {
-        get
-        {
-            _extensions ??= [];
-            return _extensions;
-        }
+        get => _extensions;
+        internal set => _extensions = value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -99,7 +94,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        (var start, var tokenType) = _metaDb.GetStartCursor(current);
+        var (start, tokenType) = _metaDb.GetStartCursor(current);
 
         CheckExpectedType(ElementTokenType.StartArray, tokenType);
 
@@ -344,21 +339,45 @@ public sealed partial class CompositeResultDocument : IDisposable
         Debug.Fail("Only objects can be invalidated.");
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteRawValueTo(IBufferWriter<byte> writer, DbRow row, int indentLevel, bool indented)
+    {
+        if ((row.Flags & ElementFlags.SourceResult) == ElementFlags.SourceResult)
+        {
+            var document = _sources[row.SourceDocumentId];
+
+            if (row.TokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
+            {
+                // Reconstruct the source cursor from stored Location (Chunk) and SizeOrLength (Row)
+                var sourceCursor = SourceResultDocument.Cursor.From(row.Location, row.SizeOrLength);
+                var formatter = new SourceResultDocument.RawJsonFormatter(document, writer, indentLevel, indented);
+                formatter.WriteValue(sourceCursor);
+                return;
+            }
+
+            // For simple values, write directly using location and size
+            document.WriteRawValueTo(writer, row.Location, row.SizeOrLength);
+            return;
+        }
+
+        throw new NotSupportedException();
+    }
+
     private ReadOnlySpan<byte> ReadRawValue(DbRow row)
     {
         if (row.TokenType == ElementTokenType.Null)
         {
-            return "null"u8;
+            return JsonConstants.NullValue;
         }
 
         if (row.TokenType == ElementTokenType.True)
         {
-            return "true"u8;
+            return JsonConstants.TrueValue;
         }
 
         if (row.TokenType == ElementTokenType.False)
         {
-            return "false"u8;
+            return JsonConstants.FalseValue;
         }
 
         if (row.TokenType == ElementTokenType.PropertyName)
@@ -429,6 +448,23 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
 
         Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
+
+        var tokenType = source.TokenType.ToElementTokenType();
+
+        if (tokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
+        {
+            var sourceCursor = source._cursor;
+
+            _metaDb.Replace(
+                cursor: target.Cursor,
+                tokenType: source.TokenType.ToElementTokenType(),
+                location: sourceCursor.Chunk,
+                sizeOrLength: sourceCursor.Row,
+                sourceDocumentId: parent.Id,
+                parentRow: _metaDb.GetParent(target.Cursor),
+                flags: ElementFlags.SourceResult);
+            return;
+        }
 
         _metaDb.Replace(
             cursor: target.Cursor,

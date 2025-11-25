@@ -3,6 +3,10 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Represents a scalar type for unsigned 8-bit integers (byte) in GraphQL.
+/// This type serializes as an integer and supports values from 0 to 255.
+/// </summary>
 public class ByteType : IntegerTypeBase<byte>
 {
     /// <summary>
@@ -30,6 +34,7 @@ public class ByteType : IntegerTypeBase<byte>
         : base(name, min, max, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.Int;
     }
 
     /// <summary>

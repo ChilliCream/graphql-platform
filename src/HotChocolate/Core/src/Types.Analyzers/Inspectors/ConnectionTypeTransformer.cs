@@ -117,6 +117,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                             compilation,
                             connectionType,
                             null,
+                            connectionType.GetAttributes(),
                             connectionType.ContainingNamespace.ToDisplayString());
                         edgeTypeInfo.AddDiagnosticRange(diagnostics);
                         connectionTypeInfos ??= [];
@@ -129,7 +130,8 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                             ? EdgeTypeInfo.CreateEdge(
                                 compilation,
                                 edge.Type,
-                                edgeClass.ClassDeclarations,
+                                edgeClass.ClassDeclaration,
+                                edge.Type.GetAttributes(),
                                 connectionType.ContainingNamespace.ToDisplayString(),
                                 edge.Name,
                                 edge.NameFormat ?? edge.Name)
@@ -137,6 +139,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 compilation,
                                 edge.Type,
                                 null,
+                                connectionType.GetAttributes(),
                                 connectionType.ContainingNamespace.ToDisplayString(),
                                 edge.Name,
                                 edge.NameFormat ?? edge.Name);
@@ -146,7 +149,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                             ? ConnectionTypeInfo.CreateConnection(
                                 compilation,
                                 connection.Type,
-                                connectionClass.ClassDeclarations,
+                                connectionClass.ClassDeclaration,
                                 edgeTypeInfo.Name,
                                 connection.Name,
                                 connection.NameFormat ?? connection.Name)
@@ -213,7 +216,11 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                                 connectionType.ContainingNamespace.ToDisplayString(),
                                 edgeName,
                                 edgeName)
-                            : EdgeTypeInfo.CreateEdge(compilation, edgeType, null,
+                            : EdgeTypeInfo.CreateEdge(
+                                compilation,
+                                edgeType,
+                                null,
+                                connectionType.GetAttributes(),
                                 connectionType.ContainingNamespace.ToDisplayString(),
                                 edgeName,
                                 edgeName);
@@ -254,7 +261,11 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                 owner.ReplaceResolver(
                     connectionResolver,
                     connectionResolver.WithSchemaTypeName(
-                        $"{connectionTypeInfo.Namespace}.{connectionTypeInfo.Name}"));
+                        new SchemaTypeReference(
+                            SchemaTypeReferenceKind.ExtendedTypeReference,
+                            connectionResolver.ReturnType.IsNullableType()
+                                ? $"global::{connectionTypeInfo.Namespace}.{connectionTypeInfo.Name}"
+                                : $"global::{WellKnownTypes.NonNullType}<global::{connectionTypeInfo.Namespace}.{connectionTypeInfo.Name}>")));
             }
 
             if (connectionTypeInfos is not null)

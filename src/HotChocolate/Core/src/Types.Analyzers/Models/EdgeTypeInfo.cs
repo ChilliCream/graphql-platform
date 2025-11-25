@@ -14,17 +14,24 @@ public sealed class EdgeTypeInfo
         string name,
         string? nameFormat,
         string @namespace,
+        string? description,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
-        ImmutableArray<Resolver> resolvers)
+        ImmutableArray<Resolver> resolvers,
+        ImmutableArray<AttributeData> attributes)
     {
         Name = name;
         NameFormat = nameFormat;
         RuntimeTypeFullName = runtimeType.ToDisplayString();
         RuntimeType = runtimeType;
         Namespace = @namespace;
+        Description = description;
         ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
+        Attributes = attributes;
+        Shareable = attributes.GetShareableScope();
+        Inaccessible = attributes.GetInaccessibleScope();
+        DescriptorAttributes = attributes.GetUserAttributes();
     }
 
     public string Name { get; }
@@ -32,6 +39,8 @@ public sealed class EdgeTypeInfo
     public string? NameFormat { get; }
 
     public string Namespace { get; }
+
+    public string? Description { get; }
 
     public bool IsPublic => RuntimeType.DeclaredAccessibility == Accessibility.Public;
 
@@ -51,19 +60,37 @@ public sealed class EdgeTypeInfo
 
     public ImmutableArray<Resolver> Resolvers { get; private set; }
 
+    public DirectiveScope Shareable { get; private set; }
+
+    public DirectiveScope Inaccessible { get; private set; }
+
+    public ImmutableArray<AttributeData> Attributes { get; }
+
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
+
     public override string OrderByKey => RuntimeTypeFullName;
 
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);
 
     public override bool Equals(object? obj)
-        => obj is ConnectionTypeInfo other && Equals(other);
+        => obj is EdgeTypeInfo other && Equals(other);
 
     public override bool Equals(SyntaxInfo? obj)
-        => obj is ConnectionTypeInfo other && Equals(other);
+        => obj is EdgeTypeInfo other && Equals(other);
 
-    private bool Equals(ConnectionTypeInfo other)
+    private bool Equals(EdgeTypeInfo? other)
     {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
         if (!string.Equals(OrderByKey, other.OrderByKey, StringComparison.Ordinal))
         {
             return false;
@@ -79,8 +106,7 @@ public sealed class EdgeTypeInfo
             return false;
         }
 
-        return ClassDeclaration.SyntaxTree.IsEquivalentTo(
-            other.ClassDeclaration.SyntaxTree);
+        return ClassDeclaration.SyntaxTree.IsEquivalentTo(other.ClassDeclaration.SyntaxTree);
     }
 
     public override int GetHashCode()
@@ -92,28 +118,38 @@ public sealed class EdgeTypeInfo
         string? name = null,
         string? nameFormat = null)
     {
+        var attributes = connectionClass.RuntimeType.GetAttributes();
+
         return new EdgeTypeInfo(
             (name ?? connectionClass.RuntimeType.Name) + "Type",
             nameFormat,
             @namespace,
+            null,
             connectionClass.RuntimeType,
-            connectionClass.ClassDeclarations,
-            connectionClass.Resolvers);
+            connectionClass.ClassDeclaration,
+            connectionClass.Resolvers,
+            [])
+        {
+            Shareable = attributes.GetShareableScope(),
+            Inaccessible = attributes.GetInaccessibleScope()
+        };
     }
 
     public static EdgeTypeInfo CreateEdge(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
+        ImmutableArray<AttributeData> attributes,
         string @namespace,
         string? name = null,
         string? nameFormat = null)
-        => Create(compilation, runtimeType, classDeclaration, @namespace, name, nameFormat);
+        => Create(compilation, runtimeType, classDeclaration, attributes, @namespace, name, nameFormat);
 
     private static EdgeTypeInfo Create(
         Compilation compilation,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
+        ImmutableArray<AttributeData> attributes,
         string @namespace,
         string? name = null,
         string? nameFormat = null)
@@ -135,9 +171,12 @@ public sealed class EdgeTypeInfo
                         new Resolver(
                             edgeName,
                             property,
+                            compilation.GetDescription(property, []),
+                            compilation.GetDeprecationReason(property),
                             ResolverResultKind.Pure,
                             [],
                             ObjectTypeInspector.GetMemberBindings(member),
+                            compilation.CreateTypeReference(property),
                             flags: FieldFlags.None));
                     break;
             }
@@ -147,8 +186,10 @@ public sealed class EdgeTypeInfo
             edgeName,
             nameFormat,
             @namespace,
+            runtimeType.GetDescription(),
             runtimeType,
             classDeclaration,
-            resolvers.ToImmutable());
+            resolvers.ToImmutable(),
+            attributes);
     }
 }

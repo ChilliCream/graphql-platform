@@ -266,7 +266,7 @@ public class PostgresChannelTests
         SpinWait.SpinUntil(() => receivedMessages.Count == 1, TimeSpan.FromSeconds(1));
 
         // Act
-        disposable.Dispose();
+        await disposable.DisposeAsync();
         await testChannel.SendMessageAsync("aaaaaaaaaaaaaaaaaaaaaaaa:dGVzdA==:foobar");
 
         // Assert

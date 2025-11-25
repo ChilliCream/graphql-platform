@@ -38,9 +38,16 @@ public sealed class DataLoaderInspector : ISyntaxInspector
                     if (fullName.Equals(WellKnownAttributes.DataLoaderAttribute, Ordinal)
                         && context.SemanticModel.GetDeclaredSymbol(methodSyntax) is { } methodSymbol)
                     {
+                        var attributeData = methodSymbol.GetAttributes()
+                            .First(a => string.Equals(
+                                a.AttributeClass?.Name,
+                                "DataLoaderAttribute",
+                                Ordinal));
+
                         syntaxInfo = new DataLoaderInfo(
                             attributeSyntax,
                             attributeSymbol,
+                            attributeData,
                             methodSymbol,
                             methodSyntax);
                         return true;

@@ -53,4 +53,6 @@ public class QueryableProjectionScalarHandler
         action = SelectionVisitor.Skip;
         return true;
     }
+
+    public static QueryableProjectionScalarHandler Create(ProjectionProviderContext context) => new();
 }

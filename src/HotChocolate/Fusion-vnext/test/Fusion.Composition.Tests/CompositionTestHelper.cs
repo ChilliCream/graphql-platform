@@ -17,10 +17,19 @@ internal static class CompositionTestHelper
                 log,
                 new SourceSchemaParserOptions { EnableSchemaValidation = false });
 
-        var result = sourceSchemaParser.Parse();
+        var (_, isFailure, schemas, _) = sourceSchemaParser.Parse();
 
-        return result.IsFailure
-            ? throw new Exception($"Schema creation failed.\n- {string.Join("\n- ", log)}")
-            : result.Value;
+        if (isFailure)
+        {
+            throw new Exception($"Schema creation failed.\n- {string.Join("\n- ", log)}");
+        }
+
+        foreach (var schema in schemas)
+        {
+            new SourceSchemaPreprocessor(schema).Process();
+            new SourceSchemaEnricher(schema, schemas).Enrich();
+        }
+
+        return schemas;
     }
 }

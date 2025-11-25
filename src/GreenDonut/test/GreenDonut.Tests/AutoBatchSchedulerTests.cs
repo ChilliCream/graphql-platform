@@ -27,6 +27,9 @@ public class AutoBatchSchedulerTests
         public override int Size { get; }
         public override BatchStatus Status { get; }
         public override long ModifiedTimestamp { get; }
+
+        public override long CreatedTimestamp { get; }
+
         public override bool Touch()
         {
             throw new NotImplementedException();

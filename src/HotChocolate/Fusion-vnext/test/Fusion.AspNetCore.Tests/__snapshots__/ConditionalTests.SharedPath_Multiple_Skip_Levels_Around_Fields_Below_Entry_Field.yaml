@@ -32,11 +32,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
         viewer: Viewer
       }
-      
+
       type Viewer {
         fieldA: String!
       }
@@ -73,11 +73,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
         viewer: Viewer
       }
-      
+
       type Viewer {
         fieldB: String!
       }

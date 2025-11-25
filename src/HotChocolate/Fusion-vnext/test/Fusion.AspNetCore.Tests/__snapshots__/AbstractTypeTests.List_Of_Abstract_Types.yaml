@@ -38,7 +38,7 @@ sourceSchemas:
         query: Query
       }
 
-      interface SharedType {
+      interface SharedType @key(fields: "id") {
         id: Int!
       }
 
@@ -53,7 +53,7 @@ sourceSchemas:
       }
 
       "A connection to a list of items."
-      type InterfaceConnectionConnection {
+      type InterfaceConnectionConnection @shareable {
         "Information to aid in pagination."
         pageInfo: PageInfo!
         "A list of edges."
@@ -63,7 +63,7 @@ sourceSchemas:
       }
 
       "An edge in a connection."
-      type InterfaceConnectionEdge {
+      type InterfaceConnectionEdge @shareable {
         "A cursor for use in pagination."
         cursor: String!
         "The item at the end of the edge."
@@ -71,7 +71,7 @@ sourceSchemas:
       }
 
       "Information about pagination in a connection."
-      type PageInfo {
+      type PageInfo @shareable {
         "Indicates whether more edges exist following the set defined by the clients arguments."
         hasNextPage: Boolean!
         "Indicates whether more edges exist prior the set defined by the clients arguments."

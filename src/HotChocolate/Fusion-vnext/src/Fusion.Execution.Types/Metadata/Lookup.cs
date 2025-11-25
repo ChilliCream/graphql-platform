@@ -26,6 +26,9 @@ public sealed class Lookup : INeedsCompletion
     /// <param name="isInternal">Whether the lookup is internal or not.</param>
     /// <param name="arguments">The arguments that represent field requirements.</param>
     /// <param name="fields">The paths to the field that are required.</param>
+    /// <param name="path">
+    /// The path to the lookup field relative to the Query type.
+    /// </param>
     /// <exception cref="ArgumentException">
     /// Thrown when the <paramref name="arguments"/> or <paramref name="fields"/> is empty.
     /// </exception>
@@ -40,7 +43,8 @@ public sealed class Lookup : INeedsCompletion
         string fieldType,
         bool isInternal,
         ImmutableArray<LookupArgument> arguments,
-        ImmutableArray<IValueSelectionNode> fields)
+        ImmutableArray<IValueSelectionNode> fields,
+        ImmutableArray<string> path)
     {
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
         ArgumentException.ThrowIfNullOrEmpty(declaringTypeName);
@@ -64,6 +68,7 @@ public sealed class Lookup : INeedsCompletion
         IsInternal = isInternal;
         Arguments = arguments;
         Fields = fields;
+        Path = path;
     }
 
     /// <summary>
@@ -95,6 +100,11 @@ public sealed class Lookup : INeedsCompletion
     /// Gets the paths to the field that are required.
     /// </summary>
     public ImmutableArray<IValueSelectionNode> Fields { get; }
+
+    /// <summary>
+    /// Gets the path to the lookup field relative to the Query type.
+    /// </summary>
+    public ImmutableArray<string> Path { get; set; }
 
     /// <summary>
     /// Gets the data requirements for this lookup field.

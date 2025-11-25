@@ -11,4 +11,6 @@ public class QueryableSpatialProjectionScalarHandler
     public override bool CanHandle(ISelection selection) =>
         selection.Field.Member is not null
         && typeof(Geometry).IsAssignableFrom(selection.Field.Member.GetReturnType());
+
+    public new static QueryableSpatialProjectionScalarHandler Create(ProjectionProviderContext context) => new();
 }
