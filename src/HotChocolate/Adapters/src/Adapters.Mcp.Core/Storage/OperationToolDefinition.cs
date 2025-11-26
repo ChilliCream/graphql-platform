@@ -1,10 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
 using CaseConverter;
-using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Language;
 using static HotChocolate.Adapters.Mcp.Properties.McpAdapterResources;
-using static HotChocolate.Adapters.Mcp.WellKnownDirectiveNames;
 
 namespace HotChocolate.Adapters.Mcp.Storage;
 
@@ -24,16 +22,16 @@ public sealed class OperationToolDefinition
     /// The name of the MCP tool.
     /// </param>
     /// <param name="title">
-    /// Optional tool title. Overrides directive metadata if provided.
+    /// Optional tool title.
     /// </param>
     /// <param name="destructiveHint">
-    /// Optional destructive operation hint. Overrides directive metadata if provided.
+    /// Optional destructive operation hint.
     /// </param>
     /// <param name="idempotentHint">
-    /// Optional idempotent operation hint. Overrides directive metadata if provided.
+    /// Optional idempotent operation hint.
     /// </param>
     /// <param name="openWorldHint">
-    /// Optional open-world assumption hint. Overrides directive metadata if provided.
+    /// Optional open-world assumption hint.
     /// </param>
     /// <exception cref="ArgumentException">
     /// Thrown when document doesn't contain exactly one operation.
@@ -69,48 +67,12 @@ public sealed class OperationToolDefinition
                 nameof(document));
         }
 
-        // If we find a tool directive, parse it and remove it from the document.
-        // The tool directive is metadata only and doesn't exist in the target schema.
-        // Removing it prevents execution errors when the operation is executed.
-        var toolDirective = operation.GetMcpToolDirective();
-        if (toolDirective is not null)
-        {
-            var tempDirectives = operation.Directives.ToList();
-            foreach (var directive in operation.Directives)
-            {
-                if (directive.Name.Value.Equals(McpTool))
-                {
-                    tempDirectives.Remove(directive);
-                }
-            }
-
-            IReadOnlyList<DirectiveNode> cleanedDirectives;
-            if (tempDirectives.Count == 0)
-            {
-                cleanedDirectives = [];
-            }
-            else
-            {
-                tempDirectives.Capacity = tempDirectives.Count;
-                cleanedDirectives = tempDirectives;
-            }
-
-            var cleanedOperation = operation.WithDirectives(cleanedDirectives);
-            var cleanedDefinitions = document.Definitions.ToList();
-            cleanedDefinitions.Remove(operation);
-            cleanedDefinitions.Add(cleanedOperation);
-            cleanedDefinitions.Capacity = cleanedDefinitions.Count;
-            document = document.WithDefinitions(cleanedDefinitions);
-        }
-
         Name = name ?? operation.Name?.Value.ToSnakeCase()!;
         Document = document;
-
-        // Explicit parameters take precedence over directive metadata.
-        Title = title ?? toolDirective?.Title;
-        DestructiveHint = destructiveHint ?? toolDirective?.DestructiveHint;
-        IdempotentHint = idempotentHint ?? toolDirective?.IdempotentHint;
-        OpenWorldHint = openWorldHint ?? toolDirective?.OpenWorldHint;
+        Title = title;
+        DestructiveHint = destructiveHint;
+        IdempotentHint = idempotentHint;
+        OpenWorldHint = openWorldHint;
     }
 
     /// <summary>
