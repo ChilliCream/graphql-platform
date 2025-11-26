@@ -7,5 +7,5 @@ public class QueryableSpatialBufferDataHandler
 {
     protected override int Operation => SpatialFilterOperations.Buffer;
 
-    public new static QueryableSpatialBufferDataHandler Create(FilterProviderContext context) => new();
+    public static new QueryableSpatialBufferDataHandler Create(FilterProviderContext context) => new();
 }

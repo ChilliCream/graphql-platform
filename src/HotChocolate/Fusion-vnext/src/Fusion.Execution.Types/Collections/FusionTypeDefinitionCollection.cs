@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Types.Properties.FusionTypeResources;
 
@@ -198,7 +197,7 @@ public sealed class FusionTypeDefinitionCollection
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
 
-     /// <summary>
+    /// <summary>
     /// An enumerator for iterating through type definitions.
     /// </summary>
     public struct TypeEnumerator : IEnumerable<ITypeDefinition>, IEnumerator<ITypeDefinition>

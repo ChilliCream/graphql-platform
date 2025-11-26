@@ -193,7 +193,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 #if NET10_0_OR_GREATER
         if (!document.Paths.TryGetValue(path, out var pathItem))
         {
-            var concretePathItem = new OpenApiPathItem { Operations = new Dictionary<HttpMethod, OpenApiOperation>() };
+            var concretePathItem = new OpenApiPathItem { Operations = [] };
 
             pathItem = concretePathItem;
 
