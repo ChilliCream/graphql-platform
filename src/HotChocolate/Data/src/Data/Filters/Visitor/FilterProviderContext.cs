@@ -31,6 +31,6 @@ public readonly struct FilterProviderContext(
     public ITypeInspector TypeInspector { get; } = typeInspector;
 
     public InputParser InputParser { get; } = inputParser;
-    
+
     public InputFormatter InputFormatter { get; } = inputFormatter;
 }

@@ -3,7 +3,6 @@ using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution;
 

@@ -14,7 +14,7 @@ public class RavenEnumNotInHandler : RavenComparableNotInHandler
     {
     }
 
-    public new static RavenEnumNotInHandler Create(FilterProviderContext context)
+    public static new RavenEnumNotInHandler Create(FilterProviderContext context)
         => new(context.TypeConverter, context.InputParser);
 
     public override bool CanHandle(

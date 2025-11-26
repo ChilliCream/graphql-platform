@@ -1,7 +1,5 @@
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
@@ -93,7 +91,7 @@ public static class TypeReferenceBuilder
     private static (string TypeStructure, string TypeDefinition, bool IsSimpleType) CreateTypeKey(
         ITypeSymbol unwrappedType)
     {
-        bool isNullable;;
+        bool isNullable;
         ITypeSymbol underlyingType;
 
         // We first check if the type is a nullable value type (int?, Guid?, etc.).
