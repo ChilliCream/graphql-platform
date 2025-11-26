@@ -31,8 +31,8 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
         if (toolDefinition.OpenAiComponent is { } openAiComponent)
         {
             meta = new JsonObject();
-            AddOpenAiComponentMetadata(meta, openAiComponent);
-            openAiComponentResource = CreateOpenAiComponentResource(openAiComponent);
+            AddOpenAiComponentMetadata(meta, toolDefinition);
+            openAiComponentResource = CreateOpenAiComponentResource(openAiComponent, toolDefinition);
         }
 
         var tool = new Tool
@@ -123,9 +123,16 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
                 .Required(requiredProperties);
     }
 
-    private static void AddOpenAiComponentMetadata(JsonObject meta, OpenAiComponent openAiComponent)
+    private static void AddOpenAiComponentMetadata(
+        JsonObject meta,
+        OperationToolDefinition toolDefinition)
     {
-        meta.Add("openai/outputTemplate", openAiComponent.OutputTemplate);
+        if (toolDefinition.OpenAiComponent is not { } openAiComponent)
+        {
+            return;
+        }
+
+        meta.Add("openai/outputTemplate", toolDefinition.OpenAiComponentOutputTemplate);
 
         if (openAiComponent.AllowToolCalls)
         {
@@ -143,7 +150,9 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
         }
     }
 
-    private static Resource CreateOpenAiComponentResource(OpenAiComponent openAiComponent)
+    private static Resource CreateOpenAiComponentResource(
+        OpenAiComponent openAiComponent,
+        OperationToolDefinition toolDefinition)
     {
         JsonObject? meta = null;
 
@@ -194,8 +203,8 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
 
         return new Resource
         {
-            Name = string.Format(OperationToolFactory_OpenAiComponentResourceName, openAiComponent.Name),
-            Uri = openAiComponent.OutputTemplate,
+            Name = string.Format(OperationToolFactory_OpenAiComponentResourceName, toolDefinition.Name),
+            Uri = toolDefinition.OpenAiComponentOutputTemplate!,
             MimeType = "text/html+skybridge",
             Size = Encoding.UTF8.GetByteCount(openAiComponent.HtmlTemplateText),
             Meta = meta

@@ -1,41 +1,14 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography;
-using System.Text;
-using CaseConverter;
 using static HotChocolate.Adapters.Mcp.Properties.McpAdapterResources;
 
 namespace HotChocolate.Adapters.Mcp.Storage;
 
-public sealed class OpenAiComponent
+public sealed class OpenAiComponent([StringSyntax("HTML")] string htmlTemplateText)
 {
-    public OpenAiComponent(string name, [StringSyntax("HTML")] string htmlTemplateText)
-    {
-        Name = name;
-        HtmlTemplateText = htmlTemplateText;
-    }
-
-    public string Name { get; }
-
     /// <summary>
     /// HTML template (<c>text/html+skybridge</c>).
     /// </summary>
-    [MemberNotNull(nameof(OutputTemplate))]
-    public string HtmlTemplateText
-    {
-        get;
-        private set
-        {
-            field = value;
-            var name = Name.ToKebabCase();
-            var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
-            OutputTemplate = $"ui://components/{name}-{hash}.html";
-        }
-    }
-
-    /// <summary>
-    /// Resource URI for component HTML template.
-    /// </summary>
-    public string OutputTemplate { get; private set; }
+    public string HtmlTemplateText { get; } = htmlTemplateText;
 
     /// <summary>
     /// Define connect_domains and resource_domains arrays for the component's CSP snapshot.

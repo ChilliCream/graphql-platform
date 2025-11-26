@@ -145,7 +145,6 @@ public abstract class IntegrationTestBase
             new OperationToolDefinition(document2)
             {
                 OpenAiComponent = new OpenAiComponent(
-                    name: "GetWithNonNullableVariables",
                     htmlTemplateText: await File.ReadAllTextAsync("__resources__/OpenAiComponent.html"))
                 {
                     AllowToolCalls = true,
@@ -586,14 +585,12 @@ public abstract class IntegrationTestBase
             new OperationToolDefinition(documentNode1)
             {
                 OpenAiComponent = new OpenAiComponent(
-                    name: "GetBooksWithTitle1",
                     htmlTemplateText: await File.ReadAllTextAsync("__resources__/OpenAiComponent.html"))
             });
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(documentNode2)
             {
                 OpenAiComponent = new OpenAiComponent(
-                    name: "GetBooksWithTitle2",
                     htmlTemplateText: await File.ReadAllTextAsync("__resources__/OpenAiComponent.html"))
                 {
                     Description = "GetBooksWithTitle2 OpenAI Component description",
@@ -627,31 +624,30 @@ public abstract class IntegrationTestBase
         var storage = new TestOperationToolStorage();
         var documentNode = Utf8GraphQLParser.Parse(
             await File.ReadAllTextAsync("__resources__/GetBooksWithTitle1.graphql"));
-        var openAiComponent = new OpenAiComponent(
-            name: "GetBooksWithTitle1",
-            htmlTemplateText: await File.ReadAllTextAsync("__resources__/OpenAiComponent.html"))
-        {
-            Description = "GetBooksWithTitle1 OpenAI Component description",
-            PrefersBorder = true,
-            AllowToolCalls = true,
-            ContentSecurityPolicy =
-                new OpenAiComponentCsp(
-                    ConnectDomains: ["https://example.com"],
-                    ResourceDomains: ["https://*.example.com"]),
-            Domain = "https://example.com",
-            ToolInvokingStatusText = "Fetching books...",
-            ToolInvokedStatusText = "Books fetched."
-        };
-        await storage.AddOrUpdateToolAsync(
+        var tool =
             new OperationToolDefinition(documentNode)
             {
-                OpenAiComponent = openAiComponent
-            });
+                OpenAiComponent = new OpenAiComponent(
+                    htmlTemplateText: await File.ReadAllTextAsync("__resources__/OpenAiComponent.html"))
+                {
+                    Description = "GetBooksWithTitle1 OpenAI Component description",
+                    PrefersBorder = true,
+                    AllowToolCalls = true,
+                    ContentSecurityPolicy =
+                        new OpenAiComponentCsp(
+                            ConnectDomains: ["https://example.com"],
+                            ResourceDomains: ["https://*.example.com"]),
+                    Domain = "https://example.com",
+                    ToolInvokingStatusText = "Fetching books...",
+                    ToolInvokedStatusText = "Books fetched."
+                }
+            };
+        await storage.AddOrUpdateToolAsync(tool);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var result = await mcpClient.ReadResourceAsync(openAiComponent.OutputTemplate);
+        var result = await mcpClient.ReadResourceAsync(tool.OpenAiComponentOutputTemplate!);
 
         // assert
         JsonSerializer.Serialize(result, JsonSerializerOptions)

@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using CaseConverter;
 using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Language;
@@ -144,5 +146,25 @@ public sealed class OperationToolDefinition
     /// <summary>
     /// Gets the optional OpenAI component configuration for this tool.
     /// </summary>
-    public OpenAiComponent? OpenAiComponent { get; init; }
+    public OpenAiComponent? OpenAiComponent
+    {
+        get;
+        init
+        {
+            field = value;
+
+            if (value is null)
+            {
+                OpenAiComponentOutputTemplate = null;
+            }
+            else
+            {
+                var name = Name.ToKebabCase();
+                var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value.HtmlTemplateText)));
+                OpenAiComponentOutputTemplate = $"ui://components/{name}-{hash}.html";
+            }
+        }
+    }
+
+    public string? OpenAiComponentOutputTemplate { get; private set; }
 }
