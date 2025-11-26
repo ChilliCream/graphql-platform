@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -314,4 +316,16 @@ internal static partial class TestHelper
 
     [GeneratedRegex("MiddlewareFactories([a-z0-9]{32})")]
     private static partial Regex MiddlewareFactoryHashRegex();
+
+    internal static class ForceInvariantDefaultCultureModuleInitializer
+    {
+        [ModuleInitializer]
+        internal static void Initialize()
+        {
+            // Compile errors are localized, so enforce a common default culture,
+            // since otherwise the snapshot comparison may fail
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+        }
+    }
 }

@@ -69,11 +69,20 @@ namespace HotChocolate.Adapters.Mcp.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The argument `{0}` is not supported on @mcpTool..
+        ///   Looks up a localized string similar to ToolInvokedStatusText cannot exceed 64 characters..
         /// </summary>
-        internal static string McpToolDirectiveParser_ArgumentNotSupportedOnMcpToolDirective {
+        internal static string OpenAiComponent_ToolInvokedStatusTextCannotExceed64Characters {
             get {
-                return ResourceManager.GetString("McpToolDirectiveParser_ArgumentNotSupportedOnMcpToolDirective", resourceCulture);
+                return ResourceManager.GetString("OpenAiComponent_ToolInvokedStatusTextCannotExceed64Characters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ToolInvokingStatusText cannot exceed 64 characters..
+        /// </summary>
+        internal static string OpenAiComponent_ToolInvokingStatusTextCannotExceed64Characters {
+            get {
+                return ResourceManager.GetString("OpenAiComponent_ToolInvokingStatusTextCannotExceed64Characters", resourceCulture);
             }
         }
         
@@ -83,6 +92,24 @@ namespace HotChocolate.Adapters.Mcp.Properties {
         internal static string OperationToolDefinition_DocumentMustContainSingleOperation {
             get {
                 return ResourceManager.GetString("OperationToolDefinition_DocumentMustContainSingleOperation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} OpenAI Component.
+        /// </summary>
+        internal static string OperationToolFactory_OpenAiComponentResourceName {
+            get {
+                return ResourceManager.GetString("OperationToolFactory_OpenAiComponentResourceName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The resource with URI &apos;{0}&apos; was not found..
+        /// </summary>
+        internal static string ReadResourceHandler_ResourceWithUriNotFound {
+            get {
+                return ResourceManager.GetString("ReadResourceHandler_ResourceWithUriNotFound", resourceCulture);
             }
         }
         
