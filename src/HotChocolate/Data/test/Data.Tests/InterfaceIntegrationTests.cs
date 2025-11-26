@@ -401,7 +401,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
         {
             var pagingArgs = context.GetPagingArguments();
-            // var selector = context.GetSelector();
+            var query = context.GetQueryContext<Page<Animal>, Animal>();
 
             await using var scope = _services.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AnimalContext>();
@@ -409,10 +409,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             return await dbContext.Owners
                 .Where(t => keys.Contains(t.Id))
                 .SelectMany(t => t.Pets)
-                .OrderBy(t => t.Name)
-                .ThenBy(t => t.Id)
-                // selections do not work when inheritance is used for nested batching.
-                // .Select(selector, t => t.OwnerId)
+                .With(query, x => x.AddAscending(y => y.Name).AddAscending(y => y.Id))
                 .ToBatchPageAsync(
                     t => t.OwnerId,
                     pagingArgs,
@@ -440,7 +437,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             CancellationToken cancellationToken)
         {
             var pagingArgs = context.GetPagingArguments();
-            // var selector = context.GetSelector();
+            var query = context.GetQueryContext<Page<Animal>, Animal>();
 
             await using var scope = _services.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AnimalContext>();
@@ -448,10 +445,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
             return await dbContext.Owners
                 .Where(t => keys.Contains(t.Id))
                 .SelectMany(t => t.Pets)
-                .OrderBy(t => t.Name)
-                .ThenBy(t => t.Id)
-                // selections do not work when inheritance is used for nested batching.
-                // .Select(selector, t => t.OwnerId)
+                .With(query, x => x.AddAscending(y => y.Name).AddAscending(y => y.Id))
                 .ToBatchPageAsync(
                     t => t.OwnerId,
                     pagingArgs,
