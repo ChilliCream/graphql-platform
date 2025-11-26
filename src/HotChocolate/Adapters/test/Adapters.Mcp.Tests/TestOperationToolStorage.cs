@@ -1,7 +1,5 @@
 using System.Collections.Immutable;
-using CaseConverter;
 using HotChocolate.Adapters.Mcp.Storage;
-using HotChocolate.Language;
 
 namespace HotChocolate.Adapters.Mcp;
 
@@ -29,41 +27,26 @@ public sealed class TestOperationToolStorage : IOperationToolStorage, IDisposabl
     }
 
     public async Task AddOrUpdateToolAsync(
-        DocumentNode document,
+        OperationToolDefinition toolDefinition,
         CancellationToken cancellationToken = default)
     {
-        var operation = document.Definitions.OfType<OperationDefinitionNode>().FirstOrDefault();
-
-        if (operation is null)
-        {
-            throw new ArgumentException($"Document {document} has no operation definition");
-        }
-
-        var name = operation.Name?.Value.ToSnakeCase()!;
-
         OperationToolStorageEventType type;
+
         await _semaphore.WaitAsync(cancellationToken);
 
-        OperationToolDefinition tool;
-        try
+        if (_tools.TryAdd(toolDefinition.Name, toolDefinition))
         {
-            tool = new OperationToolDefinition(name, document);
-            if (_tools.TryAdd(name, tool))
-            {
-                type = OperationToolStorageEventType.Added;
-            }
-            else
-            {
-                _tools[name] = tool;
-                type = OperationToolStorageEventType.Modified;
-            }
+            type = OperationToolStorageEventType.Added;
         }
-        finally
+        else
         {
-            _semaphore.Release();
+            _tools[toolDefinition.Name] = toolDefinition;
+            type = OperationToolStorageEventType.Modified;
         }
 
-        NotifySubscribers(name, tool, type);
+        _semaphore.Release();
+
+        NotifySubscribers(toolDefinition.Name, toolDefinition, type);
     }
 
     public async Task RemoveToolAsync(

@@ -26,8 +26,9 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         // arrange
         var storage = new TestOperationToolStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetSingleField.graphql")));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync("__resources__/GetSingleField.graphql"))));
         var typeModule = new TestTypeModule();
         var builder = new WebHostBuilder()
             .ConfigureServices(
