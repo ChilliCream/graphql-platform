@@ -106,24 +106,33 @@ internal static class GeneratorUtils
             return $"{defaultValue}L";
         }
 
-        if (type.TypeKind == TypeKind.Enum && type is INamedTypeSymbol namedTypeSymbol)
+        if (type is INamedTypeSymbol namedTypeSymbol)
         {
-            var enumType = namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-
-            // Find the enum member that matches the default value
-            foreach (var member in namedTypeSymbol.GetMembers())
+            if (type.TypeKind == TypeKind.Enum)
             {
-                if (member is IFieldSymbol field && field.HasConstantValue && Equals(field.ConstantValue, defaultValue))
+                var enumType = namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+                // Find the enum member that matches the default value
+                foreach (var member in namedTypeSymbol.GetMembers())
                 {
-                    return $"{enumType}.{field.Name}";
+                    if (member is IFieldSymbol { HasConstantValue: true } field
+                        && Equals(field.ConstantValue, defaultValue))
+                    {
+                        return $"{enumType}.{field.Name}";
+                    }
                 }
+
+                // Fallback to integer value if no matching member found
+                return defaultValue.ToString()!;
             }
 
-            // Fallback to integer value if no matching member found
-            return defaultValue.ToString()!;
+            if (type.IsNullableValueType())
+            {
+                return ConvertDefaultValueToString(defaultValue, namedTypeSymbol.TypeArguments[0]!);
+            }
         }
 
-        return defaultValue.ToString()!;
+        return defaultValue.ToString();
     }
 
     public static string SanitizeIdentifier(string input)
