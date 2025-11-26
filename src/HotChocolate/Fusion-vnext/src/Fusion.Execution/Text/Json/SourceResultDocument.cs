@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Buffers;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -228,7 +229,7 @@ public sealed partial class SourceResultDocument : IDisposable
         {
             if (_pooledMemory)
             {
-                JsonMemory.Return(_dataChunks, _usedChunks);
+                JsonMemory.Return(JsonMemoryKind.Json, _dataChunks, _usedChunks);
 
                 if (_dataChunks.Length > 1)
                 {

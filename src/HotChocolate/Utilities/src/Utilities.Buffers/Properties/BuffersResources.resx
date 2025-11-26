@@ -21,4 +21,7 @@
   <data name="ArrayWriter_Advance_BufferOverflow" xml:space="preserve">
     <value>Cannot advance past the end of the buffer.</value>
   </data>
+  <data name="FixedSizeArrayPool_Return_InvalidArraySize" xml:space="preserve">
+    <value>Buffer size {0} does not match expected chunk size {1}</value>
+  </data>
 </root>

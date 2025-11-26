@@ -1,8 +1,8 @@
 using System.Diagnostics;
-using static HotChocolate.Fusion.Buffers.FixedSizeArrayPoolEventSource;
-using static HotChocolate.Fusion.Properties.FusionExecutionResources;
+using static HotChocolate.Buffers.FixedSizeArrayPoolEventSource;
+using static HotChocolate.Buffers.Properties.BuffersResources;
 
-namespace HotChocolate.Fusion.Buffers;
+namespace HotChocolate.Buffers;
 
 internal sealed class FixedSizeArrayPool
 {
@@ -45,7 +45,14 @@ internal sealed class FixedSizeArrayPool
 
     public void Return(byte[] array)
     {
+#if NET8_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(array);
+#else
+        if(array is null)
+        {
+            throw new ArgumentNullException(nameof(array));
+        }
+#endif
 
         if (array.Length != _arraySize)
         {
@@ -149,7 +156,11 @@ internal sealed class FixedSizeArrayPool
 
         internal bool Return(byte[] array)
         {
-            Debug.Assert(array.Length == _bufferLength);
+            // if the returned array has not the expected size we will reject it without throwing an error.
+            if (array.Length != _bufferLength)
+            {
+                return false;
+            }
 
             var returned = false;
             var lockTaken = false;

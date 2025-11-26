@@ -8,7 +8,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
-    <ProjectReference Include="..\..\src\Fetching\HotChocolate.Fetching.csproj" />
     <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
   </ItemGroup>
 

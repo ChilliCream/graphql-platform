@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Text.Json;
 #else
 using System.Buffers;
@@ -103,7 +104,7 @@ internal class JsonLinesReader(HttpResponseMessage message) : IAsyncEnumerable<O
 
         // Ceiling division to make sure we end up with the right amount of chunks.
         var chunksNeeded = (requiredSize + JsonMemory.BufferSize - 1) / JsonMemory.BufferSize;
-        var chunks = JsonMemory.RentRange(chunksNeeded);
+        var chunks = JsonMemory.RentRange(JsonMemoryKind.Json, chunksNeeded);
         var chunkIndex = 0;
         var chunkPosition = 0;
 

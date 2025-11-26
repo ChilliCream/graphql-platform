@@ -90,9 +90,7 @@
     <Project Path="HotChocolate/Core/src/Execution.Operation.Abstractions/HotChocolate.Execution.Operation.Abstractions.csproj" />
     <Project Path="HotChocolate/Core/src/Execution.Pipeline/HotChocolate.Execution.Pipeline.csproj" />
     <Project Path="HotChocolate/Core/src/Execution.Projections/HotChocolate.Execution.Projections.csproj" />
-    <Project Path="HotChocolate/Core/src/Execution/HotChocolate.Execution.csproj" />
     <Project Path="HotChocolate/Core/src/Features/HotChocolate.Features.csproj" />
-    <Project Path="HotChocolate/Core/src/Fetching/HotChocolate.Fetching.csproj" />
     <Project Path="HotChocolate/Core/src/Subscriptions.InMemory/HotChocolate.Subscriptions.InMemory.csproj" />
     <Project Path="HotChocolate/Core/src/Subscriptions.Nats/HotChocolate.Subscriptions.Nats.csproj" />
     <Project Path="HotChocolate/Core/src/Subscriptions.Postgres/HotChocolate.Subscriptions.Postgres.csproj" />

@@ -1,8 +1,8 @@
 using System.Diagnostics.Tracing;
 
-namespace HotChocolate.Fusion.Buffers;
+namespace HotChocolate.Buffers;
 
-[EventSource(Name = "HotChocolate-Fusion-FixedSizeArrayPool")]
+[EventSource(Name = "HotChocolate-Buffers-FixedSizeArrayPool")]
 internal sealed class FixedSizeArrayPoolEventSource : EventSource
 {
     public static readonly FixedSizeArrayPoolEventSource Log = new();

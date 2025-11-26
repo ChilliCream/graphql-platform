@@ -4,7 +4,7 @@ using System.Reflection;
 namespace HotChocolate.Internal;
 
 /// <summary>
-/// This interface represents an expression builder to resolver resolver parameter values.
+/// This interface represents an expression builder to resolver parameter values.
 /// </summary>
 public interface IParameterExpressionBuilder
 {

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using static HotChocolate.Fusion.Text.Json.MetaDbEventSource;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -23,7 +24,7 @@ public sealed partial class SourceResultDocument
         static MetaDb()
         {
             Debug.Assert(
-                MetaDbMemory.BufferSize >= Cursor.ChunkBytes,
+                JsonMemory.BufferSize >= Cursor.ChunkBytes,
                 "MetaDb.BufferSize must match Cursor.ChunkBytes for index math to align.");
         }
 
@@ -36,7 +37,7 @@ public sealed partial class SourceResultDocument
             log.MetaDbCreated(1, estimatedRows, 1);
 
             // Rent the first chunk now to avoid branching on first append
-            chunks[0] = MetaDbMemory.Rent();
+            chunks[0] = JsonMemory.Rent(JsonMemoryKind.Metadata);
             log.ChunkAllocated(1, 0);
 
             for (var i = 1; i < chunks.Length; i++)
@@ -101,7 +102,7 @@ public sealed partial class SourceResultDocument
             // if the chunk is empty we did not yet rent any memory for it
             if (chunk.Length == 0)
             {
-                chunk = chunks[chunkIndex] = MetaDbMemory.Rent();
+                chunk = chunks[chunkIndex] = JsonMemory.Rent(JsonMemoryKind.Metadata);
                 log.ChunkAllocated(1, chunkIndex);
             }
 
@@ -215,7 +216,7 @@ public sealed partial class SourceResultDocument
                         break;
                     }
 
-                    MetaDbMemory.Return(chunk);
+                    JsonMemory.Return(JsonMemoryKind.Metadata, chunk);
                 }
 
                 chunks.Clear();

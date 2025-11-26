@@ -15,7 +15,7 @@ public sealed partial class CompositeResultDocument
         // 27 bits for location + 2 bits OpRefType + 3 reserved bits
         private readonly int _locationAndOpRefType;
 
-        // Sign bit for HasComplexChildren + 31 bits for size/length
+        // A Sign bit for HasComplexChildren + 31 bits for size/length
         private readonly int _sizeOrLengthUnion;
 
         // 4 bits TokenType + 27 bits NumberOfRows + 1 reserved bit

@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
-    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
   </ItemGroup>
 
   <ItemGroup>

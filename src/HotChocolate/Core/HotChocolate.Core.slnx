@@ -7,9 +7,7 @@
     <Project Path="src/Execution.Configuration.Abstractions/HotChocolate.Execution.Configuration.Abstractions.csproj" />
     <Project Path="src/Execution.Pipeline/HotChocolate.Execution.Pipeline.csproj" />
     <Project Path="src/Execution.Projections/HotChocolate.Execution.Projections.csproj" />
-    <Project Path="src/Execution/HotChocolate.Execution.csproj" />
     <Project Path="src/Features/HotChocolate.Features.csproj" />
-    <Project Path="src/Fetching/HotChocolate.Fetching.csproj" />
     <Project Path="src/Subscriptions.InMemory/HotChocolate.Subscriptions.InMemory.csproj" />
     <Project Path="src/Subscriptions.Nats/HotChocolate.Subscriptions.Nats.csproj" />
     <Project Path="src/Subscriptions.Postgres/HotChocolate.Subscriptions.Postgres.csproj" />
