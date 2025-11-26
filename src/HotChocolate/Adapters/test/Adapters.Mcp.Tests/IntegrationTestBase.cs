@@ -183,12 +183,13 @@ public abstract class IntegrationTestBase
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
                     """
-                    query GetBooks @mcpTool(title: "Custom Title") {
+                    query GetBooks {
                         books {
                             title
                         }
                     }
-                    """)));
+                    """),
+                title: "Custom Title"));
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -200,7 +201,7 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
-    public async Task ListTools_SetAnnotationsInDocument_ReturnsExpectedResult()
+    public async Task ListTools_SetAnnotations_ReturnsExpectedResult()
     {
         // arrange
         var storage = new TestOperationToolStorage();
@@ -208,10 +209,13 @@ public abstract class IntegrationTestBase
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
                     """
-                    mutation AddBook @mcpTool(destructiveHint: false, idempotentHint: true, openWorldHint: false) {
+                    mutation AddBook {
                         addBook { title }
                     }
-                    """)));
+                    """),
+                destructiveHint: false,
+                idempotentHint: true,
+                openWorldHint: false));
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -288,7 +292,8 @@ public abstract class IntegrationTestBase
         var storage = new TestOperationToolStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
-                Utf8GraphQLParser.Parse("""query Tool @mcpTool(title: "BEFORE") { books { title } }""")));
+                Utf8GraphQLParser.Parse("query Tool { books { title } }"),
+                title: "BEFORE"));
         var listener = new TestMcpDiagnosticEventListener();
         var server = await CreateTestServerAsync(storage, diagnosticEventListener: listener);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
@@ -296,7 +301,8 @@ public abstract class IntegrationTestBase
         // act
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
-                Utf8GraphQLParser.Parse("""query Tool @mcpTool(title: "AFTER") { doesNotExist1, doesNotExist2 }""")));
+                Utf8GraphQLParser.Parse("query Tool { doesNotExist1, doesNotExist2 }"),
+                title: "AFTER"));
         await Task.Delay(500); // Wait for the observer buffer to flush.
         var result = await mcpClient.ListToolsAsync();
 

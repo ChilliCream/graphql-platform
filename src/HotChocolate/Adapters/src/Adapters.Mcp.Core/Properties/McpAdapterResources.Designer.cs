@@ -69,15 +69,6 @@ namespace HotChocolate.Adapters.Mcp.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The argument `{0}` is not supported on @mcpTool..
-        /// </summary>
-        internal static string McpToolDirectiveParser_ArgumentNotSupportedOnMcpToolDirective {
-            get {
-                return ResourceManager.GetString("McpToolDirectiveParser_ArgumentNotSupportedOnMcpToolDirective", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to ToolInvokedStatusText cannot exceed 64 characters..
         /// </summary>
         internal static string OpenAiComponent_ToolInvokedStatusTextCannotExceed64Characters {

@@ -155,13 +155,13 @@ public sealed class OperationToolFactoryTests
         var schema = CreateSchema();
         var document = Utf8GraphQLParser.Parse(
             """
-            query GetBooks @mcpTool(title: "Custom Title") {
+            query GetBooks {
                 books {
                     title
                 }
             }
             """);
-        var toolDefinition = new OperationToolDefinition(document);
+        var toolDefinition = new OperationToolDefinition(document, title: "Custom Title");
 
         // act
         var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
@@ -177,14 +177,18 @@ public sealed class OperationToolFactoryTests
         var schema = CreateSchema();
         var document = Utf8GraphQLParser.Parse(
             """
-            mutation AddBook
-                @mcpTool(destructiveHint: false, idempotentHint: true, openWorldHint: false) {
+            mutation AddBook {
                 addBook {
                     title
                 }
             }
             """);
-        var toolDefinition = new OperationToolDefinition(document);
+        var toolDefinition =
+            new OperationToolDefinition(
+                document,
+                destructiveHint: false,
+                idempotentHint: true,
+                openWorldHint: false);
 
         // act
         var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
