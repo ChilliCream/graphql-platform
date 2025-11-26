@@ -8,7 +8,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities;
 
 namespace HotChocolate;
 

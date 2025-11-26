@@ -126,7 +126,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
             return true;
         }
 
-        public new static QueryableSimpleMethodTest Create(FilterProviderContext context) => new(context.TypeInspector);
+        public static new QueryableSimpleMethodTest Create(FilterProviderContext context) => new(context.TypeInspector);
     }
 
     private sealed class QueryableComplexMethodTest : QueryableDefaultFieldHandler
@@ -208,7 +208,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
             return false;
         }
 
-        public new static QueryableComplexMethodTest Create(FilterProviderContext context) => new(context.InputParser);
+        public static new QueryableComplexMethodTest Create(FilterProviderContext context) => new(context.InputParser);
     }
 
     public class Foo
