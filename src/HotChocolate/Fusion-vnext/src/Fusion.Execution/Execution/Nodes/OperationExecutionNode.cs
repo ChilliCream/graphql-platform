@@ -223,7 +223,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             OperationSourceText = _operation.SourceText,
             Variables = variables
         };
-        
+
         var subscriptionId = SubscriptionId.Next();
 
         try
