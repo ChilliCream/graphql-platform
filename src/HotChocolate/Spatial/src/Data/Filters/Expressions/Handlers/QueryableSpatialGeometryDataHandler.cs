@@ -6,5 +6,5 @@ public class QueryableSpatialGeometryDataHandler : QueryableDataOperationHandler
 {
     protected override int Operation => SpatialFilterOperations.Geometry;
 
-    public new static QueryableSpatialGeometryDataHandler Create(FilterProviderContext context) => new();
+    public static new QueryableSpatialGeometryDataHandler Create(FilterProviderContext context) => new();
 }
