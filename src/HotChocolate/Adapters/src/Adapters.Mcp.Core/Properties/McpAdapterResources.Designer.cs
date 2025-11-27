@@ -114,6 +114,33 @@ namespace HotChocolate.Adapters.Mcp.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The MIME type must be a valid type/subtype string..
+        /// </summary>
+        internal static string OperationToolIcon_InvalidIconMimeType {
+            get {
+                return ResourceManager.GetString("OperationToolIcon_InvalidIconMimeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Each size must have the format {WIDTH}x{HEIGHT} (e.g., 48x48) or be &apos;any&apos;..
+        /// </summary>
+        internal static string OperationToolIcon_InvalidIconSize {
+            get {
+                return ResourceManager.GetString("OperationToolIcon_InvalidIconSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The icon source URI must use the HTTP, HTTPS, or data scheme..
+        /// </summary>
+        internal static string OperationToolIcon_InvalidIconSourceScheme {
+            get {
+                return ResourceManager.GetString("OperationToolIcon_InvalidIconSourceScheme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The resource with URI &apos;{0}&apos; was not found..
         /// </summary>
         internal static string ReadResourceHandler_ResourceWithUriNotFound {

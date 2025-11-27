@@ -5,18 +5,20 @@ namespace HotChocolate.Adapters.Mcp.Storage;
 public sealed class OperationToolDefinitionTests
 {
     [Theory]
-    [InlineData(null)]
     [InlineData("valid")]
     [InlineData("valid_name")]
     [InlineData("valid.name")]
     [InlineData("valid-name")]
-    public void OperationToolDefinition_WithValidName_Succeeds(string? name)
+    public void OperationToolDefinition_WithValidName_Succeeds(string name)
     {
         // arrange & act
         var exception =
             Record.Exception(
                 () =>
-                    new OperationToolDefinition(Utf8GraphQLParser.Parse(OperationDocument), name));
+                    new OperationToolDefinition(Utf8GraphQLParser.Parse(OperationDocument))
+                    {
+                        Name = name
+                    });
 
         // assert
         Assert.Null(exception);
@@ -43,7 +45,10 @@ public sealed class OperationToolDefinitionTests
         var exception =
             Record.Exception(
                 () =>
-                    new OperationToolDefinition(Utf8GraphQLParser.Parse(OperationDocument), name));
+                    new OperationToolDefinition(Utf8GraphQLParser.Parse(OperationDocument))
+                    {
+                        Name = name
+                    });
 
         // assert
         Assert.IsType<ArgumentException>(exception);

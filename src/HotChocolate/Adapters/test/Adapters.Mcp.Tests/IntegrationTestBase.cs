@@ -188,8 +188,10 @@ public abstract class IntegrationTestBase
                             title
                         }
                     }
-                    """),
-                title: "Custom Title"));
+                    """))
+            {
+                Title = "Custom Title"
+            });
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -198,6 +200,57 @@ public abstract class IntegrationTestBase
 
         // assert
         Assert.Equal("Custom Title", tools[0].Title);
+    }
+
+    [Fact]
+    public async Task ListTools_SetIcons_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new TestOperationToolStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    """
+                    query GetBooks {
+                        books {
+                            title
+                        }
+                    }
+                    """))
+            {
+                Icons =
+                [
+                    new OperationToolIcon(new Uri("https://example.com/icon.png"))
+                    {
+                        MimeType = "image/png",
+                        Sizes = ["48x48"],
+                        Theme = "light"
+                    },
+                    new OperationToolIcon(new Uri("data:image/svg+xml;base64,..."))
+                    {
+                        MimeType = "image/svg+xml",
+                        Sizes = ["any"],
+                        Theme = "dark"
+                    }
+                ]
+            });
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync();
+        var icons = tools[0].ProtocolTool.Icons;
+
+        // assert
+        Assert.Equal(2, icons?.Count);
+        Assert.Equal("https://example.com/icon.png", icons?[0].Source);
+        Assert.Equal("image/png", icons?[0].MimeType);
+        Assert.Equal(["48x48"], icons?[0].Sizes);
+        Assert.Equal("light", icons?[0].Theme);
+        Assert.Equal("data:image/svg+xml;base64,...", icons?[1].Source);
+        Assert.Equal("image/svg+xml", icons?[1].MimeType);
+        Assert.Equal(["any"], icons?[1].Sizes);
+        Assert.Equal("dark", icons?[1].Theme);
     }
 
     [Fact]
@@ -212,10 +265,12 @@ public abstract class IntegrationTestBase
                     mutation AddBook {
                         addBook { title }
                     }
-                    """),
-                destructiveHint: false,
-                idempotentHint: true,
-                openWorldHint: false));
+                    """))
+            {
+                DestructiveHint = false,
+                IdempotentHint = true,
+                OpenWorldHint = false
+            });
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -291,9 +346,10 @@ public abstract class IntegrationTestBase
         // arrange
         var storage = new TestOperationToolStorage();
         await storage.AddOrUpdateToolAsync(
-            new OperationToolDefinition(
-                Utf8GraphQLParser.Parse("query Tool { books { title } }"),
-                title: "BEFORE"));
+            new OperationToolDefinition(Utf8GraphQLParser.Parse("query Tool { books { title } }"))
+            {
+                Title = "BEFORE"
+            });
         var listener = new TestMcpDiagnosticEventListener();
         var server = await CreateTestServerAsync(storage, diagnosticEventListener: listener);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
@@ -301,9 +357,11 @@ public abstract class IntegrationTestBase
         // act
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
-                Utf8GraphQLParser.Parse("query Tool { doesNotExist1, doesNotExist2 }"),
-                title: "AFTER"));
-        await Task.Delay(500); // Wait for the observer buffer to flush.
+                Utf8GraphQLParser.Parse("query Tool { doesNotExist1, doesNotExist2 }"))
+            {
+                Title = "AFTER"
+            });
+        await Task.Delay(1000); // Wait for the observer buffer to flush.
         var result = await mcpClient.ListToolsAsync();
 
         // assert

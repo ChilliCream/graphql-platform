@@ -161,7 +161,11 @@ public sealed class OperationToolFactoryTests
                 }
             }
             """);
-        var toolDefinition = new OperationToolDefinition(document, title: "Custom Title");
+        var toolDefinition =
+            new OperationToolDefinition(document)
+            {
+                Title = "Custom Title"
+            };
 
         // act
         var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
@@ -184,11 +188,12 @@ public sealed class OperationToolFactoryTests
             }
             """);
         var toolDefinition =
-            new OperationToolDefinition(
-                document,
-                destructiveHint: false,
-                idempotentHint: true,
-                openWorldHint: false);
+            new OperationToolDefinition(document)
+            {
+                DestructiveHint = false,
+                IdempotentHint = true,
+                OpenWorldHint = false
+            };
 
         // act
         var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
