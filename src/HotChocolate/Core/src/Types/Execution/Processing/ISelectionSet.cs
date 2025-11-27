@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
@@ -31,4 +33,32 @@ public interface ISelectionSet
     /// Gets the declaring operation.
     /// </summary>
     IOperation DeclaringOperation { get; }
+
+    /// <summary>
+    /// Tries to resolve a selection by name.
+    /// </summary>
+    /// <param name="responseName">
+    /// The selection response name.
+    /// </param>
+    /// <param name="selection">
+    /// The resolved selection.
+    /// </param>
+    /// <returns>
+    /// Returns true if the selection was successfully resolved.
+    /// </returns>
+    bool TryGetSelection(string responseName, [NotNullWhen(true)] out ISelection? selection);
+
+    /// <summary>
+    /// Tries to resolve a selection by name.
+    /// </summary>
+    /// <param name="utf8ResponseName">
+    /// The selection response name.
+    /// </param>
+    /// <param name="selection">
+    /// The resolved selection.
+    /// </param>
+    /// <returns>
+    /// Returns true if the selection was successfully resolved.
+    /// </returns>
+    bool TryGetSelection(ReadOnlySpan<byte> utf8ResponseName, [NotNullWhen(true)] out ISelection? selection);
 }

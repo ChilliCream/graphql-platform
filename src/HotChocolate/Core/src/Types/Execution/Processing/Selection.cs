@@ -14,7 +14,7 @@ public class Selection : ISelection
 {
     private static readonly ArgumentMap s_emptyArguments = ArgumentMap.Empty;
     private ulong[] _includeConditions;
-    private long _streamIfCondition;
+    private ulong _streamIfCondition;
     private Flags _flags;
     private FieldNode _syntaxNode;
     private FieldNode[] _syntaxNodes;
@@ -136,7 +136,7 @@ public class Selection : ISelection
     public ArgumentMap Arguments { get; }
 
     /// <inheritdoc />
-    public bool HasStreamDirective(long includeFlags)
+    public bool HasStreamDirective(ulong includeFlags)
         => (_flags & Flags.Stream) == Flags.Stream
             && (_streamIfCondition is 0 || (includeFlags & _streamIfCondition) != _streamIfCondition);
 
@@ -313,7 +313,7 @@ public class Selection : ISelection
         SelectionSetId = selectionSetId;
     }
 
-    internal void MarkAsStream(long ifCondition)
+    internal void MarkAsStream(ulong ifCondition)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
         {

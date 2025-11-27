@@ -104,7 +104,7 @@ public interface IOperation : IHasReadOnlyContextData, IEnumerable<ISelectionSet
     /// <returns>
     /// Returns the include flags for the specified variable values.
     /// </returns>
-    long CreateIncludeFlags(IVariableValueCollection variables);
+    ulong CreateIncludeFlags(IVariableValueCollection variables);
 
     bool TryGetState<TState>(out TState? state);
 

@@ -370,7 +370,7 @@ public sealed partial class OperationCompiler
     private void CollectFields(
         CompilerContext context,
         SelectionSetNode selectionSet,
-        long includeCondition)
+        ulong includeCondition)
     {
         for (var j = 0; j < selectionSet.Selections.Count; j++)
         {
@@ -411,7 +411,7 @@ public sealed partial class OperationCompiler
     private void ResolveField(
         CompilerContext context,
         FieldNode selection,
-        long includeCondition)
+        ulong includeCondition)
     {
         includeCondition = GetSelectionIncludeCondition(selection, includeCondition);
 
@@ -514,7 +514,7 @@ public sealed partial class OperationCompiler
         NamedTypeNode? typeCondition,
         SelectionSetNode selectionSet,
         IReadOnlyList<DirectiveNode> directives,
-        long includeCondition)
+        ulong includeCondition)
     {
         if (typeCondition is null
             || (context.Schema.Types.TryGetType(typeCondition, out IType? typeCon)
@@ -528,7 +528,7 @@ public sealed partial class OperationCompiler
                 var nullValue = NullValueNode.Default;
                 var ifValue = deferDirective?.GetArgumentValue(DirectiveNames.Defer.Arguments.If) ?? nullValue;
 
-                long ifConditionFlags = 0;
+                ulong ifConditionFlags = 0;
 
                 if (ifValue.Kind is not SyntaxKind.NullValue)
                 {
@@ -649,9 +649,9 @@ EXIT:
         return variants;
     }
 
-    private long GetSelectionIncludeCondition(
+    private ulong GetSelectionIncludeCondition(
         ISelectionNode selectionSyntax,
-        long parentIncludeCondition)
+        ulong parentIncludeCondition)
     {
         var condition = IncludeCondition.FromSelection(selectionSyntax);
 
@@ -697,7 +697,7 @@ EXIT:
 
     private long GetSelectionIncludeCondition(
         IncludeCondition condition,
-        long parentIncludeCondition)
+        ulong parentIncludeCondition)
     {
         var pos = Array.IndexOf(_includeConditions, condition);
 

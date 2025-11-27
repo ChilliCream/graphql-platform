@@ -9,7 +9,11 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class Operation : IOperation
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _writeLock = new();
+#else
     private readonly object _writeLock = new();
+#endif
     private SelectionVariants[] _selectionVariants = [];
     private IncludeCondition[] _includeConditions = [];
     private ImmutableDictionary<string, object?> _contextData =

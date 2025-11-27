@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 using HotChocolate.Types;
@@ -13,6 +15,8 @@ internal sealed class SelectionSet : ISelectionSet
 {
     private static readonly Fragment[] s_empty = [];
     private readonly Selection[] _selections;
+    private readonly FrozenDictionary<string, ISelection> _responseNameLookup;
+    private readonly SelectionLookup _utf8ResponseNameLookup;
     private readonly Fragment[] _fragments;
     private Flags _flags;
 
@@ -30,7 +34,7 @@ internal sealed class SelectionSet : ISelectionSet
     /// some of the execution.
     /// </param>
     /// <param name="isConditional">
-    /// Defines if this list needs post processing for skip and include.
+    /// Defines if this list needs post-processing for skip and include.
     /// </param>
     public SelectionSet(
         int id,
@@ -40,6 +44,8 @@ internal sealed class SelectionSet : ISelectionSet
     {
         Id = id;
         _selections = selections;
+        _responseNameLookup = _selections.ToFrozenDictionary(t => t.ResponseName, ISelection (t) => t);
+        _utf8ResponseNameLookup = SelectionLookup.Create(this);
         _fragments = fragments ?? s_empty;
         _flags = isConditional ? Flags.Conditional : Flags.None;
     }
@@ -58,6 +64,14 @@ internal sealed class SelectionSet : ISelectionSet
 
     /// <inheritdoc />
     public IOperation DeclaringOperation { get; private set; } = null!;
+
+    /// <inheritdoc />
+    public bool TryGetSelection(string responseName, [NotNullWhen(true)] out ISelection? selection)
+        => _responseNameLookup.TryGetValue(responseName, out selection);
+
+    /// <inheritdoc />
+    public bool TryGetSelection(ReadOnlySpan<byte> utf8ResponseName, [NotNullWhen(true)] out ISelection? selection)
+        => _utf8ResponseNameLookup.TryGetSelection(utf8ResponseName, out selection);
 
     /// <summary>
     /// Completes the selection set without sealing it.

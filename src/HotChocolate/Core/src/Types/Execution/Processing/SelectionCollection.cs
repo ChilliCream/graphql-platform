@@ -14,7 +14,7 @@ internal sealed class SelectionCollection(
     Schema schema,
     IOperation operation,
     ISelection[] selections,
-    long includeFlags)
+    ulong includeFlags)
     : ISelectionCollection
 {
     private readonly Schema _schema = schema ?? throw new ArgumentNullException(nameof(schema));
@@ -119,7 +119,7 @@ internal sealed class SelectionCollection(
 
         static bool IsChildSelected(
             IOperation operation,
-            long includeFlags,
+            ulong includeFlags,
             ObjectType objectType,
             ISelection parent,
             string fieldName)
@@ -199,7 +199,7 @@ internal sealed class SelectionCollection(
 
         static bool IsChildSelected(
             IOperation operation,
-            long includeFlags,
+            ulong includeFlags,
             ObjectType objectType,
             ISelection parent,
             string fieldName1,
@@ -284,7 +284,7 @@ internal sealed class SelectionCollection(
 
         static bool IsChildSelected(
             IOperation operation,
-            long includeFlags,
+            ulong includeFlags,
             ObjectType objectType,
             ISelection parent,
             string fieldName1,
@@ -360,7 +360,7 @@ internal sealed class SelectionCollection(
 
         static bool IsChildSelected(
             IOperation operation,
-            long includeFlags,
+            ulong includeFlags,
             ObjectType objectType,
             ISelection parent,
             ISet<string> fieldNames)
@@ -481,7 +481,7 @@ NEXT:
 
     private static void CollectFields(
         ReadOnlySpan<string> fieldNames,
-        long includeFlags,
+        ulong includeFlags,
         ref ISelection[] buffer,
         ISelectionSet selectionSet,
         int index,
