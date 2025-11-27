@@ -560,7 +560,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"mutation { complete(episode:NEW_HOPE) }"
+                        Query = "mutation { complete(episode:NEW_HOPE) }"
                     });
 
                 // assert
