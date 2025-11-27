@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -13,79 +14,34 @@ namespace HotChocolate.Adapters.Mcp.Storage;
 /// </summary>
 public sealed partial class OperationToolDefinition
 {
+    private readonly OperationDefinitionNode _operation;
+
     /// <summary>
     /// Initializes a new MCP tool definition from a GraphQL operation document.
     /// </summary>
     /// <param name="document">
     /// GraphQL document containing exactly one operation definition.
     /// </param>
-    /// <param name="name">
-    /// The name of the MCP tool.
-    /// </param>
-    /// <param name="title">
-    /// Optional tool title.
-    /// </param>
-    /// <param name="destructiveHint">
-    /// Optional destructive operation hint.
-    /// </param>
-    /// <param name="idempotentHint">
-    /// Optional idempotent operation hint.
-    /// </param>
-    /// <param name="openWorldHint">
-    /// Optional open-world assumption hint.
-    /// </param>
     /// <exception cref="ArgumentException">
     /// Thrown when document doesn't contain exactly one operation.
     /// </exception>
-    public OperationToolDefinition(
-        DocumentNode document,
-        string? name = null,
-        string? title = null,
-        bool? destructiveHint = null,
-        bool? idempotentHint = null,
-        bool? openWorldHint = null)
+    public OperationToolDefinition(DocumentNode document)
     {
         ArgumentNullException.ThrowIfNull(document);
 
-        OperationDefinitionNode? operation = null;
-
-        foreach (var current in document.Definitions.OfType<OperationDefinitionNode>())
+        try
         {
-            if (operation is not null)
-            {
-                throw new ArgumentException(
-                    OperationToolDefinition_DocumentMustContainSingleOperation,
-                    nameof(document));
-            }
-
-            operation = current;
+            _operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
         }
-
-        if (operation is null)
+        catch (InvalidOperationException)
         {
             throw new ArgumentException(
                 OperationToolDefinition_DocumentMustContainSingleOperation,
                 nameof(document));
         }
 
-        if (name is not null && !ValidateToolNameRegex().IsMatch(name))
-        {
-            throw new ArgumentException(
-                string.Format(OperationToolDefinition_InvalidToolName, name, ValidateToolNameRegex()));
-        }
-
-        Name = name ?? operation.Name?.Value.ToSnakeCase()!;
         Document = document;
-        Title = title;
-        DestructiveHint = destructiveHint;
-        IdempotentHint = idempotentHint;
-        OpenWorldHint = openWorldHint;
     }
-
-    /// <summary>
-    /// Gets the name of the MCP tool.
-    /// </summary>
-    public string Name { get; }
 
     /// <summary>
     /// Gets the GraphQL document containing operation that represents the MCP tool.
@@ -93,24 +49,47 @@ public sealed partial class OperationToolDefinition
     public DocumentNode Document { get; }
 
     /// <summary>
+    /// Gets the name of the MCP tool.
+    /// </summary>
+    public string Name
+    {
+        get => field ??= _operation.Name!.Value.ToSnakeCase();
+        init
+        {
+            if (!ValidateToolNameRegex().IsMatch(value))
+            {
+                throw new ArgumentException(
+                    string.Format(OperationToolDefinition_InvalidToolName, value, ValidateToolNameRegex()));
+            }
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Gets the optional human-readable title for the tool.
     /// </summary>
-    public string? Title { get; }
+    public string? Title { get; init; }
+
+    /// <summary>
+    /// Gets the optional icons for the tool.
+    /// </summary>
+    public ImmutableArray<OperationToolIcon>? Icons { get; init; }
 
     /// <summary>
     /// Gets a hint indicating whether this operation may cause destructive side effects.
     /// </summary>
-    public bool? DestructiveHint { get; }
+    public bool? DestructiveHint { get; init; }
 
     /// <summary>
     /// Gets a hint indicating whether this operation is idempotent (safe to retry).
     /// </summary>
-    public bool? IdempotentHint { get; }
+    public bool? IdempotentHint { get; init; }
 
     /// <summary>
     /// Gets a hint indicating whether this operation assumes an open-world model.
     /// </summary>
-    public bool? OpenWorldHint { get; }
+    public bool? OpenWorldHint { get; init; }
 
     /// <summary>
     /// Gets the optional OpenAI component configuration for this tool.
