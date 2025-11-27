@@ -120,6 +120,7 @@ resharper_enforce_lock_statement_braces_highlighting = error
 resharper_enforce_using_statement_braces_highlighting = error
 resharper_enforce_while_statement_braces_highlighting = error
 resharper_use_utf8_string_literal_highlighting = error
+resharper_use_verbatim_string_highlighting = error
 
 # ReSharper properties
 resharper_align_multiline_binary_expressions_chain = false

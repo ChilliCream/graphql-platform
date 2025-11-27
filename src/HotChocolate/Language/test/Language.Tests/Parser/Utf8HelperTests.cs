@@ -212,7 +212,7 @@ public class Utf8HelperTests
     public void Unescape_MultipleEscapesInLongString()
     {
         // arrange - multiple escapes spread across SIMD boundaries
-        var inputData = "ABCDEFGHIJ\\nKLMNOPQRSTUVWXYZ\\tabcdefghij\\rklmnopqrstuvwxyz"u8.ToArray();
+        var inputData = @"ABCDEFGHIJ\nKLMNOPQRSTUVWXYZ\tabcdefghij\rklmnopqrstuvwxyz"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -230,7 +230,7 @@ public class Utf8HelperTests
     public void Unescape_SurrogatePair_Emoji()
     {
         // arrange - surrogate pair for 😀 (U+1F600) = \uD83D\uDE00
-        var inputData = "hello\\uD83D\\uDE00world"u8.ToArray();
+        var inputData = @"hello\uD83D\uDE00world"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -247,7 +247,7 @@ public class Utf8HelperTests
     public void Unescape_ConsecutiveEscapes()
     {
         // arrange - multiple escapes in a row
-        var inputData = "\\n\\r\\t\\b"u8.ToArray();
+        var inputData = @"\n\r\t\b"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -300,7 +300,7 @@ public class Utf8HelperTests
     public void Unescape_ForwardSlash()
     {
         // arrange - forward slash escape
-        var inputData = "path\\/to\\/file"u8.ToArray();
+        var inputData = @"path\/to\/file"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -317,7 +317,7 @@ public class Utf8HelperTests
     public void Unescape_BackslashEscape()
     {
         // arrange - escaped backslash
-        var inputData = "path\\\\to\\\\file"u8.ToArray();
+        var inputData = @"path\\to\\file"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -327,7 +327,7 @@ public class Utf8HelperTests
         Utf8Helper.Unescape(in input, ref output, false);
 
         // assert
-        Assert.Equal("path\\to\\file", Encoding.UTF8.GetString(output.ToArray()));
+        Assert.Equal(@"path\to\file", Encoding.UTF8.GetString(output.ToArray()));
     }
 
     [Fact]
@@ -457,7 +457,7 @@ public class Utf8HelperTests
     public void Unescape_UnexpectedHighSurrogate_ThrowsException()
     {
         // arrange - two high surrogates in a row
-        var inputData = "\\uD83D\\uD83D"u8.ToArray();
+        var inputData = @"\uD83D\uD83D"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         // act & assert
@@ -487,7 +487,7 @@ public class Utf8HelperTests
     public void Unescape_HighSurrogateNotFollowedByLowSurrogate_ThrowsException()
     {
         // arrange - high surrogate followed by regular char
-        var inputData = "\\uD83D\\u0041"u8.ToArray();
+        var inputData = @"\uD83D\u0041"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         // act & assert
