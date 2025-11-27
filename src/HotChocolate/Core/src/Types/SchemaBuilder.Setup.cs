@@ -12,7 +12,6 @@ using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
-using HotChocolate.Utilities.Introspection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate;

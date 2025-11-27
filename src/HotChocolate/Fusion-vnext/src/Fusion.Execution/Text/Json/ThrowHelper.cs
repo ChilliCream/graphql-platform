@@ -1,7 +1,14 @@
 using System.Diagnostics.CodeAnalysis;
+
+#if FUSION
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 namespace HotChocolate.Fusion.Text.Json;
+#else
+using static HotChocolate.Properties.TextJsonResources;
+
+namespace HotChocolate.Text.Json;
+#endif
 
 internal static class ThrowHelper
 {

@@ -200,6 +200,16 @@ internal sealed class Operation : IOperation
         }
     }
 
+    public SelectionSet GetSelectionSetById(int selectionSetId)
+    {
+
+    }
+
+    public Selection GetSelectionById(int selectionSetId)
+    {
+
+    }
+
     public IEnumerator<ISelectionSet> GetEnumerator()
     {
         foreach (var selectionVariant in _selectionVariants)

@@ -77,7 +77,6 @@
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Features\HotChocolate.Features.csproj" />
     <ProjectReference Include="..\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
-    <ProjectReference Include="..\Types.Shared\HotChocolate.Types.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -89,8 +88,16 @@
       <Link>Text\Json\JsonHelpers.cs</Link>
     </Compile>
 
+    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonReaderHelper.cs">
+      <Link>Text\Json\JsonReaderHelper.cs</Link>
+    </Compile>
+
     <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\MetaDbEventSource.cs">
       <Link>Text\Json\MetaDbEventSource.cs</Link>
+    </Compile>
+
+    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\ThrowHelper.cs">
+      <Link>Text\Json\ThrowHelper.cs</Link>
     </Compile>
 
     <Compile Update="Text\Json\ResultDocument.Cursor.cs">
@@ -103,6 +110,36 @@
 
     <Compile Update="Text\Json\ResultDocument.MetaDb.cs">
       <DependentUpon>ResultDocument.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Text\Json\ResultDocument.Text.cs">
+      <DependentUpon>ResultDocument.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Text\Json\ResultDocument.TryGetProperty.cs">
+      <DependentUpon>ResultDocument.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Text\Json\ResultDocument.TryGetValue.cs">
+      <DependentUpon>ResultDocument.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Text\Json\ResultDocument.WriteTo.cs">
+      <DependentUpon>ResultDocument.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Text\Json\ResultElement.ArrayEnumerator.cs">
+      <DependentUpon>ResultElement.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Text\Json\ResultElement.ObjectEnumerator.cs">
+      <DependentUpon>ResultElement.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Properties\TextJsonResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TextJsonResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 
@@ -199,6 +236,11 @@
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+
+    <EmbeddedResource Update="Properties\TextJsonResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TextJsonResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

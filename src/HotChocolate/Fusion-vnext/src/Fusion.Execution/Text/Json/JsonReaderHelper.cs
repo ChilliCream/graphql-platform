@@ -4,9 +4,16 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+
+#if FUSION
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 namespace HotChocolate.Fusion.Text.Json;
+#else
+using static HotChocolate.Properties.TypeResources;
+
+namespace HotChocolate.Text.Json;
+#endif
 
 internal static class JsonReaderHelper
 {

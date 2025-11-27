@@ -10,14 +10,13 @@ namespace HotChocolate.Text.Json;
 public sealed partial class ResultDocument : IDisposable
 {
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
-    private readonly IOperation _operation;
+    private readonly Operation _operation;
     private readonly ulong _includeFlags;
     private List<IError>? _errors;
-    private Dictionary<string, object?>? _extensions;
     internal MetaDb _metaDb;
     private bool _disposed;
 
-    public ResultDocument(IOperation operation, ulong includeFlags)
+    internal ResultDocument(Operation operation, ulong includeFlags)
     {
         _metaDb = MetaDb.CreateForEstimatedRows(Cursor.RowsPerChunk * 8);
         _operation = operation;
@@ -26,41 +25,35 @@ public sealed partial class ResultDocument : IDisposable
         Data = CreateObject(Cursor.Zero, operation.RootSelectionSet);
     }
 
-    public CompositeResultElement Data { get; }
+    public ResultElement Data { get; }
 
+    // we need extra methods to add stuff
     public List<IError>? Errors
     {
         get => _errors;
         internal set => _errors = value;
     }
 
-    public Dictionary<string, object?>? Extensions
-    {
-        get => _extensions;
-        internal set => _extensions = value;
-    }
+    public Dictionary<string, object?>? Extensions { get; set; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ElementTokenType GetElementTokenType(Cursor cursor)
         => _metaDb.GetElementTokenType(cursor);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal IOperation GetOperation()
+    internal Operation GetOperation()
         => _operation;
 
-    internal ISelectionSet? GetSelectionSet(Cursor cursor)
+    internal SelectionSet? GetSelectionSet(Cursor cursor)
     {
         var row = _metaDb.Get(cursor);
 
-        if (row.OperationReferenceType is not OperationReferenceType.SelectionSet)
-        {
-            return null;
-        }
-
-        return _operation.GetSelectionSetById(row.OperationReferenceId);
+        return row.OperationReferenceType is OperationReferenceType.SelectionSet
+            ? _operation.GetSelectionSetById(row.OperationReferenceId)
+            : null;
     }
 
-    internal ISelection? GetSelection(Cursor cursor)
+    internal Selection? GetSelection(Cursor cursor)
     {
         if (cursor == Cursor.Zero)
         {
@@ -81,15 +74,12 @@ public sealed partial class ResultDocument : IDisposable
             }
         }
 
-        if (row.OperationReferenceType is not OperationReferenceType.Selection)
-        {
-            return null;
-        }
-
-        return _operation.GetSelectionById(row.OperationReferenceId);
+        return row.OperationReferenceType is OperationReferenceType.Selection
+            ? _operation.GetSelectionById(row.OperationReferenceId)
+            : null;
     }
 
-    internal CompositeResultElement GetArrayIndexElement(Cursor current, int arrayIndex)
+    internal ResultElement GetArrayIndexElement(Cursor current, int arrayIndex)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -105,7 +95,7 @@ public sealed partial class ResultDocument : IDisposable
         }
 
         // first element is at +1 after StartArray
-        return new CompositeResultElement(this, start.AddRows(arrayIndex + 1));
+        return new ResultElement(this, start.AddRows(arrayIndex + 1));
     }
 
     internal int GetArrayLength(Cursor current)
@@ -195,7 +185,7 @@ public sealed partial class ResultDocument : IDisposable
         return path;
     }
 
-    internal CompositeResultElement GetParent(Cursor current)
+    internal ResultElement GetParent(Cursor current)
     {
         // The null cursor represents the data object, which is the utmost root.
         // If we have reached that we simply return an undefined element
@@ -226,7 +216,7 @@ public sealed partial class ResultDocument : IDisposable
             Debug.Assert(_metaDb.GetElementTokenType(parent, resolveReferences: false) == ElementTokenType.Reference);
         }
 
-        return new CompositeResultElement(this, parent);
+        return new ResultElement(this, parent);
     }
 
     internal bool IsInvalidated(Cursor current)
@@ -393,7 +383,7 @@ public sealed partial class ResultDocument : IDisposable
         throw new NotSupportedException();
     }
 
-    internal CompositeResultElement CreateObject(Cursor parent, ISelectionSet selectionSet)
+    internal ResultElement CreateObject(Cursor parent, ISelectionSet selectionSet)
     {
         var startObjectCursor = WriteStartObject(parent, selectionSet.Id);
 
@@ -406,10 +396,10 @@ public sealed partial class ResultDocument : IDisposable
 
         WriteEndObject(startObjectCursor, selectionCount);
 
-        return new CompositeResultElement(this, startObjectCursor);
+        return new ResultElement(this, startObjectCursor);
     }
 
-    internal CompositeResultElement CreateArray(Cursor parent, int length)
+    internal ResultElement CreateArray(Cursor parent, int length)
     {
         var cursor = WriteStartArray(parent, length);
 
@@ -420,11 +410,11 @@ public sealed partial class ResultDocument : IDisposable
 
         WriteEndArray();
 
-        return new CompositeResultElement(this, cursor);
+        return new ResultElement(this, cursor);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void AssignCompositeValue(CompositeResultElement target, CompositeResultElement value)
+    internal void AssignCompositeValue(ResultElement target, ResultElement value)
     {
         _metaDb.Replace(
             cursor: target.Cursor,
@@ -434,7 +424,7 @@ public sealed partial class ResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void AssignSourceValue(CompositeResultElement target, SourceResultElement source)
+    internal void AssignSourceValue(ResultElement target, ResultElement source)
     {
         var value = source.GetValuePointer();
         var parent = source._parent;
@@ -476,7 +466,7 @@ public sealed partial class ResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void AssignNullValue(CompositeResultElement target)
+    internal void AssignNullValue(ResultElement target)
     {
         _metaDb.Replace(
             cursor: target.Cursor,

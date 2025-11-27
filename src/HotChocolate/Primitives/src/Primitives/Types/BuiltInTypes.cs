@@ -1,35 +1,35 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Utilities.Introspection;
+namespace HotChocolate.Types;
 
 public static class BuiltInTypes
 {
     private static readonly HashSet<string> s_typeNames =
     [
-        WellKnownTypes.__Directive,
-        WellKnownTypes.__DirectiveLocation,
-        WellKnownTypes.__EnumValue,
-        WellKnownTypes.__Field,
-        WellKnownTypes.__InputValue,
-        WellKnownTypes.__Schema,
-        WellKnownTypes.__Type,
-        WellKnownTypes.__TypeKind,
-        WellKnownTypes.String,
-        WellKnownTypes.Boolean,
-        WellKnownTypes.Float,
-        WellKnownTypes.ID,
-        WellKnownTypes.Int
+        IntrospectionTypeNames.__Directive,
+        IntrospectionTypeNames.__DirectiveLocation,
+        IntrospectionTypeNames.__EnumValue,
+        IntrospectionTypeNames.__Field,
+        IntrospectionTypeNames.__InputValue,
+        IntrospectionTypeNames.__Schema,
+        IntrospectionTypeNames.__Type,
+        IntrospectionTypeNames.__TypeKind,
+        SpecScalarNames.String.Name,
+        SpecScalarNames.Boolean.Name,
+        SpecScalarNames.Float.Name,
+        SpecScalarNames.ID.Name,
+        SpecScalarNames.Int.Name
     ];
 
     private static readonly HashSet<string> s_directiveNames =
     [
-        WellKnownDirectives.Skip,
-        WellKnownDirectives.Include,
-        WellKnownDirectives.Deprecated,
-        WellKnownDirectives.Defer,
-        WellKnownDirectives.Stream,
-        WellKnownDirectives.SpecifiedBy,
-        WellKnownDirectives.OneOf
+        DirectiveNames.Skip.Name,
+        DirectiveNames.Include.Name,
+        DirectiveNames.Deprecated.Name,
+        DirectiveNames.Defer.Name,
+        DirectiveNames.Stream.Name,
+        DirectiveNames.SpecifiedBy.Name,
+        DirectiveNames.OneOf.Name
     ];
 
     public static bool IsBuiltInType(string name)

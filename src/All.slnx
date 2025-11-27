@@ -110,7 +110,6 @@
     <Project Path="HotChocolate/Core/src/Types.Queries/HotChocolate.Types.Queries.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Scalars.Upload/HotChocolate.Types.Scalars.Upload.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Scalars/HotChocolate.Types.Scalars.csproj" />
-    <Project Path="HotChocolate/Core/src/Types.Shared/HotChocolate.Types.Shared.csproj" />
     <Project Path="HotChocolate/Core/src/Types.Validation/HotChocolate.Types.Validation.csproj" />
     <Project Path="HotChocolate/Core/src/Types/HotChocolate.Types.csproj" />
     <Project Path="HotChocolate/Core/src/Validation/HotChocolate.Validation.csproj" />
