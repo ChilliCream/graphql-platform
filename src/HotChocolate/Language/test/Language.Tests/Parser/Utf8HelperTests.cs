@@ -158,7 +158,7 @@ public class Utf8HelperTests
     public void Unescape_LongStringWithEscapeAtStart()
     {
         // arrange - escape at position 0, then 60+ bytes
-        var inputData = Encoding.UTF8.GetBytes("\\nABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+        var inputData = "\\nABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -176,7 +176,7 @@ public class Utf8HelperTests
     public void Unescape_LongStringWithEscapeInMiddle()
     {
         // arrange - 32 bytes, then escape, then more bytes (exercises SIMD + escape + SIMD)
-        var inputData = Encoding.UTF8.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef\\nghijklmnopqrstuvwxyz0123456789_-");
+        var inputData = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef\\nghijklmnopqrstuvwxyz0123456789_-"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -194,7 +194,7 @@ public class Utf8HelperTests
     public void Unescape_LongStringWithEscapeAtEnd()
     {
         // arrange - 60+ bytes then escape at end (exercises SIMD + scalar tail)
-        var inputData = Encoding.UTF8.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\\n");
+        var inputData = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\\n"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -212,7 +212,7 @@ public class Utf8HelperTests
     public void Unescape_MultipleEscapesInLongString()
     {
         // arrange - multiple escapes spread across SIMD boundaries
-        var inputData = Encoding.UTF8.GetBytes("ABCDEFGHIJ\\nKLMNOPQRSTUVWXYZ\\tabcdefghij\\rklmnopqrstuvwxyz");
+        var inputData = "ABCDEFGHIJ\\nKLMNOPQRSTUVWXYZ\\tabcdefghij\\rklmnopqrstuvwxyz"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -230,7 +230,7 @@ public class Utf8HelperTests
     public void Unescape_SurrogatePair_Emoji()
     {
         // arrange - surrogate pair for 😀 (U+1F600) = \uD83D\uDE00
-        var inputData = Encoding.UTF8.GetBytes("hello\\uD83D\\uDE00world");
+        var inputData = "hello\\uD83D\\uDE00world"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -247,7 +247,7 @@ public class Utf8HelperTests
     public void Unescape_ConsecutiveEscapes()
     {
         // arrange - multiple escapes in a row
-        var inputData = Encoding.UTF8.GetBytes("\\n\\r\\t\\b");
+        var inputData = "\\n\\r\\t\\b"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -300,7 +300,7 @@ public class Utf8HelperTests
     public void Unescape_ForwardSlash()
     {
         // arrange - forward slash escape
-        var inputData = Encoding.UTF8.GetBytes("path\\/to\\/file");
+        var inputData = "path\\/to\\/file"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -317,7 +317,7 @@ public class Utf8HelperTests
     public void Unescape_BackslashEscape()
     {
         // arrange - escaped backslash
-        var inputData = Encoding.UTF8.GetBytes("path\\\\to\\\\file");
+        var inputData = "path\\\\to\\\\file"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -334,7 +334,7 @@ public class Utf8HelperTests
     public void Unescape_SmallStringWithEscape_ScalarPath()
     {
         // arrange - 10 bytes total, too small for SIMD, goes to scalar
-        var inputData = Encoding.UTF8.GetBytes("abc\\ndef");
+        var inputData = "abc\\ndef"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -405,7 +405,7 @@ public class Utf8HelperTests
     public void Unescape_EscapeAtPosition31()
     {
         // arrange - escape right at Vector256 boundary
-        var inputData = Encoding.UTF8.GetBytes("0123456789012345678901234567890\\n");
+        var inputData = "0123456789012345678901234567890\\n"u8.ToArray();
         Assert.Equal(33, inputData.Length); // 31 chars + \n (2 bytes)
         var outputBuffer = new byte[inputData.Length];
 
@@ -424,7 +424,7 @@ public class Utf8HelperTests
     public void Unescape_InvalidEscapeChar_ThrowsException()
     {
         // arrange - invalid escape sequence \q
-        var inputData = Encoding.UTF8.GetBytes("hello\\qworld");
+        var inputData = "hello\\qworld"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -442,7 +442,7 @@ public class Utf8HelperTests
     public void Unescape_TruncatedUnicodeEscape_ThrowsException()
     {
         // arrange - truncated unicode \u00
-        var inputData = Encoding.UTF8.GetBytes("hello\\u00");
+        var inputData = "hello\\u00"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         // act & assert
@@ -457,7 +457,7 @@ public class Utf8HelperTests
     public void Unescape_UnexpectedHighSurrogate_ThrowsException()
     {
         // arrange - two high surrogates in a row
-        var inputData = Encoding.UTF8.GetBytes("\\uD83D\\uD83D");
+        var inputData = "\\uD83D\\uD83D"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         // act & assert
@@ -472,7 +472,7 @@ public class Utf8HelperTests
     public void Unescape_UnexpectedLowSurrogate_ThrowsException()
     {
         // arrange - low surrogate without high surrogate
-        var inputData = Encoding.UTF8.GetBytes("\\uDE00");
+        var inputData = "\\uDE00"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         // act & assert
@@ -487,7 +487,7 @@ public class Utf8HelperTests
     public void Unescape_HighSurrogateNotFollowedByLowSurrogate_ThrowsException()
     {
         // arrange - high surrogate followed by regular char
-        var inputData = Encoding.UTF8.GetBytes("\\uD83D\\u0041");
+        var inputData = "\\uD83D\\u0041"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         // act & assert
@@ -502,7 +502,7 @@ public class Utf8HelperTests
     public void Unescape_TrailingBackslash_ThrowsException()
     {
         // arrange - string ending with backslash
-        var inputData = Encoding.UTF8.GetBytes("hello\\");
+        var inputData = "hello\\"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         // act & assert
@@ -517,7 +517,7 @@ public class Utf8HelperTests
     public void Unescape_OnlyBackslashN()
     {
         // arrange - just an escape, nothing else
-        var inputData = Encoding.UTF8.GetBytes("\\n");
+        var inputData = "\\n"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -534,7 +534,7 @@ public class Utf8HelperTests
     public void Unescape_64BytesWithEscapeAtByte32()
     {
         // arrange - escape exactly at byte 32 (SIMD boundary)
-        var inputData = Encoding.UTF8.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZ012345\\n67890abcdefghijklmnopqrstuvwxyz");
+        var inputData = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345\\n67890abcdefghijklmnopqrstuvwxyz"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
@@ -552,7 +552,7 @@ public class Utf8HelperTests
     public void Unescape_UnicodeInLongString()
     {
         // arrange - unicode escape in a long string (exercises SIMD + unicode handling)
-        var inputData = Encoding.UTF8.GetBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij\\u20ACklmnopqrstuvwxyz0123456789");
+        var inputData = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghij\\u20ACklmnopqrstuvwxyz0123456789"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
         var input = new ReadOnlySpan<byte>(inputData);
