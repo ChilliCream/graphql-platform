@@ -14,7 +14,7 @@ internal static class ThrowHelper
 {
     public static ArgumentException String_NullOrEmpty(string parameterName) =>
         new ArgumentException(
-            $@"'{parameterName}' cannot be null or empty",
+            $"'{parameterName}' cannot be null or empty",
             parameterName);
 
     public static GraphQLException EventMessage_InvalidCast(

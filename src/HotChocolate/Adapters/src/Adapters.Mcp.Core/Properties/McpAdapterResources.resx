@@ -30,8 +30,20 @@
   <data name="OperationToolDefinition_DocumentMustContainSingleOperation" xml:space="preserve">
     <value>An operation tool document must have exactly one operation definition.</value>
   </data>
+  <data name="OperationToolDefinition_InvalidToolName" xml:space="preserve">
+    <value>The tool name '{0}' is invalid. Tool names must match the regular expression '{1}'.</value>
+  </data>
   <data name="OperationToolFactory_OpenAiComponentResourceName" xml:space="preserve">
     <value>{0} OpenAI Component</value>
+  </data>
+  <data name="OperationToolIcon_InvalidIconMimeType" xml:space="preserve">
+    <value>The MIME type must be a valid type/subtype string.</value>
+  </data>
+  <data name="OperationToolIcon_InvalidIconSize" xml:space="preserve">
+    <value>Each size must have the format {WIDTH}x{HEIGHT} (e.g., 48x48) or be 'any'.</value>
+  </data>
+  <data name="OperationToolIcon_InvalidIconSourceScheme" xml:space="preserve">
+    <value>The icon source URI must use the HTTP, HTTPS, or data scheme.</value>
   </data>
   <data name="ReadResourceHandler_ResourceWithUriNotFound" xml:space="preserve">
     <value>The resource with URI '{0}' was not found.</value>
