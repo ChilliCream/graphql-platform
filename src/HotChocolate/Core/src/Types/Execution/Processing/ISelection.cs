@@ -20,6 +20,11 @@ public interface ISelection : IOptionalSelection
     string ResponseName { get; }
 
     /// <summary>
+    /// Gets the UTF-8 encoded name this field will have in the response map.
+    /// </summary>
+    byte[] Utf8ResponseName { get; }
+
+    /// <summary>
     /// Gets the field that was selected.
     /// </summary>
     ObjectField Field { get; }

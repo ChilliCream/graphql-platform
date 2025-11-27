@@ -15,23 +15,22 @@ public sealed partial class ResultDocument
         // 27 bits for location + 2 bits OpRefType + 3 reserved bits
         private readonly int _locationAndOpRefType;
 
-        // Sign bit for HasComplexChildren + 31 bits for size/length
+        // 27 bits for size/length + sign bit for HasComplexChildren + 4 reserved bits
         private readonly int _sizeOrLengthUnion;
 
-        // 4 bits TokenType + 27 bits NumberOfRows + 1 reserved bit
-        private readonly int _numberOfRowsTypeAndReserved;
+        // 27 bits NumberOfRows + 1 reserved bit + 4 bits TokenType
+        private readonly int _tokenTypeAndNumberOfRows;
 
-        // 15 bits SourceDocumentId + 17 bits (high 17 bits of ParentRow)
-        private readonly int _sourceAndParentHigh;
+        // 27 bits ParentRow + 5 reserved bits
+        private readonly int _parentRow;
 
-        // 15 bits OperationReferenceId + 6 bits Flags + 11 bits (low bits of ParentRow)
-        private readonly int _selectionSetFlagsAndParentLow;
+        // 15 bits OperationReferenceId + 8 bits Flags + 9 reserved bits
+        private readonly int _opRefIdAndFlags;
 
         public DbRow(
             ElementTokenType tokenType,
             int location,
             int sizeOrLength = 0,
-            int sourceDocumentId = 0,
             int parentRow = 0,
             int operationReferenceId = 0,
             OperationReferenceType operationReferenceType = OperationReferenceType.None,
@@ -40,20 +39,19 @@ public sealed partial class ResultDocument
         {
             Debug.Assert((byte)tokenType < 16);
             Debug.Assert(location is >= 0 and <= 0x07FFFFFF); // 27 bits
-            Debug.Assert(sizeOrLength >= UnknownSize);
-            Debug.Assert(sourceDocumentId is >= 0 and <= 0x7FFF); // 15 bits
-            Debug.Assert(parentRow is >= 0 and <= 0x0FFFFFFF); // 28 bits
+            Debug.Assert(sizeOrLength == UnknownSize || sizeOrLength is >= 0 and <= 0x07FFFFFF); // 27 bits
+            Debug.Assert(parentRow is >= 0 and <= 0x07FFFFFF); // 27 bits
             Debug.Assert(operationReferenceId is >= 0 and <= 0x7FFF); // 15 bits
             Debug.Assert(numberOfRows is >= 0 and <= 0x07FFFFFF); // 27 bits
-            Debug.Assert((byte)flags <= 63); // 6 bits (0x3F)
+            Debug.Assert((byte)flags <= 255); // 8 bits (0xFF)
             Debug.Assert((byte)operationReferenceType <= 3); // 2 bits
             Debug.Assert(Unsafe.SizeOf<DbRow>() == Size);
 
             _locationAndOpRefType = location | ((int)operationReferenceType << 27);
             _sizeOrLengthUnion = sizeOrLength;
-            _numberOfRowsTypeAndReserved = ((int)tokenType << 28) | (numberOfRows & 0x07FFFFFF);
-            _sourceAndParentHigh = sourceDocumentId | ((parentRow >> 11) << 15);
-            _selectionSetFlagsAndParentLow = operationReferenceId | ((int)flags << 15) | ((parentRow & 0x7FF) << 21);
+            _tokenTypeAndNumberOfRows = ((int)tokenType << 28) | (numberOfRows & 0x07FFFFFF);
+            _parentRow = parentRow;
+            _opRefIdAndFlags = operationReferenceId | ((int)flags << 15);
         }
 
         /// <summary>
@@ -62,7 +60,7 @@ public sealed partial class ResultDocument
         /// <remarks>
         /// 4 bits = possible values
         /// </remarks>
-        public ElementTokenType TokenType => (ElementTokenType)(unchecked((uint)_numberOfRowsTypeAndReserved) >> 28);
+        public ElementTokenType TokenType => (ElementTokenType)(unchecked((uint)_tokenTypeAndNumberOfRows) >> 28);
 
         /// <summary>
         /// Operation reference type indicating the type of GraphQL operation element.
@@ -77,7 +75,7 @@ public sealed partial class ResultDocument
         /// Byte offset in source data OR metaDb row index for references.
         /// </summary>
         /// <remarks>
-        /// 2 bits = 4 possible values
+        /// 27 bits = 134M limit
         /// </remarks>
         public int Location => _locationAndOpRefType & 0x07FFFFFF;
 
@@ -87,7 +85,7 @@ public sealed partial class ResultDocument
         /// <remarks>
         /// 27 bits = 134M limit
         /// </remarks>
-        public int SizeOrLength => _sizeOrLengthUnion & int.MaxValue;
+        public int SizeOrLength => _sizeOrLengthUnion & 0x07FFFFFF;
 
         /// <summary>
         /// String/PropertyName: Unescaping required.
@@ -105,30 +103,32 @@ public sealed partial class ResultDocument
         /// <remarks>
         /// 27 bits = 134M rows
         /// </remarks>
-        public int NumberOfRows => _numberOfRowsTypeAndReserved & 0x07FFFFFF;
+        public int NumberOfRows => _tokenTypeAndNumberOfRows & 0x07FFFFFF;
 
         /// <summary>
         /// Index of parent element in metadb for navigation and null propagation.
         /// </summary>
         /// <remarks>
-        /// 28 bits = 268M rows
+        /// 27 bits = 134M rows
         /// </remarks>
-        public int ParentRow
-            => ((int)((uint)_sourceAndParentHigh >> 15) << 11) | ((_selectionSetFlagsAndParentLow >> 21) & 0x7FF);
+        public int ParentRow => _parentRow & 0x07FFFFFF;
 
         /// <summary>
         /// Reference to GraphQL selection set or selection metadata.
         /// 15 bits = 32K selections
         /// </summary>
-        public int OperationReferenceId => _selectionSetFlagsAndParentLow & 0x7FFF;
+        /// <remarks>
+        /// 15 bits = 32K selections
+        /// </remarks>
+        public int OperationReferenceId => _opRefIdAndFlags & 0x7FFF;
 
         /// <summary>
         /// Element metadata flags.
         /// </summary>
         /// <remarks>
-        /// 6 bits = 64 combinations
+        /// 8 bits = 256 combinations
         /// </remarks>
-        public ElementFlags Flags => (ElementFlags)((_selectionSetFlagsAndParentLow >> 15) & 0x3F);
+        public ElementFlags Flags => (ElementFlags)((_opRefIdAndFlags >> 15) & 0xFF);
 
         /// <summary>
         /// True for primitive JSON values (strings, numbers, booleans, null).
@@ -147,11 +147,12 @@ public sealed partial class ResultDocument
     internal enum ElementFlags : byte
     {
         None = 0,
-        Invalidated = 1,
-        SourceResult = 2,
-        IsNullable = 4,
-        IsRoot = 8,
-        IsInternal = 16,
-        IsExcluded = 32
+        IsRoot = 1,
+        IsObject = 2,
+        IsList = 4,
+        IsInternal = 8,
+        IsExcluded = 16,
+        IsNullable = 32,
+        IsInvalidated = 64
     }
 }

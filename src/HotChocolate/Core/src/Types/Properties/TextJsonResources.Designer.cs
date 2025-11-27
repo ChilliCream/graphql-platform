@@ -45,21 +45,21 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string CompositeResultElement_GetBoolean_JsonElementHasWrongType {
+        internal static string ResultElement_GetBoolean_JsonElementHasWrongType {
             get {
-                return ResourceManager.GetString("CompositeResultElement_GetBoolean_JsonElementHasWrongType", resourceCulture);
-            }
-        }
-        
-        internal static string SourceResultElement_GetBoolean_JsonElementHasWrongType {
-            get {
-                return ResourceManager.GetString("SourceResultElement_GetBoolean_JsonElementHasWrongType", resourceCulture);
+                return ResourceManager.GetString("ResultElement_GetBoolean_JsonElementHasWrongType", resourceCulture);
             }
         }
         
         internal static string Rethrowable {
             get {
                 return ResourceManager.GetString("Rethrowable", resourceCulture);
+            }
+        }
+        
+        internal static string ResultElement_SetObjectValue_NotObjectType {
+            get {
+                return ResourceManager.GetString("ResultElement_SetObjectValue_NotObjectType", resourceCulture);
             }
         }
         
@@ -81,9 +81,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string FixedSizeArrayPool_Return_InvalidArraySize {
+        internal static string ResultElement_SetArrayValue_NotListType {
             get {
-                return ResourceManager.GetString("FixedSizeArrayPool_Return_InvalidArraySize", resourceCulture);
+                return ResourceManager.GetString("ResultElement_SetArrayValue_NotListType", resourceCulture);
             }
         }
     }

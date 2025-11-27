@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Diagnostics;
-using static HotChocolate.Fusion.Text.Json.CompositeResultDocument;
+using static HotChocolate.Text.Json.ResultDocument;
 
 namespace HotChocolate.Text.Json;
 
@@ -10,14 +10,14 @@ public readonly partial struct ResultElement
     /// An enumerable and enumerator for the properties of a JSON object.
     /// </summary>
     [DebuggerDisplay("{Current,nq}")]
-    public struct ObjectEnumerator : IEnumerable<CompositeResultProperty>, IEnumerator<CompositeResultProperty>
+    public struct ObjectEnumerator : IEnumerable<ResultProperty>, IEnumerator<ResultProperty>
     {
-        private readonly CompositeResultDocument _document;
+        private readonly ResultDocument _document;
         private readonly Cursor _start;
         private readonly Cursor _end;
         private Cursor _cursor;
 
-        internal ObjectEnumerator(CompositeResultElement target)
+        internal ObjectEnumerator(ResultElement target)
         {
             _document = target._parent;
             (_start, var tokenType) = _document._metaDb.GetStartCursor(target._cursor);
@@ -27,7 +27,7 @@ public readonly partial struct ResultElement
         }
 
         /// <inheritdoc />
-        public CompositeResultProperty Current
+        public ResultProperty Current
         {
             get
             {
@@ -36,7 +36,7 @@ public readonly partial struct ResultElement
                     return default;
                 }
 
-                return new CompositeResultProperty(new CompositeResultElement(_document, _cursor + 1));
+                return new ResultProperty(new ResultElement(_document, _cursor + 1));
             }
         }
 
@@ -65,7 +65,7 @@ public readonly partial struct ResultElement
             => GetEnumerator();
 
         /// <inheritdoc />
-        IEnumerator<CompositeResultProperty> IEnumerable<CompositeResultProperty>.GetEnumerator()
+        IEnumerator<ResultProperty> IEnumerable<ResultProperty>.GetEnumerator()
             => GetEnumerator();
 
         /// <inheritdoc />

@@ -49,7 +49,6 @@ public sealed partial class ResultDocument
             ElementTokenType tokenType,
             int location = 0,
             int sizeOrLength = 0,
-            int sourceDocumentId = 0,
             int parentRow = 0,
             int operationReferenceId = 0,
             OperationReferenceType operationReferenceType = OperationReferenceType.None,
@@ -110,7 +109,6 @@ public sealed partial class ResultDocument
                 tokenType,
                 location,
                 sizeOrLength,
-                sourceDocumentId,
                 parentRow,
                 operationReferenceId,
                 operationReferenceType,
@@ -131,7 +129,6 @@ public sealed partial class ResultDocument
             ElementTokenType tokenType,
             int location = 0,
             int sizeOrLength = 0,
-            int sourceDocumentId = 0,
             int parentRow = 0,
             int operationReferenceId = 0,
             OperationReferenceType operationReferenceType = OperationReferenceType.None,
@@ -144,7 +141,6 @@ public sealed partial class ResultDocument
                 tokenType,
                 location,
                 sizeOrLength,
-                sourceDocumentId,
                 parentRow,
                 operationReferenceId,
                 operationReferenceType,
@@ -215,13 +211,8 @@ public sealed partial class ResultDocument
         {
             AssertValidCursor(cursor);
 
-            var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
-
-            var sourceAndParentHigh = MemoryMarshal.Read<int>(span[12..]);
-            var selectionSetFlagsAndParentLow = MemoryMarshal.Read<int>(span[16..]);
-
-            return (sourceAndParentHigh >>> 15 << 11)
-                | ((selectionSetFlagsAndParentLow >> 21) & 0x7FF);
+            var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + 12);
+            return MemoryMarshal.Read<int>(span) & 0x07FFFFFF;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -229,14 +220,8 @@ public sealed partial class ResultDocument
         {
             AssertValidCursor(cursor);
 
-            var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset);
-
-            var sourceAndParentHigh = MemoryMarshal.Read<int>(span[12..]);
-            var selectionSetFlagsAndParentLow = MemoryMarshal.Read<int>(span[16..]);
-
-            var index = (sourceAndParentHigh >>> 15 << 11)
-                | ((selectionSetFlagsAndParentLow >> 21) & 0x7FF);
-
+            var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + 12);
+            var index = MemoryMarshal.Read<int>(span) & 0x07FFFFFF;
             return Cursor.FromIndex(index);
         }
 
@@ -248,7 +233,7 @@ public sealed partial class ResultDocument
             var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + TokenTypeOffset);
 
             var value = MemoryMarshal.Read<int>(span);
-            return value & 0x0FFFFFFF;
+            return value & 0x07FFFFFF;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -258,21 +243,21 @@ public sealed partial class ResultDocument
 
             var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + 16);
 
-            var selectionSetFlagsAndParentLow = MemoryMarshal.Read<int>(span);
-            return (ElementFlags)((selectionSetFlagsAndParentLow >> 15) & 0x3F);
+            var value = MemoryMarshal.Read<int>(span);
+            return (ElementFlags)((value >> 15) & 0xFF);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void SetFlags(Cursor cursor, ElementFlags flags)
         {
             AssertValidCursor(cursor);
-            Debug.Assert((byte)flags <= 63, "Flags value exceeds 6-bit limit");
+            Debug.Assert((byte)flags <= 255, "Flags value exceeds 8-bit limit");
 
             var fieldSpan = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + 16);
             var currentValue = MemoryMarshal.Read<int>(fieldSpan);
 
-            var clearedValue = currentValue & 0xFFE07FFF; // ~(0x3F << 15)
-            var newValue = (int)(clearedValue | (uint)((int)flags << 15));
+            var clearedValue = currentValue & unchecked((int)0xFF807FFF); // ~(0xFF << 15)
+            var newValue = clearedValue | ((int)flags << 15);
 
             MemoryMarshal.Write(fieldSpan, newValue);
         }
@@ -285,21 +270,21 @@ public sealed partial class ResultDocument
             var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + 4);
             var value = MemoryMarshal.Read<int>(span);
 
-            return value & int.MaxValue;
+            return value & 0x07FFFFFF;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void SetSizeOrLength(Cursor cursor, int sizeOrLength)
         {
             AssertValidCursor(cursor);
-            Debug.Assert(sizeOrLength >= 0, "SizeOrLength value exceeds 31-bit limit");
+            Debug.Assert(sizeOrLength >= 0 && sizeOrLength <= 0x07FFFFFF, "SizeOrLength value exceeds 27-bit limit");
 
             var fieldSpan = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + 4);
             var currentValue = MemoryMarshal.Read<int>(fieldSpan);
 
-            // Keep only the sign bit (HasComplexChildren)
-            var clearedValue = currentValue & unchecked((int)0x80000000);
-            var newValue = clearedValue | (sizeOrLength & int.MaxValue);
+            // Keep only the sign bit (HasComplexChildren) + 4 reserved bits
+            var clearedValue = currentValue & unchecked((int)0xF8000000);
+            var newValue = clearedValue | (sizeOrLength & 0x07FFFFFF);
 
             MemoryMarshal.Write(fieldSpan, newValue);
         }
@@ -308,14 +293,14 @@ public sealed partial class ResultDocument
         internal void SetNumberOfRows(Cursor cursor, int numberOfRows)
         {
             AssertValidCursor(cursor);
-            Debug.Assert(numberOfRows >= 0 && numberOfRows <= 0x0FFFFFFF, "NumberOfRows value exceeds 28-bit limit");
+            Debug.Assert(numberOfRows >= 0 && numberOfRows <= 0x07FFFFFF, "NumberOfRows value exceeds 27-bit limit");
 
             var fieldSpan = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + TokenTypeOffset);
             var currentValue = MemoryMarshal.Read<int>(fieldSpan);
 
-            // Keep only the top 4 bits (token type)
-            var clearedValue = currentValue & unchecked((int)0xF0000000);
-            var newValue = clearedValue | (numberOfRows & 0x0FFFFFFF);
+            // Keep only the top 5 bits (4 bits token type + 1 reserved)
+            var clearedValue = currentValue & unchecked((int)0xF8000000);
+            var newValue = clearedValue | (numberOfRows & 0x07FFFFFF);
 
             MemoryMarshal.Write(fieldSpan, newValue);
         }

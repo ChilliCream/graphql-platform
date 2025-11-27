@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -12,7 +13,7 @@ namespace HotChocolate.Execution.Processing;
 public class Selection : ISelection
 {
     private static readonly ArgumentMap s_emptyArguments = ArgumentMap.Empty;
-    private long[] _includeConditions;
+    private ulong[] _includeConditions;
     private long _streamIfCondition;
     private Flags _flags;
     private FieldNode _syntaxNode;
@@ -26,7 +27,7 @@ public class Selection : ISelection
         FieldNode syntaxNode,
         string responseName,
         ArgumentMap? arguments = null,
-        long[]? includeConditions = null,
+        ulong[]? includeConditions = null,
         bool isInternal = false,
         bool isParallelExecutable = true,
         FieldDelegate? resolverPipeline = null,
@@ -122,6 +123,10 @@ public class Selection : ISelection
     public string ResponseName { get; }
 
     /// <inheritdoc />
+    public byte[] Utf8ResponseName => _utf8ResponseName ??= Encoding.UTF8.GetBytes(ResponseName);
+    private byte[]? _utf8ResponseName;
+
+    /// <inheritdoc />
     public FieldDelegate? ResolverPipeline { get; private set; }
 
     /// <inheritdoc />
@@ -147,9 +152,9 @@ public class Selection : ISelection
     public bool IsConditional
         => _includeConditions.Length > 0 || (_flags & Flags.Internal) == Flags.Internal;
 
-    internal ReadOnlySpan<long> IncludeConditions => _includeConditions;
+    internal ReadOnlySpan<ulong> IncludeConditions => _includeConditions;
 
-    public bool IsIncluded(long includeFlags, bool allowInternals = false)
+    public bool IsIncluded(ulong includeFlags, bool allowInternals = false)
     {
         // in most case we do not have any include condition,
         // so we can take the easy way out here if we do not have any flags.
@@ -190,7 +195,7 @@ public class Selection : ISelection
     public override string ToString()
         => _syntaxNode.ToString();
 
-    internal void AddSelection(FieldNode selectionSyntax, long includeCondition = 0)
+    internal void AddSelection(FieldNode selectionSyntax, ulong includeCondition = 0)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
@@ -412,7 +417,7 @@ public class Selection : ISelection
             FieldNode syntaxNode,
             string responseName,
             ArgumentMap? arguments = null,
-            long[]? includeConditions = null,
+            ulong[]? includeConditions = null,
             bool isInternal = false,
             bool isParallelExecutable = true,
             FieldDelegate? resolverPipeline = null,

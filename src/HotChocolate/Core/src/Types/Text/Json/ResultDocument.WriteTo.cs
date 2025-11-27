@@ -77,7 +77,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
             }
 
             if (row.TokenType is ElementTokenType.Null
-                || (ElementFlags.Invalidated & row.Flags) == ElementFlags.Invalidated)
+                || (ElementFlags.IsInvalidated & row.Flags) == ElementFlags.IsInvalidated)
             {
                 writer.Write(JsonConstants.NullValue);
             }

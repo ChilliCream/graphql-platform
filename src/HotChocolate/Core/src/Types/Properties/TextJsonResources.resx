@@ -18,14 +18,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CompositeResultElement_GetBoolean_JsonElementHasWrongType" xml:space="preserve">
-    <value>The requested operation requires an element of type '{0}', but the target element has type '{1}'.</value>
-  </data>
-  <data name="SourceResultElement_GetBoolean_JsonElementHasWrongType" xml:space="preserve">
+  <data name="ResultElement_GetBoolean_JsonElementHasWrongType" xml:space="preserve">
     <value>The requested operation requires an element of type '{0}', but the target element has type '{1}'.</value>
   </data>
   <data name="Rethrowable" xml:space="preserve">
     <value>HotChocolate.Text.Json.Rethrowable</value>
+  </data>
+  <data name="ResultElement_SetObjectValue_NotObjectType" xml:space="preserve">
+    <value>The element is not a composite type.</value>
   </data>
   <data name="JsonReaderHelper_TranscodeHelper_CannotTranscodeInvalidUtf8" xml:space="preserve">
     <value>Cannot transcode invalid UTF-8 JSON text to UTF-16 string.</value>
@@ -36,7 +36,7 @@
   <data name="ThrowHelper_ReadIncompleteUTF16" xml:space="preserve">
     <value>Cannot read incomplete UTF-16 JSON text as string with missing low surrogate.</value>
   </data>
-  <data name="FixedSizeArrayPool_Return_InvalidArraySize" xml:space="preserve">
-    <value>Buffer size {0} does not match expected chunk size {1}</value>
+  <data name="ResultElement_SetArrayValue_NotListType" xml:space="preserve">
+    <value>The location type `{0}` is not a list.</value>
   </data>
 </root>

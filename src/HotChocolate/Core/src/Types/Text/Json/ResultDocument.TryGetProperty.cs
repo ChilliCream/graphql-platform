@@ -8,7 +8,7 @@ public sealed partial class ResultDocument
     internal bool TryGetNamedPropertyValue(
         Cursor startCursor,
         string propertyName,
-        out CompositeResultElement value)
+        out ResultElement value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -35,7 +35,7 @@ public sealed partial class ResultDocument
                 var propertyCursor = startCursor + propertyRowIndex;
                 Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
                 Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selection.Id);
-                value = new CompositeResultElement(this, propertyCursor + 1);
+                value = new ResultElement(this, propertyCursor + 1);
                 return true;
             }
         }
@@ -116,7 +116,7 @@ public sealed partial class ResultDocument
     internal bool TryGetNamedPropertyValue(
         Cursor startCursor,
         ReadOnlySpan<byte> propertyName,
-        out CompositeResultElement value)
+        out ResultElement value)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -143,7 +143,7 @@ public sealed partial class ResultDocument
                 var propertyCursor = startCursor + propertyRowIndex;
                 Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
                 Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selection.Id);
-                value = new CompositeResultElement(this, propertyCursor + 1);
+                value = new ResultElement(this, propertyCursor + 1);
                 return true;
             }
         }
@@ -161,7 +161,7 @@ public sealed partial class ResultDocument
         Cursor startCursor,
         Cursor endCursor,
         ReadOnlySpan<byte> propertyName,
-        out CompositeResultElement value)
+        out ResultElement value)
     {
         Span<byte> utf8UnescapedStack = stackalloc byte[JsonConstants.StackallocByteThreshold];
         var cursor = endCursor;
@@ -206,7 +206,7 @@ public sealed partial class ResultDocument
                             if (utf8Unescaped[..written].SequenceEqual(propertyName[idx..]))
                             {
                                 // If the property name is a match, the answer is the next element.
-                                value = new CompositeResultElement(this, cursor + 1);
+                                value = new ResultElement(this, cursor + 1);
                                 return true;
                             }
                         }
@@ -224,7 +224,7 @@ public sealed partial class ResultDocument
             else if (currentPropertyName.SequenceEqual(propertyName))
             {
                 // If the property name is a match, the answer is the next element.
-                value = new CompositeResultElement(this, cursor + 1);
+                value = new ResultElement(this, cursor + 1);
                 return true;
             }
 

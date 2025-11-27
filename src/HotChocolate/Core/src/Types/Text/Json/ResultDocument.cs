@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using HotChocolate.Buffers;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
@@ -12,13 +13,17 @@ public sealed partial class ResultDocument : IDisposable
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
-    private List<IError>? _errors;
     internal MetaDb _metaDb;
+    private int _nextDataIndex;
+    private int _rentedDataSize;
+    private readonly List<byte[]> _data = [];
+    private readonly object _dataChunkLock = new();
+    private List<IError>? _errors;
     private bool _disposed;
 
     internal ResultDocument(Operation operation, ulong includeFlags)
     {
-        _metaDb = MetaDb.CreateForEstimatedRows(Cursor.RowsPerChunk * 8);
+        _metaDb = MetaDb.CreateForEstimatedRows(Cursor.RowsPerChunk);
         _operation = operation;
         _includeFlags = includeFlags;
 
@@ -228,7 +233,7 @@ public sealed partial class ResultDocument : IDisposable
         if (tokenType is ElementTokenType.StartObject)
         {
             var flags = _metaDb.GetFlags(current);
-            return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+            return (flags & ElementFlags.IsInvalidated) == ElementFlags.IsInvalidated;
         }
 
         if (tokenType is ElementTokenType.Reference)
@@ -239,7 +244,7 @@ public sealed partial class ResultDocument : IDisposable
             if (tokenType is ElementTokenType.StartObject)
             {
                 var flags = _metaDb.GetFlags(current);
-                return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+                return (flags & ElementFlags.IsInvalidated) == ElementFlags.IsInvalidated;
             }
         }
 
@@ -260,7 +265,7 @@ public sealed partial class ResultDocument : IDisposable
         if (tokenType is ElementTokenType.StartObject)
         {
             var flags = _metaDb.GetFlags(current);
-            return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+            return (flags & ElementFlags.IsInvalidated) == ElementFlags.IsInvalidated;
         }
 
         if (tokenType is ElementTokenType.Reference)
@@ -271,7 +276,7 @@ public sealed partial class ResultDocument : IDisposable
             if (tokenType is ElementTokenType.StartObject)
             {
                 var flags = _metaDb.GetFlags(current);
-                return (flags & ElementFlags.Invalidated) == ElementFlags.Invalidated;
+                return (flags & ElementFlags.IsInvalidated) == ElementFlags.IsInvalidated;
             }
         }
 
@@ -307,7 +312,7 @@ public sealed partial class ResultDocument : IDisposable
         if (tokenType is ElementTokenType.StartObject)
         {
             var flags = _metaDb.GetFlags(current);
-            _metaDb.SetFlags(current, flags | ElementFlags.Invalidated);
+            _metaDb.SetFlags(current, flags | ElementFlags.IsInvalidated);
             return;
         }
 
@@ -319,7 +324,7 @@ public sealed partial class ResultDocument : IDisposable
             if (tokenType is ElementTokenType.StartObject)
             {
                 var flags = _metaDb.GetFlags(current);
-                _metaDb.SetFlags(current, flags | ElementFlags.Invalidated);
+                _metaDb.SetFlags(current, flags | ElementFlags.IsInvalidated);
             }
 
             return;
@@ -329,58 +334,117 @@ public sealed partial class ResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteRawValueTo(IBufferWriter<byte> writer, DbRow row, int indentLevel, bool indented)
+    private void WriteRawValueTo(IBufferWriter<byte> writer, DbRow row)
     {
-        if ((row.Flags & ElementFlags.SourceResult) == ElementFlags.SourceResult)
+        switch (row.TokenType)
         {
-            var document = _sources[row.SourceDocumentId];
-
-            if (row.TokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
-            {
-                // Reconstruct the source cursor from stored Location (Chunk) and SizeOrLength (Row)
-                var sourceCursor = SourceResultDocument.Cursor.From(row.Location, row.SizeOrLength);
-                var formatter = new SourceResultDocument.RawJsonFormatter(document, writer, indentLevel, indented);
-                formatter.WriteValue(sourceCursor);
+            case ElementTokenType.Null:
+                WriteToBuffer(writer, JsonConstants.NullValue);
                 return;
-            }
 
-            // For simple values, write directly using location and size
-            document.WriteRawValueTo(writer, row.Location, row.SizeOrLength);
-            return;
+            case ElementTokenType.True:
+                WriteToBuffer(writer, JsonConstants.TrueValue);
+                return;
+
+            case ElementTokenType.False:
+                WriteToBuffer(writer, JsonConstants.FalseValue);
+                return;
+
+            case ElementTokenType.PropertyName:
+                WriteToBuffer(writer, _operation.GetSelectionById(row.OperationReferenceId).Utf8ResponseName);
+                return;
+
+            case ElementTokenType.String:
+            case ElementTokenType.Number:
+                WriteLocalDataTo(writer, row.Location, row.SizeOrLength);
+                return;
+
+            default:
+                throw new NotSupportedException();
         }
+    }
 
-        throw new NotSupportedException();
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void WriteToBuffer(IBufferWriter<byte> writer, ReadOnlySpan<byte> data)
+    {
+        var span = writer.GetSpan(data.Length);
+        data.CopyTo(span);
+        writer.Advance(data.Length);
+    }
+
+    /// <summary>
+    /// Writes local data to the buffer, handling chunk boundaries.
+    /// </summary>
+    private void WriteLocalDataTo(IBufferWriter<byte> writer, int location, int size)
+    {
+        var remaining = size;
+        var currentPos = location;
+
+        while (remaining > 0)
+        {
+            var chunkIndex = currentPos / JsonMemory.BufferSize;
+            var offset = currentPos % JsonMemory.BufferSize;
+            var availableInChunk = JsonMemory.BufferSize - offset;
+            var toWrite = Math.Min(remaining, availableInChunk);
+
+            var source = _data[chunkIndex].AsSpan(offset, toWrite);
+            var dest = writer.GetSpan(toWrite);
+            source.CopyTo(dest);
+            writer.Advance(toWrite);
+
+            currentPos += toWrite;
+            remaining -= toWrite;
+        }
     }
 
     private ReadOnlySpan<byte> ReadRawValue(DbRow row)
     {
-        if (row.TokenType == ElementTokenType.Null)
+        switch (row.TokenType)
         {
-            return JsonConstants.NullValue;
+            case ElementTokenType.Null:
+                return JsonConstants.NullValue;
+
+            case ElementTokenType.True:
+                return JsonConstants.TrueValue;
+
+            case ElementTokenType.False:
+                return JsonConstants.FalseValue;
+
+            case ElementTokenType.PropertyName:
+                return _operation.GetSelectionById(row.OperationReferenceId).Utf8ResponseName;
+
+            case ElementTokenType.String:
+            case ElementTokenType.Number:
+                return ReadLocalData(row.Location, row.SizeOrLength);
+
+            default:
+                throw new NotSupportedException();
+        }
+    }
+
+    /// <summary>
+    /// Reads local data from the data chunks.
+    /// </summary>
+    /// <remarks>
+    /// This method only supports data that fits within a single chunk.
+    /// Data that spans chunk boundaries should use <see cref="WriteLocalDataTo"/> instead.
+    /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ReadOnlySpan<byte> ReadLocalData(int location, int size)
+    {
+        var chunkIndex = location / JsonMemory.BufferSize;
+        var offset = location % JsonMemory.BufferSize;
+
+        // Fast path: data fits in a single chunk
+        if (offset + size <= JsonMemory.BufferSize)
+        {
+            return _data[chunkIndex].AsSpan(offset, size);
         }
 
-        if (row.TokenType == ElementTokenType.True)
-        {
-            return JsonConstants.TrueValue;
-        }
-
-        if (row.TokenType == ElementTokenType.False)
-        {
-            return JsonConstants.FalseValue;
-        }
-
-        if (row.TokenType == ElementTokenType.PropertyName)
-        {
-            return _operation.GetSelectionById(row.OperationReferenceId).Utf8ResponseName;
-        }
-
-        if ((row.Flags & ElementFlags.SourceResult) == ElementFlags.SourceResult)
-        {
-            var document = _sources[row.SourceDocumentId];
-            return document.ReadRawValue(row.Location, row.SizeOrLength);
-        }
-
-        throw new NotSupportedException();
+        // Data spans chunk boundaries - this should be rare for typical JSON values
+        throw new NotSupportedException(
+            "Reading data that spans chunk boundaries as a span is not supported. "
+            + "Use WriteLocalDataTo for writing to an IBufferWriter instead.");
     }
 
     internal ResultElement CreateObject(Cursor parent, ISelectionSet selectionSet)
@@ -395,6 +459,20 @@ public sealed partial class ResultDocument : IDisposable
         }
 
         WriteEndObject(startObjectCursor, selectionCount);
+
+        return new ResultElement(this, startObjectCursor);
+    }
+
+    internal ResultElement CreateObject(Cursor parent, int propertyCount)
+    {
+        var startObjectCursor = WriteStartObject(parent, isSelectionSet: false);
+
+        for (var i = 0; i < propertyCount; i++)
+        {
+            WriteEmptyProperty(startObjectCursor);
+        }
+
+        WriteEndObject(startObjectCursor, propertyCount);
 
         return new ResultElement(this, startObjectCursor);
     }
@@ -414,7 +492,7 @@ public sealed partial class ResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void AssignCompositeValue(ResultElement target, ResultElement value)
+    internal void AssignObjectOrArray(ResultElement target, ResultElement value)
     {
         _metaDb.Replace(
             cursor: target.Cursor,
@@ -424,45 +502,48 @@ public sealed partial class ResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void AssignSourceValue(ResultElement target, ResultElement source)
+    internal void AssignStringValue(ResultElement target, ReadOnlySpan<byte> value)
     {
-        var value = source.GetValuePointer();
-        var parent = source._parent;
-
-        if (parent.Id == -1)
-        {
-            Debug.Assert(!_sources.Contains(parent), "The source document is marked as unbound but is already registered.");
-            parent.Id = _sources.Count;
-            _sources.Add(parent);
-        }
-
-        Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
-
-        var tokenType = source.TokenType.ToElementTokenType();
-
-        if (tokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
-        {
-            var sourceCursor = source._cursor;
-
-            _metaDb.Replace(
-                cursor: target.Cursor,
-                tokenType: source.TokenType.ToElementTokenType(),
-                location: sourceCursor.Chunk,
-                sizeOrLength: sourceCursor.Row,
-                sourceDocumentId: parent.Id,
-                parentRow: _metaDb.GetParent(target.Cursor),
-                flags: ElementFlags.SourceResult);
-            return;
-        }
+        var totalSize = value.Length + 2;
+        var position = ClaimDataSpace(totalSize);
+        WriteData(position, value, withQuotes: true);
 
         _metaDb.Replace(
             cursor: target.Cursor,
-            tokenType: source.TokenType.ToElementTokenType(),
-            location: value.Location,
-            sizeOrLength: value.Size,
-            sourceDocumentId: parent.Id,
-            parentRow: _metaDb.GetParent(target.Cursor),
-            flags: ElementFlags.SourceResult);
+            tokenType: ElementTokenType.String,
+            location: position,
+            sizeOrLength: totalSize,
+            parentRow: _metaDb.GetParent(target.Cursor));
+    }
+
+    internal void AssignPropertyName(ResultElement target, ReadOnlySpan<byte> propertyName)
+    {
+        var totalSize = propertyName.Length + 2;
+        var position = ClaimDataSpace(totalSize);
+        WriteData(position, propertyName, withQuotes: true);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void AssignNumberValue(ResultElement target, ReadOnlySpan<byte> value)
+    {
+        var position = ClaimDataSpace(value.Length);
+        WriteData(position, value);
+
+        _metaDb.Replace(
+            cursor: target.Cursor,
+            tokenType: ElementTokenType.Number,
+            location: position,
+            sizeOrLength: value.Length,
+            parentRow: _metaDb.GetParent(target.Cursor));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void AssignBooleanValue(ResultElement target, bool value)
+    {
+        _metaDb.Replace(
+            cursor: target.Cursor,
+            tokenType: value ? ElementTokenType.True : ElementTokenType.False,
+            parentRow: _metaDb.GetParent(target.Cursor));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -475,7 +556,110 @@ public sealed partial class ResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Cursor WriteStartObject(Cursor parent, int selectionSetId = 0)
+    private int ClaimDataSpace(int size)
+    {
+        // Atomically claim space
+        var endPosition = Interlocked.Add(ref _nextDataIndex, size);
+        var startPosition = endPosition - size;
+
+        // Fast path: we check if we already have enough rented memory
+        // if so we can directly return and write the data without locking.
+        if (endPosition <= Volatile.Read(ref _rentedDataSize))
+        {
+            return startPosition;
+        }
+
+        // Slow path: we need to rent more chunks so in this case
+        // we will need to do a proper synchronization.
+        EnsureDataCapacity(endPosition);
+        return startPosition;
+    }
+
+    private void EnsureDataCapacity(int requiredSize)
+    {
+        lock (_dataChunkLock)
+        {
+            // Double-check after acquiring lock
+            var currentSize = _rentedDataSize;
+            if (requiredSize <= currentSize)
+            {
+                return;
+            }
+
+            // Rent chunks until we have enough
+            while (currentSize < requiredSize)
+            {
+                _data.Add(JsonMemory.Rent(JsonMemoryKind.Json));
+                currentSize += JsonMemory.BufferSize;
+            }
+
+            // Publish new size (volatile write)
+            Volatile.Write(ref _rentedDataSize, currentSize);
+        }
+    }
+
+    /// <summary>
+    /// Writes data to the data chunks, handling chunk boundaries.
+    /// </summary>
+    /// <param name="position">The position to start writing at.</param>
+    /// <param name="data">The data to write.</param>
+    /// <param name="withQuotes">If true, wraps the data with JSON quotes.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteData(int position, ReadOnlySpan<byte> data, bool withQuotes = false)
+    {
+        if (withQuotes)
+        {
+            WriteByte(position, JsonConstants.Quote);
+            WriteDataCore(position + 1, data);
+            WriteByte(position + 1 + data.Length, JsonConstants.Quote);
+        }
+        else
+        {
+            WriteDataCore(position, data);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteByte(int position, byte value)
+    {
+        var chunkIndex = position / JsonMemory.BufferSize;
+        var offset = position % JsonMemory.BufferSize;
+        _data[chunkIndex][offset] = value;
+    }
+
+    private void WriteDataCore(int position, ReadOnlySpan<byte> data)
+    {
+        var chunkIndex = position / JsonMemory.BufferSize;
+        var offset = position % JsonMemory.BufferSize;
+        var availableInChunk = JsonMemory.BufferSize - offset;
+
+        // Fast path: we can write all the data into single chunk
+        if (data.Length <= availableInChunk)
+        {
+            data.CopyTo(_data[chunkIndex].AsSpan(offset, data.Length));
+            return;
+        }
+
+        // Slow path: data spans multiple chunks so we need to loop
+        var remaining = data;
+        var currentPos = position;
+
+        while (remaining.Length > 0)
+        {
+            chunkIndex = currentPos / JsonMemory.BufferSize;
+            offset = currentPos % JsonMemory.BufferSize;
+            availableInChunk = JsonMemory.BufferSize - offset;
+            var toWrite = Math.Min(remaining.Length, availableInChunk);
+
+            remaining[..toWrite].CopyTo(_data[chunkIndex].AsSpan(offset, toWrite));
+
+            currentPos += toWrite;
+            remaining = remaining[toWrite..];
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Cursor WriteStartObject(Cursor parent, int selectionSetId = 0, bool isSelectionSet = true)
     {
         var flags = ElementFlags.None;
         var parentRow = ToIndex(parent);
@@ -490,7 +674,9 @@ public sealed partial class ResultDocument : IDisposable
             ElementTokenType.StartObject,
             parentRow: parentRow,
             operationReferenceId: selectionSetId,
-            operationReferenceType: OperationReferenceType.SelectionSet,
+            operationReferenceType: isSelectionSet
+                ? OperationReferenceType.SelectionSet
+                : OperationReferenceType.None,
             flags: flags);
     }
 
@@ -546,12 +732,34 @@ public sealed partial class ResultDocument : IDisposable
             flags |= ElementFlags.IsNullable;
         }
 
+        if (selection.Type.IsListType())
+        {
+            flags |= ElementFlags.IsList;
+        }
+
+        if (selection.Type.IsCompositeType())
+        {
+            flags |= ElementFlags.IsObject;
+        }
+
         var prop = _metaDb.Append(
             ElementTokenType.PropertyName,
             parentRow: ToIndex(parent),
             operationReferenceId: selection.Id,
             operationReferenceType: OperationReferenceType.Selection,
             flags: flags);
+
+        _metaDb.Append(
+            ElementTokenType.None,
+            parentRow: ToIndex(prop));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteEmptyProperty(Cursor parent)
+    {
+        var prop = _metaDb.Append(
+            ElementTokenType.PropertyName,
+            parentRow: ToIndex(parent));
 
         _metaDb.Append(
             ElementTokenType.None,
@@ -582,6 +790,12 @@ public sealed partial class ResultDocument : IDisposable
         if (!_disposed)
         {
             _metaDb.Dispose();
+
+            if (_data.Count > 0)
+            {
+                JsonMemory.Return(JsonMemoryKind.Json, _data);
+            }
+
             _disposed = true;
         }
     }

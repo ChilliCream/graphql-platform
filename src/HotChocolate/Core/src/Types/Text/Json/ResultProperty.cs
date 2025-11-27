@@ -1,16 +1,16 @@
 using System.Diagnostics;
 using System.Text.Json;
-using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Execution.Processing;
 
-namespace HotChocolate.Fusion.Text.Json;
+namespace HotChocolate.Text.Json;
 
 /// <summary>
 ///   Represents a single property for a JSON object.
 /// </summary>
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
-public readonly struct CompositeResultProperty
+public readonly struct ResultProperty
 {
-    internal CompositeResultProperty(CompositeResultElement value)
+    internal ResultProperty(ResultElement value)
     {
         Value = value;
     }
@@ -18,7 +18,7 @@ public readonly struct CompositeResultProperty
     /// <summary>
     ///   The value of this property.
     /// </summary>
-    public CompositeResultElement Value { get; }
+    public ResultElement Value { get; }
 
     /// <summary>
     ///   The name of this property.
@@ -26,9 +26,9 @@ public readonly struct CompositeResultProperty
     /// </summary>
     public string Name => Value.GetPropertyName();
 
-    public Selection? Selection => Value.Selection;
+    public ISelection? Selection => Value.Selection;
 
-    public Selection GetRequiredSelection() => Value.AssertSelection();
+    public ISelection AssertSelection() => Value.AssertSelection();
 
     /// <summary>
     ///   Compares <paramref name="text" /> to the name of this property.
@@ -115,9 +115,9 @@ public readonly struct CompositeResultProperty
     private string DebuggerDisplay
         => Value.ValueKind == JsonValueKind.Undefined ? "<Undefined>" : $"\"{ToString()}\"";
 
-    public void Deconstruct(out Selection selection, out CompositeResultElement value)
+    public void Deconstruct(out ISelection selection, out ResultElement value)
     {
-        selection = GetRequiredSelection();
+        selection = AssertSelection();
         value = Value;
     }
 }
