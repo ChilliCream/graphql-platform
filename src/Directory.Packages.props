@@ -59,6 +59,7 @@
     <PackageVersion Include="Squadron.RabbitMQ" Version="0.26.0" />
     <PackageVersion Include="Squadron.RavenDB" Version="0.26.0" />
     <PackageVersion Include="Squadron.Redis" Version="0.26.0" />
+    <PackageVersion Include="Squadron.SqlServer" Version="0.25.0-preview.2" />
     <PackageVersion Include="StackExchange.Redis" Version="2.6.80" />
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
@@ -87,6 +88,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0-rc.2.25502.107" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.0-rc.2.25502.107" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0-rc.2.25502.107" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0-rc.2.25502.107" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.0-rc.2.25502.107" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-rc.2.25502.107" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0-rc.2.25502.107" />
@@ -115,6 +117,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.4" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.4" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.4" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.4" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="9.0.4" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.4" />
@@ -142,6 +145,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.15" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.15" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.15" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.15" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
