@@ -52,13 +52,13 @@
     <PackageVersion Include="Spectre.Console" Version="0.52.0" />
     <PackageVersion Include="sqlite-net-pcl" Version="1.9.172" />
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
-    <PackageVersion Include="Squadron.AzureStorage" Version="0.26.0" />
-    <PackageVersion Include="Squadron.Mongo" Version="0.25.0-preview.2" />
-    <PackageVersion Include="Squadron.Nats" Version="0.26.0" />
-    <PackageVersion Include="Squadron.PostgreSql" Version="0.26.0" />
-    <PackageVersion Include="Squadron.RabbitMQ" Version="0.26.0" />
-    <PackageVersion Include="Squadron.RavenDB" Version="0.26.0" />
-    <PackageVersion Include="Squadron.Redis" Version="0.26.0" />
+    <PackageVersion Include="Squadron.AzureStorage" Version="[0.26.1-preview.2]" />
+    <PackageVersion Include="Squadron.Mongo" Version="[0.26.1-preview.2]" />
+    <PackageVersion Include="Squadron.Nats" Version="[0.26.1-preview.2]" />
+    <PackageVersion Include="Squadron.PostgreSql" Version="[0.26.1-preview.2]" />
+    <PackageVersion Include="Squadron.RabbitMQ" Version="[0.26.1-preview.2]" />
+    <PackageVersion Include="Squadron.RavenDB" Version="[0.26.1-preview.2]" />
+    <PackageVersion Include="Squadron.Redis" Version="[0.26.1-preview.2]" />
     <PackageVersion Include="StackExchange.Redis" Version="2.6.80" />
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
@@ -77,32 +77,32 @@
     <PackageVersion Include="xunit" Version="2.9.3" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.Net.Http.Headers" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Microsoft.AspNetCore.HeaderPropagation" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0-rc.2" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0-rc.2" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="10.0.0-rc.2" />
-    <PackageVersion Include="System.IO.Hashing" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="System.IO.Packaging" Version="10.0.0-rc.2.25502.107" />
-    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.0-rc.2.25502.107" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Net.Http.Headers" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.HeaderPropagation" Version="10.0.0" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.0" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="10.0.0" />
+    <PackageVersion Include="System.IO.Hashing" Version="10.0.0" />
+    <PackageVersion Include="System.IO.Packaging" Version="10.0.0" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
