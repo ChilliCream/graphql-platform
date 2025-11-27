@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using CaseConverter;
 using HotChocolate.Language;
 using static HotChocolate.Adapters.Mcp.Properties.McpAdapterResources;
@@ -10,7 +11,7 @@ namespace HotChocolate.Adapters.Mcp.Storage;
 /// Represents a GraphQL-operation-based MCP tool definition which is used by
 /// Hot Chocolate to create the actual MCP tool.
 /// </summary>
-public sealed class OperationToolDefinition
+public sealed partial class OperationToolDefinition
 {
     /// <summary>
     /// Initializes a new MCP tool definition from a GraphQL operation document.
@@ -65,6 +66,12 @@ public sealed class OperationToolDefinition
             throw new ArgumentException(
                 OperationToolDefinition_DocumentMustContainSingleOperation,
                 nameof(document));
+        }
+
+        if (name is not null && !ValidateToolNameRegex().IsMatch(name))
+        {
+            throw new ArgumentException(
+                string.Format(OperationToolDefinition_InvalidToolName, name, ValidateToolNameRegex()));
         }
 
         Name = name ?? operation.Name?.Value.ToSnakeCase()!;
@@ -129,4 +136,8 @@ public sealed class OperationToolDefinition
     }
 
     public string? OpenAiComponentOutputTemplate { get; private set; }
+
+    /// <summary>Regex that validates tool names.</summary>
+    [GeneratedRegex(@"^[A-Za-z0-9_.-]{1,128}\z")]
+    private static partial Regex ValidateToolNameRegex();
 }

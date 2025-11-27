@@ -96,6 +96,15 @@ namespace HotChocolate.Adapters.Mcp.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The tool name &apos;{0}&apos; is invalid. Tool names must match the regular expression &apos;{1}&apos;..
+        /// </summary>
+        internal static string OperationToolDefinition_InvalidToolName {
+            get {
+                return ResourceManager.GetString("OperationToolDefinition_InvalidToolName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} OpenAI Component.
         /// </summary>
         internal static string OperationToolFactory_OpenAiComponentResourceName {

@@ -30,6 +30,9 @@
   <data name="OperationToolDefinition_DocumentMustContainSingleOperation" xml:space="preserve">
     <value>An operation tool document must have exactly one operation definition.</value>
   </data>
+  <data name="OperationToolDefinition_InvalidToolName" xml:space="preserve">
+    <value>The tool name '{0}' is invalid. Tool names must match the regular expression '{1}'.</value>
+  </data>
   <data name="OperationToolFactory_OpenAiComponentResourceName" xml:space="preserve">
     <value>{0} OpenAI Component</value>
   </data>
