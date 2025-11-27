@@ -57,7 +57,7 @@ public class OperationGeneratorTests
     public void Nullable_List_Input()
     {
         AssertResult(
-            @"query GetSomething($bar: Bar){ foo(bar: $bar)}",
+            "query GetSomething($bar: Bar){ foo(bar: $bar)}",
             "type Query { foo(bar: Bar ): String }",
             "input Bar { baz: [Baz] }",
             "input Baz { qux: String }",
@@ -68,7 +68,7 @@ public class OperationGeneratorTests
     public void Nullable_ValueType_Input()
     {
         AssertResult(
-            @"query GetSomething($bar: Bar){ foo(bar: $bar)}",
+            "query GetSomething($bar: Bar){ foo(bar: $bar)}",
             "type Query { foo(bar: Bar ): String }",
             "scalar IntPtr",
             "input Bar { nullablePtr: IntPtr }",
@@ -83,7 +83,7 @@ public class OperationGeneratorTests
     public void NonNullable_ValueType_Input()
     {
         AssertResult(
-            @"query GetSomething($bar: Bar){ foo(bar: $bar)}",
+            "query GetSomething($bar: Bar){ foo(bar: $bar)}",
             "type Query { foo(bar: Bar ): String }",
             "scalar IntPtr",
             "input Bar { nonNullablePtr: IntPtr! }",
@@ -98,7 +98,7 @@ public class OperationGeneratorTests
     public void NonNullableValueType_WithoutGlobal_Input()
     {
         AssertResult(
-            @"query GetSomething($bar: Bar){ foo(bar: $bar)}",
+            "query GetSomething($bar: Bar){ foo(bar: $bar)}",
             "type Query { foo(bar: Bar ): String }",
             "scalar IntPtr",
             "input Bar { nonNullablePtr: IntPtr! }",
