@@ -17,7 +17,12 @@ import {
   WorkshopNdcOsloImage,
   WorkshopOnlineImage,
 } from "@/components/images";
-import { IconContainer, Link, SearchModal } from "@/components/misc";
+import {
+  IconContainer,
+  Link,
+  LinkButton,
+  SearchModal,
+} from "@/components/misc";
 import { Icon, Logo } from "@/components/sprites";
 import { GitHubStarButton } from "@/components/widgets";
 import {
@@ -502,7 +507,10 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
                 <Icon {...LollipopIconSvg} />
               </IconContainer>
               <SubNavLinkTextGroup>
-                <div className="title">Nitro (<abbr title="Formerly Known As">fka</abbr> Banana Cake Pop)</div>
+                <div className="title">
+                  Nitro (<abbr title="Formerly Known As">fka</abbr> Banana Cake
+                  Pop)
+                </div>
                 <div className="desc">GraphQL IDE / API Cockpit</div>
               </SubNavLinkTextGroup>
             </SubNavLinkWithDescription>
@@ -689,10 +697,11 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({
             {products.map((product, index) => (
               <SubNavLink
                 key={index}
-                to={`/docs/${product!.path!}${product?.latestStableVersion
-                  ? "/" + product?.latestStableVersion
-                  : ""
-                  }`}
+                to={`/docs/${product!.path!}${
+                  product?.latestStableVersion
+                    ? "/" + product?.latestStableVersion
+                    : ""
+                }`}
                 onClick={hideTopAndSubNav}
               >
                 <IconContainer $size={16}>
@@ -927,7 +936,7 @@ const DemoAndLaunch: FC<DemoAndLaunchProps> = ({ tools }) => {
       >
         Request a Demo
       </RequestDemoLink>
-      <LaunchLink to={tools!.nitro!}>Launch</LaunchLink>
+      <LinkButton to={tools!.nitro!}>Launch</LinkButton>
     </>
   );
 };
@@ -1179,9 +1188,9 @@ const SubNav = styled.div.attrs({
     overflow-y: initial;
 
     ${ApplyBackdropBlur(
-  48,
-  `background-color: ${THEME_COLORS.backgroundMenu};`
-)}
+      48,
+      `background-color: ${THEME_COLORS.backgroundMenu};`
+    )}
   }
 `;
 
@@ -1525,31 +1534,6 @@ const Tools = styled.div`
     > :nth-child(1) {
       display: flex;
     }
-  }
-`;
-
-const LaunchLink = styled(Link)`
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  box-sizing: border-box;
-  border-radius: var(--button-border-radius);
-  height: 38px;
-  padding: 0 30px;
-  border: 2px solid ${THEME_COLORS.primaryButtonBorder};
-  color: ${THEME_COLORS.primaryButtonText};
-  background-color: ${THEME_COLORS.primaryButton};
-  font-family: ${FONT_FAMILY_HEADING};
-  font-size: 0.875rem;
-  text-decoration: none;
-  font-weight: 500;
-  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out,
-    color 0.2s ease-in-out;
-
-  :hover {
-    border-color: ${THEME_COLORS.primaryButtonBorder};
-    color: ${THEME_COLORS.primaryButtonHoverText};
-    background-color: ${THEME_COLORS.primaryButtonHover};
   }
 `;
 
