@@ -2,7 +2,6 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -26,7 +25,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public Schema Schema => _operationContext.Schema;
 
-    public IOperation Operation => _operationContext.Operation;
+    public Operation Operation => _operationContext.Operation;
 
     public IOperationResultBuilder OperationResult => _operationResultBuilder;
 
@@ -48,7 +47,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             ErrorBuilder.New()
                 .SetMessage(errorMessage)
                 .SetPath(Path)
-                .AddLocation(_selection.SyntaxNode)
+                .AddLocations(_selection)
                 .Build());
     }
 
@@ -75,7 +74,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             var errorBuilder = ErrorBuilder
                 .FromException(exception)
                 .SetPath(Path)
-                .AddLocation(_selection.SyntaxNode);
+                .AddLocations(_selection);
 
             configure?.Invoke(errorBuilder);
 
@@ -108,14 +107,14 @@ internal partial class MiddlewareContext : IMiddlewareContext
             {
                 foreach (var ie in ar.Errors)
                 {
-                    var errorWithPath = EnsurePathAndLocation(ie, _selection.SyntaxNode, Path);
+                    var errorWithPath = EnsurePathAndLocation(ie, _selection.SyntaxNodes[0].Node, Path);
                     _operationContext.Result.AddError(errorWithPath, _selection);
                     diagnosticEvents.ResolverError(this, errorWithPath);
                 }
             }
             else
             {
-                var errorWithPath = EnsurePathAndLocation(handled, _selection.SyntaxNode, Path);
+                var errorWithPath = EnsurePathAndLocation(handled, _selection.SyntaxNodes[0].Node, Path);
                 _operationContext.Result.AddError(errorWithPath, _selection);
                 diagnosticEvents.ResolverError(this, errorWithPath);
             }
@@ -288,5 +287,18 @@ internal partial class MiddlewareContext : IMiddlewareContext
                             ? default!
                             : c.Value,
                         s)));
+    }
+}
+
+file static class Extensions
+{
+    public static ErrorBuilder AddLocations(this ErrorBuilder errorBuilder, Selection selection)
+    {
+        foreach (var (node, _) in selection.SyntaxNodes)
+        {
+            errorBuilder.AddLocation(node);
+        }
+
+        return errorBuilder;
     }
 }

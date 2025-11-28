@@ -5,7 +5,6 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
@@ -16,13 +15,13 @@ internal partial class MiddlewareContext
     {
         private ITypeConverter? _typeConverter;
         private IReadOnlyDictionary<string, ArgumentValue> _argumentValues = null!;
-        private ISelection _selection = null!;
+        private Selection _selection = null!;
         private ObjectType _parentType = null!;
         private ObjectResult _parentResult = null!;
         private object? _parent;
 
         public bool Initialize(
-            ISelection selection,
+            Selection selection,
             ObjectType parentType,
             ObjectResult parentResult,
             object? parent)
@@ -60,9 +59,9 @@ internal partial class MiddlewareContext
 
         public ObjectType ObjectType => _parentType;
 
-        public IOperation Operation => parentContext.Operation;
+        public Operation Operation => parentContext.Operation;
 
-        public ISelection Selection => _selection;
+        public Selection Selection => _selection;
 
         public Path Path => PathHelper.CreatePathFromContext(_selection, _parentResult, -1);
 
@@ -77,9 +76,9 @@ internal partial class MiddlewareContext
         public void ReportError(Exception exception, Action<ErrorBuilder>? configure = null)
             => throw new NotSupportedException();
 
-        public IReadOnlyList<ISelection> GetSelections(
+        public SelectionEnumerator GetSelections(
             ObjectType typeContext,
-            ISelection? selection = null,
+            Selection? selection = null,
             bool allowInternals = false)
             => throw new NotSupportedException();
 
@@ -135,7 +134,7 @@ internal partial class MiddlewareContext
 
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
-                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
+                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNodes[0].Node, Path, name);
             }
 
             return CoerceArgumentValue<T>(argument);
@@ -148,7 +147,7 @@ internal partial class MiddlewareContext
 
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
-                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
+                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNodes[0].Node, Path, name);
             }
 
             var literal = argument.ValueLiteral!;
@@ -159,7 +158,11 @@ internal partial class MiddlewareContext
             }
 
             throw ResolverContext_LiteralNotCompatible(
-                _selection.SyntaxNode, Path, name, typeof(TValueNode), literal.GetType());
+                _selection.SyntaxNodes[0].Node,
+                Path,
+                name,
+                typeof(TValueNode),
+                literal.GetType());
         }
 
         public Optional<T> ArgumentOptional<T>(string name)
@@ -168,7 +171,7 @@ internal partial class MiddlewareContext
 
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
-                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
+                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNodes[0].Node, Path, name);
             }
 
             return argument.IsDefaultValue
@@ -180,10 +183,10 @@ internal partial class MiddlewareContext
         {
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
-                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
+                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNodes[0].Node, Path, name);
             }
 
-            // There can only be no kind if there was an error which would have
+            // There can only be no kind of there was an error which would have
             // already been raised at this point.
             return argument.Kind ?? ValueKind.Unknown;
         }
@@ -243,7 +246,10 @@ internal partial class MiddlewareContext
             if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
             {
                 throw ResolverContext_LiteralsNotSupported(
-                    _selection.SyntaxNode, Path, argument.Name, typeof(T));
+                    _selection.SyntaxNodes[0].Node,
+                    Path,
+                    argument.Name,
+                    typeof(T));
             }
 
             // If the object is internally held as a dictionary structure we will try to
@@ -270,7 +276,7 @@ internal partial class MiddlewareContext
 
             // we are unable to convert the argument to the request type.
             throw ResolverContext_CannotConvertArgument(
-                _selection.SyntaxNode,
+                _selection.SyntaxNodes[0].Node,
                 Path,
                 argument.Name,
                 typeof(T),

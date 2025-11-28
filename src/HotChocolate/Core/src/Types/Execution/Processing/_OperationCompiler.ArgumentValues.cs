@@ -149,7 +149,7 @@ public sealed partial class OperationCompiler
             pipeline = next;
         }
 
-        // at last we clear the rented lists
+        // at last, we clear the rented lists
         processed.Clear();
         pipelineComponents.Clear();
 

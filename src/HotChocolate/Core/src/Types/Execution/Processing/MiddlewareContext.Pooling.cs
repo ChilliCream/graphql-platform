@@ -18,7 +18,7 @@ internal partial class MiddlewareContext
 
     public void Initialize(
         OperationContext operationContext,
-        ISelection selection,
+        Selection selection,
         ObjectResult parentResult,
         int responseIndex,
         object? parent,

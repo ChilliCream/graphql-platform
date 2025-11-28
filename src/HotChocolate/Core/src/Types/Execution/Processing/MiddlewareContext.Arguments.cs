@@ -17,7 +17,7 @@ internal partial class MiddlewareContext
 
         if (!Arguments.TryGetValue(name, out var argument))
         {
-            throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
+            throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNodes[0].Node, Path, name);
         }
 
         try
@@ -40,7 +40,7 @@ internal partial class MiddlewareContext
 
         if (!Arguments.TryGetValue(name, out var argument))
         {
-            throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
+            throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNodes[0].Node, Path, name);
         }
 
         return argument.IsDefaultValue
@@ -54,7 +54,7 @@ internal partial class MiddlewareContext
 
         if (!Arguments.TryGetValue(name, out var argument))
         {
-            throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
+            throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNodes[0].Node, Path, name);
         }
 
         var literal = argument.ValueLiteral!;
@@ -65,7 +65,11 @@ internal partial class MiddlewareContext
         }
 
         throw ResolverContext_LiteralNotCompatible(
-            _selection.SyntaxNode, Path, name, typeof(TValueNode), literal.GetType());
+            _selection.SyntaxNodes[0].Node,
+            Path,
+            name,
+            typeof(TValueNode),
+            literal.GetType());
     }
 
     public ValueKind ArgumentKind(string name)
@@ -74,10 +78,10 @@ internal partial class MiddlewareContext
 
         if (!Arguments.TryGetValue(name, out var argument))
         {
-            throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
+            throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNodes[0].Node, Path, name);
         }
 
-        // There can only be no kind if there was an error which would have
+        // There can only be no kind of there was an error which would have
         // already been raised at this point.
         return argument.Kind ?? ValueKind.Unknown;
     }
@@ -114,7 +118,7 @@ internal partial class MiddlewareContext
         if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
         {
             throw ResolverContext_LiteralsNotSupported(
-                _selection.SyntaxNode,
+                _selection.SyntaxNodes[0].Node,
                 Path,
                 argument.Name,
                 typeof(T));
@@ -122,7 +126,7 @@ internal partial class MiddlewareContext
 
         // we are unable to convert the argument to the request type.
         throw ResolverContext_CannotConvertArgument(
-            _selection.SyntaxNode,
+            _selection.SyntaxNodes[0].Node,
             Path,
             argument.Name,
             typeof(T),
@@ -173,15 +177,13 @@ internal partial class MiddlewareContext
             Arguments = mutableArguments;
         }
 
-        if (!mutableArguments.TryGetValue(argumentName, out var argumentValue))
+        // we remove the original argument name ...
+        if (!mutableArguments.Remove(argumentName, out var argumentValue))
         {
             throw new ArgumentException(
                 string.Format(MiddlewareContext_ReplaceArgument_InvalidKey, argumentName),
                 nameof(argumentName));
         }
-
-        // we remove the original argument name ...
-        mutableArguments.Remove(argumentName);
 
         // and allow the argument to be replaces with a new argument that could also have
         // a new name.

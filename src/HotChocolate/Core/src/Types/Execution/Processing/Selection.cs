@@ -28,7 +28,6 @@ public class Selection : ISelection
         ulong[] includeFlags,
         bool isInternal,
         ArgumentMap? arguments = null,
-        bool isParallelExecutable = true,
         FieldDelegate? resolverPipeline = null,
         PureFieldDelegate? pureResolver = null)
     {
@@ -48,7 +47,7 @@ public class Selection : ISelection
         ResolverPipeline = resolverPipeline;
         PureResolver = pureResolver;
         Strategy = InferStrategy(
-            isSerial: !isParallelExecutable,
+            isSerial: !field.IsParallelExecutable,
             hasPureResolver: pureResolver is not null);
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
@@ -106,7 +105,7 @@ public class Selection : ISelection
 
     public PureFieldDelegate? PureResolver { get; private set; }
 
-    internal ReadOnlySpan<FieldSelectionNode> SyntaxNodes => _syntaxNodes;
+    public ReadOnlySpan<FieldSelectionNode> SyntaxNodes => _syntaxNodes;
 
     IEnumerable<FieldNode> ISelection.GetSyntaxNodes()
     {

@@ -143,6 +143,34 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>TextJsonResources.resx</DependentUpon>
     </Compile>
+
+    <Compile Update="Execution\Processing\MiddlewareContext.Arguments.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\MiddlewareContext.Pooling.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\MiddlewareContext.Pure.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\MiddlewareContext.Selection.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\MiddlewareContext.State.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\OperationCompiler.CoerceArgumentValues.cs">
+      <DependentUpon>OperationCompiler.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\OperationCompiler.CompileResolver.cs">
+      <DependentUpon>OperationCompiler.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

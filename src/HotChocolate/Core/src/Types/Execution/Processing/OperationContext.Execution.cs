@@ -22,19 +22,6 @@ internal sealed partial class OperationContext
     }
 
     /// <summary>
-    /// Gets the backlog of the task that shall be processed after
-    /// all the main tasks have been executed.
-    /// </summary>
-    public DeferredWorkScheduler DeferredScheduler
-    {
-        get
-        {
-            AssertInitialized();
-            return _deferredWorkScheduler;
-        }
-    }
-
-    /// <summary>
     /// The result helper which provides utilities to build up the result.
     /// </summary>
     public ResultBuilder Result

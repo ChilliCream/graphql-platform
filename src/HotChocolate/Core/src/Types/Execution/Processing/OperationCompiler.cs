@@ -241,6 +241,14 @@ internal sealed partial class OperationCompiler2
             }
 
             var field = typeContext.Fields[first.Node.Name.Value];
+            var fieldDelegate = CreateFieldPipeline(_schema, field, first.Node);
+            var pureFieldDelegate = TryCreatePureField(_schema, field, first.Node);
+            var arguments = ArgumentMap.Empty;
+
+            if (first.Node.Arguments.Count > 0)
+            {
+                arguments = CoerceArgumentValues(field, first.Node);
+            }
 
             var selection = new Selection(
                 ++lastId,
@@ -248,7 +256,10 @@ internal sealed partial class OperationCompiler2
                 field,
                 nodes.ToArray(),
                 includeFlags.ToArray(),
-                isInternal);
+                isInternal,
+                arguments,
+                fieldDelegate,
+                pureFieldDelegate);
 
             // Register the selection in the elements array
             compilationContext.Register(selection, selection.Id);
@@ -435,7 +446,7 @@ internal sealed partial class OperationCompiler2
 /// <param name="PathIncludeFlags">
 /// The flags that must be all set for this selection to be included.
 /// </param>
-internal sealed record FieldSelectionNode(FieldNode Node, ulong PathIncludeFlags);
+public sealed record FieldSelectionNode(FieldNode Node, ulong PathIncludeFlags);
 
 internal class IncludeConditionCollection : ICollection<IncludeCondition>
 {

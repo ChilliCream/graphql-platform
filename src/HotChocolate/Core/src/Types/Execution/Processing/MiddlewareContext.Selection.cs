@@ -14,7 +14,7 @@ internal partial class MiddlewareContext
 
     public ObjectField Field => _selection.Field;
 
-    public ISelection Selection => _selection;
+    public Selection Selection => _selection;
 
     public string ResponseName => _selection.ResponseName;
 
@@ -25,7 +25,7 @@ internal partial class MiddlewareContext
     public PureFieldDelegate? PureResolver => _selection.PureResolver;
 
     public bool TryCreatePureContext(
-        ISelection selection,
+        Selection selection,
         ObjectType parentType,
         ObjectResult parentResult,
         object? parent,
@@ -41,7 +41,7 @@ internal partial class MiddlewareContext
         return false;
     }
 
-    public IReadOnlyList<ISelection> GetSelections(
+    public SelectionEnumerator GetSelections(
         ObjectType typeContext,
         Selection? selection = null,
         bool allowInternals = false)
@@ -52,28 +52,11 @@ internal partial class MiddlewareContext
 
         if (selection.IsLeaf)
         {
-            return [];
+            return default;
         }
 
         var selectionSet = _operationContext.CollectFields(selection, typeContext);
-
-        if (selectionSet.IsConditional)
-        {
-            var operationIncludeFlags = _operationContext.IncludeFlags;
-            var finalFields = new List<ISelection>();
-
-            foreach (var childSelection in selectionSet.Selections)
-            {
-                if (childSelection.IsIncluded(operationIncludeFlags, allowInternals))
-                {
-                    finalFields.Add(childSelection);
-                }
-            }
-
-            return finalFields;
-        }
-
-        return selectionSet.Selections;
+        return new SelectionEnumerator(selectionSet, _operationContext.IncludeFlags);
     }
 
     public ISelectionCollection Select()

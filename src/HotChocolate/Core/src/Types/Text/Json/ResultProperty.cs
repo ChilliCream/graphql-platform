@@ -115,7 +115,7 @@ public readonly struct ResultProperty
     private string DebuggerDisplay
         => Value.ValueKind == JsonValueKind.Undefined ? "<Undefined>" : $"\"{ToString()}\"";
 
-    public void Deconstruct(out ISelection selection, out ResultElement value)
+    public void Deconstruct(out Selection selection, out ResultElement value)
     {
         selection = AssertSelection();
         value = Value;

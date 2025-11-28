@@ -247,7 +247,7 @@ public readonly partial struct ResultElement : IRawJsonFormatter
     /// <exception cref="InvalidOperationException">
     /// This element does not represent the data of a selection set.
     /// </exception>
-    public ISelectionSet AssertSelectionSet()
+    public SelectionSet AssertSelectionSet()
     {
         var selectionSet = SelectionSet;
 
@@ -268,7 +268,7 @@ public readonly partial struct ResultElement : IRawJsonFormatter
     /// <exception cref="InvalidOperationException">
     /// This element does not represent the data of a field selection.
     /// </exception>
-    public ISelection AssertSelection()
+    public Selection AssertSelection()
     {
         var selection = Selection;
 

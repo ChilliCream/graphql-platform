@@ -33,7 +33,7 @@ public interface IMiddlewareContext : IResolverContext
     /// Executes the field resolver and returns its result.
     /// </summary>
     /// <typeparam name="T">
-    /// The type to which the result shall be casted.
+    /// The type to which the result shall be cast.
     /// </typeparam>
     /// <returns>
     /// Returns the resolved field value.

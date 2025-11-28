@@ -249,9 +249,9 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     /// Returns the pre-compiled selections for the <paramref name="selection" />
     /// with the specified <paramref name="typeContext" />.
     /// </returns>
-    IReadOnlyList<Selection> GetSelections(
+    SelectionEnumerator GetSelections(
         ObjectType typeContext,
-        ISelection? selection = null,
+        Selection? selection = null,
         bool allowInternals = false);
 
     /// <summary>
