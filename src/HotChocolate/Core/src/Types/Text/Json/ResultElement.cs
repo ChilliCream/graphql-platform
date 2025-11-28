@@ -76,7 +76,7 @@ public readonly partial struct ResultElement : IRawJsonFormatter
     /// <summary>
     /// Gets the operation this element belongs to.
     /// </summary>
-    public IOperation Operation
+    public Operation Operation
     {
         get
         {
@@ -90,7 +90,7 @@ public readonly partial struct ResultElement : IRawJsonFormatter
     /// Gets the <see cref="ISelectionSet"/> if this element represents the data of a selection set;
     /// otherwise, <c>null</c>.
     /// </summary>
-    public ISelectionSet? SelectionSet
+    public SelectionSet? SelectionSet
     {
         get
         {
@@ -104,7 +104,7 @@ public readonly partial struct ResultElement : IRawJsonFormatter
     /// Gets the <see cref="ISelection"/> if this element represents the data of a field selection;
     /// otherwise, <c>null</c>.
     /// </summary>
-    public ISelection? Selection
+    public Selection? Selection
     {
         get
         {

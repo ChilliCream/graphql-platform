@@ -20,7 +20,7 @@ internal sealed partial class OperationContext
     /// <summary>
     /// Gets the operation that is being executed.
     /// </summary>
-    public IOperation Operation
+    public Operation Operation
     {
         get
         {
@@ -70,7 +70,7 @@ internal sealed partial class OperationContext
     /// The type context.
     /// </param>
     /// <returns></returns>
-    public ISelectionSet CollectFields(ISelection selection, ObjectType typeContext)
+    public SelectionSet CollectFields(Selection selection, ObjectType typeContext)
     {
         AssertInitialized();
         return Operation.GetSelectionSet(selection, typeContext);

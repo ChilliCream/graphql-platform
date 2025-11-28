@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
@@ -447,7 +448,7 @@ public sealed partial class ResultDocument : IDisposable
             + "Use WriteLocalDataTo for writing to an IBufferWriter instead.");
     }
 
-    internal ResultElement CreateObject(Cursor parent, ISelectionSet selectionSet)
+    internal ResultElement CreateObject(Cursor parent, SelectionSet selectionSet)
     {
         var startObjectCursor = WriteStartObject(parent, selectionSet.Id);
 

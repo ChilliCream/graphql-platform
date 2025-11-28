@@ -26,9 +26,9 @@ public readonly struct ResultProperty
     /// </summary>
     public string Name => Value.GetPropertyName();
 
-    public ISelection? Selection => Value.Selection;
+    public Selection? Selection => Value.Selection;
 
-    public ISelection AssertSelection() => Value.AssertSelection();
+    public Selection AssertSelection() => Value.AssertSelection();
 
     /// <summary>
     ///   Compares <paramref name="text" /> to the name of this property.

@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Processing;
 internal partial class MiddlewareContext
 {
     private readonly PureResolverContext _childContext;
-    private ISelection _selection = null!;
+    private Selection _selection = null!;
 
     public ObjectType ObjectType => _selection.DeclaringType;
 
@@ -43,14 +43,14 @@ internal partial class MiddlewareContext
 
     public IReadOnlyList<ISelection> GetSelections(
         ObjectType typeContext,
-        ISelection? selection = null,
+        Selection? selection = null,
         bool allowInternals = false)
     {
         ArgumentNullException.ThrowIfNull(typeContext);
 
         selection ??= _selection;
 
-        if (selection.SelectionSet is null)
+        if (selection.IsLeaf)
         {
             return [];
         }
@@ -60,14 +60,10 @@ internal partial class MiddlewareContext
         if (selectionSet.IsConditional)
         {
             var operationIncludeFlags = _operationContext.IncludeFlags;
-            var selectionCount = selectionSet.Selections.Count;
-            ref var selectionRef = ref ((SelectionSet)selectionSet).GetSelectionsReference();
             var finalFields = new List<ISelection>();
 
-            for (var i = 0; i < selectionCount; i++)
+            foreach (var childSelection in selectionSet.Selections)
             {
-                var childSelection = Unsafe.Add(ref selectionRef, i);
-
                 if (childSelection.IsIncluded(operationIncludeFlags, allowInternals))
                 {
                     finalFields.Add(childSelection);

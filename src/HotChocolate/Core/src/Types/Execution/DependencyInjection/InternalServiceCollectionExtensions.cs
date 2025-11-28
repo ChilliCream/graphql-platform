@@ -97,22 +97,6 @@ internal static class InternalServiceCollectionExtensions
         return services;
     }
 
-    internal static IServiceCollection TryAddDeferredWorkStatePool(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton(
-            sp =>
-            {
-                var provider = sp.GetRequiredService<ObjectPoolProvider>();
-                var policy = new DeferredWorkStatePooledObjectPolicy();
-                return provider.Create(policy);
-            });
-
-        services.TryAddScoped<IFactory<DeferredWorkStateOwner>, DeferredWorkStateOwnerFactory>();
-
-        return services;
-    }
-
     internal static IServiceCollection TryAddTypeConverter(
         this IServiceCollection services)
     {
@@ -231,17 +215,6 @@ internal static class InternalServiceCollectionExtensions
             // gracefully discarded and can be garbage collected.
             obj.Clean();
             return false;
-        }
-    }
-
-    private sealed class DeferredWorkStatePooledObjectPolicy : PooledObjectPolicy<DeferredWorkState>
-    {
-        public override DeferredWorkState Create() => new();
-
-        public override bool Return(DeferredWorkState obj)
-        {
-            obj.Reset();
-            return true;
         }
     }
 }
