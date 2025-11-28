@@ -1,5 +1,4 @@
 using System.Collections.Frozen;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 using HotChocolate.Types;
@@ -11,97 +10,74 @@ namespace HotChocolate.Execution.Processing;
 /// When needed a selection set can preserve fragments so that the execution engine
 /// can branch the processing of these fragments.
 /// </summary>
-internal sealed class SelectionSet : ISelectionSet
+public sealed class SelectionSet : ISelectionSet
 {
-    private static readonly Fragment[] s_empty = [];
     private readonly Selection[] _selections;
-    private readonly FrozenDictionary<string, ISelection> _responseNameLookup;
+    private readonly FrozenDictionary<string, Selection> _responseNameLookup;
     private readonly SelectionLookup _utf8ResponseNameLookup;
-    private readonly Fragment[] _fragments;
     private Flags _flags;
 
-    /// <summary>
-    /// Initializes a new instance of <see cref="SelectionSet"/>.
-    /// </summary>
-    /// <param name="id">
-    /// The selection set unique id.
-    /// </param>
-    /// <param name="selections">
-    /// A list of executable field selections.
-    /// </param>
-    /// <param name="fragments">
-    /// A list of preserved fragments that can be used to branch of
-    /// some of the execution.
-    /// </param>
-    /// <param name="isConditional">
-    /// Defines if this list needs post-processing for skip and include.
-    /// </param>
-    public SelectionSet(
-        int id,
-        Selection[] selections,
-        Fragment[]? fragments,
-        bool isConditional)
+    public SelectionSet(int id, IObjectTypeDefinition type, Selection[] selections, bool isConditional)
     {
+        ArgumentNullException.ThrowIfNull(selections);
+
+        if (selections.Length == 0)
+        {
+            throw new ArgumentException("Selections cannot be empty.", nameof(selections));
+        }
+
         Id = id;
-        _selections = selections;
-        _responseNameLookup = _selections.ToFrozenDictionary(t => t.ResponseName, ISelection (t) => t);
-        _utf8ResponseNameLookup = SelectionLookup.Create(this);
-        _fragments = fragments ?? s_empty;
+        Type = type;
         _flags = isConditional ? Flags.Conditional : Flags.None;
+        _selections = selections;
+        _responseNameLookup = _selections.ToFrozenDictionary(t => t.ResponseName);
+        _utf8ResponseNameLookup = SelectionLookup.Create(this);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets an operation unique selection-set identifier of this selection.
+    /// </summary>
     public int Id { get; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Defines if this list needs post-processing for skip and include.
+    /// </summary>
     public bool IsConditional => (_flags & Flags.Conditional) == Flags.Conditional;
 
-    /// <inheritdoc />
-    public IReadOnlyList<ISelection> Selections => _selections;
-
-    /// <inheritdoc />
-    public IReadOnlyList<IFragment> Fragments => _fragments;
-
-    /// <inheritdoc />
-    public IOperation DeclaringOperation { get; private set; } = null!;
-
-    /// <inheritdoc />
-    public bool TryGetSelection(string responseName, [NotNullWhen(true)] out ISelection? selection)
-        => _responseNameLookup.TryGetValue(responseName, out selection);
-
-    /// <inheritdoc />
-    public bool TryGetSelection(ReadOnlySpan<byte> utf8ResponseName, [NotNullWhen(true)] out ISelection? selection)
-        => _utf8ResponseNameLookup.TryGetSelection(utf8ResponseName, out selection);
+    /// <summary>
+    /// Gets the type that declares this selection set.
+    /// </summary>
+    public IObjectTypeDefinition Type { get; }
 
     /// <summary>
-    /// Completes the selection set without sealing it.
+    /// Gets the declaring operation.
     /// </summary>
-    internal void Complete(IOperation declaringOperation)
+    public Operation DeclaringOperation { get; private set; } = null!;
+
+    IOperation ISelectionSet.DeclaringOperation => DeclaringOperation;
+
+    /// <summary>
+    /// Gets the selections that shall be executed.
+    /// </summary>
+    public ReadOnlySpan<Selection> Selections => _selections;
+
+    IEnumerable<ISelection> ISelectionSet.GetSelections() => _selections;
+    
+    internal void Complete(Operation declaringOperation, bool seal)
     {
-        if ((_flags & Flags.Sealed) != Flags.Sealed)
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
-            DeclaringOperation = declaringOperation;
-
-            for (var i = 0; i < _selections.Length; i++)
-            {
-                _selections[i].Complete(declaringOperation, this);
-            }
+            throw new InvalidOperationException("Selection set is already sealed.");
         }
-    }
 
-    internal void Seal(IOperation declaringOperation)
-    {
-        if ((_flags & Flags.Sealed) != Flags.Sealed)
+        DeclaringOperation = declaringOperation;
+
+        foreach (var selection in _selections)
         {
-            DeclaringOperation = declaringOperation;
-
-            for (var i = 0; i < _selections.Length; i++)
-            {
-                _selections[i].Seal(declaringOperation, this);
-            }
-
-            _flags |= Flags.Sealed;
+            selection.Complete(declaringOperation, this);
         }
+
+        _flags |= Flags.Sealed;
     }
 
     /// <summary>

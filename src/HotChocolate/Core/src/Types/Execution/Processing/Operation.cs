@@ -1,5 +1,8 @@
-using System.Collections;
-using System.Collections.Immutable;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Properties.Resources;
@@ -7,226 +10,252 @@ using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed class Operation : IOperation
+public sealed class Operation : IOperation
 {
 #if NET9_0_OR_GREATER
-    private readonly Lock _writeLock = new();
+    private readonly Lock _sync = new();
 #else
-    private readonly object _writeLock = new();
+    private readonly object _sync = new();
 #endif
-    private SelectionVariants[] _selectionVariants = [];
-    private IncludeCondition[] _includeConditions = [];
-    private ImmutableDictionary<string, object?> _contextData =
-#if NET10_0_OR_GREATER
-        [];
-#else
-        ImmutableDictionary<string, object?>.Empty;
-#endif
-    private bool _sealed;
 
-    public Operation(
+    private readonly ConcurrentDictionary<(int, string), SelectionSet> _selectionSets = [];
+    private readonly OperationCompiler2 _compiler;
+    private readonly IncludeConditionCollection _includeConditions;
+    private readonly OperationFeatureCollection _features;
+    private readonly bool _isFinal;
+    private object[] _elementsById;
+    private int _lastId;
+
+    internal Operation(
         string id,
-        DocumentNode document,
+        string hash,
         OperationDefinitionNode definition,
         ObjectType rootType,
-        ISchemaDefinition schema)
+        Schema schema,
+        SelectionSet rootSelectionSet,
+        OperationCompiler2 compiler,
+        IncludeConditionCollection includeConditions,
+        int lastId,
+        object[] elementsById,
+        bool isFinal)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(hash);
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(rootType);
+        ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(rootSelectionSet);
+        ArgumentNullException.ThrowIfNull(compiler);
+        ArgumentNullException.ThrowIfNull(includeConditions);
+        ArgumentNullException.ThrowIfNull(elementsById);
+
         Id = id;
-        Document = document;
+        Hash = hash;
         Definition = definition;
         RootType = rootType;
-        Type = definition.Operation;
         Schema = schema;
+        RootSelectionSet = rootSelectionSet;
+        _compiler = compiler;
+        _includeConditions = includeConditions;
+        _lastId = lastId;
+        _elementsById = elementsById;
+        _isFinal = isFinal;
 
-        if (definition.Name?.Value is { } name)
-        {
-            Name = name;
-        }
+        _features = new OperationFeatureCollection();
+        rootSelectionSet.Complete(this, seal: isFinal);
     }
 
+     /// <summary>
+    /// Gets the internal unique identifier for this operation.
+    /// </summary>
     public string Id { get; }
 
-    public DocumentNode Document { get; }
+    /// <summary>
+    /// Gets the hash of the original operation document.
+    /// </summary>
+    public string Hash { get; }
 
+    /// <summary>
+    /// Gets the name of the operation.
+    /// </summary>
+    public string? Name => Definition.Name?.Value;
+
+    /// <summary>
+    /// Gets the syntax node representing the operation definition.
+    /// </summary>
     public OperationDefinitionNode Definition { get; }
 
+    /// <summary>
+    /// Gets the root type on which the operation is executed.
+    /// </summary>
     public ObjectType RootType { get; }
 
-    public string? Name { get; }
+    IObjectTypeDefinition IOperation.RootType => RootType;
 
-    public OperationType Type { get; }
+    public OperationType Kind => Definition.Operation;
 
-    public ISelectionSet RootSelectionSet { get; private set; } = null!;
+    /// <summary>
+    /// Gets the schema for which this operation is compiled.
+    /// </summary>
+    public Schema Schema { get; }
 
-    public IReadOnlyList<ISelectionVariants> SelectionVariants
-        => _selectionVariants;
+    ISchemaDefinition IOperation.Schema => Schema;
 
-    public bool HasIncrementalParts { get; private set; }
+    /// <summary>
+    /// Gets the prepared root selections for this operation.
+    /// </summary>
+    /// <returns>
+    /// Returns the prepared root selections for this operation.
+    /// </returns>
+    public SelectionSet RootSelectionSet { get; }
 
-    public IReadOnlyList<IncludeCondition> IncludeConditions
-        => _includeConditions;
+    ISelectionSet IOperation.RootSelectionSet
+        => RootSelectionSet;
 
-    public IReadOnlyDictionary<string, object?> ContextData => _contextData;
+    /// <inheritdoc cref="IFeatureProvider"/>
+    public IFeatureCollection Features => _features;
 
-    public ISchemaDefinition Schema { get; }
+    /// <summary>
+    /// Gets the selection set for the specified <paramref name="selection"/>
+    /// if the selections named return type is an object type.
+    /// </summary>
+    /// <param name="selection">
+    /// The selection set for which the selection set shall be resolved.
+    /// </param>
+    /// <returns>
+    /// Returns the selection set for the specified <paramref name="selection"/> and
+    /// the named return type of the selection.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// - The specified <paramref name="selection"/> has no selection set.
+    /// - The specified <paramref name="selection"/> returns an abstract named type.
+    /// </exception>
+    public SelectionSet GetSelectionSet(Selection selection)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+        var typeContext = selection.Field.Type.NamedType<IObjectTypeDefinition>();
+        return GetSelectionSet(selection, typeContext);
+    }
 
-    public ISelectionSet GetSelectionSet(ISelection selection, ObjectType typeContext)
+    /// <summary>
+    /// Gets the selection set for the specified <paramref name="selection"/> and
+    /// <paramref name="typeContext"/>.
+    /// </summary>
+    /// <param name="selection">
+    /// The selection set for which the selection set shall be resolved.
+    /// </param>
+    /// <param name="typeContext">
+    /// The result type context.
+    /// </param>
+    /// <returns>
+    /// Returns the selection set for the specified <paramref name="selection"/> and
+    /// <paramref name="typeContext"/>.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// The specified <paramref name="selection"/> has no selection set.
+    /// </exception>
+    public SelectionSet GetSelectionSet(Selection selection, IObjectTypeDefinition typeContext)
     {
         ArgumentNullException.ThrowIfNull(selection);
         ArgumentNullException.ThrowIfNull(typeContext);
 
-        var selectionSetId = ((Selection)selection).SelectionSetId;
-
-        if (selectionSetId is -1)
+        if (typeContext is not ObjectType objectType)
         {
-            throw Operation_NoSelectionSet();
+            throw new ArgumentException(
+                "typeContext is not an ObjectType object.",
+                nameof(typeContext));
         }
 
-        return _selectionVariants[selectionSetId].GetSelectionSet(typeContext);
+        var key = (selection.Id, typeContext.Name);
+
+        if (!_selectionSets.TryGetValue(key, out var selectionSet))
+        {
+            lock (_sync)
+            {
+                if (!_selectionSets.TryGetValue(key, out selectionSet))
+                {
+                    selectionSet =
+                        _compiler.CompileSelectionSet(
+                            selection,
+                            objectType,
+                            _includeConditions,
+                            ref _elementsById,
+                            ref _lastId);
+                    selectionSet.Complete(this,  seal: _isFinal);
+                    _selectionSets.TryAdd(key, selectionSet);
+                }
+            }
+        }
+
+        return selectionSet;
     }
 
-    public IEnumerable<ObjectType> GetPossibleTypes(ISelection selection)
+    ISelectionSet IOperation.GetSelectionSet(ISelection selection, IObjectTypeDefinition typeContext)
+    {
+        ArgumentNullException.ThrowIfNull(selection);
+        ArgumentNullException.ThrowIfNull(typeContext);
+
+        if (selection is not Selection internalSelection)
+        {
+            throw new InvalidOperationException(
+                $"Only selections of the type {typeof(Selection).FullName} are supported.");
+        }
+
+        return GetSelectionSet(internalSelection, typeContext);
+    }
+
+    /// <summary>
+    /// Gets the possible return types for the <paramref name="selection"/>.
+    /// </summary>
+    /// <param name="selection">
+    /// The selection for which the possible result types shall be returned.
+    /// </param>
+    /// <returns>
+    /// Returns the possible return types for the specified <paramref name="selection"/>.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// The specified <paramref name="selection"/> has no selection set.
+    /// </exception>
+    public IEnumerable<IObjectTypeDefinition> GetPossibleTypes(Selection selection)
     {
         ArgumentNullException.ThrowIfNull(selection);
 
-        var selectionSetId = ((Selection)selection).SelectionSetId;
-
-        if (selectionSetId == -1)
-        {
-            throw new ArgumentException(Operation_GetPossibleTypes_NoSelectionSet);
-        }
-
-        return _selectionVariants[selectionSetId].GetPossibleTypes();
+        return Schema.GetPossibleTypes(selection.Field.Type.NamedType());
     }
 
-    public long CreateIncludeFlags(IVariableValueCollection variables)
-    {
-        long context = 0;
+    IEnumerable<IObjectTypeDefinition> IOperation.GetPossibleTypes(ISelection selection)
+        => Schema.GetPossibleTypes(selection.Field.Type.NamedType());
 
-        for (var i = 0; i < _includeConditions.Length; i++)
+    /// <summary>
+    /// Creates the include flags for the specified variable values.
+    /// </summary>
+    /// <param name="variables">
+    /// The variable values.
+    /// </param>
+    /// <returns>
+    /// Returns the include flags for the specified variable values.
+    /// </returns>
+    public ulong CreateIncludeFlags(IVariableValueCollection variables)
+    {
+        var index = 0;
+        var includeFlags = 0ul;
+
+        foreach (var includeCondition in _includeConditions)
         {
-            if (_includeConditions[i].IsIncluded(variables))
+            if (includeCondition.IsIncluded(variables))
             {
-                long flag = 1;
-                flag <<= i;
-                context |= flag;
+                includeFlags |= 1ul << index++;
             }
         }
 
-        return context;
+        return includeFlags;
     }
 
-    public bool TryGetState<TState>(out TState? state)
-    {
-        var key = typeof(TState).FullName ?? throw new InvalidOperationException();
-        return TryGetState(key, out state);
-    }
+    internal Selection GetSelectionById(int id)
+        => Unsafe.As<Selection>(Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_elementsById), id));
 
-    public bool TryGetState<TState>(string key, out TState? state)
-    {
-        if (_contextData.TryGetValue(key, out var value)
-            && value is TState casted)
-        {
-            state = casted;
-            return true;
-        }
-
-        state = default;
-        return false;
-    }
-
-    public TState GetOrAddState<TState>(Func<TState> createState)
-        => GetOrAddState<TState, object?>(_ => createState(), null);
-
-    public TState GetOrAddState<TState, TContext>(Func<TContext, TState> createState, TContext context)
-    {
-        var key = typeof(TState).FullName ?? throw new InvalidOperationException();
-
-        // ReSharper disable once InconsistentlySynchronizedField
-        if (!_contextData.TryGetValue(key, out var state))
-        {
-            lock (_writeLock)
-            {
-                if (!_contextData.TryGetValue(key, out state))
-                {
-                    var newState = createState(context);
-                    _contextData = _contextData.SetItem(key, newState);
-                    return newState;
-                }
-            }
-        }
-
-        return (TState)state!;
-    }
-
-    public TState GetOrAddState<TState>(
-        string key,
-        Func<string, TState> createState)
-        => GetOrAddState<TState, object?>(key, (k, _) => createState(k), null);
-
-    public TState GetOrAddState<TState, TContext>(
-        string key,
-        Func<string, TContext, TState> createState,
-        TContext context)
-    {
-        // ReSharper disable once InconsistentlySynchronizedField
-        if (!_contextData.TryGetValue(key, out var state))
-        {
-            lock (_writeLock)
-            {
-                if (!_contextData.TryGetValue(key, out state))
-                {
-                    var newState = createState(key, context);
-                    _contextData = _contextData.SetItem(key, newState);
-                    return newState;
-                }
-            }
-        }
-
-        return (TState)state!;
-    }
-
-    internal void Seal(
-        IReadOnlyDictionary<string, object?> contextData,
-        SelectionVariants[] selectionVariants,
-        bool hasIncrementalParts,
-        IncludeCondition[] includeConditions)
-    {
-        if (!_sealed)
-        {
-            _contextData = contextData.ToImmutableDictionary();
-            var root = selectionVariants[0];
-            RootSelectionSet = root.GetSelectionSet(RootType);
-            _selectionVariants = selectionVariants;
-            HasIncrementalParts = hasIncrementalParts;
-            _includeConditions = includeConditions;
-            _sealed = true;
-        }
-    }
-
-    public SelectionSet GetSelectionSetById(int selectionSetId)
-    {
-
-    }
-
-    public Selection GetSelectionById(int selectionSetId)
-    {
-
-    }
-
-    public IEnumerator<ISelectionSet> GetEnumerator()
-    {
-        foreach (var selectionVariant in _selectionVariants)
-        {
-            foreach (var objectType in selectionVariant.GetPossibleTypes())
-            {
-                yield return selectionVariant.GetSelectionSet(objectType);
-            }
-        }
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-        => GetEnumerator();
+    internal SelectionSet GetSelectionSetById(int id)
+        => Unsafe.As<SelectionSet>(Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_elementsById), id));
 
     public override string ToString() => OperationPrinter.Print(this);
 }

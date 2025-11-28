@@ -2,6 +2,11 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution;
 
+/// <summary>
+/// A selection set is primarily composed of field selections.
+/// When needed a selection set can preserve fragments so that the execution engine
+/// can branch the processing of these fragments.
+/// </summary>
 public interface ISelectionSet
 {
     /// <summary>

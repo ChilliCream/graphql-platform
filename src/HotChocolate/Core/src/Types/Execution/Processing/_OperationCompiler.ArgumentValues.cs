@@ -215,8 +215,3 @@ public sealed partial class OperationCompiler
         }
     }
 }
-
-internal delegate FieldDelegate CreateFieldPipeline(
-    Schema schema,
-    ObjectField field,
-    FieldNode selection);
