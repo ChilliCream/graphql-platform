@@ -462,6 +462,8 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
                 petType: __typename
                 ... on Cat {
                   name
+                }
+                ... on Cat {
                   isPurring
                 }
                 ... on Dog {

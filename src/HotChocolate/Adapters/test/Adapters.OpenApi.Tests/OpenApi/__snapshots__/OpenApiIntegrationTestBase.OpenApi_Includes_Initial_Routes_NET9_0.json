@@ -815,20 +815,24 @@
                       }
                     },
                     {
-                      "type": "object",
-                      "properties": {
-                        "isPurring": {
-                          "type": "boolean"
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "isPurring": {
+                              "type": "boolean"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "isBarking": {
+                              "type": "boolean"
+                            }
+                          }
                         }
-                      }
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "isBarking": {
-                          "type": "boolean"
-                        }
-                      }
+                      ]
                     }
                   ]
                 }
@@ -860,20 +864,24 @@
                       }
                     },
                     {
-                      "type": "object",
-                      "properties": {
-                        "isPurring": {
-                          "type": "boolean"
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "isPurring": {
+                              "type": "boolean"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "isBarking": {
+                              "type": "boolean"
+                            }
+                          }
                         }
-                      }
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "isBarking": {
-                          "type": "boolean"
-                        }
-                      }
+                      ]
                     }
                   ]
                 }
