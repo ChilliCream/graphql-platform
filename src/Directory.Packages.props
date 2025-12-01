@@ -14,6 +14,7 @@
     <PackageVersion Include="Basic.Reference.Assemblies.Net100" Version="1.8.3" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.8.3" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net90" Version="1.8.3" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.4" />
     <PackageVersion Include="CaseConverter" Version="2.0.1" />
     <PackageVersion Include="ChilliCream.ModelContextProtocol.AspNetCore" Version="0.0.1-p.4" />
     <PackageVersion Include="ChilliCream.Nitro.App" Version="$(NitroVersion)" />
