@@ -253,8 +253,10 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     {
         if (type.IsListType())
         {
-            var graphqlElementType = type.ElementType();
-            var itemSchema = CreateOpenApiSchemaForType(graphqlElementType, schemaDefinition);
+            var elementType = type.ElementType();
+            OpenApiSchemaAbstraction itemSchema = CreateOpenApiSchemaForType(elementType, schemaDefinition);
+
+            itemSchema = ApplyNullability(itemSchema, elementType);
 
             return CreateArraySchema(itemSchema);
         }
@@ -610,7 +612,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     {
         if (typeDefinition.IsListType())
         {
-            var elementType = typeDefinition.ElementType().NamedType<IComplexTypeDefinition>();
+            var elementType = (IOutputType)typeDefinition.ElementType();
             var itemSchema = CreateOpenApiSchemaForSelectionSet(
                 selectionSet,
                 elementType,
@@ -618,6 +620,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 fragmentLookup,
                 externalFragments,
                 optional);
+
+            itemSchema = ApplyNullability(itemSchema, elementType);
 
             return CreateArraySchema(itemSchema);
         }

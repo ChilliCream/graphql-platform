@@ -450,6 +450,64 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
         openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
 
+    [Fact]
+    public async Task OperationDocument_With_List_Of_Unions()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a list of pets"
+            query GetPets @http(method: GET, route: "/pets") {
+              withUnionTypeList {
+                petType: __typename
+                ... on Cat {
+                  name
+                  isPurring
+                }
+                ... on Dog {
+                  name
+                  isBarking
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task OperationDocument_With_List_With_Nullable_And_NonNull_Items()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a list with nullable items"
+            query GetListNullableItems @http(method: GET, route: "/list-nullable") {
+              listWithNullableItems
+            }
+            """,
+            """
+            "Fetches a list with non-null items"
+            query GetListNonNullItems @http(method: GET, route: "/list-nonnull") {
+              listWithNonNullItems
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
     #region Hot Reload
 
     [Fact]

@@ -302,7 +302,10 @@
                         "array"
                       ],
                       "items": {
-                        "type": "string"
+                        "type": [
+                          "null",
+                          "string"
+                        ]
                       }
                     },
                     "localDate": {
@@ -510,7 +513,10 @@
                     "required": [
                       "id"
                     ],
-                    "type": "object",
+                    "type": [
+                      "null",
+                      "object"
+                    ],
                     "properties": {
                       "id": {
                         "oneOf": [
