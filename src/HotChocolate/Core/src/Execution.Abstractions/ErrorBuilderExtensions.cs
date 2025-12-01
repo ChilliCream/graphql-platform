@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using HotChocolate.Language;
 
@@ -40,7 +41,7 @@ public static class ErrorBuilderExtensions
         /// <param name="format">The format of the message.</param>
         /// <param name="args">The arguments for the message.</param>
         /// <returns>The error builder.</returns>
-        public ErrorBuilder SetMessage(string format, params object[] args)
+        public ErrorBuilder SetMessage([StringSyntax("CompositeFormat")] string format, params object?[] args)
         {
             ArgumentNullException.ThrowIfNull(builder);
             ArgumentException.ThrowIfNullOrEmpty(format);

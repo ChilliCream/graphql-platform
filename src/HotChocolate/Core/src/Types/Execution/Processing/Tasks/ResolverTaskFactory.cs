@@ -78,7 +78,7 @@ internal static class ResolverTaskFactory
 
     public static ResolverTask EnqueueElementTasks(
         OperationContext operationContext,
-        ISelection selection,
+        Selection selection,
         object? parent,
         Path path,
         int index,

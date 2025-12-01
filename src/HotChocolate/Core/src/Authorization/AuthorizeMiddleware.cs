@@ -69,7 +69,7 @@ internal sealed class AuthorizeMiddleware(
                     .SetMessage(AuthorizeMiddleware_NoDefaultPolicy)
                     .SetCode(ErrorCodes.Authentication.NoDefaultPolicy)
                     .SetPath(context.Path)
-                    .AddLocation(context.Selection.SyntaxNode)
+                    .AddLocations(context.Selection.SyntaxNodes)
                     .Build(),
             AuthorizeResult.PolicyNotFound
                 => ErrorBuilder.New()

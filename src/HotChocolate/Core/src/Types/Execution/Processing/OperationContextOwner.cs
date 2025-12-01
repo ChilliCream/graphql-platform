@@ -4,12 +4,15 @@ using static System.Threading.Interlocked;
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
+/// <para>
 /// The operation context owner abstracts the interaction of resolving of
-/// an <see cref="OperationContext"/> instance from its pool and returning to to
+/// an <see cref="OperationContext"/> instance from its pool and returning to
 /// the pool through the implementation of <see cref="IDisposable"/>.
-///
+/// </para>
+/// <para>
 /// In some cases its desirable to not call dispose and abandon a pooled
 /// <see cref="OperationContext"/>.
+/// </para>
 /// </summary>
 internal sealed class OperationContextOwner : IDisposable
 {

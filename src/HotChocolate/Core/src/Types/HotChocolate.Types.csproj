@@ -46,7 +46,6 @@
     <InternalsVisibleTo Include="HotChocolate.Types.Sorting.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.Validation" />
     <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
   </ItemGroup>
 
@@ -65,19 +64,18 @@
     <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
     <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Abstractions\HotChocolate.PersistedOperations.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Pipeline\HotChocolate.PersistedOperations.Pipeline.csproj" />
-    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
-    <ProjectReference Include="..\Execution.Configuration.Abstractions\HotChocolate.Execution.Configuration.Abstractions.csproj" />
-    <ProjectReference Include="..\Execution.Operation.Abstractions\HotChocolate.Execution.Operation.Abstractions.csproj" />
     <ProjectReference Include="..\Execution.Pipeline\HotChocolate.Execution.Pipeline.csproj" />
-    <ProjectReference Include="..\Validation\HotChocolate.Validation.csproj" />
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut\GreenDonut.csproj" />
     <ProjectReference Include="..\..\..\Caching\src\Caching.Memory\HotChocolate.Caching.Memory.csproj" />
     <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Language\HotChocolate.Fusion.Language.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.Base36\HotChocolate.Utilities.Base36.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.DependencyInjection\HotChocolate.Utilities.DependencyInjection.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
-    <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Features\HotChocolate.Features.csproj" />
+    <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+    <ProjectReference Include="..\Execution.Configuration.Abstractions\HotChocolate.Execution.Configuration.Abstractions.csproj" />
+    <ProjectReference Include="..\Execution.Operation.Abstractions\HotChocolate.Execution.Operation.Abstractions.csproj" />
     <ProjectReference Include="..\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
   </ItemGroup>
 

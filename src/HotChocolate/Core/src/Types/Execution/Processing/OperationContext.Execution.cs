@@ -43,7 +43,7 @@ internal sealed partial class OperationContext
     }
 
     public ResolverTask CreateResolverTask(
-        ISelection selection,
+        Selection selection,
         object? parent,
         ObjectResult parentResult,
         int responseIndex,

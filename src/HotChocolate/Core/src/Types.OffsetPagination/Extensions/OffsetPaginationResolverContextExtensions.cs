@@ -23,13 +23,8 @@ internal static class OffsetPaginationResolverContextExtensions
             var selectionSet = context.Selection.DeclaringOperation.GetSelectionSet(context.Selection, objectType);
 
             foreach (var selection in selectionSet.Selections)
-            { ))
-
-            }
-
-            for (var i = 0; i < selections.Count; i++)
             {
-                if (selections[i].Field.Name is OffsetPagingFieldNames.TotalCount)
+                if (selection.Field.Name is OffsetPagingFieldNames.TotalCount)
                 {
                     return true;
                 }
