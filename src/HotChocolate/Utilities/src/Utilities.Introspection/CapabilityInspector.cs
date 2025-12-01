@@ -34,13 +34,12 @@ internal sealed class CapabilityInspector
         return inspector._features;
     }
 
-    private async Task RunInspectionAsync()
-    {
-        await InspectArgumentDeprecationAsync();
-        await InspectDirectiveTypeAsync();
-        await InspectDirectivesAsync();
-        await InspectSchemaAsync();
-    }
+    private Task RunInspectionAsync()
+        => Task.WhenAll(
+            InspectArgumentDeprecationAsync(),
+            InspectDirectiveTypeAsync(),
+            InspectDirectivesAsync(),
+            InspectSchemaAsync());
 
     private async Task InspectArgumentDeprecationAsync()
     {
