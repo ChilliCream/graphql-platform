@@ -39,22 +39,24 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     }
 
     public void AddDocuments(
-        IEnumerable<OpenApiOperationDocument> operationsById,
-        IEnumerable<OpenApiFragmentDocument> fragmentsById,
+        OpenApiOperationDocument[] operations,
+        OpenApiFragmentDocument[] fragments,
         ISchemaDefinition schema)
     {
         var operationDescriptors = new List<OperationDescriptor>();
         var componentDescriptors = new List<ComponentDescriptor>();
 
-        foreach (var operation in operationsById)
+        var fragmentDocumentLookup = fragments.ToDictionary(f => f.Name);
+
+        foreach (var operation in operations)
         {
-            var operationDescriptor = CreateOperationDescriptor(operation, schema);
+            var operationDescriptor = CreateOperationDescriptor(operation, schema, fragmentDocumentLookup);
             operationDescriptors.Add(operationDescriptor);
         }
 
-        foreach (var fragment in fragmentsById)
+        foreach (var fragment in fragments)
         {
-            var componentDescriptor = CreateComponentDescriptor(fragment, schema);
+            var componentDescriptor = CreateComponentDescriptor(fragment, schema, fragmentDocumentLookup);
             componentDescriptors.Add(componentDescriptor);
         }
 
@@ -66,7 +68,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
     private static OperationDescriptor CreateOperationDescriptor(
         OpenApiOperationDocument operationDocument,
-        ISchemaDefinition schema)
+        ISchemaDefinition schema,
+        Dictionary<string, OpenApiFragmentDocument> fragmentDocumentLookup)
     {
         var operation = new OpenApiOperation
         {
@@ -138,7 +141,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 fieldType,
                 schema,
                 operationDocument.LocalFragmentLookup,
-                operationDocument.ExternalFragmentReferences)
+                fragmentDocumentLookup)
             : CreateOpenApiSchemaForType(fieldType, schema);
 
         var responseBody = new OpenApiMediaType
@@ -159,14 +162,15 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
     private static ComponentDescriptor CreateComponentDescriptor(
         OpenApiFragmentDocument fragmentDocument,
-        ISchemaDefinition schema)
+        ISchemaDefinition schema,
+        Dictionary<string, OpenApiFragmentDocument> fragmentDocumentLookup)
     {
         var componentSchema = CreateOpenApiSchemaForSelectionSet(
             fragmentDocument.FragmentDefinition.SelectionSet,
             (IOutputType)fragmentDocument.TypeCondition,
             schema,
             fragmentDocument.LocalFragmentLookup,
-            fragmentDocument.ExternalFragmentReferences);
+            fragmentDocumentLookup);
 
         componentSchema.Description = fragmentDocument.Description;
 
@@ -253,8 +257,10 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     {
         if (type.IsListType())
         {
-            var graphqlElementType = type.ElementType();
-            var itemSchema = CreateOpenApiSchemaForType(graphqlElementType, schemaDefinition);
+            var elementType = type.ElementType();
+            OpenApiSchemaAbstraction itemSchema = CreateOpenApiSchemaForType(elementType, schemaDefinition);
+
+            itemSchema = ApplyNullability(itemSchema, elementType);
 
             return CreateArraySchema(itemSchema);
         }
@@ -370,10 +376,12 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
     private static OpenApiSchema CreateOneOfSchema(IList<OpenApiSchemaAbstraction> schemas)
     {
-        var schema = CreateObjectSchema();
-        schema.OneOf = schemas;
+        return new OpenApiSchema { OneOf = schemas };
+    }
 
-        return schema;
+    private static OpenApiSchema CreateAllOfSchema(IList<OpenApiSchemaAbstraction> schemas)
+    {
+        return new OpenApiSchema { AllOf = schemas };
     }
 
     private static OpenApiSchema CreateObjectSchema()
@@ -605,19 +613,21 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         IOutputType typeDefinition,
         ISchemaDefinition schemaDefinition,
         Dictionary<string, FragmentDefinitionNode> fragmentLookup,
-        HashSet<string> externalFragments,
+        Dictionary<string, OpenApiFragmentDocument> externalFragmentLookup,
         bool optional = false)
     {
         if (typeDefinition.IsListType())
         {
-            var elementType = typeDefinition.ElementType().NamedType<IComplexTypeDefinition>();
+            var elementType = (IOutputType)typeDefinition.ElementType();
             var itemSchema = CreateOpenApiSchemaForSelectionSet(
                 selectionSet,
                 elementType,
                 schemaDefinition,
                 fragmentLookup,
-                externalFragments,
+                externalFragmentLookup,
                 optional);
+
+            itemSchema = ApplyNullability(itemSchema, elementType);
 
             return CreateArraySchema(itemSchema);
         }
@@ -625,7 +635,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         var namedType = typeDefinition.NamedType();
 
         OpenApiSchema? fieldSchema = null;
-        List<OpenApiSchemaAbstraction>? fragmentSchemas = null;
+        Dictionary<string, List<OpenApiSchemaAbstraction>>? fragmentSchemasByType = null;
 
         foreach (var selection in selectionSet.Selections)
         {
@@ -648,7 +658,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                         fieldType,
                         schemaDefinition,
                         fragmentLookup,
-                        externalFragments);
+                        externalFragmentLookup);
                 }
                 else
                 {
@@ -672,28 +682,44 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                     ? namedType
                     : schemaDefinition.Types[inlineFragment.TypeCondition.Name.Value];
                 var isDifferentType = !typeCondition.IsAssignableFrom(namedType);
+                var typeName = typeCondition.Name;
 
                 var typeConditionSchema = CreateOpenApiSchemaForSelectionSet(
                     inlineFragment.SelectionSet,
                     (IOutputType)typeCondition,
                     schemaDefinition,
                     fragmentLookup,
-                    externalFragments,
+                    externalFragmentLookup,
                     optional: optional || isDifferentType || isSelectionConditional);
 
-                fragmentSchemas ??= [];
-                fragmentSchemas.Add(typeConditionSchema);
+                fragmentSchemasByType ??= new Dictionary<string, List<OpenApiSchemaAbstraction>>();
+
+                if (!fragmentSchemasByType.TryGetValue(typeName, out var schemaList))
+                {
+                    schemaList = [];
+                    fragmentSchemasByType[typeName] = schemaList;
+                }
+
+                schemaList.Add(typeConditionSchema);
             }
             else if (selection is FragmentSpreadNode fragmentSpread)
             {
                 var fragmentName = fragmentSpread.Name.Value;
 
-                if (externalFragments.Contains(fragmentName))
+                if (externalFragmentLookup.TryGetValue(fragmentName, out var externalFragment))
                 {
-                    fragmentSchemas ??= [];
+                    var typeName = externalFragment.TypeCondition.Name;
+
+                    fragmentSchemasByType ??= new Dictionary<string, List<OpenApiSchemaAbstraction>>();
+
+                    if (!fragmentSchemasByType.TryGetValue(typeName, out var schemaList))
+                    {
+                        schemaList = [];
+                        fragmentSchemasByType[typeName] = schemaList;
+                    }
 
 #if NET10_0_OR_GREATER
-                    fragmentSchemas.Add(new OpenApiSchemaReference(fragmentName));
+                    schemaList.Add(new OpenApiSchemaReference(fragmentName));
 #else
                     var externalReference = new OpenApiSchema
                     {
@@ -704,7 +730,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                         }
                     };
 
-                    fragmentSchemas.Add(externalReference);
+                    schemaList.Add(externalReference);
 #endif
                 }
                 else
@@ -712,48 +738,55 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                     var fragment = fragmentLookup[fragmentName];
                     var typeCondition = schemaDefinition.Types[fragment.TypeCondition.Name.Value];
                     var isDifferentType = !typeCondition.IsAssignableFrom(namedType);
+                    var typeName = typeCondition.Name;
 
                     var typeConditionSchema = CreateOpenApiSchemaForSelectionSet(
                         fragment.SelectionSet,
                         (IOutputType)typeCondition,
                         schemaDefinition,
                         fragmentLookup,
-                        externalFragments,
+                        externalFragmentLookup,
                         optional: optional || isDifferentType || isSelectionConditional);
 
-                    fragmentSchemas ??= [];
-                    fragmentSchemas.Add(typeConditionSchema);
+                    fragmentSchemasByType ??= new Dictionary<string, List<OpenApiSchemaAbstraction>>();
+
+                    if (!fragmentSchemasByType.TryGetValue(typeName, out var schemaList))
+                    {
+                        schemaList = [];
+                        fragmentSchemasByType[typeName] = schemaList;
+                    }
+
+                    schemaList.Add(typeConditionSchema);
                 }
             }
         }
 
-        if (fieldSchema is not null && fragmentSchemas is null)
+        // Build fragment schemas - one entry per type (using allOf to combine multiple fragments on same type)
+        var fragmentSchemas = fragmentSchemasByType?
+            .Select(kvp => kvp.Value.Count == 1 ? kvp.Value[0] : CreateAllOfSchema(kvp.Value))
+            .ToList();
+
+        // Determine the final schema based on what we have
+        return (fieldSchema, fragmentSchemas) switch
         {
-            return fieldSchema;
-        }
+            // Only field schema, no fragments
+            (not null, null or { Count: 0 }) => fieldSchema,
 
-        if (fieldSchema is null && fragmentSchemas is { Count: 1 })
-        {
-            return fragmentSchemas[0];
-        }
+            // Only one fragment schema, no field schema
+            (null, { Count: 1 }) => fragmentSchemas[0],
 
-        var mergedSchema = new OpenApiSchema();
-        mergedSchema.AllOf = [];
+            // Multiple fragment schemas (oneOf), no field schema
+            (null, { Count: > 1 }) => CreateOneOfSchema(fragmentSchemas),
 
-        if (fieldSchema is not null)
-        {
-            mergedSchema.AllOf.Add(fieldSchema);
-        }
+            // Field schema + multiple fragment schemas (allOf with oneOf)
+            (not null, { Count: > 1 }) => CreateAllOfSchema([fieldSchema, CreateOneOfSchema(fragmentSchemas)]),
 
-        if (fragmentSchemas is not null)
-        {
-            foreach (var fragmentSchema in fragmentSchemas)
-            {
-                mergedSchema.AllOf.Add(fragmentSchema);
-            }
-        }
+            // Field schema + single fragment schema (allOf)
+            (not null, { Count: 1 }) => CreateAllOfSchema([fieldSchema, fragmentSchemas[0]]),
 
-        return mergedSchema;
+            // Should not happen, but handle gracefully
+            _ => CreateObjectSchema()
+        };
     }
 
     private static OpenApiSchemaAbstraction ApplyNullability(OpenApiSchemaAbstraction schema, IType type)
@@ -763,17 +796,10 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 #if NET10_0_OR_GREATER
             if (schema is OpenApiSchemaReference schemaReference)
             {
-                return new OpenApiSchema
-                {
-                    AllOf =
-                    [
-                        schemaReference,
-                        new OpenApiSchema
-                        {
-                            Type = JsonSchemaType.Null
-                        }
-                    ]
-                };
+                return CreateAllOfSchema([
+                    schemaReference,
+                    new OpenApiSchema { Type = JsonSchemaType.Null }
+                ]);
             }
 
             if (schema is OpenApiSchema objectSchema)
@@ -783,14 +809,10 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 #else
             if (schema.Reference is not null)
             {
-                var nullableSchema = new OpenApiSchema();
-                nullableSchema.AllOf.Add(schema);
-                nullableSchema.AllOf.Add(new OpenApiSchema
-                {
-                    Type = "null"
-                });
-
-                return nullableSchema;
+                return CreateAllOfSchema([
+                    schema,
+                    new OpenApiSchema { Type = "null" }
+                ]);
             }
 
             schema.Nullable = true;
