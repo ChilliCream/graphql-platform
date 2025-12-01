@@ -34,7 +34,7 @@ public sealed class TestSchema
             => new(1) { Name = name };
 
         [Authorize(Roles = [OpenApiTestBase.AdminRole])]
-        public IEnumerable<User> GetUsers()
+        public IEnumerable<User?> GetUsers()
             => [new User(1), new User(2), new User(3)];
 
         public IEnumerable<User> GetUsersWithoutAuth()
@@ -44,6 +44,13 @@ public sealed class TestSchema
 
         [GraphQLType("PetUnion!")]
         public IPet GetWithUnionType() => new Cat(Name: "Whiskers", IsPurring: true);
+
+        [GraphQLType("[PetUnion!]!")]
+        public List<IPet> GetWithUnionTypeList() => [new Cat(Name: "Whiskers", IsPurring: true), new Dog(Name: "Buddy", IsBarking: true)];
+
+        public List<string?> GetListWithNullableItems() => ["item1", null, "item3"];
+
+        public List<string> GetListWithNonNullItems() => ["item1", "item2", "item3"];
 
         public List<string> GetList(List<string> input) => input;
 

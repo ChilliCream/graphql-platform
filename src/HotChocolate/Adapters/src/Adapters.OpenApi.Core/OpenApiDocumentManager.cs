@@ -536,15 +536,15 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
     private void UpdateEndpointsAndOpenApiDefinitions(ISchemaDefinition schema)
     {
         // Update OpenAPI definitions
-        var sortedOperations = _operationsById.Values.OrderBy(o => o.Name);
-        var sortedFragments = _fragmentsById.Values.OrderBy(f => f.Name);
+        var sortedOperations = _operationsById.Values.OrderBy(o => o.Name).ToArray();
+        var sortedFragments = _fragmentsById.Values.OrderBy(f => f.Name).ToArray();
 
         _transformer.AddDocuments(sortedOperations, sortedFragments, schema);
 
         // Update endpoints
         var endpoints = new List<Endpoint>();
 
-        foreach (var operationDocument in _operationsById.Values)
+        foreach (var operationDocument in sortedOperations)
         {
             try
             {
