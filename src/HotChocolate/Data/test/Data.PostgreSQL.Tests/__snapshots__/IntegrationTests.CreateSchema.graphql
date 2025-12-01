@@ -66,7 +66,7 @@ type ConnectionPageInfo {
 }
 
 "A cursor that points to a specific page."
-type PageCursor {
+type PageCursor @shareable {
   "The page number."
   page: Int!
   "The cursor."
@@ -281,7 +281,7 @@ type User @internal {
   id: ID!
   name: String!
 }
-
+            
 directive @internal on OBJECT | FIELD_DEFINITION
 """
 directive @internal on OBJECT | FIELD_DEFINITION
@@ -302,11 +302,11 @@ directive @serializeAs("The primitive type a scalar is serialized to." type: [Sc
 By default, only a single source schema is allowed to contribute
 a particular field to an object type.
 
-
+            
 This prevents source schemas from inadvertently defining similarly named
 fields that are not semantically equivalent.
 
-
+            
 Fields must be explicitly marked as @shareable to allow multiple source
 schemas to define them, ensuring that the decision to serve a field from
 more than one source schema is intentional and coordinated.

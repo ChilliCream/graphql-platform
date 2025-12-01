@@ -31,8 +31,9 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         // arrange
         var storage = new TestOperationToolStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetBooksWithTitle1.graphql")));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync("__resources__/GetBooksWithTitle1.graphql"))));
         var subgraph = CreateSubgraph([]);
         var schemaDocument = await subgraph.Services.GetSchemaAsync();
         var schemaComposer =

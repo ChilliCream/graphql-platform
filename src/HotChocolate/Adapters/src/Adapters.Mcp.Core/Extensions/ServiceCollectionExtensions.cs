@@ -23,7 +23,11 @@ internal static class ServiceCollectionExtensions
                 static (sp, name) => new McpRequestExecutorProxy(
                     sp.GetRequiredService<IRequestExecutorProvider>(),
                     sp.GetRequiredService<IRequestExecutorEvents>(),
+#if NET10_0_OR_GREATER
                     (string)name))
+#else
+                    (string)name!))
+#endif
             .AddKeyedSingleton(
                 schemaName,
                 static (sp, name) => new StreamableHttpHandlerProxy(
@@ -109,6 +113,10 @@ internal static class ServiceCollectionExtensions
                         }
                     };
                 })
+                .WithListResourcesHandler(
+                    (context, _) => ValueTask.FromResult(ListResourcesHandler.Handle(context)))
+                .WithReadResourceHandler(
+                    (context, _) => ValueTask.FromResult(ReadResourceHandler.Handle(context)))
                 .WithListToolsHandler(
                     (context, _) => ValueTask.FromResult(ListToolsHandler.Handle(context)))
                 .WithCallToolHandler(CallToolHandler.HandleAsync);

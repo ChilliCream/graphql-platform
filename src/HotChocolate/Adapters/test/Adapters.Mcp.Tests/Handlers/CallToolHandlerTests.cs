@@ -1,4 +1,5 @@
 using HotChocolate.Adapters.Mcp.Extensions;
+using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,8 +31,9 @@ public sealed class CallToolHandlerTests
     {
         var storage = new TestOperationToolStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql")));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql"))));
         var services = new ServiceCollection();
         services.AddLogging();
         services
