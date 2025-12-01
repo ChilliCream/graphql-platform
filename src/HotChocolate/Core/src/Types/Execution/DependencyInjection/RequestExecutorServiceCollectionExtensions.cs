@@ -57,8 +57,6 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddResultPool()
             .TryAddResolverTaskPool()
             .TryAddOperationContextPool()
-            .TryAddDeferredWorkStatePool()
-            .TryAddOperationCompilerPool()
             .TryAddSingleton<ObjectPool<DocumentValidatorContext>>(new DocumentValidatorContextPool());
 
         // global executor services

@@ -6,7 +6,6 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.RequestFlags;
 using static HotChocolate.Execution.ThrowHelper;
 
@@ -91,7 +90,7 @@ internal sealed class OperationExecutionMiddleware
     private async Task ExecuteOperationRequestAsync(
         RequestContext context,
         IBatchDispatcher batchDispatcher,
-        IOperation operation)
+        Operation operation)
     {
         if (operation.Definition.Operation is OperationType.Subscription)
         {
@@ -114,7 +113,7 @@ internal sealed class OperationExecutionMiddleware
     private async Task ExecuteVariableBatchRequestAsync(
         RequestContext context,
         IBatchDispatcher batchDispatcher,
-        IOperation operation)
+        Operation operation)
     {
         if (operation.Definition.Operation is OperationType.Query)
         {
@@ -137,7 +136,7 @@ internal sealed class OperationExecutionMiddleware
     private async Task ExecuteVariableBatchRequestOptimizedAsync(
         RequestContext context,
         IBatchDispatcher batchDispatcher,
-        IOperation operation)
+        Operation operation)
     {
         var variableSets = context.VariableValues;
         var query = GetQueryRootValue(context);
@@ -182,7 +181,7 @@ internal sealed class OperationExecutionMiddleware
         static void Initialize(
             RequestContext context,
             IBatchDispatcher batchDispatcher,
-            IOperation operation,
+            Operation operation,
             object? query,
             Span<OperationContextOwner> operationContexts,
             IVariableValueCollection variables,
@@ -249,7 +248,7 @@ internal sealed class OperationExecutionMiddleware
     private async Task<IExecutionResult> ExecuteQueryOrMutationAsync(
         RequestContext context,
         IBatchDispatcher batchDispatcher,
-        IOperation operation,
+        Operation operation,
         IVariableValueCollection variables)
     {
         var operationContextOwner = _contextFactory.Create();
@@ -266,15 +265,16 @@ internal sealed class OperationExecutionMiddleware
                         variables)
                     .ConfigureAwait(false);
 
-            if (operationContext.DeferredScheduler.HasResults)
-            {
-                var results = operationContext.DeferredScheduler.CreateResultStream(result);
-                var responseStream = new ResponseStream(() => results, ExecutionResultKind.DeferredResult);
-                responseStream.RegisterForCleanup(result);
-                responseStream.RegisterForCleanup(operationContextOwner);
-                operationContextOwner = null;
-                return responseStream;
-            }
+            // TODO : DEFER
+            // if (operationContext.DeferredScheduler.HasResults)
+            // {
+            //    var results = operationContext.DeferredScheduler.CreateResultStream(result);
+            //    var responseStream = new ResponseStream(() => results, ExecutionResultKind.DeferredResult);
+            //    responseStream.RegisterForCleanup(result);
+            //    responseStream.RegisterForCleanup(operationContextOwner);
+            //    operationContextOwner = null;
+            //    return responseStream;
+            // }
 
             return result;
         }
@@ -296,7 +296,7 @@ internal sealed class OperationExecutionMiddleware
     private async Task<IOperationResult> ExecuteQueryOrMutationNoStreamAsync(
         RequestContext context,
         IBatchDispatcher batchDispatcher,
-        IOperation operation,
+        Operation operation,
         IVariableValueCollection variables,
         int variableIndex)
     {
@@ -332,7 +332,7 @@ internal sealed class OperationExecutionMiddleware
     private async Task<IOperationResult> ExecuteQueryOrMutationAsync(
         RequestContext context,
         IBatchDispatcher batchDispatcher,
-        IOperation operation,
+        Operation operation,
         OperationContext operationContext,
         IVariableValueCollection variables,
         int variableIndex = -1)
@@ -397,7 +397,7 @@ internal sealed class OperationExecutionMiddleware
             Unsafe.As<ObjectType>(context.Schema.MutationType)!,
             ref _cachedMutation);
 
-    private static bool IsOperationAllowed(IOperation operation, IOperationRequest request)
+    private static bool IsOperationAllowed(Operation operation, IOperationRequest request)
     {
         if (request.Flags is AllowAll)
         {
@@ -412,21 +412,24 @@ internal sealed class OperationExecutionMiddleware
             _ => true
         };
 
-        if (allowed && operation.HasIncrementalParts)
-        {
-            return allowed && (request.Flags & AllowStreams) == AllowStreams;
-        }
+        // TODO : DEFER
+        // if (allowed && operation.HasIncrementalParts)
+        // {
+        //    return allowed && (request.Flags & AllowStreams) == AllowStreams;
+        // }
 
         return allowed;
     }
 
     private static bool IsRequestTypeAllowed(
-        IOperation operation,
+        Operation operation,
         IReadOnlyList<IVariableValueCollection>? variables)
     {
         if (variables is { Count: > 1 })
         {
-            return operation.Definition.Operation is not OperationType.Subscription && !operation.HasIncrementalParts;
+            // TODO : DEFER
+            return operation.Definition.Operation is not OperationType.Subscription;
+            // && !operation.HasIncrementalParts;
         }
 
         return true;

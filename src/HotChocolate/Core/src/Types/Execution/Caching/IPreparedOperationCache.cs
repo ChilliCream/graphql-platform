@@ -33,7 +33,7 @@ public interface IPreparedOperationCache
     /// <c>true</c> if an operation was found that matches the specified
     /// <paramref name="operationId"/>, otherwise <c>false</c>.
     /// </returns>
-    bool TryGetOperation(string operationId, [NotNullWhen(true)] out IOperation? operation);
+    bool TryGetOperation(string operationId, [NotNullWhen(true)] out Operation? operation);
 
     /// <summary>
     /// Tries to add a new compiled operation to the cache.
@@ -44,5 +44,5 @@ public interface IPreparedOperationCache
     /// <param name="operation">
     /// The operation that shall be cached.
     /// </param>
-    void TryAddOperation(string operationId, IOperation operation);
+    void TryAddOperation(string operationId, Operation operation);
 }

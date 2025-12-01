@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Processing.PathHelper;
@@ -16,13 +15,14 @@ internal static class ResolverTaskFactory
 
     public static ObjectResult EnqueueResolverTasks(
         OperationContext operationContext,
-        ISelectionSet selectionSet,
+        SelectionSet selectionSet,
         object? parent,
         Path path,
         IImmutableDictionary<string, object?> scopedContext,
         ObjectResult? parentResult = null)
     {
-        var selectionsCount = selectionSet.Selections.Count;
+        var selections = selectionSet.Selections;
+        var selectionsCount = selections.Length;
         var responseIndex = selectionsCount;
         parentResult ??= operationContext.Result.RentObject(selectionsCount);
         var scheduler = operationContext.Scheduler;
@@ -34,8 +34,6 @@ internal static class ResolverTaskFactory
 
         try
         {
-            ref var selectionSpace = ref ((SelectionSet)selectionSet).GetSelectionsReference();
-
             // we are iterating reverse so that in the case of a mutation the first
             // synchronous root selection is executed first, since the work scheduler
             // is using two stacks one for parallel work and one for synchronous work.
@@ -44,7 +42,7 @@ internal static class ResolverTaskFactory
             // guarantees while executing efficient.
             for (var i = selectionsCount - 1; i >= 0; i--)
             {
-                ref var selection = ref Unsafe.Add(ref selectionSpace, i);
+                var selection = selections[i];
 
                 if (final || selection.IsIncluded(includeFlags))
                 {
@@ -67,17 +65,6 @@ internal static class ResolverTaskFactory
             else
             {
                 scheduler.Register(CollectionsMarshal.AsSpan(bufferedTasks));
-            }
-
-            if (selectionSet.Fragments.Count > 0)
-            {
-                TryHandleDeferredFragments(
-                    operationContext,
-                    selectionSet,
-                    scopedContext,
-                    path,
-                    parent,
-                    parentResult);
             }
 
             return parentResult;
@@ -144,10 +131,11 @@ internal static class ResolverTaskFactory
         ResultData parentResult,
         int parentIndex,
         object parent,
-        ISelectionSet selectionSet)
+        SelectionSet selectionSet)
     {
         var responseIndex = 0;
-        var selectionsCount = selectionSet.Selections.Count;
+        var selections = selectionSet.Selections;
+        var selectionsCount = selections.Length;
         var operationContext = context.OperationContext;
         var result = operationContext.Result.RentObject(selectionsCount);
         var includeFlags = operationContext.IncludeFlags;
@@ -155,10 +143,7 @@ internal static class ResolverTaskFactory
 
         result.SetParent(parentResult, parentIndex);
 
-        ref var selection = ref ((SelectionSet)selectionSet).GetSelectionsReference();
-        ref var end = ref Unsafe.Add(ref selection, selectionsCount);
-
-        while (Unsafe.IsAddressLessThan(ref selection, ref end))
+        foreach (var selection in selections)
         {
             if (result.IsInvalidated)
             {
@@ -167,7 +152,7 @@ internal static class ResolverTaskFactory
 
             if (!final && !selection.IsIncluded(includeFlags))
             {
-                goto NEXT;
+                continue;
             }
 
             if (selection.Strategy is SelectionExecutionStrategy.Pure)
@@ -190,20 +175,6 @@ internal static class ResolverTaskFactory
                         responseIndex++,
                         context.ResolverContext.ScopedContextData));
             }
-
-NEXT:
-            selection = ref Unsafe.Add(ref selection, 1)!;
-        }
-
-        if (selectionSet.Fragments.Count > 0)
-        {
-            TryHandleDeferredFragments(
-                operationContext,
-                selectionSet,
-                context.ResolverContext.ScopedContextData,
-                CreatePathFromContext(result),
-                parent,
-                result);
         }
 
         return result.IsInvalidated ? null : result;
@@ -211,7 +182,7 @@ NEXT:
 
     private static void ResolveAndCompleteInline(
         ValueCompletionContext context,
-        ISelection selection,
+        Selection selection,
         int responseIndex,
         ObjectType parentType,
         object parent,
@@ -329,34 +300,6 @@ NEXT:
             PropagateNullValues(parentResult);
             var errorPath = CreatePathFromContext(selection, parentResult, responseIndex);
             operationContext.Result.AddNonNullViolation(selection, errorPath);
-        }
-    }
-
-    private static void TryHandleDeferredFragments(
-        OperationContext operationContext,
-        ISelectionSet selectionSet,
-        IImmutableDictionary<string, object?> scopedContext,
-        Path path,
-        object? parent,
-        ObjectResult parentResult)
-    {
-        var fragments = selectionSet.Fragments;
-        var includeFlags = operationContext.IncludeFlags;
-
-        for (var i = 0; i < fragments.Count; i++)
-        {
-            var fragment = fragments[i];
-            if (!fragment.IsConditional || fragment.IsIncluded(includeFlags))
-            {
-                operationContext.DeferredScheduler.Register(
-                    new DeferredFragment(
-                        fragment,
-                        fragment.GetLabel(operationContext.Variables),
-                        path,
-                        parent,
-                        scopedContext),
-                    parentResult);
-            }
         }
     }
 

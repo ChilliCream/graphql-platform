@@ -5,61 +5,99 @@ namespace HotChocolate.Execution;
 
 internal static class OperationContextExtensions
 {
-    public static OperationContext ReportError(
-        this OperationContext operationContext,
-        Exception exception,
-        MiddlewareContext resolverContext,
-        ISelection? selection = null,
-        Path? path = null)
+    extension(OperationContext context)
     {
-        selection ??= resolverContext.Selection;
-        path ??= resolverContext.Path;
-
-        ArgumentNullException.ThrowIfNull(exception);
-
-        if (exception is GraphQLException ex)
+        public OperationContext ReportError(Exception exception,
+            MiddlewareContext resolverContext,
+            ISelection? selection = null,
+            Path? path = null)
         {
-            foreach (var error in ex.Errors)
+            selection ??= resolverContext.Selection;
+            path ??= resolverContext.Path;
+
+            ArgumentNullException.ThrowIfNull(exception);
+
+            if (exception is GraphQLException ex)
             {
-                ReportError(operationContext, error, resolverContext, selection);
+                foreach (var error in ex.Errors)
+                {
+                    ReportError(context, error, resolverContext, selection);
+                }
             }
+            else
+            {
+                var error = ErrorBuilder
+                    .FromException(exception)
+                    .SetPath(path)
+                    .AddLocations(selection.GetSyntaxNodes())
+                    .Build();
+
+                ReportError(context, error, resolverContext, selection);
+            }
+
+            return context;
         }
-        else
+
+        public OperationContext ReportError(IError error,
+            MiddlewareContext resolverContext,
+            ISelection? selection = null)
         {
-            var error = ErrorBuilder
-                .FromException(exception)
-                .SetPath(path)
-                .AddLocation(selection.SyntaxNode)
-                .Build();
+            var errors = new List<IError>();
 
-            ReportError(operationContext, error, resolverContext, selection);
+            ReportSingleError(
+                context.ErrorHandler,
+                error,
+                errors);
+
+            selection ??= resolverContext.Selection;
+
+            foreach (var handled in errors)
+            {
+                context.Result.AddError(handled, selection);
+                context.DiagnosticEvents.ResolverError(resolverContext, handled);
+            }
+
+            return context;
         }
 
-        return operationContext;
-    }
-
-    public static OperationContext ReportError(
-        this OperationContext operationContext,
-        IError error,
-        MiddlewareContext resolverContext,
-        ISelection? selection = null)
-    {
-        var errors = new List<IError>();
-
-        ReportSingleError(
-            operationContext.ErrorHandler,
-            error,
-            errors);
-
-        selection ??= resolverContext.Selection;
-
-        foreach (var handled in errors)
+        public OperationContext SetLabel(string? label)
         {
-            operationContext.Result.AddError(handled, selection);
-            operationContext.DiagnosticEvents.ResolverError(resolverContext, handled);
+            context.Result.SetLabel(label);
+            return context;
         }
 
-        return operationContext;
+        public OperationContext SetPath(Path? path)
+        {
+            context.Result.SetPath(path);
+            return context;
+        }
+
+        public OperationContext SetData(ObjectResult objectResult)
+        {
+            context.Result.SetData(objectResult);
+            return context;
+        }
+
+        public OperationContext SetItems(IReadOnlyList<object?> items)
+        {
+            context.Result.SetItems(items);
+            return context;
+        }
+
+        public OperationContext SetPatchId(uint patchId)
+        {
+            context.Result.SetContextData(WellKnownContextData.PatchId, patchId);
+            return context;
+        }
+
+        public OperationContext ClearResult()
+        {
+            context.Result.Clear();
+            return context;
+        }
+
+        public IOperationResult BuildResult()
+            => context.Result.BuildResult();
     }
 
     private static void ReportSingleError(
@@ -93,55 +131,4 @@ internal static class OperationContextExtensions
             errors.Add(error);
         }
     }
-
-    public static OperationContext SetLabel(
-        this OperationContext context,
-        string? label)
-    {
-        context.Result.SetLabel(label);
-        return context;
-    }
-
-    public static OperationContext SetPath(
-        this OperationContext context,
-        Path? path)
-    {
-        context.Result.SetPath(path);
-        return context;
-    }
-
-    public static OperationContext SetData(
-        this OperationContext context,
-        ObjectResult objectResult)
-    {
-        context.Result.SetData(objectResult);
-        return context;
-    }
-
-    public static OperationContext SetItems(
-        this OperationContext context,
-        IReadOnlyList<object?> items)
-    {
-        context.Result.SetItems(items);
-        return context;
-    }
-
-    public static OperationContext SetPatchId(
-        this OperationContext context,
-        uint patchId)
-    {
-        context.Result.SetContextData(WellKnownContextData.PatchId, patchId);
-        return context;
-    }
-
-    public static OperationContext ClearResult(
-        this OperationContext context)
-    {
-        context.Result.Clear();
-        return context;
-    }
-
-    public static IOperationResult BuildResult(
-        this OperationContext context) =>
-        context.Result.BuildResult();
 }

@@ -6,7 +6,7 @@ using HotChocolate.Features;
 namespace HotChocolate.Execution.Processing;
 
 [SuppressMessage("ReSharper", "NonAtomicCompoundOperator")]
-internal sealed class OperationFeatureCollection : IFeatureCollection
+public sealed class OperationFeatureCollection : IFeatureCollection
 {
 #if NET9_0_OR_GREATER
     private readonly Lock _writeLock = new();
@@ -23,7 +23,7 @@ internal sealed class OperationFeatureCollection : IFeatureCollection
     /// <summary>
     /// Initializes a new instance of <see cref="FeatureCollection"/>.
     /// </summary>
-    public OperationFeatureCollection()
+    internal OperationFeatureCollection()
     {
     }
 
@@ -83,6 +83,28 @@ internal sealed class OperationFeatureCollection : IFeatureCollection
         }
 
         return (TFeature?)this[typeof(TFeature)];
+    }
+
+    public TFeature GetOrSetSafe<TFeature>() where TFeature : new()
+        => GetOrSetSafe<TFeature>(static () => new TFeature());
+
+    public TFeature GetOrSetSafe<TFeature>(Func<TFeature> factory)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+
+        if (!TryGet<TFeature>(out var feature))
+        {
+            lock (_writeLock)
+            {
+                if (!TryGet(out feature))
+                {
+                    feature = factory();
+                    this[typeof(TFeature)] = feature;
+                }
+            }
+        }
+
+        return feature;
     }
 
     /// <inheritdoc />

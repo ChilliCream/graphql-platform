@@ -62,7 +62,7 @@ public sealed class SelectionSet : ISelectionSet
     public ReadOnlySpan<Selection> Selections => _selections;
 
     IEnumerable<ISelection> ISelectionSet.GetSelections() => _selections;
-    
+
     internal void Complete(Operation declaringOperation, bool seal)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
@@ -74,10 +74,13 @@ public sealed class SelectionSet : ISelectionSet
 
         foreach (var selection in _selections)
         {
-            selection.Complete(declaringOperation, this);
+            selection.Complete(this, seal);
         }
 
-        _flags |= Flags.Sealed;
+        if (seal)
+        {
+            _flags |= Flags.Sealed;
+        }
     }
 
     /// <summary>

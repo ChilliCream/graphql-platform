@@ -36,7 +36,7 @@ internal sealed partial class SubscriptionExecutor
 
         var operation = requestContext.GetOperation();
         var selectionSet = operation.RootSelectionSet;
-        if (selectionSet.Selections.Count != 1)
+        if (selectionSet.Selections.Length != 1)
         {
             throw SubscriptionExecutor_SubscriptionsMustHaveOneField();
         }

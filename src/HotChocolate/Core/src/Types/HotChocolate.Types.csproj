@@ -195,6 +195,18 @@
     <Compile Update="Execution\Processing\OperationContext.Utilities.cs">
       <DependentUpon>OperationContext.cs</DependentUpon>
     </Compile>
+
+    <Compile Update="Execution\Processing\Tasks\ResolverTask.CompleteValue.cs">
+      <DependentUpon>ResolverTask.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\Tasks\ResolverTask.Execute.cs">
+      <DependentUpon>ResolverTask.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\Tasks\ResolverTask.Pooling.cs">
+      <DependentUpon>ResolverTask.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

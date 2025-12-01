@@ -71,14 +71,6 @@ internal static class InternalServiceCollectionExtensions
         return services;
     }
 
-    internal static IServiceCollection TryAddOperationCompilerPool(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton<ObjectPool<OperationCompiler>>(
-            sp => new OperationCompilerPool(sp.GetRequiredService<InputParser>()));
-        return services;
-    }
-
     internal static IServiceCollection TryAddOperationContextPool(
         this IServiceCollection services)
     {

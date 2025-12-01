@@ -91,7 +91,7 @@ internal sealed partial class ResolverTask
             // signal that this resolver task has errors and shall end.
             if (Selection.Arguments.HasErrors)
             {
-                foreach (var argument in Selection.Arguments)
+                foreach (var argument in Selection.Arguments.ArgumentValues)
                 {
                     if (argument.HasError)
                     {
@@ -157,12 +157,13 @@ internal sealed partial class ResolverTask
             return;
         }
 
-        if (_selection.IsList && _selection.HasStreamDirective(_operationContext.IncludeFlags))
-        {
-            var stream = postProcessor.ToStreamResultAsync(result, cancellationToken);
-            _context.Result = await CreateStreamResultAsync(stream).ConfigureAwait(false);
-            return;
-        }
+        // TODO: DEFER
+        // if (_selection.IsList && _selection.HasStreamDirective(_operationContext.IncludeFlags))
+        // {
+        //    var stream = postProcessor.ToStreamResultAsync(result, cancellationToken);
+        //    _context.Result = await CreateStreamResultAsync(stream).ConfigureAwait(false);
+        //    return;
+        // }
 
         _context.Result = await postProcessor.ToCompletionResultAsync(result, cancellationToken).ConfigureAwait(false);
     }
@@ -199,8 +200,10 @@ internal sealed partial class ResolverTask
 
             if (next)
             {
+                // TODO : DEFER
                 // if the stream has more items than the initial requested items then we will
                 // defer the rest of the stream.
+                /*
                 _operationContext.DeferredScheduler.Register(
                     new DeferredStream(
                         Selection,
@@ -211,6 +214,7 @@ internal sealed partial class ResolverTask
                         enumerator,
                         _context.ScopedContextData),
                     _context.ParentResult);
+                    */
             }
 
             return list;

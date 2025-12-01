@@ -10,7 +10,7 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     private readonly List<ResolverTask> _taskBuffer = [];
     private readonly Dictionary<string, ArgumentValue> _args = new(StringComparer.Ordinal);
     private OperationContext _operationContext = null!;
-    private ISelection _selection = null!;
+    private Selection _selection = null!;
     private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
     private Task? _task;
 
@@ -32,7 +32,7 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     /// <summary>
     /// Gets the selection for which a resolver is executed.
     /// </summary>
-    internal ISelection Selection => _selection;
+    internal Selection Selection => _selection;
 
     /// <inheritdoc />
     public ExecutionTaskKind Kind
@@ -73,8 +73,4 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
         Status = ExecutionTaskStatus.Running;
         _task = ExecuteAsync(cancellationToken);
     }
-
-    /// <inheritdoc />
-    public Task WaitForCompletionAsync(CancellationToken cancellationToken)
-        => _task ?? Task.CompletedTask;
 }

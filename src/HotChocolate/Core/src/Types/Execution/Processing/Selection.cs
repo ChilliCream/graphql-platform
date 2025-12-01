@@ -82,6 +82,11 @@ public class Selection : ISelection
 
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
 
+    /// <summary>
+    /// Defines if this selection has child selections.
+    /// </summary>
+    public bool HasSelections => !IsLeaf;
+
     public ObjectField Field { get; }
 
     /// <inheritdoc />

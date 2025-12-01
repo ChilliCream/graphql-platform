@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 
 // ReSharper disable once CheckNamespace
@@ -29,6 +30,18 @@ public static class HotChocolateExecutionDataLoaderExtensions
     public static IDataLoader<TKey, TValue> Select<TKey, TValue>(
         this IDataLoader<TKey, TValue> dataLoader,
         ISelection selection)
+        where TKey : notnull
+    {
+        ArgumentNullException.ThrowIfNull(dataLoader);
+        ArgumentNullException.ThrowIfNull(selection);
+
+        var expression = selection.AsSelector<TValue>();
+        return dataLoader.Select(expression);
+    }
+
+    public static IDataLoader<TKey, TValue> Select<TKey, TValue>(
+        this IDataLoader<TKey, TValue> dataLoader,
+        Selection selection)
         where TKey : notnull
     {
         ArgumentNullException.ThrowIfNull(dataLoader);

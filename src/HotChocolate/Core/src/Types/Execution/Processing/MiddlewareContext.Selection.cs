@@ -61,8 +61,11 @@ internal partial class MiddlewareContext
 
     public ISelectionCollection Select()
     {
-        var schema = Unsafe.As<Schema>(_operationContext.Schema);
-        return new SelectionCollection(schema, Operation, [Selection], _operationContext.IncludeFlags);
+        return new SelectionCollection(
+            _operationContext.Schema,
+            Operation,
+            [Selection],
+            _operationContext.IncludeFlags);
     }
 
     public ISelectionCollection Select(string fieldName)

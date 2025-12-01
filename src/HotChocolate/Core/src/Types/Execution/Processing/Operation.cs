@@ -113,7 +113,9 @@ public sealed class Operation : IOperation
         => RootSelectionSet;
 
     /// <inheritdoc cref="IFeatureProvider"/>
-    public IFeatureCollection Features => _features;
+    public OperationFeatureCollection Features => _features;
+
+    IFeatureCollection IFeatureProvider.Features => Features;
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/>

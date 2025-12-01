@@ -7,7 +7,7 @@ internal sealed class OperationInfo : RequestFeature
 {
     public string? Id { get; set; }
 
-    public IOperation? Operation { get; set; }
+    public Operation? Operation { get; set; }
 
     public OperationDefinitionNode? Definition { get; set; }
 

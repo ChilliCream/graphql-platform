@@ -19,7 +19,7 @@ internal sealed class SelectionLookup
     public static SelectionLookup Create(SelectionSet selectionSet)
     {
         var selections = selectionSet.Selections;
-        var tableSize = NextPowerOfTwo(Math.Max(selections.Count * 2, 4));
+        var tableSize = NextPowerOfTwo(Math.Max(selections.Length * 2, 4));
         var mask = tableSize - 1;
         var table = new Entry[tableSize];
 
@@ -82,7 +82,7 @@ internal sealed class SelectionLookup
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryGetSelection(ReadOnlySpan<byte> name, [NotNullWhen(true)] out ISelection? selection)
+    public bool TryGetSelection(ReadOnlySpan<byte> name, [NotNullWhen(true)] out Selection? selection)
     {
         var table = _table.AsSpan();
 
@@ -148,9 +148,9 @@ internal sealed class SelectionLookup
         return n;
     }
 
-    private readonly struct Entry(int hashCode, ISelection selection)
+    private readonly struct Entry(int hashCode, Selection selection)
     {
         public readonly int HashCode = hashCode;
-        public readonly ISelection? Selection = selection;
+        public readonly Selection? Selection = selection;
     }
 }

@@ -1,6 +1,5 @@
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Instrumentation;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
