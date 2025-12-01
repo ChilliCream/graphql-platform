@@ -99,7 +99,7 @@ public sealed class ArgumentMap : IReadOnlyDictionary<string, ArgumentValue>
     /// <value>
     /// An <see cref="ImmutableArray{T}"/> of <see cref="ArgumentValue"/> instances.
     /// </value>
-    public ImmutableArray<ArgumentValue> Values => _arguments.Values;
+    public ImmutableArray<ArgumentValue> ArgumentValues => _arguments.Values;
 
     IEnumerable<ArgumentValue> IReadOnlyDictionary<string, ArgumentValue>.Values
         => _arguments.Values;

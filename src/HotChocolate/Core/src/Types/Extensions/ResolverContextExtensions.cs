@@ -18,7 +18,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the global state for the specified <paramref name="name" />
     /// or the default value of <typeparamref name="T" />, if the state
-    /// could not be found or casted to <typeparamref name="T" />.
+    /// could not be found or cast to <typeparamref name="T" />.
     /// </returns>
     public static T? GetGlobalStateOrDefault<T>(
         this IResolverContext context,
@@ -51,7 +51,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the global state for the specified <paramref name="name" />
     /// or the default value of <typeparamref name="T" />, if the state
-    /// could not be found or casted to <typeparamref name="T" />.
+    /// could not be found or cast to <typeparamref name="T" />.
     /// </returns>
     public static T GetGlobalStateOrDefault<T>(
         this IResolverContext context,
@@ -114,7 +114,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the scoped state for the specified <paramref name="name" />
     /// or the default value of <typeparamref name="T" />, if the state
-    /// could not be found or casted to <typeparamref name="T" />.
+    /// could not be found or cast to <typeparamref name="T" />.
     /// </returns>
     public static T? GetScopedStateOrDefault<T>(
         this IResolverContext context,
@@ -147,7 +147,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the scoped state for the specified <paramref name="name" />
     /// or the default value of <typeparamref name="T" />, if the state
-    /// could not be found or casted to <typeparamref name="T" />.
+    /// could not be found or cast to <typeparamref name="T" />.
     /// </returns>
     public static T GetScopedStateOrDefault<T>(
         this IResolverContext context,
@@ -211,7 +211,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the local state for the specified <paramref name="name" />
     /// or the default value of <typeparamref name="T" />, if the state
-    /// could not be found or casted to <typeparamref name="T" />.
+    /// could not be found or cast to <typeparamref name="T" />.
     /// </returns>
     public static T? GetLocalStateOrDefault<T>(
         this IResolverContext context,
@@ -244,7 +244,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the local state for the specified <paramref name="name" />
     /// or the default value of <typeparamref name="T" />, if the state
-    /// could not be found or casted to <typeparamref name="T" />.
+    /// could not be found or cast to <typeparamref name="T" />.
     /// </returns>
     public static T GetLocalStateOrDefault<T>(
         this IResolverContext context,

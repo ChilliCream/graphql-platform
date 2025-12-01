@@ -41,7 +41,7 @@ public static class ArgumentCoercionHelper
         // signal that this resolver task has errors and shall end.
         if (arguments.HasErrors)
         {
-            foreach (var argument in arguments)
+            foreach (var argument in arguments.ArgumentValues)
             {
                 if (argument.HasError)
                 {
@@ -73,7 +73,7 @@ public static class ArgumentCoercionHelper
     {
         // if there are arguments that have variables and need variable replacement we will
         // rewrite the arguments that need variable replacement.
-        foreach (var argument in arguments)
+        foreach (var argument in arguments.ArgumentValues)
         {
             if (argument.IsFullyCoerced)
             {

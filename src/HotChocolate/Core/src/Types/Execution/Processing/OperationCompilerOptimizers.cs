@@ -4,6 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
 
+// TODO : We might remove this
 internal sealed class OperationCompilerOptimizers
 {
     private ImmutableArray<IOperationOptimizer> _operationOptimizers;
@@ -48,57 +49,4 @@ internal sealed class OperationCompilerOptimizers
         OperationOptimizers = 1,
         SelectionSetOptimizers = 2
     }
-}
-
-public readonly struct OperationCompilerRequest
-{
-    public OperationCompilerRequest(
-        string id,
-        DocumentNode document,
-        OperationDefinitionNode definition,
-        ObjectType rootType,
-        ISchemaDefinition schema,
-        ImmutableArray<IOperationOptimizer>? operationOptimizers = null,
-        ImmutableArray<ISelectionSetOptimizer>? selectionSetOptimizers = null)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(id);
-
-        Id = id;
-        Document = document ?? throw new ArgumentNullException(nameof(document));
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
-        RootType = rootType ?? throw new ArgumentNullException(nameof(rootType));
-        Schema = schema ?? throw new ArgumentNullException(nameof(schema));
-        OperationOptimizers = operationOptimizers ?? [];
-        SelectionSetOptimizers = selectionSetOptimizers ?? [];
-    }
-
-    /// <summary>
-    /// Gets the internal unique identifier for this operation.
-    /// </summary>
-    public string Id { get; }
-
-    /// <summary>
-    /// Gets the parsed query document that contains the
-    /// operation-<see cref="Definition" />.
-    /// </summary>
-    public DocumentNode Document { get; }
-
-    /// <summary>
-    /// Gets the syntax node representing the operation definition.
-    /// </summary>
-    public OperationDefinitionNode Definition { get; }
-
-    /// <summary>
-    /// Gets the root type on which the operation is executed.
-    /// </summary>
-    public ObjectType RootType { get; }
-
-    /// <summary>
-    /// Gets the schema against which the operation shall be executed.
-    /// </summary>
-    public ISchemaDefinition Schema { get; }
-
-    public ImmutableArray<IOperationOptimizer> OperationOptimizers { get; }
-
-    public ImmutableArray<ISelectionSetOptimizer> SelectionSetOptimizers { get; }
 }

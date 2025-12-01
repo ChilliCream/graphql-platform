@@ -19,7 +19,7 @@ public sealed class Operation : IOperation
 #endif
 
     private readonly ConcurrentDictionary<(int, string), SelectionSet> _selectionSets = [];
-    private readonly OperationCompiler2 _compiler;
+    private readonly OperationCompiler _compiler;
     private readonly IncludeConditionCollection _includeConditions;
     private readonly OperationFeatureCollection _features;
     private readonly bool _isFinal;
@@ -33,7 +33,7 @@ public sealed class Operation : IOperation
         ObjectType rootType,
         Schema schema,
         SelectionSet rootSelectionSet,
-        OperationCompiler2 compiler,
+        OperationCompiler compiler,
         IncludeConditionCollection includeConditions,
         int lastId,
         object[] elementsById,

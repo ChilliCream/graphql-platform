@@ -9,7 +9,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed partial class OperationCompiler2
+internal sealed partial class OperationCompiler
 {
     private readonly Schema _schema;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
@@ -17,7 +17,7 @@ internal sealed partial class OperationCompiler2
     private readonly InputParser _inputValueParser;
     private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
 
-    public OperationCompiler2(
+    public OperationCompiler(
         Schema schema,
         InputParser inputValueParser,
         ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> fieldsPool)

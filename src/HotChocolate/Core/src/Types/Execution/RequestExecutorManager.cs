@@ -266,6 +266,22 @@ internal sealed partial class RequestExecutorManager
 
         serviceCollection.AddSingleton(new SchemaVersionInfo(version));
 
+        serviceCollection.AddSingleton(context.DescriptorContext.TypeConverter);
+
+        serviceCollection.AddSingleton(
+            static sp => new InputParser(sp.GetRequiredService<ITypeConverter>()));
+
+        serviceCollection.AddSingleton(
+            static sp => new OperationCompiler(
+                sp.GetRequiredService<Schema>(),
+                sp.GetRequiredService<InputParser>(),
+                sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>()));
+
+        serviceCollection.AddSingleton<ObjectPoolProvider>(
+            static _ => new DefaultObjectPoolProvider());
+        serviceCollection.AddSingleton(
+            static sp => sp.GetRequiredService<ObjectPoolProvider>().CreateStringBuilderPool());
+
         serviceCollection.AddSingleton(executorOptions);
         serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
             static sp => sp.GetRequiredService<RequestExecutorOptions>());

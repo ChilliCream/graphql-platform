@@ -6,7 +6,6 @@ using HotChocolate.Fetching;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
@@ -16,7 +15,6 @@ internal sealed partial class OperationContext
     private readonly IFactory<ResolverTask> _resolverTaskFactory;
     private readonly WorkScheduler _workScheduler;
     private WorkScheduler _currentWorkScheduler;
-    private readonly DeferredWorkScheduler _deferredWorkScheduler;
     private readonly ResultBuilder _resultBuilder;
     private readonly AggregateServiceScopeInitializer _serviceScopeInitializer;
     private RequestContext _requestContext = null!;
@@ -26,7 +24,7 @@ internal sealed partial class OperationContext
     private IExecutionDiagnosticEvents _diagnosticEvents = null!;
     private IDictionary<string, object?> _contextData = null!;
     private CancellationToken _requestAborted;
-    private IOperation _operation = null!;
+    private Operation _operation = null!;
     private IVariableValueCollection _variables = null!;
     private IServiceProvider _services = null!;
     private Func<object?> _resolveQueryRootValue = null!;
@@ -45,7 +43,6 @@ internal sealed partial class OperationContext
         _resolverTaskFactory = resolverTaskFactory;
         _workScheduler = new WorkScheduler(this);
         _currentWorkScheduler = _workScheduler;
-        _deferredWorkScheduler = new DeferredWorkScheduler();
         _resultBuilder = resultBuilder;
         _serviceScopeInitializer = serviceScopeInitializer;
         Converter = typeConverter;
@@ -59,7 +56,7 @@ internal sealed partial class OperationContext
         RequestContext requestContext,
         IServiceProvider scopedServices,
         IBatchDispatcher batchDispatcher,
-        IOperation operation,
+        Operation operation,
         IVariableValueCollection variables,
         object? rootValue,
         Func<object?> resolveQueryRootValue,
@@ -82,9 +79,8 @@ internal sealed partial class OperationContext
         _variableIndex = variableIndex;
         _isInitialized = true;
 
-        IncludeFlags = _operation.CreateIncludeFlags(variables);
+        IncludeFlags = operation.CreateIncludeFlags(variables);
         _workScheduler.Initialize(batchDispatcher);
-        _deferredWorkScheduler.Initialize(this);
         _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
 
         if (requestContext.RequestIndex != -1)
@@ -120,7 +116,6 @@ internal sealed partial class OperationContext
 
         IncludeFlags = _operation.CreateIncludeFlags(_variables);
         _workScheduler.Initialize(_batchDispatcher);
-        _deferredWorkScheduler.InitializeFrom(this, context._deferredWorkScheduler);
         _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
 
         if (context._requestContext.RequestIndex != -1)
@@ -143,7 +138,6 @@ internal sealed partial class OperationContext
             _currentWorkScheduler = _workScheduler;
             _workScheduler.Clear();
             _resultBuilder.Clear();
-            _deferredWorkScheduler.Clear();
             _requestContext = null!;
             _schema = null!;
             _errorHandler = null!;
