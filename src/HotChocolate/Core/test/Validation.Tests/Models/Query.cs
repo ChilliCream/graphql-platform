@@ -35,6 +35,11 @@ public class Query
         return null;
     }
 
+    public Dog? FindDog3(List<ComplexInput3> complexList)
+    {
+        return null;
+    }
+
     public bool BooleanList(bool[]? booleanListArg)
     {
         return true;

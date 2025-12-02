@@ -320,7 +320,36 @@ internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : 
             && Equals(x.Fields, y.Fields);
 
     private bool Equals(ObjectValueNode x, ObjectValueNode y)
-        => Equals(x.Fields, y.Fields);
+    {
+        if (x.Fields.Count != y.Fields.Count)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < x.Fields.Count; i++)
+        {
+            var xField = x.Fields[i];
+            ObjectFieldNode? matchingField = null;
+
+            for (var j = 0; j < y.Fields.Count; j++)
+            {
+                var yField = y.Fields[j];
+
+                if (Equals(xField.Name, yField.Name))
+                {
+                    matchingField = yField;
+                    break;
+                }
+            }
+
+            if (matchingField is null || !Equals(xField.Value, matchingField.Value))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     private bool Equals(OperationDefinitionNode x, OperationDefinitionNode y)
         => SyntaxComparer.BySyntax.Equals(x.Name, y.Name)
@@ -1025,9 +1054,8 @@ internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : 
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
 
-        for (var i = 0; i < node.Fields.Count; i++)
+        foreach (var field in node.Fields.OrderBy(field => field.Name.Value, StringComparer.Ordinal))
         {
-            var field = node.Fields[i];
             hashCode.Add(GetHashCode(field));
         }
 
