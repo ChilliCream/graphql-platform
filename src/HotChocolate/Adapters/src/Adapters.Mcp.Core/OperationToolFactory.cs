@@ -52,6 +52,19 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
             Meta = meta
         };
 
+        if (toolDefinition.Icons is { } icons)
+        {
+            tool.Icons =
+                icons.Select(
+                    icon => new Icon
+                    {
+                        Source = icon.Source.OriginalString,
+                        MimeType = icon.MimeType,
+                        Sizes = icon.Sizes,
+                        Theme = icon.Theme
+                    }).ToList();
+        }
+
         return new OperationTool(toolDefinition.Document, tool)
         {
             OpenAiComponentResource = openAiComponentResource,

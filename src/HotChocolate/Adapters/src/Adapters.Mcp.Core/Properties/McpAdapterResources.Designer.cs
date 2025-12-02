@@ -96,11 +96,47 @@ namespace HotChocolate.Adapters.Mcp.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The tool name &apos;{0}&apos; is invalid. Tool names must match the regular expression &apos;{1}&apos;..
+        /// </summary>
+        internal static string OperationToolDefinition_InvalidToolName {
+            get {
+                return ResourceManager.GetString("OperationToolDefinition_InvalidToolName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} OpenAI Component.
         /// </summary>
         internal static string OperationToolFactory_OpenAiComponentResourceName {
             get {
                 return ResourceManager.GetString("OperationToolFactory_OpenAiComponentResourceName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The MIME type must be a valid type/subtype string..
+        /// </summary>
+        internal static string OperationToolIcon_InvalidIconMimeType {
+            get {
+                return ResourceManager.GetString("OperationToolIcon_InvalidIconMimeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Each size must have the format {WIDTH}x{HEIGHT} (e.g., 48x48) or be &apos;any&apos;..
+        /// </summary>
+        internal static string OperationToolIcon_InvalidIconSize {
+            get {
+                return ResourceManager.GetString("OperationToolIcon_InvalidIconSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The icon source URI must use the HTTP, HTTPS, or data scheme..
+        /// </summary>
+        internal static string OperationToolIcon_InvalidIconSourceScheme {
+            get {
+                return ResourceManager.GetString("OperationToolIcon_InvalidIconSourceScheme", resourceCulture);
             }
         }
         
