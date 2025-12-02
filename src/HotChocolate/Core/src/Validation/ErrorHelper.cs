@@ -24,7 +24,8 @@ internal static class ErrorHelper
 
     extension(DocumentValidatorContext context)
     {
-        public IError VariableNotUsed(OperationDefinitionNode node,
+        public IError VariableNotUsed(
+            OperationDefinitionNode node,
             IEnumerable<string> unusedVariables)
         {
             return ErrorBuilder.New()
@@ -37,7 +38,8 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError VariableNotDeclared(OperationDefinitionNode node,
+        public IError VariableNotDeclared(
+            OperationDefinitionNode node,
             IEnumerable<string> usedVariables)
         {
             return ErrorBuilder.New()
@@ -50,7 +52,8 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError OneOfVariableIsNotCompatible(VariableNode variable,
+        public IError OneOfVariableIsNotCompatible(
+            VariableNode variable,
             VariableDefinitionNode variableDefinition)
         {
             var variableName = variableDefinition.Variable.Name.Value;
@@ -66,7 +69,8 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError VariableIsNotCompatible(VariableNode variable,
+        public IError VariableIsNotCompatible(
+            VariableNode variable,
             VariableDefinitionNode variableDefinition)
         {
             var variableName = variableDefinition.Variable.Name.Value;
@@ -123,8 +127,7 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError UnionFieldError(SelectionSetNode node,
-            IUnionTypeDefinition type)
+        public IError UnionFieldError(SelectionSetNode node, IUnionTypeDefinition type)
         {
             return ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_UnionFieldError)
@@ -135,8 +138,7 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError FieldDoesNotExist(FieldNode node,
-            IComplexTypeDefinition outputType)
+        public IError FieldDoesNotExist(FieldNode node, IComplexTypeDefinition outputType)
         {
             return ErrorBuilder.New()
                 .SetMessage(
@@ -151,7 +153,8 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError LeafFieldsCannotHaveSelections(FieldNode node,
+        public IError LeafFieldsCannotHaveSelections(
+            FieldNode node,
             IComplexTypeDefinition declaringType,
             IType fieldType)
         {
@@ -170,7 +173,8 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError ArgumentValueIsNotCompatible(ArgumentNode node,
+        public IError ArgumentValueIsNotCompatible(
+            ArgumentNode node,
             IInputType locationType,
             IValueNode value)
         {
@@ -185,7 +189,8 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError FieldValueIsNotCompatible(IInputValueDefinition field,
+        public IError FieldValueIsNotCompatible(
+            IInputValueDefinition field,
             IInputType locationType,
             IValueNode valueNode)
         {
@@ -200,7 +205,8 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError VariableDefaultValueIsNotCompatible(VariableDefinitionNode node,
+        public IError VariableDefaultValueIsNotCompatible(
+            VariableDefinitionNode node,
             IInputType locationType,
             IValueNode valueNode)
         {
@@ -217,7 +223,8 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError NoSelectionOnCompositeField(FieldNode node,
+        public IError NoSelectionOnCompositeField(
+            FieldNode node,
             IComplexTypeDefinition declaringType,
             IType fieldType)
         {
@@ -236,8 +243,7 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError NoSelectionOnRootType(OperationDefinitionNode node,
-            IType fieldType)
+        public IError NoSelectionOnRootType(OperationDefinitionNode node, IType fieldType)
         {
             return ErrorBuilder.New()
                 .SetMessage(
@@ -251,8 +257,7 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError FieldIsRequiredButNull(ISyntaxNode node,
-            string fieldName)
+        public IError FieldIsRequiredButNull(ISyntaxNode node, string fieldName)
         {
             return ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_FieldIsRequiredButNull, fieldName)
@@ -263,8 +268,7 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError FieldsAreNotMergeable(FieldInfo fieldA,
-            FieldInfo fieldB)
+        public IError FieldsAreNotMergeable(FieldInfo fieldA, FieldInfo fieldB)
         {
             return ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_FieldsAreNotMergeable)
@@ -340,7 +344,8 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError FragmentNotPossible(ISyntaxNode node,
+        public IError FragmentNotPossible(
+            ISyntaxNode node,
             ITypeDefinition typeCondition,
             ITypeDefinition parentType)
         {
@@ -355,8 +360,7 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError FragmentTypeConditionUnknown(ISyntaxNode node,
-            NamedTypeNode typeCondition)
+        public IError FragmentTypeConditionUnknown(ISyntaxNode node, NamedTypeNode typeCondition)
         {
             return ErrorBuilder.New()
                 .SetMessage(
@@ -370,8 +374,7 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError FragmentOnlyCompositeType(ISyntaxNode node,
-            ITypeDefinition type)
+        public IError FragmentOnlyCompositeType(ISyntaxNode node, ITypeDefinition type)
         {
             return ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_FragmentOnlyCompositeType)
@@ -407,8 +410,7 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError InputFieldRequired(ISyntaxNode node,
-            string fieldName)
+        public IError InputFieldRequired(ISyntaxNode node, string fieldName)
         {
             return ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_InputFieldRequired, fieldName)
@@ -419,8 +421,7 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError OperationNameNotUnique(OperationDefinitionNode operation,
-            string operationName)
+        public IError OperationNameNotUnique(OperationDefinitionNode operation, string operationName)
         {
             return ErrorBuilder.New()
                 .SetMessage(
@@ -432,8 +433,7 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError OperationAnonymousMoreThanOne(OperationDefinitionNode operation,
-            int operations)
+        public IError OperationAnonymousMoreThanOne(OperationDefinitionNode operation, int operations)
         {
             return ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_OperationAnonymousMoreThanOne)
@@ -443,8 +443,7 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError VariableNotInputType(VariableDefinitionNode node,
-            string variableName)
+        public IError VariableNotInputType(VariableDefinitionNode node, string variableName)
         {
             return ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_VariableNotInputType, variableName)
@@ -456,8 +455,7 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError VariableNameNotUnique(VariableDefinitionNode node,
-            string variableName)
+        public IError VariableNameNotUnique(VariableDefinitionNode node, string variableName)
         {
             return ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_VariableNameNotUnique)
@@ -469,7 +467,8 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError ArgumentNotUnique(ArgumentNode node,
+        public IError ArgumentNotUnique(
+            ArgumentNode node,
             SchemaCoordinate? field = null,
             IDirectiveDefinition? directive = null)
         {
@@ -496,7 +495,8 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError ArgumentRequired(ISyntaxNode node,
+        public IError ArgumentRequired(
+            ISyntaxNode node,
             string argumentName,
             SchemaCoordinate? field = null,
             IDirectiveDefinition? directive = null)
@@ -524,7 +524,8 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError ArgumentDoesNotExist(ArgumentNode node,
+        public IError ArgumentDoesNotExist(
+            ArgumentNode node,
             SchemaCoordinate? field = null,
             IDirectiveDefinition? directive = null)
         {
@@ -569,7 +570,8 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError MaxExecutionDepth(OperationDefinitionNode operation,
+        public IError MaxExecutionDepth(
+            OperationDefinitionNode operation,
             int allowedExecutionDepth,
             int detectedExecutionDepth)
         {
@@ -583,8 +585,7 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError IntrospectionNotAllowed(FieldNode field,
-            string? customErrorMessage)
+        public IError IntrospectionNotAllowed(FieldNode field, string? customErrorMessage)
         {
             var message = customErrorMessage ?? Resources.ErrorHelper_IntrospectionNotAllowed;
 
@@ -596,8 +597,7 @@ internal static class ErrorHelper
                 .Build();
         }
 
-        public IError OneOfMustHaveExactlyOneField(ISyntaxNode node,
-            IInputObjectTypeDefinition type)
+        public IError OneOfMustHaveExactlyOneField(ISyntaxNode node, IInputObjectTypeDefinition type)
             => ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_OneOfMustHaveExactlyOneField, type.Name)
                 .AddLocation(node)
@@ -606,7 +606,8 @@ internal static class ErrorHelper
                 .SpecifiedBy("sec-All-Variable-Usages-Are-Allowed", rfc: 825)
                 .Build();
 
-        public IError OneOfVariablesMustBeNonNull(ISyntaxNode node,
+        public IError OneOfVariablesMustBeNonNull(
+            ISyntaxNode node,
             SchemaCoordinate fieldCoordinate,
             string variableName)
             => ErrorBuilder.New()
@@ -621,8 +622,7 @@ internal static class ErrorHelper
                 .SpecifiedBy("sec-All-Variable-Usages-Are-Allowed", rfc: 825)
                 .Build();
 
-        public IError DeferAndStreamDuplicateLabel(ISyntaxNode selection,
-            string label)
+        public IError DeferAndStreamDuplicateLabel(ISyntaxNode selection, string label)
             => ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_DeferAndStreamDuplicateLabel)
                 .AddLocation(selection)
@@ -631,8 +631,7 @@ internal static class ErrorHelper
                 .SetPath(context.CreateErrorPath())
                 .Build();
 
-        public IError DeferAndStreamLabelIsVariable(ISyntaxNode selection,
-            string variable)
+        public IError DeferAndStreamLabelIsVariable(ISyntaxNode selection, string variable)
             => ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_DeferAndStreamLabelIsVariable)
                 .AddLocation(selection)
