@@ -176,6 +176,10 @@ public sealed class StringValueNode : IValueNode<string>, IHasSpan
     public StringValueNode WithLocation(Location? location)
         => new(location, Value, Block);
 
+    /// <inheritdoc />
+    IValueNode IValueNode.WithLocation(Location? location)
+        => WithLocation(location);
+
     public StringValueNode WithValue(string value)
         => new(Location, value, false);
 
