@@ -26,10 +26,9 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
 
         if (context.Type.NamedType() is not IPageType pageType)
         {
-            throw ThrowHelper
-                .PagingProjectionOptimizer_NotAPagingField(
-                    selection.DeclaringType,
-                    selection.Field);
+            throw ThrowHelper.PagingProjectionOptimizer_NotAPagingField(
+                selection.DeclaringType,
+                selection.Field);
         }
 
         var selections = CollectSelection(context);

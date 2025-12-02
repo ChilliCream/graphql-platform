@@ -1,12 +1,9 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Execution.Properties.Resources;
-using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -68,7 +65,7 @@ public sealed class Operation : IOperation
         rootSelectionSet.Complete(this, seal: isFinal);
     }
 
-     /// <summary>
+    /// <summary>
     /// Gets the internal unique identifier for this operation.
     /// </summary>
     public string Id { get; }
@@ -191,7 +188,7 @@ public sealed class Operation : IOperation
                             _includeConditions,
                             ref _elementsById,
                             ref _lastId);
-                    selectionSet.Complete(this,  seal: _isFinal);
+                    selectionSet.Complete(this, seal: _isFinal);
                     _selectionSets.TryAdd(key, selectionSet);
                 }
             }
