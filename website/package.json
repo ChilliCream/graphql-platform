@@ -14,7 +14,7 @@
   },
   "scripts": {
     "build": "gatsby build",
-    "develop": "NODE_OPTIONS=--no-experimental-fetch && gatsby develop --verbose --host 0.0.0.0",
+    "develop": "gatsby develop --verbose --host 0.0.0.0",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "start": "yarn develop",
     "serve": "gatsby serve",
