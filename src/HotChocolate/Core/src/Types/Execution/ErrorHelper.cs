@@ -32,11 +32,11 @@ internal static class ErrorHelper
 
     public static IError InvalidLeafValue(
         GraphQLException exception,
-        FieldNode field,
+        Selection selection,
         Path path)
     {
         return ErrorBuilder.FromError(exception.Errors[0])
-            .TryAddLocation(field)
+            .AddLocations(selection)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
             .Build();
@@ -44,12 +44,12 @@ internal static class ErrorHelper
 
     public static IError UnexpectedLeafValueSerializationError(
         Exception exception,
-        FieldNode field,
+        Selection selection,
         Path path)
     {
         return ErrorBuilder
             .FromException(exception)
-            .AddLocation(field)
+            .AddLocations(selection)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
             .Build();
@@ -85,24 +85,24 @@ internal static class ErrorHelper
 
     public static IError ListValueIsNotSupported(
         Type listType,
-        FieldNode field,
+        Selection selection,
         Path path)
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_ListValueIsNotSupported_Message, listType.FullName!)
-            .AddLocation(field)
+            .AddLocations(selection)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.ListTypeNotSupported)
             .Build();
     }
 
     public static IError UnexpectedValueCompletionError(
-        FieldNode field,
+        Selection selection,
         Path path)
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnexpectedValueCompletionError_Message)
-            .AddLocation(field)
+            .AddLocations(selection)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.ListTypeNotSupported)
             .Build();
@@ -137,16 +137,16 @@ internal static class ErrorHelper
                 .Build());
 
     public static IError ValueCompletion_CouldNotResolveAbstractType(
-        FieldNode field,
+        Selection selection,
         Path path,
         object result) =>
         ErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message,
                 result.GetType().FullName ?? result.GetType().Name,
-                field.Name)
+                selection.ResponseName)
             .SetPath(path)
-            .AddLocation(field)
+            .AddLocations(selection)
             .Build();
 
     public static IOperationResult OperationKindNotAllowed() =>

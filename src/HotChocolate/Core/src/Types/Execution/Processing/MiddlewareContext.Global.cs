@@ -33,6 +33,8 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public IVariableValueCollection Variables => _operationContext.Variables;
 
+    public ulong IncludeFlags => _operationContext.IncludeFlags;
+
     public CancellationToken RequestAborted { get; private set; }
 
     public bool HasCleanupTasks => _cleanupTasks.Count > 0;

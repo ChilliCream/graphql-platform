@@ -65,6 +65,8 @@ internal partial class MiddlewareContext
 
         public Path Path => PathHelper.CreatePathFromContext(_selection, _parentResult, -1);
 
+        public ulong IncludeFlags => parentContext.IncludeFlags;
+
         public CancellationToken RequestAborted => parentContext.RequestAborted;
 
         public void ReportError(string errorMessage)

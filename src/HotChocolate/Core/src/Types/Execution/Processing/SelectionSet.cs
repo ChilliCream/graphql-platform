@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 using HotChocolate.Types;
@@ -17,7 +18,7 @@ public sealed class SelectionSet : ISelectionSet
     private readonly SelectionLookup _utf8ResponseNameLookup;
     private Flags _flags;
 
-    public SelectionSet(int id, IObjectTypeDefinition type, Selection[] selections, bool isConditional)
+    internal SelectionSet(int id, IObjectTypeDefinition type, Selection[] selections, bool isConditional)
     {
         ArgumentNullException.ThrowIfNull(selections);
 
@@ -63,6 +64,36 @@ public sealed class SelectionSet : ISelectionSet
 
     IEnumerable<ISelection> ISelectionSet.GetSelections() => _selections;
 
+    /// <summary>
+    /// Tries to resolve a selection by name.
+    /// </summary>
+    /// <param name="responseName">
+    /// The selection response name.
+    /// </param>
+    /// <param name="selection">
+    /// The resolved selection.
+    /// </param>
+    /// <returns>
+    /// Returns true if the selection was successfully resolved.
+    /// </returns>
+    public bool TryGetSelection(string responseName, [NotNullWhen(true)] out Selection? selection)
+        => _responseNameLookup.TryGetValue(responseName, out selection);
+
+    /// <summary>
+    /// Tries to resolve a selection by name.
+    /// </summary>
+    /// <param name="utf8ResponseName">
+    /// The selection response name.
+    /// </param>
+    /// <param name="selection">
+    /// The resolved selection.
+    /// </param>
+    /// <returns>
+    /// Returns true if the selection was successfully resolved.
+    /// </returns>
+    public bool TryGetSelection(ReadOnlySpan<byte> utf8ResponseName, [NotNullWhen(true)] out Selection? selection)
+        => _utf8ResponseNameLookup.TryGetSelection(utf8ResponseName, out selection);
+
     internal void Complete(Operation declaringOperation, bool seal)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
@@ -82,16 +113,6 @@ public sealed class SelectionSet : ISelectionSet
             _flags |= Flags.Sealed;
         }
     }
-
-    /// <summary>
-    /// Returns a reference to the 0th element of the underlying selections array.
-    /// If the selections array is empty, returns a reference to the location where the 0th element
-    /// would have been stored. Such a reference may or may not be null.
-    /// It can be used for pinning but must never be de-referenced.
-    /// This is only meant for use by the execution engine.
-    /// </summary>
-    internal ref Selection GetSelectionsReference()
-        => ref MemoryMarshal.GetReference(_selections.AsSpan());
 
     [Flags]
     private enum Flags

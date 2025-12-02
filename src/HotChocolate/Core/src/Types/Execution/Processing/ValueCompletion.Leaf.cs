@@ -9,7 +9,7 @@ internal static partial class ValueCompletion
 {
     private static object? CompleteLeafValue(
         ValueCompletionContext context,
-        ISelection selection,
+        Selection selection,
         IType type,
         ResultData parent,
         int index,
@@ -34,13 +34,13 @@ internal static partial class ValueCompletion
         catch (SerializationException ex)
         {
             var errorPath = CreatePathFromContext(selection, parent, index);
-            var error = InvalidLeafValue(ex, selection.SyntaxNode, errorPath);
+            var error = InvalidLeafValue(ex, selection, errorPath);
             operationContext.ReportError(error, resolverContext, selection);
         }
         catch (Exception ex)
         {
             var errorPath = CreatePathFromContext(selection, parent, index);
-            var error = UnexpectedLeafValueSerializationError(ex, selection.SyntaxNode, errorPath);
+            var error = UnexpectedLeafValueSerializationError(ex, selection, errorPath);
             operationContext.ReportError(error, resolverContext, selection);
         }
 

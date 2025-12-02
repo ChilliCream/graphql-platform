@@ -105,11 +105,7 @@ public static class HotChocolateExecutionSelectionExtensions
     private static bool TryGetExpression<TValue>(
         Selection selection,
         [NotNullWhen(true)] out Expression<Func<TValue, TValue>>? expression)
-    {
-        var features = selection.DeclaringOperation.Features;
-        var cache = features.GetOrSetSafe<ExpressionCache>();
-        return cache.TryGetExpression(selection, out expression);
-    }
+        => selection.Features.TryGet(out expression);
 
     private static int GetConnectionSelections(Selection selection, Span<Selection> buffer)
     {
@@ -181,18 +177,12 @@ file static class Extensions
     extension(Selection selection)
     {
         public Expression<Func<TValue, TValue>> GetOrCreateExpression<TValue>()
-            => selection.DeclaringOperation.Features
-                .GetOrSetSafe<ExpressionCache>()
-                .GetOrCreateExpression<TValue>(selection, s_builder);
+            => selection.Features.GetOrSetSafe(() => s_builder.BuildExpression<TValue>(selection));
 
         public Expression<Func<TValue, TValue>> GetOrCreateExpression<TValue>(ISelectorBuilder expressionBuilder)
-            => selection.DeclaringOperation.Features
-                .GetOrSetSafe<ExpressionCache>()
-                .GetOrCreateExpression<TValue>(selection, expressionBuilder);
+            => selection.Features.GetOrSetSafe(() => expressionBuilder.TryCompile<TValue>()!);
 
         public Expression<Func<TValue, TValue>> GetOrCreateNodeExpression<TValue>()
-            => selection.DeclaringOperation.Features
-                .GetOrSetSafe<ExpressionCache>()
-                .GetOrCreateNodeExpression<TValue>(selection, s_builder);
+            => selection.Features.GetOrSetSafe(() => s_builder.BuildNodeExpression<TValue>(selection));
     }
 }

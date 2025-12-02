@@ -11,7 +11,7 @@ public interface IProjectionOptimizer
     /// </summary>
     /// <param name="selection">The selection to test for</param>
     /// <returns>Returns true if the selection can be handled</returns>
-    bool CanHandle(ISelection selection);
+    bool CanHandle(Selection selection);
 
     /// <summary>
     /// Rewrites a selection. In case nothing is rewritten, the <paramref name="selection"/>

@@ -335,7 +335,7 @@ public sealed partial class ResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteRawValueTo(IBufferWriter<byte> writer, DbRow row)
+    private void WriteRawValueTo(IBufferWriter<byte> writer, DbRow row, int indentation, bool indented)
     {
         switch (row.TokenType)
         {
@@ -360,6 +360,7 @@ public sealed partial class ResultDocument : IDisposable
                 WriteLocalDataTo(writer, row.Location, row.SizeOrLength);
                 return;
 
+            // TODO : We need to handle any types.
             default:
                 throw new NotSupportedException();
         }
@@ -738,7 +739,7 @@ public sealed partial class ResultDocument : IDisposable
             flags |= ElementFlags.IsList;
         }
 
-        if (selection.Type.IsCompositeType())
+        if (selection.Type.NamedType().IsCompositeType())
         {
             flags |= ElementFlags.IsObject;
         }

@@ -6,7 +6,7 @@ using HotChocolate.Features;
 namespace HotChocolate.Execution.Processing;
 
 [SuppressMessage("ReSharper", "NonAtomicCompoundOperator")]
-public sealed class OperationFeatureCollection : IFeatureCollection
+public sealed partial class OperationFeatureCollection : IFeatureCollection
 {
 #if NET9_0_OR_GREATER
     private readonly Lock _writeLock = new();
@@ -15,8 +15,10 @@ public sealed class OperationFeatureCollection : IFeatureCollection
 #endif
 #if NET10_0_OR_GREATER
     private ImmutableDictionary<Type, object> _features = [];
+    private ImmutableDictionary<(int, Type), object> _selectionFeatures = [];
 #else
     private ImmutableDictionary<Type, object> _features = ImmutableDictionary<Type, object>.Empty;
+    private ImmutableDictionary<(int, Type), object> _selectionFeatures = ImmutableDictionary<(int, Type), object>.Empty;
 #endif
     private volatile int _containerRevision;
 

@@ -1,20 +1,19 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Handlers;
 
 public class IsProjectedProjectionOptimizer : IProjectionOptimizer
 {
-    public bool CanHandle(ISelection field) =>
-        field.DeclaringType is ObjectType objectType
-        && objectType.Features.Get<ProjectionTypeFeature>()?.AlwaysProjectedFields.Length > 0;
+    public bool CanHandle(Selection field)
+        => field.DeclaringType is { } objectType
+            && objectType.Features.Get<ProjectionTypeFeature>()?.AlwaysProjectedFields.Length > 0;
 
     public Selection RewriteSelection(
         SelectionSetOptimizerContext context,
         Selection selection)
     {
-        if (context.Type is not ObjectType type
+        if (context.Type is not { } type
             || !type.Features.TryGet(out ProjectionTypeFeature? feature))
         {
             return selection;

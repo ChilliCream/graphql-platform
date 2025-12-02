@@ -29,12 +29,15 @@ internal sealed partial class OperationCompiler
         _documentRewriter = new DocumentRewriter(schema, removeStaticallyExcludedSelections: true);
     }
 
-    public Operation Compile(string id, string hash, OperationDefinitionNode operationDefinition)
+    public Operation Compile(
+        string id,
+        string hash,
+        OperationDefinitionNode operationDefinition)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(operationDefinition);
 
-        var document = new DocumentNode(new IDefinitionNode[] { operationDefinition });
+        var document = new DocumentNode([operationDefinition]);
         document = _documentRewriter.RewriteDocument(document);
         operationDefinition = (OperationDefinitionNode)document.Definitions[0];
 
@@ -68,6 +71,7 @@ internal sealed partial class OperationCompiler
             return new Operation(
                 id,
                 hash,
+                document,
                 operationDefinition,
                 rootType,
                 _schema,

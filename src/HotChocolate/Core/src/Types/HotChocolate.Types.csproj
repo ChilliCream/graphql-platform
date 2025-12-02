@@ -205,6 +205,22 @@
     <Compile Update="Execution\Processing\Tasks\ResolverTask.Pooling.cs">
       <DependentUpon>ResolverTask.cs</DependentUpon>
     </Compile>
+
+    <Compile Update="Execution\Processing\ValueCompletion.Leaf.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\ValueCompletion.List.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\ValueCompletion.Object.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\OperationFeatureCollection.Selections.cs">
+      <DependentUpon>OperationFeatureCollection.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using HotChocolate.Execution.Properties;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -9,7 +9,7 @@ namespace HotChocolate.Execution.Processing;
 /// <summary>
 /// Represents a field selection during execution.
 /// </summary>
-public class Selection : ISelection
+public sealed class Selection : ISelection, IFeatureProvider
 {
     private static readonly ArgumentMap s_emptyArguments = ArgumentMap.Empty;
     private readonly FieldSelectionNode[] _syntaxNodes;
@@ -24,9 +24,9 @@ public class Selection : ISelection
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
         bool isInternal,
-        ArgumentMap? arguments = null,
-        FieldDelegate? resolverPipeline = null,
-        PureFieldDelegate? pureResolver = null)
+        ArgumentMap? arguments,
+        FieldDelegate? resolverPipeline,
+        PureFieldDelegate? pureResolver)
     {
         ArgumentNullException.ThrowIfNull(field);
 
@@ -71,42 +71,84 @@ public class Selection : ISelection
 
     internal ReadOnlySpan<byte> Utf8ResponseName => _utf8ResponseName;
 
+    /// <inheritdoc />
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
 
+    /// <inheritdoc />
     public bool IsConditional => _includeFlags.Length > 0;
 
+    /// <summary>
+    /// Gets a value indicating whether this selection returns a list type.
+    /// </summary>
     public bool IsList => (_flags & Flags.List) == Flags.List;
 
+    /// <inheritdoc />
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
 
     /// <summary>
-    /// Defines if this selection has child selections.
+    /// Gets a value indicating whether this selection has child selections.
     /// </summary>
     public bool HasSelections => !IsLeaf;
 
+    /// <summary>
+    /// Gets the field definition from the schema that this selection targets.
+    /// </summary>
     public ObjectField Field { get; }
 
     /// <inheritdoc />
     IOutputFieldDefinition ISelection.Field => Field;
 
+    /// <inheritdoc />
     public IType Type => Field.Type;
 
+    /// <summary>
+    /// Gets the object type that declares the field being selected.
+    /// </summary>
     public ObjectType DeclaringType => Field.DeclaringType;
 
+    /// <summary>
+    /// Gets the selection set that contains this selection.
+    /// </summary>
     public SelectionSet DeclaringSelectionSet { get; private set; } = null!;
 
+    /// <inheritdoc />
     ISelectionSet ISelection.DeclaringSelectionSet => DeclaringSelectionSet;
 
+    /// <summary>
+    /// Gets the operation that contains this selection.
+    /// </summary>
     public Operation DeclaringOperation => DeclaringSelectionSet.DeclaringOperation;
 
+    /// <summary>
+    /// Gets the selection features.
+    /// </summary>
+    public SelectionFeatureCollection Features => new(DeclaringOperation.Features, Id);
+
+    IFeatureCollection IFeatureProvider.Features => Features;
+
+    /// <summary>
+    /// Gets the arguments that were provided to this field selection.
+    /// </summary>
     public ArgumentMap Arguments { get; }
 
+    /// <summary>
+    /// Gets the execution strategy for this selection.
+    /// </summary>
     public SelectionExecutionStrategy Strategy { get; private set; }
 
+    /// <summary>
+    /// Gets the resolver pipeline delegate for this selection.
+    /// </summary>
     public FieldDelegate? ResolverPipeline { get; private set; }
 
+    /// <summary>
+    /// Gets the pure resolver delegate for this selection.
+    /// </summary>
     public PureFieldDelegate? PureResolver { get; private set; }
 
+    /// <summary>
+    /// Gets the syntax nodes that contributed to this selection.
+    /// </summary>
     public ReadOnlySpan<FieldSelectionNode> SyntaxNodes => _syntaxNodes;
 
     IEnumerable<FieldNode> ISelection.GetSyntaxNodes()
@@ -117,6 +159,17 @@ public class Selection : ISelection
         }
     }
 
+    /// <summary>
+    /// Determines whether this selection should be skipped based on conditional flags.
+    /// </summary>
+    /// <param name="includeFlags">The conditional inclusion flags.</param>
+    /// <returns>
+    /// <c>true</c> if this selection should be included; otherwise, <c>false</c>.
+    /// </returns>
+    public bool IsSkipped(ulong includeFlags)
+        => IsIncluded(includeFlags);
+
+    /// <inheritdoc />
     public bool IsIncluded(ulong includeFlags)
     {
         if (_includeFlags.Length == 0)
@@ -231,36 +284,5 @@ public class Selection : ISelection
         List = 4,
         Stream = 8,
         Leaf = 16
-    }
-
-    internal sealed class Sealed : Selection
-    {
-        public Sealed(
-            int id,
-            ObjectType declaringType,
-            ObjectField field,
-            IType type,
-            FieldNode syntaxNode,
-            string responseName,
-            ArgumentMap? arguments = null,
-            ulong[]? includeConditions = null,
-            bool isInternal = false,
-            bool isParallelExecutable = true,
-            FieldDelegate? resolverPipeline = null,
-            PureFieldDelegate? pureResolver = null) : base(
-            id,
-            declaringType,
-            field,
-            type,
-            syntaxNode,
-            responseName,
-            arguments,
-            includeConditions,
-            isInternal,
-            isParallelExecutable,
-            resolverPipeline,
-            pureResolver)
-        {
-        }
     }
 }

@@ -39,13 +39,32 @@ public static class ErrorBuilderExtensions
         /// Sets the message of the error.
         /// </summary>
         /// <param name="format">The format of the message.</param>
-        /// <param name="args">The arguments for the message.</param>
+        /// <param name="arg">The argument for the message.</param>
         /// <returns>The error builder.</returns>
-        public ErrorBuilder SetMessage([StringSyntax("CompositeFormat")] string format, params object?[] args)
+        public ErrorBuilder SetMessage([StringSyntax("CompositeFormat")] string format, object? arg)
         {
             ArgumentNullException.ThrowIfNull(builder);
             ArgumentException.ThrowIfNullOrEmpty(format);
-            ArgumentNullException.ThrowIfNull(args);
+
+            return builder.SetMessage(string.Format(CultureInfo.InvariantCulture, format, arg));
+        }
+
+        /// <summary>
+        /// Sets the message of the error.
+        /// </summary>
+        /// <param name="format">The format of the message.</param>
+        /// <param name="args">The arguments for the message.</param>
+        /// <returns>The error builder.</returns>
+        public ErrorBuilder SetMessage(
+            [StringSyntax("CompositeFormat")] string format,
+#if NET10_0_OR_GREATER
+            params ReadOnlySpan<object?> args)
+#else
+            params object[] args)
+#endif
+        {
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentException.ThrowIfNullOrEmpty(format);
 
             return builder.SetMessage(string.Format(CultureInfo.InvariantCulture, format, args));
         }

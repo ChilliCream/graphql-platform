@@ -3,7 +3,6 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Fetching;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
@@ -20,7 +19,7 @@ internal sealed partial class SubscriptionExecutor
         private IDisposable? _subscriptionScope;
         private readonly RequestContext _requestContext;
         private readonly ObjectType _subscriptionType;
-        private readonly ISelectionSet _rootSelections;
+        private readonly SelectionSet _rootSelections;
         private readonly Func<object?> _resolveQueryRootValue;
         private ISourceStream _sourceStream = null!;
         private object? _cachedRootValue;
@@ -33,7 +32,7 @@ internal sealed partial class SubscriptionExecutor
             QueryExecutor queryExecutor,
             RequestContext requestContext,
             ObjectType subscriptionType,
-            ISelectionSet rootSelections,
+            SelectionSet rootSelections,
             Func<object?> resolveQueryRootValue,
             IExecutionDiagnosticEvents diagnosticEvents)
         {
@@ -85,7 +84,7 @@ internal sealed partial class SubscriptionExecutor
             QueryExecutor queryExecutor,
             RequestContext requestContext,
             ObjectType subscriptionType,
-            ISelectionSet rootSelections,
+            SelectionSet rootSelections,
             Func<object?> resolveQueryRootValue,
             IExecutionDiagnosticEvents diagnosticsEvents)
         {

@@ -29,6 +29,7 @@ public sealed class Operation : IOperation
     internal Operation(
         string id,
         string hash,
+        DocumentNode document,
         OperationDefinitionNode definition,
         ObjectType rootType,
         Schema schema,
@@ -41,6 +42,7 @@ public sealed class Operation : IOperation
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(hash);
+        ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(definition);
         ArgumentNullException.ThrowIfNull(rootType);
         ArgumentNullException.ThrowIfNull(schema);
@@ -51,6 +53,7 @@ public sealed class Operation : IOperation
 
         Id = id;
         Hash = hash;
+        Document = document;
         Definition = definition;
         RootType = rootType;
         Schema = schema;
@@ -79,6 +82,11 @@ public sealed class Operation : IOperation
     /// Gets the name of the operation.
     /// </summary>
     public string? Name => Definition.Name?.Value;
+
+    /// <summary>
+    /// Gets the normalized operation document.
+    /// </summary>
+    public DocumentNode Document { get; }
 
     /// <summary>
     /// Gets the syntax node representing the operation definition.
@@ -259,5 +267,5 @@ public sealed class Operation : IOperation
     internal SelectionSet GetSelectionSetById(int id)
         => Unsafe.As<SelectionSet>(Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_elementsById), id));
 
-    public override string ToString() => OperationPrinter.Print(this);
+    public override string ToString() => Definition.ToString(indented: true);
 }

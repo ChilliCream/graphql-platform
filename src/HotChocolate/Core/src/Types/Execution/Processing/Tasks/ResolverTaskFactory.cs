@@ -251,7 +251,7 @@ internal static class ResolverTaskFactory
     private static void CompleteInline(
         OperationContext operationContext,
         MiddlewareContext resolverContext,
-        ISelection selection,
+        Selection selection,
         IType type,
         int responseIndex,
         ObjectResult parentResult,

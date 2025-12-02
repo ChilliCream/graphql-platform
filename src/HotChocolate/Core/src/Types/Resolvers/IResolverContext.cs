@@ -45,6 +45,11 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     Path Path { get; }
 
     /// <summary>
+    /// Gets the selection include flags.
+    /// </summary>
+    ulong IncludeFlags { get; }
+
+    /// <summary>
     /// Gets the previous (parent) resolver result.
     /// </summary>
     /// <typeparam name="T">

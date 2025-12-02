@@ -1,6 +1,5 @@
 using HotChocolate.Execution.Internal;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 using System.Runtime.InteropServices;
 
 namespace HotChocolate.Execution.Processing.Tasks;
@@ -168,6 +167,8 @@ internal sealed partial class ResolverTask
         _context.Result = await postProcessor.ToCompletionResultAsync(result, cancellationToken).ConfigureAwait(false);
     }
 
+    // TODO : DEFER
+    /*
     private async ValueTask<List<object?>> CreateStreamResultAsync(IAsyncEnumerable<object?> stream)
     {
         var streamDirective = _selection.GetStreamDirective(_context.Variables)!;
@@ -203,7 +204,6 @@ internal sealed partial class ResolverTask
                 // TODO : DEFER
                 // if the stream has more items than the initial requested items then we will
                 // defer the rest of the stream.
-                /*
                 _operationContext.DeferredScheduler.Register(
                     new DeferredStream(
                         Selection,
@@ -214,7 +214,6 @@ internal sealed partial class ResolverTask
                         enumerator,
                         _context.ScopedContextData),
                     _context.ParentResult);
-                    */
             }
 
             return list;
@@ -230,6 +229,7 @@ internal sealed partial class ResolverTask
             }
         }
     }
+    */
 
     /// <summary>
     /// <para>

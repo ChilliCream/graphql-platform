@@ -10,7 +10,7 @@ internal static partial class ValueCompletion
 {
     private static object? CompleteListValue(
         ValueCompletionContext context,
-        ISelection selection,
+        Selection selection,
         IType type,
         ResultData parent,
         int index,
@@ -114,7 +114,7 @@ internal static partial class ValueCompletion
         }
 
         var errorPath = CreatePathFromContext(selection, parent, index);
-        var error = ListValueIsNotSupported(result.GetType(), selection.SyntaxNode, errorPath);
+        var error = ListValueIsNotSupported(result.GetType(), selection, errorPath);
         operationContext.ReportError(error, resolverContext, selection);
 
         return null;
@@ -122,7 +122,7 @@ internal static partial class ValueCompletion
 
     private static bool TryCompleteElement(
         ValueCompletionContext context,
-        ISelection selection,
+        Selection selection,
         IType elementType,
         bool isLeafType,
         ListResult list,

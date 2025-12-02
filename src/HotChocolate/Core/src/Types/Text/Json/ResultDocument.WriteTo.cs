@@ -16,7 +16,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 
     internal ref struct RawJsonFormatter(ResultDocument document, IBufferWriter<byte> writer, bool indented)
     {
-        private int _indentLevel = 0;
+        private int _indentation = 0;
 
         public void Write()
         {
@@ -25,7 +25,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
             if (indented)
             {
                 WriteNewLine();
-                _indentLevel++;
+                _indentation++;
             }
 
             if (document._errors?.Count > 0)
@@ -117,7 +117,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 
             if (indented)
             {
-                _indentLevel--;
+                _indentation--;
                 WriteNewLine();
                 WriteIndent();
             }
@@ -144,12 +144,12 @@ public sealed partial class ResultDocument : IRawJsonFormatter
             switch (tokenType)
             {
                 case ElementTokenType.StartObject
-                    when (ElementFlags.SourceResult & row.Flags) != ElementFlags.SourceResult:
+                    when (ElementFlags.IsObject & row.Flags) != ElementFlags.IsObject:
                     WriteObject(cursor, row);
                     break;
 
                 case ElementTokenType.StartArray
-                    when (ElementFlags.SourceResult & row.Flags) != ElementFlags.SourceResult:
+                    when (ElementFlags.IsList & row.Flags) != ElementFlags.IsList:
                     WriteArray(cursor, row);
                     break;
 
@@ -167,7 +167,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                     break;
 
                 default:
-                    document.WriteRawValueTo(writer, row, _indentLevel, indented);
+                    document.WriteRawValueTo(writer, row, _indentation, indented);
                     break;
             }
         }
@@ -183,7 +183,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 
             if (indented && current < end)
             {
-                _indentLevel++;
+                _indentation++;
             }
 
             var first = true;
@@ -234,7 +234,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 
             if (indented && !first)
             {
-                _indentLevel--;
+                _indentation--;
                 WriteNewLine();
                 WriteIndent();
             }
@@ -253,7 +253,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 
             if (indented && current < end)
             {
-                _indentLevel++;
+                _indentation++;
             }
 
             var first = true;
@@ -279,7 +279,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 
             if (indented && end > start + 1)
             {
-                _indentLevel--;
+                _indentation--;
                 WriteNewLine();
                 WriteIndent();
             }
@@ -293,7 +293,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly void WriteIndent()
         {
-            var indentSize = _indentLevel * 2;
+            var indentSize = _indentation * 2;
             if (indentSize > 0)
             {
                 var span = writer.GetSpan(indentSize);

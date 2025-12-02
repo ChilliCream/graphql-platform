@@ -8,7 +8,7 @@ internal static partial class ValueCompletion
 {
     public static object? Complete(
         ValueCompletionContext context,
-        ISelection selection,
+        Selection selection,
         ResultData parent,
         int index,
         object? result)
@@ -16,7 +16,7 @@ internal static partial class ValueCompletion
 
     public static object? Complete(
         ValueCompletionContext context,
-        ISelection selection,
+        Selection selection,
         IType type,
         ResultData parent,
         int index,
@@ -51,7 +51,7 @@ internal static partial class ValueCompletion
         }
 
         var errorPath = CreatePathFromContext(selection, parent, index);
-        var error = UnexpectedValueCompletionError(selection.SyntaxNode, errorPath);
+        var error = UnexpectedValueCompletionError(selection, errorPath);
         context.OperationContext.ReportError(error, context.ResolverContext, selection);
         return null;
     }

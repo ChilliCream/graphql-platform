@@ -30,8 +30,7 @@ internal sealed class QueryCacheMiddleware
         }
 
         if (!context.TryGetOperation(out var operation)
-            || !operation.ContextData.TryGetValue(ExecutionContextData.CacheControlHeaderValue, out var value)
-            || value is not CacheControlHeaderValue cacheControlHeaderValue)
+            || !operation.Features.TryGet<CacheControlHeaderValue>(out var cacheControlHeaderValue))
         {
             return;
         }
