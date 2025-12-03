@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y \
     gnupg2 \
     lsb-release \
     software-properties-common \
-    openssh-server
+    openssh-server \
+    libnss3
 
 # Configure SSH server
 RUN mkdir /var/run/sshd \
