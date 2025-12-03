@@ -25,6 +25,17 @@ internal static class MutableOutputFieldDefinitionExtensions
             }
         }
 
+        public void ApplyShareableDirective()
+        {
+            var shareableDirectiveExists =
+                field.Directives.AsEnumerable().Any(d => d.Name == DirectiveNames.Shareable);
+
+            if (!shareableDirectiveExists)
+            {
+                field.Directives.Add(new Directive(FusionBuiltIns.SourceSchemaDirectives[DirectiveNames.Shareable]));
+            }
+        }
+
         public bool ExistsInSchema(string schemaName)
         {
             return field.Directives.AsEnumerable().Any(

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Language;
@@ -16,30 +17,91 @@ namespace HotChocolate.Fusion;
 /// </summary>
 internal sealed partial class SourceSchemaPreprocessor(
     MutableSchemaDefinition schema,
+    ImmutableSortedSet<MutableSchemaDefinition> schemas,
     SourceSchemaPreprocessorOptions? options = null)
 {
     private readonly SourceSchemaPreprocessorOptions _options = options ?? new SourceSchemaPreprocessorOptions();
 
     public CompositionResult Process()
     {
-        if (_options.CompatibilityMode)
+        if (_options.FusionV1CompatibilityMode)
         {
             RemoveDirectivesFromBatchFields();
 
             ApplyInferredLookupDirectives();
         }
 
-        if (_options.CompatibilityMode || _options.ApplyInferredKeyDirectives)
+        if (_options.FusionV1CompatibilityMode || _options.ApplyInferredKeyDirectives)
         {
             ApplyInferredKeyDirectives();
         }
 
-        if (_options.CompatibilityMode || _options.InheritInterfaceKeys)
+        if (_options.FusionV1CompatibilityMode || _options.InheritInterfaceKeys)
         {
             InheritInterfaceKeys();
         }
 
+        // We need to run this after keys have been inferred, so we do not attempt to mark them as @shareable.
+        if (_options.FusionV1CompatibilityMode)
+        {
+            ApplyShareableDirectives();
+        }
+
         return CompositionResult.Success();
+    }
+
+    /// <summary>
+    /// Applies @shareable to each field that is also present in another source schema.
+    /// </summary>
+    private void ApplyShareableDirectives()
+    {
+        foreach (var sourceSchema in schemas.Except([schema]))
+        {
+            foreach (var type in schema.Types.OfType<MutableComplexTypeDefinition>())
+            {
+                if (!sourceSchema.Types.TryGetType<MutableComplexTypeDefinition>(type.Name, out var otherType))
+                {
+                    continue;
+                }
+
+                var keyLookup = new HashSet<string>();
+                foreach (var keyDirective in type.GetKeyDirectives())
+                {
+                    var fieldsArgument = (string)keyDirective.Arguments[ArgumentNames.Fields].Value!;
+                    keyLookup.Add(fieldsArgument);
+                }
+
+                var otherKeyLookup = new HashSet<string>();
+                foreach (var keyDirective in otherType.GetKeyDirectives())
+                {
+                    var fieldsArgument = (string)keyDirective.Arguments[ArgumentNames.Fields].Value!;
+                    keyLookup.Add(fieldsArgument);
+                }
+
+                foreach (var field in type.Fields)
+                {
+                    if (keyLookup.Contains(field.Name))
+                    {
+                        continue;
+                    }
+
+                    if (field.Directives.ContainsName(Internal) || field.Directives.ContainsName(Inaccessible))
+                    {
+                        continue;
+                    }
+
+                    if (!otherType.Fields.TryGetField(field.Name, out var otherField)
+                        || otherField.Directives.ContainsName(Internal)
+                        || otherField.Directives.ContainsName(Inaccessible)
+                        || otherKeyLookup.Contains(field.Name))
+                    {
+                        continue;
+                    }
+
+                    field.ApplyShareableDirective();
+                }
+            }
+        }
     }
 
     /// <summary>

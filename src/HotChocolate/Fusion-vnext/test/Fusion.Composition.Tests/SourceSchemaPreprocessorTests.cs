@@ -69,7 +69,7 @@ public sealed class SourceSchemaPreprocessorTests
                 """);
         var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
         var schema = sourceSchemaParser.Parse().Value.Single();
-        var preprocessor = new SourceSchemaPreprocessor(schema);
+        var preprocessor = new SourceSchemaPreprocessor(schema, []);
 
         // act
         preprocessor.Process();
@@ -102,6 +102,7 @@ public sealed class SourceSchemaPreprocessorTests
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
+                [],
                 new SourceSchemaPreprocessorOptions { ApplyInferredKeyDirectives = false });
 
         // act
@@ -144,7 +145,7 @@ public sealed class SourceSchemaPreprocessorTests
                 """);
         var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
         var schema = sourceSchemaParser.Parse().Value.Single();
-        var preprocessor = new SourceSchemaPreprocessor(schema);
+        var preprocessor = new SourceSchemaPreprocessor(schema, []);
 
         // act
         preprocessor.Process();
@@ -213,6 +214,7 @@ public sealed class SourceSchemaPreprocessorTests
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
+                [],
                 new SourceSchemaPreprocessorOptions { InheritInterfaceKeys = false });
 
         // act
@@ -223,7 +225,7 @@ public sealed class SourceSchemaPreprocessorTests
     }
 
     [Fact]
-    public void CompatibilityMode_Should_Infer_Lookups()
+    public void FusionV1CompatibilityMode_Should_Infer_Lookups()
     {
         // arrange
         var sourceSchemaText =
@@ -255,7 +257,8 @@ public sealed class SourceSchemaPreprocessorTests
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
-                new SourceSchemaPreprocessorOptions { CompatibilityMode = true });
+                [],
+                new SourceSchemaPreprocessorOptions { FusionV1CompatibilityMode = true });
 
         // act
         preprocessor.Process();
@@ -302,7 +305,7 @@ public sealed class SourceSchemaPreprocessorTests
     }
 
     [Fact]
-    public void CompatibilityMode_Should_Not_Infer_Lookups()
+    public void FusionV1CompatibilityMode_Should_Not_Infer_Lookups()
     {
         // arrange
         var sourceSchemaText =
@@ -332,7 +335,8 @@ public sealed class SourceSchemaPreprocessorTests
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
-                new SourceSchemaPreprocessorOptions { CompatibilityMode = true });
+                [],
+                new SourceSchemaPreprocessorOptions { FusionV1CompatibilityMode = true });
 
         // act
         preprocessor.Process();
@@ -364,7 +368,7 @@ public sealed class SourceSchemaPreprocessorTests
     }
 
     [Fact]
-    public void CompatibilityMode_Should_Strip_Batching_Fields()
+    public void FusionV1CompatibilityMode_Should_Strip_Batching_Fields()
     {
         // arrange
         var sourceSchemaText =
@@ -391,7 +395,8 @@ public sealed class SourceSchemaPreprocessorTests
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
-                new SourceSchemaPreprocessorOptions { CompatibilityMode = true });
+                [],
+                new SourceSchemaPreprocessorOptions { FusionV1CompatibilityMode = true });
 
         // act
         preprocessor.Process();
@@ -419,6 +424,76 @@ public sealed class SourceSchemaPreprocessorTests
             type Review {
               id: ID!
               name: String!
+            }
+            """);
+    }
+
+    [Fact]
+    public void FusionV1CompatibilityMode_Should_Apply_Shareable()
+    {
+        // arrange
+        var sourceSchemaTextA =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                  productById(id: ID!): Product @lookup
+                }
+
+                type Product {
+                  id: ID!
+                  name: String!
+                }
+                """);
+
+        var sourceSchemaTextB =
+            new SourceSchemaText(
+                "B",
+                """
+                type Query {
+                  productById(id: ID!): Product @lookup
+                }
+
+                type Product {
+                  id: ID!
+                  name: String!
+                  price: Float!
+                }
+                """);
+        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaTextA, sourceSchemaTextB], new CompositionLog());
+        var schemas = sourceSchemaParser.Parse().Value;
+        var schema = schemas.First();
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                schemas,
+                new SourceSchemaPreprocessorOptions { FusionV1CompatibilityMode = true });
+
+        // act
+        preprocessor.Process();
+        schema.Types.Remove("FieldSelectionMap");
+        schema.Types.Remove("FieldSelectionSet");
+        schema.DirectiveDefinitions.Clear();
+
+        // assert
+        schema.ToString().MatchInlineSnapshot(
+            // lang=graphql
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID!): Product
+                @lookup
+                @shareable
+            }
+
+            type Product
+              @key(fields: "id") {
+              id: ID!
+              name: String!
+                @shareable
             }
             """);
     }

@@ -19,5 +19,5 @@ public sealed class SourceSchemaPreprocessorOptions
     /// <summary>
     /// TODO
     /// </summary>
-    public bool CompatibilityMode { get; init; }
+    public bool FusionV1CompatibilityMode { get; init; }
 }
