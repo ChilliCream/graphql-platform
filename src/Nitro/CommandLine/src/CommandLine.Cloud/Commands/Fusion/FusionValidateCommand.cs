@@ -22,6 +22,7 @@ internal sealed class FusionValidateCommand : Command
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
         AddOption(Opt<ConfigurationFileOption>.Instance);
+        this.AddNitroCloudDefaultOptions();
 
         this.SetHandler(
             ExecuteAsync,

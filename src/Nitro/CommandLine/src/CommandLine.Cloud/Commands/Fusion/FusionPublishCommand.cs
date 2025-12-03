@@ -58,8 +58,7 @@ internal sealed class FusionPublishCommand : Command
         AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<CloudUrlOption>.Instance);
-        AddOption(Opt<ApiKeyOption>.Instance);
+        this.AddNitroCloudDefaultOptions();
 
         this.SetHandler(async context =>
         {
