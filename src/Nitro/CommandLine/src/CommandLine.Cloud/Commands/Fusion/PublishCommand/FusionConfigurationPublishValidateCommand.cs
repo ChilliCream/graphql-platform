@@ -15,7 +15,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 {
     public FusionConfigurationPublishValidateCommand() : base("validate")
     {
-        Description = "Validates a fusion configuration against the schema and clients";
+        Description = "Validates a fusion configuration against the schema and clients.";
         AddOption(Opt<OptionalRequestIdOption>.Instance);
         AddOption(Opt<ConfigurationFileOption>.Instance);
 

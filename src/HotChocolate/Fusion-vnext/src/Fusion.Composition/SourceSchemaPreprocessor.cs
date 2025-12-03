@@ -77,7 +77,7 @@ internal sealed partial class SourceSchemaPreprocessor(
                 foreach (var keyDirective in otherType.GetKeyDirectives())
                 {
                     var fieldsArgument = (string)keyDirective.Arguments[ArgumentNames.Fields].Value!;
-                    keyLookup.Add(fieldsArgument);
+                    otherKeyLookup.Add(fieldsArgument);
                 }
 
                 foreach (var field in type.Fields)
