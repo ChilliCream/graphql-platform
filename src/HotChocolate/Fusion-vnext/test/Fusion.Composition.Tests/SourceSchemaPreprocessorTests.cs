@@ -258,7 +258,7 @@ public sealed class SourceSchemaPreprocessorTests
             new SourceSchemaPreprocessor(
                 schema,
                 [],
-                new SourceSchemaPreprocessorOptions { FusionV1CompatibilityMode = true });
+                new SourceSchemaPreprocessorOptions { Version = new Version(1, 0, 0) });
 
         // act
         preprocessor.Process();
@@ -336,7 +336,7 @@ public sealed class SourceSchemaPreprocessorTests
             new SourceSchemaPreprocessor(
                 schema,
                 [],
-                new SourceSchemaPreprocessorOptions { FusionV1CompatibilityMode = true });
+                new SourceSchemaPreprocessorOptions { Version = new Version(1, 0, 0) });
 
         // act
         preprocessor.Process();
@@ -396,7 +396,7 @@ public sealed class SourceSchemaPreprocessorTests
             new SourceSchemaPreprocessor(
                 schema,
                 [],
-                new SourceSchemaPreprocessorOptions { FusionV1CompatibilityMode = true });
+                new SourceSchemaPreprocessorOptions { Version = new Version(1, 0, 0) });
 
         // act
         preprocessor.Process();
@@ -467,7 +467,7 @@ public sealed class SourceSchemaPreprocessorTests
             new SourceSchemaPreprocessor(
                 schema,
                 schemas,
-                new SourceSchemaPreprocessorOptions { FusionV1CompatibilityMode = true });
+                new SourceSchemaPreprocessorOptions { Version = new Version(1, 0, 0) });
 
         // act
         preprocessor.Process();

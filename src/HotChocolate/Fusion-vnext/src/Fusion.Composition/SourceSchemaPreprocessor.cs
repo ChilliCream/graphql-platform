@@ -24,25 +24,27 @@ internal sealed partial class SourceSchemaPreprocessor(
 
     public CompositionResult Process()
     {
-        if (_options.FusionV1CompatibilityMode)
+        var fusionV1CompatibilityMode = _options.Version.Major == 1;
+
+        if (fusionV1CompatibilityMode)
         {
             RemoveDirectivesFromBatchFields();
 
             ApplyInferredLookupDirectives();
         }
 
-        if (_options.FusionV1CompatibilityMode || _options.ApplyInferredKeyDirectives)
+        if (fusionV1CompatibilityMode || _options.ApplyInferredKeyDirectives)
         {
             ApplyInferredKeyDirectives();
         }
 
-        if (_options.FusionV1CompatibilityMode || _options.InheritInterfaceKeys)
+        if (fusionV1CompatibilityMode || _options.InheritInterfaceKeys)
         {
             InheritInterfaceKeys();
         }
 
         // We need to run this after keys have been inferred, so we do not attempt to mark them as @shareable.
-        if (_options.FusionV1CompatibilityMode)
+        if (fusionV1CompatibilityMode)
         {
             ApplyShareableDirectives();
         }
