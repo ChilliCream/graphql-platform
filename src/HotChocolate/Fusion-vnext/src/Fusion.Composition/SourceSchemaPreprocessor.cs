@@ -1,7 +1,9 @@
+using System.Text.RegularExpressions;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
@@ -12,7 +14,7 @@ namespace HotChocolate.Fusion;
 /// <summary>
 /// Preprocesses a source schema.
 /// </summary>
-internal sealed class SourceSchemaPreprocessor(
+internal sealed partial class SourceSchemaPreprocessor(
     MutableSchemaDefinition schema,
     SourceSchemaPreprocessorOptions? options = null)
 {
@@ -20,17 +22,157 @@ internal sealed class SourceSchemaPreprocessor(
 
     public CompositionResult Process()
     {
-        if (_options.ApplyInferredKeyDirectives)
+        if (_options.CompatibilityMode)
+        {
+            RemoveDirectivesFromBatchFields();
+
+            ApplyInferredLookupDirectives();
+        }
+
+        if (_options.CompatibilityMode || _options.ApplyInferredKeyDirectives)
         {
             ApplyInferredKeyDirectives();
         }
 
-        if (_options.InheritInterfaceKeys)
+        if (_options.CompatibilityMode || _options.InheritInterfaceKeys)
         {
             InheritInterfaceKeys();
         }
 
         return CompositionResult.Success();
+    }
+
+    /// <summary>
+    /// Fusion v2 does not support batching fields, so we remove @lookup and @is from those,
+    /// so they do not lead to a validation error later on.
+    /// If the batching field is internal we remove it from the source schema.
+    /// </summary>
+    private void RemoveDirectivesFromBatchFields()
+    {
+        if (schema.QueryType is not { } queryType)
+        {
+            return;
+        }
+
+        var clonedQueryFields = queryType.Fields.AsEnumerable().ToArray();
+
+        foreach (var field in clonedQueryFields)
+        {
+            var lookupDirective = field.Directives.FirstOrDefault(Lookup);
+
+            if (!field.Type.IsListType() || lookupDirective is null)
+            {
+                continue;
+            }
+
+            if (field.Directives.ContainsName(Internal))
+            {
+                queryType.Fields.Remove(field);
+            }
+            else
+            {
+                field.Directives.Remove(lookupDirective);
+
+                foreach (var argument in field.Arguments)
+                {
+                    var iSDirective = argument.Directives.FirstOrDefault(Is);
+
+                    if (iSDirective is not null)
+                    {
+                        argument.Directives.Remove(iSDirective);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Applies an explicit @lookup to fields that would've been inferred as lookups
+    /// in Fusion v1 by naming convention.
+    /// </summary>
+    private void ApplyInferredLookupDirectives()
+    {
+        if (schema.QueryType is not { } queryType)
+        {
+            return;
+        }
+
+        var lookupFieldConventionRegex = CreateLookupFieldConventionRegex();
+
+        foreach (var field in queryType.Fields)
+        {
+            if (field.Directives.ContainsName(Lookup)
+                || field.Type.IsListType()
+                || field.Type.Kind == TypeKind.NonNull
+                || field.Arguments.Count != 1)
+            {
+                continue;
+            }
+
+            var namedFieldType = field.Type.NamedType();
+            var keyArgument = field.Arguments[0];
+
+            if (field.Name is WellKnownFieldNames.Node
+                && schema.Types.TryGetType<IInterfaceTypeDefinition>(WellKnownTypeNames.Node, out var nodeType)
+                && namedFieldType == nodeType)
+            {
+                field.ApplyLookupDirective();
+            }
+            else if (namedFieldType is IObjectTypeDefinition objectType)
+            {
+                var parts = lookupFieldConventionRegex.Split(field.Name);
+
+                if (parts.Length != 5)
+                {
+                    continue;
+                }
+
+                var typeName = parts[1];
+
+                if (!typeName.Equals(namedFieldType.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var keyFieldNameByConvention = parts[3];
+                var keyFieldByConvention = objectType.Fields.FirstOrDefault(f =>
+                    f.Name.Equals(keyFieldNameByConvention, StringComparison.OrdinalIgnoreCase));
+
+                if (keyFieldByConvention is not null)
+                {
+                    field.ApplyLookupDirective();
+
+                    if (keyArgument.Name != keyFieldByConvention.Name)
+                    {
+                        var isDirective = keyArgument.Directives.FirstOrDefault(Is);
+
+                        if (isDirective is not null)
+                        {
+                            if (isDirective.Arguments[ArgumentNames.Field] is StringValueNode fieldArgument
+                                && fieldArgument.Value == keyFieldByConvention.Name)
+                            {
+                                continue;
+                            }
+
+                            keyArgument.Directives.Remove(isDirective);
+                        }
+
+                        keyArgument.ApplyIsDirective(keyFieldByConvention.Name);
+                    }
+                }
+                else
+                {
+                    var @is = keyArgument.GetIsFieldSelectionMap();
+
+                    var keyOutputFieldName = @is ?? keyArgument.Name;
+
+                    if (objectType.Fields.ContainsName(keyOutputFieldName))
+                    {
+                        field.ApplyLookupDirective();
+                    }
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -90,4 +232,7 @@ internal sealed class SourceSchemaPreprocessor(
             }
         }
     }
+
+    [GeneratedRegex("^(.*?[a-z0-9])(By)([A-Z].*)$")]
+    private static partial Regex CreateLookupFieldConventionRegex();
 }
