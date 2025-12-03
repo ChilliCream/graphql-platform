@@ -39,14 +39,90 @@ public static class ErrorBuilderExtensions
         /// Sets the message of the error.
         /// </summary>
         /// <param name="format">The format of the message.</param>
-        /// <param name="arg">The argument for the message.</param>
+        /// <param name="arg1">The argument for the message.</param>
         /// <returns>The error builder.</returns>
-        public ErrorBuilder SetMessage([StringSyntax("CompositeFormat")] string format, object? arg)
+        public ErrorBuilder SetMessage([StringSyntax("CompositeFormat")] string format, object? arg1)
         {
             ArgumentNullException.ThrowIfNull(builder);
             ArgumentException.ThrowIfNullOrEmpty(format);
 
-            return builder.SetMessage(string.Format(CultureInfo.InvariantCulture, format, arg));
+            return builder.SetMessage(string.Format(CultureInfo.InvariantCulture, format, arg1));
+        }
+
+        /// <summary>
+        /// Sets the message of the error.
+        /// </summary>
+        /// <param name="format">The format of the message.</param>
+        /// <param name="arg1">The first argument for the message.</param>
+        /// <param name="arg2">The second argument for the message.</param>
+        /// <returns>The error builder.</returns>
+        public ErrorBuilder SetMessage([StringSyntax("CompositeFormat")] string format, object? arg1, object? arg2)
+        {
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentException.ThrowIfNullOrEmpty(format);
+
+            return builder.SetMessage(string.Format(CultureInfo.InvariantCulture, format, arg1, arg2));
+        }
+
+        /// <summary>
+        /// Sets the message of the error.
+        /// </summary>
+        /// <param name="format">The format of the message.</param>
+        /// <param name="arg1">The first argument for the message.</param>
+        /// <param name="arg2">The second argument for the message.</param>
+        /// <param name="arg3">The third argument for the message.</param>
+        /// <returns>The error builder.</returns>
+        public ErrorBuilder SetMessage([StringSyntax("CompositeFormat")] string format, object? arg1, object? arg2, object? arg3)
+        {
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentException.ThrowIfNullOrEmpty(format);
+
+            return builder.SetMessage(string.Format(CultureInfo.InvariantCulture, format, arg1, arg2, arg3));
+        }
+
+        /// <summary>
+        /// Sets the message of the error.
+        /// </summary>
+        /// <param name="format">The format of the message.</param>
+        /// <param name="arg1">The argument for the message.</param>
+        /// <returns>The error builder.</returns>
+        public ErrorBuilder SetMessage([StringSyntax("CompositeFormat")] string format, string? arg1)
+        {
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentException.ThrowIfNullOrEmpty(format);
+
+            return builder.SetMessage(string.Format(CultureInfo.InvariantCulture, format, arg1));
+        }
+
+        /// <summary>
+        /// Sets the message of the error.
+        /// </summary>
+        /// <param name="format">The format of the message.</param>
+        /// <param name="arg1">The first argument for the message.</param>
+        /// <param name="arg2">The second argument for the message.</param>
+        /// <returns>The error builder.</returns>
+        public ErrorBuilder SetMessage([StringSyntax("CompositeFormat")] string format, string? arg1, string? arg2)
+        {
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentException.ThrowIfNullOrEmpty(format);
+
+            return builder.SetMessage(string.Format(CultureInfo.InvariantCulture, format, arg1, arg2));
+        }
+
+        /// <summary>
+        /// Sets the message of the error.
+        /// </summary>
+        /// <param name="format">The format of the message.</param>
+        /// <param name="arg1">The first argument for the message.</param>
+        /// <param name="arg2">The second argument for the message.</param>
+        /// <param name="arg3">The third argument for the message.</param>
+        /// <returns>The error builder.</returns>
+        public ErrorBuilder SetMessage([StringSyntax("CompositeFormat")] string format, string? arg1, string? arg2, string? arg3)
+        {
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentException.ThrowIfNullOrEmpty(format);
+
+            return builder.SetMessage(string.Format(CultureInfo.InvariantCulture, format, arg1, arg2, arg3));
         }
 
         /// <summary>

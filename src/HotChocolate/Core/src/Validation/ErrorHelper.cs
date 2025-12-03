@@ -614,7 +614,7 @@ internal static class ErrorHelper
                 .SetMessage(
                     Resources.ErrorHelper_OneOfVariablesMustBeNonNull,
                     variableName,
-                    fieldCoordinate.MemberName!,
+                    fieldCoordinate.MemberName,
                     fieldCoordinate.Name)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())

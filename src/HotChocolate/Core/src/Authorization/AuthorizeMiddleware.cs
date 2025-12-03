@@ -75,7 +75,7 @@ internal sealed class AuthorizeMiddleware(
                 => ErrorBuilder.New()
                     .SetMessage(
                         AuthorizeMiddleware_PolicyNotFound,
-                        _directive.Policy!)
+                        _directive.Policy)
                     .SetCode(ErrorCodes.Authentication.PolicyNotFound)
                     .SetPath(context.Path)
                     .AddLocations(context.Selection)
