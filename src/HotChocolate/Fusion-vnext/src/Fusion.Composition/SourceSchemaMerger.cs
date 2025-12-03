@@ -42,7 +42,7 @@ internal sealed class SourceSchemaMerger
         SourceSchemaMergerOptions? options = null)
     {
         _schemas = schemas;
-        _schemaConstantNames = CreateSchemaConstantNames(schemas);
+        _schemaConstantNames = schemas.ToFrozenDictionary(s => s.Name, s => ToConstantCase(s.Name));
         _options = options ?? new SourceSchemaMergerOptions();
         _fusionTypeDefinitions = CreateFusionTypeDefinitions();
         _fusionDirectiveDefinitions = CreateFusionDirectiveDefinitions();
@@ -98,30 +98,6 @@ internal sealed class SourceSchemaMerger
         }
 
         return mergedSchema;
-    }
-
-    private static FrozenDictionary<string, string> CreateSchemaConstantNames(
-        ImmutableSortedSet<MutableSchemaDefinition> schemas)
-    {
-        var schemaConstantNames = new Dictionary<string, string>();
-        var counters = new Dictionary<string, int>();
-
-        foreach (var schema in schemas)
-        {
-            var constantName = ToConstantCase(schema.Name);
-
-            if (schemaConstantNames.ContainsValue(constantName))
-            {
-                var counterValue = counters.GetValueOrDefault(constantName, 0);
-                counters[constantName] = ++counterValue;
-
-                constantName += $"_{counterValue}";
-            }
-
-            schemaConstantNames[schema.Name] = constantName;
-        }
-
-        return schemaConstantNames.ToFrozenDictionary();
     }
 
     private void MergeDirectiveDefinitions(MutableSchemaDefinition mergedSchema)
