@@ -11,5 +11,6 @@
           "moby": "true"
       }
   },
+  "runArgs": ["--network=host"],
   "postCreateCommand": "./init.sh"
 }
