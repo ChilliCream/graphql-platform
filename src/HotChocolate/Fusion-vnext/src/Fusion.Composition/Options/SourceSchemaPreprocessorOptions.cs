@@ -15,4 +15,9 @@ public sealed class SourceSchemaPreprocessorOptions
     /// implement.
     /// </summary>
     public bool InheritInterfaceKeys { get; set; } = true;
+
+    /// <summary>
+    /// The source schema version.
+    /// </summary>
+    public Version Version { get; set; } = WellKnownVersions.LatestSourceSchemaVersion;
 }

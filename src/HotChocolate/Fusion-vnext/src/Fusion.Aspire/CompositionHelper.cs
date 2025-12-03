@@ -115,7 +115,7 @@ internal static class CompositionHelper
 
             var metadata = new ArchiveMetadata
             {
-                SupportedGatewayFormats = [new Version(2, 0, 0)],
+                SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
                 SourceSchemas = [.. newSourceSchemaNames]
             };
 
@@ -133,7 +133,7 @@ internal static class CompositionHelper
             await archive.SetGatewayConfigurationAsync(
                 result.Value.ToString(),
                 JsonDocument.Parse(buffer.WrittenMemory),
-                new Version(2, 0, 0),
+                WellKnownVersions.LatestGatewayFormatVersion,
                 cancellationToken);
 
             await archive.CommitAsync(cancellationToken);

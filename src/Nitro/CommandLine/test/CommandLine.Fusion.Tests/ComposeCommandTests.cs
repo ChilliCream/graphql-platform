@@ -2,6 +2,8 @@ using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
+using HotChocolate.Fusion;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Fusion.Tests;
@@ -41,7 +43,7 @@ public sealed class ComposeCommandTests : IDisposable
         Assert.Equal(0, exitCode);
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -70,7 +72,7 @@ public sealed class ComposeCommandTests : IDisposable
         Assert.Equal(0, exitCode);
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -101,7 +103,7 @@ public sealed class ComposeCommandTests : IDisposable
         Assert.True(File.Exists(archiveFileName));
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -135,7 +137,7 @@ public sealed class ComposeCommandTests : IDisposable
         Assert.True(File.Exists(filePath));
 
         using var archive = FusionArchive.Open(fileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -167,7 +169,7 @@ public sealed class ComposeCommandTests : IDisposable
         Assert.True(File.Exists(filePath));
 
         using var archive = FusionArchive.Open(filePath);
-        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -199,7 +201,7 @@ public sealed class ComposeCommandTests : IDisposable
         Assert.True(File.Exists(filePath));
 
         using var archive = FusionArchive.Open(filePath);
-        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -230,7 +232,7 @@ public sealed class ComposeCommandTests : IDisposable
         Assert.True(File.Exists(filePath));
 
         using var archive = FusionArchive.Open(filePath);
-        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);

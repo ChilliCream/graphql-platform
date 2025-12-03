@@ -26,7 +26,7 @@ internal static class CompositionTestHelper
 
         foreach (var schema in schemas)
         {
-            new SourceSchemaPreprocessor(schema).Process();
+            new SourceSchemaPreprocessor(schema, schemas).Process();
             new SourceSchemaEnricher(schema, schemas).Enrich();
         }
 

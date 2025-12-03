@@ -56,7 +56,7 @@ public sealed class SchemaComposer
                     preprocessorOptions = new SourceSchemaPreprocessorOptions();
                 }
 
-                return new SourceSchemaPreprocessor(schema, preprocessorOptions).Process();
+                return new SourceSchemaPreprocessor(schema, schemas, preprocessorOptions).Process();
             }).Combine();
 
         if (preprocessResult.IsFailure)

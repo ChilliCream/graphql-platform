@@ -14,6 +14,7 @@ using HotChocolate.Fusion.Packaging;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
+using static HotChocolate.Fusion.WellKnownSourceSchemaSettings;
 
 namespace ChilliCream.Nitro.CommandLine.Fusion.Commands;
 
@@ -519,6 +520,33 @@ internal sealed class ComposeCommand : Command
             }
         };
 
+        foreach (var (sourceSchemaName, (_, sourceSchemaSettings)) in sourceSchemas)
+        {
+            var settingsElement = sourceSchemaSettings.RootElement;
+            var preprocessorOptions = new SourceSchemaPreprocessorOptions();
+
+            if (settingsElement.TryGetProperty(WellKnownSourceSchemaSettings.Version, out var versionProperty)
+                && versionProperty.ValueKind is JsonValueKind.String
+                && System.Version.TryParse(versionProperty.GetString(), out var parsedVersion))
+            {
+                preprocessorOptions.Version = parsedVersion;
+            }
+
+            if (settingsElement.TryGetProperty(InferKeys, out var applyInferredKeyDirectivesProperty)
+                && applyInferredKeyDirectivesProperty.ValueKind is JsonValueKind.False or JsonValueKind.True)
+            {
+                preprocessorOptions.ApplyInferredKeyDirectives = applyInferredKeyDirectivesProperty.GetBoolean();
+            }
+
+            if (settingsElement.TryGetProperty(InheritInterfaceKeys, out var inheritInterfaceKeysProperty)
+                && inheritInterfaceKeysProperty.ValueKind is JsonValueKind.False or JsonValueKind.True)
+            {
+                preprocessorOptions.InheritInterfaceKeys = inheritInterfaceKeysProperty.GetBoolean();
+            }
+
+            schemaComposerOptions.Preprocessor.Add(sourceSchemaName, preprocessorOptions);
+        }
+
         if (existingCompositionSettings.EnableGlobalObjectIdentification
             != schemaComposerOptions.Merger.EnableGlobalObjectIdentification)
         {
@@ -553,7 +581,7 @@ internal sealed class ComposeCommand : Command
 
         var metadata = new ArchiveMetadata
         {
-            SupportedGatewayFormats = [new Version(2, 0, 0)],
+            SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
             SourceSchemas = [.. sourceSchemas.Keys]
         };
 
@@ -571,7 +599,7 @@ internal sealed class ComposeCommand : Command
         await archive.SetGatewayConfigurationAsync(
             result.Value + Environment.NewLine,
             JsonDocument.Parse(bufferWriter.WrittenMemory),
-            new Version(2, 0, 0),
+            WellKnownVersions.LatestGatewayFormatVersion,
             cancellationToken);
 
         await SaveCompositionSettingsAsync(archive, schemaComposerOptions, cancellationToken);
