@@ -81,6 +81,11 @@ fragment ClientVersionNotFoundError on ClientVersionNotFoundError {
   ...Error
 }
 
+fragment OpenApiCollectionNotFoundError on OpenApiCollectionNotFoundError {
+  openApiCollectionId
+  ...Error
+}
+
 fragment SchemaChangeLogEntry on SchemaChangeLogEntry {
   __typename
   ...TypeSystemMemberAddedChange
