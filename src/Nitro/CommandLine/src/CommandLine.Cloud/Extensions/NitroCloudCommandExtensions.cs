@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Cloud.Commands.ApiKey;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.Environment;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.Fusion;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.Mock;
+using ChilliCream.Nitro.CommandLine.Cloud.Commands.OpenApi;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.PersonalAccessToken;
 using ChilliCream.Nitro.CommandLine.Cloud.Commands.Stages;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
@@ -44,6 +45,7 @@ public static class NitroCloudCommandExtensions
         command.AddCommand(new SchemaCommand());
         command.AddCommand(new StageCommand());
         command.AddCommand(new WorkspaceCommand());
+        command.AddCommand(new OpenApiCommand());
 
         return (command, fusionCommand);
     }
