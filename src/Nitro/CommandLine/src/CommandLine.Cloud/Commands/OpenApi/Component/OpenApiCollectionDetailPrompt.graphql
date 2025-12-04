@@ -1,0 +1,4 @@
+fragment OpenApiCollectionDetailPrompt_OpenApiCollection on OpenApiCollection {
+  id
+  name
+}
