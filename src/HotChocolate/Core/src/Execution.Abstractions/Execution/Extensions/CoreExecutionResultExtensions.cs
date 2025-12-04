@@ -80,7 +80,7 @@ public static class CoreExecutionResultExtensions
     /// </summary>
     public static OperationResult ExpectOperationResult(this IExecutionResult result)
     {
-        if (result is OperationResult qr)
+        if (result is IOperationResult qr)
         {
             return qr;
         }
@@ -93,7 +93,7 @@ public static class CoreExecutionResultExtensions
     /// </summary>
     public static OperationResultBatch ExpectOperationResultBatch(this IExecutionResult result)
     {
-        if (result is OperationResultBatch qr)
+        if (result is IOperationResultBatch qr)
         {
             return qr;
         }
@@ -106,7 +106,7 @@ public static class CoreExecutionResultExtensions
     /// </summary>
     public static ResponseStream ExpectResponseStream(this IExecutionResult result)
     {
-        if (result is ResponseStream rs)
+        if (result is IResponseStream rs)
         {
             return rs;
         }
