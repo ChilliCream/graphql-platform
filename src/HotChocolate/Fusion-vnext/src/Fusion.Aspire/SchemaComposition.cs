@@ -4,6 +4,7 @@ using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Eventing;
 using Aspire.Hosting.Lifecycle;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -19,9 +20,9 @@ internal sealed class SchemaComposition(
         DistributedApplicationExecutionContext executionContext,
         CancellationToken cancellationToken)
     {
-        eventing.Subscribe<BeforeStartEvent>(async (@event, ct) =>
+        eventing.Subscribe<AfterResourcesCreatedEvent>(async (@event, ct) =>
         {
-            var model = @event.Model;
+            var model = @event.Services.GetRequiredService<DistributedApplicationModel>();
             var compositionFailed = false;
 
             try
