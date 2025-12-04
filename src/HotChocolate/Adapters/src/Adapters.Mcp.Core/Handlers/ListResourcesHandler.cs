@@ -8,10 +8,10 @@ internal static class ListResourcesHandler
 {
     public static ListResourcesResult Handle(RequestContext<ListResourcesRequestParams> context)
     {
-        var toolRegistry = context.Services!.GetRequiredService<ToolRegistry>();
+        var registry = context.Services!.GetRequiredService<McpFeatureRegistry>();
 
         var openAiComponentResources =
-            toolRegistry
+            registry
                 .GetTools()
                 .Select(t => t.OpenAiComponentResource)
                 .OfType<Resource>()

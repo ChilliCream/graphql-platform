@@ -3,7 +3,7 @@ using HotChocolate.Adapters.Mcp.Storage;
 
 namespace HotChocolate.Adapters.Mcp;
 
-public sealed class TestOperationToolStorage : IOperationToolStorage, IDisposable
+public sealed class TestMcpStorage : IMcpStorage, IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
     private readonly Dictionary<string, OperationToolDefinition> _tools = [];
@@ -11,7 +11,7 @@ public sealed class TestOperationToolStorage : IOperationToolStorage, IDisposabl
     private bool _disposed;
     private readonly object _sync = new();
 
-    public async ValueTask<IEnumerable<OperationToolDefinition>> GetToolsAsync(
+    public async ValueTask<IEnumerable<OperationToolDefinition>> GetOperationToolDefinitionsAsync(
         CancellationToken cancellationToken = default)
     {
         await _semaphore.WaitAsync(cancellationToken);
@@ -125,11 +125,11 @@ public sealed class TestOperationToolStorage : IOperationToolStorage, IDisposabl
     private sealed class ObserverSession : IDisposable
     {
         private bool _disposed;
-        private readonly TestOperationToolStorage _storage;
+        private readonly TestMcpStorage _storage;
         private readonly IObserver<OperationToolStorageEventArgs> _observer;
 
         public ObserverSession(
-            TestOperationToolStorage storage,
+            TestMcpStorage storage,
             IObserver<OperationToolStorageEventArgs> observer)
         {
             _storage = storage;
