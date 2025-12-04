@@ -459,4 +459,98 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         // assert
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_IncludeRequiredParentProperty_When_UsingParentRequiresWithString()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddType<AuthorTypeWithStringRequirement>()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("authors")
+                    .Type<AuthorTypeWithStringRequirement>()
+                    .Resolve(Executable.From(_authors))
+                    .UseFirstOrDefault()
+                    .UseProjection()
+                    .UseFiltering()
+                    .UseSorting())
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authors {
+                    requirement
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_IncludeRequiredParentProperty_When_UsingParentRequiresWithExpression()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddType<AuthorTypeWithExpressionRequirement>()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("authors")
+                    .Type<AuthorTypeWithExpressionRequirement>()
+                    .Resolve(Executable.From(_authors))
+                    .UseFirstOrDefault()
+                    .UseProjection()
+                    .UseFiltering()
+                    .UseSorting())
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                authors {
+                    requirement
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    public class AuthorTypeWithStringRequirement : ObjectType<Author>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Author> descriptor)
+        {
+            descriptor
+                .Field("requirement")
+                .ParentRequires(nameof(Author.Name))
+                .Resolve(ctx => "Author Name: " + ctx.Parent<Author>().Name);
+        }
+    }
+
+    public class AuthorTypeWithExpressionRequirement : ObjectType<Author>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Author> descriptor)
+        {
+            descriptor
+                .Field("requirement")
+                .ParentRequires<Author>(t => new { t.Name })
+                .Resolve(ctx => "Author Name: " + ctx.Parent<Author>().Name);
+        }
+    }
 }
