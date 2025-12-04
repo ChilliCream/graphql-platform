@@ -12,8 +12,6 @@ public static class DataLoaderResolverContextExtensions
     public static T DataLoader<T>(this IResolverContext context)
         where T : IDataLoader
     {
-        ArgumentNullException.ThrowIfNull(context);
-
         var services = context.RequestServices;
         var reg = services.GetRequiredService<IDataLoaderScope>();
         return reg.GetDataLoader<T>();

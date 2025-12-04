@@ -8,8 +8,6 @@ public static class TypeNamePrinter
 
     private static string Print(IType type, int count)
     {
-        ArgumentNullException.ThrowIfNull(type);
-
         if (count > MaxTypeDepth)
         {
             throw new InvalidOperationException(

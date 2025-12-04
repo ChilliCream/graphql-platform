@@ -12,9 +12,7 @@ public static class ObjectTypeDescriptorExtensions
         this IObjectTypeDescriptor<T> descriptor,
         Expression<Func<T, object?>> propertyOrMethod)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(propertyOrMethod);
-
         descriptor.Field(propertyOrMethod).Ignore();
         return descriptor;
     }

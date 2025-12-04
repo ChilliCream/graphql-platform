@@ -25,8 +25,6 @@ public static class RequestExecutorServiceCollectionExtensions
     /// <returns>The <see cref="IServiceCollection"/>.</returns>
     public static IServiceCollection AddGraphQLCore(this IServiceCollection services)
     {
-        ArgumentNullException.ThrowIfNull(services);
-
         services.AddOptions();
 
         services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
@@ -109,8 +107,6 @@ public static class RequestExecutorServiceCollectionExtensions
         this IServiceCollection services,
         string? schemaName = null)
     {
-        ArgumentNullException.ThrowIfNull(services);
-
         services.AddGraphQLCore();
         schemaName ??= ISchemaDefinition.DefaultName;
         return CreateBuilder(services, schemaName);
@@ -133,8 +129,6 @@ public static class RequestExecutorServiceCollectionExtensions
         this IRequestExecutorBuilder builder,
         string? schemaName = null)
     {
-        ArgumentNullException.ThrowIfNull(builder);
-
         schemaName ??= ISchemaDefinition.DefaultName;
         return CreateBuilder(builder.Services, schemaName);
     }

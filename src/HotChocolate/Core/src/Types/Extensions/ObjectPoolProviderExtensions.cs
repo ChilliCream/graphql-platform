@@ -8,8 +8,5 @@ internal static class ObjectPoolProviderExtensions
 {
     public static ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> CreateFieldMapPool(
         this ObjectPoolProvider provider)
-    {
-        ArgumentNullException.ThrowIfNull(provider);
-        return provider.Create(new FieldMapPooledObjectPolicy());
-    }
+        => provider.Create(new FieldMapPooledObjectPolicy());
 }
