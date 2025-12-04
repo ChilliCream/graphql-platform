@@ -29,7 +29,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
     public async Task ListTools_AfterSchemaUpdate_ReturnsUpdatedTools()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
@@ -55,7 +55,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
                     .AddGraphQLGatewayServer()
                     .AddConfigurationProvider(_ => configProvider)
                     .AddMcp()
-                    .AddMcpToolStorage(storage))
+                    .AddMcpStorage(storage))
             .Configure(
                 app => app
                     .UseRouting()
@@ -118,7 +118,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
     }
 
     protected override async Task<TestServer> CreateTestServerAsync(
-        IOperationToolStorage storage,
+        IMcpStorage storage,
         ITypeDefinition[]? additionalTypes = null,
         McpDiagnosticEventListener? diagnosticEventListener = null,
         Action<McpServerOptions>? configureMcpServerOptions = null,
@@ -157,7 +157,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
                                 schemaDocument.Name,
                                 new Uri("http://localhost:5000/graphql"))
                             .AddMcp(configureMcpServerOptions, configureMcpServer)
-                            .AddMcpToolStorage(storage);
+                            .AddMcpStorage(storage);
 
                     if (diagnosticEventListener is not null)
                     {
