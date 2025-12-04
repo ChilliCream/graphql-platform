@@ -9,7 +9,6 @@ internal sealed class OperationResolverMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly OperationCompiler _operationPlanner;
-    private readonly DocumentRewriter _documentRewriter;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
     private OperationResolverMiddleware(
@@ -25,7 +24,6 @@ internal sealed class OperationResolverMiddleware
 
         _next = next;
         _operationPlanner = operationPlanner;
-        _documentRewriter = new DocumentRewriter(schema, removeStaticallyExcludedSelections: true);
         _diagnosticEvents = diagnosticEvents;
     }
 
@@ -42,13 +40,10 @@ internal sealed class OperationResolverMiddleware
         {
             using (_diagnosticEvents.CompileOperation(context))
             {
-                // Before we can plan an operation, we must de-fragmentize it and remove static include conditions.
-                var operationDocument = documentInfo.Document;
                 var operationName = context.Request.OperationName;
-                operationDocument = _documentRewriter.RewriteDocument(operationDocument, operationName);
+                var operationDocument = documentInfo.Document;
                 var operationNode = operationDocument.GetOperation(operationName);
 
-                // After optimizing the query structure we can begin the planning process.
                 operation = _operationPlanner.Compile(
                     operationId ?? Guid.NewGuid().ToString("N"),
                     documentInfo.Hash.Value,
@@ -69,7 +64,7 @@ internal sealed class OperationResolverMiddleware
             (core, next) =>
             {
                 var schema = core.Schema;
-                var operationCompiler = core.Services.GetRequiredService<OperationCompiler>();
+                var operationCompiler = core.SchemaServices.GetRequiredService<OperationCompiler>();
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
 
                 var middleware = new OperationResolverMiddleware(

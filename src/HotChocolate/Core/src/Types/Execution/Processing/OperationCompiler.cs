@@ -61,6 +61,7 @@ public sealed partial class OperationCompiler
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(operationDefinition);
 
+        // Before we can plan an operation, we must de-fragmentize it and remove static include conditions.
         var document = new DocumentNode([operationDefinition]);
         document = _documentRewriter.RewriteDocument(document);
         operationDefinition = (OperationDefinitionNode)document.Definitions[0];
