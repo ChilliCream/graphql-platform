@@ -93,7 +93,7 @@ public static class CoreExecutionResultExtensions
     /// </summary>
     public static OperationResultBatch ExpectOperationResultBatch(this IExecutionResult result)
     {
-        if (result is IOperationResultBatch qr)
+        if (result is OperationResultBatch qr)
         {
             return qr;
         }
