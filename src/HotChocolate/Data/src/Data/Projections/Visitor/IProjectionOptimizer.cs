@@ -7,7 +7,7 @@ public interface IProjectionOptimizer
     /// <summary>
     /// Tests if this optimizer can handle a selection If it can handle the selection it
     /// will be attached to the compiled selection set on the
-    /// type <see cref="ProjectionSelection"/>
+    /// type ProjectionSelection.
     /// </summary>
     /// <param name="selection">The selection to test for</param>
     /// <returns>Returns true if the selection can be handled</returns>

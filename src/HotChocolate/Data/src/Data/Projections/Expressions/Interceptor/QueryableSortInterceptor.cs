@@ -4,7 +4,7 @@ using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
-using HotChocolate.Execution;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;

@@ -10,7 +10,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed partial class OperationCompiler
+public sealed partial class OperationCompiler
 {
     private ArgumentMap? CoerceArgumentValues(
         ObjectField field,

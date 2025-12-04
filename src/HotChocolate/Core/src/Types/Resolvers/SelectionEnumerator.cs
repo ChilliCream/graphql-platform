@@ -12,7 +12,16 @@ public struct SelectionEnumerator : IEnumerable<Selection>, IEnumerator<Selectio
     private readonly ulong _includeFlags;
     private int _position = -1;
 
-    internal SelectionEnumerator(SelectionSet selectionSet, ulong includeFlags)
+    /// <summary>
+    /// Initializes a new instance of <see cref="SelectionEnumerator"/>
+    /// </summary>
+    /// <param name="selectionSet">
+    /// The selection set to enumerate on.
+    /// </param>
+    /// <param name="includeFlags">
+    /// The include flags representing the selections that shall be included.
+    /// </param>
+    public SelectionEnumerator(SelectionSet selectionSet, ulong includeFlags)
     {
         _selectionSet = selectionSet;
         _includeFlags = includeFlags;

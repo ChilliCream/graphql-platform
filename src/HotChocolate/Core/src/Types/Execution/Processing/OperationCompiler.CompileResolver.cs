@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed partial class OperationCompiler
+public sealed partial class OperationCompiler
 {
     internal static FieldDelegate CreateFieldPipeline(Schema schema, ObjectField field, FieldNode selection)
     {

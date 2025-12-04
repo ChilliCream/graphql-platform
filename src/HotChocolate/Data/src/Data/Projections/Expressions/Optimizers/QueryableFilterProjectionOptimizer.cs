@@ -17,7 +17,7 @@ public sealed class QueryableFilterProjectionOptimizer : IProjectionOptimizer
     {
         var resolverPipeline =
             selection.ResolverPipeline
-                ?? context.CompileResolverPipeline(selection.Field, selection.SyntaxNode);
+                ?? context.CompileResolverPipeline(selection.Field, selection.SyntaxNodes[0].Node);
 
         static FieldDelegate WrappedPipeline(FieldDelegate next) =>
             ctx =>
