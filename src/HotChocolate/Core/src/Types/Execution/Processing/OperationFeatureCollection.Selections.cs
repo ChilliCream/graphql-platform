@@ -6,19 +6,6 @@ namespace HotChocolate.Execution.Processing;
 [SuppressMessage("ReSharper", "NonAtomicCompoundOperator")]
 public sealed partial class OperationFeatureCollection
 {
-    internal bool TryGet<TFeature>(int selectionId, [NotNullWhen(true)] out TFeature? feature)
-    {
-        if (_selectionFeatures.TryGetValue((selectionId, typeof(TFeature)), out var result)
-            && result is TFeature f)
-        {
-            feature = f;
-            return true;
-        }
-
-        feature = default;
-        return false;
-    }
-
     internal object? this[int selectionId, Type featureType]
     {
         get
@@ -48,6 +35,19 @@ public sealed partial class OperationFeatureCollection
         }
     }
 
+    internal bool TryGet<TFeature>(int selectionId, [NotNullWhen(true)] out TFeature? feature)
+    {
+        if (_selectionFeatures.TryGetValue((selectionId, typeof(TFeature)), out var result)
+            && result is TFeature f)
+        {
+            feature = f;
+            return true;
+        }
+
+        feature = default;
+        return false;
+    }
+
     internal TFeature GetOrSetSafe<TFeature>(int selectionId, Func<TFeature> factory)
     {
         ArgumentNullException.ThrowIfNull(factory);
@@ -59,6 +59,28 @@ public sealed partial class OperationFeatureCollection
                 if (!TryGet(selectionId, out feature))
                 {
                     feature = factory();
+                    this[selectionId, typeof(TFeature)] = feature;
+                }
+            }
+        }
+
+        return feature;
+    }
+
+    internal TFeature GetOrSetSafe<TFeature, TContext>(
+        int selectionId,
+        Func<TContext, TFeature> factory,
+        TContext context)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+
+        if (!TryGet<TFeature>(selectionId, out var feature))
+        {
+            lock (_writeLock)
+            {
+                if (!TryGet(selectionId, out feature))
+                {
+                    feature = factory(context);
                     this[selectionId, typeof(TFeature)] = feature;
                 }
             }

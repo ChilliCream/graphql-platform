@@ -6,7 +6,7 @@ using HotChocolate.Types.Descriptors.Configurations;
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
-/// This helper class allows adding optimizers to context data or retrieve optimizers from context data.
+/// This helper class allows to register optimizers with a field configuration.
 /// </summary>
 internal static class OperationCompilerOptimizerHelper
 {
@@ -33,8 +33,20 @@ internal static class OperationCompilerOptimizerHelper
         }
     }
 
-    public static bool TryGetOptimizers(
-        IFeatureProvider featureProvider,
-        out ImmutableArray<ISelectionSetOptimizer> optimizers)
-        => featureProvider.Features.TryGet(out optimizers);
+    public static ImmutableArray<ISelectionSetOptimizer> GetOptimizers(Selection selection)
+    {
+        var optimizers = ImmutableArray<ISelectionSetOptimizer>.Empty;
+
+        if (selection.Features.TryGet<ImmutableArray<ISelectionSetOptimizer>>(out var selectionOptimizers))
+        {
+            optimizers = selectionOptimizers;
+        }
+
+        if (selection.Field.Features.TryGet<ImmutableArray<ISelectionSetOptimizer>>(out var fieldOptimizers))
+        {
+            optimizers = optimizers.AddRange(fieldOptimizers);
+        }
+
+        return optimizers;
+    }
 }

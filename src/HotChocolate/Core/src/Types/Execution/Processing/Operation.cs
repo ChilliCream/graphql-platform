@@ -19,7 +19,6 @@ public sealed class Operation : IOperation
     private readonly OperationCompiler _compiler;
     private readonly IncludeConditionCollection _includeConditions;
     private readonly OperationFeatureCollection _features;
-    private readonly bool _isFinal;
     private object[] _elementsById;
     private int _lastId;
 
@@ -33,9 +32,9 @@ public sealed class Operation : IOperation
         SelectionSet rootSelectionSet,
         OperationCompiler compiler,
         IncludeConditionCollection includeConditions,
+        OperationFeatureCollection  features,
         int lastId,
-        object[] elementsById,
-        bool isFinal)
+        object[] elementsById)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(hash);
@@ -59,10 +58,7 @@ public sealed class Operation : IOperation
         _includeConditions = includeConditions;
         _lastId = lastId;
         _elementsById = elementsById;
-        _isFinal = isFinal;
-
-        _features = new OperationFeatureCollection();
-        rootSelectionSet.Complete(this, seal: isFinal);
+        _features = features;
     }
 
     /// <summary>
@@ -183,12 +179,12 @@ public sealed class Operation : IOperation
                 {
                     selectionSet =
                         _compiler.CompileSelectionSet(
+                            this,
                             selection,
                             objectType,
                             _includeConditions,
                             ref _elementsById,
                             ref _lastId);
-                    selectionSet.Complete(this, seal: _isFinal);
                     _selectionSets.TryAdd(key, selectionSet);
                 }
             }

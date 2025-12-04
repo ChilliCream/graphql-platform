@@ -275,7 +275,8 @@ internal sealed partial class RequestExecutorManager
             static sp => new OperationCompiler(
                 sp.GetRequiredService<Schema>(),
                 sp.GetRequiredService<InputParser>(),
-                sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>()));
+                sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>(),
+                sp.GetRequiredService<OperationCompilerOptimizers>()));
 
         serviceCollection.AddSingleton<ObjectPoolProvider>(
             static _ => new DefaultObjectPoolProvider());

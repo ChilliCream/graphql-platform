@@ -50,7 +50,7 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
             var nodesPipeline = context.CompileResolverPipeline(nodesField, nodesFieldNode);
 
             var compiledSelection = new Selection.Sealed(
-                context.GetNextSelectionId(),
+                context.NewSelectionId(),
                 context.Type,
                 nodesField,
                 nodesField.Type,

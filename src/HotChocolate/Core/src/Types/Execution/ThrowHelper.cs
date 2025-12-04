@@ -6,6 +6,12 @@ namespace HotChocolate.Execution;
 
 internal static class ThrowHelper
 {
+    public static InvalidOperationException SelectionSet_NotFullyInitialized()
+        => new InvalidOperationException("The selection set is not fully initialized.");
+
+    public static InvalidOperationException Selection_NotFullyInitialized()
+        => new InvalidOperationException("The selection is not fully initialized.");
+
     public static GraphQLException VariableIsNotAnInputType(
         VariableDefinitionNode variableDefinition)
     {

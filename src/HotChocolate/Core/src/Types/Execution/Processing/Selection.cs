@@ -16,6 +16,7 @@ public sealed class Selection : ISelection, IFeatureProvider
     private readonly ulong[] _includeFlags;
     private readonly byte[] _utf8ResponseName;
     private Flags _flags;
+    private SelectionSet? _declaringSelectionSet;
 
     internal Selection(
         int id,
@@ -109,7 +110,8 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// <summary>
     /// Gets the selection set that contains this selection.
     /// </summary>
-    public SelectionSet DeclaringSelectionSet { get; private set; } = null!;
+    public SelectionSet DeclaringSelectionSet
+        => _declaringSelectionSet ?? throw ThrowHelper.Selection_NotFullyInitialized();
 
     /// <inheritdoc />
     ISelectionSet ISelection.DeclaringSelectionSet => DeclaringSelectionSet;
@@ -240,7 +242,7 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// <summary>
     /// Completes the selection without sealing it.
     /// </summary>
-    internal void Complete(SelectionSet selectionSet, bool seal)
+    internal void Complete(SelectionSet selectionSet)
     {
         ArgumentNullException.ThrowIfNull(selectionSet);
 
@@ -249,12 +251,8 @@ public sealed class Selection : ISelection, IFeatureProvider
             throw new InvalidOperationException("Selection is already sealed.");
         }
 
-        DeclaringSelectionSet = selectionSet;
-
-        if (seal)
-        {
-            _flags |= Flags.Sealed;
-        }
+        _declaringSelectionSet = selectionSet;
+        _flags |= Flags.Sealed;
     }
 
     private SelectionExecutionStrategy InferStrategy(

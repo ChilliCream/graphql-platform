@@ -57,12 +57,12 @@ internal static class ErrorHelper
 
     public static IError UnableToResolveTheAbstractType(
         string typeName,
-        FieldNode field,
+        Selection selection,
         Path path)
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnableToResolveTheAbstractType_Message, typeName)
-            .AddLocation(field)
+            .AddLocations(selection)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotResolveAbstractType)
             .Build();
@@ -71,12 +71,12 @@ internal static class ErrorHelper
     public static IError UnexpectedErrorWhileResolvingAbstractType(
         Exception exception,
         string typeName,
-        FieldNode field,
+        Selection selection,
         Path path)
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnableToResolveTheAbstractType_Message, typeName)
-            .AddLocation(field)
+            .AddLocations(selection)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotResolveAbstractType)
             .SetException(exception)
@@ -89,7 +89,7 @@ internal static class ErrorHelper
         Path path)
     {
         return ErrorBuilder.New()
-            .SetMessage(ErrorHelper_ListValueIsNotSupported_Message, listType.FullName!)
+            .SetMessage(ErrorHelper_ListValueIsNotSupported_Message, listType.FullName)
             .AddLocations(selection)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.ListTypeNotSupported)

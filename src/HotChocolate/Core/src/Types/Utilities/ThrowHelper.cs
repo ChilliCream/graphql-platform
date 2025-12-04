@@ -12,11 +12,6 @@ namespace HotChocolate.Utilities;
 
 internal static class ThrowHelper
 {
-    public static ArgumentException String_NullOrEmpty(string parameterName) =>
-        new ArgumentException(
-            $"'{parameterName}' cannot be null or empty",
-            parameterName);
-
     public static GraphQLException EventMessage_InvalidCast(
         Type expectedType,
         Type messageType) =>
@@ -24,8 +19,8 @@ internal static class ThrowHelper
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_EventMessage_InvalidCast,
-                    messageType.FullName!,
-                    expectedType.FullName!)
+                    messageType.FullName,
+                    expectedType.FullName)
                 .Build());
 
     public static GraphQLException EventMessage_NotFound() =>

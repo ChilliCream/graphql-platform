@@ -1,6 +1,9 @@
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -8,66 +11,67 @@ namespace HotChocolate.Execution.Processing;
 /// The <see cref="SelectionSet"/> optimizer provides helper methods
 /// to optimize a <see cref="SelectionSet"/>.
 /// </summary>
-public readonly ref struct SelectionSetOptimizerContext
+public ref struct SelectionSetOptimizerContext
 {
-    private readonly OperationCompiler _compiler;
-    private readonly OperationCompiler.CompilerContext _compilerContext;
-    private readonly Dictionary<Selection, OperationCompiler.SelectionSetInfo[]> _selectionLookup;
-    private readonly CreateFieldPipeline _createFieldPipeline;
-
+    private readonly int _selectionSetId;
+    private readonly ref ImmutableArray<Selection> _selections;
+    private readonly OperationFeatureCollection _features;
+    private readonly ref int _lastSelectionId;
+    private readonly Func<Schema, ObjectField, FieldNode, FieldDelegate> _createFieldPipeline;
+    private Dictionary<string, Selection>? _selectionMap;
     /// <summary>
     /// Initializes a new instance of <see cref="SelectionSetOptimizerContext"/>
     /// </summary>
     internal SelectionSetOptimizerContext(
-        OperationCompiler compiler,
-        OperationCompiler.CompilerContext compilerContext,
-        Dictionary<Selection, OperationCompiler.SelectionSetInfo[]> selectionLookup,
-        Dictionary<string, object?> contextData,
-        CreateFieldPipeline createFieldPipeline,
-        SelectionPath path)
+        int selectionSetId,
+        ObjectType typeContext,
+        ref ImmutableArray<Selection> selections,
+        OperationFeatureCollection features,
+        ref int lastSelectionId,
+        Schema schema,
+        Func<Schema, ObjectField, FieldNode, FieldDelegate> createFieldPipeline)
     {
-        _compiler = compiler;
-        _compilerContext = compilerContext;
-        _selectionLookup = selectionLookup;
+        _selectionSetId = selectionSetId;
+        _selections = ref selections;
+        _features = features;
+        _lastSelectionId = ref lastSelectionId;
         _createFieldPipeline = createFieldPipeline;
-        ContextData = contextData;
-        Path = path;
+        TypeContext = typeContext;
+        Schema = schema;
     }
 
     /// <summary>
     /// Gets the schema for which the query is compiled.
     /// </summary>
-    public Schema Schema
-        => _compilerContext.Schema;
+    public Schema Schema { get; }
 
     /// <summary>
     /// Gets the type context of the current selection-set.
     /// </summary>
-    public ObjectType Type
-        => _compilerContext.Type;
+    public ObjectType TypeContext { get; }
 
-    /// <summary>
-    /// Gets the selections of this selection set.
-    /// </summary>
-    public IReadOnlyDictionary<string, Selection> Selections
-        => _compilerContext.Fields;
+    public bool ContainsField(string fieldName)
+        => _selections.Any(t => t.Field.Name.EqualsOrdinal(fieldName));
 
-    /// <summary>
-    /// The context data dictionary can be used by middleware components and
-    /// resolvers to store and retrieve data during execution.
-    /// </summary>
-    public IDictionary<string, object?> ContextData { get; }
+    public bool ContainsResponseName(string responseName)
+    {
+        _selectionMap ??= _selections.ToDictionary(t => t.ResponseName);
+        return _selectionMap.ContainsKey(responseName);
+    }
 
-    /// <summary>
-    /// Gets the current selection path.
-    /// </summary>
-    public SelectionPath Path { get; }
+    public bool TryGetSelection(string responseName, [MaybeNullWhen(false)] out Selection value)
+    {
+        _selectionMap ??= _selections.ToDictionary(t => t.ResponseName);
+        return _selectionMap.TryGetValue(responseName, out value);
+    }
+
+    public SelectionFeatureCollection Features => new(_features, _selectionSetId);
 
     /// <summary>
     /// Gets the next operation unique selection id.
     /// </summary>
-    public int GetNextSelectionId()
-        => _compiler.GetNextSelectionId();
+    public int NewSelectionId()
+        => ++_lastSelectionId;
 
     /// <summary>
     /// Sets the resolvers on the specified <paramref name="selection"/>.
@@ -99,20 +103,21 @@ public readonly ref struct SelectionSetOptimizerContext
         => _createFieldPipeline(Schema, field, selection);
 
     /// <summary>
-    /// Adds an additional selection for internal purposes.
+    /// Adds a selection for internal purposes.
     /// </summary>
-    /// <param name="newSelection">
-    /// The new optimized selection.
+    /// <param name="internalSelection">
+    /// The internal selection.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="newSelection"/> is <c>null</c>.
+    /// <paramref name="internalSelection"/> is <c>null</c>.
     /// </exception>
-    public void AddSelection(Selection newSelection)
+    public void AddSelection(Selection internalSelection)
     {
-        ArgumentNullException.ThrowIfNull(newSelection);
+        ArgumentNullException.ThrowIfNull(internalSelection);
 
-        _compilerContext.Fields.Add(newSelection.ResponseName, newSelection);
-        _compiler.RegisterNewSelection(newSelection);
+        _selectionMap ??= _selections.ToDictionary(t => t.ResponseName);
+        _selectionMap.Add(internalSelection.ResponseName, internalSelection);
+        _selections = _selections.Add(internalSelection);
     }
 
     /// <summary>
@@ -132,19 +137,15 @@ public readonly ref struct SelectionSetOptimizerContext
     {
         ArgumentNullException.ThrowIfNull(newSelection);
 
-        if (!_compilerContext.Fields.TryGetValue(
-            newSelection.ResponseName,
-            out var currentSelection))
+        _selectionMap ??= _selections.ToDictionary(t => t.ResponseName);
+
+        if (!_selectionMap.TryGetValue(newSelection.ResponseName, out var currentSelection))
         {
             throw new ArgumentException($"The `{newSelection.ResponseName}` does not exist.");
         }
 
-        _compilerContext.Fields[newSelection.ResponseName] = newSelection;
-
-        if (_selectionLookup.TryGetValue(currentSelection, out var selectionSetInfos))
-        {
-            _selectionLookup.Remove(currentSelection);
-            _selectionLookup.Add(newSelection, selectionSetInfos);
-        }
+        _selectionMap[newSelection.ResponseName] = newSelection;
+        var index = _selections.IndexOf(currentSelection);
+        _selections = _selections.SetItem(index, newSelection);
     }
 }

@@ -1,4 +1,6 @@
 using System.Buffers;
+using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -11,6 +13,7 @@ internal sealed partial class OperationCompiler
 {
     private readonly Schema _schema;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
+    private readonly OperationCompilerOptimizers _optimizers;
     private readonly DocumentRewriter _documentRewriter;
     private readonly InputParser _inputValueParser;
     private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
@@ -18,7 +21,8 @@ internal sealed partial class OperationCompiler
     public OperationCompiler(
         Schema schema,
         InputParser inputValueParser,
-        ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> fieldsPool)
+        ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> fieldsPool,
+        OperationCompilerOptimizers optimizers)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(fieldsPool);
@@ -27,6 +31,7 @@ internal sealed partial class OperationCompiler
         _inputValueParser = inputValueParser;
         _fieldsPool = fieldsPool;
         _documentRewriter = new DocumentRewriter(schema, removeStaticallyExcludedSelections: true);
+        _optimizers = optimizers;
     }
 
     public Operation Compile(
@@ -64,11 +69,12 @@ internal sealed partial class OperationCompiler
                 fields,
                 rootType,
                 compilationContext,
+                _optimizers.SelectionSetOptimizers,
                 ref lastId);
 
             compilationContext.Register(selectionSet, selectionSet.Id);
 
-            return new Operation(
+            var operation = new Operation(
                 id,
                 hash,
                 document,
@@ -76,11 +82,24 @@ internal sealed partial class OperationCompiler
                 rootType,
                 _schema,
                 selectionSet,
-                this,
+                compiler: this,
                 includeConditions,
+                compilationContext.Features,
                 lastId,
-                compilationContext.ElementsById,
-                isFinal: true); // todo : add the interceptors back
+                compilationContext.ElementsById);
+
+            selectionSet.Complete(operation);
+
+            if (_optimizers.OperationOptimizers.Length > 0)
+            {
+                var context = new OperationOptimizerContext(operation);
+                foreach (var optimizer in _optimizers.OperationOptimizers)
+                {
+                    optimizer.OptimizeOperation(context);
+                }
+            }
+
+            return operation;
         }
         finally
         {
@@ -89,13 +108,16 @@ internal sealed partial class OperationCompiler
     }
 
     internal SelectionSet CompileSelectionSet(
+        Operation operation,
         Selection selection,
         ObjectType objectType,
         IncludeConditionCollection includeConditions,
         ref object[] elementsById,
         ref int lastId)
     {
-        var compilationContext = new CompilationContext(elementsById);
+        var compilationContext = new CompilationContext(elementsById, operation.Features);
+        var optimizers = OperationCompilerOptimizerHelper.GetOptimizers(selection);
+
         var fields = _fieldsPool.Get();
         fields.Clear();
 
@@ -126,9 +148,10 @@ internal sealed partial class OperationCompiler
                 }
             }
 
-            var selectionSet = BuildSelectionSet(fields, objectType, compilationContext, ref lastId);
+            var selectionSet = BuildSelectionSet(fields, objectType, compilationContext, optimizers, ref lastId);
             compilationContext.Register(selectionSet, selectionSet.Id);
             elementsById = compilationContext.ElementsById;
+            selectionSet.Complete(operation);
             return selectionSet;
         }
         finally
@@ -193,6 +216,7 @@ internal sealed partial class OperationCompiler
         OrderedDictionary<string, List<FieldSelectionNode>> fieldMap,
         ObjectType typeContext,
         CompilationContext compilationContext,
+        ImmutableArray<ISelectionSetOptimizer> optimizers,
         ref int lastId)
     {
         var i = 0;
@@ -263,6 +287,11 @@ internal sealed partial class OperationCompiler
                 fieldDelegate,
                 pureFieldDelegate);
 
+            if (optimizers.Length > 0)
+            {
+                selection.Features.SetSafe(optimizers);
+            }
+
             // Register the selection in the elements array
             compilationContext.Register(selection, selection.Id);
             selections[i++] = selection;
@@ -273,6 +302,53 @@ internal sealed partial class OperationCompiler
             }
         }
 
+        // if there are no optimizers registered for this selection we exit early.
+        if (optimizers.Length == 0)
+        {
+            return new SelectionSet(selectionSetId, typeContext, selections, isConditional);
+        }
+
+        var current = ImmutableCollectionsMarshal.AsImmutableArray(selections);
+        var rewritten = current;
+
+        var optimizerContext = new SelectionSetOptimizerContext(
+            selectionSetId,
+            typeContext,
+            ref rewritten,
+            compilationContext.Features,
+            ref lastId,
+            _schema,
+            CreateFieldPipeline);
+
+        foreach (var optimizer in optimizers)
+        {
+            optimizer.OptimizeSelectionSet(optimizerContext);
+        }
+
+        // If `rewritten` is still the same instance as `current`,
+        // the optimizers did not change the selections array.
+        // This mean we can simply construct the SelectionSet.
+        if (current == rewritten)
+        {
+            return new SelectionSet(selectionSetId, typeContext, selections, isConditional);
+        }
+
+        if (current.Length < rewritten.Length)
+        {
+            for (var j = current.Length; j < rewritten.Length; j++)
+            {
+                var selection = rewritten[j];
+
+                if (optimizers.Length > 0)
+                {
+                    selection.Features.SetSafe(optimizers);
+                }
+
+                compilationContext.Register(selection, selection.Id);
+            }
+        }
+
+        selections = ImmutableCollectionsMarshal.AsArray(rewritten)!;
         return new SelectionSet(selectionSetId, typeContext, selections, isConditional);
     }
 
@@ -418,11 +494,19 @@ internal sealed partial class OperationCompiler
         }
     }
 
-    private class CompilationContext(object[] elementsById)
+    private class CompilationContext
     {
-        private object[] _elementsById = elementsById;
+        private object[] _elementsById;
+
+        public CompilationContext(object[] elementsById, OperationFeatureCollection? features = null)
+        {
+            _elementsById = elementsById;
+            Features = features ?? new OperationFeatureCollection();
+        }
 
         public object[] ElementsById => _elementsById;
+
+        public OperationFeatureCollection Features { get; }
 
         public void Register(object element, int id)
         {

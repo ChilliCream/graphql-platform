@@ -11,7 +11,7 @@ internal static partial class ValueCompletion
 {
     private static ObjectResult? CompleteCompositeValue(
         ValueCompletionContext context,
-        ISelection selection,
+        Selection selection,
         IType type,
         ResultData parent,
         int index,
@@ -34,14 +34,14 @@ internal static partial class ValueCompletion
         }
 
         var errorPath = CreatePathFromContext(selection, parent, index);
-        var error = ValueCompletion_CouldNotResolveAbstractType(selection.SyntaxNode, errorPath, result);
+        var error = ValueCompletion_CouldNotResolveAbstractType(selection, errorPath, result);
         operationContext.ReportError(error, context.ResolverContext, selection);
         return null;
     }
 
     private static bool TryResolveObjectType(
         ValueCompletionContext context,
-        ISelection selection,
+        Selection selection,
         IType fieldType,
         ResultData parent,
         int index,
@@ -76,7 +76,7 @@ internal static partial class ValueCompletion
 
             var error = UnableToResolveTheAbstractType(
                 fieldType.Print(),
-                selection.SyntaxNode,
+                selection,
                 CreatePathFromContext(selection, parent, index));
             context.OperationContext.ReportError(error, context.ResolverContext, selection);
         }
@@ -85,7 +85,7 @@ internal static partial class ValueCompletion
             var error = UnexpectedErrorWhileResolvingAbstractType(
                 ex,
                 fieldType.Print(),
-                selection.SyntaxNode,
+                selection,
                 CreatePathFromContext(selection, parent, index));
             context.OperationContext.ReportError(error, context.ResolverContext, selection);
         }

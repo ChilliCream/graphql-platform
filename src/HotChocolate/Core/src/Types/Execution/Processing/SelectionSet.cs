@@ -16,6 +16,7 @@ public sealed class SelectionSet : ISelectionSet
     private readonly FrozenDictionary<string, Selection> _responseNameLookup;
     private readonly SelectionLookup _utf8ResponseNameLookup;
     private Flags _flags;
+    private Operation? _declaringOperation;
 
     internal SelectionSet(int id, IObjectTypeDefinition type, Selection[] selections, bool isConditional)
     {
@@ -52,7 +53,7 @@ public sealed class SelectionSet : ISelectionSet
     /// <summary>
     /// Gets the declaring operation.
     /// </summary>
-    public Operation DeclaringOperation { get; private set; } = null!;
+    public Operation DeclaringOperation => _declaringOperation ?? throw ThrowHelper.SelectionSet_NotFullyInitialized();
 
     IOperation ISelectionSet.DeclaringOperation => DeclaringOperation;
 
@@ -93,24 +94,21 @@ public sealed class SelectionSet : ISelectionSet
     public bool TryGetSelection(ReadOnlySpan<byte> utf8ResponseName, [NotNullWhen(true)] out Selection? selection)
         => _utf8ResponseNameLookup.TryGetSelection(utf8ResponseName, out selection);
 
-    internal void Complete(Operation declaringOperation, bool seal)
+    internal void Complete(Operation declaringOperation)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
             throw new InvalidOperationException("Selection set is already sealed.");
         }
 
-        DeclaringOperation = declaringOperation;
+        _declaringOperation = declaringOperation;
 
         foreach (var selection in _selections)
         {
-            selection.Complete(this, seal);
+            selection.Complete(this);
         }
 
-        if (seal)
-        {
-            _flags |= Flags.Sealed;
-        }
+        _flags |= Flags.Sealed;
     }
 
     [Flags]

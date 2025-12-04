@@ -68,7 +68,7 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             context.CompileResolverPipeline(nodesField, combinedField);
 
         return new Selection.Sealed(
-            context.GetNextSelectionId(),
+            context.NewSelectionId(),
             declaringType,
             nodesField,
             nodesField.Type,

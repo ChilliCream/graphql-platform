@@ -1441,7 +1441,7 @@ public class OperationCompilerTests
                 var bazPipeline = context.CompileResolverPipeline(baz, bazSelection);
 
                 var compiledSelection = new Selection(
-                    context.GetNextSelectionId(),
+                    context.NewSelectionId(),
                     context.Type,
                     baz,
                     baz.Type,

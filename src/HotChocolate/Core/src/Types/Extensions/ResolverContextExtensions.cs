@@ -23,12 +23,7 @@ public static class ResolverContextExtensions
         /// </returns>
         public T? GetGlobalStateOrDefault<T>(string name)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (context.ContextData.TryGetValue(name, out var value)
                 && value is T casted)
@@ -51,15 +46,9 @@ public static class ResolverContextExtensions
         /// or the default value of <typeparamref name="T" />, if the state
         /// could not be found or cast to <typeparamref name="T" />.
         /// </returns>
-        public T GetGlobalStateOrDefault<T>(string name,
-            T defaultValue)
+        public T GetGlobalStateOrDefault<T>(string name, T defaultValue)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (context.ContextData.TryGetValue(name, out var value)
                 && value is T casted)
@@ -81,12 +70,7 @@ public static class ResolverContextExtensions
         /// </returns>
         public T GetGlobalState<T>(string name)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (context.ContextData.TryGetValue(name, out var value) && value is T typedValue)
             {
@@ -110,12 +94,7 @@ public static class ResolverContextExtensions
         /// </returns>
         public T? GetScopedStateOrDefault<T>(string name)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (context.ScopedContextData.TryGetValue(name, out var value)
                 && value is T casted)
@@ -138,15 +117,9 @@ public static class ResolverContextExtensions
         /// or the default value of <typeparamref name="T" />, if the state
         /// could not be found or cast to <typeparamref name="T" />.
         /// </returns>
-        public T GetScopedStateOrDefault<T>(string name,
-            T defaultValue)
+        public T GetScopedStateOrDefault<T>(string name, T defaultValue)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (context.ScopedContextData.TryGetValue(name, out var value)
                 && value is T casted)
@@ -168,12 +141,7 @@ public static class ResolverContextExtensions
         /// </returns>
         public T GetScopedState<T>(string name)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (context.ScopedContextData.TryGetValue(name, out var value)
                 && value is T typedValue)
@@ -198,12 +166,7 @@ public static class ResolverContextExtensions
         /// </returns>
         public T? GetLocalStateOrDefault<T>(string name)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (context.LocalContextData.TryGetValue(name, out var value)
                 && value is T casted)
@@ -226,15 +189,9 @@ public static class ResolverContextExtensions
         /// or the default value of <typeparamref name="T" />, if the state
         /// could not be found or cast to <typeparamref name="T" />.
         /// </returns>
-        public T GetLocalStateOrDefault<T>(string name,
-            T defaultValue)
+        public T GetLocalStateOrDefault<T>(string name, T defaultValue)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (context.LocalContextData.TryGetValue(name, out var value)
                 && value is T casted)
@@ -256,12 +213,7 @@ public static class ResolverContextExtensions
         /// </returns>
         public T GetLocalState<T>(string name)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             if (context.LocalContextData.TryGetValue(name, out var value)
                 && value is T casted)
@@ -282,16 +234,9 @@ public static class ResolverContextExtensions
         /// <param name="name">The name of the state.</param>
         /// <param name="value">The new state value.</param>
         /// <typeparam name="T">The type of the state.</typeparam>
-        public void SetGlobalState<T>(string name,
-            T value)
+        public void SetGlobalState<T>(string name, T value)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
-
+            ArgumentException.ThrowIfNullOrEmpty(name);
             context.ContextData[name] = value;
         }
 
@@ -304,16 +249,9 @@ public static class ResolverContextExtensions
         /// <param name="name">The name of the state.</param>
         /// <param name="value">The new state value.</param>
         /// <typeparam name="T">The type of the state.</typeparam>
-        public void SetScopedState<T>(string name,
-            T value)
+        public void SetScopedState<T>(string name, T value)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
-
+            ArgumentException.ThrowIfNullOrEmpty(name);
             context.ScopedContextData = context.ScopedContextData.SetItem(name, value);
         }
 
@@ -326,16 +264,9 @@ public static class ResolverContextExtensions
         /// <param name="name">The name of the state.</param>
         /// <param name="value">The new state value.</param>
         /// <typeparam name="T">The type of the state.</typeparam>
-        public void SetLocalState<T>(string name,
-            T value)
+        public void SetLocalState<T>(string name, T value)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
-
+            ArgumentException.ThrowIfNullOrEmpty(name);
             context.LocalContextData = context.LocalContextData.SetItem(name, value);
         }
 
@@ -352,16 +283,9 @@ public static class ResolverContextExtensions
         /// The existing state for the specified <paramref name="name" />,
         /// or the newly created state using the <paramref name="createValue" /> function.
         /// </returns>
-        public T GetOrSetGlobalState<T>(string name,
-            Func<string, T> createValue)
+        public T GetOrSetGlobalState<T>(string name, Func<string, T> createValue)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
-
+            ArgumentException.ThrowIfNullOrEmpty(name);
             ArgumentNullException.ThrowIfNull(createValue);
 
             if (context.ContextData.TryGetValue(name, out var value)
@@ -388,16 +312,9 @@ public static class ResolverContextExtensions
         /// The existing state for the specified <paramref name="name" />,
         /// or the newly created state using the <paramref name="createValue" /> function.
         /// </returns>
-        public T GetOrSetScopedState<T>(string name,
-            Func<string, T> createValue)
+        public T GetOrSetScopedState<T>(string name, Func<string, T> createValue)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
-
+            ArgumentException.ThrowIfNullOrEmpty(name);
             ArgumentNullException.ThrowIfNull(createValue);
 
             if (context.ScopedContextData.TryGetValue(name, out var value)
@@ -424,16 +341,9 @@ public static class ResolverContextExtensions
         /// The existing state for the specified <paramref name="name" />,
         /// or the newly created state using the <paramref name="createValue" /> function.
         /// </returns>
-        public T GetOrSetLocalState<T>(string name,
-            Func<string, T> createValue)
+        public T GetOrSetLocalState<T>(string name, Func<string, T> createValue)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
-
+            ArgumentException.ThrowIfNullOrEmpty(name);
             ArgumentNullException.ThrowIfNull(createValue);
 
             if (context.LocalContextData.TryGetValue(name, out var value)
@@ -453,13 +363,7 @@ public static class ResolverContextExtensions
         /// <param name="name">The name of the state.</param>
         public void RemoveScopedState(string name)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
-
+            ArgumentException.ThrowIfNullOrEmpty(name);
             context.ScopedContextData = context.ScopedContextData.Remove(name);
         }
 
@@ -469,13 +373,7 @@ public static class ResolverContextExtensions
         /// <param name="name">The name of the state.</param>
         public void RemoveLocalState(string name)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                throw String_NullOrEmpty(nameof(name));
-            }
-
+            ArgumentException.ThrowIfNullOrEmpty(name);
             context.LocalContextData = context.LocalContextData.Remove(name);
         }
 
@@ -486,8 +384,6 @@ public static class ResolverContextExtensions
         /// <returns>The event message.</returns>
         public T GetEventMessage<T>()
         {
-            ArgumentNullException.ThrowIfNull(context);
-
             if (context.ScopedContextData.TryGetValue(
                     WellKnownContextData.EventMessage,
                     out var value) && value is { })
@@ -521,22 +417,12 @@ public static class ResolverContextExtensions
         /// <returns>
         /// <c>true</c> if the field is selected; otherwise, <c>false</c>.
         /// </returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="context" /> is <c>null</c>.
-        /// </exception>
         /// <exception cref="ArgumentException">
         /// <paramref name="fieldName" /> is <c>null</c> or whitespace.
         /// </exception>
         public bool IsSelected(string fieldName)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrWhiteSpace(fieldName))
-            {
-                throw new ArgumentException(
-                    ResolverContextExtensions_IsSelected_FieldNameEmpty,
-                    nameof(fieldName));
-            }
+            ArgumentException.ThrowIfNullOrWhiteSpace(fieldName);
 
             var namedType = context.Selection.Type.NamedType();
 
@@ -589,31 +475,17 @@ public static class ResolverContextExtensions
         /// <param name="fieldName2">
         /// The name of the second field that shall be checked.
         /// </param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="context" /> is <c>null</c>.
-        /// </exception>
+        /// <returns>
+        /// <c>true</c> if one of the fields is selected; otherwise, <c>false</c>.
+        /// </returns>
         /// <exception cref="ArgumentException">
         /// <paramref name="fieldName1" /> is <c>null</c> or whitespace or
         /// <paramref name="fieldName2" /> is <c>null</c> or whitespace.
         /// </exception>
         public bool IsSelected(string fieldName1, string fieldName2)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrWhiteSpace(fieldName1))
-            {
-                throw new ArgumentException(
-                    ResolverContextExtensions_IsSelected_FieldNameEmpty,
-                    nameof(fieldName1));
-            }
-
-            if (string.IsNullOrWhiteSpace(fieldName2))
-            {
-                throw new ArgumentException(
-                    ResolverContextExtensions_IsSelected_FieldNameEmpty,
-                    nameof(fieldName2));
-            }
+            ArgumentException.ThrowIfNullOrWhiteSpace(fieldName1);
+            ArgumentException.ThrowIfNullOrWhiteSpace(fieldName2);
 
             var namedType = context.Selection.Type.NamedType();
 
@@ -677,10 +549,9 @@ public static class ResolverContextExtensions
         /// <param name="fieldName3">
         /// The name of the third field that shall be checked.
         /// </param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="context" /> is <c>null</c>.
-        /// </exception>
+        /// <returns>
+        /// <c>true</c> if one of the fields is selected; otherwise, <c>false</c>.
+        /// </returns>
         /// <exception cref="ArgumentException">
         /// <paramref name="fieldName1" /> is <c>null</c> or whitespace or
         /// <paramref name="fieldName2" /> is <c>null</c> or whitespace or
@@ -688,28 +559,9 @@ public static class ResolverContextExtensions
         /// </exception>
         public bool IsSelected(string fieldName1, string fieldName2, string fieldName3)
         {
-            ArgumentNullException.ThrowIfNull(context);
-
-            if (string.IsNullOrWhiteSpace(fieldName1))
-            {
-                throw new ArgumentException(
-                    ResolverContextExtensions_IsSelected_FieldNameEmpty,
-                    nameof(fieldName1));
-            }
-
-            if (string.IsNullOrWhiteSpace(fieldName2))
-            {
-                throw new ArgumentException(
-                    ResolverContextExtensions_IsSelected_FieldNameEmpty,
-                    nameof(fieldName2));
-            }
-
-            if (string.IsNullOrWhiteSpace(fieldName3))
-            {
-                throw new ArgumentException(
-                    ResolverContextExtensions_IsSelected_FieldNameEmpty,
-                    nameof(fieldName3));
-            }
+            ArgumentException.ThrowIfNullOrWhiteSpace(fieldName1);
+            ArgumentException.ThrowIfNullOrWhiteSpace(fieldName2);
+            ArgumentException.ThrowIfNullOrWhiteSpace(fieldName3);
 
             var namedType = context.Selection.Type.NamedType();
 
@@ -771,14 +623,14 @@ public static class ResolverContextExtensions
         /// <param name="fieldNames">
         /// The names of the fields that shall be checked.
         /// </param>
-        /// <returns></returns>
+        /// <returns>
+        /// <c>true</c> if one of the fields is selected; otherwise, <c>false</c>.
+        /// </returns>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="context" /> is <c>null</c> or
         /// <paramref name="fieldNames" /> is <c>null</c>.
         /// </exception>
         public bool IsSelected(ISet<string> fieldNames)
         {
-            ArgumentNullException.ThrowIfNull(context);
             ArgumentNullException.ThrowIfNull(fieldNames);
 
             var namedType = context.Selection.Type.NamedType();
