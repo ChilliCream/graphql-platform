@@ -123,11 +123,14 @@ public sealed partial class OperationFeatureCollection : IFeatureCollection
         return false;
     }
 
-    /// <inheritdoc />
-    public void Set<TFeature>(TFeature? instance)
-    {
-        this[typeof(TFeature)] = instance;
-    }
+    /// <summary>
+    /// Sets a feature instance for this selection.
+    /// </summary>
+    /// <typeparam name="TFeature">The type of the feature.</typeparam>
+    /// <param name="instance">The feature instance to set, or <c>null</c> to remove.</param>
+    /// <remarks>This method is thread-safe.</remarks>
+    public void SetSafe<TFeature>(TFeature? instance)
+        => this[typeof(TFeature)] = instance;
 
     /// <inheritdoc />
     public IEnumerator<KeyValuePair<Type, object>> GetEnumerator()

@@ -30,7 +30,8 @@ internal sealed class QueryCacheMiddleware
         }
 
         if (!context.TryGetOperation(out var operation)
-            || !operation.Features.TryGet<CacheControlHeaderValue>(out var cacheControlHeaderValue))
+            || !operation.Features.TryGet<CacheControlHeaderValue>(out var headerValue)
+            || !operation.Features.TryGet<ImmutableCacheConstraints>(out var constraints))
         {
             return;
         }
@@ -45,13 +46,11 @@ internal sealed class QueryCacheMiddleware
                     ? new ExtensionData(operationResult.ContextData)
                     : [];
 
-            contextData.Add(ExecutionContextData.CacheControlHeaderValue, cacheControlHeaderValue);
+            contextData.Add(ExecutionContextData.CacheControlHeaderValue, headerValue);
 
-            if (operation.ContextData.TryGetValue(ExecutionContextData.VaryHeaderValue, out var varyValue)
-                && varyValue is string varyHeaderValue
-                && !string.IsNullOrEmpty(varyHeaderValue))
+            if (constraints.Vary.Length > 0)
             {
-                contextData.Add(ExecutionContextData.VaryHeaderValue, varyHeaderValue);
+                contextData.Add(ExecutionContextData.VaryHeaderValue, constraints.Vary);
             }
 
             context.Result = operationResult.WithContextData(contextData);

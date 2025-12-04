@@ -336,7 +336,7 @@ public class ActivityEnricher
         activity.SetTag("graphql.document.hash", documentInfo.Hash.Value);
         activity.SetTag("graphql.document.valid", documentInfo.IsValidated);
         activity.SetTag("graphql.operation.id", operation?.Id);
-        activity.SetTag("graphql.operation.kind", operation?.Type);
+        activity.SetTag("graphql.operation.kind", operation?.Kind);
         activity.SetTag("graphql.operation.name", operation?.Name);
 
         if (_options.IncludeDocument && documentInfo.Document is not null)
@@ -351,7 +351,7 @@ public class ActivityEnricher
         }
     }
 
-    protected virtual string? CreateOperationDisplayName(RequestContext context, IOperation? operation)
+    protected virtual string? CreateOperationDisplayName(RequestContext context, Operation? operation)
     {
         if (operation is null)
         {
@@ -367,7 +367,7 @@ public class ActivityEnricher
             displayName.Append('{');
             displayName.Append(' ');
 
-            foreach (var selection in rootSelectionSet.Selections.Take(3))
+            foreach (var selection in rootSelectionSet.Selections[..3])
             {
                 if (displayName.Length > 2)
                 {
@@ -377,7 +377,7 @@ public class ActivityEnricher
                 displayName.Append(selection.ResponseName);
             }
 
-            if (rootSelectionSet.Selections.Count > 3)
+            if (rootSelectionSet.Selections.Length > 3)
             {
                 displayName.Append(' ');
                 displayName.Append('.');
@@ -667,6 +667,8 @@ public class ActivityEnricher
 
                 items[i] = new ObjectValueNode(fields);
             }
+
+            return new ListValueNode(items);
         }
 
         throw new InvalidOperationException();

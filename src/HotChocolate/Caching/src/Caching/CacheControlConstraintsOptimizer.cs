@@ -38,20 +38,8 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
                     : null
             };
 
-            context.ContextData.Add(
-                ExecutionContextData.CacheControlConstraints,
-                constraints);
-
-            context.ContextData.Add(
-                ExecutionContextData.CacheControlHeaderValue,
-                headerValue);
-        }
-
-        if (constraints.Vary is { Length: > 0 })
-        {
-            context.ContextData.Add(
-                ExecutionContextData.VaryHeaderValue,
-                string.Join(", ", constraints.Vary));
+            context.Operation.Features.SetSafe(constraints);
+            context.Operation.Features.SetSafe(headerValue);
         }
     }
 

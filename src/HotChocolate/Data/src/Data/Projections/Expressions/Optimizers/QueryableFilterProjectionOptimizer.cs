@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Projections.Handlers;
 
 public sealed class QueryableFilterProjectionOptimizer : IProjectionOptimizer
 {
-    public bool CanHandle(ISelection field)
+    public bool CanHandle(Selection field)
         => field.Field.Member is { } && field.HasFilterFeature();
 
     public Selection RewriteSelection(

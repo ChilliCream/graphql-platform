@@ -11,5 +11,5 @@ public interface IProjectionFieldInterceptor
     /// </summary>
     /// <param name="selection">The selection to test for</param>
     /// <returns>Returns true if the selection can be handled</returns>
-    bool CanHandle(ISelection selection);
+    bool CanHandle(Selection selection);
 }

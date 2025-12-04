@@ -9,13 +9,13 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers;
 public class QueryableProjectionListHandler
     : QueryableProjectionHandlerBase
 {
-    public override bool CanHandle(ISelection selection) =>
+    public override bool CanHandle(Selection selection) =>
         selection.Field.Member is { }
         && (selection.IsList || selection.IsMemberIsList());
 
     public override QueryableProjectionContext OnBeforeEnter(
         QueryableProjectionContext context,
-        ISelection selection)
+        Selection selection)
     {
         var field = selection.Field;
         if (field.Member is PropertyInfo { CanWrite: true })
@@ -30,7 +30,7 @@ public class QueryableProjectionListHandler
 
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
@@ -58,7 +58,7 @@ public class QueryableProjectionListHandler
 
     public override bool TryHandleLeave(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;

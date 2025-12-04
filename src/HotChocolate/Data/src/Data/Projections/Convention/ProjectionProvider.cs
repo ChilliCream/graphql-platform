@@ -154,9 +154,8 @@ public abstract class ProjectionProvider
                     }
                 }
 
-                return ProjectionSelection.From(
-                    selection,
-                    fieldHandler);
+                selection.Features.SetSafe(fieldHandler);
+                return selection;
             }
         }
 

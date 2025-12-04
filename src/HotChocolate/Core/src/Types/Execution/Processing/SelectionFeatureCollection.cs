@@ -47,6 +47,34 @@ public readonly struct SelectionFeatureCollection : IFeatureCollection
     }
 
     /// <summary>
+    /// Gets a feature of the specified type.
+    /// </summary>
+    /// <typeparam name="TFeature">The type of the feature.</typeparam>
+    /// <returns>The feature instance, or <c>null</c> if not found.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when <typeparamref name="TFeature"/> is a non-nullable value type and the feature does not exist.
+    /// </exception>
+    public TFeature? Get<TFeature>()
+    {
+        if (typeof(TFeature).IsValueType)
+        {
+            var feature = this[typeof(TFeature)];
+            if (feature is null && Nullable.GetUnderlyingType(typeof(TFeature)) is null)
+            {
+                throw new InvalidOperationException(
+                    $"{typeof(TFeature).FullName} does not exist in the feature collection "
+                    + "and because it is a struct the method can't return null. "
+                    + $"Use 'featureCollection[typeof({typeof(TFeature).FullName})] is not null' "
+                    + "to check if the feature exists.");
+            }
+
+            return (TFeature?)feature;
+        }
+
+        return (TFeature?)this[typeof(TFeature)];
+    }
+
+    /// <summary>
     /// Sets a feature instance for this selection.
     /// </summary>
     /// <typeparam name="TFeature">The type of the feature.</typeparam>

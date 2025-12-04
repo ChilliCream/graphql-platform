@@ -50,6 +50,8 @@ public ref struct SelectionSetOptimizerContext
     /// </summary>
     public ObjectType TypeContext { get; }
 
+    public ImmutableArray<Selection> Selections => _selections;
+
     public bool ContainsField(string fieldName)
         => _selections.Any(t => t.Field.Name.EqualsOrdinal(fieldName));
 
@@ -63,6 +65,12 @@ public ref struct SelectionSetOptimizerContext
     {
         _selectionMap ??= _selections.ToDictionary(t => t.ResponseName);
         return _selectionMap.TryGetValue(responseName, out value);
+    }
+
+    public Selection GetSelection(string responseName)
+    {
+        _selectionMap ??= _selections.ToDictionary(t => t.ResponseName);
+        return _selectionMap[responseName];
     }
 
     public SelectionFeatureCollection Features => new(_features, _selectionSetId);

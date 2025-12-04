@@ -16,6 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Benchmarks" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Types" />
   </ItemGroup>

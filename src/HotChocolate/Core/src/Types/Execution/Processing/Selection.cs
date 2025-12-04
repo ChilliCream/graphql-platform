@@ -24,10 +24,10 @@ public sealed class Selection : ISelection, IFeatureProvider
         ObjectField field,
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
-        bool isInternal,
-        ArgumentMap? arguments,
-        FieldDelegate? resolverPipeline,
-        PureFieldDelegate? pureResolver)
+        bool isInternal = false,
+        ArgumentMap? arguments = null,
+        FieldDelegate? resolverPipeline = null,
+        PureFieldDelegate? pureResolver = null)
     {
         ArgumentNullException.ThrowIfNull(field);
 
@@ -41,6 +41,7 @@ public sealed class Selection : ISelection, IFeatureProvider
         Id = id;
         ResponseName = responseName;
         Field = field;
+        Type = field.Type;
         Arguments = arguments ?? s_emptyArguments;
         ResolverPipeline = resolverPipeline;
         PureResolver = pureResolver;
@@ -62,6 +63,34 @@ public sealed class Selection : ISelection, IFeatureProvider
         }
 
         _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
+    }
+
+    private Selection(
+        int id,
+        string responseName,
+        byte[] utf8ResponseName,
+        ObjectField field,
+        IType type,
+        FieldSelectionNode[] syntaxNodes,
+        ulong[] includeFlags,
+        Flags flags,
+        ArgumentMap? arguments,
+        SelectionExecutionStrategy strategy,
+        FieldDelegate? resolverPipeline,
+        PureFieldDelegate? pureResolver)
+    {
+        Id = id;
+        ResponseName = responseName;
+        Field = field;
+        Type = type;
+        Arguments = arguments ?? s_emptyArguments;
+        ResolverPipeline = resolverPipeline;
+        PureResolver = pureResolver;
+        Strategy = strategy;
+        _syntaxNodes = syntaxNodes;
+        _includeFlags = includeFlags;
+        _flags = flags;
+        _utf8ResponseName = utf8ResponseName;
     }
 
     /// <inheritdoc />
@@ -100,7 +129,7 @@ public sealed class Selection : ISelection, IFeatureProvider
     IOutputFieldDefinition ISelection.Field => Field;
 
     /// <inheritdoc />
-    public IType Type => Field.Type;
+    public IType Type { get; }
 
     /// <summary>
     /// Gets the object type that declares the field being selected.
@@ -162,6 +191,28 @@ public sealed class Selection : ISelection, IFeatureProvider
     }
 
     /// <summary>
+    /// Gets the selection set for this selection resolved against the specified object type.
+    /// </summary>
+    /// <param name="typeContext">
+    /// The object type context to resolve the selection set against.
+    /// </param>
+    /// <returns>
+    /// The selection set containing the child selections for the specified type context.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when this selection is a leaf selection (scalar or enum) which does not have child selections.
+    /// </exception>
+    public SelectionSet GetSelectionSet(ObjectType typeContext)
+    {
+        if (IsLeaf)
+        {
+            throw new InvalidOperationException("Leaf selections do not have a selection set.");
+        }
+
+        return DeclaringOperation.GetSelectionSet(this, typeContext);
+    }
+
+    /// <summary>
     /// Determines whether this selection should be skipped based on conditional flags.
     /// </summary>
     /// <param name="includeFlags">The conditional inclusion flags.</param>
@@ -213,6 +264,44 @@ public sealed class Selection : ISelection, IFeatureProvider
         }
 
         return false;
+    }
+
+    public Selection WithField(ObjectField field)
+    {
+        ArgumentNullException.ThrowIfNull(field);
+
+        return new Selection(
+            Id,
+            ResponseName,
+            _utf8ResponseName,
+            field,
+            field.Type,
+            _syntaxNodes,
+            _includeFlags,
+            _flags,
+            Arguments,
+            Strategy,
+            ResolverPipeline,
+            PureResolver);
+    }
+
+    public Selection WithType(IType type)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        return new Selection(
+            Id,
+            ResponseName,
+            _utf8ResponseName,
+            Field,
+            type,
+            _syntaxNodes,
+            _includeFlags,
+            _flags,
+            Arguments,
+            Strategy,
+            ResolverPipeline,
+            PureResolver);
     }
 
     public override string ToString()
