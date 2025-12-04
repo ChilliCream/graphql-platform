@@ -13,9 +13,10 @@ public class VisibilityTests
         var field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: true)");
 
         // act
-        var includeCondition = IncludeCondition.FromSelection(field);
+        var hasIncludeCondition = IncludeCondition.TryCreate(field, out var includeCondition);
 
         // assert
+        Assert.True(hasIncludeCondition);
         Assert.False(includeCondition.IsIncluded(variables.Object));
     }
 
@@ -27,10 +28,12 @@ public class VisibilityTests
         var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: true)");
 
         // act
-        var includeConditionA = IncludeCondition.FromSelection(fieldA);
-        var includeConditionB = IncludeCondition.FromSelection(fieldB);
+        var hasIncludeConditionA = IncludeCondition.TryCreate(fieldA, out var includeConditionA);
+        var hasIncludeConditionB = IncludeCondition.TryCreate(fieldB, out var includeConditionB);
 
         // assert
+        Assert.True(hasIncludeConditionA);
+        Assert.True(hasIncludeConditionB);
         Assert.True(includeConditionA.Equals(includeConditionB));
     }
 
@@ -42,10 +45,12 @@ public class VisibilityTests
         var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: $a)");
 
         // act
-        var includeConditionA = IncludeCondition.FromSelection(fieldA);
-        var includeConditionB = IncludeCondition.FromSelection(fieldB);
+        var hasIncludeConditionA = IncludeCondition.TryCreate(fieldA, out var includeConditionA);
+        var hasIncludeConditionB = IncludeCondition.TryCreate(fieldB, out var includeConditionB);
 
         // assert
+        Assert.True(hasIncludeConditionA);
+        Assert.True(hasIncludeConditionB);
         Assert.True(includeConditionA.Equals(includeConditionB));
     }
 
@@ -57,10 +62,12 @@ public class VisibilityTests
         var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: false)");
 
         // act
-        var includeConditionA = IncludeCondition.FromSelection(fieldA);
-        var includeConditionB = IncludeCondition.FromSelection(fieldB);
+        var hasIncludeConditionA = IncludeCondition.TryCreate(fieldA, out var includeConditionA);
+        var hasIncludeConditionB = IncludeCondition.TryCreate(fieldB, out var includeConditionB);
 
         // assert
+        Assert.True(hasIncludeConditionA);
+        Assert.True(hasIncludeConditionB);
         Assert.False(includeConditionA.Equals(includeConditionB));
     }
 
@@ -72,10 +79,12 @@ public class VisibilityTests
         var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: $a)");
 
         // act
-        var includeConditionA = IncludeCondition.FromSelection(fieldA);
-        var includeConditionB = IncludeCondition.FromSelection(fieldB);
+        var hasIncludeConditionA = IncludeCondition.TryCreate(fieldA, out var includeConditionA);
+        var hasIncludeConditionB = IncludeCondition.TryCreate(fieldB, out var includeConditionB);
 
         // assert
+        Assert.True(hasIncludeConditionA);
+        Assert.True(hasIncludeConditionB);
         Assert.False(includeConditionA.Equals(includeConditionB));
     }
 
@@ -87,10 +96,10 @@ public class VisibilityTests
         var field = Utf8GraphQLParser.Syntax.ParseField("field @test(test: true)");
 
         // act
-        var includeCondition = IncludeCondition.FromSelection(field);
+        var hasIncludeCondition = IncludeCondition.TryCreate(field, out var includeCondition);
 
         // assert
-        Assert.True(includeCondition.IsIncluded(variables.Object));
+        Assert.False(hasIncludeCondition);
     }
 
     [Fact]
@@ -101,10 +110,10 @@ public class VisibilityTests
         var field = Utf8GraphQLParser.Syntax.ParseField("field");
 
         // act
-        var includeCondition = IncludeCondition.FromSelection(field);
+        var hasIncludeCondition = IncludeCondition.TryCreate(field, out var includeCondition);
 
         // assert
-        Assert.True(includeCondition.IsIncluded(variables.Object));
+        Assert.False(hasIncludeCondition);
     }
 
     [Fact]
@@ -115,9 +124,10 @@ public class VisibilityTests
         var field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: true)");
 
         // act
-        var includeCondition = IncludeCondition.FromSelection(field);
+        var hasIncludeCondition = IncludeCondition.TryCreate(field, out var includeCondition);
 
         // assert
+        Assert.True(hasIncludeCondition);
         Assert.False(includeCondition.IsIncluded(variables.Object));
     }
 
@@ -128,14 +138,16 @@ public class VisibilityTests
         var fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
         var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: true)");
 
-        var includeConditionA = IncludeCondition.FromSelection(fieldA);
-        var includeConditionB = IncludeCondition.FromSelection(fieldB);
+        var hasIncludeConditionA = IncludeCondition.TryCreate(fieldA, out var includeConditionA);
+        var hasIncludeConditionB = IncludeCondition.TryCreate(fieldB, out var includeConditionB);
 
         // act
         var hashCodeA = includeConditionA.GetHashCode();
         var hashCodeB = includeConditionB.GetHashCode();
 
         // assert
+        Assert.True(hasIncludeConditionA);
+        Assert.True(hasIncludeConditionB);
         Assert.Equal(hashCodeA, hashCodeB);
     }
 
@@ -146,14 +158,16 @@ public class VisibilityTests
         var fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
         var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: false)");
 
-        var includeConditionA = IncludeCondition.FromSelection(fieldA);
-        var includeConditionB = IncludeCondition.FromSelection(fieldB);
+        var hasIncludeConditionA = IncludeCondition.TryCreate(fieldA, out var includeConditionA);
+        var hasIncludeConditionB = IncludeCondition.TryCreate(fieldB, out var includeConditionB);
 
         // act
         var hashCodeA = includeConditionA.GetHashCode();
         var hashCodeB = includeConditionB.GetHashCode();
 
         // assert
+        Assert.True(hasIncludeConditionA);
+        Assert.True(hasIncludeConditionB);
         Assert.NotEqual(hashCodeA, hashCodeB);
     }
 
@@ -164,13 +178,13 @@ public class VisibilityTests
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetValue<BooleanValueNode>(It.IsAny<string>())).Returns(BooleanValueNode.False);
         var field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: $a)");
-        var includeCondition = IncludeCondition.FromSelection(field);
 
         // act
-        var visible = includeCondition.IsIncluded(variables.Object);
+        var hasIncludeCondition = IncludeCondition.TryCreate(field, out var includeCondition);
 
         // assert
-        Assert.True(visible);
+        Assert.True(hasIncludeCondition);
+        Assert.True(includeCondition.IsIncluded(variables.Object));
     }
 
     [Fact]
@@ -180,13 +194,13 @@ public class VisibilityTests
         var variables = new Mock<IVariableValueCollection>();
         variables.Setup(t => t.GetValue<BooleanValueNode>(It.IsAny<string>())).Returns(BooleanValueNode.True);
         var field = Utf8GraphQLParser.Syntax.ParseField("field @include(if: $a)");
-        var includeCondition = IncludeCondition.FromSelection(field);
 
         // act
-        var visible = includeCondition.IsIncluded(variables.Object);
+        var hasIncludeCondition = IncludeCondition.TryCreate(field, out var includeCondition);
 
         // assert
-        Assert.True(visible);
+        Assert.True(hasIncludeCondition);
+        Assert.True(includeCondition.IsIncluded(variables.Object));
     }
 
     [Fact]
@@ -195,12 +209,12 @@ public class VisibilityTests
         // arrange
         var variables = new Mock<IVariableValueCollection>();
         var field = Utf8GraphQLParser.Syntax.ParseField("field @include(if: true)");
-        var includeCondition = IncludeCondition.FromSelection(field);
 
         // act
-        var visible = includeCondition.IsIncluded(variables.Object);
+        var hasIncludeCondition = IncludeCondition.TryCreate(field, out var includeCondition);
 
         // assert
-        Assert.True(visible);
+        Assert.True(hasIncludeCondition);
+        Assert.True(includeCondition.IsIncluded(variables.Object));
     }
 }

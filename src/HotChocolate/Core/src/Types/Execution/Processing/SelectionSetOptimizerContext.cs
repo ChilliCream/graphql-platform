@@ -24,6 +24,7 @@ public ref struct SelectionSetOptimizerContext
     /// </summary>
     internal SelectionSetOptimizerContext(
         int selectionSetId,
+        SelectionPath path,
         ObjectType typeContext,
         ref ImmutableArray<Selection> selections,
         OperationFeatureCollection features,
@@ -36,6 +37,7 @@ public ref struct SelectionSetOptimizerContext
         _features = features;
         _lastSelectionId = ref lastSelectionId;
         _createFieldPipeline = createFieldPipeline;
+        Path = path;
         TypeContext = typeContext;
         Schema = schema;
     }
@@ -44,6 +46,11 @@ public ref struct SelectionSetOptimizerContext
     /// Gets the schema for which the query is compiled.
     /// </summary>
     public Schema Schema { get; }
+
+    /// <summary>
+    /// Gets the path where this selection set is located within the GraphQL operation document.
+    /// </summary>
+    public SelectionPath Path { get; }
 
     /// <summary>
     /// Gets the type context of the current selection-set.

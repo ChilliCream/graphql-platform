@@ -85,6 +85,7 @@ public sealed partial class OperationCompiler
                 includeConditions);
 
             var selectionSet = BuildSelectionSet(
+                SelectionPath.Root,
                 fields,
                 rootType,
                 compilationContext,
@@ -167,7 +168,8 @@ public sealed partial class OperationCompiler
                 }
             }
 
-            var selectionSet = BuildSelectionSet(fields, objectType, compilationContext, optimizers, ref lastId);
+            var path = selection.DeclaringSelectionSet.Path.Append(selection.ResponseName);
+            var selectionSet = BuildSelectionSet(path, fields, objectType, compilationContext, optimizers, ref lastId);
             compilationContext.Register(selectionSet, selectionSet.Id);
             elementsById = compilationContext.ElementsById;
             selectionSet.Complete(operation);
@@ -232,6 +234,7 @@ public sealed partial class OperationCompiler
     }
 
     private SelectionSet BuildSelectionSet(
+        SelectionPath path,
         OrderedDictionary<string, List<FieldSelectionNode>> fieldMap,
         ObjectType typeContext,
         CompilationContext compilationContext,
@@ -324,7 +327,7 @@ public sealed partial class OperationCompiler
         // if there are no optimizers registered for this selection we exit early.
         if (optimizers.Length == 0)
         {
-            return new SelectionSet(selectionSetId, typeContext, selections, isConditional);
+            return new SelectionSet(selectionSetId, path, typeContext, selections, isConditional);
         }
 
         var current = ImmutableCollectionsMarshal.AsImmutableArray(selections);
@@ -332,6 +335,7 @@ public sealed partial class OperationCompiler
 
         var optimizerContext = new SelectionSetOptimizerContext(
             selectionSetId,
+            path,
             typeContext,
             ref rewritten,
             compilationContext.Features,
@@ -349,7 +353,7 @@ public sealed partial class OperationCompiler
         // This mean we can simply construct the SelectionSet.
         if (current == rewritten)
         {
-            return new SelectionSet(selectionSetId, typeContext, selections, isConditional);
+            return new SelectionSet(selectionSetId, path, typeContext, selections, isConditional);
         }
 
         if (current.Length < rewritten.Length)
@@ -368,7 +372,7 @@ public sealed partial class OperationCompiler
         }
 
         selections = ImmutableCollectionsMarshal.AsArray(rewritten)!;
-        return new SelectionSet(selectionSetId, typeContext, selections, isConditional);
+        return new SelectionSet(selectionSetId, path, typeContext, selections, isConditional);
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)

@@ -18,7 +18,12 @@ public sealed class SelectionSet : ISelectionSet
     private Flags _flags;
     private Operation? _declaringOperation;
 
-    internal SelectionSet(int id, IObjectTypeDefinition type, Selection[] selections, bool isConditional)
+    internal SelectionSet(
+        int id,
+        SelectionPath path,
+        IObjectTypeDefinition type,
+        Selection[] selections,
+        bool isConditional)
     {
         ArgumentNullException.ThrowIfNull(selections);
 
@@ -28,6 +33,7 @@ public sealed class SelectionSet : ISelectionSet
         }
 
         Id = id;
+        Path = path;
         Type = type;
         _flags = isConditional ? Flags.Conditional : Flags.None;
         _selections = selections;
@@ -41,12 +47,17 @@ public sealed class SelectionSet : ISelectionSet
     public int Id { get; }
 
     /// <summary>
+    /// Gets the path where this selection set is located within the GraphQL operation document.
+    /// </summary>
+    public SelectionPath Path { get; }
+
+    /// <summary>
     /// Defines if this list needs post-processing for skip and include.
     /// </summary>
     public bool IsConditional => (_flags & Flags.Conditional) == Flags.Conditional;
 
     /// <summary>
-    /// Gets the type that declares this selection set.
+    /// Gets the type context of this selection set.
     /// </summary>
     public IObjectTypeDefinition Type { get; }
 

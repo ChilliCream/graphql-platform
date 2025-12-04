@@ -467,11 +467,29 @@ public class ResolverCompilerTests
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
-        var selection = new Mock<ISelection>();
+        var fieldSyntax = new FieldNode(
+            null,
+            new NameNode("foo"),
+            null,
+            Array.Empty<DirectiveNode>(),
+            Array.Empty<ArgumentNode>(),
+            null);
+
+        var schema =
+            SchemaBuilder.New()
+                .AddQueryType(c => c.Name("Query").Field("abc").Resolve("def"))
+                .Create();
+
+        var selection = new Selection(
+            id: 1,
+            "abc",
+            schema.Types.GetType<ObjectType>("Query").Fields["abc"],
+            [new FieldSelectionNode(fieldSyntax, 1)],
+            []);
 
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-        context.SetupGet(t => t.Selection).Returns(selection.Object);
+        context.SetupGet(t => t.Selection).Returns(selection);
 
         var result = (bool)(await resolver(context.Object))!;
         Assert.True(result);
@@ -491,11 +509,29 @@ public class ResolverCompilerTests
         var pure = compiler.CompileResolve(member, type).PureResolver!;
 
         // assert
-        var selection = new Mock<ISelection>();
+        var fieldSyntax = new FieldNode(
+            null,
+            new NameNode("foo"),
+            null,
+            Array.Empty<DirectiveNode>(),
+            Array.Empty<ArgumentNode>(),
+            null);
+
+        var schema =
+            SchemaBuilder.New()
+                .AddQueryType(c => c.Name("Query").Field("abc").Resolve("def"))
+                .Create();
+
+        var selection = new Selection(
+            id: 1,
+            "abc",
+            schema.Types.GetType<ObjectType>("Query").Fields["abc"],
+            [new FieldSelectionNode(fieldSyntax, 1)],
+            []);
 
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-        context.SetupGet(t => t.Selection).Returns(selection.Object);
+        context.SetupGet(t => t.Selection).Returns(selection);
 
         var result = (bool)(await resolver(context.Object))!;
         Assert.True(result, "Standard Resolver");
@@ -526,12 +562,21 @@ public class ResolverCompilerTests
             Array.Empty<ArgumentNode>(),
             null);
 
-        var selection = new Mock<ISelection>();
-        selection.SetupGet(t => t.SyntaxNode).Returns(fieldSyntax);
+        var schema =
+            SchemaBuilder.New()
+                .AddQueryType(c => c.Name("Query").Field("abc").Resolve("def"))
+                .Create();
+
+        var selection = new Selection(
+            id: 1,
+            "abc",
+            schema.Types.GetType<ObjectType>("Query").Fields["abc"],
+            [new FieldSelectionNode(fieldSyntax, 1)],
+            []);
 
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-        context.SetupGet(t => t.Selection).Returns(selection.Object);
+        context.SetupGet(t => t.Selection).Returns(selection);
 
         var result = (bool)(await resolver(context.Object))!;
         Assert.True(result, "Standard Resolver");
@@ -579,24 +624,20 @@ public class ResolverCompilerTests
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
-        var operationDefinition =
-            new OperationDefinitionNode(
-                null,
-                null,
-                null,
-                OperationType.Query,
-                Array.Empty<VariableDefinitionNode>(),
-                Array.Empty<DirectiveNode>(),
-                new SelectionSetNode(
-                    null,
-                    Array.Empty<ISelectionNode>()));
+        var schema =
+            SchemaBuilder.New()
+                .AddQueryType(c => c.Name("Query").Field("abc").Resolve("def"))
+                .Create();
 
-        var operation = new Mock<IOperation>();
-        operation.Setup(t => t.Definition).Returns(operationDefinition);
+        var document = Utf8GraphQLParser.Parse("{ abc }");
+        var operation = OperationCompiler.Compile(
+            "abc",
+            document.Definitions.OfType<OperationDefinitionNode>().First(),
+            schema);
 
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-        context.SetupGet(t => t.Operation).Returns(operation.Object);
+        context.SetupGet(t => t.Operation).Returns(operation);
         var result = (bool)(await resolver(context.Object))!;
         Assert.True(result);
     }
@@ -614,6 +655,14 @@ public class ResolverCompilerTests
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
+        var fieldSyntax = new FieldNode(
+            null,
+            new NameNode("a"),
+            null,
+            Array.Empty<DirectiveNode>(),
+            Array.Empty<ArgumentNode>(),
+            null);
+
         var schema = SchemaBuilder.New()
             .AddDocumentFromString("type Query { a: String }")
             .Use(next => next)
@@ -621,12 +670,16 @@ public class ResolverCompilerTests
 
         var queryType = schema.Types.GetType<ObjectType>("Query");
 
-        var selection = new Mock<ISelection>();
-        selection.SetupGet(t => t.Field).Returns(queryType.Fields.First());
+        var selection = new Selection(
+            id: 1,
+            "a",
+            queryType.Fields.First(),
+            [new FieldSelectionNode(fieldSyntax, 1)],
+            []);
 
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-        context.SetupGet(t => t.Selection).Returns(selection.Object);
+        context.SetupGet(t => t.Selection).Returns(selection);
 
         var result = (bool)(await resolver(context.Object))!;
         Assert.True(result);
@@ -645,6 +698,14 @@ public class ResolverCompilerTests
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
+        var fieldSyntax = new FieldNode(
+            null,
+            new NameNode("a"),
+            null,
+            Array.Empty<DirectiveNode>(),
+            Array.Empty<ArgumentNode>(),
+            null);
+
         var schema = SchemaBuilder.New()
             .AddDocumentFromString("type Query { a: String }")
             .Use(next => next)
@@ -652,12 +713,16 @@ public class ResolverCompilerTests
 
         var queryType = schema.Types.GetType<ObjectType>("Query");
 
-        var selection = new Mock<ISelection>();
-        selection.SetupGet(t => t.Field).Returns(queryType.Fields.First());
+        var selection = new Selection(
+            id: 1,
+            "a",
+            queryType.Fields.First(),
+            [new FieldSelectionNode(fieldSyntax, 1)],
+            []);
 
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-        context.SetupGet(t => t.Selection).Returns(selection.Object);
+        context.SetupGet(t => t.Selection).Returns(selection);
 
         var result = (bool)(await resolver(context.Object))!;
         Assert.True(result);
@@ -676,13 +741,20 @@ public class ResolverCompilerTests
         var resolver = compiler.CompileResolve(member, type).Resolver!;
 
         // assert
-        var document = new DocumentNode(Array.Empty<IDefinitionNode>());
-        var operation = new Mock<IOperation>();
-        operation.Setup(t => t.Document).Returns(document);
+        var schema =
+            SchemaBuilder.New()
+                .AddQueryType(c => c.Name("Query").Field("abc").Resolve("def"))
+                .Create();
+
+        var document = Utf8GraphQLParser.Parse("{ abc }");
+        var operation = OperationCompiler.Compile(
+            "abc",
+            document.Definitions.OfType<OperationDefinitionNode>().First(),
+            schema);
 
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-        context.SetupGet(t => t.Operation).Returns(operation.Object);
+        context.SetupGet(t => t.Operation).Returns(operation);
         var result = (bool)(await resolver(context.Object))!;
         Assert.True(result);
     }
