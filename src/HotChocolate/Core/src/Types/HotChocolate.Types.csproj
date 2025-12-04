@@ -22,6 +22,7 @@
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Authorization" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests.Utilities" />
     <InternalsVisibleTo Include="HotChocolate.Authorization" />
     <InternalsVisibleTo Include="HotChocolate.Caching.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Caching" />

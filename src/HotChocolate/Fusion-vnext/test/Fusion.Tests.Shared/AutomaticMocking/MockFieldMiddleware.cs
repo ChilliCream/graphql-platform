@@ -312,7 +312,7 @@ internal sealed class MockFieldMiddleware
         return ErrorBuilder.New()
             .SetMessage("Unexpected Execution Error")
             .SetPath(path)
-            .AddLocation(context.Selection.SyntaxNode)
+            .AddLocations(context.Selection)
             .Build();
     }
 
