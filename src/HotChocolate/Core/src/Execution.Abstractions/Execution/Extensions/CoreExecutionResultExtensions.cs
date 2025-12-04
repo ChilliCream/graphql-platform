@@ -78,7 +78,7 @@ public static class CoreExecutionResultExtensions
     /// <summary>
     /// Expects a single GraphQL operation result.
     /// </summary>
-    public static OperationResult ExpectOperationResult(this IExecutionResult result)
+    public static IOperationResult ExpectOperationResult(this IExecutionResult result)
     {
         if (result is IOperationResult qr)
         {
@@ -104,7 +104,7 @@ public static class CoreExecutionResultExtensions
     /// <summary>
     /// Expect a stream result.
     /// </summary>
-    public static ResponseStream ExpectResponseStream(this IExecutionResult result)
+    public static IResponseStream ExpectResponseStream(this IExecutionResult result)
     {
         if (result is IResponseStream rs)
         {
