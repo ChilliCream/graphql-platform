@@ -370,6 +370,14 @@ public class Snapshot
         }
     }
 
+    public string Render()
+    {
+        var writer = new ArrayBufferWriter<byte>();
+        WriteSegments(writer);
+        EnsureEndOfBufferNewline(writer);
+        return Encoding.UTF8.GetString(writer.WrittenSpan);
+    }
+
     private void WriteSegments(IBufferWriter<byte> writer)
     {
         if (_segments.Count == 1)
