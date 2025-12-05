@@ -35,18 +35,19 @@ internal sealed partial class RequestExecutorManager
     private readonly IServiceProvider _applicationServices;
     private readonly EventObservable _events = new();
     private readonly ChannelWriter<string> _executorEvictionChannelWriter;
+
     private ulong _version;
     private bool _disposed;
 
     public RequestExecutorManager(
         IOptionsMonitor<RequestExecutorSetup> optionsMonitor,
-        IServiceProvider serviceProvider)
+        IServiceProvider applicationServices)
     {
         ArgumentNullException.ThrowIfNull(optionsMonitor);
-        ArgumentNullException.ThrowIfNull(serviceProvider);
+        ArgumentNullException.ThrowIfNull(applicationServices);
 
         _optionsMonitor = optionsMonitor;
-        _applicationServices = serviceProvider;
+        _applicationServices = applicationServices;
 
         var executorEvictionChannel = Channel.CreateUnbounded<string>();
         _executorEvictionChannelWriter = executorEvictionChannel.Writer;
@@ -89,8 +90,9 @@ internal sealed partial class RequestExecutorManager
                 throw new InvalidOperationException($"The requested schema '{schemaName}' does not exist.");
             }
 
-            var registeredExecutor = await CreateRequestExecutorAsync(schemaName, true, cancellationToken)
-                .ConfigureAwait(false);
+            var registeredExecutor =
+                await CreateRequestExecutorAsync(schemaName, true, cancellationToken)
+                    .ConfigureAwait(false);
 
             return registeredExecutor.Executor;
         }
@@ -266,7 +268,8 @@ internal sealed partial class RequestExecutorManager
 
         serviceCollection.AddSingleton(new SchemaVersionInfo(version));
 
-        serviceCollection.AddSingleton(context.DescriptorContext.TypeConverter);
+        serviceCollection.AddSingleton<ITypeConverter>(
+            _ => context.DescriptorContext.TypeConverter);
 
         serviceCollection.AddSingleton(
             static sp => new InputParser(sp.GetRequiredService<ITypeConverter>()));
@@ -282,6 +285,8 @@ internal sealed partial class RequestExecutorManager
             static _ => new DefaultObjectPoolProvider());
         serviceCollection.AddSingleton(
             static sp => sp.GetRequiredService<ObjectPoolProvider>().CreateStringBuilderPool());
+        serviceCollection.AddSingleton(
+            static sp => sp.GetRequiredService<ObjectPoolProvider>().CreateFieldMapPool());
 
         serviceCollection.AddSingleton(executorOptions);
         serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(

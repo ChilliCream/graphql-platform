@@ -1,4 +1,4 @@
-using HotChocolate.Execution.Properties;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;

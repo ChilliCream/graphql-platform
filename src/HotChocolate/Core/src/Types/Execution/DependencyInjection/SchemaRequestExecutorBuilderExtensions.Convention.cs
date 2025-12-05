@@ -1,6 +1,6 @@
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Execution.Properties;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Execution.ThrowHelper;
 

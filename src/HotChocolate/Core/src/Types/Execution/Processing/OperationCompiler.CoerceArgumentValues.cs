@@ -1,12 +1,6 @@
-using System.Buffers;
-using System.Collections;
-using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
 

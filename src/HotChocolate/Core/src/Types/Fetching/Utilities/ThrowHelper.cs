@@ -1,4 +1,4 @@
-using static HotChocolate.Fetching.Properties.FetchingResources;
+using static HotChocolate.Properties.FetchingResources;
 
 namespace HotChocolate.Fetching.Utilities;
 

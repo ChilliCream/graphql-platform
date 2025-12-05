@@ -1,5 +1,6 @@
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing.Tasks;
@@ -12,7 +13,6 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     private OperationContext _operationContext = null!;
     private Selection _selection = null!;
     private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
-    private Task? _task;
 
     /// <summary>
     /// Gets or sets the internal execution id.
@@ -71,6 +71,6 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     public void BeginExecute(CancellationToken cancellationToken)
     {
         Status = ExecutionTaskStatus.Running;
-        _task = ExecuteAsync(cancellationToken);
+        ExecuteAsync(cancellationToken).FireAndForget();
     }
 }

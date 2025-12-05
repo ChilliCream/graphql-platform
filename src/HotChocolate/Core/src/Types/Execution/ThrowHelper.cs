@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Execution.Properties.Resources;
+using static HotChocolate.Properties.Resources;
 
 namespace HotChocolate.Execution;
 

@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using System.Net;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using static HotChocolate.Execution.Properties.Resources;
+using static HotChocolate.Properties.Resources;
 
 namespace HotChocolate.Execution;
 

@@ -3,7 +3,7 @@ using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Transport.Formatters;
-using static HotChocolate.Execution.Properties.Resources;
+using static HotChocolate.Properties.Resources;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate;

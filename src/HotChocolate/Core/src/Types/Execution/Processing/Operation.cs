@@ -32,7 +32,7 @@ public sealed class Operation : IOperation
         SelectionSet rootSelectionSet,
         OperationCompiler compiler,
         IncludeConditionCollection includeConditions,
-        OperationFeatureCollection  features,
+        OperationFeatureCollection features,
         int lastId,
         object[] elementsById)
     {

@@ -1,8 +1,7 @@
 using System.Collections.Concurrent;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
-using HotChocolate.Fetching.Properties;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Fetching;
 

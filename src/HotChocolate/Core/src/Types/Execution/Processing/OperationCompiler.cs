@@ -294,7 +294,7 @@ public sealed partial class OperationCompiler
             var pureFieldDelegate = TryCreatePureField(_schema, field, first.Node);
             var arguments = ArgumentMap.Empty;
 
-            if (first.Node.Arguments.Count > 0)
+            if (field.Arguments.Count > 0)
             {
                 arguments = CoerceArgumentValues(field, first.Node);
             }

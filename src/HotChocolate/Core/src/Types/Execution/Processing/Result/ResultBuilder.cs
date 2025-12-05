@@ -1,6 +1,6 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
-using HotChocolate.Execution.Properties;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Processing;
