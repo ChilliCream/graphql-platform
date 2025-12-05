@@ -2,12 +2,6 @@
   "errors": [
     {
       "message": "Cannot return null for semantic non-null field.",
-      "locations": [
-        {
-          "line": 2,
-          "column": 3
-        }
-      ],
       "path": [
         "pureObjectListReturningNull"
       ],

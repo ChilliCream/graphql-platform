@@ -36,14 +36,22 @@ public sealed partial class OperationCompiler
 
     public static Operation Compile(
         string id,
-        OperationDefinitionNode operationDefinition,
+        DocumentNode document,
         Schema schema)
-        => Compile(id, id, operationDefinition, schema);
+        => Compile(id, id, null, document, schema);
+
+    public static Operation Compile(
+        string id,
+        string? operationName,
+        DocumentNode document,
+        Schema schema)
+        => Compile(id, id, operationName, document, schema);
 
     public static Operation Compile(
         string id,
         string hash,
-        OperationDefinitionNode operationDefinition,
+        string? operationName,
+        DocumentNode document,
         Schema schema)
         => new OperationCompiler(
             schema,
@@ -51,20 +59,20 @@ public sealed partial class OperationCompiler
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
                 new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()),
             new OperationCompilerOptimizers())
-            .Compile(id, hash, operationDefinition);
+            .Compile(id, hash, operationName, document);
 
     public Operation Compile(
         string id,
         string hash,
-        OperationDefinitionNode operationDefinition)
+        string? operationName,
+        DocumentNode document)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
-        ArgumentNullException.ThrowIfNull(operationDefinition);
+        ArgumentNullException.ThrowIfNull(document);
 
         // Before we can plan an operation, we must de-fragmentize it and remove static include conditions.
-        var document = new DocumentNode([operationDefinition]);
         document = _documentRewriter.RewriteDocument(document);
-        operationDefinition = (OperationDefinitionNode)document.Definitions[0];
+        var operationDefinition = document.GetOperation(operationName);
 
         var includeConditions = new IncludeConditionCollection();
         IncludeConditionVisitor.Instance.Visit(operationDefinition, includeConditions);
@@ -319,7 +327,7 @@ public sealed partial class OperationCompiler
             compilationContext.Register(selection, selection.Id);
             selections[i++] = selection;
 
-            if (includeFlags.Count > 1)
+            if (includeFlags.Count > 0)
             {
                 isConditional = true;
             }

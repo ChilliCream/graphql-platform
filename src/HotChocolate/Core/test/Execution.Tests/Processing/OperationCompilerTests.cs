@@ -24,12 +24,10 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse("{ foo }");
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -51,13 +49,10 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse("{ foo foo }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -79,13 +74,10 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse("{ }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -113,13 +105,10 @@ public class OperationCompilerTests
                 }
              }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -152,13 +141,10 @@ public class OperationCompilerTests
               }
              ");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -218,13 +204,10 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -247,12 +230,10 @@ public class OperationCompilerTests
         var document = Utf8GraphQLParser.Parse(
             "{ foo @skip(if: true) foo @skip(if: false) }");
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -274,15 +255,12 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse("{ foo bar }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         void Action()
         {
             OperationCompiler.Compile(
                 "opid",
-                operationDefinition,
+                document,
                 schema);
         }
 
@@ -312,13 +290,10 @@ public class OperationCompilerTests
                 name
             }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -345,12 +320,10 @@ public class OperationCompilerTests
                 name
             }");
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -377,12 +350,10 @@ public class OperationCompilerTests
                 name
             }");
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -412,13 +383,10 @@ public class OperationCompilerTests
                 }
             }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -456,13 +424,10 @@ public class OperationCompilerTests
                 }
             }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -525,12 +490,10 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -562,13 +525,10 @@ public class OperationCompilerTests
                 }
             }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -590,12 +550,10 @@ public class OperationCompilerTests
                 }
             }");
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -626,12 +584,10 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -656,13 +612,10 @@ public class OperationCompilerTests
                 }
             }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -689,13 +642,10 @@ public class OperationCompilerTests
                 id
             }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -722,13 +672,10 @@ public class OperationCompilerTests
                 }
             }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -753,12 +700,10 @@ public class OperationCompilerTests
 
             fragment abc on Droid { }");
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -783,12 +728,10 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -810,12 +753,10 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -835,13 +776,10 @@ public class OperationCompilerTests
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("LargeQuery.graphql"));
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -862,13 +800,10 @@ public class OperationCompilerTests
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("CryptoDetailQuery.graphql"));
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -904,12 +839,10 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -945,12 +878,10 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -987,12 +918,10 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -1013,13 +942,10 @@ public class OperationCompilerTests
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("CryptoQuery.graphql"));
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -1098,12 +1024,10 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -1182,12 +1106,10 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert
@@ -1225,12 +1147,10 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         var operation = OperationCompiler.Compile(
             "opid",
-            operationDefinition,
+            document,
             schema);
 
         // assert

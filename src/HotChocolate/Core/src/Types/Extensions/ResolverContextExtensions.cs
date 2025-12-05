@@ -438,7 +438,7 @@ public static class ResolverContextExtensions
                     var includeFlags = context.IncludeFlags;
                     var selectionSet = context.Operation.GetSelectionSet(context.Selection, possibleType);
 
-                    foreach(var selection in selectionSet.Selections)
+                    foreach (var selection in selectionSet.Selections)
                     {
                         if (selection.IsIncluded(includeFlags)
                             && selection.Field.Name.Equals(fieldName))
@@ -453,7 +453,7 @@ public static class ResolverContextExtensions
                 var includeFlags = context.IncludeFlags;
                 var selectionSet = context.Operation.GetSelectionSet(context.Selection, (ObjectType)namedType);
 
-                foreach(var selection in selectionSet.Selections)
+                foreach (var selection in selectionSet.Selections)
                 {
                     if (selection.IsIncluded(includeFlags)
                         && selection.Field.Name.Equals(fieldName))
@@ -501,7 +501,7 @@ public static class ResolverContextExtensions
                     var includeFlags = context.IncludeFlags;
                     var selectionSet = context.Operation.GetSelectionSet(context.Selection, possibleType);
 
-                    foreach(var selection in selectionSet.Selections)
+                    foreach (var selection in selectionSet.Selections)
                     {
                         if (selection.IsSkipped(includeFlags))
                         {
@@ -520,7 +520,7 @@ public static class ResolverContextExtensions
                 var includeFlags = context.IncludeFlags;
                 var selectionSet = context.Operation.GetSelectionSet(context.Selection, (ObjectType)namedType);
 
-                foreach(var selection in selectionSet.Selections)
+                foreach (var selection in selectionSet.Selections)
                 {
                     if (selection.IsSkipped(includeFlags))
                     {
@@ -577,7 +577,7 @@ public static class ResolverContextExtensions
                     var includeFlags = context.IncludeFlags;
                     var selectionSet = context.Operation.GetSelectionSet(context.Selection, possibleType);
 
-                    foreach(var selection in selectionSet.Selections)
+                    foreach (var selection in selectionSet.Selections)
                     {
                         if (selection.IsSkipped(includeFlags))
                         {
@@ -598,7 +598,7 @@ public static class ResolverContextExtensions
                 var includeFlags = context.IncludeFlags;
                 var selectionSet = context.Operation.GetSelectionSet(context.Selection, (ObjectType)namedType);
 
-                foreach(var selection in selectionSet.Selections)
+                foreach (var selection in selectionSet.Selections)
                 {
                     if (selection.IsSkipped(includeFlags))
                     {
@@ -647,7 +647,7 @@ public static class ResolverContextExtensions
                     var includeFlags = context.IncludeFlags;
                     var selectionSet = context.Operation.GetSelectionSet(context.Selection, possibleType);
 
-                    foreach(var selection in selectionSet.Selections)
+                    foreach (var selection in selectionSet.Selections)
                     {
                         if (selection.IsIncluded(includeFlags)
                             && fieldNames.Contains(selection.Field.Name))
@@ -662,7 +662,7 @@ public static class ResolverContextExtensions
                 var includeFlags = context.IncludeFlags;
                 var selectionSet = context.Operation.GetSelectionSet(context.Selection, (ObjectType)namedType);
 
-                foreach(var selection in selectionSet.Selections)
+                foreach (var selection in selectionSet.Selections)
                 {
                     if (selection.IsIncluded(includeFlags)
                         && fieldNames.Contains(selection.Field.Name))

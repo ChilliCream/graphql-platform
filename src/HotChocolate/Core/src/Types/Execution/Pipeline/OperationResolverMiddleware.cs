@@ -1,6 +1,5 @@
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Fusion.Rewriters;
 using static HotChocolate.Execution.ErrorHelper;
 
 namespace HotChocolate.Execution.Pipeline;
@@ -40,14 +39,11 @@ internal sealed class OperationResolverMiddleware
         {
             using (_diagnosticEvents.CompileOperation(context))
             {
-                var operationName = context.Request.OperationName;
-                var operationDocument = documentInfo.Document;
-                var operationNode = operationDocument.GetOperation(operationName);
-
                 operation = _operationPlanner.Compile(
                     operationId ?? Guid.NewGuid().ToString("N"),
                     documentInfo.Hash.Value,
-                    operationNode);
+                    context.Request.OperationName,
+                    documentInfo.Document);
 
                 context.SetOperation(operation);
             }

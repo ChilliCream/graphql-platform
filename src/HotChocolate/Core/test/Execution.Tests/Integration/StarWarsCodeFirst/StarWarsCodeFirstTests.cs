@@ -110,24 +110,26 @@ public class StarWarsCodeFirstTests
     public async Task GraphQLOrgFragmentExample()
     {
         await ExpectValid(
-                @"{
-                leftComparison: hero(episode: EMPIRE) {
-                    ...comparisonFields
-                }
-                rightComparison: hero(episode: JEDI) {
-                    ...comparisonFields
-                }
-            }
-
-            fragment comparisonFields on Character {
-                name
-                appearsIn
-                friends {
-                    nodes {
-                        name
+                """
+                {
+                    leftComparison: hero(episode: EMPIRE) {
+                        ...comparisonFields
+                    }
+                    rightComparison: hero(episode: JEDI) {
+                        ...comparisonFields
                     }
                 }
-            }")
+
+                fragment comparisonFields on Character {
+                    name
+                    appearsIn
+                    friends {
+                        nodes {
+                            name
+                        }
+                    }
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -191,23 +193,24 @@ public class StarWarsCodeFirstTests
     public async Task GraphQLOrgDirectiveIncludeExample1()
     {
         await ExpectValid(
-                @"
-                query Hero($episode: Episode, $withFriends: Boolean!) {
-                    hero(episode: $episode) {
-                        name
-                        friends @include(if: $withFriends) {
-                            nodes {
-                                name
-                            }
+            """
+            query Hero($episode: Episode, $withFriends: Boolean!) {
+                hero(episode: $episode) {
+                    name
+                    friends @include(if: $withFriends) {
+                        nodes {
+                            name
                         }
                     }
-                }",
-                request: c => c.SetVariableValues(
-                    new Dictionary<string, object?>
-                    {
-                        { "episode", new EnumValueNode("JEDI") },
-                        { "withFriends", new BooleanValueNode(false) }
-                    }))
+                }
+            }
+            """,
+            request: c => c.SetVariableValues(
+                new Dictionary<string, object?>
+                {
+                    { "episode", new EnumValueNode("JEDI") },
+                    { "withFriends", new BooleanValueNode(false) }
+                }))
             .MatchSnapshotAsync();
     }
 
@@ -263,7 +266,7 @@ public class StarWarsCodeFirstTests
     public async Task GraphQLOrgDirectiveSkipExample2()
     {
         await ExpectValid(
-                @"
+                """
                 query Hero($episode: Episode, $withFriends: Boolean!) {
                     hero(episode: $episode) {
                         name
@@ -273,7 +276,8 @@ public class StarWarsCodeFirstTests
                             }
                         }
                     }
-                }",
+                }
+                """,
                 request: r => r.SetVariableValues(
                     new Dictionary<string, object?>
                     {

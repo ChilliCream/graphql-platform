@@ -1236,7 +1236,7 @@ public class ObjectTypeTests : TypeTestBase
         void Action() => ObjectTypeDescriptorExtensions.Ignore<Foo>(null!, t => t.Description);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<NullReferenceException>(Action);
     }
 
     [Fact]

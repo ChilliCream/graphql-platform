@@ -49,7 +49,6 @@ internal partial class MiddlewareContext : IMiddlewareContext
             ErrorBuilder.New()
                 .SetMessage(errorMessage)
                 .SetPath(Path)
-                .AddLocations(_selection)
                 .Build());
     }
 
@@ -75,8 +74,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
         {
             var errorBuilder = ErrorBuilder
                 .FromException(exception)
-                .SetPath(Path)
-                .AddLocations(_selection);
+                .SetPath(Path);
 
             configure?.Invoke(errorBuilder);
 
@@ -289,18 +287,5 @@ internal partial class MiddlewareContext : IMiddlewareContext
                             ? default!
                             : c.Value,
                         s)));
-    }
-}
-
-file static class Extensions
-{
-    public static ErrorBuilder AddLocations(this ErrorBuilder errorBuilder, Selection selection)
-    {
-        foreach (var (node, _) in selection.SyntaxNodes)
-        {
-            errorBuilder.AddLocation(node);
-        }
-
-        return errorBuilder;
     }
 }
