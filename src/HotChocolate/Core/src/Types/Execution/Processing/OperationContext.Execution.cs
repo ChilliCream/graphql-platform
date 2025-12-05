@@ -1,0 +1,68 @@
+using System.Collections.Immutable;
+using HotChocolate.Execution.Processing.Tasks;
+
+namespace HotChocolate.Execution.Processing;
+
+internal sealed partial class OperationContext
+{
+    /// <summary>
+    /// The work scheduler organizes the processing of request tasks.
+    /// </summary>
+    public WorkScheduler Scheduler
+    {
+        get
+        {
+            AssertInitialized();
+            return _currentWorkScheduler;
+        }
+        internal set
+        {
+            _currentWorkScheduler = value;
+        }
+    }
+
+    /// <summary>
+    /// The result helper which provides utilities to build up the result.
+    /// </summary>
+    public ResultBuilder Result
+    {
+        get
+        {
+            AssertInitialized();
+            return _resultBuilder;
+        }
+    }
+
+    public RequestContext RequestContext
+    {
+        get
+        {
+            AssertInitialized();
+            return _requestContext;
+        }
+    }
+
+    public ResolverTask CreateResolverTask(
+        Selection selection,
+        object? parent,
+        ObjectResult parentResult,
+        int responseIndex,
+        IImmutableDictionary<string, object?> scopedContextData,
+        Path? path = null)
+    {
+        AssertInitialized();
+
+        var resolverTask = _resolverTaskFactory.Create();
+
+        resolverTask.Initialize(
+            this,
+            selection,
+            parentResult,
+            responseIndex,
+            parent,
+            scopedContextData,
+            path);
+
+        return resolverTask;
+    }
+}

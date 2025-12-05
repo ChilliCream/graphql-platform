@@ -8,7 +8,7 @@ public abstract class QueryableProjectionHandlerBase
 {
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         action = SelectionVisitor.Continue;
@@ -17,7 +17,7 @@ public abstract class QueryableProjectionHandlerBase
 
     public override bool TryHandleLeave(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         action = SelectionVisitor.Continue;

@@ -439,7 +439,7 @@ public class InterfaceTypeTests : TypeTestBase
         void Action() => InterfaceTypeDescriptorExtensions.Ignore<IFoo>(null!, t => t.Bar);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<NullReferenceException>(Action);
     }
 
     [Fact]

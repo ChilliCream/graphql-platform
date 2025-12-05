@@ -1,13 +1,7 @@
-﻿{
+{
   "errors": [
     {
       "message": "Detected a non-null violation in argument `name`.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 12
-        }
-      ],
       "path": [
         "sayHello"
       ],

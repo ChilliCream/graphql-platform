@@ -20,13 +20,13 @@ public abstract class QueryableTakeHandlerInterceptor
         _take = take;
     }
 
-    public bool CanHandle(ISelection selection) =>
+    public bool CanHandle(Selection selection) =>
         selection.Field.Member is PropertyInfo { CanWrite: true }
         && selection.IsSelectionFlags(_selectionFlags);
 
     public void BeforeProjection(
         QueryableProjectionContext context,
-        ISelection selection)
+        Selection selection)
     {
         if (selection.IsSelectionFlags(_selectionFlags))
         {
@@ -42,7 +42,7 @@ public abstract class QueryableTakeHandlerInterceptor
 
     public void AfterProjection(
         QueryableProjectionContext context,
-        ISelection selection)
+        Selection selection)
     {
     }
 }

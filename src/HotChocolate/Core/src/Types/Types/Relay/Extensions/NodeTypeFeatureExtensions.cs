@@ -15,8 +15,6 @@ internal static class NodeTypeFeatureExtensions
     /// <returns>True if the node resolver was found, false otherwise.</returns>
     public static bool TryGetNodeResolver(this ObjectType type, [NotNullWhen(true)] out NodeResolverInfo? nodeResolver)
     {
-        ArgumentNullException.ThrowIfNull(type);
-
         if (type.Features.TryGet<NodeTypeFeature>(out var feature) && feature.NodeResolver is not null)
         {
             nodeResolver = feature.NodeResolver;
@@ -39,7 +37,6 @@ internal static class NodeTypeFeatureExtensions
         this ObjectType type,
         NodeResolverInfo nodeResolver)
     {
-        ArgumentNullException.ThrowIfNull(type);
         ArgumentNullException.ThrowIfNull(nodeResolver);
 
         var feature = type.Features.Get<NodeTypeFeature>();

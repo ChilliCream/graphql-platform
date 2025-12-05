@@ -2,7 +2,7 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Buffers;
 
 #else
 using System.Runtime.CompilerServices;

@@ -2,12 +2,6 @@
   "errors": [
     {
       "message": "Foo cannot serialize the given value.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
       "path": [
         "stringToFoo"
       ],
