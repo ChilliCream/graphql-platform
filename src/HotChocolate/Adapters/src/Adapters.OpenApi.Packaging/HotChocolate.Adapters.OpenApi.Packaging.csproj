@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>HotChocolate.Adapters.OpenApi.Packaging</RootNamespace>
+    <PackageId>HotChocolate.Adapters.OpenApi.Packaging</PackageId>
+    <TargetFrameworks>$(OpenApiTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+</Project>
