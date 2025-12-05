@@ -73,13 +73,6 @@ internal sealed partial class SourceSchemaPreprocessor(
                     keyLookup.Add(fieldsArgument);
                 }
 
-                var otherKeyLookup = new HashSet<string>();
-                foreach (var keyDirective in otherType.GetKeyDirectives())
-                {
-                    var fieldsArgument = (string)keyDirective.Arguments[ArgumentNames.Fields].Value!;
-                    otherKeyLookup.Add(fieldsArgument);
-                }
-
                 foreach (var field in type.Fields)
                 {
                     if (keyLookup.Contains(field.Name))
@@ -94,8 +87,7 @@ internal sealed partial class SourceSchemaPreprocessor(
 
                     if (!otherType.Fields.TryGetField(field.Name, out var otherField)
                         || otherField.Directives.ContainsName(Internal)
-                        || otherField.Directives.ContainsName(Inaccessible)
-                        || otherKeyLookup.Contains(field.Name))
+                        || otherField.Directives.ContainsName(Inaccessible))
                     {
                         continue;
                     }
