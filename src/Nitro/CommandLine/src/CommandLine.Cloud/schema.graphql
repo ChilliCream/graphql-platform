@@ -253,6 +253,7 @@ type Api implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): ClientsConnection
+
   createdAt: DateTime!
   createdBy: UserInfo!
   documents(
@@ -261,6 +262,7 @@ type Api implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): ApiDocumentConnection
+
   httpConnection: ApiHttpConnection
   id: ID!
   kind: ApiKind
@@ -274,6 +276,7 @@ type Api implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): MockSchemasConnection
+
   modifiedAt: DateTime!
   modifiedBy: UserInfo!
   name: String!
@@ -287,6 +290,7 @@ type Api implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): ApiOpenApiCollectionsConnection
+
   operations(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -297,6 +301,7 @@ type Api implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OperationsConnection
+
   path: [String!]!
   schemaVersions(
     "Returns the elements in the list that come after the specified cursor."
@@ -308,6 +313,7 @@ type Api implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): SchemaVersionsConnection
+
   settings: ApiSettings!
   stages: [Stage!]!
   version: Version!
@@ -484,6 +490,7 @@ type ApiKey implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): ApiKeyRoleAssignmentsConnection
+
   scopes: [ApiKeyScope!]!
   workspace: Workspace
 }
@@ -707,6 +714,7 @@ type Client implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OperationsConnection
+
   versions(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -787,6 +795,7 @@ type ClientVersion implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): PersistedQueriesConnection
+
   publishedTo: [PublishedClientVersion!]!
   tag: String!
   tags: [String!]! @deprecated(reason: "Use `tag` instead.")
@@ -1399,6 +1408,7 @@ type FieldCoordinateMetrics implements CoordinateMetrics {
     to: DateTime!
   ): CoordinateClientUsage
   clientUsages(from: DateTime!, to: DateTime!): [CoordinateClientUsage!]!
+
   duration(
     from: DateTime!
     resolution: Int! = 300
@@ -1479,6 +1489,7 @@ type FusionConfigurationDeploymentSchemaChanges {
     last: Int
     severity: SchemaChangeSeverity
   ): SchemaChangesConnection
+
   statistic: SchemaChangeLogStatistic!
 }
 
@@ -1601,6 +1612,7 @@ type GraphQLInterfaceFieldArgumentDefinitionArgumentsConnection implements Graph
 
 type GraphQLInterfaceFieldDefinition implements Node & GraphQLTypeSystemMember & GraphQLOutputFieldDefinition {
   arguments: GraphQLInterfaceFieldArgumentDefinitionArgumentsConnection!
+
   coordinate: String!
   id: ID!
   isDeprecated: Boolean!
@@ -1641,6 +1653,7 @@ type GraphQLObjectFieldArgumentDefinitionArgumentsConnection implements GraphQLO
 
 type GraphQLObjectFieldDefinition implements Node & GraphQLTypeSystemMember & GraphQLOutputFieldDefinition {
   arguments: GraphQLObjectFieldArgumentDefinitionArgumentsConnection!
+
   coordinate: String!
   id: ID!
   isDeprecated: Boolean!
@@ -1700,6 +1713,7 @@ type Group implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): GroupGroupsConnection
+
   id: ID!
   isDefault: Boolean!
   members(
@@ -1712,6 +1726,7 @@ type Group implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): GroupMembersConnection
+
   name: String!
   organization: Organization
   roleAssignments(
@@ -1886,10 +1901,12 @@ type MockSchemasEdge {
 
 type Mutation {
   approveDeployment(input: ApproveDeploymentInput!): ApproveDeploymentPayload!
+
   beginFusionConfigurationPublish(
     input: BeginFusionConfigurationPublishInput!
   ): BeginFusionConfigurationPublishPayload!
   cancelDeployment(input: CancelDeploymentInput!): CancelDeploymentPayload!
+
   cancelFusionConfigurationComposition(
     input: CancelFusionConfigurationCompositionInput!
   ): CancelFusionConfigurationCompositionPayload!
@@ -1898,11 +1915,14 @@ type Mutation {
   ): CommitFusionConfigurationPublishPayload!
   createAccount: CreateAccountPayload!
   createApiKey(input: CreateApiKeyInput!): CreateApiKeyPayload!
+
   createApiKeyForApi(
     input: CreateApiKeyForApiInput!
   ): CreateApiKeyForApiPayload!
   createClient(input: CreateClientInput!): CreateClientPayload!
+
   createMockSchema(input: CreateMockSchemaInput!): CreateMockSchemaPayload!
+
   createOpenApiCollection(
     input: CreateOpenApiCollectionInput!
   ): CreateOpenApiCollectionPayload!
@@ -1910,9 +1930,13 @@ type Mutation {
     input: CreatePersonalAccessTokenInput!
   ): CreatePersonalAccessTokenPayload!
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspacePayload!
+
   deleteApiById(input: DeleteApiByIdInput!): DeleteApiByIdPayload!
+
   deleteApiKey(input: DeleteApiKeyInput!): DeleteApiKeyPayload!
+
   deleteClientById(input: DeleteClientByIdInput!): DeleteClientByIdPayload!
+
   deleteMockSchemaById(
     input: DeleteMockSchemaByIdInput!
   ): DeleteMockSchemaByIdPayload!
@@ -1920,6 +1944,7 @@ type Mutation {
     input: DeleteOpenApiCollectionByIdInput!
   ): DeleteOpenApiCollectionByIdPayload!
   ensureTunnelSession: EnsureTunnelSessionPayload!
+
   pollClientVersionPublishRequest(
     input: PollClientVersionPublishRequestInput!
   ): PollClientVersionPublishRequestPayload!
@@ -1933,38 +1958,55 @@ type Mutation {
     input: PollSchemaVersionValidationRequestInput!
   ): PollSchemaVersionValidationRequestPayload!
   publishClient(input: PublishClientInput!): PublishClientPayload!
+
   publishSchema(input: PublishSchemaInput!): PublishSchemaPayload!
+
   pushDocumentChanges(
     input: PushDocumentChangeInput!
   ): PushDocumentChangesPayload! @deprecated(reason: "Use pushWorkspaceChanges")
   pushWorkspaceChanges(
     input: PushWorkspaceChangesInput!
   ): PushWorkspaceChangesPayload!
+
   removeWorkspace(input: RemoveWorkspaceInput!): RemoveWorkspacePayload!
+
   renameWorkspace(input: RenameWorkspaceInput!): RenameWorkspacePayload!
+
   revokePersonalAccessToken(
     input: RevokePersonalAccessTokenInput!
   ): RevokePersonalAccessTokenPayload!
   setActiveWorkspace(
     input: SetActiveWorkspaceInput!
   ): SetActiveWorkspacePayload!
+
   startFusionConfigurationComposition(
     input: StartFusionConfigurationCompositionInput!
   ): StartFusionConfigurationCompositionPayload!
   unpublishClient(input: UnpublishClientInput!): UnpublishClientPayload!
+
   updateApiSettings(input: UpdateApiSettingsInput!): UpdateApiSettingsPayload!
+
   updateFeatureFlags(
     input: UpdateFeatureFlagsInput!
   ): UpdateFeatureFlagsPayload!
   updateMockSchema(input: UpdateMockSchemaInput!): UpdateMockSchemaPayload!
+
   updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload!
+
   updateStages(input: UpdateStagesInput!): UpdateStagesPayload!
+
   updateThemeSettings(
     input: UpdateThemeSettingsInput!
   ): UpdateThemeSettingsPayload!
   uploadClient(input: UploadClientInput!): UploadClientPayload!
+
+  uploadOpenApiCollection(
+    input: UploadOpenApiCollectionInput!
+  ): UploadOpenApiCollectionPayload!
   uploadSchema(input: UploadSchemaInput!): UploadSchemaPayload!
+
   validateClient(input: ValidateClientInput!): ValidateClientPayload!
+
   validateFusionConfigurationComposition(
     input: ValidateFusionConfigurationCompositionInput!
   ): ValidateFusionConfigurationCompositionPayload!
@@ -2127,11 +2169,13 @@ type OpenTelemetryGraphQLOperationSpan implements OpenTelemetrySpan {
   api: Api
   clockSkew: Float
   document: OpenTelemetryGraphQLOperationSpanDocumentAttributes
+
   duration: Float!
   epoch: Float!
   events: [OpenTelemetryTraceEvent!]!
   links: [OpenTelemetryTraceLink!]!
   operation: OpenTelemetryGraphQLOperationSpanOperationAttributes
+
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
   spanAttributes: [Attribute!]!
@@ -2165,6 +2209,7 @@ type OpenTelemetryGraphQLResolverSpan implements OpenTelemetrySpan {
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
   selection: OpenTelemetryGraphQLResolverSpanSelectionAttributes
+
   spanAttributes: [Attribute!]!
   spanId: String!
   spanKind: String!
@@ -2317,6 +2362,7 @@ type OpenTelemetryTrace {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OpenTelemetryLogsConnection
+
   spans: [OpenTelemetrySpan!]!
   totalDuration: Float!
 }
@@ -2603,6 +2649,7 @@ type Organization implements Node {
     last: Int
     to: DateTime
   ): OrganizationAuthorizationEventLogsConnection
+
   billingInfo: OrganizationBillingInfo
   displayName: String!
   groups(
@@ -2615,6 +2662,7 @@ type Organization implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OrganizationGroupsConnection
+
   id: ID!
   members(
     "Returns the elements in the list that come after the specified cursor."
@@ -2626,6 +2674,7 @@ type Organization implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OrganizationMembersConnection
+
   name: String!
   plan: OrganizationPlan
   usage(from: DateTime, to: DateTime): OrganizationUsage
@@ -2690,6 +2739,7 @@ type OrganizationMember implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OrganizationMemberGroupsConnection
+
   id: ID!
   isDisabled: Boolean!
   userName: String
@@ -2749,6 +2799,7 @@ type OrganizationPlan {
 
 type OrganizationUsage {
   cumulativeGigabyteHours: OrganizationUsageCumulativeGigabyteHoursGraph
+
   gigabyteHours: OrganizationUsageGigabyteHoursGraph
   period: OrganizationUsagePeriod!
 }
@@ -2982,9 +3033,10 @@ type PushWorkspaceChangesPayload {
 type Query {
   apiById(id: ID!): Api
   fusionConfigurationByApiId(id: ID!, stage: String!): FusionConfiguration
+
   me: Viewer
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node
+  node("ID of the object." id: ID!): Node @lookup @shareable
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]!
   organizationById(id: ID!): Organization
@@ -3119,6 +3171,7 @@ type SchemaChangeLog implements StageChangeLog & Node {
     last: Int
     severity: SchemaChangeSeverity
   ): SchemaChangesConnection
+
   id: ID!
   kind: StageChangeLogKind!
   previousSchema: SchemaVersion
@@ -3163,6 +3216,7 @@ type SchemaCoordinateMetrics implements CoordinateMetrics {
     to: DateTime!
   ): CoordinateClientUsage
   clientUsages(from: DateTime!, to: DateTime!): [CoordinateClientUsage!]!
+
   requests(
     from: DateTime!
     resolution: Int! = 300
@@ -3198,6 +3252,7 @@ type SchemaDeploymentSchemaChanges {
     last: Int
     severity: SchemaChangeSeverity
   ): SchemaChangesConnection
+
   previousSchema: SchemaVersion
   schema: SchemaVersion
   statistic: SchemaChangeLogStatistic!
@@ -3296,6 +3351,7 @@ type Stage implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): StageChangeLogConnection
+
   conditions: [StageCondition!]!
   coordinate(coordinate: String!): GraphQLTypeSystemMember
   coordinates(
@@ -3310,6 +3366,7 @@ type Stage implements Node {
     search: String
     to: DateTime
   ): CoordinatesConnection
+
   deployments(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -3320,6 +3377,7 @@ type Stage implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): DeploymentsConnection
+
   displayName: String!
   essentials: StageEssentials
   id: ID!
@@ -3339,6 +3397,7 @@ type Stage implements Node {
     last: Int
     to: DateTime
   ): OpenTelemetryLogsConnection
+
   metrics: StageMetrics!
   name: String!
   publishedClients: [PublishedClient!]!
@@ -3430,6 +3489,7 @@ type StageNotFoundError implements Error {
 
 type StageOperationMetrics {
   latency(from: DateTime!, to: DateTime!): OperationLatencyGraph
+
   latencyDistribution(
     from: DateTime!
     to: DateTime!
@@ -3465,12 +3525,14 @@ type StageOperationsMetrics {
     search: String
     to: DateTime!
   ): OperationInsightsConnection
+
   latency(
     from: DateTime!
     operationKinds: [OperationKind!]
     to: DateTime!
   ): OperationsLatencyGraph
   summary(from: DateTime!, to: DateTime!): StageOperationMetricsSummary!
+
   throughput(
     from: DateTime!
     operationKinds: [OperationKind!]
@@ -3480,6 +3542,7 @@ type StageOperationsMetrics {
 
 type StageResolverMetrics {
   latency(from: DateTime!, to: DateTime!): ResolverLatencyGraph
+
   throughput(from: DateTime!, to: DateTime!): ResolverThroughputGraph
 }
 
@@ -3518,6 +3581,7 @@ type StageThroughputSummary {
 
 type StageTransactionMetrics {
   latency(from: DateTime!, to: DateTime!): OpenTelemetryTransactionLatencyGraph
+
   latencyDistribution(
     from: DateTime!
     to: DateTime!
@@ -3551,12 +3615,14 @@ type StageTransactionsMetrics {
     spanKinds: [OpenTelemetrySpanKind!]
     to: DateTime!
   ): OpenTelemetryTransactionInsightsConnection
+
   latency(
     from: DateTime!
     spanKinds: [OpenTelemetrySpanKind!]
     to: DateTime!
   ): OpenTelemetryTransactionsLatencyGraph
   summary(from: DateTime!, to: DateTime!): StageTransactionMetricsSummary!
+
   throughput(
     from: DateTime!
     spanKinds: [OpenTelemetrySpanKind!]
@@ -3780,6 +3846,11 @@ type UploadClientPayload {
   errors: [UploadClientError!]
 }
 
+type UploadOpenApiCollectionPayload {
+  errors: [UploadOpenApiCollectionError!]
+  openApiCollectionVersion: OpenApiCollectionVersion
+}
+
 type UploadSchemaPayload {
   errors: [UploadSchemaError!]
   schemaVersion: SchemaVersion
@@ -3844,6 +3915,7 @@ type Viewer {
     "Returns the last _n_ elements from the list."
     last: Int
   ): PersonalAccessTokensConnection
+
   preferences: Any!
   sessionId: String!
   settings: UserSettings!
@@ -3872,6 +3944,7 @@ type Workspace implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): ApiDocumentsConnection
+
   apiKeys(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -3882,12 +3955,14 @@ type Workspace implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): ApiKeysConnection
+
   apis(
     "Returns the elements in the list that come after the specified cursor."
     after: Version
     "Returns the first _n_ elements from the list."
     first: Int
   ): ApisConnection
+
   changed(version: Version!): Boolean!
   changes(
     "Returns the elements in the list that come after the specified cursor."
@@ -3895,6 +3970,7 @@ type Workspace implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): ChangesConnection
+
   documentChanges(
     "Returns the elements in the list that come after the specified cursor."
     after: Version
@@ -3907,6 +3983,7 @@ type Workspace implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): DocumentsConnection
+
   documentsChanged(version: Version): Boolean!
     @deprecated(reason: "Use changed")
   environments(
@@ -3915,6 +3992,7 @@ type Workspace implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): EnvironmentsConnection
+
   id: ID!
   members: [WorkspaceMember!]!
   name: String!
@@ -4311,6 +4389,12 @@ union UploadClientError =
     ClientNotFoundError
   | ConcurrentOperationError
   | InvalidPersistedQueryError
+  | UnauthorizedOperation
+  | DuplicatedTagError
+
+union UploadOpenApiCollectionError =
+    OpenApiCollectionNotFoundError
+  | ConcurrentOperationError
   | UnauthorizedOperation
   | DuplicatedTagError
 
@@ -4814,6 +4898,12 @@ input UploadClientInput {
   tag: String!
 }
 
+input UploadOpenApiCollectionInput {
+  collection: Upload!
+  openApiCollectionId: ID!
+  tag: String!
+}
+
 input UploadSchemaInput {
   apiId: ID!
   schema: Upload!
@@ -5088,15 +5178,6 @@ enum WorkspaceUserRole {
   MEMBER
 }
 
-"""
-The `@oneOf` directive is used within the type system definition language
- to indicate:
-
- - an Input Object is a Oneof Input Object, or
- - an Object Type's Field is a Oneof Field.
-"""
-directive @oneOf on INPUT_OBJECT
-
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
 directive @defer(
   "Deferred when true."
@@ -5104,6 +5185,18 @@ directive @defer(
   "If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to."
   label: String
 ) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"""
+The @lookup directive is used within a source schema to specify output fields
+that can be used by the distributed GraphQL executor to resolve an entity by
+a stable key.
+"""
+directive @lookup on FIELD_DEFINITION
+
+"The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
+directive @oneOf on INPUT_OBJECT
+
+directive @shareable on OBJECT | FIELD_DEFINITION
 
 "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
 directive @specifiedBy(
