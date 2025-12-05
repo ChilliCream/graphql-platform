@@ -7,4 +7,8 @@
     <TargetFrameworks>$(OpenApiTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Adapters.OpenApi.Packaging\HotChocolate.Adapters.OpenApi.Packaging.csproj" />
+  </ItemGroup>
+
 </Project>
