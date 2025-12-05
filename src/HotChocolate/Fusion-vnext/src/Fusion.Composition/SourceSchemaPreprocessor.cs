@@ -59,9 +59,9 @@ internal sealed partial class SourceSchemaPreprocessor(
     {
         foreach (var sourceSchema in schemas.Except([schema]))
         {
-            foreach (var type in schema.Types.OfType<MutableComplexTypeDefinition>())
+            foreach (var type in schema.Types.OfType<MutableObjectTypeDefinition>())
             {
-                if (!sourceSchema.Types.TryGetType<MutableComplexTypeDefinition>(type.Name, out var otherType))
+                if (!sourceSchema.Types.TryGetType<MutableObjectTypeDefinition>(type.Name, out var otherType))
                 {
                     continue;
                 }
