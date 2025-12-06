@@ -1,17 +1,20 @@
 using System.Buffers;
 using System.IO.Compression;
 
-namespace HotChocolate.Fusion.Packaging;
+namespace HotChocolate.Adapters.OpenApi.Packaging;
 
-internal sealed class ArchiveSession : IDisposable
+internal sealed class OpenApiCollectionArchiveSession : IDisposable
 {
     private readonly Dictionary<string, FileEntry> _files = [];
     private readonly ZipArchive _archive;
-    private readonly FusionArchiveReadOptions _readOptions;
-    private FusionArchiveMode _mode;
+    private readonly OpenApiCollectionArchiveReadOptions _readOptions;
+    private OpenApiCollectionArchiveMode _mode;
     private bool _disposed;
 
-    public ArchiveSession(ZipArchive archive, FusionArchiveMode mode, FusionArchiveReadOptions readOptions)
+    public OpenApiCollectionArchiveSession(
+        ZipArchive archive,
+        OpenApiCollectionArchiveMode mode,
+        OpenApiCollectionArchiveReadOptions readOptions)
     {
         ArgumentNullException.ThrowIfNull(archive);
 
@@ -27,7 +30,7 @@ internal sealed class ArchiveSession : IDisposable
     {
         var tempFiles = _files.Where(file => file.Value.State is not FileState.Deleted).Select(file => file.Key);
 
-        if (_mode is FusionArchiveMode.Create)
+        if (_mode is OpenApiCollectionArchiveMode.Create)
         {
             return tempFiles;
         }
@@ -49,7 +52,7 @@ internal sealed class ArchiveSession : IDisposable
             return file.State is not FileState.Deleted;
         }
 
-        if (_mode is not FusionArchiveMode.Create && _archive.GetEntry(path) is { } entry)
+        if (_mode is not OpenApiCollectionArchiveMode.Create && _archive.GetEntry(path) is { } entry)
         {
             file = FileEntry.Read(path);
             await ExtractFileAsync(entry, file, GetAllowedSize(kind), cancellationToken);
@@ -67,7 +70,7 @@ internal sealed class ArchiveSession : IDisposable
             return file.State is not FileState.Deleted;
         }
 
-        return _mode is not FusionArchiveMode.Create && _archive.GetEntry(path) is not null;
+        return _mode is not OpenApiCollectionArchiveMode.Create && _archive.GetEntry(path) is not null;
     }
 
     public async Task<Stream> OpenReadAsync(string path, FileKind kind, CancellationToken cancellationToken)
@@ -82,7 +85,7 @@ internal sealed class ArchiveSession : IDisposable
             return File.OpenRead(file.TempPath);
         }
 
-        if (_mode is not FusionArchiveMode.Create && _archive.GetEntry(path) is { } entry)
+        if (_mode is not OpenApiCollectionArchiveMode.Create && _archive.GetEntry(path) is { } entry)
         {
             file = FileEntry.Read(path);
             await ExtractFileAsync(entry, file, GetAllowedSize(kind), cancellationToken);
@@ -96,7 +99,7 @@ internal sealed class ArchiveSession : IDisposable
 
     public Stream OpenWrite(string path)
     {
-        if (_mode is FusionArchiveMode.Read)
+        if (_mode is OpenApiCollectionArchiveMode.Read)
         {
             throw new InvalidOperationException("Cannot write to a read-only archive.");
         }
@@ -107,7 +110,7 @@ internal sealed class ArchiveSession : IDisposable
             return File.Open(file.TempPath, FileMode.Create, FileAccess.Write);
         }
 
-        if (_mode is not FusionArchiveMode.Create && _archive.GetEntry(path) is not null)
+        if (_mode is not OpenApiCollectionArchiveMode.Create && _archive.GetEntry(path) is not null)
         {
             file = FileEntry.Read(path);
             file.MarkMutated();
@@ -116,10 +119,11 @@ internal sealed class ArchiveSession : IDisposable
         file ??= FileEntry.Created(path);
         var stream = File.Open(file.TempPath, FileMode.Create, FileAccess.Write);
         _files.Add(path, file);
+
         return stream;
     }
 
-    public void SetMode(FusionArchiveMode mode)
+    public void SetMode(OpenApiCollectionArchiveMode mode)
     {
         _mode = mode;
     }
@@ -211,9 +215,9 @@ internal sealed class ArchiveSession : IDisposable
     private int GetAllowedSize(FileKind kind)
         => kind switch
         {
-            FileKind.Schema
-                => _readOptions.MaxAllowedSchemaSize,
-            FileKind.Manifest or FileKind.Settings or FileKind.Metadata or FileKind.Signature
+            FileKind.Operation or FileKind.Fragment
+                => _readOptions.MaxAllowedOperationSize,
+            FileKind.Settings or FileKind.Metadata
                 => _readOptions.MaxAllowedSettingsSize,
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
         };

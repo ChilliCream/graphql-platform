@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Xunit2.Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <PropertyGroup>
+    <RootNamespace>HotChocolate.Adapters.OpenApi.Packaging</RootNamespace>
+    <PackageId>HotChocolate.Adapters.OpenApi.Packaging.Tests</PackageId>
+    <TargetFrameworks>$(OpenApiTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Adapters.OpenApi.Packaging\HotChocolate.Adapters.OpenApi.Packaging.csproj" />
+  </ItemGroup>
+
+</Project>
