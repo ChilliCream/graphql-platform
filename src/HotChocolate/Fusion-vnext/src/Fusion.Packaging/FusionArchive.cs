@@ -779,7 +779,7 @@ public sealed class FusionArchive : IDisposable
         buffer.Clear();
 
         var currentBuffer = _buffer;
-        var currentCapacity = _buffer?.Capacity ?? 0;
+        var currentCapacity = currentBuffer?.Capacity ?? 0;
 
         if (currentCapacity < buffer.Capacity)
         {

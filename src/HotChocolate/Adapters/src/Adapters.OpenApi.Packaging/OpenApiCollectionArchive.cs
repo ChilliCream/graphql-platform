@@ -14,7 +14,7 @@ public sealed class OpenApiCollectionArchive : IDisposable
 {
     private readonly Stream _stream;
     private readonly bool _leaveOpen;
-    private readonly ArchiveSession _session;
+    private readonly OpenApiCollectionArchiveSession _session;
     private ZipArchive _archive;
     private OpenApiCollectionArchiveMode _mode;
     private ArrayBufferWriter<byte>? _buffer;
@@ -31,7 +31,7 @@ public sealed class OpenApiCollectionArchive : IDisposable
         _mode = mode;
         _leaveOpen = leaveOpen;
         _archive = new ZipArchive(stream, (ZipArchiveMode)mode, leaveOpen);
-        _session = new ArchiveSession(_archive, mode, options);
+        _session = new OpenApiCollectionArchiveSession(_archive, mode, options);
     }
 
     /// <summary>
@@ -420,7 +420,7 @@ public sealed class OpenApiCollectionArchive : IDisposable
         buffer.Clear();
 
         var currentBuffer = _buffer;
-        var currentCapacity = _buffer?.Capacity ?? 0;
+        var currentCapacity = currentBuffer?.Capacity ?? 0;
 
         if (currentCapacity < buffer.Capacity)
         {

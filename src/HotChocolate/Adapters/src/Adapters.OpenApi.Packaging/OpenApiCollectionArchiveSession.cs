@@ -3,7 +3,7 @@ using System.IO.Compression;
 
 namespace HotChocolate.Adapters.OpenApi.Packaging;
 
-internal sealed class ArchiveSession : IDisposable
+internal sealed class OpenApiCollectionArchiveSession : IDisposable
 {
     private readonly Dictionary<string, FileEntry> _files = [];
     private readonly ZipArchive _archive;
@@ -11,7 +11,7 @@ internal sealed class ArchiveSession : IDisposable
     private OpenApiCollectionArchiveMode _mode;
     private bool _disposed;
 
-    public ArchiveSession(
+    public OpenApiCollectionArchiveSession(
         ZipArchive archive,
         OpenApiCollectionArchiveMode mode,
         OpenApiCollectionArchiveReadOptions readOptions)
@@ -119,6 +119,7 @@ internal sealed class ArchiveSession : IDisposable
         file ??= FileEntry.Created(path);
         var stream = File.Open(file.TempPath, FileMode.Create, FileAccess.Write);
         _files.Add(path, file);
+
         return stream;
     }
 
@@ -186,21 +187,28 @@ internal sealed class ArchiveSession : IDisposable
         var buffer = ArrayPool<byte>.Shared.Rent(4096);
         var consumed = 0;
 
-        await using var readStream = zipEntry.Open();
-        await using var writeStream = File.Open(fileEntry.TempPath, FileMode.Create, FileAccess.Write);
-
-        int read;
-        while ((read = await readStream.ReadAsync(buffer, cancellationToken)) > 0)
+        try
         {
-            consumed += read;
+            await using var readStream = zipEntry.Open();
+            await using var writeStream = File.Open(fileEntry.TempPath, FileMode.Create, FileAccess.Write);
 
-            if (consumed > maxAllowedSize)
+            int read;
+            while ((read = await readStream.ReadAsync(buffer, cancellationToken)) > 0)
             {
-                throw new InvalidOperationException(
-                    $"File is too large and exceeds the allowed size of {maxAllowedSize}.");
-            }
+                consumed += read;
 
-            await writeStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+                if (consumed > maxAllowedSize)
+                {
+                    throw new InvalidOperationException(
+                        $"File is too large and exceeds the allowed size of {maxAllowedSize}.");
+                }
+
+                await writeStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 

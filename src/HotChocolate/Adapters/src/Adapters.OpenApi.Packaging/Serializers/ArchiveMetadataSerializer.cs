@@ -40,7 +40,7 @@ internal static class ArchiveMetadataSerializer
 
     public static ArchiveMetadata Parse(ReadOnlyMemory<byte> data)
     {
-        var document = JsonDocument.Parse(data);
+        using var document = JsonDocument.Parse(data);
         var root = document.RootElement;
 
         if (root.ValueKind is not JsonValueKind.Object)

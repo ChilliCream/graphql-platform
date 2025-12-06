@@ -183,21 +183,28 @@ internal sealed class ArchiveSession : IDisposable
         var buffer = ArrayPool<byte>.Shared.Rent(4096);
         var consumed = 0;
 
-        await using var readStream = zipEntry.Open();
-        await using var writeStream = File.Open(fileEntry.TempPath, FileMode.Create, FileAccess.Write);
-
-        int read;
-        while ((read = await readStream.ReadAsync(buffer, cancellationToken)) > 0)
+        try
         {
-            consumed += read;
+            await using var readStream = zipEntry.Open();
+            await using var writeStream = File.Open(fileEntry.TempPath, FileMode.Create, FileAccess.Write);
 
-            if (consumed > maxAllowedSize)
+            int read;
+            while ((read = await readStream.ReadAsync(buffer, cancellationToken)) > 0)
             {
-                throw new InvalidOperationException(
-                    $"File is too large and exceeds the allowed size of {maxAllowedSize}.");
-            }
+                consumed += read;
 
-            await writeStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+                if (consumed > maxAllowedSize)
+                {
+                    throw new InvalidOperationException(
+                        $"File is too large and exceeds the allowed size of {maxAllowedSize}.");
+                }
+
+                await writeStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 
