@@ -1,7 +1,7 @@
+using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Cloud.Client;
-using ChilliCream.Nitro.CommandLine.Cloud.Helpers;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
 using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 using HotChocolate.Adapters.OpenApi;
@@ -66,15 +66,9 @@ internal sealed class UploadOpenApiCollectionCommand : Command
 
         async Task UploadOpenApiCollection(StatusContext? ctx)
         {
-            Matcher matcher = new();
-            matcher.AddIncludePatterns(patterns);
+            var files = GlobMatcher.Match(patterns).ToArray();
 
-            // TODO: Does this work with absolute paths?
-            var globResult = matcher.Execute(
-                new DirectoryInfoWrapper(
-                    new DirectoryInfo(Directory.GetCurrentDirectory())));
-
-            if (!globResult.HasMatches)
+            if (files.Length < 1)
             {
                 // TODO: Improve this error
                 console.ErrorLine("Did not find any matches...");
@@ -84,13 +78,18 @@ internal sealed class UploadOpenApiCollectionCommand : Command
             var archiveStream = new MemoryStream();
             var collectionArchive = OpenApiCollectionArchive.Create(archiveStream, leaveOpen: true);
 
+            await collectionArchive.SetArchiveMetadataAsync(
+                new ArchiveMetadata(),
+                cancellationToken);
+
             var parser = new OpenApiDocumentParser();
 
-            foreach (var file in globResult.Files)
+            foreach (var file in files)
             {
-                var document = Utf8GraphQLParser.Parse("");
+                var fileContent = await File.ReadAllBytesAsync(file, cancellationToken);
+                var document = Utf8GraphQLParser.Parse(fileContent);
                 // TODO: The id doesn't mean anything, we should probably get rid of it...
-                var openApiDocumentDefinition = new OpenApiDocumentDefinition(file.Path, document);
+                var openApiDocumentDefinition = new OpenApiDocumentDefinition(file, document);
 
                 var parseResult = parser.Parse(openApiDocumentDefinition);
 
