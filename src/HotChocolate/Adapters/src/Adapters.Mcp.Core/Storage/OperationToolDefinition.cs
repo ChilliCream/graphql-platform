@@ -109,7 +109,7 @@ public sealed partial class OperationToolDefinition
             {
                 var name = Name.ToKebabCase();
                 var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value.HtmlTemplateText)));
-                OpenAiComponentOutputTemplate = $"ui://components/{name}-{hash}.html";
+                OpenAiComponentOutputTemplate = $"ui://open-ai-components/{name}-{hash}.html";
             }
         }
     }
