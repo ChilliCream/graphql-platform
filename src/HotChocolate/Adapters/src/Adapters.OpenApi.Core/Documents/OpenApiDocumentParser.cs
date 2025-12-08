@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
+public sealed class OpenApiDocumentParser
 {
     private static readonly ExternalFragmentReferenceFinder s_externalFragmentReferenceFinder = new();
 
@@ -62,15 +62,6 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
         var name = fragment.Name.Value;
         var description = fragment.Description?.Value;
 
-        if (!schema.Types.TryGetType(fragment.TypeCondition.Name.Value, out var typeCondition))
-        {
-            var error = new OpenApiParsingError(
-                $"Type condition '{fragment.TypeCondition.Name.Value}' not found in schema.",
-                id,
-                document);
-            return OpenApiParseResult.Failure(error);
-        }
-
         var context = new FragmentSpreadFinderContext(localFragmentLookup);
         s_externalFragmentReferenceFinder.Visit(document, context);
 
@@ -78,7 +69,6 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
             id,
             name,
             description,
-            typeCondition,
             fragment,
             localFragmentLookup,
             context.ExternalFragmentReferences);

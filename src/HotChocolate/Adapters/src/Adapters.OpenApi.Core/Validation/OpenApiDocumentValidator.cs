@@ -8,6 +8,7 @@ public sealed class OpenApiDocumentValidator
     private static readonly ImmutableArray<IOpenApiFragmentDocumentValidationRule> s_fragmentDocumentValidationRules =
     [
         new FragmentNameUniquenessRule(),
+        new FragmentTypeConditionMustExistInSchemaRule(),
         new FragmentNoDeferStreamDirectiveRule(),
         new FragmentReferencesMustExistRule()
     ];
