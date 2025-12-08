@@ -206,6 +206,44 @@ public sealed class OperationToolFactoryTests
     }
 
     [Fact]
+    public void CreateTool_SetIcon_ReturnsTool()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var document = Utf8GraphQLParser.Parse(
+            """
+            mutation AddBook {
+                addBook {
+                    title
+                }
+            }
+            """);
+        var toolDefinition =
+            new OperationToolDefinition(document)
+            {
+                Icons =
+                [
+                    new OperationToolIcon(new Uri("https://example.com/icon.png"))
+                    {
+                        MimeType = "image/png",
+                        Sizes = ["32x32"],
+                        Theme = "dark"
+                    }
+                ]
+            };
+
+        // act
+        var tool = new OperationToolFactory(schema).CreateTool(toolDefinition);
+        var mcpTool = tool.Tool;
+
+        // assert
+        Assert.Equal("https://example.com/icon.png", mcpTool.Icons?[0].Source);
+        Assert.Equal("image/png", mcpTool.Icons?[0].MimeType);
+        Assert.Equal(["32x32"], mcpTool.Icons?[0].Sizes);
+        Assert.Equal("dark", mcpTool.Icons?[0].Theme);
+    }
+
+    [Fact]
     public void CreateTool_WithNullableVariables_CreatesCorrectSchema()
     {
         // arrange
