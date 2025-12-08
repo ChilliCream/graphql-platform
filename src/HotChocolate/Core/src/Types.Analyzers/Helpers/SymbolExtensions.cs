@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Xml.Linq;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
@@ -37,7 +38,7 @@ public static class SymbolExtensions
         if (methodDescription == null && compilation != null)
         {
             // Try inheritance-aware resolution with Compilation
-            methodDescription = GetDocumentationWithInheritance(method, compilation);
+            methodDescription = GetSummaryDocumentationWithInheritance(method, compilation);
         }
         else if (methodDescription == null)
         {
@@ -109,7 +110,7 @@ public static class SymbolExtensions
         if (compilation != null)
         {
             // Try inheritance-aware resolution with Compilation
-            return new PropertyDescription(GetDocumentationWithInheritance(property, compilation));
+            return new PropertyDescription(GetSummaryDocumentationWithInheritance(property, compilation));
         }
 
         // Fallback to simple XML extraction without inheritdoc support
@@ -148,7 +149,7 @@ public static class SymbolExtensions
         if (compilation != null)
         {
             // Try inheritance-aware resolution with Compilation
-            return GetDocumentationWithInheritance(type, compilation);
+            return GetSummaryDocumentationWithInheritance(type, compilation);
         }
 
         // Fallback to simple XML extraction without inheritdoc support
@@ -202,18 +203,18 @@ public static class SymbolExtensions
     }
 
     /// <summary>
-    /// Extracts summary text from XML documentation, resolving inheritdoc tags.
+    /// Extracts summary text from XML documentation, resolving tags with semantic relevance (f. e. inheritdoc or see).
     /// </summary>
-    private static string? GetDocumentationWithInheritance(ISymbol symbol, Compilation compilation)
+    private static string? GetSummaryDocumentationWithInheritance(ISymbol symbol, Compilation compilation)
     {
         var visited = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
-        return GetDocumentationWithInheritanceCore(symbol, compilation, visited);
+        return GetSummaryDocumentationWithInheritanceCore(symbol, compilation, visited);
     }
 
     /// <summary>
     /// Core implementation with cycle detection.
     /// </summary>
-    private static string? GetDocumentationWithInheritanceCore(
+    private static string? GetSummaryDocumentationWithInheritanceCore(
         ISymbol symbol,
         Compilation compilation,
         HashSet<ISymbol> visited)
@@ -232,31 +233,135 @@ public static class SymbolExtensions
 
         try
         {
-            var doc = XDocument.Parse(xml);
+            var doc = XDocument.Parse(xml, LoadOptions.PreserveWhitespace);
 
-            // Check for inheritdoc element
-            var inheritdocElement = doc.Descendants("inheritdoc").FirstOrDefault();
+            // Materialize relevant XML elements (-> replace their element with the actual textual representation)
+            MaterializeInheritdocElements(doc);
+            MaterializeSeeElements(doc);
+            MaterializeParamRefElements(doc);
 
-            if (inheritdocElement != null)
+            var summaryText =
+                doc.Descendants("summary").FirstOrDefault()?.Value ??
+                doc.Descendants("member").FirstOrDefault()?.Value;
+
+            summaryText += GetReturnsElementText(doc);
+
+            var exceptionDoc = GetExceptionDocumentation(doc);
+            if (!string.IsNullOrEmpty(exceptionDoc))
             {
-                // Try to resolve the inherited documentation
-                var inheritedDoc = ResolveInheritdoc(symbol, inheritdocElement, compilation, visited);
-                if (inheritedDoc != null)
-                {
-                    return inheritedDoc;
-                }
-                // If resolution fails, return null (no description)
-                return null;
+                summaryText += "\n\n**Errors:**\n" + exceptionDoc;
             }
 
-            // No inheritdoc - extract summary normally
-            var summaryText = doc.Descendants("summary").FirstOrDefault()?.Value;
             return GeneratorUtils.NormalizeXmlDocumentation(summaryText);
         }
         catch
         {
             // XML documentation parsing is best-effort only.
             return null;
+        }
+
+        void MaterializeInheritdocElements(XDocument doc1)
+        {
+            foreach (var inheritdocElement in doc1.Descendants("inheritdoc").ToArray())
+            {
+                if (inheritdocElement == null)
+                {
+                    continue;
+                }
+
+                // Try to resolve the inherited documentation
+                var inheritedDoc = ResolveInheritdoc(symbol, inheritdocElement, compilation, visited);
+                if (inheritedDoc != null)
+                {
+                    inheritdocElement.ReplaceWith(inheritedDoc);
+                }
+            }
+        }
+
+        static void MaterializeSeeElements(XDocument xDocument)
+        {
+            foreach (var seeElement in xDocument.Descendants("see").ToArray())
+            {
+                if (seeElement == null)
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(seeElement.Value))
+                {
+                    seeElement.ReplaceWith(seeElement.Value);
+                    continue;
+                }
+
+                var attribute = seeElement.Attribute("langword") ?? seeElement.Attribute("href");
+                if (attribute != null)
+                {
+                    seeElement.ReplaceWith(attribute.Value);
+                    continue;
+                }
+
+                attribute = seeElement.Attribute("cref");
+                if (attribute?.Value != null)
+                {
+                    var index = attribute.Value.LastIndexOf('.');
+                    seeElement.ReplaceWith(attribute.Value.Substring(index + 1));
+                }
+            }
+        }
+
+        static void MaterializeParamRefElements(XDocument xDocument)
+        {
+            foreach (var paramref in xDocument.Descendants("paramref").ToArray())
+            {
+                var attribute = paramref?.Attribute("name");
+                if (attribute != null)
+                {
+                    paramref!.ReplaceWith(attribute.Value);
+                }
+            }
+        }
+
+        static string GetExceptionDocumentation(XDocument xDocument)
+        {
+            StringBuilder? builder = null;
+            var errorCount = 0;
+            var exceptionElements = xDocument.Descendants("exception");
+            foreach (var exceptionElement in exceptionElements)
+            {
+                if (string.IsNullOrEmpty(exceptionElement.Value))
+                {
+                    continue;
+                }
+
+                var code = exceptionElement.Attribute("code");
+                if (string.IsNullOrEmpty(code?.Value))
+                {
+                    continue;
+                }
+
+                builder ??= new StringBuilder();
+                builder.Append(builder.Length > 0 ? "\n" : string.Empty)
+                    .Append(++errorCount)
+                    .Append('.')
+                    .Append(' ')
+                    .Append(code!.Value)
+                    .Append(':')
+                    .Append(' ')
+                    .Append(exceptionElement.Value);
+            }
+
+            return builder?.ToString() ?? string.Empty;
+        }
+
+        static string GetReturnsElementText(XDocument doc)
+        {
+            var xElement = doc.Descendants("returns").FirstOrDefault();
+            if (xElement?.Value != null)
+            {
+                return "\n\n**Returns:**\n" + xElement.Value;
+            }
+
+            return string.Empty;
         }
     }
 
@@ -273,10 +378,10 @@ public static class SymbolExtensions
         var crefAttr = inheritdocElement.Attribute("cref");
         if (crefAttr != null)
         {
-            var referencedSymbol = ResolveDocumentationId(crefAttr.Value, compilation, symbol);
+            var referencedSymbol = ResolveDocumentationId(crefAttr.Value, compilation);
             if (referencedSymbol != null)
             {
-                return GetDocumentationWithInheritanceCore(referencedSymbol, compilation, visited);
+                return GetSummaryDocumentationWithInheritanceCore(referencedSymbol, compilation, visited);
             }
             return null;
         }
@@ -285,7 +390,7 @@ public static class SymbolExtensions
         var baseMember = FindBaseMember(symbol);
         if (baseMember != null)
         {
-            return GetDocumentationWithInheritanceCore(baseMember, compilation, visited);
+            return GetSummaryDocumentationWithInheritanceCore(baseMember, compilation, visited);
         }
 
         return null;
@@ -389,7 +494,7 @@ public static class SymbolExtensions
     /// Resolves a documentation ID (cref value) to a symbol.
     /// Handles format like "T:Namespace.Type", "M:Namespace.Type.Method", "T:Namespace.Type`1", etc.
     /// </summary>
-    private static ISymbol? ResolveDocumentationId(string documentationId, Compilation compilation, ISymbol contextSymbol)
+    private static ISymbol? ResolveDocumentationId(string documentationId, Compilation compilation)
     {
         if (string.IsNullOrEmpty(documentationId))
         {
@@ -397,98 +502,8 @@ public static class SymbolExtensions
         }
 
         // Documentation ID format: Prefix:FullyQualifiedName
-        // Prefixes: T: (type), M: (method), P: (property), F: (field), E: (event)
-
-        // Remove prefix if present
-        var colonIndex = documentationId.IndexOf(':');
-        if (colonIndex > 0)
-        {
-            documentationId = documentationId.Substring(colonIndex + 1);
-        }
-
-        // Handle generic types - convert `2 to <T1, T2> format for lookup
-        // For now, try exact match first
-        var symbol = compilation.GetTypeByMetadataName(documentationId);
-        if (symbol != null)
-        {
-            return symbol;
-        }
-
-        // Try without generic arity marker
-        var backtickIndex = documentationId.IndexOf('`');
-        if (backtickIndex > 0)
-        {
-            var typeNameWithoutArity = documentationId.Substring(0, backtickIndex);
-            symbol = compilation.GetTypeByMetadataName(typeNameWithoutArity);
-            if (symbol != null)
-            {
-                return symbol;
-            }
-        }
-
-        // Try resolving through context symbol's containing namespace
-        if (contextSymbol.ContainingNamespace != null)
-        {
-            var namespaceName = contextSymbol.ContainingNamespace.ToDisplayString();
-            var fullName = $"{namespaceName}.{documentationId}";
-            symbol = compilation.GetTypeByMetadataName(fullName);
-            if (symbol != null)
-            {
-                return symbol;
-            }
-        }
-
-        // Best effort - search for type by name in compilation
-        var typeName = documentationId.Split('.').LastOrDefault();
-        if (!string.IsNullOrEmpty(typeName))
-        {
-            // Remove generic arity from type name
-            var genericIndex = typeName.IndexOf('`');
-            if (genericIndex > 0)
-            {
-                typeName = typeName.Substring(0, genericIndex);
-            }
-
-            // Search in all referenced assemblies
-            foreach (var assembly in compilation.References)
-            {
-                if (compilation.GetAssemblyOrModuleSymbol(assembly) is IAssemblySymbol assemblySymbol)
-                {
-                    var foundSymbol = FindTypeByName(assemblySymbol.GlobalNamespace, typeName);
-                    if (foundSymbol != null)
-                    {
-                        return foundSymbol;
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// Recursively searches for a type by name in a namespace.
-    /// </summary>
-    private static INamedTypeSymbol? FindTypeByName(INamespaceSymbol namespaceSymbol, string typeName)
-    {
-        foreach (var member in namespaceSymbol.GetMembers())
-        {
-            if (member is INamedTypeSymbol type && type.Name == typeName)
-            {
-                return type;
-            }
-
-            if (member is INamespaceSymbol childNamespace)
-            {
-                var found = FindTypeByName(childNamespace, typeName);
-                if (found != null)
-                {
-                    return found;
-                }
-            }
-        }
-
-        return null;
+        // Prefixes: T: (type), M: (method), P: (property), F: (field), E: (event)#
+        return DocumentationCommentId.GetSymbolsForDeclarationId(documentationId, compilation).FirstOrDefault();
     }
 
     public static bool IsNullableType(this ITypeSymbol typeSymbol)

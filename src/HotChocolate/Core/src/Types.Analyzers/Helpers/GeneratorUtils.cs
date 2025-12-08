@@ -128,7 +128,7 @@ internal static class GeneratorUtils
 
             if (type.IsNullableValueType())
             {
-                return ConvertDefaultValueToString(defaultValue, namedTypeSymbol.TypeArguments[0]!);
+                return ConvertDefaultValueToString(defaultValue, namedTypeSymbol.TypeArguments[0]);
             }
         }
 
@@ -159,7 +159,11 @@ internal static class GeneratorUtils
         }
 
         // Normalize line endings and trim outer newlines
-        var normalized = "\n" + documentation!.Replace("\r", string.Empty).Trim('\n');
+        var normalized = documentation!.Replace("\r", string.Empty);
+        if (normalized[0] == ' ')
+        {
+            normalized = "\n" + normalized;
+        }
 
         // Find common leading whitespace pattern
         var whitespace = s_xmlWhitespaceRegex.Match(normalized).Value;
