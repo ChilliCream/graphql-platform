@@ -59,9 +59,9 @@ internal sealed partial class SourceSchemaPreprocessor(
     {
         foreach (var sourceSchema in schemas.Except([schema]))
         {
-            foreach (var type in schema.Types.OfType<MutableComplexTypeDefinition>())
+            foreach (var type in schema.Types.OfType<MutableObjectTypeDefinition>())
             {
-                if (!sourceSchema.Types.TryGetType<MutableComplexTypeDefinition>(type.Name, out var otherType))
+                if (!sourceSchema.Types.TryGetType<MutableObjectTypeDefinition>(type.Name, out var otherType))
                 {
                     continue;
                 }
@@ -71,13 +71,6 @@ internal sealed partial class SourceSchemaPreprocessor(
                 {
                     var fieldsArgument = (string)keyDirective.Arguments[ArgumentNames.Fields].Value!;
                     keyLookup.Add(fieldsArgument);
-                }
-
-                var otherKeyLookup = new HashSet<string>();
-                foreach (var keyDirective in otherType.GetKeyDirectives())
-                {
-                    var fieldsArgument = (string)keyDirective.Arguments[ArgumentNames.Fields].Value!;
-                    otherKeyLookup.Add(fieldsArgument);
                 }
 
                 foreach (var field in type.Fields)
@@ -94,8 +87,7 @@ internal sealed partial class SourceSchemaPreprocessor(
 
                     if (!otherType.Fields.TryGetField(field.Name, out var otherField)
                         || otherField.Directives.ContainsName(Internal)
-                        || otherField.Directives.ContainsName(Inaccessible)
-                        || otherKeyLookup.Contains(field.Name))
+                        || otherField.Directives.ContainsName(Inaccessible))
                     {
                         continue;
                     }

@@ -13,7 +13,7 @@ public sealed class OpenAiComponent([StringSyntax("HTML")] string htmlTemplateTe
     /// <summary>
     /// Define connect_domains and resource_domains arrays for the component's CSP snapshot.
     /// </summary>
-    public OpenAiComponentCsp? ContentSecurityPolicy { get; init; }
+    public OpenAiComponentCsp? Csp { get; init; }
 
     /// <summary>
     /// Human-readable summary surfaced to the model when the component loads, reducing redundant
@@ -50,7 +50,7 @@ public sealed class OpenAiComponent([StringSyntax("HTML")] string htmlTemplateTe
     }
 
     /// <summary>
-    /// Short status text after the tool completes ≤ 64 chars.
+    /// Short status text after the tool completes (≤ 64 chars).
     /// </summary>
     public string? ToolInvokedStatusText
     {

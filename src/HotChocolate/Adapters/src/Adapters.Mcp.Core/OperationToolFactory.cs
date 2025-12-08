@@ -181,30 +181,30 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
             meta["openai/widgetPrefersBorder"] = openAiComponent.PrefersBorder;
         }
 
-        if (openAiComponent.ContentSecurityPolicy is { } contentSecurityPolicy)
+        if (openAiComponent.Csp is { } csp)
         {
-            JsonObject? csp = null;
+            JsonObject? contentSecurityPolicy = null;
 
-            if (contentSecurityPolicy.ConnectDomains is { Length: > 0 } connectDomains)
+            if (csp.ConnectDomains is { Length: > 0 } connectDomains)
             {
-                csp ??= new JsonObject();
-                csp.Add(
+                contentSecurityPolicy ??= new JsonObject();
+                contentSecurityPolicy.Add(
                     "connect_domains",
                     new JsonArray(connectDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
             }
 
-            if (contentSecurityPolicy.ResourceDomains is { Length: > 0 } resourceDomains)
+            if (csp.ResourceDomains is { Length: > 0 } resourceDomains)
             {
-                csp ??= new JsonObject();
-                csp.Add(
+                contentSecurityPolicy ??= new JsonObject();
+                contentSecurityPolicy.Add(
                     "resource_domains",
                     new JsonArray(resourceDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
             }
 
-            if (csp is not null)
+            if (contentSecurityPolicy is not null)
             {
                 meta ??= new JsonObject();
-                meta.Add("openai/widgetCSP", csp);
+                meta.Add("openai/widgetCSP", contentSecurityPolicy);
             }
         }
 

@@ -61,12 +61,12 @@ internal static class ServiceCollectionExtensions
 
         services
             .TryAddSingleton(
-                static sp => new ToolStorageObserver(
+                static sp => new McpStorageObserver(
                     sp.GetRequiredService<ISchemaDefinition>(),
-                    sp.GetRequiredService<ToolRegistry>(),
+                    sp.GetRequiredService<McpFeatureRegistry>(),
                     sp.GetRequiredService<OperationToolFactory>(),
                     sp.GetRequiredService<ConcurrentDictionary<string, McpServer>>(),
-                    sp.GetRequiredService<IOperationToolStorage>(),
+                    sp.GetRequiredService<IMcpStorage>(),
                     sp.GetRequiredService<IMcpDiagnosticEvents>()));
 
         services
@@ -78,7 +78,7 @@ internal static class ServiceCollectionExtensions
                 static sp => sp
                     .GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider
                     .GetRequiredService<ILoggerFactory>())
-            .AddSingleton<ToolRegistry>();
+            .AddSingleton<McpFeatureRegistry>();
 
         var mcpServers = new ConcurrentDictionary<string, McpServer>();
         services.AddSingleton(mcpServers);

@@ -21,7 +21,7 @@ internal static class CallToolHandler
         CancellationToken cancellationToken)
     {
         var services = context.Services!;
-        var registry = services.GetRequiredService<ToolRegistry>();
+        var registry = services.GetRequiredService<McpFeatureRegistry>();
 
         if (!registry.TryGetTool(context.Params!.Name, out var tool))
         {
