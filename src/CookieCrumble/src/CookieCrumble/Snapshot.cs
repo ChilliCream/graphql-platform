@@ -15,8 +15,12 @@ namespace CookieCrumble;
 
 public class Snapshot
 {
+#if NET10_0_OR_GREATER
+    private static readonly Lock s_sync = new();
+#else
     private static readonly object s_sync = new();
-    private static readonly UTF8Encoding s_encoding = new();
+#endif
+    private static readonly Encoding s_utf8 = Encoding.UTF8;
     private static ImmutableStack<ISnapshotValueFormatter> s_formatters =
         CreateRange(new ISnapshotValueFormatter[]
         {
@@ -237,7 +241,7 @@ public class Snapshot
             EnsureFileDoesNotExist(mismatchFile);
 
             var before = await File.ReadAllTextAsync(snapshotFile, cancellationToken);
-            var after = s_encoding.GetString(writer.WrittenSpan);
+            var after = s_utf8.GetString(writer.WrittenSpan);
 
             if (!MatchSnapshot(before, after, false, out var diff))
             {
@@ -249,7 +253,7 @@ public class Snapshot
         }
     }
 
-    public void Match()
+    public string Match()
     {
         var writer = new ArrayBufferWriter<byte>();
         WriteSegments(writer);
@@ -269,7 +273,7 @@ public class Snapshot
             var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateSnapshotFileName());
             EnsureFileDoesNotExist(mismatchFile);
             var before = File.ReadAllText(snapshotFile);
-            var after = s_encoding.GetString(writer.WrittenSpan);
+            var after = s_utf8.GetString(writer.WrittenSpan);
 
             if (!MatchSnapshot(before, after, false, out var diff))
             {
@@ -279,6 +283,8 @@ public class Snapshot
                 s_testFramework.ThrowTestException(diff);
             }
         }
+
+        return s_utf8.GetString(writer.WrittenSpan);
     }
 
     public async ValueTask MatchMarkdownAsync(CancellationToken cancellationToken = default)
@@ -305,7 +311,7 @@ public class Snapshot
             var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateMarkdownSnapshotFileName());
             EnsureFileDoesNotExist(mismatchFile);
             var before = await File.ReadAllTextAsync(snapshotFile, cancellationToken);
-            var after = s_encoding.GetString(writer.WrittenSpan);
+            var after = s_utf8.GetString(writer.WrittenSpan);
 
             if (MatchSnapshot(before, after, false, out var diff))
             {
@@ -343,7 +349,7 @@ public class Snapshot
             var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateMarkdownSnapshotFileName());
             EnsureFileDoesNotExist(mismatchFile);
             var before = File.ReadAllText(snapshotFile);
-            var after = s_encoding.GetString(writer.WrittenSpan);
+            var after = s_utf8.GetString(writer.WrittenSpan);
 
             if (MatchSnapshot(before, after, false, out var diff))
             {
@@ -362,20 +368,12 @@ public class Snapshot
         var writer = new ArrayBufferWriter<byte>();
         WriteSegments(writer);
 
-        var after = s_encoding.GetString(writer.WrittenSpan);
+        var after = s_utf8.GetString(writer.WrittenSpan);
 
         if (!MatchSnapshot(expected, after, true, out var diff))
         {
             s_testFramework.ThrowTestException(diff);
         }
-    }
-
-    public string Render()
-    {
-        var writer = new ArrayBufferWriter<byte>();
-        WriteSegments(writer);
-        EnsureEndOfBufferNewline(writer);
-        return Encoding.UTF8.GetString(writer.WrittenSpan);
     }
 
     private void WriteSegments(IBufferWriter<byte> writer)

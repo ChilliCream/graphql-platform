@@ -1,125 +1,129 @@
-﻿namespace HotChocolate.Types;
+﻿using System.Text.RegularExpressions;
+
+namespace HotChocolate.Types;
 
 public partial class ObjectTypeXmlDocInferenceTests
 {
+    private static readonly Regex s_description = DescriptionExtractorRegex();
+
     [Fact]
     public void Method_WithInheritdoc_And_MultipleLayersOfInheritance()
     {
-        var snap = TestHelper.GetGeneratedSourceSnapshot(
-            """
-            using System;
-            using System.Collections.Generic;
-            using System.Threading;
-            using System.Threading.Tasks;
-            using HotChocolate;
-            using HotChocolate.Types;
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Threading;
+                using System.Threading.Tasks;
+                using HotChocolate;
+                using HotChocolate.Types;
 
-            namespace TestNamespace;
+                namespace TestNamespace;
 
-            public class BaseBaseClass
-            {
-                /// <summary>Method doc.</summary>
-                public virtual void Bar() { }
-            }
+                public class BaseBaseClass
+                {
+                    /// <summary>Method doc.</summary>
+                    public virtual void Bar() { }
+                }
 
-            public class BaseClass : BaseBaseClass
-            {
-                /// <inheritdoc />
-                public override void Bar() { }
-            }
+                public class BaseClass : BaseBaseClass
+                {
+                    /// <inheritdoc />
+                    public override void Bar() { }
+                }
 
-            [QueryType]
-            internal static partial class Query
-            {
-                /// <inheritdoc cref="BaseClass.Bar" />
-                public static int Bar(string baz) => 0;
-            }
-            """);
+                [QueryType]
+                internal static partial class Query
+                {
+                    /// <inheritdoc cref="BaseClass.Bar" />
+                    public static int Bar(string baz) => 0;
+                }
+                """);
 
-        const string expected = "Method doc.";
-
-        var emitted = DescriptionExtractorRegex().Matches(snap.Render()).Single().Groups;
-        Assert.Equal(expected, emitted[1].Value);
+        var content = snapshot.Match();
+        var emitted = s_description.Matches(content).Single().Groups;
+        Assert.Equal("Method doc.", emitted[1].Value);
     }
 
     [Fact]
     public void Method_WithInheritdoc_ThatContainsInheritdoc()
     {
-        var snap = TestHelper.GetGeneratedSourceSnapshot(
-            """
-            using System;
-            using System.Collections.Generic;
-            using System.Threading;
-            using System.Threading.Tasks;
-            using HotChocolate;
-            using HotChocolate.Types;
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Threading;
+                using System.Threading.Tasks;
+                using HotChocolate;
+                using HotChocolate.Types;
 
-            namespace TestNamespace;
+                namespace TestNamespace;
 
-            public class BaseBaseClass
-            {
-                /// <summary>Method doc.</summary>
-                public virtual void Bar() { }
-            }
+                public class BaseBaseClass
+                {
+                    /// <summary>Method doc.</summary>
+                    public virtual void Bar() { }
+                }
 
-            public class BaseClass : BaseBaseClass
-            {
-                /// <summary>
-                /// Concrete Method doc.
-                /// <inheritdoc />
-                /// </summary>
-                public override void Bar() { }
-            }
+                public class BaseClass : BaseBaseClass
+                {
+                    /// <summary>
+                    /// Concrete Method doc.
+                    /// <inheritdoc />
+                    /// </summary>
+                    public override void Bar() { }
+                }
 
-            public class ConcreteClass : BaseClass
-            {
-                /// <inheritdoc />
-                public override void Bar() { }
-            }
+                public class ConcreteClass : BaseClass
+                {
+                    /// <inheritdoc />
+                    public override void Bar() { }
+                }
 
-            [QueryType]
-            internal static partial class Query
-            {
-                /// <inheritdoc cref="ConcreteClass.Bar" />
-                public static int Bar(string baz) => 0;
-            }
-            """);
+                [QueryType]
+                internal static partial class Query
+                {
+                    /// <inheritdoc cref="ConcreteClass.Bar" />
+                    public static int Bar(string baz) => 0;
+                }
+                """);
 
-        const string expected = "Concrete Method doc.\\nMethod doc.";
-
-        var emitted = DescriptionExtractorRegex().Matches(snap.Render()).Single().Groups;
-        Assert.Equal(expected, emitted[1].Value);
+        var content = snapshot.Match();
+        var emitted = s_description.Matches(content).Single().Groups;
+        Assert.Equal("Concrete Method doc.\\nMethod doc.", emitted[1].Value);
     }
 
     [Fact]
     public void XmlDocumentation_Is_Overriden_By_DescriptionAttribute()
     {
-        var snap = TestHelper.GetGeneratedSourceSnapshot(
-            """
-            using System;
-            using System.Collections.Generic;
-            using System.Threading;
-            using System.Threading.Tasks;
-            using HotChocolate;
-            using HotChocolate.Types;
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Threading;
+                using System.Threading.Tasks;
+                using HotChocolate;
+                using HotChocolate.Types;
 
-            namespace TestNamespace;
+                namespace TestNamespace;
 
-            [QueryType]
-            internal static partial class Query
-            {
-                /// <summary>
-                /// This is ...
-                /// </summary>
-                [GraphQLDescription("Nothing")]
-                public static string GetUser() => "User";
-            }
-            """);
+                [QueryType]
+                internal static partial class Query
+                {
+                    /// <summary>
+                    /// This is ...
+                    /// </summary>
+                    [GraphQLDescription("Nothing")]
+                    public static string GetUser() => "User";
+                }
+                """);
 
-        const string expected = "Nothing";
-
-        var emitted = DescriptionExtractorRegex().Matches(snap.Render()).Single().Groups;
-        Assert.Equal(expected, emitted[1].Value);
+        var content = snapshot.Match();
+        var emitted = s_description.Matches(content).Single().Groups;
+        Assert.Equal("Nothing", emitted[1].Value);
     }
 
     [Fact]
@@ -200,38 +204,38 @@ public partial class ObjectTypeXmlDocInferenceTests
     [Fact]
     public void XmlDocumentation_With_Nested_InheritdocCref()
     {
-        var snap = TestHelper.GetGeneratedSourceSnapshot(
-            """
-            using System;
-            using HotChocolate.Types;
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using System;
+                using HotChocolate.Types;
 
-            namespace TestNamespace;
+                namespace TestNamespace;
 
-            /// <summary>
-            /// This type is similar useless to '<inheritdoc cref="BarType"/>'.
-            /// </summary>
-            public class FooType
-            {
-            }
+                /// <summary>
+                /// This type is similar useless to '<inheritdoc cref="BarType"/>'.
+                /// </summary>
+                public class FooType
+                {
+                }
 
-            /// <summary>
-            /// The Bar type.
-            /// </summary>
-            public class BarType
-            {
-            }
+                /// <summary>
+                /// The Bar type.
+                /// </summary>
+                public class BarType
+                {
+                }
 
-            [QueryType]
-            public static partial class Query
-            {
-                /// <inheritdoc cref="FooType"/>
-                public static string? Foo() => null;
-            }
-            """);
+                [QueryType]
+                public static partial class Query
+                {
+                    /// <inheritdoc cref="FooType"/>
+                    public static string? Foo() => null;
+                }
+                """);
 
-        const string expected = "This type is similar useless to 'The Bar type.'.";
-
-        var emitted = DescriptionExtractorRegex().Matches(snap.Render()).Single().Groups;
-        Assert.Equal(expected, emitted[1].Value);
+        var content = snapshot.Match();
+        var emitted = s_description.Matches(content).Single().Groups;
+        Assert.Equal("This type is similar useless to 'The Bar type.'.", emitted[1].Value);
     }
 }
