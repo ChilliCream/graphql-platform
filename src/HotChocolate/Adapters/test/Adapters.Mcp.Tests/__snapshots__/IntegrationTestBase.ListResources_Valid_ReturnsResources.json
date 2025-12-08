@@ -3,7 +3,7 @@
     "ProtocolResource": {
       "name": "get_books_with_title1 OpenAI Component",
       "title": null,
-      "uri": "ui://components/get-books-with-title-1-C7C16BF50987BEE49CA1D2CCC7BBC3D3A3A92660EB0380F842EBA6BB87F56259.html",
+      "uri": "ui://open-ai-components/get-books-with-title-1-C7C16BF50987BEE49CA1D2CCC7BBC3D3A3A92660EB0380F842EBA6BB87F56259.html",
       "description": null,
       "mimeType": "text/html+skybridge",
       "annotations": null,
@@ -11,7 +11,7 @@
       "icons": null,
       "_meta": null
     },
-    "Uri": "ui://components/get-books-with-title-1-C7C16BF50987BEE49CA1D2CCC7BBC3D3A3A92660EB0380F842EBA6BB87F56259.html",
+    "Uri": "ui://open-ai-components/get-books-with-title-1-C7C16BF50987BEE49CA1D2CCC7BBC3D3A3A92660EB0380F842EBA6BB87F56259.html",
     "Name": "get_books_with_title1 OpenAI Component",
     "Title": null,
     "Description": null,
@@ -21,7 +21,7 @@
     "ProtocolResource": {
       "name": "get_books_with_title2 OpenAI Component",
       "title": null,
-      "uri": "ui://components/get-books-with-title-2-C7C16BF50987BEE49CA1D2CCC7BBC3D3A3A92660EB0380F842EBA6BB87F56259.html",
+      "uri": "ui://open-ai-components/get-books-with-title-2-C7C16BF50987BEE49CA1D2CCC7BBC3D3A3A92660EB0380F842EBA6BB87F56259.html",
       "description": null,
       "mimeType": "text/html+skybridge",
       "annotations": null,
@@ -41,7 +41,7 @@
         "openai/widgetDomain": "https://example.com"
       }
     },
-    "Uri": "ui://components/get-books-with-title-2-C7C16BF50987BEE49CA1D2CCC7BBC3D3A3A92660EB0380F842EBA6BB87F56259.html",
+    "Uri": "ui://open-ai-components/get-books-with-title-2-C7C16BF50987BEE49CA1D2CCC7BBC3D3A3A92660EB0380F842EBA6BB87F56259.html",
     "Name": "get_books_with_title2 OpenAI Component",
     "Title": null,
     "Description": null,
