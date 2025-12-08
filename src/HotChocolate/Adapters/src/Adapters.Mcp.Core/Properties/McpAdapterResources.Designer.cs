@@ -141,11 +141,11 @@ namespace HotChocolate.Adapters.Mcp.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The resource with URI &apos;{0}&apos; was not found..
+        ///   Looks up a localized string similar to Resource not found..
         /// </summary>
-        internal static string ReadResourceHandler_ResourceWithUriNotFound {
+        internal static string ReadResourceHandler_ResourceNotFound {
             get {
-                return ResourceManager.GetString("ReadResourceHandler_ResourceWithUriNotFound", resourceCulture);
+                return ResourceManager.GetString("ReadResourceHandler_ResourceNotFound", resourceCulture);
             }
         }
         

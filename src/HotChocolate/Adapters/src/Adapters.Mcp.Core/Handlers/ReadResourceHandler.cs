@@ -14,11 +14,15 @@ internal static class ReadResourceHandler
 
         if (!registry.TryGetToolByOpenAiComponentResourceUri(context.Params!.Uri, out var tool))
         {
-            // TODO: See https://github.com/modelcontextprotocol/csharp-sdk/issues/1025.
             throw new McpProtocolException(
-                string.Format(ReadResourceHandler_ResourceWithUriNotFound, context.Params.Uri),
-                // TODO: See https://github.com/modelcontextprotocol/csharp-sdk/issues/863.
-                (McpErrorCode)(-32002));
+                string.Format(ReadResourceHandler_ResourceNotFound, context.Params.Uri),
+                McpErrorCode.ResourceNotFound)
+            {
+                Data =
+                {
+                    { "uri", context.Params!.Uri }
+                }
+            };
         }
 
         return new ReadResourceResult

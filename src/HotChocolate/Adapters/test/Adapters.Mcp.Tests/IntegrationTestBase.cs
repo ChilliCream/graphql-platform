@@ -416,7 +416,7 @@ public abstract class IntegrationTestBase
                 { "url", null },
                 { "uuid", null }
             },
-            serializerOptions: JsonSerializerOptions.Default);
+            options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 
         // assert
         result.StructuredContent!
@@ -468,7 +468,7 @@ public abstract class IntegrationTestBase
                 { "url", "https://example.com" },
                 { "uuid", "00000000-0000-0000-0000-000000000000" }
             },
-            serializerOptions: JsonSerializerOptions.Default);
+            options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 
         // assert
         result.StructuredContent!
@@ -539,7 +539,7 @@ public abstract class IntegrationTestBase
                 { "objectWithOneOfField", new { field = new { field1 = 1 } } },
                 { "timeSpanDotNet", "00:05:00" }
             },
-            serializerOptions: JsonSerializerOptions.Default);
+            options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 
         // assert
         result.StructuredContent!
@@ -732,10 +732,9 @@ public abstract class IntegrationTestBase
 
         // assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(Action);
+        Assert.EndsWith("Resource not found.", exception.Message);
         Assert.Equal(-32002, (int)exception.ErrorCode);
-        Assert.EndsWith(
-            "The resource with URI 'ui://components/missing.html' was not found.",
-            exception.Message);
+        Assert.Equal("ui://components/missing.html", exception.Data["uri"]);
     }
 
     [Fact]
