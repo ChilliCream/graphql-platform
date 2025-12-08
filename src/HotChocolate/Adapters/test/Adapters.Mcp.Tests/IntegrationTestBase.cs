@@ -637,51 +637,6 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
-    public async Task ListResources_Valid_ReturnsResources()
-    {
-        // arrange
-        var storage = new TestMcpStorage();
-        var documentNode1 = Utf8GraphQLParser.Parse(
-            await File.ReadAllTextAsync("__resources__/GetBooksWithTitle1.graphql"));
-        var documentNode2 = Utf8GraphQLParser.Parse(
-            await File.ReadAllTextAsync("__resources__/GetBooksWithTitle2.graphql"));
-        await storage.AddOrUpdateToolAsync(
-            new OperationToolDefinition(documentNode1)
-            {
-                OpenAiComponent = new OpenAiComponent(
-                    htmlTemplateText: await File.ReadAllTextAsync("__resources__/OpenAiComponent.html"))
-            });
-        await storage.AddOrUpdateToolAsync(
-            new OperationToolDefinition(documentNode2)
-            {
-                OpenAiComponent = new OpenAiComponent(
-                    htmlTemplateText: await File.ReadAllTextAsync("__resources__/OpenAiComponent.html"))
-                {
-                    Description = "GetBooksWithTitle2 OpenAI Component description",
-                    PrefersBorder = true,
-                    AllowToolCalls = true,
-                    Csp =
-                        new OpenAiComponentCsp(
-                            ConnectDomains: ["https://example.com"],
-                            ResourceDomains: ["https://*.example.com"]),
-                    Domain = "https://example.com",
-                    ToolInvokingStatusText = "Fetching books...",
-                    ToolInvokedStatusText = "Books fetched."
-                }
-            });
-        var server = await CreateTestServerAsync(storage);
-        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-
-        // act
-        var resources = await mcpClient.ListResourcesAsync();
-
-        // assert
-        JsonSerializer.Serialize(resources, JsonSerializerOptions)
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
-    }
-
-    [Fact]
     public async Task ReadResource_Valid_ReturnsResource()
     {
         // arrange

@@ -113,8 +113,6 @@ internal static class ServiceCollectionExtensions
                         }
                     };
                 })
-                .WithListResourcesHandler(
-                    (context, _) => ValueTask.FromResult(ListResourcesHandler.Handle(context)))
                 .WithReadResourceHandler(
                     (context, _) => ValueTask.FromResult(ReadResourceHandler.Handle(context)))
                 .WithListToolsHandler(
