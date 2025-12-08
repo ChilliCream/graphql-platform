@@ -41,6 +41,7 @@ public static class FusionGatewayBuilderExtensions
         var schemaName = builder.Name;
 
         builder.Services.AddOpenApiExporterServices(schemaName);
+        builder.Services.AddOpenApiAspNetCoreServices(schemaName);
 
         builder.ConfigureSchemaServices((applicationServices, services) =>
         {

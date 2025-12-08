@@ -9,7 +9,11 @@ internal sealed class DynamicEndpointDataSource : EndpointDataSource, IDynamicEn
     private IReadOnlyList<Endpoint> _endpoints = [];
     private CancellationTokenSource _cts = new();
     private CancellationChangeToken _changeToken;
+#if NET9_0_OR_GREATER
     private readonly Lock _lock = new();
+#else
+        private readonly object _lock = new();
+#endif
 
     public DynamicEndpointDataSource()
     {

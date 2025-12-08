@@ -3,7 +3,10 @@
   <PropertyGroup>
     <RootNamespace>HotChocolate.Adapters.OpenApi.Packaging</RootNamespace>
     <PackageId>HotChocolate.Adapters.OpenApi.Packaging</PackageId>
-    <TargetFrameworks>$(OpenApiTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="System.IO.Pipelines" />
+  </ItemGroup>
 
 </Project>

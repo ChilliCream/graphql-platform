@@ -1,7 +1,14 @@
+using System.Text;
+using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Cloud.Client;
 using ChilliCream.Nitro.CommandLine.Cloud.Helpers;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
 using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
+using HotChocolate.Adapters.OpenApi;
+using HotChocolate.Adapters.OpenApi.Packaging;
+using HotChocolate.Language;
+using Microsoft.Extensions.FileSystemGlobbing;
+using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using StrawberryShake;
 using Command = System.CommandLine.Command;
 
@@ -14,15 +21,22 @@ internal sealed class UploadOpenApiCollectionCommand : Command
         Description = "Upload a new OpenAPI collection version";
 
         AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<OpenApiCollectionFileOption>.Instance);
         AddOption(Opt<OpenApiCollectionIdOption>.Instance);
+
+        var patternsOption = new Option<List<string>>("--patterns")
+        {
+            Description = "TODO"
+        };
+        patternsOption.AddAlias("-p");
+
+        AddOption(patternsOption);
 
         this.SetHandler(
             ExecuteAsync,
             Bind.FromServiceProvider<IAnsiConsole>(),
             Bind.FromServiceProvider<IApiClient>(),
             Opt<TagOption>.Instance,
-            Opt<OpenApiCollectionFileOption>.Instance,
+            patternsOption,
             Opt<OpenApiCollectionIdOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
@@ -31,12 +45,10 @@ internal sealed class UploadOpenApiCollectionCommand : Command
         IAnsiConsole console,
         IApiClient client,
         string tag,
-        FileInfo operationsFile,
+        List<string> patterns,
         string openApiCollectionId,
         CancellationToken cancellationToken)
     {
-        console.Title($"Uploading OpenAPI collection {operationsFile.FullName.EscapeMarkup()}");
-
         if (console.IsHumanReadable())
         {
             await console
@@ -54,14 +66,72 @@ internal sealed class UploadOpenApiCollectionCommand : Command
 
         async Task UploadOpenApiCollection(StatusContext? ctx)
         {
-            console.Log("Initialized");
-            console.Log($"Reading file [blue]{operationsFile.FullName.EscapeMarkup()}[/]");
+            Matcher matcher = new();
+            matcher.AddIncludePatterns(patterns);
 
-            var stream = FileHelpers.CreateFileStream(operationsFile);
+            // TODO: Does this work with absolute paths?
+            var globResult = matcher.Execute(
+                new DirectoryInfoWrapper(
+                    new DirectoryInfo(Directory.GetCurrentDirectory())));
+
+            if (!globResult.HasMatches)
+            {
+                // TODO: Improve this error
+                console.ErrorLine("Did not find any matches...");
+                return;
+            }
+
+            var archiveStream = new MemoryStream();
+            var collectionArchive = OpenApiCollectionArchive.Create(archiveStream, leaveOpen: true);
+
+            var parser = new OpenApiDocumentParser();
+
+            foreach (var file in globResult.Files)
+            {
+                var document = Utf8GraphQLParser.Parse("");
+                // TODO: The id doesn't mean anything, we should probably get rid of it...
+                var openApiDocumentDefinition = new OpenApiDocumentDefinition(file.Path, document);
+
+                var parseResult = parser.Parse(openApiDocumentDefinition);
+
+                if (!parseResult.IsValid)
+                {
+                    // TODO: Handle properly
+                    continue;
+                }
+
+                if (parseResult.Document is OpenApiOperationDocument operationDocument)
+                {
+                    var operationBytes = Encoding.UTF8.GetBytes(operationDocument.OperationDefinition.ToString());
+                    // TODO: Properly create the settings
+                    var settings = JsonDocument.Parse("{}");
+
+                    await collectionArchive.AddOpenApiEndpointAsync(
+                        operationDocument.Name,
+                        operationBytes,
+                        settings,
+                        cancellationToken);
+                }
+                else if (parseResult.Document is OpenApiFragmentDocument fragmentDocument)
+                {
+                    var fragmentBytes = Encoding.UTF8.GetBytes(fragmentDocument.FragmentDefinition.ToString());
+
+                    await collectionArchive.AddOpenApiModelAsync(
+                        fragmentDocument.Name,
+                        fragmentBytes,
+                        cancellationToken);
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
+            }
+
+            await collectionArchive.CommitAsync(cancellationToken);
 
             var input = new UploadOpenApiCollectionInput
             {
-                Collection = new Upload(stream, "operations.graphql"),
+                Collection = new Upload(archiveStream, "collection.zip"),
                 OpenApiCollectionId = openApiCollectionId,
                 Tag = tag
             };

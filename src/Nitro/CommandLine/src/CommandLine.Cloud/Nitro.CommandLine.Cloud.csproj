@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="Duende.IdentityModel.OidcClient" VersionOverride="6.0.1" />
     <PackageReference Include="Spectre.Console" />
@@ -141,6 +142,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.OpenApi.Packaging\HotChocolate.Adapters.OpenApi.Packaging.csproj" />
     <ProjectReference Include="..\CommandLine.Core\Nitro.CommandLine.Core.csproj" />
     <ProjectReference Include="..\CommandLine.Fusion.Compatibility\Nitro.CommandLine.Fusion.Compatibility.csproj" />
     <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Core\StrawberryShake.Core.csproj" />
