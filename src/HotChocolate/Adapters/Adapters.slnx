@@ -8,6 +8,7 @@
   <Folder Name="/src/Adapters.OpenApi/">
     <Project Path="src\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />
     <Project Path="src\Adapters.OpenApi\HotChocolate.Adapters.OpenApi.csproj" />
+    <Project Path="src\Adapters.OpenApi.Packaging\HotChocolate.Adapters.OpenApi.Packaging.csproj" />
     <Project Path="src\Fusion.Adapters.OpenApi\HotChocolate.Fusion.Adapters.OpenApi.csproj" />
   </Folder>
   <Folder Name="/test/" />
@@ -16,5 +17,6 @@
   </Folder>
   <Folder Name="/test/Adapters.OpenApi.Tests/">
     <Project Path="test\Adapters.OpenApi.Tests\HotChocolate.Adapters.OpenApi.Tests.csproj" />
+    <Project Path="test\Adapters.OpenApi.Packaging.Tests\HotChocolate.Adapters.OpenApi.Packaging.Tests.csproj" />
   </Folder>
 </Solution>
