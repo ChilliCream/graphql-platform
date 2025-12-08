@@ -25,13 +25,13 @@ jobs:
 
     steps:
       - name: Checkout current repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           show-progress: false
 
       - name: Checkout performance data repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ChilliCream/graphql-platform-performance-data
           token: ${{ secrets.PERFORMANCE_DATA_TOKEN }}
@@ -86,7 +86,7 @@ jobs:
 
       - name: Comment PR with performance report
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -115,7 +115,7 @@ jobs:
             });
 
       - name: Upload performance data as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: fusion-gateway-performance-data
