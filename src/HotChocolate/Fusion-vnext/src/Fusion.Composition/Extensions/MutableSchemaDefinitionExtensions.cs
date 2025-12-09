@@ -163,8 +163,7 @@ internal static class MutableSchemaDefinitionExtensions
 
         while (backlog.TryPop(out var type))
         {
-            if (!touchedDefinitions.Add(type)
-                || type is ITypeDefinition { Kind: TypeKind.Scalar or TypeKind.Enum })
+            if (!touchedDefinitions.Add(type))
             {
                 continue;
             }
@@ -185,6 +184,14 @@ internal static class MutableSchemaDefinitionExtensions
 
                 case IUnionTypeDefinition unionType:
                     InspectUnionType(unionType, backlog);
+                    break;
+
+                case IDirectivesProvider directivesProvider:
+                    foreach (var directive in directivesProvider.Directives)
+                    {
+                        backlog.Push(directive.Definition);
+                    }
+
                     break;
             }
         }
