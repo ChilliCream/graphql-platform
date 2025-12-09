@@ -7,8 +7,8 @@ namespace HotChocolate.Execution.Processing;
 // TODO : We might remove this
 internal sealed class OperationCompilerOptimizers
 {
-    private ImmutableArray<IOperationOptimizer> _operationOptimizers;
-    private ImmutableArray<ISelectionSetOptimizer> _selectionSetOptimizers;
+    private ImmutableArray<IOperationOptimizer> _operationOptimizers = [];
+    private ImmutableArray<ISelectionSetOptimizer> _selectionSetOptimizers = [];
     private PropertyInitFlags _initFlags;
 
     public ImmutableArray<IOperationOptimizer> OperationOptimizers
