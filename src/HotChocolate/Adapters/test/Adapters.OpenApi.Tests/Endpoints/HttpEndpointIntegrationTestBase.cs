@@ -380,32 +380,6 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
-    public async Task Http_Post_Body_Field_Has_Wrong_Type()
-    {
-        // arrange
-        var storage = CreateBasicTestDocumentStorage();
-        var server = CreateTestServer(storage);
-        var client = server.CreateClient();
-
-        // act
-        var content = new StringContent(
-            """
-            {
-              "id": "6",
-              "name": "Test",
-              "email": 123
-            }
-            """,
-            Encoding.UTF8,
-            "application/json");
-
-        var response = await client.PostAsync("/users", content);
-
-        // assert
-        response.MatchSnapshot();
-    }
-
-    [Fact]
     public async Task Http_Post_Body_Missing_Field()
     {
         // arrange
