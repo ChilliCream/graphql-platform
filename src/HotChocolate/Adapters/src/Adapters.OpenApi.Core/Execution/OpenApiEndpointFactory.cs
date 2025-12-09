@@ -90,12 +90,16 @@ internal static class OpenApiEndpointFactory
         {
             foreach (var parameter in parameters)
             {
-                var inputType = GetTypeFromParameter(parameter, operationDocument.OperationDefinition, schema);
+                var (inputType, hasDefaultValue) = GetParameterDetails(
+                    parameter,
+                    operationDocument.OperationDefinition,
+                    schema);
 
                 var leaf = new VariableValueInsertionTrieLeaf(
                     parameter.Key,
                     inputType,
-                    parameterType);
+                    parameterType,
+                    hasDefaultValue);
 
                 var inputObjectPath = parameter.InputObjectPath;
 
@@ -148,7 +152,7 @@ internal static class OpenApiEndpointFactory
         }
     }
 
-    private static ITypeDefinition GetTypeFromParameter(
+    private static (ITypeDefinition Type, bool HasDefaultValue) GetParameterDetails(
         OpenApiRouteSegmentParameter parameter,
         OperationDefinitionNode operation,
         ISchemaDefinition schema)
@@ -157,6 +161,7 @@ internal static class OpenApiEndpointFactory
             .First(v => v.Variable.Name.Value == parameter.VariableName);
 
         var currentType = schema.Types[variable.Type.NamedType().Name.Value];
+        var hasDefaultValue = variable.DefaultValue is not null;
 
         if (parameter.InputObjectPath is { Length: > 0 })
         {
@@ -170,10 +175,11 @@ internal static class OpenApiEndpointFactory
                 }
 
                 currentType = field.Type.NamedType();
+                hasDefaultValue = field.DefaultValue is not null;
             }
         }
 
-        return currentType;
+        return (currentType, hasDefaultValue);
     }
 
     private static RoutePattern CreateRoutePattern(OpenApiRoute route)

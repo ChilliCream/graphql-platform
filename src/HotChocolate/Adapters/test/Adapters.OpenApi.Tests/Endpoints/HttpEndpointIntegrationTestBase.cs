@@ -44,6 +44,33 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
+    public async Task Http_Get_Without_Query_Parameter_That_Has_Default_Value()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetFullUser($userId: ID!, $includeAddress: Boolean! = true)
+              @http(method: GET, route: "/users/{userId}/details", queryParameters: ["includeAddress"]) {
+              userById(id: $userId) {
+                id
+                name
+                address @include(if: $includeAddress) {
+                  street
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/users/1/details");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Http_Get_With_Query_Parameter_Boolean_Value_For_Boolean()
     {
         // arrange
@@ -444,6 +471,33 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             "application/json");
 
         var response = await client.PutAsync("/users/6", content);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Put_Deeply_Nested_Input_Without_Query_Parameter_That_Has_Default_Value()
+    {
+        // arrange
+        var storage = CreateBasicTestDocumentStorage();
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var content = new StringContent(
+            """
+            {
+              "field": "Test",
+              "object": {
+                "otherField": "Test2"
+              }
+            }
+            """,
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await client.PutAsync("/object/6", content);
 
         // assert
         response.MatchSnapshot();

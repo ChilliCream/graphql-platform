@@ -109,7 +109,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
         if (bodyParameter is not null)
         {
-            var graphqlType = GetGraphQLType(operationDocument.OperationDefinition, bodyParameter, schema);
+            var (graphqlType, _) = GetParameterDetails(operationDocument.OperationDefinition, bodyParameter, schema);
             var requestBodyType = CreateOpenApiSchemaForType(graphqlType, schema);
 
             RemovePropertiesFromSchema(requestBodyType, bodyVariableTrie);
@@ -253,7 +253,10 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     }
 #endif
 
-    private static OpenApiSchema CreateOpenApiSchemaForType(IType type, ISchemaDefinition schemaDefinition)
+    private static OpenApiSchema CreateOpenApiSchemaForType(
+        IType type,
+        ISchemaDefinition schemaDefinition,
+        IValueNode? defaultValue = null)
     {
         if (type.IsListType())
         {
@@ -262,51 +265,24 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
             itemSchema = ApplyNullability(itemSchema, elementType);
 
-            return CreateArraySchema(itemSchema);
+            return CreateArraySchema(itemSchema, defaultValue);
         }
 
         var namedType = type.NamedType();
 
         if (namedType is IScalarTypeDefinition scalarType)
         {
-            return CreateScalarSchema(scalarType);
+            return CreateScalarSchema(scalarType, defaultValue);
         }
 
         if (namedType is IEnumTypeDefinition enumType)
         {
-            return CreateEnumSchema(enumType);
-        }
-
-        if (namedType is IObjectTypeDefinition objectType)
-        {
-            var schema = CreateObjectSchema();
-
-            foreach (var field in objectType.Fields)
-            {
-                if (field.IsIntrospectionField)
-                {
-                    continue;
-                }
-
-                var fieldTypeSchema = CreateOpenApiSchemaForType(field.Type, schemaDefinition);
-                fieldTypeSchema.Deprecated = field.IsDeprecated;
-
-                if (field.Description is not null)
-                {
-                    fieldTypeSchema.Description = field.Description;
-                }
-
-                schema.Properties!.Add(field.Name, ApplyNullability(fieldTypeSchema, field.Type));
-            }
-
-            schema.Description = objectType.Description;
-
-            return schema;
+            return CreateEnumSchema(enumType, defaultValue);
         }
 
         if (namedType is IInputObjectTypeDefinition inputObject)
         {
-            var schema = CreateObjectSchema();
+            var schema = CreateObjectSchema(defaultValue);
 
             foreach (var field in inputObject.Fields)
             {
@@ -332,6 +308,33 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             }
 
             schema.Description = inputObject.Description;
+
+            return schema;
+        }
+
+        if (namedType is IObjectTypeDefinition objectType)
+        {
+            var schema = CreateObjectSchema();
+
+            foreach (var field in objectType.Fields)
+            {
+                if (field.IsIntrospectionField)
+                {
+                    continue;
+                }
+
+                var fieldTypeSchema = CreateOpenApiSchemaForType(field.Type, schemaDefinition);
+                fieldTypeSchema.Deprecated = field.IsDeprecated;
+
+                if (field.Description is not null)
+                {
+                    fieldTypeSchema.Description = field.Description;
+                }
+
+                schema.Properties!.Add(field.Name, ApplyNullability(fieldTypeSchema, field.Type));
+            }
+
+            schema.Description = objectType.Description;
 
             return schema;
         }
@@ -384,7 +387,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         return new OpenApiSchema { AllOf = schemas };
     }
 
-    private static OpenApiSchema CreateObjectSchema()
+    private static OpenApiSchema CreateObjectSchema(IValueNode? defaultValue = null)
     {
         var schema = new OpenApiSchema();
 
@@ -396,10 +399,15 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         schema.Properties = new Dictionary<string, OpenApiSchemaAbstraction>();
         schema.Required = new HashSet<string>();
 
+        if (defaultValue is not null)
+        {
+            schema.Default = GetOpenApiValue(defaultValue);
+        }
+
         return schema;
     }
 
-    private static OpenApiSchema CreateArraySchema(OpenApiSchemaAbstraction itemSchema)
+    private static OpenApiSchema CreateArraySchema(OpenApiSchemaAbstraction itemSchema, IValueNode? defaultValue)
     {
         var schema = new OpenApiSchema();
 #if NET10_0_OR_GREATER
@@ -409,10 +417,15 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 #endif
         schema.Items = itemSchema;
 
+        if (defaultValue is not null)
+        {
+            schema.Default = GetOpenApiValue(defaultValue);
+        }
+
         return schema;
     }
 
-    private static OpenApiSchema CreateEnumSchema(IEnumTypeDefinition enumType)
+    private static OpenApiSchema CreateEnumSchema(IEnumTypeDefinition enumType, IValueNode? defaultValue)
     {
         var schema = new OpenApiSchema { Description = enumType.Description };
 
@@ -424,10 +437,15 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         schema.Enum = enumType.Values.Select(IOpenApiAny (v) => new OpenApiString(v.Name)).ToList();
 #endif
 
+        if (defaultValue is not null)
+        {
+            schema.Default = GetOpenApiValue(defaultValue);
+        }
+
         return schema;
     }
 
-    private static OpenApiSchema CreateScalarSchema(IScalarTypeDefinition scalarType)
+    private static OpenApiSchema CreateScalarSchema(IScalarTypeDefinition scalarType, IValueNode? defaultValue)
     {
         var schema = new OpenApiSchema();
 
@@ -476,6 +494,11 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
         schema.Format = GetJsonSchemaFormat(scalarType);
         schema.Pattern = GetJsonSchemaPattern(scalarType);
+
+        if (defaultValue is not null)
+        {
+            schema.Default = GetOpenApiValue(defaultValue);
+        }
 
         return schema;
     }
@@ -608,6 +631,70 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     }
 #endif
 
+#if NET10_0_OR_GREATER
+    private static JsonNode? GetOpenApiValue(IValueNode value)
+    {
+        return value switch
+        {
+            StringValueNode stringValue => JsonValue.Create(stringValue.Value),
+            IntValueNode intValue => JsonValue.Create(intValue.ToInt64()),
+            FloatValueNode floatValue => JsonValue.Create(floatValue.ToDouble()),
+            BooleanValueNode boolValue => JsonValue.Create(boolValue.Value),
+            EnumValueNode enumValue => JsonValue.Create(enumValue.Value),
+            NullValueNode => null,
+            ListValueNode listValue => new JsonArray(listValue.Items.Select(GetOpenApiValue).ToArray()),
+            ObjectValueNode objectValue => new JsonObject(
+                objectValue.Fields.Select(f =>
+                    new KeyValuePair<string, JsonNode?>(f.Name.Value, GetOpenApiValue(f.Value)))),
+            _ => null
+        };
+    }
+#else
+    private static IOpenApiAny? GetOpenApiValue(IValueNode value)
+    {
+        return value switch
+        {
+            StringValueNode stringValue => new OpenApiString(stringValue.Value),
+            IntValueNode intValue => new OpenApiLong(intValue.ToInt64()),
+            FloatValueNode floatValue => new OpenApiDouble(floatValue.ToDouble()),
+            BooleanValueNode boolValue => new OpenApiBoolean(boolValue.Value),
+            EnumValueNode enumValue => new OpenApiString(enumValue.Value),
+            NullValueNode => new OpenApiNull(),
+            ListValueNode listValue => ToOpenApiArray(listValue),
+            ObjectValueNode objectValue => ToOpenApiObject(objectValue),
+            _ => null
+        };
+    }
+
+    private static OpenApiArray ToOpenApiArray(ListValueNode listValue)
+    {
+        var array = new OpenApiArray();
+        foreach (var item in listValue.Items)
+        {
+            var value = GetOpenApiValue(item);
+            if (value is not null)
+            {
+                array.Add(value);
+            }
+        }
+        return array;
+    }
+
+    private static OpenApiObject ToOpenApiObject(ObjectValueNode objectValue)
+    {
+        var obj = new OpenApiObject();
+        foreach (var field in objectValue.Fields)
+        {
+            var value = GetOpenApiValue(field.Value);
+            if (value is not null)
+            {
+                obj[field.Name.Value] = value;
+            }
+        }
+        return obj;
+    }
+#endif
+
     private static OpenApiSchemaAbstraction CreateOpenApiSchemaForSelectionSet(
         SelectionSetNode selectionSet,
         IOutputType typeDefinition,
@@ -629,7 +716,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
             itemSchema = ApplyNullability(itemSchema, elementType);
 
-            return CreateArraySchema(itemSchema);
+            return CreateArraySchema(itemSchema, null);
         }
 
         var namedType = typeDefinition.NamedType();
@@ -828,14 +915,14 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         ParameterLocation location,
         ISchemaDefinition schema)
     {
-        var graphqlType = GetGraphQLType(operation.OperationDefinition, parameter, schema);
+        var (graphqlType, defaultValue) = GetParameterDetails(operation.OperationDefinition, parameter, schema);
 
         return new OpenApiParameter
         {
             Name = parameter.Key,
             In = location,
             Required = graphqlType.IsNonNullType(),
-            Schema = CreateOpenApiSchemaForType(graphqlType, schema)
+            Schema = CreateOpenApiSchemaForType(graphqlType, schema, defaultValue)
         };
     }
 
@@ -872,7 +959,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         return false;
     }
 
-    private static IType GetGraphQLType(
+    private static (IType Type, IValueNode? DefaultValue) GetParameterDetails(
         OperationDefinitionNode operation,
         OpenApiRouteSegmentParameter parameter,
         ISchemaDefinition schema)
@@ -894,7 +981,12 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
         if (parameter.InputObjectPath is not { } inputObjectPath)
         {
-            return variableType;
+            if (variable.DefaultValue is { } defaultValue)
+            {
+                return (variableType.NullableType(), defaultValue);
+            }
+
+            return (variableType, null);
         }
 
         var currentType = variableType.NamedType();
@@ -916,7 +1008,17 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             currentType = lastField.Type.NamedType();
         }
 
-        return lastField!.Type;
+        if (lastField is null)
+        {
+            throw new InvalidOperationException("Expected to resolve an input field through the inputObjectPath");
+        }
+
+        if (lastField.DefaultValue is { } inputFieldDefaultValue)
+        {
+            return (lastField.Type.NullableType(), inputFieldDefaultValue);
+        }
+
+        return (lastField.Type, null);
     }
 
     private sealed record OperationDescriptor(string Path, string HttpMethod, OpenApiOperation Operation);
