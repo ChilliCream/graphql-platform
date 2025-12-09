@@ -10,8 +10,6 @@ internal static class InternalServiceCollectionExtensions
     public static IServiceCollection AddOpenApiExporterServices(this IServiceCollection services, string schemaName)
     {
         services.TryAddKeyedSingleton<DynamicEndpointDataSource>(schemaName);
-        // TODO: Move
-        // services.TryAddKeyedSingleton<DynamicOpenApiDocumentTransformer>(schemaName);
         services.TryAddKeyedSingleton(
             schemaName,
             static (sp, name) => new OpenApiDocumentManager(

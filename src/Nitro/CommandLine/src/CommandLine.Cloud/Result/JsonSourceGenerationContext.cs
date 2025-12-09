@@ -26,4 +26,6 @@ namespace ChilliCream.Nitro.CommandLine.Cloud.Results;
 [JsonSerializable(typeof(PaginatedListResult<PersonalAccessTokenDetailPrompt.PersonalAccessTokenDetailPromptResult>))]
 [JsonSerializable(typeof(PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>))]
 [JsonSerializable(typeof(PaginatedListResult<WorkspaceDetailPrompt.WorkspaceDetailPromptResult>))]
+[JsonSerializable(typeof(OpenApiCollectionDetailPrompt.OpenApiCollectionDetailPromptResult))]
+[JsonSerializable(typeof(PaginatedListResult<OpenApiCollectionDetailPrompt.OpenApiCollectionDetailPromptResult>))]
 internal partial class JsonSourceGenerationContext : JsonSerializerContext;
