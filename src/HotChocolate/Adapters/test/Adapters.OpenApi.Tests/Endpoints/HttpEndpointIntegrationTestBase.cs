@@ -29,6 +29,44 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
+    public async Task Http_Get_With_Fragment_Referencing_Fragment()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a user by their id"
+            query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                ...User
+              }
+            }
+            """,
+            """
+            fragment User on User {
+              id
+              name
+              email
+              address {
+                ...Address
+              }
+            }
+            """,
+            """
+            fragment Address on Address {
+              street
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/users/1");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Http_Get_With_Query_Parameter()
     {
         // arrange
