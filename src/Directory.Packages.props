@@ -4,19 +4,16 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="AlterNats.Hosting" Version="1.0.6" />
-    <PackageVersion Include="Aspire.Hosting.AppHost" Version="9.4.1" />
-    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="9.4.1" />
-    <PackageVersion Include="Aspire.Hosting.RabbitMQ" Version="9.4.1" />
-    <PackageVersion Include="Aspire.Hosting.Redis" Version="9.4.1" />
-    <PackageVersion Include="Aspire.Hosting" Version="9.4.1" />
-    <PackageVersion Include="Aspire.AppHost.Sdk" Version="1.9.0" />
+    <PackageVersion Include="Aspire.Hosting.AppHost" Version="13.0.2" />
+    <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="13.0.2" />
+    <PackageVersion Include="Aspire.Hosting" Version="13.0.2" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.23.0" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net100" Version="1.8.3" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net80" Version="1.8.3" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net90" Version="1.8.3" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.4" />
     <PackageVersion Include="CaseConverter" Version="2.0.1" />
-    <PackageVersion Include="ChilliCream.ModelContextProtocol.AspNetCore" Version="0.0.1-p.4" />
+    <PackageVersion Include="ChilliCream.ModelContextProtocol.AspNetCore" Version="0.0.1-p.5" />
     <PackageVersion Include="ChilliCream.Nitro.App" Version="$(NitroVersion)" />
     <PackageVersion Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />

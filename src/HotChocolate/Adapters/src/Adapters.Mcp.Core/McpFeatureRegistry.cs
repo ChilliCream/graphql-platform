@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Adapters.Mcp;
 
-internal sealed class ToolRegistry
+internal sealed class McpFeatureRegistry
 {
     private FrozenDictionary<string, OperationTool> _tools
         = FrozenDictionary<string, OperationTool>.Empty;

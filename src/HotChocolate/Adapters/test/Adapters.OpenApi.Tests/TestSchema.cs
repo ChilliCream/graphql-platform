@@ -97,6 +97,25 @@ public sealed class TestSchema
         {
             return CreateUser(user);
         }
+
+        public DeeplyNested UpdateDeeplyNestedObject(DeeplyNested input) => input;
+    }
+
+    public class DeeplyNested
+    {
+        public required string UserId { get; set; }
+
+        public required string Field { get; set; }
+
+        public required DeeplyNested2 Object { get; set; }
+    }
+
+    public class DeeplyNested2
+    {
+        public required string OtherField { get; set; }
+
+        [DefaultValue("DefaultValue")]
+        public required string Field2 { get; set; }
     }
 
     public class UserInput
