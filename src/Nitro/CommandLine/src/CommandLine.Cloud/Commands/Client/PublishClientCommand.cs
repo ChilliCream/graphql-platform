@@ -109,7 +109,7 @@ internal sealed class PublishClientCommand : Command
                         break;
 
                     case IClientVersionPublishFailed { Errors: var clientErrors }:
-                        console.Error.WriteLine("Client publish failed");
+                        console.ErrorLine("Client publish failed");
                         console.PrintErrorsAndExit(clientErrors);
                         stopSignal.OnNext(Unit.Default);
                         break;

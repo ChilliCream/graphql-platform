@@ -110,7 +110,7 @@ internal sealed class PublishSchemaCommand : Command
                         break;
 
                     case ISchemaVersionPublishFailed { Errors: var schemaErrors }:
-                        console.Error.WriteLine("Schema publish failed");
+                        console.ErrorLine("Schema publish failed");
                         console.PrintErrorsAndExit(schemaErrors);
                         stopSignal.OnNext(Unit.Default);
                         break;
