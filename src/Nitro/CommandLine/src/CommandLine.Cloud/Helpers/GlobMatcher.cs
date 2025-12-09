@@ -39,7 +39,7 @@ internal static class GlobMatcher
             results.AddRange(result.Files.Select(f => Path.GetFullPath(f.Path)));
         }
 
-        return results.Distinct();
+        return results.Distinct().OrderBy(f => f, StringComparer.Ordinal);
     }
 
     private static (string basePath, string pattern) SplitAbsolutePattern(string pattern)
