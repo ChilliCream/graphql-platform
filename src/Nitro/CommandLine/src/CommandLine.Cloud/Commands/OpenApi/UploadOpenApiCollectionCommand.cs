@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using ChilliCream.Nitro.CommandLine.Cloud.Client;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
 using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
@@ -55,7 +56,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
                 .Status()
                 .Spinner(Spinner.Known.BouncingBar)
                 .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Uploading OpenAPI collection...", UploadOpenApiCollection);
+                .StartAsync("Uploading new OpenAPI collection version...", UploadOpenApiCollection);
         }
         else
         {
@@ -66,6 +67,8 @@ internal sealed class UploadOpenApiCollectionCommand : Command
 
         async Task UploadOpenApiCollection(StatusContext? ctx)
         {
+            // TODO: Print patterns for confirmation
+
             var files = GlobMatcher.Match(patterns).ToArray();
 
             if (files.Length < 1)
@@ -102,8 +105,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
                 if (parseResult.Document is OpenApiOperationDocument operationDocument)
                 {
                     var operationBytes = Encoding.UTF8.GetBytes(operationDocument.OperationDefinition.ToString());
-                    // TODO: Properly create the settings
-                    var settings = JsonDocument.Parse("{}");
+                    var settings = CreateJsonSettingsForOperationDocument(operationDocument);
 
                     await collectionArchive.AddOpenApiEndpointAsync(
                         operationDocument.Name,
@@ -147,7 +149,26 @@ internal sealed class UploadOpenApiCollectionCommand : Command
                 throw new ExitException("Upload of OpenAPI collection failed!");
             }
 
-            console.Success("Successfully uploaded OpenAPI collection!");
+            console.Success("Successfully uploaded new OpenAPI collection version!");
         }
+    }
+
+    private static JsonDocument CreateJsonSettingsForOperationDocument(OpenApiOperationDocument document)
+    {
+        var obj = new JsonObject();
+        obj.Add("httpMethod", document.HttpMethod);
+        obj.Add("route", document.Route.ToOpenApiPath());
+
+        // TODO: Add other settings
+
+        using var stream = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(stream))
+        {
+            obj.WriteTo(writer);
+        }
+
+        stream.Position = 0;
+
+        return JsonDocument.Parse(stream);
     }
 }

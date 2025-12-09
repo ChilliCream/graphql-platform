@@ -10,7 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 internal static class ApiClientCommandLineBuilderExtensions
 {
     private static readonly string s_userAgent = $"Nitro CLI/{Version}";
-    private const string ClientId = BuildSecrets.NitroApiClientId;
+    private const string ClientId = "66973038-95a2-40aa-9b7a-b7de544c0da8";
 
     public static CommandLineBuilder AddApiClient(this CommandLineBuilder builder)
         => builder

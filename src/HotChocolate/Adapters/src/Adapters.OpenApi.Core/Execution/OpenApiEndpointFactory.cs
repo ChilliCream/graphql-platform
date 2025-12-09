@@ -55,11 +55,16 @@ internal static class OpenApiEndpointFactory
         };
 
         var externalFragmentReferencesQueue = new Queue<string>(operationDocument.ExternalFragmentReferences);
+        var processedFragmentReferences = new HashSet<string>();
 
         while (externalFragmentReferencesQueue.TryDequeue(out var referencedFragmentName))
         {
-            var fragmentDocument = fragmentsByName[referencedFragmentName];
+            if (!processedFragmentReferences.Add(referencedFragmentName))
+            {
+                continue;
+            }
 
+            var fragmentDocument = fragmentsByName[referencedFragmentName];
             definitions.Add(fragmentDocument.FragmentDefinition);
 
             foreach (var externalFragmentReference in fragmentDocument.ExternalFragmentReferences)

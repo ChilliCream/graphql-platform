@@ -196,7 +196,7 @@ internal sealed class FusionPublishCommand : Command
         }
         catch (Exception exception)
         {
-            console.Error.WriteLine(exception.Message);
+            console.ErrorLine(exception.Message);
 
             if (!string.IsNullOrEmpty(requestId))
             {
@@ -329,7 +329,7 @@ internal sealed class FusionPublishCommand : Command
             {
                 foreach (var error in result.Errors)
                 {
-                    console.Error.WriteLine(error.Message);
+                    console.ErrorLine(error.Message);
                 }
 
                 return false;
