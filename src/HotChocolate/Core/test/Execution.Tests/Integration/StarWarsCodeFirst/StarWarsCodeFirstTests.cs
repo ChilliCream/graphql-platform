@@ -1101,15 +1101,15 @@ public class StarWarsCodeFirstTests
     public async Task Include_With_Variable(bool ifValue)
     {
         await ExpectValid(
-                """
-                query ($if: Boolean!) {
-                    human(id: "1000") {
-                        name @include(if: $if)
-                        height
-                    }
+            """
+            query ($if: Boolean!) {
+                human(id: "1000") {
+                    name @include(if: $if)
+                    height
                 }
-                """,
-                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", ifValue } }))
+            }
+            """,
+            request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", ifValue } }))
             .MatchSnapshotAsync(postFix: ifValue);
     }
 

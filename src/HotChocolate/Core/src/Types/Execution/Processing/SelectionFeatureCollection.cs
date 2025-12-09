@@ -101,7 +101,7 @@ public readonly struct SelectionFeatureCollection : IFeatureCollection
     /// <returns>The existing or newly created feature instance.</returns>
     /// <remarks>This method is thread-safe.</remarks>
     public TFeature GetOrSetSafe<TFeature>() where TFeature : new()
-        => GetOrSetSafe<TFeature>(static () => new TFeature());
+        => GetOrSetSafe(static () => new TFeature());
 
     internal TFeature GetOrSetSafe<TFeature>(Func<TFeature> factory)
         => _parent.GetOrSetSafe(_selectionId, factory);

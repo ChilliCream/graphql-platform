@@ -47,12 +47,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Could not resolve reviews",
-                    "locations": [
-                      {
-                        "line": 2,
-                        "column": 3
-                      }
-                    ],
                     "path": [
                       "reviews"
                     ]

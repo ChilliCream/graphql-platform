@@ -14,7 +14,7 @@ public sealed partial class OperationCompiler
     private readonly Schema _schema;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
     private readonly OperationCompilerOptimizers _optimizers;
-    private readonly DocumentRewriter _documentRewriter;
+    private readonly InlineFragmentOperationRewriter _documentRewriter;
     private readonly InputParser _inputValueParser;
     private static readonly ArrayPool<object> s_objectArrayPool = ArrayPool<object>.Shared;
 
@@ -30,7 +30,7 @@ public sealed partial class OperationCompiler
         _schema = schema;
         _inputValueParser = inputValueParser;
         _fieldsPool = fieldsPool;
-        _documentRewriter = new DocumentRewriter(schema, removeStaticallyExcludedSelections: true);
+        _documentRewriter = new InlineFragmentOperationRewriter(schema, removeStaticallyExcludedSelections: true);
         _optimizers = optimizers;
     }
 

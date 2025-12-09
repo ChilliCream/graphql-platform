@@ -699,4 +699,41 @@ public class InlineFragmentOperationRewriterTests
             "A fragment with the name 'UnknownFragment' does not exist.",
             Assert.Throws<RewriterException>(Action).Message);
     }
+
+    [Fact]
+    public void Single_Include_With_Variable()
+    {
+        // arrange
+        var sourceText = FileResource.Open("schema1.graphql");
+        var schemaDefinition = SchemaParser.Parse(sourceText);
+
+        var doc = Utf8GraphQLParser.Parse(
+            """
+            query($skip: Boolean!) {
+                productById(id: 1) {
+                    name @include(if: $skip)
+                    id
+                }
+            }
+            """);
+
+        // act
+        var rewriter = new InlineFragmentOperationRewriter(
+            schemaDefinition,
+            removeStaticallyExcludedSelections: true);
+        var rewritten = rewriter.RewriteDocument(doc);
+
+        // assert
+        rewritten.MatchInlineSnapshot(
+            """
+            query(
+              $skip: Boolean!
+            ) {
+              productById(id: 1) {
+                name @include(if: $skip)
+                id
+              }
+            }
+            """);
+    }
 }

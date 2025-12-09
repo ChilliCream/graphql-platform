@@ -519,10 +519,7 @@ public class QueryableCursorPagingProviderTests
                 }
                 """);
 
-            var operation = OperationCompiler.Compile(
-                "abc",
-                document.Definitions.OfType<OperationDefinitionNode>().First(),
-                schema);
+            var operation = OperationCompiler.Compile("abc", document, schema);
 
             return new MockContext(arguments, operation, operation.RootSelectionSet.Selections[0]);
         }

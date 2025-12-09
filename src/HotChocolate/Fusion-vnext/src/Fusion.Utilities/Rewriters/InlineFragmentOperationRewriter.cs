@@ -568,19 +568,21 @@ public sealed class InlineFragmentOperationRewriter(
 
         static bool IsStaticIncludeCondition(DirectiveNode directive, ref bool skipChecked, ref bool includeChecked)
         {
-            if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal)
-                && directive.Arguments.Count == 1
-                && directive.Arguments[0].Value is BooleanValueNode skipConstant
-                && !skipConstant.Value)
+            if(directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal))
             {
-                return true;
+                skipChecked = true;
+                if (directive.Arguments is [{ Value: BooleanValueNode }])
+                {
+                    return true;
+                }
             }
-            else if (directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal)
-                && (directive.Arguments.Count != 1
-                    || directive.Arguments[0].Value is not BooleanValueNode includeConstant
-                    || includeConstant.Value))
+            else if(directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal))
             {
-                return true;
+                includeChecked = true;
+                if (directive.Arguments is [{ Value: BooleanValueNode }])
+                {
+                    return true;
+                }
             }
 
             return false;

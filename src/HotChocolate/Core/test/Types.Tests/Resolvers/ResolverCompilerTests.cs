@@ -630,10 +630,7 @@ public class ResolverCompilerTests
                 .Create();
 
         var document = Utf8GraphQLParser.Parse("{ abc }");
-        var operation = OperationCompiler.Compile(
-            "abc",
-            document.Definitions.OfType<OperationDefinitionNode>().First(),
-            schema);
+        var operation = OperationCompiler.Compile("abc", document, schema);
 
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
@@ -747,10 +744,7 @@ public class ResolverCompilerTests
                 .Create();
 
         var document = Utf8GraphQLParser.Parse("{ abc }");
-        var operation = OperationCompiler.Compile(
-            "abc",
-            document.Definitions.OfType<OperationDefinitionNode>().First(),
-            schema);
+        var operation = OperationCompiler.Compile("abc", document, schema);
 
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());

@@ -76,6 +76,7 @@ internal static class ResolverTaskFactory
         }
     }
 
+    // TODO : remove ?
     public static ResolverTask EnqueueElementTasks(
         OperationContext operationContext,
         Selection selection,
