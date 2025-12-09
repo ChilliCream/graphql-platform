@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -162,7 +163,10 @@ internal sealed class DynamicEndpointMiddleware(
         {
             if (segment is VariableValueInsertionTrieLeaf leaf)
             {
-                variables[variableName] = GetValueForParameter(leaf, routeData, query);
+                if (TryGetValueForParameter(leaf, routeData, query, out var value))
+                {
+                    variables[variableName] = value;
+                }
             }
             else if (segment is VariableValueInsertionTrie trie
                 && variables[variableName] is ObjectValueNode objectValue)
@@ -218,35 +222,37 @@ internal sealed class DynamicEndpointMiddleware(
             processedFields.Add(fieldName);
         }
 
-        if (trie.Keys.Count != processedFields.Count)
+        foreach (var (fieldName, segment) in trie)
         {
-            foreach (var (fieldName, segment) in trie)
+            if (processedFields.Contains(fieldName))
             {
-                if (processedFields.Contains(fieldName))
+                continue;
+            }
+
+            IValueNode newValue;
+            if (segment is VariableValueInsertionTrieLeaf leaf)
+            {
+                if (!TryGetValueForParameter(leaf, routeData, query, out var value))
                 {
                     continue;
                 }
 
-                IValueNode newValue;
-                if (segment is VariableValueInsertionTrieLeaf leaf)
-                {
-                    newValue = GetValueForParameter(leaf, routeData, query);
-                }
-                else if (segment is VariableValueInsertionTrie trieSegment)
-                {
-                    newValue = RewriteObjectValueNode(
-                        new ObjectValueNode(),
-                        trieSegment,
-                        routeData,
-                        query);
-                }
-                else
-                {
-                    throw new NotSupportedException();
-                }
-
-                newFields.Add(new ObjectFieldNode(fieldName, newValue));
+                newValue = value;
             }
+            else if (segment is VariableValueInsertionTrie trieSegment)
+            {
+                newValue = RewriteObjectValueNode(
+                    new ObjectValueNode(),
+                    trieSegment,
+                    routeData,
+                    query);
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+
+            newFields.Add(new ObjectFieldNode(fieldName, newValue));
         }
 
         return objectValueNode.WithFields(newFields);
@@ -254,19 +260,29 @@ internal sealed class DynamicEndpointMiddleware(
 
     private static readonly NullValueNode s_nullValueNode = new(null);
 
-    private static IValueNode GetValueForParameter(
+    private static bool TryGetValueForParameter(
         VariableValueInsertionTrieLeaf leaf,
         RouteData routeData,
-        IQueryCollection query)
+        IQueryCollection query,
+        [NotNullWhen(true)] out IValueNode? parameterValue)
     {
+        parameterValue = default;
+
         if (leaf.ParameterType is OpenApiEndpointParameterType.Route)
         {
             if (!routeData.Values.TryGetValue(leaf.ParameterKey, out var value))
             {
-                return s_nullValueNode;
+                if (leaf.HasDefaultValue)
+                {
+                    return false;
+                }
+
+                parameterValue = s_nullValueNode;
+                return true;
             }
 
-            return ParseValueNode(value, leaf.Type);
+            parameterValue = ParseValueNode(value, leaf.Type);
+            return true;
         }
 
         if (leaf.ParameterType is OpenApiEndpointParameterType.Query)
@@ -274,13 +290,20 @@ internal sealed class DynamicEndpointMiddleware(
             if (!query.TryGetValue(leaf.ParameterKey, out var values)
                 || values is not [{ } value])
             {
-                return s_nullValueNode;
+                if (leaf.HasDefaultValue)
+                {
+                    return false;
+                }
+
+                parameterValue = s_nullValueNode;
+                return true;
             }
 
-            return ParseValueNode(value, leaf.Type);
+            parameterValue = ParseValueNode(value, leaf.Type);
+            return true;
         }
 
-        throw new NotSupportedException();
+        return false;
     }
 
     // TODO: Maybe we can optimize this further, so we don't have to perform a lot of checks at runtime
