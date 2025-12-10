@@ -86,6 +86,13 @@ fragment OpenApiCollectionNotFoundError on OpenApiCollectionNotFoundError {
   ...Error
 }
 
+fragment OpenApiCollectionVersionNotFoundError on OpenApiCollectionVersionNotFoundError {
+  tag
+  message
+  openApiCollectionId
+  ...Error
+}
+
 fragment SchemaChangeLogEntry on SchemaChangeLogEntry {
   __typename
   ...TypeSystemMemberAddedChange
@@ -442,6 +449,19 @@ fragment ClientVersionPublishFailed on ClientVersionPublishFailed {
   }
 }
 
+fragment OpenApiCollectionVersionPublishSuccess on OpenApiCollectionVersionPublishSuccess {
+  state
+}
+
+fragment OpenApiCollectionVersionPublishFailed on OpenApiCollectionVersionPublishFailed {
+  state
+  errors {
+    ...UnexpectedProcessingError
+    ...ProcessingTimeoutError
+    ...ConcurrentOperationError
+  }
+}
+
 fragment OperationInProgress on OperationInProgress {
   state
 }
@@ -469,6 +489,10 @@ fragment WaitForApproval on WaitForApproval {
         ...InvalidGraphQLSchemaError
         ...PersistedQueryValidationError
       }
+    }
+    ... on OpenApiCollectionDeployment {
+      # TODO: We need to query for errors here
+      __typename
     }
   }
 }

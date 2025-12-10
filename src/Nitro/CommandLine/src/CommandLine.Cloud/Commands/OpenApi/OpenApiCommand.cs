@@ -12,5 +12,6 @@ internal sealed class OpenApiCommand : Command
         AddCommand(new DeleteOpenApiCollectionCommand());
         AddCommand(new ListOpenApiCollectionCommand());
         AddCommand(new UploadOpenApiCollectionCommand());
+        AddCommand(new PublishOpenApiCollectionCommand());
     }
 }

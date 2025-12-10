@@ -1,0 +1,25 @@
+mutation PublishOpenApiCollectionCommandMutation($input: PublishOpenApiCollectionInput!) {
+  publishOpenApiCollection(input: $input) {
+    id
+    errors {
+      ...UnauthorizedOperation
+      ...StageNotFoundError
+      ...OpenApiCollectionNotFoundError
+      ...OpenApiCollectionVersionNotFoundError
+      ...Error
+    }
+  }
+}
+
+subscription PublishOpenApiCollectionCommandSubscription($requestId: ID!) {
+  onOpenApiCollectionVersionPublishingUpdate(requestId: $requestId) {
+    __typename
+    ...OpenApiCollectionVersionPublishFailed
+    ...OpenApiCollectionVersionPublishSuccess
+    ...OperationInProgress
+    ...WaitForApproval
+    ...ProcessingTaskApproved
+    ...ProcessingTaskIsReady
+    ...ProcessingTaskIsQueued
+  }
+}
