@@ -164,6 +164,22 @@ interface Node {
   id: ID!
 }
 
+interface OpenApiCollectionVersionPublishError {
+  message: String!
+}
+
+interface OpenApiCollectionVersionPublishResult {
+  state: ProcessingState!
+}
+
+interface OpenApiCollectionVersionValidationError {
+  message: String!
+}
+
+interface OpenApiCollectionVersionValidationResult {
+  state: ProcessingState!
+}
+
 interface OpenTelemetryAttribute {
   key: String!
 }
@@ -872,7 +888,7 @@ type CommitFusionConfigurationPublishPayload {
   requestId: ID
 }
 
-type ConcurrentOperationError implements Error & SchemaVersionPublishError & ClientVersionPublishError & FusionConfigurationPublishingError & ProcessingError {
+type ConcurrentOperationError implements Error & SchemaVersionPublishError & ClientVersionPublishError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & ProcessingError {
   message: String!
 }
 
@@ -1951,6 +1967,14 @@ type Mutation {
   pollClientVersionValidationRequest(
     input: PollClientVersionValidationRequestInput!
   ): PollClientVersionValidationRequestPayload!
+  pollOpenApiCollectionVersionPublishRequest(
+    input: PollOpenApiCollectionVersionPublishRequestInput!
+  ): PollOpenApiCollectionVersionPublishRequestPayload!
+
+  pollOpenApiCollectionVersionValidationRequest(
+    input: PollOpenApiCollectionVersionValidationRequestInput!
+  ): PollOpenApiCollectionVersionValidationRequestPayload!
+
   pollSchemaVersionPublishRequest(
     input: PollSchemaVersionPublishRequestInput!
   ): PollSchemaVersionPublishRequestPayload!
@@ -1959,6 +1983,9 @@ type Mutation {
   ): PollSchemaVersionValidationRequestPayload!
   publishClient(input: PublishClientInput!): PublishClientPayload!
 
+  publishOpenApiCollection(
+    input: PublishOpenApiCollectionInput!
+  ): PublishOpenApiCollectionPayload!
   publishSchema(input: PublishSchemaInput!): PublishSchemaPayload!
 
   pushDocumentChanges(
@@ -2010,6 +2037,9 @@ type Mutation {
   validateFusionConfigurationComposition(
     input: ValidateFusionConfigurationCompositionInput!
   ): ValidateFusionConfigurationCompositionPayload!
+  validateOpenApiCollection(
+    input: ValidateOpenApiCollectionInput!
+  ): ValidateOpenApiCollectionPayload!
   validateSchema(input: ValidateSchemaInput!): ValidateSchemaPayload!
 }
 
@@ -2060,6 +2090,23 @@ type OpenApiCollection implements Node {
   ): OpenApiCollectionVersionsConnection
 }
 
+type OpenApiCollectionChangeLog implements StageChangeLog & Node {
+  changedAt: DateTime!
+  id: ID!
+  kind: StageChangeLogKind!
+  tag: String!
+}
+
+type OpenApiCollectionDeployment implements Node & Deployment {
+  approval: DeploymentApproval
+  createdAt: DateTime!
+  id: ID!
+  logs: [DeploymentLog!]!
+  openApiCollection: OpenApiCollection
+  status: DeploymentStatus!
+  tag: String!
+}
+
 type OpenApiCollectionNotFoundError implements Error {
   message: String!
   openApiCollectionId: ID!
@@ -2070,6 +2117,36 @@ type OpenApiCollectionVersion implements Node {
   id: ID!
   openApiCollection: OpenApiCollection
   tag: String!
+}
+
+type OpenApiCollectionVersionNotFoundError implements Error {
+  message: String!
+  openApiCollectionId: ID!
+  tag: String!
+}
+
+type OpenApiCollectionVersionPublishFailed implements OpenApiCollectionVersionPublishResult {
+  errors: [OpenApiCollectionVersionPublishError!]!
+  state: ProcessingState!
+}
+
+type OpenApiCollectionVersionPublishSuccess implements OpenApiCollectionVersionPublishResult {
+  openApiCollectionVersion: OpenApiCollectionVersion
+  state: ProcessingState!
+}
+
+type OpenApiCollectionVersionRequestNotFoundError implements Error {
+  message: String!
+  requestId: ID!
+}
+
+type OpenApiCollectionVersionValidationFailed implements OpenApiCollectionVersionValidationResult {
+  errors: [OpenApiCollectionVersionValidationError!]!
+  state: ProcessingState!
+}
+
+type OpenApiCollectionVersionValidationSuccess implements OpenApiCollectionVersionValidationResult {
+  state: ProcessingState!
 }
 
 "A connection to a list of items."
@@ -2492,7 +2569,7 @@ type Operation {
   name: String
 }
 
-type OperationInProgress implements SchemaVersionValidationResult & SchemaVersionPublishResult & ClientVersionValidationResult & ClientVersionPublishResult & FusionConfigurationPublishingResult {
+type OperationInProgress implements SchemaVersionValidationResult & SchemaVersionPublishResult & ClientVersionValidationResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult & OpenApiCollectionVersionValidationResult {
   state: ProcessingState!
 }
 
@@ -2954,6 +3031,16 @@ type PollClientVersionValidationRequestPayload {
   result: ClientVersionValidationResult
 }
 
+type PollOpenApiCollectionVersionPublishRequestPayload {
+  errors: [PollOpenApiCollectionVersionPublishRequestError!]
+  result: OpenApiCollectionVersionPublishResult
+}
+
+type PollOpenApiCollectionVersionValidationRequestPayload {
+  errors: [PollOpenApiCollectionVersionValidationRequestError!]
+  result: OpenApiCollectionVersionValidationResult
+}
+
 type PollSchemaVersionPublishRequestPayload {
   errors: [PollSchemaVersionPublishRequestError!]
   result: SchemaVersionPublishResult
@@ -2974,25 +3061,30 @@ type PossibleTypeRemoved implements SchemaChange {
   typeName: String!
 }
 
-type ProcessingTaskApproved implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult {
+type ProcessingTaskApproved implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult {
   state: ProcessingState!
 }
 
-type ProcessingTaskIsQueued implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult {
+type ProcessingTaskIsQueued implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult & OpenApiCollectionVersionPublishResult {
   queuePosition: Int!
   state: ProcessingState!
 }
 
-type ProcessingTaskIsReady implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult {
+type ProcessingTaskIsReady implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult & OpenApiCollectionVersionPublishResult {
   state: ProcessingState!
 }
 
-type ProcessingTimeoutError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & ProcessingError {
+type ProcessingTimeoutError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & ProcessingError {
   message: String!
 }
 
 type PublishClientPayload {
   errors: [PublishClientError!]
+  id: ID
+}
+
+type PublishOpenApiCollectionPayload {
+  errors: [PublishOpenApiCollectionError!]
   id: ID
 }
 
@@ -3044,7 +3136,7 @@ type Query {
   workspaceById(workspaceId: ID!): Workspace
 }
 
-type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationPublishingError & ProcessingError {
+type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & ProcessingError {
   message: String!
 }
 
@@ -3717,6 +3809,12 @@ type Subscription {
   onFusionConfigurationPublishingTaskChanged(
     requestId: ID!
   ): FusionConfigurationPublishingResult!
+  onOpenApiCollectionVersionPublishingUpdate(
+    requestId: ID!
+  ): OpenApiCollectionVersionPublishResult!
+  onOpenApiCollectionVersionValidationUpdate(
+    requestId: ID!
+  ): OpenApiCollectionVersionValidationResult!
   onPersistedQueriesChanged(
     apiId: ID!
     stageName: String!
@@ -3785,7 +3883,7 @@ type UnexpectedErrorOnDocumentChange implements Error {
   workspaceId: ID!
 }
 
-type UnexpectedProcessingError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & FusionConfigurationValidationError & ProcessingError {
+type UnexpectedProcessingError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & FusionConfigurationValidationError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & ProcessingError {
   message: String!
 }
 
@@ -3881,6 +3979,11 @@ type ValidateFusionConfigurationCompositionPayload {
   requestId: ID
 }
 
+type ValidateOpenApiCollectionPayload {
+  errors: [ValidateOpenApiCollectionError!]
+  id: ID
+}
+
 type ValidateSchemaPayload {
   errors: [ValidateSchemaError!]
   id: ID
@@ -3932,7 +4035,7 @@ type Viewer {
   ): WorkspacesConnection
 }
 
-type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult {
+type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult {
   deployment: Deployment
   state: ProcessingState!
 }
@@ -4265,6 +4368,14 @@ union PollClientVersionValidationRequestError =
     ClientVersionRequestNotFoundError
   | UnauthorizedOperation
 
+union PollOpenApiCollectionVersionPublishRequestError =
+    OpenApiCollectionVersionRequestNotFoundError
+  | UnauthorizedOperation
+
+union PollOpenApiCollectionVersionValidationRequestError =
+    OpenApiCollectionVersionRequestNotFoundError
+  | UnauthorizedOperation
+
 union PollSchemaVersionPublishRequestError =
     SchemaVersionRequestNotFoundError
   | UnauthorizedOperation
@@ -4278,6 +4389,12 @@ union PublishClientError =
   | ClientNotFoundError
   | UnauthorizedOperation
   | ClientVersionNotFoundError
+
+union PublishOpenApiCollectionError =
+    StageNotFoundError
+  | OpenApiCollectionNotFoundError
+  | UnauthorizedOperation
+  | OpenApiCollectionVersionNotFoundError
 
 union PublishSchemaError =
     StageNotFoundError
@@ -4413,6 +4530,11 @@ union ValidateFusionConfigurationCompositionError =
     UnauthorizedOperation
   | FusionConfigurationRequestNotFoundError
   | InvalidProcessingStateTransitionError
+
+union ValidateOpenApiCollectionError =
+    StageNotFoundError
+  | OpenApiCollectionNotFoundError
+  | UnauthorizedOperation
 
 union ValidateSchemaError =
     StageNotFoundError
@@ -4733,6 +4855,14 @@ input PollClientVersionValidationRequestInput {
   id: ID!
 }
 
+input PollOpenApiCollectionVersionPublishRequestInput {
+  id: ID!
+}
+
+input PollOpenApiCollectionVersionValidationRequestInput {
+  id: ID!
+}
+
 input PollSchemaVersionPublishRequestInput {
   id: ID!
 }
@@ -4744,6 +4874,14 @@ input PollSchemaVersionValidationRequestInput {
 input PublishClientInput {
   clientId: ID!
   force: Boolean! = false
+  stage: String!
+  tag: String!
+  waitForApproval: Boolean! = false
+}
+
+input PublishOpenApiCollectionInput {
+  force: Boolean! = false
+  openApiCollectionId: ID!
   stage: String!
   tag: String!
   waitForApproval: Boolean! = false
@@ -4919,6 +5057,12 @@ input ValidateClientInput {
 input ValidateFusionConfigurationCompositionInput {
   configuration: Upload!
   requestId: ID!
+}
+
+input ValidateOpenApiCollectionInput {
+  collection: Upload!
+  openApiCollectionId: ID!
+  stage: String!
 }
 
 input ValidateSchemaInput {
