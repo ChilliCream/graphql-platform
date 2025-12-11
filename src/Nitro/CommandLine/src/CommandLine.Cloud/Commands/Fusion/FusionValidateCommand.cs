@@ -69,6 +69,7 @@ internal sealed class FusionValidateCommand : Command
 
             Stream schemaStream;
             IDisposable disposableArchive;
+
             if (IsFarFormat(stream))
             {
                 var archive = FusionArchive.Open(stream, leaveOpen: true);
@@ -95,51 +96,59 @@ internal sealed class FusionValidateCommand : Command
 
             console.Log("Create validation request");
 
-            var requestId = await ValidateAsync(console, client, input, ct);
-
-            disposableArchive.Dispose();
-
-            console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
-
-            using var stopSignal = new Subject<Unit>();
-
-            var subscription = client.OnSchemaVersionValidationUpdated
-                .Watch(requestId, ExecutionStrategy.NetworkOnly)
-                .TakeUntil(stopSignal);
-
-            await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
+            try
             {
-                if (x.Errors is { Count: > 0 } errors)
+                var requestId = await ValidateAsync(console, client, input, ct);
+
+                disposableArchive.Dispose();
+
+                console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
+
+                using var stopSignal = new Subject<Unit>();
+
+                var subscription = client.OnSchemaVersionValidationUpdated
+                    .Watch(requestId, ExecutionStrategy.NetworkOnly)
+                    .TakeUntil(stopSignal);
+
+                await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
                 {
-                    console.PrintErrorsAndExit(errors);
-                    throw Exit("No request id returned");
+                    if (x.Errors is { Count: > 0 } errors)
+                    {
+                        console.PrintErrorsAndExit(errors);
+                        throw Exit("No request id returned");
+                    }
+
+                    switch (x.Data?.OnSchemaVersionValidationUpdate)
+                    {
+                        case ISchemaVersionValidationFailed { Errors: var schemaErrors }:
+                            console.Error.WriteLine("The schema is invalid:");
+                            console.PrintErrorsAndExit(schemaErrors);
+                            stopSignal.OnNext(Unit.Default);
+                            break;
+
+                        case ISchemaVersionValidationSuccess:
+                            isValid = true;
+                            stopSignal.OnNext(Unit.Default);
+
+                            console.Success("Schema validation succeeded.");
+                            break;
+
+                        case IOperationInProgress:
+                        case IValidationInProgress:
+                            ctx?.Status("The validation is in progress.");
+                            break;
+
+                        default:
+                            ctx?.Status(
+                                "This is an unknown response, upgrade Nitro CLI to the latest version.");
+                            break;
+                    }
                 }
-
-                switch (x.Data?.OnSchemaVersionValidationUpdate)
-                {
-                    case ISchemaVersionValidationFailed { Errors: var schemaErrors }:
-                        console.Error.WriteLine("The schema is invalid:");
-                        console.PrintErrorsAndExit(schemaErrors);
-                        stopSignal.OnNext(Unit.Default);
-                        break;
-
-                    case ISchemaVersionValidationSuccess:
-                        isValid = true;
-                        stopSignal.OnNext(Unit.Default);
-
-                        console.Success("Schema validation succeeded.");
-                        break;
-
-                    case IOperationInProgress:
-                    case IValidationInProgress:
-                        ctx?.Status("The validation is in progress.");
-                        break;
-
-                    default:
-                        ctx?.Status(
-                            "This is an unknown response, upgrade Nitro CLI to the latest version.");
-                        break;
-                }
+            }
+            finally
+            {
+                disposableArchive.Dispose();
+                await schemaStream.DisposeAsync();
             }
         }
     }
@@ -171,7 +180,9 @@ internal sealed class FusionValidateCommand : Command
 
         if (configuration is null)
         {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException(
+                $"Failed to retrieve gateway configuration from the fusion archive (format version: {latestVersion}). "
+                + $"The archive may be corrupted, unsupported, or missing required configuration.");
         }
 
         return await configuration.OpenReadSchemaAsync(ct);
@@ -192,12 +203,15 @@ internal sealed class FusionValidateCommand : Command
 
     public static bool IsFarFormat(Stream stream)
     {
-        using var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
-        if (zip.GetEntry("archive-metadata.json") is not null)
+        try
         {
-            return true;
-        }
+            using var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
 
-        return false;
+            return zip.GetEntry("archive-metadata.json") is not null;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
