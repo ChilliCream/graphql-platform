@@ -53,7 +53,7 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
 
     protected override void ConfigureStorage(
         IServiceCollection services,
-        IOpenApiDefinitionStorage storage,
+        IOpenApiDocumentStorage storage,
         OpenApiDiagnosticEventListener? eventListener)
     {
         services.AddHttpClient("A")

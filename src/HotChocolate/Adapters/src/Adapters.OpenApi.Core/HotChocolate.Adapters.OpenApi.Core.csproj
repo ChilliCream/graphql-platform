@@ -3,17 +3,12 @@
   <PropertyGroup>
     <RootNamespace>HotChocolate.Adapters.OpenApi</RootNamespace>
     <PackageId>HotChocolate.Adapters.OpenApi.Core</PackageId>
-    <TargetFrameworks>$(OpenApiTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Adapters.OpenApi.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Adapters.OpenApi" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Adapters.OpenApi" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
   </ItemGroup>
 
   <ItemGroup>

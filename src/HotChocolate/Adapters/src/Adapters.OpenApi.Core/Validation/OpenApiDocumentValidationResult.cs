@@ -3,9 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-public sealed class OpenApiValidationResult
+public sealed class OpenApiDocumentValidationResult
 {
-    private OpenApiValidationResult(bool isValid, ImmutableArray<OpenApiValidationError>? errors)
+    private OpenApiDocumentValidationResult(bool isValid, ImmutableArray<OpenApiDocumentValidationError>? errors)
     {
         IsValid = isValid;
         Errors = errors;
@@ -20,23 +20,23 @@ public sealed class OpenApiValidationResult
     /// <summary>
     /// Gets the validation errors, if any.
     /// </summary>
-    public ImmutableArray<OpenApiValidationError>? Errors { get; }
+    public ImmutableArray<OpenApiDocumentValidationError>? Errors { get; }
 
     /// <summary>
     /// Creates a successful validation result.
     /// </summary>
-    public static OpenApiValidationResult Success()
+    public static OpenApiDocumentValidationResult Success()
         => new(true, null);
 
     /// <summary>
     /// Creates a validation result with errors.
     /// </summary>
-    public static OpenApiValidationResult Failure(params OpenApiValidationError[] errors)
+    public static OpenApiDocumentValidationResult Failure(params OpenApiDocumentValidationError[] errors)
         => new(false, [.. errors]);
 
     /// <summary>
     /// Creates a validation result with errors.
     /// </summary>
-    public static OpenApiValidationResult Failure(IEnumerable<OpenApiValidationError> errors)
+    public static OpenApiDocumentValidationResult Failure(IEnumerable<OpenApiDocumentValidationError> errors)
         => new(false, [.. errors]);
 }

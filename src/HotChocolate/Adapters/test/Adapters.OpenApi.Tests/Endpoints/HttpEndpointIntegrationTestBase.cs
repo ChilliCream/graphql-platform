@@ -32,7 +32,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Get_With_Fragment_Referencing_Fragment()
     {
         // arrange
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -85,7 +85,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Get_Without_Query_Parameter_That_Has_Default_Value()
     {
         // arrange
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetFullUser($userId: ID!, $includeAddress: Boolean! = true)
               @http(method: GET, route: "/users/{userId}/details", queryParameters: ["includeAddress"]) {
@@ -112,7 +112,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Get_With_Query_Parameter_Boolean_Value_For_Boolean()
     {
         // arrange
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUsers($includeEmail: Boolean!) @http(method: GET, route: "/users", queryParameters: ["includeEmail"]) {
               usersWithoutAuth {
@@ -136,7 +136,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Get_With_Query_Parameter_Boolean_Value_For_String()
     {
         // arrange
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUser($userName: String!) @http(method: GET, route: "/users-details", queryParameters: ["userName"]) {
               userByName(name: $userName) {
@@ -345,7 +345,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Post_Empty_List()
     {
         // arrange
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query TestQuery($input: [String!]! @body) @http(method: POST, route: "/example") {
               list(input: $input)
@@ -372,7 +372,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Post_Empty_Object()
     {
         // arrange
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query TestQuery($input: JSON! @body) @http(method: POST, route: "/example") {
               json(input: $input)
@@ -523,7 +523,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task HotReload_Add_New_Document()
     {
         // arrange
-        var storage = new TestOpenApiDefinitionStorage();
+        var storage = new TestOpenApiDocumentStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
         var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
@@ -567,7 +567,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task HotReload_Update_Existing_Document()
     {
         // arrange
-        var storage = new TestOpenApiDefinitionStorage();
+        var storage = new TestOpenApiDocumentStorage();
         storage.AddOrUpdateDocument(
             "users",
             """
@@ -621,7 +621,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task HotReload_Update_Existing_Document_Different_Route()
     {
         // arrange
-        var storage = new TestOpenApiDefinitionStorage();
+        var storage = new TestOpenApiDocumentStorage();
         storage.AddOrUpdateDocument(
             "users",
             """
@@ -679,7 +679,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task HotReload_Update_Existing_Operation_With_Invalid_Document()
     {
         // arrange
-        var storage = new TestOpenApiDefinitionStorage();
+        var storage = new TestOpenApiDocumentStorage();
         storage.AddOrUpdateDocument(
             "users",
             """
@@ -725,7 +725,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task HotReload_Remove_Existing_Operation()
     {
         // arrange
-        var storage = new TestOpenApiDefinitionStorage();
+        var storage = new TestOpenApiDocumentStorage();
         storage.AddOrUpdateDocument(
             "users",
             """
@@ -768,7 +768,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task HotReload_Remove_Non_Existent_Document()
     {
         // arrange
-        var storage = new TestOpenApiDefinitionStorage();
+        var storage = new TestOpenApiDocumentStorage();
         storage.AddOrUpdateDocument(
             "users",
             """

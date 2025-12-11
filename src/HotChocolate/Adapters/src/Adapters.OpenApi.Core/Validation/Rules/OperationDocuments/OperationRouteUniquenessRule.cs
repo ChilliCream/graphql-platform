@@ -6,9 +6,9 @@ namespace HotChocolate.Adapters.OpenApi.Validation;
 /// </summary>
 internal sealed class OperationRouteUniquenessRule : IOpenApiOperationDocumentValidationRule
 {
-    public async ValueTask<OpenApiValidationResult> ValidateAsync(
+    public async ValueTask<OpenApiDocumentValidationResult> ValidateAsync(
         OpenApiOperationDocument document,
-        IOpenApiValidationContext context,
+        IOpenApiDocumentValidationContext context,
         CancellationToken cancellationToken)
     {
         var routePattern = document.Route.ToOpenApiPath();
@@ -16,12 +16,12 @@ internal sealed class OperationRouteUniquenessRule : IOpenApiOperationDocumentVa
 
         if (existingOperation is not null && existingOperation.Id != document.Id)
         {
-            return OpenApiValidationResult.Failure(
-                new OpenApiValidationError(
-                    $"Route pattern '{routePattern}' with HTTP method '{document.HttpMethod}' is already being used by operation document '{existingOperation.Name}' with Id '{existingOperation.Id}'.",
+            return OpenApiDocumentValidationResult.Failure(
+                new OpenApiDocumentValidationError(
+                    $"Route pattern '{routePattern}' with HTTP method '{document.HttpMethod}' is already being used by operation document with Id '{existingOperation.Id}'.",
                     document));
         }
 
-        return OpenApiValidationResult.Success();
+        return OpenApiDocumentValidationResult.Success();
     }
 }

@@ -3,11 +3,11 @@ using HotChocolate.Validation;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-internal sealed class OpenApiValidationContext(
+internal sealed class OpenApiDocumentValidationContext(
     IImmutableDictionary<string, OpenApiOperationDocument> operationsById,
     IImmutableDictionary<string, OpenApiFragmentDocument> fragmentsById,
     ISchemaDefinition schema,
-    DocumentValidator documentValidator) : IOpenApiValidationContext
+    DocumentValidator documentValidator) : IOpenApiDocumentValidationContext
 {
     public ISchemaDefinition Schema { get; } = schema;
 

@@ -8,6 +8,7 @@ public sealed class OpenApiDocumentValidator
     private static readonly ImmutableArray<IOpenApiFragmentDocumentValidationRule> s_fragmentDocumentValidationRules =
     [
         new FragmentNameUniquenessRule(),
+        new FragmentTypeConditionMustExistInSchemaRule(),
         new FragmentNoDeferStreamDirectiveRule(),
         new FragmentReferencesMustExistRule()
     ];
@@ -24,9 +25,9 @@ public sealed class OpenApiDocumentValidator
         new OperationMustCompileAgainstSchemaRule()
     ];
 
-    public async ValueTask<OpenApiValidationResult> ValidateAsync(
+    public async ValueTask<OpenApiDocumentValidationResult> ValidateAsync(
         IOpenApiDocument document,
-        IOpenApiValidationContext context,
+        IOpenApiDocumentValidationContext context,
         CancellationToken cancellationToken)
     {
         if (document is OpenApiOperationDocument operationDocument)
@@ -56,6 +57,6 @@ public sealed class OpenApiDocumentValidator
             throw new NotSupportedException();
         }
 
-        return OpenApiValidationResult.Success();
+        return OpenApiDocumentValidationResult.Success();
     }
 }

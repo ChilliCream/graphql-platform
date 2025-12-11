@@ -9,6 +9,7 @@
     <Project Path="src\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />
     <Project Path="src\Adapters.OpenApi\HotChocolate.Adapters.OpenApi.csproj" />
     <Project Path="src\Adapters.OpenApi.Packaging\HotChocolate.Adapters.OpenApi.Packaging.csproj" />
+    <Project Path="src\Adapters.OpenApi.AspNetCore\HotChocolate.Adapters.OpenApi.AspNetCore.csproj" />
     <Project Path="src\Fusion.Adapters.OpenApi\HotChocolate.Fusion.Adapters.OpenApi.csproj" />
   </Folder>
   <Folder Name="/test/" />
