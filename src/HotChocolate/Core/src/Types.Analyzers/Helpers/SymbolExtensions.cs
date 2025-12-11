@@ -33,35 +33,10 @@ public static class SymbolExtensions
 
     public static MethodDescription GetDescription(this IMethodSymbol method, Compilation? compilation)
     {
-        var methodDescription = GetDescriptionFromAttribute(method);
-
-        if (methodDescription == null && compilation != null)
-        {
-            // Try inheritance-aware resolution with Compilation
-            methodDescription = GetSummaryDocumentationWithInheritance(method, compilation);
-        }
-        else if (methodDescription == null)
-        {
-            // Fallback to simple XML extraction without inheritdoc support
-            var xml = method.GetDocumentationCommentXml();
-            if (!string.IsNullOrEmpty(xml))
-            {
-                try
-                {
-                    var doc = XDocument.Parse(xml);
-                    var summaryText = doc.Descendants("summary")
-                        .FirstOrDefault()?
-                        .Value;
-
-                    methodDescription = GeneratorUtils.NormalizeXmlDocumentation(summaryText);
-                }
-                catch
-                {
-                    // XML documentation parsing is best-effort only.
-                    // Malformed XML is ignored and we fall back to no description.
-                }
-            }
-        }
+        var methodDescription = ResolveDescriptionCore(
+            method,
+            compilation,
+            doc => doc.Descendants("summary").FirstOrDefault()?.Value);
 
         // Process parameter descriptions
         var parameters = method.Parameters;
@@ -77,9 +52,7 @@ public static class SymbolExtensions
                 try
                 {
                     var doc = XDocument.Parse(commentXml);
-                    var paramDoc = doc.Descendants("param")
-                        .FirstOrDefault(p => p.Attribute("name")?.Value == param.Name)?
-                        .Value;
+                    var paramDoc = ExtractParameterDescriptionFunc(param)(doc);
 
                     paramDescription = GeneratorUtils.NormalizeXmlDocumentation(paramDoc);
                 }
@@ -101,103 +74,56 @@ public static class SymbolExtensions
 
     public static PropertyDescription? GetDescription(this IPropertySymbol property, Compilation? compilation)
     {
-        var description = GetDescriptionFromAttribute(property);
-        if (description != null)
-        {
-            return new PropertyDescription(description);
-        }
+        var result = ResolveDescriptionCore(
+            property,
+            compilation,
+            doc => doc.Descendants("summary").FirstOrDefault()?.Value);
 
-        if (compilation != null)
-        {
-            // Try inheritance-aware resolution with Compilation
-            return new PropertyDescription(GetSummaryDocumentationWithInheritance(property, compilation));
-        }
-
-        // Fallback to simple XML extraction without inheritdoc support
-        var commentXml = property.GetDocumentationCommentXml();
-        if (string.IsNullOrEmpty(commentXml))
-        {
-            return null;
-        }
-
-        try
-        {
-            var doc = XDocument.Parse(commentXml);
-            var summaryElement = doc.Descendants("summary").FirstOrDefault();
-            var text = summaryElement?.Value;
-            return new PropertyDescription(GeneratorUtils.NormalizeXmlDocumentation(text));
-        }
-        catch
-        {
-            // XML documentation parsing is best-effort only.
-            // Malformed XML is ignored and we fall back to no description.
-            return null;
-        }
+        return result is null ? null : new PropertyDescription(result);
     }
 
-     public static ParameterDescription GetDescription(this IParameterSymbol parameter)
+    public static ParameterDescription? GetDescription(this IParameterSymbol parameter)
         => parameter.GetDescription(null);
 
-    public static ParameterDescription GetDescription(this IParameterSymbol parameter, Compilation? compilation)
+    public static ParameterDescription? GetDescription(this IParameterSymbol parameter, Compilation? compilation)
     {
-        var methodDescription = GetDescriptionFromAttribute(parameter);
+        var result = ResolveDescriptionCore(
+            parameter,
+            compilation,
+            ExtractParameterDescriptionFunc(parameter));
 
-        if (methodDescription == null && compilation != null)
-        {
-            // Try inheritance-aware resolution with Compilation
-            methodDescription = GetSummaryDocumentationWithInheritance(
-                parameter.ContainingSymbol,
-                compilation,
-                SelectParamDocumentation);
-        }
-        else if (methodDescription == null)
-        {
-            // Fallback to simple XML extraction without inheritdoc support
-            var xml = parameter.GetDocumentationCommentXml();
-            if (!string.IsNullOrEmpty(xml))
-            {
-                try
-                {
-                    var doc = XDocument.Parse(xml);
-                    var summaryText = SelectParamDocumentation(doc);
-
-                    methodDescription = GeneratorUtils.NormalizeXmlDocumentation(summaryText);
-                }
-                catch
-                {
-                    // XML documentation parsing is best-effort only.
-                    // Malformed XML is ignored and we fall back to no description.
-                }
-            }
-        }
-
-        return new ParameterDescription(methodDescription);
-
-        string? SelectParamDocumentation(XDocument doc) =>
-            doc.Descendants("param")
-                .FirstOrDefault(x => x.Attribute("name")?.Value == parameter.Name)
-                ?.Value;
+        return result is null ? null : new ParameterDescription(result);
     }
 
     public static string? GetDescription(this INamedTypeSymbol type)
         => type.GetDescription(null);
 
     public static string? GetDescription(this INamedTypeSymbol type, Compilation? compilation)
+        => ResolveDescriptionCore(
+            type,
+            compilation,
+            doc => doc.Descendants("summary").FirstOrDefault()?.Value);
+
+    private static string? ResolveDescriptionCore(
+        ISymbol symbol,
+        Compilation? compilation,
+        Func<XDocument, string?> xmlExtractor)
     {
-        var description = GetDescriptionFromAttribute(type);
+        // 1. Attribute-based
+        var description = GetDescriptionFromAttribute(symbol);
         if (description != null)
         {
             return description;
         }
 
+        // 2. Inheritance-aware resolution when compilation is available
         if (compilation != null)
         {
-            // Try inheritance-aware resolution with Compilation
-            return GetSummaryDocumentationWithInheritance(type, compilation);
+            return GetSummaryDocumentationWithInheritance(symbol, compilation);
         }
 
-        // Fallback to simple XML extraction without inheritdoc support
-        var xml = type.GetDocumentationCommentXml();
+        // 3. Fallback to simple XML extraction without inheritdoc support
+        var xml = symbol.GetDocumentationCommentXml();
         if (string.IsNullOrEmpty(xml))
         {
             return null;
@@ -206,9 +132,8 @@ public static class SymbolExtensions
         try
         {
             var doc = XDocument.Parse(xml);
-            var summaryElement = doc.Descendants("summary").FirstOrDefault();
-            var text = summaryElement?.Value;
-            return GeneratorUtils.NormalizeXmlDocumentation(text);
+            var extracted = xmlExtractor(doc);
+            return GeneratorUtils.NormalizeXmlDocumentation(extracted);
         }
         catch
         {
@@ -1275,5 +1200,13 @@ public static class SymbolExtensions
         }
 
         return mutated;
+    }
+
+    private static Func<XDocument, string?> ExtractParameterDescriptionFunc(IParameterSymbol parameter)
+    {
+        return doc =>
+            doc.Descendants("param")
+                .FirstOrDefault(x => x.Attribute("name")?.Value == parameter.Name)
+                ?.Value;
     }
 }
