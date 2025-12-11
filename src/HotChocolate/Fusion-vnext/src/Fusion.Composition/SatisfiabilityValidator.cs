@@ -4,6 +4,7 @@ using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Fusion.Satisfiability;
 using HotChocolate.Language;
@@ -15,8 +16,12 @@ using FieldNames = HotChocolate.Fusion.WellKnownFieldNames;
 
 namespace HotChocolate.Fusion;
 
-internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, ICompositionLog log)
+internal sealed class SatisfiabilityValidator(
+    MutableSchemaDefinition schema,
+    ICompositionLog log,
+    SatisfiabilityOptions? options = null)
 {
+    private readonly SatisfiabilityOptions _options = options ?? new SatisfiabilityOptions();
     private readonly RequirementsValidator _requirementsValidator = new(schema);
 
     public CompositionResult Validate()
@@ -198,6 +203,14 @@ internal sealed class SatisfiabilityValidator(MutableSchemaDefinition schema, IC
         // (f.e. relatedProduct.relatedProduct.relatedProduct)
         if (optionCount == 0 && !cycle)
         {
+            var qualifiedFieldName = $"{type.Name}.{field.Name}";
+
+            if (_options.IgnoredNonAccessibleFields.TryGetValue(qualifiedFieldName, out var ignoredPaths)
+                && ignoredPaths.Contains(context.Path.ToString()))
+            {
+                return;
+            }
+
             var error = new SatisfiabilityError(
                 string.Format(
                     SatisfiabilityValidator_UnableToAccessFieldOnPath,
