@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -6,6 +7,7 @@ using ChilliCream.Nitro.CommandLine.Cloud.Helpers;
 using ChilliCream.Nitro.CommandLine.Cloud.Option;
 using ChilliCream.Nitro.CommandLine.Cloud.Option.Binders;
 using ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
+using HotChocolate.Fusion.Packaging;
 using StrawberryShake;
 using static ChilliCream.Nitro.CommandLine.Cloud.ThrowHelper;
 
@@ -15,9 +17,7 @@ internal sealed class FusionValidateCommand : Command
 {
     public FusionValidateCommand() : base("validate")
     {
-        Description = "Validates a fusion configuration against a stage."
-            + System.Environment.NewLine
-            + "This only works for Fusion v1 at the moment.";
+        Description = "Validates the composed GraphQL schema of a fusion configuration against a stage.";
 
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
@@ -42,7 +42,7 @@ internal sealed class FusionValidateCommand : Command
         FileInfo configFile,
         CancellationToken ct)
     {
-        console.Title($"Validate to {stage.EscapeMarkup()}");
+        console.Title($"Validate against {stage.EscapeMarkup()}");
 
         var isValid = false;
 
@@ -63,13 +63,28 @@ internal sealed class FusionValidateCommand : Command
 
         async Task ValidateSchema(StatusContext? ctx)
         {
-            console.Log("Initialized");
             console.Log($"Reading file [blue]{configFile.FullName.EscapeMarkup()}[/]");
 
-            var stream = FileHelpers.CreateFileStream(configFile);
+            await using var stream = FileHelpers.CreateFileStream(configFile);
 
-            await using var package = FusionGraphPackage.Open(stream, FileAccess.Read);
-            var schemaStream = await LoadSchemaFile(package, ct);
+            Stream schemaStream;
+            IDisposable disposableArchive;
+            if (IsFarFormat(stream))
+            {
+                var archive = FusionArchive.Open(stream, leaveOpen: true);
+
+                schemaStream = await LoadSchemaFile(archive, ct);
+
+                disposableArchive = archive;
+            }
+            else
+            {
+                var package = FusionGraphPackage.Open(stream, FileAccess.Read);
+
+                schemaStream = await LoadSchemaFile(package, ct);
+
+                disposableArchive = package;
+            }
 
             var input = new ValidateSchemaInput
             {
@@ -81,6 +96,8 @@ internal sealed class FusionValidateCommand : Command
             console.Log("Create validation request");
 
             var requestId = await ValidateAsync(console, client, input, ct);
+
+            disposableArchive.Dispose();
 
             console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
 
@@ -147,18 +164,40 @@ internal sealed class FusionValidateCommand : Command
         return data.ValidateSchema.Id;
     }
 
-    private static async Task<MemoryStream> LoadSchemaFile(
-        FusionGraphPackage package,
-        CancellationToken ct)
+    private static async Task<Stream> LoadSchemaFile(FusionArchive archive, CancellationToken ct)
+    {
+        var latestVersion = await archive.GetLatestSupportedGatewayFormatAsync(ct);
+        var configuration = await archive.TryGetGatewayConfigurationAsync(latestVersion, ct);
+
+        if (configuration is null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return await configuration.OpenReadSchemaAsync(ct);
+    }
+
+    private static async Task<Stream> LoadSchemaFile(FusionGraphPackage package, CancellationToken ct)
     {
         var schemaNode = await package.GetSchemaAsync(ct);
 
         var schemaFileStream = new MemoryStream();
         await using var streamWriter = new StreamWriter(schemaFileStream, leaveOpen: true);
         await streamWriter.WriteAsync(schemaNode.ToString());
-        streamWriter.Flush();
+        await streamWriter.FlushAsync(ct);
         schemaFileStream.Position = 0;
 
         return schemaFileStream;
+    }
+
+    public static bool IsFarFormat(Stream stream)
+    {
+        using var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
+        if (zip.GetEntry("archive-metadata.json") is not null)
+        {
+            return true;
+        }
+
+        return false;
     }
 }
