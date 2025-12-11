@@ -2437,6 +2437,92 @@ public sealed class SatisfiabilityValidatorTests
         Assert.False(result.IsFailure);
     }
 
+    [Fact]
+    public void IgnoredNonAccessibleFields()
+    {
+        // arrange
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(
+            [
+                """
+                # Schema A
+                type Query {
+                    productById(id: ID!): Product @lookup
+                }
+
+                type Product {
+                    id: ID!
+                    title(
+                        input: String @require(field: "{ a: category.name, b: section.name }")
+                    ): String
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    productById(id: ID!): Product @lookup
+                }
+
+                type Product {
+                    id: ID!
+                    category: Category
+                    section: Section
+                }
+
+                type Category {
+                    id: ID!
+                }
+
+                type Section {
+                    id: ID!
+                }
+                """,
+                """
+                # Schema C
+                type Category {
+                    id: ID!
+                    name: String!
+                }
+
+                type Section {
+                    id: ID!
+                    name: String!
+                }
+                """
+            ]),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var options = new SatisfiabilityOptions
+        {
+            IgnoredNonAccessibleFields =
+            {
+                {
+                    "Product.title",
+                    ["A:Query.productById<Product>", "B:Query.productById<Product>"]
+                },
+                {
+                    "Section.name",
+                    ["A:Query.productById<Product> -> B:Product.section<Section>"]
+                }
+            }
+        };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsFailure);
+        string.Join("\n\n", log.Select(e => e.Message)).MatchInlineSnapshot(
+            """
+            Unable to access the field 'Category.name' on path 'A:Query.productById<Product> -> B:Product.category<Category>'.
+              Unable to transition between schemas 'B' and 'C' for access to field 'C:Category.name<String>'.
+                No lookups found for type 'Category' in schema 'C'.
+            """);
+    }
+
     [Theory]
     [MemberData(nameof(GlobalObjectIdentificationExamplesData))]
     public void GlobalObjectIdentification_Examples(string[] sdl, bool success, string? logs = null)

@@ -187,6 +187,7 @@ Tzdb
 unlisten
 unpublish
 Unsubscriber
+uppercased
 Upsert
 upvote
 URQL

@@ -4,6 +4,7 @@ using System.CommandLine.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
+using ChilliCream.Nitro.CommandLine.Fusion.Settings;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Errors;
@@ -14,7 +15,6 @@ using HotChocolate.Fusion.Packaging;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.Properties.CommandLineResources;
-using static HotChocolate.Fusion.WellKnownSourceSchemaSettings;
 
 namespace ChilliCream.Nitro.CommandLine.Fusion.Commands;
 
@@ -511,43 +511,49 @@ internal sealed class ComposeCommand : Command
 
         var existingCompositionSettings = await GetCompositionSettingsAsync(archive, cancellationToken);
 
-        var schemaComposerOptions = new SchemaComposerOptions
+        var sourceSchemaOptionsMap = new Dictionary<string, SourceSchemaOptions>();
+        var mergerOptions = existingCompositionSettings.Merger?.ToOptions() ?? new SourceSchemaMergerOptions();
+        var satisfiabilityOptions = new SatisfiabilityOptions();
+
+        if (enableGlobalObjectIdentification.HasValue)
         {
-            Merger =
-            {
-                EnableGlobalObjectIdentification = enableGlobalObjectIdentification
-                    ?? existingCompositionSettings.EnableGlobalObjectIdentification
-            }
-        };
+            mergerOptions.EnableGlobalObjectIdentification = enableGlobalObjectIdentification.Value;
+        }
 
         foreach (var (sourceSchemaName, (_, sourceSchemaSettings)) in sourceSchemas)
         {
-            var settingsElement = sourceSchemaSettings.RootElement;
-            var preprocessorOptions = new SourceSchemaPreprocessorOptions();
+            var schemaSettings =
+                sourceSchemaSettings.Deserialize(JsonSourceGenerationContext.Default.SourceSchemaSettings)!;
 
-            if (settingsElement.TryGetProperty(WellKnownSourceSchemaSettings.Version, out var versionProperty)
-                && versionProperty.ValueKind is JsonValueKind.String
-                && System.Version.TryParse(versionProperty.GetString(), out var parsedVersion))
+            var sourceSchemaOptions = new SourceSchemaOptions();
+
+            if (schemaSettings.Version is { } version)
             {
-                preprocessorOptions.Version = parsedVersion;
+                sourceSchemaOptions.Version = version;
             }
 
-            if (settingsElement.TryGetProperty(InferKeys, out var applyInferredKeyDirectivesProperty)
-                && applyInferredKeyDirectivesProperty.ValueKind is JsonValueKind.False or JsonValueKind.True)
+            if (schemaSettings.Parser is { } parserSettings)
             {
-                preprocessorOptions.ApplyInferredKeyDirectives = applyInferredKeyDirectivesProperty.GetBoolean();
+                sourceSchemaOptions.Parser = parserSettings.ToOptions();
             }
 
-            if (settingsElement.TryGetProperty(InheritInterfaceKeys, out var inheritInterfaceKeysProperty)
-                && inheritInterfaceKeysProperty.ValueKind is JsonValueKind.False or JsonValueKind.True)
+            if (schemaSettings.Preprocessor is { } preprocessorSettings)
             {
-                preprocessorOptions.InheritInterfaceKeys = inheritInterfaceKeysProperty.GetBoolean();
+                sourceSchemaOptions.Preprocessor = preprocessorSettings.ToOptions();
             }
 
-            schemaComposerOptions.Preprocessor.Add(sourceSchemaName, preprocessorOptions);
+            sourceSchemaOptionsMap.Add(sourceSchemaName, sourceSchemaOptions);
+            schemaSettings.Satisfiability?.MergeInto(satisfiabilityOptions);
         }
 
-        if (existingCompositionSettings.EnableGlobalObjectIdentification
+        var schemaComposerOptions = new SchemaComposerOptions
+        {
+            SourceSchemas = sourceSchemaOptionsMap,
+            Merger = mergerOptions,
+            Satisfiability = satisfiabilityOptions
+        };
+
+        if (existingCompositionSettings.Merger?.EnableGlobalObjectIdentification
             != schemaComposerOptions.Merger.EnableGlobalObjectIdentification)
         {
             compositionLog.Write(
@@ -725,7 +731,10 @@ internal sealed class ComposeCommand : Command
         return compositionSettings?.Deserialize(JsonSourceGenerationContext.Default.CompositionSettings)
             ?? new CompositionSettings
             {
-                EnableGlobalObjectIdentification = false
+                Merger = new MergerSettings
+                {
+                    EnableGlobalObjectIdentification = false
+                }
             };
     }
 
@@ -736,7 +745,10 @@ internal sealed class ComposeCommand : Command
     {
         var settings = new CompositionSettings
         {
-            EnableGlobalObjectIdentification = options.Merger.EnableGlobalObjectIdentification
+            Merger = new MergerSettings
+            {
+                EnableGlobalObjectIdentification = options.Merger.EnableGlobalObjectIdentification
+            }
         };
         var settingsJson = JsonSerializer.SerializeToDocument(
             settings,
@@ -768,10 +780,5 @@ internal sealed class ComposeCommand : Command
         }
 
         return string.Join(Environment.NewLine + "   ", lines);
-    }
-
-    public record CompositionSettings
-    {
-        public required bool EnableGlobalObjectIdentification { get; init; }
     }
 }
