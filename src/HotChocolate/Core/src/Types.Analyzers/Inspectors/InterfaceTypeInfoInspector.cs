@@ -66,7 +66,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
                     resolvers[i++] = new Resolver(
                         classSymbol.Name,
                         member,
-                        compilation.GetDescription(member, parameters: []),
+                        compilation.GetDescription(member),
                         compilation.GetDeprecationReason(member),
                         ResolverResultKind.Pure,
                         [],
@@ -170,7 +170,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
         return new Resolver(
             resolverType.Name,
             resolverMethod,
-            compilation.GetDescription(resolverMethod, parameters: resolverParameters),
+            compilation.GetDescription(resolverMethod),
             compilation.GetDeprecationReason(resolverMethod),
             resolverMethod.GetResultKind(),
             resolverParameters,

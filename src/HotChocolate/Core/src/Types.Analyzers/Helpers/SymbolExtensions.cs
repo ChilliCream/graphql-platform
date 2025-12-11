@@ -135,6 +135,50 @@ public static class SymbolExtensions
         }
     }
 
+     public static ParameterDescription GetDescription(this IParameterSymbol parameter)
+        => parameter.GetDescription(null);
+
+    public static ParameterDescription GetDescription(this IParameterSymbol parameter, Compilation? compilation)
+    {
+        var methodDescription = GetDescriptionFromAttribute(parameter);
+
+        if (methodDescription == null && compilation != null)
+        {
+            // Try inheritance-aware resolution with Compilation
+            methodDescription = GetSummaryDocumentationWithInheritance(
+                parameter.ContainingSymbol,
+                compilation,
+                SelectParamDocumentation);
+        }
+        else if (methodDescription == null)
+        {
+            // Fallback to simple XML extraction without inheritdoc support
+            var xml = parameter.GetDocumentationCommentXml();
+            if (!string.IsNullOrEmpty(xml))
+            {
+                try
+                {
+                    var doc = XDocument.Parse(xml);
+                    var summaryText = SelectParamDocumentation(doc);
+
+                    methodDescription = GeneratorUtils.NormalizeXmlDocumentation(summaryText);
+                }
+                catch
+                {
+                    // XML documentation parsing is best-effort only.
+                    // Malformed XML is ignored and we fall back to no description.
+                }
+            }
+        }
+
+        return new ParameterDescription(methodDescription);
+
+        string? SelectParamDocumentation(XDocument doc) =>
+            doc.Descendants("param")
+                .FirstOrDefault(x => x.Attribute("name")?.Value == parameter.Name)
+                ?.Value;
+    }
+
     public static string? GetDescription(this INamedTypeSymbol type)
         => type.GetDescription(null);
 
@@ -205,10 +249,13 @@ public static class SymbolExtensions
     /// <summary>
     /// Extracts summary text from XML documentation, resolving tags with semantic relevance (f. e. inheritdoc or see).
     /// </summary>
-    private static string? GetSummaryDocumentationWithInheritance(ISymbol symbol, Compilation compilation)
+    private static string? GetSummaryDocumentationWithInheritance(
+        ISymbol symbol,
+        Compilation compilation,
+        Func<XDocument, string?>? documentationSelector = null)
     {
         var visited = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
-        return GetSummaryDocumentationWithInheritanceCore(symbol, compilation, visited);
+        return GetSummaryDocumentationWithInheritanceCore(symbol, compilation, visited, documentationSelector);
     }
 
     /// <summary>
@@ -217,7 +264,8 @@ public static class SymbolExtensions
     private static string? GetSummaryDocumentationWithInheritanceCore(
         ISymbol symbol,
         Compilation compilation,
-        HashSet<ISymbol> visited)
+        HashSet<ISymbol> visited,
+        Func<XDocument, string?>? documentationSelector = null)
     {
         // Prevent infinite recursion
         if (!visited.Add(symbol))
@@ -240,16 +288,23 @@ public static class SymbolExtensions
             MaterializeSeeElements(doc);
             MaterializeParamRefElements(doc);
 
-            var summaryText =
-                doc.Descendants("summary").FirstOrDefault()?.Value ??
-                doc.Descendants("member").FirstOrDefault()?.Value;
-
-            summaryText += GetReturnsElementText(doc);
-
-            var exceptionDoc = GetExceptionDocumentation(doc);
-            if (!string.IsNullOrEmpty(exceptionDoc))
+            string? summaryText;
+            if (documentationSelector != null)
             {
-                summaryText += "\n\n**Errors:**\n" + exceptionDoc;
+                summaryText = documentationSelector(doc);
+            }
+            else
+            {
+                summaryText = doc.Descendants("summary").FirstOrDefault()?.Value ??
+                    doc.Descendants("member").FirstOrDefault()?.Value;
+
+                summaryText += GetReturnsElementText(doc);
+
+                var exceptionDoc = GetExceptionDocumentation(doc);
+                if (!string.IsNullOrEmpty(exceptionDoc))
+                {
+                    summaryText += "\n\n**Errors:**\n" + exceptionDoc;
+                }
             }
 
             return GeneratorUtils.NormalizeXmlDocumentation(summaryText);

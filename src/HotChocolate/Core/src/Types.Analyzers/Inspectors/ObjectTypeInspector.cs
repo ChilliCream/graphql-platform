@@ -89,7 +89,7 @@ public class ObjectTypeInspector : ISyntaxInspector
                     resolvers[i++] = new Resolver(
                         classSymbol.Name,
                         member,
-                        compilation.GetDescription(member, []),
+                        compilation.GetDescription(member),
                         compilation.GetDeprecationReason(member),
                         ResolverResultKind.Pure,
                         [],
@@ -272,7 +272,7 @@ public class ObjectTypeInspector : ISyntaxInspector
                 parameter,
                 parameterKind,
                 compilation.CreateTypeReference(parameter),
-                parameter.GetDescriptionFromAttribute(),
+                compilation.GetDescription(parameter)?.Description,
                 compilation.GetDeprecationReason(parameter),
                 key);
         }
@@ -282,7 +282,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         return new Resolver(
             resolverTypeName,
             resolverMethod,
-            compilation.GetDescription(resolverMethod, resolverParameters),
+            compilation.GetDescription(resolverMethod),
             compilation.GetDeprecationReason(resolverMethod),
             resolverMethod.GetResultKind(),
             resolverParameters,
@@ -358,7 +358,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         return new Resolver(
             resolverType.Name,
             resolverMethod,
-            compilation.GetDescription(resolverMethod, resolverParameters),
+            compilation.GetDescription(resolverMethod),
             compilation.GetDeprecationReason(resolverMethod),
             resolverMethod.GetResultKind(),
             resolverParameters,

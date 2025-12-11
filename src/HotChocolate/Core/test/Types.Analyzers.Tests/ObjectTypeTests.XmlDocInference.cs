@@ -238,4 +238,31 @@ public partial class ObjectTypeXmlDocInferenceTests
         var emitted = s_description.Matches(content).Single().Groups;
         Assert.Equal("This type is similar useless to 'The Bar type.'.", emitted[1].Value);
     }
+
+    [Fact]
+    public void XmlDocumentation_IsInferred_ForParameter()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using System;
+                using HotChocolate.Types;
+
+                namespace TestNamespace;
+
+                [QueryType]
+                public static partial class Query
+                {
+                    /// <summary>
+                    /// Foo.
+                    /// </summary>
+                    /// <param name="bar">Bar.</param>
+                    public static string? Foo(int bar) => null;
+                }
+                """);
+
+        var content = snapshot.Match();
+        var emitted = s_description.Matches(content).Single().Groups;
+        Assert.Equal("Foo.", emitted[1].Value);
+    }
 }
