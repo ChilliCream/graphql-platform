@@ -44,7 +44,7 @@ internal sealed class EditStagesCommand : Command
     {
         console.WriteOperationTitle();
 
-        const string apiMessage = "For which api do you want to create a client?";
+        const string apiMessage = "For which api do you want to edit the stages?";
 
         var apiId = await context.GetOrSelectApiId(apiMessage);
 
