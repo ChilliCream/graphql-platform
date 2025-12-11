@@ -7,21 +7,21 @@ namespace HotChocolate.Adapters.OpenApi.Validation;
 /// </summary>
 internal sealed class OperationMustBeQueryOrMutationRule : IOpenApiOperationDocumentValidationRule
 {
-    public ValueTask<OpenApiValidationResult> ValidateAsync(
+    public ValueTask<OpenApiDocumentValidationResult> ValidateAsync(
         OpenApiOperationDocument document,
-        IOpenApiValidationContext context,
+        IOpenApiDocumentValidationContext context,
         CancellationToken cancellationToken)
     {
         var operationType = document.OperationDefinition.Operation;
 
         if (operationType is OperationType.Subscription)
         {
-            return ValueTask.FromResult(OpenApiValidationResult.Failure(
-                new OpenApiValidationError(
+            return ValueTask.FromResult(OpenApiDocumentValidationResult.Failure(
+                new OpenApiDocumentValidationError(
                     $"Operation '{document.Name}' is a subscription. Only queries and mutations are allowed for OpenAPI operations.",
                     document)));
         }
 
-        return ValueTask.FromResult(OpenApiValidationResult.Success());
+        return ValueTask.FromResult(OpenApiDocumentValidationResult.Success());
     }
 }

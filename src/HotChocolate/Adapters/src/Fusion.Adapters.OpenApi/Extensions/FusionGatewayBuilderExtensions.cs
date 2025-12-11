@@ -10,7 +10,7 @@ public static class FusionGatewayBuilderExtensions
 {
     public static IFusionGatewayBuilder AddOpenApiDefinitionStorage(
         this IFusionGatewayBuilder builder,
-        IOpenApiDefinitionStorage storage)
+        IOpenApiDocumentStorage storage)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(storage);
@@ -25,13 +25,13 @@ public static class FusionGatewayBuilderExtensions
     public static IFusionGatewayBuilder AddOpenApiDefinitionStorage<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder)
-        where T : class, IOpenApiDefinitionStorage
+        where T : class, IOpenApiDocumentStorage
     {
         ArgumentNullException.ThrowIfNull(builder);
 
         builder.AddOpenApiDocumentStorageCore();
 
-        builder.Services.AddKeyedSingleton<IOpenApiDefinitionStorage, T>(builder.Name);
+        builder.Services.AddKeyedSingleton<IOpenApiDocumentStorage, T>(builder.Name);
 
         return builder;
     }
@@ -41,6 +41,7 @@ public static class FusionGatewayBuilderExtensions
         var schemaName = builder.Name;
 
         builder.Services.AddOpenApiExporterServices(schemaName);
+        builder.Services.AddOpenApiAspNetCoreServices(schemaName);
 
         builder.ConfigureSchemaServices((applicationServices, services) =>
         {

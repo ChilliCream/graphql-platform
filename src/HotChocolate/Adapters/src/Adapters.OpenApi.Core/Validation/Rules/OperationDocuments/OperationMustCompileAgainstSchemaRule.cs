@@ -8,9 +8,9 @@ namespace HotChocolate.Adapters.OpenApi.Validation;
 /// </summary>
 internal sealed class OperationMustCompileAgainstSchemaRule : IOpenApiOperationDocumentValidationRule
 {
-    public async ValueTask<OpenApiValidationResult> ValidateAsync(
+    public async ValueTask<OpenApiDocumentValidationResult> ValidateAsync(
         OpenApiOperationDocument document,
-        IOpenApiValidationContext context,
+        IOpenApiDocumentValidationContext context,
         CancellationToken cancellationToken)
     {
         var definitions = new List<IDefinitionNode>
@@ -45,13 +45,13 @@ internal sealed class OperationMustCompileAgainstSchemaRule : IOpenApiOperationD
         {
             var firstError = validationResult.Errors
                 .Select(error =>
-                    new OpenApiValidationError(
+                    new OpenApiDocumentValidationError(
                         $"Operation '{document.Name}' does not compile against the schema: {error.Message}", document))
                 .First();
 
-            return OpenApiValidationResult.Failure(firstError);
+            return OpenApiDocumentValidationResult.Failure(firstError);
         }
 
-        return OpenApiValidationResult.Success();
+        return OpenApiDocumentValidationResult.Success();
     }
 }

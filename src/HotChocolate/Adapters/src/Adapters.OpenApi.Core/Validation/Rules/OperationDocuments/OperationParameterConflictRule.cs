@@ -6,12 +6,12 @@ namespace HotChocolate.Adapters.OpenApi.Validation;
 /// </summary>
 internal sealed class OperationParameterConflictRule : IOpenApiOperationDocumentValidationRule
 {
-    public ValueTask<OpenApiValidationResult> ValidateAsync(
+    public ValueTask<OpenApiDocumentValidationResult> ValidateAsync(
         OpenApiOperationDocument document,
-        IOpenApiValidationContext context,
+        IOpenApiDocumentValidationContext context,
         CancellationToken cancellationToken)
     {
-        var errors = new List<OpenApiValidationError>();
+        var errors = new List<OpenApiDocumentValidationError>();
 
         var parameterMappings = new Dictionary<string, int>();
 
@@ -33,15 +33,15 @@ internal sealed class OperationParameterConflictRule : IOpenApiOperationDocument
         {
             if (count > 1)
             {
-                errors.Add(new OpenApiValidationError(
+                errors.Add(new OpenApiDocumentValidationError(
                     $"Operation '{document.Name}' has conflicting parameters that map to '${key}'.",
                     document));
             }
         }
 
         return errors.Count == 0
-            ? ValueTask.FromResult(OpenApiValidationResult.Success())
-            : ValueTask.FromResult(OpenApiValidationResult.Failure(errors));
+            ? ValueTask.FromResult(OpenApiDocumentValidationResult.Success())
+            : ValueTask.FromResult(OpenApiDocumentValidationResult.Failure(errors));
     }
 
     private static string GetParameterKey(OpenApiRouteSegmentParameter parameter)

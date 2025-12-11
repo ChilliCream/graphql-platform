@@ -15,7 +15,7 @@ using OperationType = Microsoft.OpenApi.Models.OperationType;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransformer
+internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransformer, IDynamicOpenApiDocumentTransformer
 {
     private List<OperationDescriptor> _operations = [];
     private List<ComponentDescriptor> _components = [];
@@ -74,7 +74,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         var operation = new OpenApiOperation
         {
             Description = operationDocument.Description,
-            OperationId = OpenApiHelpers.GetOperationId(operationDocument.Name),
+            OperationId = GetOperationId(operationDocument.Name),
             Parameters = [],
             Responses = []
         };
@@ -165,9 +165,15 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         ISchemaDefinition schema,
         Dictionary<string, OpenApiFragmentDocument> fragmentDocumentLookup)
     {
+        if (!schema.Types.TryGetType(fragmentDocument.FragmentDefinition.TypeCondition.Name.Value,
+            out var typeCondition))
+        {
+            throw new InvalidOperationException("Expected to find type condition type in the schema.");
+        }
+
         var componentSchema = CreateOpenApiSchemaForSelectionSet(
             fragmentDocument.FragmentDefinition.SelectionSet,
-            (IOutputType)fragmentDocument.TypeCondition,
+            (IOutputType)typeCondition,
             schema,
             fragmentDocument.LocalFragmentLookup,
             fragmentDocumentLookup);
@@ -795,7 +801,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
                 if (externalFragmentLookup.TryGetValue(fragmentName, out var externalFragment))
                 {
-                    var typeName = externalFragment.TypeCondition.Name;
+                    var typeName = externalFragment.FragmentDefinition.TypeCondition.Name.Value;
 
                     fragmentSchemasByType ??= new Dictionary<string, List<OpenApiSchemaAbstraction>>();
 
@@ -1093,5 +1099,19 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 schema.Required.Remove(propertyName);
             }
         }
+    }
+
+    private static string GetOperationId(string operationName)
+    {
+        if (char.IsLower(operationName[0]))
+        {
+            return operationName;
+        }
+
+        return string.Create(operationName.Length, operationName, (span, str) =>
+        {
+            str.AsSpan().CopyTo(span);
+            span[0] = char.ToLowerInvariant(span[0]);
+        });
     }
 }

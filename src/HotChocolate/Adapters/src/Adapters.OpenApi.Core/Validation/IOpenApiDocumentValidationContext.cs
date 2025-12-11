@@ -5,7 +5,7 @@ namespace HotChocolate.Adapters.OpenApi;
 /// <summary>
 /// Provides context for OpenAPI document validation.
 /// </summary>
-public interface IOpenApiValidationContext
+public interface IOpenApiDocumentValidationContext
 {
     ISchemaDefinition Schema { get; }
 

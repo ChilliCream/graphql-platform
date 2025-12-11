@@ -3,12 +3,12 @@ namespace HotChocolate.Adapters.OpenApi;
 /// <summary>
 /// Represents a validation error that occurred while validating an OpenAPI document.
 /// </summary>
-public sealed class OpenApiValidationError : IOpenApiError
+public sealed class OpenApiDocumentValidationError : IOpenApiError
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="OpenApiValidationError" />.
+    /// Initializes a new instance of <see cref="OpenApiDocumentValidationError" />.
     /// </summary>
-    public OpenApiValidationError(string message, IOpenApiDocument document)
+    public OpenApiDocumentValidationError(string message, IOpenApiDocument document)
     {
         Message = message;
         DocumentId = document.Id;
@@ -18,7 +18,9 @@ public sealed class OpenApiValidationError : IOpenApiError
     /// <inheritdoc />
     public string Message { get; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the document ID where the error occurred.
+    /// </summary>
     public string DocumentId { get; }
 
     /// <summary>

@@ -5,12 +5,12 @@ namespace HotChocolate.Adapters.OpenApi.Validation;
 /// </summary>
 internal sealed class OperationFragmentReferencesMustExistRule : IOpenApiOperationDocumentValidationRule
 {
-    public async ValueTask<OpenApiValidationResult> ValidateAsync(
+    public async ValueTask<OpenApiDocumentValidationResult> ValidateAsync(
         OpenApiOperationDocument document,
-        IOpenApiValidationContext context,
+        IOpenApiDocumentValidationContext context,
         CancellationToken cancellationToken)
     {
-        var errors = new List<OpenApiValidationError>();
+        var errors = new List<OpenApiDocumentValidationError>();
 
         foreach (var fragmentName in document.ExternalFragmentReferences)
         {
@@ -18,12 +18,12 @@ internal sealed class OperationFragmentReferencesMustExistRule : IOpenApiOperati
 
             if (fragment is null)
             {
-                errors.Add(new OpenApiValidationError(
+                errors.Add(new OpenApiDocumentValidationError(
                     $"Fragment '{fragmentName}' referenced by operation document '{document.Name}' does not exist.",
                     document));
             }
         }
 
-        return errors.Count == 0 ? OpenApiValidationResult.Success() : OpenApiValidationResult.Failure(errors);
+        return errors.Count == 0 ? OpenApiDocumentValidationResult.Success() : OpenApiDocumentValidationResult.Failure(errors);
     }
 }

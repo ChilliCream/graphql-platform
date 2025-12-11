@@ -5,20 +5,20 @@ namespace HotChocolate.Adapters.OpenApi.Validation;
 /// </summary>
 internal sealed class FragmentNameUniquenessRule : IOpenApiFragmentDocumentValidationRule
 {
-    public async ValueTask<OpenApiValidationResult> ValidateAsync(
+    public async ValueTask<OpenApiDocumentValidationResult> ValidateAsync(
         OpenApiFragmentDocument document,
-        IOpenApiValidationContext context,
+        IOpenApiDocumentValidationContext context,
         CancellationToken cancellationToken)
     {
         var existingFragment = await context.GetFragmentAsync(document.Name);
 
         if (existingFragment is null || existingFragment.Id == document.Id)
         {
-            return OpenApiValidationResult.Success();
+            return OpenApiDocumentValidationResult.Success();
         }
 
-        return OpenApiValidationResult.Failure(
-            new OpenApiValidationError(
+        return OpenApiDocumentValidationResult.Failure(
+            new OpenApiDocumentValidationError(
                 $"Fragment name '{document.Name}' is already being used by a fragment document with the Id '{existingFragment.Id}' ('{existingFragment.Name}').",
                 document));
     }

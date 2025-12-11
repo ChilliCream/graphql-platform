@@ -6,9 +6,9 @@ namespace HotChocolate.Adapters.OpenApi;
 /// <summary>
 /// Represents the result of parsing an OpenAPI document.
 /// </summary>
-public sealed class OpenApiParseResult
+public sealed class OpenApiDocumentParsingResult
 {
-    private OpenApiParseResult(bool isValid, IOpenApiDocument? document, ImmutableArray<OpenApiParsingError> errors)
+    private OpenApiDocumentParsingResult(bool isValid, IOpenApiDocument? document, ImmutableArray<OpenApiDocumentParsingError> errors)
     {
         IsValid = isValid;
         Document = document;
@@ -30,23 +30,23 @@ public sealed class OpenApiParseResult
     /// <summary>
     /// Gets the parsing errors, if any.
     /// </summary>
-    public ImmutableArray<OpenApiParsingError> Errors { get; }
+    public ImmutableArray<OpenApiDocumentParsingError> Errors { get; }
 
     /// <summary>
     /// Creates a successful parse result.
     /// </summary>
-    public static OpenApiParseResult Success(IOpenApiDocument document)
+    public static OpenApiDocumentParsingResult Success(IOpenApiDocument document)
         => new(true, document, []);
 
     /// <summary>
     /// Creates a parse result with errors.
     /// </summary>
-    public static OpenApiParseResult Failure(params OpenApiParsingError[] errors)
+    public static OpenApiDocumentParsingResult Failure(params OpenApiDocumentParsingError[] errors)
         => new(false, null, [.. errors]);
 
     /// <summary>
     /// Creates a parse result with errors.
     /// </summary>
-    public static OpenApiParseResult Failure(IEnumerable<OpenApiParsingError> errors)
+    public static OpenApiDocumentParsingResult Failure(IEnumerable<OpenApiDocumentParsingError> errors)
         => new(false, null, [.. errors]);
 }
