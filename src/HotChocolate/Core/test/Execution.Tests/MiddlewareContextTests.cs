@@ -18,7 +18,7 @@ public class MiddlewareContextTests
             .AddResolver(
                 "Query",
                 "foo",
-                ctx => ctx.Variables.GetValue<StringValueNode>("abc")?.Value)
+                ctx => ctx.Variables.GetValue<StringValueNode>("abc").Value)
             .Create();
 
         var request = OperationRequestBuilder.New()
@@ -43,7 +43,7 @@ public class MiddlewareContextTests
             .AddResolver(
                 "Query",
                 "foo",
-                ctx => ctx.Variables.GetValue<StringValueNode>("abc")?.Value)
+                ctx => ctx.Variables.GetValue<StringValueNode>("abc").Value)
             .Create();
 
         var request = OperationRequestBuilder.New()
@@ -63,7 +63,7 @@ public class MiddlewareContextTests
     public async Task CollectFields()
     {
         // arrange
-        var list = new List<ISelection>();
+        var list = new List<Selection>();
 
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
@@ -105,7 +105,7 @@ public class MiddlewareContextTests
             }");
 
         // assert
-        list.Select(t => t.SyntaxNode.Name.Value).ToList().MatchSnapshot();
+        list.Select(t => t.SyntaxNodes[0].Node.Name.Value).ToList().MatchSnapshot();
     }
 
     [Fact]
@@ -627,8 +627,8 @@ public class MiddlewareContextTests
 
     private static void CollectSelections(
         IResolverContext context,
-        ISelection selection,
-        ICollection<ISelection> collected)
+        Selection selection,
+        ICollection<Selection> collected)
     {
         if (selection.Type.IsLeafType())
         {
@@ -644,5 +644,6 @@ public class MiddlewareContextTests
         }
     }
 
+    // ReSharper disable once NotAccessedPositionalProperty.Local
     private record SomeData(string SomeField);
 }

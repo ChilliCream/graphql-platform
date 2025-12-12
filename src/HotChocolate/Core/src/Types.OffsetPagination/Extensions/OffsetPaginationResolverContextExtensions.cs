@@ -6,10 +6,11 @@ namespace HotChocolate.Types.Pagination;
 internal static class OffsetPaginationResolverContextExtensions
 {
     /// <summary>
+    /// <para>
     /// TotalCount is one of the heaviest operations. It is only necessary to load totalCount
     /// when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
-    ///
-    /// This method checks if the total count is selected
+    /// </para>
+    /// <para>This method checks if the total count is selected</para>
     /// </summary>
     /// <param name="context"></param>
     /// <returns></returns>
@@ -17,14 +18,13 @@ internal static class OffsetPaginationResolverContextExtensions
     {
         // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
         // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
-        if (context.Selection.Type is ObjectType objectType
-            && context.Selection.SyntaxNode.SelectionSet is not null)
+        if (context.Selection is { Type: ObjectType objectType, IsLeaf: false })
         {
-            var selections = context.GetSelections(objectType, null, true);
+            var selectionSet = context.Selection.DeclaringOperation.GetSelectionSet(context.Selection, objectType);
 
-            for (var i = 0; i < selections.Count; i++)
+            foreach (var selection in selectionSet.Selections)
             {
-                if (selections[i].Field.Name is OffsetPagingFieldNames.TotalCount)
+                if (selection.Field.Name is OffsetPagingFieldNames.TotalCount)
                 {
                     return true;
                 }

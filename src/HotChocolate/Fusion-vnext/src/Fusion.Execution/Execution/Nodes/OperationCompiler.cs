@@ -254,7 +254,7 @@ public sealed class OperationCompiler
             compilationContext.Register(selection, selection.Id);
             selections[i++] = selection;
 
-            if (includeFlags.Count > 1)
+            if (includeFlags.Count > 0)
             {
                 isConditional = true;
             }

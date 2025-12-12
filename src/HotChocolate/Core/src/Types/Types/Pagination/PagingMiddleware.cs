@@ -46,7 +46,7 @@ public class PagingMiddleware(FieldDelegate next, IPagingHandler pagingHandler)
                 {
                     errors[i] = ErrorBuilder
                         .FromError(ex.Errors[i])
-                        .AddLocations(context.Selection.SyntaxNodes)
+                        .AddLocations(context.Selection)
                         .SetPath(context.Path)
                         .Build();
                 }

@@ -1,8 +1,14 @@
 using System.Diagnostics.Tracing;
 
+#if FUSION
 namespace HotChocolate.Fusion.Text.Json;
 
 [EventSource(Name = "HotChocolate-Fusion-MetaDb")]
+#else
+namespace HotChocolate.Text.Json;
+
+[EventSource(Name = "HotChocolate-MetaDb")]
+#endif
 internal sealed class MetaDbEventSource : EventSource
 {
     public static readonly MetaDbEventSource Log = new();

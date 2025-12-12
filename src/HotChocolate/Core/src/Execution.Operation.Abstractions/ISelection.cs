@@ -96,7 +96,7 @@ public interface ISelection
     /// Gets the original syntax nodes that contributed to this selection.
     /// </summary>
     /// <returns>
-    /// An enumerable of field nodes from the original GraphQL document that
+    /// An enumerable collection of field nodes from the original GraphQL document that
     /// were merged to create this selection. Multiple nodes may be returned
     /// if field merging occurred (same response name, compatible arguments).
     /// </returns>

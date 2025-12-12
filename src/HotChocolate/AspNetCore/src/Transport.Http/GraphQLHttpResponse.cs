@@ -1,3 +1,5 @@
+
+using HotChocolate.Buffers;
 #if FUSION
 using System.Buffers;
 using System.Net;
@@ -160,7 +162,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 #if FUSION
         // we try and read the first chunk into a single chunk.
         var reader = PipeReader.Create(stream, s_options);
-        var currentChunk = JsonMemory.Rent();
+        var currentChunk = JsonMemory.Rent(JsonMemoryKind.Json);
         var currentChunkPosition = 0;
         var chunkIndex = 0;
         var chunks = ArrayPool<byte[]>.Shared.Rent(64);
@@ -215,7 +217,7 @@ public sealed class GraphQLHttpResponse : IDisposable
                                 }
 
                                 chunks[chunkIndex++] = currentChunk;
-                                currentChunk = JsonMemory.Rent();
+                                currentChunk = JsonMemory.Rent(JsonMemoryKind.Json);
                                 currentChunkPosition = 0;
                             }
                         }
@@ -253,7 +255,7 @@ public sealed class GraphQLHttpResponse : IDisposable
                                 }
 
                                 chunks[chunkIndex++] = currentChunk;
-                                currentChunk = JsonMemory.Rent();
+                                currentChunk = JsonMemory.Rent(JsonMemoryKind.Json);
                                 currentChunkPosition = 0;
                             }
                         }

@@ -1,4 +1,5 @@
 using System.Globalization;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -452,11 +453,11 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
 
-    public static IError Relay_NoNodeResolver(string typeName, Path path, IReadOnlyList<FieldNode> fieldNodes)
+    public static IError Relay_NoNodeResolver(string typeName, Path path, Selection selection)
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_Relay_NoNodeResolver, typeName)
             .SetPath(path)
-            .AddLocations(fieldNodes)
+            .AddLocations(selection)
             .Build();
 
     public static ISchemaError NodeResolver_MustHaveExactlyOneIdArg(
@@ -494,7 +495,7 @@ internal static class ErrorHelper
             .Build();
 
     public static IError FetchedToManyNodesAtOnce(
-        IReadOnlyList<FieldNode> fieldNodes,
+        Selection selection,
         Path path,
         int maxAllowedNodes,
         int requestNodes)
@@ -503,7 +504,7 @@ internal static class ErrorHelper
                 ErrorHelper_FetchedToManyNodesAtOnce,
                 maxAllowedNodes,
                 requestNodes)
-            .AddLocations(fieldNodes)
+            .AddLocations(selection)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.FetchedToManyNodesAtOnce)
             .Build();

@@ -11,8 +11,6 @@ public static class TypeExtensions
 {
     internal static IInputType EnsureInputType(this IType type)
     {
-        ArgumentNullException.ThrowIfNull(type);
-
         if (type.NamedType() is not IInputType)
         {
             throw InputTypeExpected(type);
@@ -23,8 +21,6 @@ public static class TypeExtensions
 
     internal static IOutputType EnsureOutputType(this IType type)
     {
-        ArgumentNullException.ThrowIfNull(type);
-
         if (type.NamedType() is not IOutputType)
         {
             throw OutputTypeExpected(type);
@@ -34,16 +30,10 @@ public static class TypeExtensions
     }
 
     public static string TypeName(this IType type)
-    {
-        ArgumentNullException.ThrowIfNull(type);
-
-        return type.NamedType().Name;
-    }
+        => type.NamedType().Name;
 
     public static Type ToRuntimeType(this IType type)
     {
-        ArgumentNullException.ThrowIfNull(type);
-
         if (type.IsListType())
         {
             var elementType = ToRuntimeType(type.ElementType());
@@ -94,7 +84,6 @@ public static class TypeExtensions
 
     public static bool IsInstanceOfType(this IInputType type, IValueNode literal)
     {
-        ArgumentNullException.ThrowIfNull(type);
         ArgumentNullException.ThrowIfNull(literal);
 
         while (true)
