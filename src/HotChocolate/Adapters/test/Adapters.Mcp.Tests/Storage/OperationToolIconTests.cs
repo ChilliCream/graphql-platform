@@ -115,4 +115,43 @@ public sealed class OperationToolIconTests
             + "(Parameter 'Sizes')",
             exception.Message);
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("light")]
+    [InlineData("dark")]
+    public void OperationToolIcon_ValidTheme_Succeeds(string? theme)
+    {
+        // arrange & act
+        var exception =
+            Record.Exception(
+                () => new OperationToolIcon(new Uri("https://example.com/icon.png"))
+                {
+                    Theme = theme
+                });
+
+        // assert
+        Assert.Null(exception);
+    }
+
+    [Theory]
+    [InlineData("blue")]
+    [InlineData("LIGHT")]
+    [InlineData("Dark")]
+    public void OperationToolIcon_InvalidTheme_ThrowsArgumentException(string theme)
+    {
+        // arrange & act
+        var exception =
+            Record.Exception(
+                () => new OperationToolIcon(new Uri("https://example.com/icon.png"))
+                {
+                    Theme = theme
+                });
+
+        // assert
+        Assert.IsType<ArgumentException>(exception);
+        Assert.Equal(
+            "The icon theme must be 'light' or 'dark'. (Parameter 'Theme')",
+            exception.Message);
+    }
 }
