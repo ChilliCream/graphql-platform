@@ -188,7 +188,6 @@ public partial class ObjectTypeXmlDocInferenceTests
                 public class BaseBaseClass
                 {
                     /// <summary>Method doc.</summary>
-                    /// <param name="baz">Parameter details.</param>
                     public virtual void Bar(string baz) { }
                 }
 
@@ -365,6 +364,114 @@ public partial class ObjectTypeXmlDocInferenceTests
         Assert.Equal("Query and manages users.\\n\\n\\n**Returns:**\\nBar", emitted[1].Value);
     }
 
+    [Fact]
+    public void When_parameter_has_inheritdoc_then_it_is_resolved()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Threading;
+                using System.Threading.Tasks;
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                namespace TestNamespace;
+
+                /// <summary>
+                /// I am the base class.
+                /// </summary>
+                public class BaseClass
+                {
+                    /// <summary>Method doc.</summary>
+                    /// <param name="baz">Parameter details.</param>
+                    public virtual void Bar(string baz) { }
+                }
+
+                public class ClassWithInheritdoc : BaseClass
+                {
+                    /// <inheritdoc />
+                    public override void Bar(string baz) { }
+                }
+
+                [QueryType]
+                internal static partial class Query
+                {
+                    /// <inheritdoc cref="ClassWithInheritdoc.Bar" />
+                    public static int Bar(string baz) => 0;
+                }
+                """);
+
+        var content = snapshot.Match();
+        AssertFieldDocumentation(content, "Method doc.", "Parameter details.");
+    }
+
+    [Fact]
+    public void When_class_implements_interface_and_method_has_description_then_method_parameter_description_is_used()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using System;
+                using System.Collections.Generic;
+                using System.Threading;
+                using System.Threading.Tasks;
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                namespace TestNamespace;
+
+                /// <summary>
+                /// I am the base class.
+                /// </summary>
+                public class BaseClass
+                {
+                    /// <summary>Method doc.</summary>
+                    /// <param name="baz">Parameter details.</param>
+                    public virtual void Bar(string baz) { }
+                }
+
+                public class ClassWithInheritdoc : BaseClass
+                {
+                    /// <summary>
+                    /// I am my own method.
+                    /// </summary>
+                    /// <param name="baz">I am my own parameter.</param>
+                    public override void Bar(string baz) { }
+                }
+
+                [QueryType]
+                internal static partial class Query
+                {
+                    /// <inheritdoc cref="ClassWithInheritdoc.Bar" />
+                    public static int Bar(string baz) => 0;
+                }
+                """);
+
+        var content = snapshot.Match();
+        AssertFieldDocumentation(content, "I am my own method.", "I am my own parameter.");
+    }
+
+    private static void AssertFieldDocumentation(string content, string fieldDoc, params string[] parameterDocs)
+    {
+        var emitted = s_description.Matches(content).Single().Groups;
+        Assert.Equal(fieldDoc, emitted[1].Value);
+        if (parameterDocs.Length > 0)
+        {
+            var paramDescriptions = s_paramDescription.Matches(content).ToArray();
+            Assert.Equal(parameterDocs.Length, paramDescriptions.Length);
+            for (var index = 0; index < paramDescriptions.Length; index++)
+            {
+                var paramDescription = paramDescriptions[index];
+                Assert.Equal(parameterDocs[index], paramDescription.Groups[2].Value);
+            }
+        }
+    }
+
     [System.Text.RegularExpressions.GeneratedRegex("configuration.Description = \"(.*)\";")]
     private static partial System.Text.RegularExpressions.Regex DescriptionExtractorRegex();
+
+    [System.Text.RegularExpressions.GeneratedRegex("(\\s+)Description = \"(.*)\",")]
+    private static partial System.Text.RegularExpressions.Regex ParameterDescriptionExtractorRegex();
 }

@@ -5,6 +5,7 @@ namespace HotChocolate.Types;
 public partial class ObjectTypeXmlDocInferenceTests
 {
     private static readonly Regex s_description = DescriptionExtractorRegex();
+    private static readonly Regex s_paramDescription = ParameterDescriptionExtractorRegex();
 
     [Fact]
     public void Method_WithInheritdoc_And_MultipleLayersOfInheritance()
