@@ -11,7 +11,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             fragment User on User {
               id
@@ -44,7 +44,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             fragment User on User {
               id
@@ -71,7 +71,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             fragment User on NonExistentType {
               id
@@ -96,7 +96,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             fragment User on User {
               id
@@ -123,7 +123,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             fragment Query on Query {
               users @stream {
@@ -149,7 +149,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             fragment User on User {
               id
@@ -188,7 +188,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
               userById(id: $userId) {
@@ -224,7 +224,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}") {
               userById(id: $userId) {
@@ -251,7 +251,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             subscription OnUserUpdated($userId: ID!) @http(method: GET, route: "/users/{userId}") {
               userUpdated(id: $userId) {
@@ -280,7 +280,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUsers @http(method: GET, route: "/users") {
               users {
@@ -309,7 +309,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             fragment User on User {
               id
@@ -341,7 +341,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}", queryParameters: ["userId"]) {
               userById(id: $userId) {
@@ -367,7 +367,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             mutation UpdateUser($user: UserInput! @body) @http(method: PUT, route: "/users/{userId:$user.id}", queryParameters: ["id:$user.id"]) {
               updateUser(user: $user) {
@@ -395,7 +395,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}") {
               nonExistentField(id: $userId) {
@@ -423,7 +423,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query @http(method: GET, route: "/users") {
               users {
@@ -449,7 +449,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUsers {
               users {
@@ -475,7 +475,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUsers @http(route: "/users") {
               users {
@@ -501,7 +501,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUsers @http(method: GET) {
               users {
@@ -527,7 +527,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUsers @http(method: INVALID, route: "/users") {
               users {
@@ -553,7 +553,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUsers @http(method: GET, route: "") {
               users {
@@ -580,7 +580,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUser @http(method: GET, route: "/users/{userId:invalid}") {
               userById(id: $userId) {
@@ -608,7 +608,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUsers @http(method: GET, route: "/users", queryParameters: 123) {
               users {
@@ -635,7 +635,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUsers @http(method: GET, route: "/users", queryParameters: [123, "valid"]) {
               users {
@@ -663,7 +663,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUsers @http(method: GET, route: "/users") {
               users {
@@ -695,7 +695,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             type Query {
               users: [User]
@@ -720,7 +720,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}") {
               userById(id: $userId) {
@@ -753,7 +753,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUser($userId: ID!) @http(method: GET, route: "/Users/{userId}") {
               userById(id: $userId) {
@@ -786,7 +786,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}") {
               userById(id: $userId) {
@@ -818,7 +818,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}") {
               userById(id: $userId) @defer {
@@ -847,7 +847,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var storage = new TestOpenApiDefinitionStorage(
+        var storage = new TestOpenApiDocumentStorage(
             """
             query GetUsers @http(method: GET, route: "/users") {
               users @stream {

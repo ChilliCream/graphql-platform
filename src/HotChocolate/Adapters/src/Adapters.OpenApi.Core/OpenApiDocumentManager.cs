@@ -9,8 +9,8 @@ namespace HotChocolate.Adapters.OpenApi;
 
 internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenApiDefinitionStorageEventArgs>
 {
-    private readonly IOpenApiDefinitionStorage _storage;
-    private readonly DynamicOpenApiDocumentTransformer _transformer;
+    private readonly IOpenApiDocumentStorage _storage;
+    private readonly IDynamicOpenApiDocumentTransformer _transformer;
     private readonly IDynamicEndpointDataSource _dynamicEndpointDataSource;
     private readonly IDisposable _storageSubscription;
     private readonly SemaphoreSlim _updateSemaphore = new(1, 1);
@@ -44,8 +44,8 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
 #endif
 
     public OpenApiDocumentManager(
-        IOpenApiDefinitionStorage storage,
-        DynamicOpenApiDocumentTransformer transformer,
+        IOpenApiDocumentStorage storage,
+        IDynamicOpenApiDocumentTransformer transformer,
         IDynamicEndpointDataSource dynamicEndpointDataSource)
     {
         _storage = storage;
@@ -75,26 +75,9 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
 
             if (!isInitialized)
             {
-                var rawDocuments = await _storage.GetDocumentsAsync(cancellationToken).ConfigureAwait(false);
+                var documents = await _storage.GetDocumentsAsync(cancellationToken).ConfigureAwait(false);
 
-                var parser = new OpenApiDocumentParser(schema);
-                var newDocuments = new List<IOpenApiDocument>();
-
-                foreach (var document in rawDocuments)
-                {
-                    var parseResult = parser.Parse(document);
-
-                    if (parseResult.IsValid)
-                    {
-                        newDocuments.Add(parseResult.Document);
-                    }
-                    else if (!parseResult.IsValid)
-                    {
-                        events.ValidationErrors(parseResult.Errors);
-                    }
-                }
-
-                await InitializeAsync(newDocuments, schema, events, cancellationToken).ConfigureAwait(false);
+                await InitializeAsync(documents.ToList(), schema, events, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -182,30 +165,18 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
         ISchemaDefinition schema,
         CancellationToken cancellationToken)
     {
-        var parser = new OpenApiDocumentParser(schema);
         var events = schema.Services.GetRequiredService<IOpenApiDiagnosticEvents>();
 
         if (args.Type is OpenApiDefinitionStorageEventType.Added or OpenApiDefinitionStorageEventType.Modified
-            && args.Definition is not null)
+            && args.Document is not null)
         {
-            var parseResult = parser.Parse(args.Definition);
-
-            if (parseResult.IsValid)
+            if (args.Type is OpenApiDefinitionStorageEventType.Added)
             {
-                if (args.Type is OpenApiDefinitionStorageEventType.Added)
-                {
-                    await AddDocumentAsync(parseResult.Document, schema, events, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                else if (args.Type is OpenApiDefinitionStorageEventType.Modified)
-                {
-                    await UpdateDocumentAsync(parseResult.Document, schema, events, cancellationToken)
-                        .ConfigureAwait(false);
-                }
+                await AddDocumentAsync(args.Document, schema, events, cancellationToken).ConfigureAwait(false);
             }
-            else if (!parseResult.IsValid)
+            else if (args.Type is OpenApiDefinitionStorageEventType.Modified)
             {
-                events.ValidationErrors(parseResult.Errors);
+                await UpdateDocumentAsync(args.Document, schema, events, cancellationToken).ConfigureAwait(false);
             }
         }
         else if (args.Type is OpenApiDefinitionStorageEventType.Removed)
@@ -251,7 +222,7 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
     {
         if (document is OpenApiOperationDocument && _operationsById.ContainsKey(document.Id))
         {
-            var error = new OpenApiValidationError(
+            var error = new OpenApiDocumentValidationError(
                 $"Tried to add a new operation document with Id '{document.Id}', but a document with this Id already exists.",
                 document);
             events.ValidationErrors([error]);
@@ -260,7 +231,7 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
 
         if (document is OpenApiFragmentDocument && _fragmentsById.ContainsKey(document.Id))
         {
-            var error = new OpenApiValidationError(
+            var error = new OpenApiDocumentValidationError(
                 $"Tried to add a new fragment document with Id '{document.Id}', but a document with this Id already exists.",
                 document);
             events.ValidationErrors([error]);
@@ -269,7 +240,7 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
 
         var documentValidator = schema.Services.GetRequiredService<DocumentValidator>();
 
-        var validationContext = new OpenApiValidationContext(
+        var validationContext = new OpenApiDocumentValidationContext(
             _operationsById,
             _fragmentsById,
             schema,
@@ -363,7 +334,7 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
             {
                 var operationNames = string.Join(", ", referencingOperations
                     .Select(o => $"'{o.Name}'"));
-                var error = new OpenApiValidationError(
+                var error = new OpenApiDocumentValidationError(
                     $"Cannot remove fragment '{fragmentToRemove.Name}' because it is still referenced by the following operations: {operationNames}.",
                     fragmentToRemove);
 
@@ -394,7 +365,7 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
         var validOperationBuilder = ImmutableDictionary.CreateBuilder<string, OpenApiOperationDocument>();
 
         var documentValidator = schema.Services.GetRequiredService<DocumentValidator>();
-        var validationContext = new OpenApiValidationContext(
+        var validationContext = new OpenApiDocumentValidationContext(
             _operationsById,
             _fragmentsById,
             schema,

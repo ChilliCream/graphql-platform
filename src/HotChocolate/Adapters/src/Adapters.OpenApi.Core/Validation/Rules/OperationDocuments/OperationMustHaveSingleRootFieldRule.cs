@@ -7,31 +7,31 @@ namespace HotChocolate.Adapters.OpenApi.Validation;
 /// </summary>
 internal sealed class OperationMustHaveSingleRootFieldRule : IOpenApiOperationDocumentValidationRule
 {
-    public ValueTask<OpenApiValidationResult> ValidateAsync(
+    public ValueTask<OpenApiDocumentValidationResult> ValidateAsync(
         OpenApiOperationDocument document,
-        IOpenApiValidationContext context,
+        IOpenApiDocumentValidationContext context,
         CancellationToken cancellationToken)
     {
         var selectionSet = document.OperationDefinition.SelectionSet;
-        OpenApiValidationResult result;
+        OpenApiDocumentValidationResult result;
 
         if (selectionSet.Selections.Count != 1)
         {
-            result = OpenApiValidationResult.Failure(
-                new OpenApiValidationError(
+            result = OpenApiDocumentValidationResult.Failure(
+                new OpenApiDocumentValidationError(
                     $"Operation '{document.Name}' must have exactly one root field selection, but found {selectionSet.Selections.Count}.",
                     document));
         }
         else if (selectionSet.Selections[0] is not FieldNode)
         {
-            result = OpenApiValidationResult.Failure(
-                new OpenApiValidationError(
+            result = OpenApiDocumentValidationResult.Failure(
+                new OpenApiDocumentValidationError(
                     $"Operation '{document.Name}' must have a single root field selection, but found a fragment spread or inline fragment.",
                     document));
         }
         else
         {
-            result = OpenApiValidationResult.Success();
+            result = OpenApiDocumentValidationResult.Success();
         }
 
         return ValueTask.FromResult(result);

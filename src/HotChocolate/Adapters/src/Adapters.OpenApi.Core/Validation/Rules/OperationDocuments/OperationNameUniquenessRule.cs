@@ -5,20 +5,20 @@ namespace HotChocolate.Adapters.OpenApi.Validation;
 /// </summary>
 internal sealed class OperationNameUniquenessRule : IOpenApiOperationDocumentValidationRule
 {
-    public async ValueTask<OpenApiValidationResult> ValidateAsync(
+    public async ValueTask<OpenApiDocumentValidationResult> ValidateAsync(
         OpenApiOperationDocument document,
-        IOpenApiValidationContext context,
+        IOpenApiDocumentValidationContext context,
         CancellationToken cancellationToken)
     {
         var existingOperation = await context.GetOperationAsync(document.Name);
 
         if (existingOperation is null || existingOperation.Id == document.Id)
         {
-            return OpenApiValidationResult.Success();
+            return OpenApiDocumentValidationResult.Success();
         }
 
-        return OpenApiValidationResult.Failure(
-            new OpenApiValidationError(
+        return OpenApiDocumentValidationResult.Failure(
+            new OpenApiDocumentValidationError(
                 $"Operation name '{document.Name}' is already being used by a operation document with the Id '{existingOperation.Id}' ('{existingOperation.Name}').",
                 document));
     }

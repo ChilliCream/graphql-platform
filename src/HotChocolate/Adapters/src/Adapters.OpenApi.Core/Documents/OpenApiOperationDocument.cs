@@ -4,8 +4,6 @@ using HotChocolate.Language;
 namespace HotChocolate.Adapters.OpenApi;
 
 public sealed record OpenApiOperationDocument(
-    string Id,
-    string Name,
     string? Description,
     string HttpMethod,
     OpenApiRoute Route,

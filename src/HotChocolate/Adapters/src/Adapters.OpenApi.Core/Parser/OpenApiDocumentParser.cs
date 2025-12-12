@@ -6,55 +6,50 @@ using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
+public static class OpenApiDocumentParser
 {
     private static readonly ExternalFragmentReferenceFinder s_externalFragmentReferenceFinder = new();
 
-    public OpenApiParseResult Parse(OpenApiDocumentDefinition document)
+    public static OpenApiDocumentParsingResult Parse(DocumentNode document)
     {
-        var documentNode = document.Document;
-
-        var localFragments = documentNode.Definitions
+        var localFragments = document.Definitions
             .OfType<FragmentDefinitionNode>()
             .ToArray();
         var localFragmentLookup = localFragments
             .ToDictionary(f => f.Name.Value);
 
         // An operation document can only define a single operation alongside local fragment definitions.
-        var operationDefinitions = documentNode.Definitions.OfType<OperationDefinitionNode>().ToArray();
+        var operationDefinitions = document.Definitions.OfType<OperationDefinitionNode>().ToArray();
 
         if (operationDefinitions.Length > 1)
         {
-            var error = new OpenApiParsingError(
+            var error = new OpenApiDocumentParsingError(
                 "An operation document can only define a single operation alongside local fragment definitions.",
-                document.Id,
-                documentNode);
-            return OpenApiParseResult.Failure(error);
+                document);
+            return OpenApiDocumentParsingResult.Failure(error);
         }
 
         if (operationDefinitions.Length == 1)
         {
             var operationDefinition = operationDefinitions[0];
-            return ParseOperation(document.Id, operationDefinition, documentNode, localFragmentLookup);
+            return ParseOperation(operationDefinition, document, localFragmentLookup);
         }
 
         if (localFragments.Length == 0)
         {
-            var error = new OpenApiParsingError(
+            var error = new OpenApiDocumentParsingError(
                 "Document must contain either a single operation or at least one fragment definition.",
-                document.Id,
-                documentNode);
-            return OpenApiParseResult.Failure(error);
+                document);
+            return OpenApiDocumentParsingResult.Failure(error);
         }
 
         var fragmentDefinition = localFragments[0];
         localFragmentLookup.Remove(fragmentDefinition.Name.Value);
 
-        return ParseFragment(document.Id, fragmentDefinition, documentNode, localFragmentLookup);
+        return ParseFragment(fragmentDefinition, document, localFragmentLookup);
     }
 
-    private OpenApiParseResult ParseFragment(
-        string id,
+    private static OpenApiDocumentParsingResult ParseFragment(
         FragmentDefinitionNode fragment,
         DocumentNode document,
         Dictionary<string, FragmentDefinitionNode> localFragmentLookup)
@@ -62,72 +57,49 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
         var name = fragment.Name.Value;
         var description = fragment.Description?.Value;
 
-        if (!schema.Types.TryGetType(fragment.TypeCondition.Name.Value, out var typeCondition))
-        {
-            var error = new OpenApiParsingError(
-                $"Type condition '{fragment.TypeCondition.Name.Value}' not found in schema.",
-                id,
-                document);
-            return OpenApiParseResult.Failure(error);
-        }
-
         var context = new FragmentSpreadFinderContext(localFragmentLookup);
         s_externalFragmentReferenceFinder.Visit(document, context);
 
         var fragmentDocument = new OpenApiFragmentDocument(
-            id,
             name,
             description,
-            typeCondition,
             fragment,
             localFragmentLookup,
             context.ExternalFragmentReferences);
 
-        return OpenApiParseResult.Success(fragmentDocument);
+        return OpenApiDocumentParsingResult.Success(fragmentDocument);
     }
 
-    private static OpenApiParseResult ParseOperation(
-        string id,
+    private static OpenApiDocumentParsingResult ParseOperation(
         OperationDefinitionNode operation,
         DocumentNode document,
         Dictionary<string, FragmentDefinitionNode> localFragmentLookup)
     {
-        var name = operation.Name?.Value;
         var description = operation.Description?.Value;
-
-        if (string.IsNullOrEmpty(name))
-        {
-            var error = new OpenApiParsingError(
-                "Operation must have a name.",
-                id,
-                document);
-            return OpenApiParseResult.Failure(error);
-        }
 
         var httpDirective = operation.Directives.FirstOrDefault(d => d.Name.Value == WellKnownDirectiveNames.Http);
 
         if (httpDirective is null)
         {
-            var error = new OpenApiParsingError(
-                $"Operation '{name}' must be annotated with @http directive.",
-                id,
+            var error = new OpenApiDocumentParsingError(
+                $"Operation must be annotated with @http directive.",
                 document);
-            return OpenApiParseResult.Failure(error);
+            return OpenApiDocumentParsingResult.Failure(error);
         }
 
-        if (!TryParseHttpMethod(httpDirective, id, name, document, out var httpMethod, out var httpMethodError))
+        if (!TryParseHttpMethod(httpDirective, document, out var httpMethod, out var httpMethodError))
         {
-            return OpenApiParseResult.Failure(httpMethodError);
+            return OpenApiDocumentParsingResult.Failure(httpMethodError);
         }
 
-        if (!TryParseRoute(httpDirective, id, name, document, out var route, out var routeError))
+        if (!TryParseRoute(httpDirective, document, out var route, out var routeError))
         {
-            return OpenApiParseResult.Failure(routeError);
+            return OpenApiDocumentParsingResult.Failure(routeError);
         }
 
-        if (!TryParseQueryParameters(httpDirective, id, name, document, out var queryParameters, out var queryParametersError))
+        if (!TryParseQueryParameters(httpDirective, document, out var queryParameters, out var queryParametersError))
         {
-            return OpenApiParseResult.Failure(queryParametersError);
+            return OpenApiDocumentParsingResult.Failure(queryParametersError);
         }
 
         var bodyParameter = GetBodyParameter(operation);
@@ -143,8 +115,6 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
         s_externalFragmentReferenceFinder.Visit(document, context);
 
         var operationDocument = new OpenApiOperationDocument(
-            id,
-            name,
             description,
             httpMethod,
             route,
@@ -154,7 +124,7 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
             localFragmentLookup,
             context.ExternalFragmentReferences);
 
-        return OpenApiParseResult.Success(operationDocument);
+        return OpenApiDocumentParsingResult.Success(operationDocument);
     }
 
     private static OpenApiRouteSegmentParameter? GetBodyParameter(OperationDefinitionNode operation)
@@ -175,11 +145,9 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
 
     private static bool TryParseQueryParameters(
         DirectiveNode httpDirective,
-        string documentId,
-        string operationName,
         DocumentNode document,
-        [NotNullWhen(true)] out ImmutableArray<OpenApiRouteSegmentParameter> queryParameters,
-        [NotNullWhen(false)] out OpenApiParsingError? error)
+        out ImmutableArray<OpenApiRouteSegmentParameter> queryParameters,
+        [NotNullWhen(false)] out OpenApiDocumentParsingError? error)
     {
         queryParameters = default;
 
@@ -195,7 +163,7 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
 
         if (value is StringValueNode { Value: var singleValue })
         {
-            if (!TryParseParameter(singleValue, documentId, operationName, document, out var parameter, out error))
+            if (!TryParseParameter(singleValue, document, out var parameter, out error))
             {
                 return false;
             }
@@ -207,9 +175,8 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
 
         if (value is not ListValueNode listValue)
         {
-            error = new OpenApiParsingError(
-                $"Query parameters argument on @http directive for operation '{operationName}' must be a list of strings.",
-                documentId,
+            error = new OpenApiDocumentParsingError(
+                "Query parameters argument on @http directive must be a list of strings.",
                 document);
             return false;
         }
@@ -220,14 +187,13 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
         {
             if (item is not StringValueNode { Value: var stringValue })
             {
-                error = new OpenApiParsingError(
-                    $"Query parameters argument on @http directive for operation '{operationName}' must contain only string values.",
-                    documentId,
+                error = new OpenApiDocumentParsingError(
+                    "Query parameters argument on @http directive must contain only string values.",
                     document);
                 return false;
             }
 
-            if (!TryParseParameter(stringValue, documentId, operationName, document, out var parameter, out error))
+            if (!TryParseParameter(stringValue, document, out var parameter, out error))
             {
                 return false;
             }
@@ -242,11 +208,9 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
 
     private static bool TryParseRoute(
         DirectiveNode httpDirective,
-        string documentId,
-        string operationName,
         DocumentNode document,
         [NotNullWhen(true)] out OpenApiRoute? route,
-        [NotNullWhen(false)] out OpenApiParsingError? error)
+        [NotNullWhen(false)] out OpenApiDocumentParsingError? error)
     {
         route = null;
 
@@ -255,9 +219,8 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
 
         if (routeArgument is null)
         {
-            error = new OpenApiParsingError(
-                $"@http directive for operation '{operationName}' must have a 'route' argument.",
-                documentId,
+            error = new OpenApiDocumentParsingError(
+                "@http directive must have a 'route' argument.",
                 document);
             return false;
         }
@@ -266,9 +229,8 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
 
         if (value is not StringValueNode { Value: var stringValue } || string.IsNullOrEmpty(stringValue))
         {
-            error = new OpenApiParsingError(
-                $"Route argument on @http directive for operation '{operationName}' must be a non-empty string.",
-                documentId,
+            error = new OpenApiDocumentParsingError(
+                "Route argument on @http directive must be a non-empty string.",
                 document);
             return false;
         }
@@ -281,7 +243,7 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
             if (segment.StartsWith("{") && segment.EndsWith("}"))
             {
                 var parameter = segment[1..^1];
-                if (!TryParseParameter(parameter, documentId, operationName, document, out var parsedParameter, out error))
+                if (!TryParseParameter(parameter, document, out var parsedParameter, out error))
                 {
                     return false;
                 }
@@ -301,11 +263,9 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
 
     private static bool TryParseParameter(
         string parameter,
-        string documentId,
-        string operationName,
         DocumentNode document,
         [NotNullWhen(true)] out OpenApiRouteSegmentParameter? parsedParameter,
-        [NotNullWhen(false)] out OpenApiParsingError? error)
+        [NotNullWhen(false)] out OpenApiDocumentParsingError? error)
     {
         parsedParameter = null;
 
@@ -321,9 +281,8 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
 
         if (colonIndex + 1 >= span.Length || span[colonIndex + 1] != '$')
         {
-            error = new OpenApiParsingError(
-                $"Explicit route segment variable mappings must start with '$', got '{parameter}' in operation '{operationName}'.",
-                documentId,
+            error = new OpenApiDocumentParsingError(
+                $"Explicit route segment variable mappings must start with '$', got '{parameter}'.",
                 document);
             return false;
         }
@@ -377,11 +336,9 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
 
     private static bool TryParseHttpMethod(
         DirectiveNode httpDirective,
-        string documentId,
-        string operationName,
         DocumentNode document,
         [NotNullWhen(true)] out string? httpMethod,
-        [NotNullWhen(false)] out OpenApiParsingError? error)
+        [NotNullWhen(false)] out OpenApiDocumentParsingError? error)
     {
         httpMethod = null;
 
@@ -390,9 +347,8 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
 
         if (methodArgument is null)
         {
-            error = new OpenApiParsingError(
-                $"@http directive for operation '{operationName}' must have a 'method' argument.",
-                documentId,
+            error = new OpenApiDocumentParsingError(
+                $"@http directive must have a 'method' argument.",
                 document);
             return false;
         }
@@ -401,9 +357,8 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
 
         if (value is not EnumValueNode { Value: var stringValue } || string.IsNullOrEmpty(stringValue))
         {
-            error = new OpenApiParsingError(
-                $"Method argument on @http directive for operation '{operationName}' must be a non-empty enum value.",
-                documentId,
+            error = new OpenApiDocumentParsingError(
+                $"Method argument on @http directive must be a non-empty enum value.",
                 document);
             return false;
         }
@@ -414,9 +369,8 @@ public sealed class OpenApiDocumentParser(ISchemaDefinition schema)
             && stringValue != HttpMethods.Patch
             && stringValue != HttpMethods.Delete)
         {
-            error = new OpenApiParsingError(
-                $"Invalid HTTP method value '{stringValue}' on @http directive for operation '{operationName}'.",
-                documentId,
+            error = new OpenApiDocumentParsingError(
+                $"Invalid HTTP method value '{stringValue}' on @http directive.",
                 document);
             return false;
         }

@@ -52,7 +52,7 @@ public class FusionOpenApiIntegrationTests : OpenApiIntegrationTestBase
 
     protected override void ConfigureStorage(
         IServiceCollection services,
-        IOpenApiDefinitionStorage storage,
+        IOpenApiDocumentStorage storage,
         OpenApiDiagnosticEventListener? eventListener)
     {
         services.AddGraphQLGatewayServer()

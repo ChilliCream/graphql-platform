@@ -10,12 +10,11 @@ internal static class InternalServiceCollectionExtensions
     public static IServiceCollection AddOpenApiExporterServices(this IServiceCollection services, string schemaName)
     {
         services.TryAddKeyedSingleton<DynamicEndpointDataSource>(schemaName);
-        services.TryAddKeyedSingleton<DynamicOpenApiDocumentTransformer>(schemaName);
         services.TryAddKeyedSingleton(
             schemaName,
             static (sp, name) => new OpenApiDocumentManager(
-                sp.GetRequiredKeyedService<IOpenApiDefinitionStorage>(name),
-                sp.GetRequiredKeyedService<DynamicOpenApiDocumentTransformer>(name),
+                sp.GetRequiredKeyedService<IOpenApiDocumentStorage>(name),
+                sp.GetRequiredKeyedService<IDynamicOpenApiDocumentTransformer>(name),
                 sp.GetRequiredKeyedService<DynamicEndpointDataSource>(name)
                 ));
         services.TryAddKeyedSingleton(
@@ -34,7 +33,7 @@ internal static class InternalServiceCollectionExtensions
         IServiceProvider applicationServices)
     {
         services.TryAddSingleton(
-            _ => applicationServices.GetRequiredKeyedService<IOpenApiDefinitionStorage>(schemaName));
+            _ => applicationServices.GetRequiredKeyedService<IOpenApiDocumentStorage>(schemaName));
 
         services.TryAddSingleton(
             _ => applicationServices.GetRequiredKeyedService<OpenApiDocumentManager>(schemaName));
@@ -43,7 +42,7 @@ internal static class InternalServiceCollectionExtensions
             _ => applicationServices.GetRequiredKeyedService<DynamicEndpointDataSource>(schemaName));
 
         services.TryAddSingleton(
-            _ => applicationServices.GetRequiredKeyedService<DynamicOpenApiDocumentTransformer>(schemaName));
+            _ => applicationServices.GetRequiredKeyedService<IDynamicOpenApiDocumentTransformer>(schemaName));
 
         services.TryAddSingleton<IOpenApiDiagnosticEvents>(sp =>
         {

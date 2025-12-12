@@ -20,9 +20,9 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
     private readonly TestServerSession _testServerSession = new();
 
-    protected static TestOpenApiDefinitionStorage CreateBasicTestDocumentStorage()
+    protected static TestOpenApiDocumentStorage CreateBasicTestDocumentStorage()
     {
-        return new TestOpenApiDefinitionStorage(
+        return new TestOpenApiDocumentStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -172,7 +172,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
     protected abstract void ConfigureStorage(
         IServiceCollection services,
-        IOpenApiDefinitionStorage storage,
+        IOpenApiDocumentStorage storage,
         OpenApiDiagnosticEventListener? eventListener);
 
     protected virtual void ConfigureOpenApi(OpenApiOptions options)
@@ -186,7 +186,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
     }
 
     protected TestServer CreateTestServer(
-        IOpenApiDefinitionStorage storage,
+        IOpenApiDocumentStorage storage,
         OpenApiDiagnosticEventListener? eventListener = null)
     {
         return _testServerSession.CreateServer(
@@ -303,15 +303,15 @@ public abstract class OpenApiTestBase : IAsyncLifetime
         }
     }
 
-    protected sealed class TestOpenApiDefinitionStorage : IOpenApiDefinitionStorage, IDisposable
+    protected sealed class TestOpenApiDocumentStorage : IOpenApiDocumentStorage, IDisposable
     {
         private readonly Lock _lock = new();
-        private readonly Dictionary<string, OpenApiDocumentDefinition> _documentsById = [];
+        private readonly Dictionary<string, IOpenApiDocument> _documentsById = [];
         private ImmutableList<ObserverSession> _sessions = [];
         private bool _disposed;
         private readonly object _sync = new();
 
-        public TestOpenApiDefinitionStorage(params IEnumerable<string>? documents)
+        public TestOpenApiDocumentStorage(params IEnumerable<string>? documents)
         {
             if (documents is not null)
             {
@@ -319,21 +319,25 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                 foreach (var document in documents)
                 {
                     var id = i++.ToString();
-                    var parsed = Utf8GraphQLParser.Parse(document);
+                    var documentNode = Utf8GraphQLParser.Parse(document);
+                    var parseResult = OpenApiDocumentParser.Parse(documentNode);
 
-                    _documentsById.Add(id, new OpenApiDocumentDefinition(id, parsed));
+                    if (parseResult.IsValid)
+                    {
+                        _documentsById.Add(id, parseResult.Document);
+                    }
                 }
             }
         }
 
-        public ValueTask<IEnumerable<OpenApiDocumentDefinition>> GetDocumentsAsync(
+        public ValueTask<IEnumerable<IOpenApiDocument>> GetDocumentsAsync(
             CancellationToken cancellationToken)
         {
             lock (_lock)
             {
                 var documents = _documentsById.Values.ToList();
 
-                return ValueTask.FromResult<IEnumerable<OpenApiDocumentDefinition>>(documents);
+                return ValueTask.FromResult<IEnumerable<IOpenApiDocument>>(documents);
             }
         }
 
@@ -346,21 +350,26 @@ public abstract class OpenApiTestBase : IAsyncLifetime
         {
             lock (_lock)
             {
-                var parsedDocument = Utf8GraphQLParser.Parse(document);
+                var documentNode = Utf8GraphQLParser.Parse(document);
+                var parseResult = OpenApiDocumentParser.Parse(documentNode);
 
-                var documentDefinition = new OpenApiDocumentDefinition(id, parsedDocument);
-                OpenApiDefinitionStorageEventType type;
-                if (_documentsById.TryAdd(id, documentDefinition))
+                if (parseResult.IsValid)
                 {
-                    type = OpenApiDefinitionStorageEventType.Added;
-                }
-                else
-                {
-                    _documentsById[id] = documentDefinition;
-                    type = OpenApiDefinitionStorageEventType.Modified;
-                }
+                    var openApiDocument = parseResult.Document;
 
-                NotifySubscribers(id, documentDefinition, type);
+                    OpenApiDefinitionStorageEventType type;
+                    if (_documentsById.TryAdd(id, openApiDocument))
+                    {
+                        type = OpenApiDefinitionStorageEventType.Added;
+                    }
+                    else
+                    {
+                        _documentsById[id] = openApiDocument;
+                        type = OpenApiDefinitionStorageEventType.Modified;
+                    }
+
+                    NotifySubscribers(id, openApiDocument, type);
+                }
             }
         }
 
@@ -379,12 +388,12 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
         private void NotifySubscribers(
             string id,
-            OpenApiDocumentDefinition? toolDefinition,
+            IOpenApiDocument? document,
             OpenApiDefinitionStorageEventType type)
         {
             if (type is OpenApiDefinitionStorageEventType.Added or OpenApiDefinitionStorageEventType.Modified)
             {
-                ArgumentNullException.ThrowIfNull(toolDefinition);
+                ArgumentNullException.ThrowIfNull(document);
             }
 
             if (_disposed)
@@ -393,7 +402,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             }
 
             var sessions = _sessions;
-            var eventArgs = new OpenApiDefinitionStorageEventArgs(id, type, toolDefinition);
+            var eventArgs = new OpenApiDefinitionStorageEventArgs(id, type, document);
 
             foreach (var session in sessions)
             {
@@ -426,11 +435,11 @@ public abstract class OpenApiTestBase : IAsyncLifetime
         private sealed class ObserverSession : IDisposable
         {
             private bool _disposed;
-            private readonly TestOpenApiDefinitionStorage _storage;
+            private readonly TestOpenApiDocumentStorage _storage;
             private readonly IObserver<OpenApiDefinitionStorageEventArgs> _observer;
 
             public ObserverSession(
-                TestOpenApiDefinitionStorage storage,
+                TestOpenApiDocumentStorage storage,
                 IObserver<OpenApiDefinitionStorageEventArgs> observer)
             {
                 _storage = storage;

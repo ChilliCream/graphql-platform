@@ -5,23 +5,19 @@ namespace HotChocolate.Adapters.OpenApi;
 /// <summary>
 /// Represents a parsing error that occurred while parsing an OpenAPI document.
 /// </summary>
-public sealed class OpenApiParsingError : IOpenApiError
+public sealed class OpenApiDocumentParsingError : IOpenApiError
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="OpenApiParsingError" />.
+    /// Initializes a new instance of <see cref="OpenApiDocumentParsingError" />.
     /// </summary>
-    public OpenApiParsingError(string message, string documentId, DocumentNode document)
+    public OpenApiDocumentParsingError(string message, DocumentNode document)
     {
         Message = message;
-        DocumentId = documentId;
         Document = document;
     }
 
     /// <inheritdoc />
     public string Message { get; }
-
-    /// <inheritdoc />
-    public string DocumentId { get; }
 
     /// <summary>
     /// Gets the document node where the error occurred.

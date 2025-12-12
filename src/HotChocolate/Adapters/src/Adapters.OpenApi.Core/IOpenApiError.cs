@@ -9,9 +9,4 @@ public interface IOpenApiError
     /// Gets the error message.
     /// </summary>
     string Message { get; }
-
-    /// <summary>
-    /// Gets the document ID where the error occurred.
-    /// </summary>
-    string DocumentId { get; }
 }
