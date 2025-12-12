@@ -544,11 +544,13 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query foo($v: Boolean!, $q: Boolean!) {
-                hero(episode: EMPIRE) @include(if: $v) {
-                    name @include(if: $q)
-                }
-            }");
+            """
+            query foo($v: Boolean!, $q: Boolean!) {
+              hero(episode: EMPIRE) @include(if: $v) {
+                name @include(if: $q)
+              }
+            }
+            """);
 
         // act
         var operation = OperationCompiler.Compile(
@@ -603,14 +605,16 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"{
-                hero(episode: EMPIRE) {
-                    name
-                    ... @defer {
-                        id
-                    }
+            """
+            {
+              hero(episode: EMPIRE) {
+                name
+                ... @defer {
+                  id
                 }
-            }");
+              }
+            }
+            """);
 
         // act
         var operation = OperationCompiler.Compile(
@@ -631,16 +635,18 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"{
-                hero(episode: EMPIRE) {
-                    name
-                    ... Foo @defer
-                }
+            """
+            {
+              hero(episode: EMPIRE) {
+                name
+                ... Foo @defer
+              }
             }
 
             fragment Foo on Droid {
-                id
-            }");
+              id
+            }
+            """);
 
         // act
         var operation = OperationCompiler.Compile(
@@ -691,14 +697,16 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query foo($v: Boolean){
-                hero(episode: EMPIRE) {
-                    name @include(if: $v)
-                    ... abc
-                }
+            """
+            query foo($v: Boolean){
+              hero(episode: EMPIRE) {
+                name @include(if: $v)
+                ... abc
+              }
             }
 
-            fragment abc on Droid { }");
+            fragment abc on Droid { }
+            """);
 
         // act
         var operation = OperationCompiler.Compile(
