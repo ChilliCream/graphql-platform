@@ -163,11 +163,10 @@ public static class SymbolExtensions
     private static string? GetSummaryDocumentationWithInheritance(
         ISymbol symbol,
         Compilation compilation,
-        Func<XDocument, string?>? documentationSelector = null,
-        bool evaluateReturnsAndexceptions = false)
+        Func<XDocument, string?>? documentationSelector = null)
     {
         var visited = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
-        return GetSummaryDocumentationWithInheritanceCore(symbol, compilation, visited, documentationSelector, evaluateReturnsAndexceptions);
+        return GetSummaryDocumentationWithInheritanceCore(symbol, compilation, visited, documentationSelector);
     }
 
     /// <summary>
@@ -177,8 +176,7 @@ public static class SymbolExtensions
         ISymbol symbol,
         Compilation compilation,
         HashSet<ISymbol> visited,
-        Func<XDocument, string?>? documentationSelector = null,
-        bool evaluateReturnsAndexceptions = true)
+        Func<XDocument, string?>? documentationSelector = null)
     {
         var docSymbol = symbol is IParameterSymbol ? symbol.ContainingSymbol : symbol;
 
@@ -214,12 +212,15 @@ public static class SymbolExtensions
                     doc.Descendants("member").FirstOrDefault()?.Value;
             }
 
-            summaryText += GetReturnsElementText(doc);
-
-            var exceptionDoc = GetExceptionDocumentation(doc);
-            if (!string.IsNullOrEmpty(exceptionDoc))
+            if (symbol is IMethodSymbol or IPropertySymbol or IFieldSymbol)
             {
-                summaryText += "\n\n**Errors:**\n" + exceptionDoc;
+                summaryText += GetReturnsElementText(doc);
+
+                var exceptionDoc = GetExceptionDocumentation(doc);
+                if (!string.IsNullOrEmpty(exceptionDoc))
+                {
+                    summaryText += "\n\n**Errors:**\n" + exceptionDoc;
+                }
             }
 
             return GeneratorUtils.NormalizeXmlDocumentation(summaryText);

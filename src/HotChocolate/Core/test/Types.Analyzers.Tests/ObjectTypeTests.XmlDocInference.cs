@@ -321,4 +321,37 @@ public partial class ObjectTypeXmlDocInferenceTests
         var content = snapshot.Match();
         AssertFieldDocumentation(content, "Foo.", "FooBar");
     }
+
+    [Fact]
+    public void XmlDocumentation_ForParameter_Ignores_ReturnsAndExceptions()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using System;
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                namespace TestNamespace;
+
+
+                [QueryType]
+                public static partial class Query
+                {
+                    /// <summary>
+                    /// Foo.
+                    /// </summary>
+                    /// <param name="bar">Bar.</param>
+                    /// <returns>Bar-object</returns>
+                    /// <exception cref="Exception" code="EX">Foo-exception</exception>
+                    public static string? Foo(int bar) => null;
+                }
+                """);
+
+        var content = snapshot.Match();
+        AssertFieldDocumentation(
+            content,
+            "Foo.\\n\\n\\n**Returns:**\\nBar-object\\n\\n**Errors:**\\n1. EX: Foo-exception",
+            "Bar.");
+    }
 }
