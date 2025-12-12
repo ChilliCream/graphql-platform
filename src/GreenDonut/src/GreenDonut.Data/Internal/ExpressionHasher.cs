@@ -29,6 +29,9 @@ internal sealed class ExpressionHasher : ExpressionVisitor
         _initialSize = _buffer.Length;
     }
 
+    internal int BufferSize => _buffer.Length;
+    internal int InitialBufferSize => _initialSize;
+
     public ExpressionHasher Add(Expression expression)
     {
         Visit(expression);
@@ -50,8 +53,7 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
     public ExpressionHasher Add(char c)
     {
-        Append(c);
-        Append(';');
+        Append(c, ';');
         return this;
     }
 
@@ -211,12 +213,10 @@ internal sealed class ExpressionHasher : ExpressionVisitor
     {
         int written;
 
-        while (!Utf8Formatter.TryFormat(i, _buffer.AsSpan().Slice(_start), out written))
+        var span = _buffer.AsSpan().Slice(_start);
+        while (!Utf8Formatter.TryFormat(i, span, out written))
         {
-            var newBuffer = ArrayPool<byte>.Shared.Rent(_buffer.Length * 2);
-            _buffer.AsSpan().Slice(0, _start).CopyTo(newBuffer);
-            ArrayPool<byte>.Shared.Return(_buffer);
-            _buffer = newBuffer;
+            span = ExpandRollingBufferCapacity(_start);
         }
 
         _start += written;
@@ -262,10 +262,7 @@ internal sealed class ExpressionHasher : ExpressionVisitor
     {
         if (_start == _buffer.Length)
         {
-            var newBuffer = ArrayPool<byte>.Shared.Rent(_buffer.Length * 2);
-            _buffer.AsSpan().CopyTo(newBuffer);
-            ArrayPool<byte>.Shared.Return(_buffer);
-            _buffer = newBuffer;
+            ExpandBufferCapacity();
         }
 
         _buffer[_start++] = (byte)s;
@@ -273,12 +270,9 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
     private void Append(char a, char b)
     {
-        if (_start + 1 == _buffer.Length)
+        if (_start + 1 >= _buffer.Length)
         {
-            var newBuffer = ArrayPool<byte>.Shared.Rent(_buffer.Length * 2);
-            _buffer.AsSpan().CopyTo(newBuffer);
-            ArrayPool<byte>.Shared.Return(_buffer);
-            _buffer = newBuffer;
+            ExpandBufferCapacity();
         }
 
         _buffer[_start++] = (byte)a;
@@ -293,11 +287,7 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
         while (!Encoding.UTF8.TryGetBytes(chars, span, out written))
         {
-            var newBuffer = ArrayPool<byte>.Shared.Rent(_buffer.Length * 2);
-            _buffer.AsSpan().Slice(0, _start).CopyTo(newBuffer);
-            ArrayPool<byte>.Shared.Return(_buffer);
-            _buffer = newBuffer;
-            span = _buffer.AsSpan().Slice(_start);
+            span = ExpandRollingBufferCapacity(_start);
         }
 
         _start += written;
@@ -310,11 +300,7 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
         while (!Encoding.UTF8.TryGetBytes(s, span, out written))
         {
-            var newBuffer = ArrayPool<byte>.Shared.Rent(_buffer.Length * 2);
-            _buffer.AsSpan().Slice(0, _start).CopyTo(newBuffer);
-            ArrayPool<byte>.Shared.Return(_buffer);
-            _buffer = newBuffer;
-            span = _buffer.AsSpan().Slice(_start);
+            span = ExpandRollingBufferCapacity(_start);
         }
 
         _start += written;
@@ -324,10 +310,7 @@ internal sealed class ExpressionHasher : ExpressionVisitor
     {
         if (_start == _buffer.Length)
         {
-            var newBuffer = ArrayPool<byte>.Shared.Rent(_buffer.Length * 2);
-            _buffer.AsSpan().CopyTo(newBuffer);
-            ArrayPool<byte>.Shared.Return(_buffer);
-            _buffer = newBuffer;
+            ExpandBufferCapacity();
         }
 
         _buffer[_start++] = b;
@@ -339,13 +322,26 @@ internal sealed class ExpressionHasher : ExpressionVisitor
 
         while (!span.TryCopyTo(bufferSpan))
         {
-            var newBuffer = ArrayPool<byte>.Shared.Rent(_buffer.Length * 2);
-            _buffer.AsSpan().Slice(0, _start).CopyTo(newBuffer);
-            ArrayPool<byte>.Shared.Return(_buffer);
-            _buffer = newBuffer;
-            bufferSpan = _buffer.AsSpan().Slice(_start);
+            bufferSpan = ExpandRollingBufferCapacity(_start);
         }
 
         _start += span.Length;
+    }
+
+    private void ExpandBufferCapacity()
+    {
+        var newBuffer = ArrayPool<byte>.Shared.Rent(_buffer.Length * 2);
+        _buffer.AsSpan().CopyTo(newBuffer);
+        ArrayPool<byte>.Shared.Return(_buffer);
+        _buffer = newBuffer;
+    }
+
+    private Span<byte> ExpandRollingBufferCapacity(int bufferIndex)
+    {
+        var newBuffer = ArrayPool<byte>.Shared.Rent(_buffer.Length * 2);
+        _buffer.AsSpan().Slice(0, bufferIndex).CopyTo(newBuffer);
+        ArrayPool<byte>.Shared.Return(_buffer);
+        _buffer = newBuffer;
+        return _buffer.AsSpan().Slice(bufferIndex);
     }
 }
