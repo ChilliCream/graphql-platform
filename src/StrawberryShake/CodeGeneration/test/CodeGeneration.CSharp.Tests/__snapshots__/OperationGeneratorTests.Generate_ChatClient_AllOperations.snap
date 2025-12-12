@@ -4417,11 +4417,28 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.PersonEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), Deserialize_Uri(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "imageUri")), Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "lastSeen")), entity.Messages));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    var arg3 = Deserialize_Uri(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "imageUri"));
+                    var arg4 = Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "lastSeen"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, arg3, arg4, entity.Messages));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), Deserialize_Uri(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "imageUri")), Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "lastSeen")), default !));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    var arg3 = Deserialize_Uri(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "imageUri"));
+                    var arg4 = Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "lastSeen"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, arg3, arg4, entity.Messages));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, arg3, arg4, default !));
+                    }
                 }
 
                 return entityId;
@@ -4547,11 +4564,20 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.PersonEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(entity.Name, entity.Email, entity.IsOnline, entity.ImageUri, entity.LastSeen, Deserialize_IGetMessages_PersonByEmail_Messages(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "messages"), entityIds)));
+                    var arg0 = Deserialize_IGetMessages_PersonByEmail_Messages(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "messages"), entityIds);
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(entity.Name, entity.Email, entity.IsOnline, entity.ImageUri, entity.LastSeen, arg0));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(default !, default !, default !, default !, default !, Deserialize_IGetMessages_PersonByEmail_Messages(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "messages"), entityIds)));
+                    var arg0 = Deserialize_IGetMessages_PersonByEmail_Messages(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "messages"), entityIds);
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(entity.Name, entity.Email, entity.IsOnline, entity.ImageUri, entity.LastSeen, arg0));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(default !, default !, default !, default !, default !, arg0));
+                    }
                 }
 
                 return entityId;
@@ -4620,11 +4646,30 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.MessageEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text")), Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction")), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds), Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"));
+                    var arg2 = Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction"));
+                    var arg3 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds);
+                    var arg4 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds);
+                    var arg5 = Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(arg0, arg1, arg2, arg3, arg4, arg5));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text")), Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction")), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds), Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"));
+                    var arg2 = Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction"));
+                    var arg3 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds);
+                    var arg4 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds);
+                    var arg5 = Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(arg0, arg1, arg2, arg3, arg4, arg5));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(arg0, arg1, arg2, arg3, arg4, arg5));
+                    }
                 }
 
                 return entityId;
@@ -4681,11 +4726,24 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.PersonEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), entity.ImageUri, entity.LastSeen, entity.Messages));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, default !, default !, default !));
+                    }
                 }
 
                 return entityId;
@@ -4727,11 +4785,24 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.PersonEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), entity.ImageUri, entity.LastSeen, entity.Messages));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, default !, default !, default !));
+                    }
                 }
 
                 return entityId;
@@ -4833,11 +4904,30 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.MessageEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text")), Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction")), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds), Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"));
+                    var arg2 = Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction"));
+                    var arg3 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds);
+                    var arg4 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds);
+                    var arg5 = Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(arg0, arg1, arg2, arg3, arg4, arg5));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text")), Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction")), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds), Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"));
+                    var arg2 = Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction"));
+                    var arg3 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds);
+                    var arg4 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds);
+                    var arg5 = Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(arg0, arg1, arg2, arg3, arg4, arg5));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(arg0, arg1, arg2, arg3, arg4, arg5));
+                    }
                 }
 
                 return entityId;
@@ -4894,11 +4984,24 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.PersonEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), entity.ImageUri, entity.LastSeen, entity.Messages));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, default !, default !, default !));
+                    }
                 }
 
                 return entityId;
@@ -4940,11 +5043,24 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.PersonEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), entity.ImageUri, entity.LastSeen, entity.Messages));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, default !, default !, default !));
+                    }
                 }
 
                 return entityId;
@@ -5046,11 +5162,30 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.MessageEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text")), Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction")), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds), Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"));
+                    var arg2 = Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction"));
+                    var arg3 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds);
+                    var arg4 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds);
+                    var arg5 = Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(arg0, arg1, arg2, arg3, arg4, arg5));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text")), Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction")), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds), Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"));
+                    var arg2 = Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction"));
+                    var arg3 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds);
+                    var arg4 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds);
+                    var arg5 = Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(arg0, arg1, arg2, arg3, arg4, arg5));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(arg0, arg1, arg2, arg3, arg4, arg5));
+                    }
                 }
 
                 return entityId;
@@ -5107,11 +5242,24 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.PersonEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), entity.ImageUri, entity.LastSeen, entity.Messages));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, default !, default !, default !));
+                    }
                 }
 
                 return entityId;
@@ -5153,11 +5301,24 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.PersonEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), entity.ImageUri, entity.LastSeen, entity.Messages));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, default !, default !, default !));
+                    }
                 }
 
                 return entityId;
@@ -5238,11 +5399,30 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.MessageEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text")), Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction")), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds), Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"));
+                    var arg2 = Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction"));
+                    var arg3 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds);
+                    var arg4 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds);
+                    var arg5 = Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(arg0, arg1, arg2, arg3, arg4, arg5));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text")), Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction")), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds), Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds), Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"))));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"));
+                    var arg2 = Deserialize_NonNullableDirection(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "direction"));
+                    var arg3 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_RecipientEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "recipient"), entityIds);
+                    var arg4 = Update_NonNullableIGetMessages_PersonByEmail_Messages_Nodes_SenderEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sender"), entityIds);
+                    var arg5 = Deserialize_NonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sent"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(arg0, arg1, arg2, arg3, arg4, arg5));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.MessageEntity(arg0, arg1, arg2, arg3, arg4, arg5));
+                    }
                 }
 
                 return entityId;
@@ -5299,11 +5479,24 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.PersonEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), entity.ImageUri, entity.LastSeen, entity.Messages));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, default !, default !, default !));
+                    }
                 }
 
                 return entityId;
@@ -5345,11 +5538,24 @@ namespace Foo.Bar.State
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.PersonEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), entity.ImageUri, entity.LastSeen, entity.Messages));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
+                    var arg0 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"));
+                    var arg1 = Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email"));
+                    var arg2 = Deserialize_NonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline"));
+                    if (session.CurrentSnapshot.TryGetEntity(entityId, out entity))
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, entity.ImageUri, entity.LastSeen, entity.Messages));
+                    }
+                    else
+                    {
+                        session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(arg0, arg1, arg2, default !, default !, default !));
+                    }
                 }
 
                 return entityId;
