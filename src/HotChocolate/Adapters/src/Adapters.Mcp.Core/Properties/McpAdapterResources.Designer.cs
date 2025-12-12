@@ -141,6 +141,15 @@ namespace HotChocolate.Adapters.Mcp.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The icon theme must be &apos;light&apos; or &apos;dark&apos;..
+        /// </summary>
+        internal static string OperationToolIcon_InvalidIconTheme {
+            get {
+                return ResourceManager.GetString("OperationToolIcon_InvalidIconTheme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resource not found..
         /// </summary>
         internal static string ReadResourceHandler_ResourceNotFound {

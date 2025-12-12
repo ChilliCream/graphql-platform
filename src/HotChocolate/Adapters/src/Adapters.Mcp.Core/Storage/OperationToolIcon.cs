@@ -84,10 +84,24 @@ public sealed partial class OperationToolIcon
     }
 
     /// <summary>
-    /// The optional theme for this icon. Can be "light", "dark", or a custom theme identifier. Used
-    /// to specify which UI theme the icon is designed for.
+    /// The optional theme for this icon. Can be "light" or "dark". Used to specify which UI theme
+    /// the icon is designed for.
     /// </summary>
-    public string? Theme { get; init; }
+    public string? Theme
+    {
+        get;
+        init
+        {
+            if (value is not null and not "light" and not "dark")
+            {
+                throw new ArgumentException(
+                    OperationToolIcon_InvalidIconTheme,
+                    nameof(Theme));
+            }
+
+            field = value;
+        }
+    }
 
     [GeneratedRegex(@"^([0-9]+x[0-9]+|any)\z")]
     private static partial Regex IconSizeRegex();
