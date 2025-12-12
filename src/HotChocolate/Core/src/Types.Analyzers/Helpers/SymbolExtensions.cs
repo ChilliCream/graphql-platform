@@ -80,11 +80,7 @@ public static class SymbolExtensions
 
     public static ParameterDescription? GetDescription(this IParameterSymbol parameter, Compilation? compilation)
     {
-        var result = ResolveDescriptionCore(
-            parameter.ContainingSymbol,
-            compilation,
-            ExtractParameterDescriptionFunc(parameter));
-
+        var result = ResolveDescriptionCore(parameter, compilation, ExtractParameterDescriptionFunc(parameter));
         return result is null ? null : new ParameterDescription(result);
     }
 
@@ -184,13 +180,15 @@ public static class SymbolExtensions
         Func<XDocument, string?>? documentationSelector = null,
         bool evaluateReturnsAndexceptions = true)
     {
+        var docSymbol = symbol is IParameterSymbol ? symbol.ContainingSymbol : symbol;
+
         // Prevent infinite recursion
-        if (!visited.Add(symbol))
+        if (!visited.Add(docSymbol))
         {
             return null;
         }
 
-        var xml = symbol.GetDocumentationCommentXml();
+        var xml = docSymbol.GetDocumentationCommentXml();
         if (string.IsNullOrEmpty(xml))
         {
             return null;

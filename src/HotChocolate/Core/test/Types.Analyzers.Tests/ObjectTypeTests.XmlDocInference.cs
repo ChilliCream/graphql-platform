@@ -43,8 +43,7 @@ public partial class ObjectTypeXmlDocInferenceTests
                 """);
 
         var content = snapshot.Match();
-        var emitted = s_description.Matches(content).Single().Groups;
-        Assert.Equal("Method doc.", emitted[1].Value);
+        AssertFieldDocumentation(content, "Method doc.");
     }
 
     [Fact]
@@ -92,8 +91,7 @@ public partial class ObjectTypeXmlDocInferenceTests
                 """);
 
         var content = snapshot.Match();
-        var emitted = s_description.Matches(content).Single().Groups;
-        Assert.Equal("Concrete Method doc.\\nMethod doc.", emitted[1].Value);
+        AssertFieldDocumentation(content, "Concrete Method doc.\\nMethod doc.");
     }
 
     [Fact]
@@ -123,8 +121,7 @@ public partial class ObjectTypeXmlDocInferenceTests
                 """);
 
         var content = snapshot.Match();
-        var emitted = s_description.Matches(content).Single().Groups;
-        Assert.Equal("Nothing", emitted[1].Value);
+        AssertFieldDocumentation(content, "Nothing");
     }
 
     [Fact]
@@ -236,12 +233,11 @@ public partial class ObjectTypeXmlDocInferenceTests
                 """);
 
         var content = snapshot.Match();
-        var emitted = s_description.Matches(content).Single().Groups;
-        Assert.Equal("This type is similar useless to 'The Bar type.'.", emitted[1].Value);
+        AssertFieldDocumentation(content, "This type is similar useless to 'The Bar type.'.");
     }
 
     [Fact]
-    public void XmlDocumentation_IsInferred_ForParameter()
+    public void XmlDocumentation_ForParameter_IsInferred()
     {
         var snapshot =
             TestHelper.GetGeneratedSourceSnapshot(
@@ -263,7 +259,66 @@ public partial class ObjectTypeXmlDocInferenceTests
                 """);
 
         var content = snapshot.Match();
-        var emitted = s_description.Matches(content).Single().Groups;
-        Assert.Equal("Foo.", emitted[1].Value);
+        AssertFieldDocumentation(content, "Foo.", "Bar.");
+    }
+
+    [Fact]
+    public void XmlDocumentation_ForParameter_Is_Overriden_By_DescriptionAttribute()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using System;
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                namespace TestNamespace;
+
+                [QueryType]
+                public static partial class Query
+                {
+                    /// <summary>
+                    /// Foo.
+                    /// </summary>
+                    /// <param name="bar">Bar.</param>
+                    public static string? Foo([GraphQLDescription("FooBar")]int bar) => null;
+                }
+                """);
+
+        var content = snapshot.Match();
+        AssertFieldDocumentation(content, "Foo.", "FooBar");
+    }
+
+    [Fact]
+    public void XmlDocumentation_ForParameter_WithInheritdoc_Is_Overriden_By_DescriptionAttribute()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using System;
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                namespace TestNamespace;
+
+                public class TestClass
+                {
+                    /// <summary>
+                    /// Foo.
+                    /// </summary>
+                    /// <param name="bar">Bar.</param>
+                    public static string? Foo(int bar) => null;
+                }
+
+                [QueryType]
+                public static partial class Query
+                {
+                    /// <inheritdoc cref="TestClass.Foo(int)" />
+                    public static string? Foo([GraphQLDescription("FooBar")]int bar) => null;
+                }
+                """);
+
+        var content = snapshot.Match();
+        AssertFieldDocumentation(content, "Foo.", "FooBar");
     }
 }
