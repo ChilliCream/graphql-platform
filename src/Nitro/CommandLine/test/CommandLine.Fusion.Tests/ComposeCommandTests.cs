@@ -2,6 +2,7 @@ using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
+using HotChocolate.Fusion;
 using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Fusion.Tests;
@@ -41,7 +42,7 @@ public sealed class ComposeCommandTests : IDisposable
         Assert.Equal(0, exitCode);
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -70,7 +71,7 @@ public sealed class ComposeCommandTests : IDisposable
         Assert.Equal(0, exitCode);
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -101,7 +102,7 @@ public sealed class ComposeCommandTests : IDisposable
         Assert.True(File.Exists(archiveFileName));
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -135,7 +136,7 @@ public sealed class ComposeCommandTests : IDisposable
         Assert.True(File.Exists(filePath));
 
         using var archive = FusionArchive.Open(fileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -167,7 +168,7 @@ public sealed class ComposeCommandTests : IDisposable
         Assert.True(File.Exists(filePath));
 
         using var archive = FusionArchive.Open(filePath);
-        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -199,7 +200,7 @@ public sealed class ComposeCommandTests : IDisposable
         Assert.True(File.Exists(filePath));
 
         using var archive = FusionArchive.Open(filePath);
-        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -230,7 +231,7 @@ public sealed class ComposeCommandTests : IDisposable
         Assert.True(File.Exists(filePath));
 
         using var archive = FusionArchive.Open(filePath);
-        var config = await archive.TryGetGatewayConfigurationAsync(new Version(2, 0, 0));
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
@@ -358,6 +359,32 @@ public sealed class ComposeCommandTests : IDisposable
         // assert
         Assert.Equal(1, exitCode);
         testConsole.Error.ToString()!.ReplaceLineEndings("\n").MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Compose_IgnoredNonAccessibleFields()
+    {
+        // arrange
+        var archiveFileName = CreateTempFile();
+        var builder = GetCommandLineBuilder();
+
+        string[] args =
+        [
+            "compose",
+            "--source-schema-file",
+            "__resources__/valid-example-2/source-schema-a.graphqls",
+            "--source-schema-file",
+            "__resources__/valid-example-2/source-schema-b.graphqls",
+            "--fusion-archive",
+            archiveFileName
+        ];
+        var testConsole = new TestConsole();
+
+        // act
+        var exitCode = await builder.Build().InvokeAsync(args, testConsole);
+
+        // assert
+        Assert.Equal(0, exitCode);
     }
 
     private static CommandLineBuilder GetCommandLineBuilder()

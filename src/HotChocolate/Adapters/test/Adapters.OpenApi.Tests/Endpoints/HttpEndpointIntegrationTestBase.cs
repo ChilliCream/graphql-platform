@@ -29,6 +29,44 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
+    public async Task Http_Get_With_Fragment_Referencing_Fragment()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a user by their id"
+            query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                ...User
+              }
+            }
+            """,
+            """
+            fragment User on User {
+              id
+              name
+              email
+              address {
+                ...Address
+              }
+            }
+            """,
+            """
+            fragment Address on Address {
+              street
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/users/1");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Http_Get_With_Query_Parameter()
     {
         // arrange
@@ -38,6 +76,33 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 
         // act
         var response = await client.GetAsync("/users/1/details?includeAddress=true");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_Without_Query_Parameter_That_Has_Default_Value()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetFullUser($userId: ID!, $includeAddress: Boolean! = true)
+              @http(method: GET, route: "/users/{userId}/details", queryParameters: ["includeAddress"]) {
+              userById(id: $userId) {
+                id
+                name
+                address @include(if: $includeAddress) {
+                  street
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/users/1/details");
 
         // assert
         response.MatchSnapshot();
@@ -353,32 +418,6 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
-    public async Task Http_Post_Body_Field_Has_Wrong_Type()
-    {
-        // arrange
-        var storage = CreateBasicTestDocumentStorage();
-        var server = CreateTestServer(storage);
-        var client = server.CreateClient();
-
-        // act
-        var content = new StringContent(
-            """
-            {
-              "id": "6",
-              "name": "Test",
-              "email": 123
-            }
-            """,
-            Encoding.UTF8,
-            "application/json");
-
-        var response = await client.PostAsync("/users", content);
-
-        // assert
-        response.MatchSnapshot();
-    }
-
-    [Fact]
     public async Task Http_Post_Body_Missing_Field()
     {
         // arrange
@@ -444,6 +483,33 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             "application/json");
 
         var response = await client.PutAsync("/users/6", content);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Put_Deeply_Nested_Input_Without_Query_Parameter_That_Has_Default_Value()
+    {
+        // arrange
+        var storage = CreateBasicTestDocumentStorage();
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var content = new StringContent(
+            """
+            {
+              "field": "Test",
+              "object": {
+                "otherField": "Test2"
+              }
+            }
+            """,
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await client.PutAsync("/object/6", content);
 
         // assert
         response.MatchSnapshot();

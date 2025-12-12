@@ -25,7 +25,7 @@ public abstract class IntegrationTestBase
     public async Task ListTools_Valid_ReturnsTools()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
@@ -59,7 +59,7 @@ public abstract class IntegrationTestBase
     public async Task ListTools_AfterToolsUpdate_ReturnsUpdatedTools()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
@@ -111,7 +111,7 @@ public abstract class IntegrationTestBase
     public async Task ListTools_WithCustomTool_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse("query GetBooks { books { title } }")));
@@ -133,7 +133,7 @@ public abstract class IntegrationTestBase
     public async Task ListTools_WithOpenAiComponent_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         var document1 =
             Utf8GraphQLParser.Parse(
                 await File.ReadAllTextAsync("__resources__/GetWithNullableVariables.graphql"));
@@ -178,7 +178,7 @@ public abstract class IntegrationTestBase
     public async Task ListTools_SetTitle_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
@@ -206,7 +206,7 @@ public abstract class IntegrationTestBase
     public async Task ListTools_SetIcons_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
@@ -257,7 +257,7 @@ public abstract class IntegrationTestBase
     public async Task ListTools_SetAnnotations_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
@@ -287,7 +287,7 @@ public abstract class IntegrationTestBase
     public async Task ListTools_SetAnnotationsInSchema_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
@@ -316,7 +316,7 @@ public abstract class IntegrationTestBase
     public async Task ListTools_InitializeToolsInvalidDocument_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse("query Invalid { doesNotExist1, doesNotExist2 }")));
@@ -344,7 +344,7 @@ public abstract class IntegrationTestBase
     public async Task ListTools_UpdateToolsInvalidDocument_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(Utf8GraphQLParser.Parse("query Tool { books { title } }"))
             {
@@ -378,7 +378,7 @@ public abstract class IntegrationTestBase
     public async Task CallTool_GetWithNullableVariables_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
@@ -416,7 +416,7 @@ public abstract class IntegrationTestBase
                 { "url", null },
                 { "uuid", null }
             },
-            serializerOptions: JsonSerializerOptions.Default);
+            options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 
         // assert
         result.StructuredContent!
@@ -429,7 +429,7 @@ public abstract class IntegrationTestBase
     public async Task CallTool_GetWithNonNullableVariables_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
@@ -468,7 +468,7 @@ public abstract class IntegrationTestBase
                 { "url", "https://example.com" },
                 { "uuid", "00000000-0000-0000-0000-000000000000" }
             },
-            serializerOptions: JsonSerializerOptions.Default);
+            options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 
         // assert
         result.StructuredContent!
@@ -481,7 +481,7 @@ public abstract class IntegrationTestBase
     public async Task CallTool_GetWithDefaultedVariables_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
@@ -503,7 +503,7 @@ public abstract class IntegrationTestBase
     public async Task CallTool_GetWithComplexVariables_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
@@ -539,7 +539,7 @@ public abstract class IntegrationTestBase
                 { "objectWithOneOfField", new { field = new { field1 = 1 } } },
                 { "timeSpanDotNet", "00:05:00" }
             },
-            serializerOptions: JsonSerializerOptions.Default);
+            options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 
         // assert
         result.StructuredContent!
@@ -552,7 +552,7 @@ public abstract class IntegrationTestBase
     public async Task CallTool_GetWithErrors_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse("query GetWithErrors { withErrors }")));
@@ -574,7 +574,7 @@ public abstract class IntegrationTestBase
     public async Task CallTool_GetWithAuthSuccess_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }")));
@@ -596,7 +596,7 @@ public abstract class IntegrationTestBase
     public async Task CallTool_GetWithAuthFailure_ReturnsExpectedResult()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse("query GetWithAuth { withAuth }")));
@@ -620,7 +620,7 @@ public abstract class IntegrationTestBase
         // arrange
         var server =
             await CreateTestServerAsync(
-                new TestOperationToolStorage(),
+                new TestMcpStorage(),
                 configureMcpServer: b => b.WithTools([typeof(TestTool)]));
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
@@ -637,55 +637,10 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
-    public async Task ListResources_Valid_ReturnsResources()
-    {
-        // arrange
-        var storage = new TestOperationToolStorage();
-        var documentNode1 = Utf8GraphQLParser.Parse(
-            await File.ReadAllTextAsync("__resources__/GetBooksWithTitle1.graphql"));
-        var documentNode2 = Utf8GraphQLParser.Parse(
-            await File.ReadAllTextAsync("__resources__/GetBooksWithTitle2.graphql"));
-        await storage.AddOrUpdateToolAsync(
-            new OperationToolDefinition(documentNode1)
-            {
-                OpenAiComponent = new OpenAiComponent(
-                    htmlTemplateText: await File.ReadAllTextAsync("__resources__/OpenAiComponent.html"))
-            });
-        await storage.AddOrUpdateToolAsync(
-            new OperationToolDefinition(documentNode2)
-            {
-                OpenAiComponent = new OpenAiComponent(
-                    htmlTemplateText: await File.ReadAllTextAsync("__resources__/OpenAiComponent.html"))
-                {
-                    Description = "GetBooksWithTitle2 OpenAI Component description",
-                    PrefersBorder = true,
-                    AllowToolCalls = true,
-                    ContentSecurityPolicy =
-                        new OpenAiComponentCsp(
-                            ConnectDomains: ["https://example.com"],
-                            ResourceDomains: ["https://*.example.com"]),
-                    Domain = "https://example.com",
-                    ToolInvokingStatusText = "Fetching books...",
-                    ToolInvokedStatusText = "Books fetched."
-                }
-            });
-        var server = await CreateTestServerAsync(storage);
-        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
-
-        // act
-        var resources = await mcpClient.ListResourcesAsync();
-
-        // assert
-        JsonSerializer.Serialize(resources, JsonSerializerOptions)
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
-    }
-
-    [Fact]
     public async Task ReadResource_Valid_ReturnsResource()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         var documentNode = Utf8GraphQLParser.Parse(
             await File.ReadAllTextAsync("__resources__/GetBooksWithTitle1.graphql"));
         var tool =
@@ -697,7 +652,7 @@ public abstract class IntegrationTestBase
                     Description = "GetBooksWithTitle1 OpenAI Component description",
                     PrefersBorder = true,
                     AllowToolCalls = true,
-                    ContentSecurityPolicy =
+                    Csp =
                         new OpenAiComponentCsp(
                             ConnectDomains: ["https://example.com"],
                             ResourceDomains: ["https://*.example.com"]),
@@ -723,19 +678,18 @@ public abstract class IntegrationTestBase
     public async Task ReadResource_Missing_ThrowsException()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        async Task Action() => await mcpClient.ReadResourceAsync("ui://components/missing.html");
+        async Task Action() => await mcpClient.ReadResourceAsync("ui://open-ai-components/missing.html");
 
         // assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(Action);
+        Assert.EndsWith("Resource not found.", exception.Message);
         Assert.Equal(-32002, (int)exception.ErrorCode);
-        Assert.EndsWith(
-            "The resource with URI 'ui://components/missing.html' was not found.",
-            exception.Message);
+        Assert.Equal("ui://open-ai-components/missing.html", exception.Data["uri"]);
     }
 
     [Fact]
@@ -744,7 +698,7 @@ public abstract class IntegrationTestBase
         // arrange & act
         var server =
             await CreateTestServerAsync(
-                new TestOperationToolStorage(),
+                new TestMcpStorage(),
                 configureMcpServerOptions: o => o.InitializationTimeout = TimeSpan.FromSeconds(10));
         await CreateMcpClientAsync(server.CreateClient());
         var executor = await server.Services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
@@ -756,7 +710,7 @@ public abstract class IntegrationTestBase
     }
 
     protected abstract Task<TestServer> CreateTestServerAsync(
-        IOperationToolStorage storage,
+        IMcpStorage storage,
         ITypeDefinition[]? additionalTypes = null,
         McpDiagnosticEventListener? diagnosticEventListener = null,
         Action<McpServerOptions>? configureMcpServerOptions = null,

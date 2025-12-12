@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Comparers;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
@@ -33,35 +34,38 @@ public sealed class SchemaComposer
     public CompositionResult<MutableSchemaDefinition> Compose()
     {
         // Parse Source Schemas
-        var parserOptions = _schemaComposerOptions.Parser;
-        var (_, isParseFailure, schemas, parseErrors) =
-            new SourceSchemaParser(_sourceSchemas, _log, parserOptions).Parse();
-
-        if (isParseFailure)
-        {
-            return parseErrors;
-        }
-
-        // Preprocess Source Schemas
-        var preprocessResult =
-            schemas.Select(schema =>
+        var parsingResult =
+            _sourceSchemas.Select(schema =>
             {
-                var optionsExist =
-                    _schemaComposerOptions.Preprocessor.TryGetValue(
-                        schema.Name,
-                        out var preprocessorOptions);
+                var options = _schemaComposerOptions.SourceSchemas.GetValueOrDefault(schema.Name);
 
-                if (!optionsExist)
-                {
-                    preprocessorOptions = new SourceSchemaPreprocessorOptions();
-                }
-
-                return new SourceSchemaPreprocessor(schema, preprocessorOptions).Process();
+                return new SourceSchemaParser(schema, _log, options?.Parser).Parse();
             }).Combine();
 
-        if (preprocessResult.IsFailure)
+        if (parsingResult.IsFailure)
         {
-            return preprocessResult;
+            return parsingResult;
+        }
+
+        var schemas =
+            parsingResult.Value.ToImmutableSortedSet(new SchemaByNameComparer<MutableSchemaDefinition>());
+
+        // Preprocess Source Schemas
+        var preprocessingResult =
+            schemas.Select(schema =>
+            {
+                var options = _schemaComposerOptions.SourceSchemas.GetValueOrDefault(schema.Name);
+
+                return new SourceSchemaPreprocessor(
+                    schema,
+                    schemas,
+                    options?.Version,
+                    options?.Preprocessor).Preprocess();
+            }).Combine();
+
+        if (preprocessingResult.IsFailure)
+        {
+            return preprocessingResult;
         }
 
         // Enrich Source Schemas
@@ -111,7 +115,9 @@ public sealed class SchemaComposer
         }
 
         // Validate Satisfiability
-        var satisfiabilityResult = new SatisfiabilityValidator(mergedSchema, _log).Validate();
+        var satisfiabilityOptions = _schemaComposerOptions.Satisfiability;
+        var satisfiabilityResult =
+            new SatisfiabilityValidator(mergedSchema, _log, satisfiabilityOptions).Validate();
 
         if (satisfiabilityResult.IsFailure)
         {

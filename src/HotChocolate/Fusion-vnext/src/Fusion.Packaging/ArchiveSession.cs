@@ -126,52 +126,48 @@ internal sealed class ArchiveSession : IDisposable
 
     public async Task CommitAsync(CancellationToken cancellationToken)
     {
-        foreach (var file in _files.Values)
+        foreach (var file in _files.Values.OrderBy(f => f.Path, StringComparer.Ordinal))
         {
-#if NET10_0_OR_GREATER
             switch (file.State)
             {
                 case FileState.Created:
-                    await _archive.CreateEntryFromFileAsync(
-                        file.TempPath,
-                        file.Path,
-                        cancellationToken: cancellationToken);
+                    await CreateEntryFromFileAsync(file.TempPath, file.Path, cancellationToken);
                     break;
 
                 case FileState.Replaced:
                     _archive.GetEntry(file.Path)?.Delete();
-                    await _archive.CreateEntryFromFileAsync(
-                        file.TempPath,
-                        file.Path,
-                        cancellationToken);
+                    await CreateEntryFromFileAsync(file.TempPath, file.Path, cancellationToken);
                     break;
 
                 case FileState.Deleted:
                     _archive.GetEntry(file.Path)?.Delete();
                     break;
             }
-#else
-            switch (file.State)
-            {
-                case FileState.Created:
-                    _archive.CreateEntryFromFile(file.TempPath, file.Path);
-                    break;
-
-                case FileState.Replaced:
-                    _archive.GetEntry(file.Path)?.Delete();
-                    _archive.CreateEntryFromFile(file.TempPath, file.Path);
-                    break;
-
-                case FileState.Deleted:
-                    _archive.GetEntry(file.Path)?.Delete();
-                    break;
-            }
-
-            await Task.CompletedTask;
-#endif
 
             file.MarkRead();
         }
+    }
+
+    /// <summary>
+    /// Creates a ZIP entry from a file with a deterministic timestamp.
+    /// Using a fixed timestamp ensures binary reproducibility of the archive.
+    /// </summary>
+    private async Task CreateEntryFromFileAsync(
+        string sourceFileName,
+        string entryName,
+        CancellationToken cancellationToken)
+    {
+        var entry = _archive.CreateEntry(entryName);
+        // Use a fixed timestamp to ensure deterministic archive output
+        entry.LastWriteTime = new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        await using var source = File.OpenRead(sourceFileName);
+#if NET10_0_OR_GREATER
+        await using var destination = await entry.OpenAsync(cancellationToken);
+#else
+        await using var destination = entry.Open();
+#endif
+        await source.CopyToAsync(destination, cancellationToken);
     }
 
     private static async Task ExtractFileAsync(
@@ -183,21 +179,28 @@ internal sealed class ArchiveSession : IDisposable
         var buffer = ArrayPool<byte>.Shared.Rent(4096);
         var consumed = 0;
 
-        await using var readStream = zipEntry.Open();
-        await using var writeStream = File.Open(fileEntry.TempPath, FileMode.Create, FileAccess.Write);
-
-        int read;
-        while ((read = await readStream.ReadAsync(buffer, cancellationToken)) > 0)
+        try
         {
-            consumed += read;
+            await using var readStream = zipEntry.Open();
+            await using var writeStream = File.Open(fileEntry.TempPath, FileMode.Create, FileAccess.Write);
 
-            if (consumed > maxAllowedSize)
+            int read;
+            while ((read = await readStream.ReadAsync(buffer, cancellationToken)) > 0)
             {
-                throw new InvalidOperationException(
-                    $"File is too large and exceeds the allowed size of {maxAllowedSize}.");
-            }
+                consumed += read;
 
-            await writeStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+                if (consumed > maxAllowedSize)
+                {
+                    throw new InvalidOperationException(
+                        $"File is too large and exceeds the allowed size of {maxAllowedSize}.");
+                }
+
+                await writeStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 

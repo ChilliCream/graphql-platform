@@ -11,16 +11,16 @@ using static ModelContextProtocol.Protocol.NotificationMethods;
 
 namespace HotChocolate.Adapters.Mcp;
 
-internal sealed class ToolStorageObserver : IDisposable
+internal sealed class McpStorageObserver : IDisposable
 {
     private readonly SemaphoreSlim _semaphore = new(initialCount: 1, maxCount: 1);
     private readonly CancellationTokenSource _cts = new();
     private readonly CancellationToken _ct;
     private readonly ISchemaDefinition _schema;
-    private readonly ToolRegistry _registry;
+    private readonly McpFeatureRegistry _registry;
     private readonly OperationToolFactory _toolFactory;
     private readonly ConcurrentDictionary<string, McpServer> _mcpServers;
-    private readonly IOperationToolStorage _storage;
+    private readonly IMcpStorage _storage;
     private readonly IMcpDiagnosticEvents _diagnosticEvents;
     private IDisposable? _subscription;
 #if NET10_0_OR_GREATER
@@ -32,12 +32,12 @@ internal sealed class ToolStorageObserver : IDisposable
         = DocumentValidatorBuilder.New().AddDefaultRules().Build();
     private bool _disposed;
 
-    public ToolStorageObserver(
+    public McpStorageObserver(
         ISchemaDefinition schema,
-        ToolRegistry registry,
+        McpFeatureRegistry registry,
         OperationToolFactory toolFactory,
         ConcurrentDictionary<string, McpServer> mcpServers,
-        IOperationToolStorage storage,
+        IMcpStorage storage,
         IMcpDiagnosticEvents diagnosticEvents)
     {
         _schema = schema;
@@ -71,7 +71,7 @@ internal sealed class ToolStorageObserver : IDisposable
 
             using var scope = _diagnosticEvents.InitializeTools();
 
-            foreach (var toolDefinition in await _storage.GetToolsAsync(cancellationToken))
+            foreach (var toolDefinition in await _storage.GetOperationToolDefinitionsAsync(cancellationToken))
             {
                 var validationResult = s_documentValidator.Validate(_schema, toolDefinition.Document);
 

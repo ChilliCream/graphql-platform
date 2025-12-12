@@ -4,6 +4,7 @@ using System.CommandLine.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
+using ChilliCream.Nitro.CommandLine.Fusion.Settings;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Errors;
@@ -510,16 +511,49 @@ internal sealed class ComposeCommand : Command
 
         var existingCompositionSettings = await GetCompositionSettingsAsync(archive, cancellationToken);
 
+        var sourceSchemaOptionsMap = new Dictionary<string, SourceSchemaOptions>();
+        var mergerOptions = existingCompositionSettings.Merger?.ToOptions() ?? new SourceSchemaMergerOptions();
+        var satisfiabilityOptions = new SatisfiabilityOptions();
+
+        if (enableGlobalObjectIdentification.HasValue)
+        {
+            mergerOptions.EnableGlobalObjectIdentification = enableGlobalObjectIdentification.Value;
+        }
+
+        foreach (var (sourceSchemaName, (_, sourceSchemaSettings)) in sourceSchemas)
+        {
+            var schemaSettings =
+                sourceSchemaSettings.Deserialize(JsonSourceGenerationContext.Default.SourceSchemaSettings)!;
+
+            var sourceSchemaOptions = new SourceSchemaOptions();
+
+            if (schemaSettings.Version is { } version)
+            {
+                sourceSchemaOptions.Version = version;
+            }
+
+            if (schemaSettings.Parser is { } parserSettings)
+            {
+                sourceSchemaOptions.Parser = parserSettings.ToOptions();
+            }
+
+            if (schemaSettings.Preprocessor is { } preprocessorSettings)
+            {
+                sourceSchemaOptions.Preprocessor = preprocessorSettings.ToOptions();
+            }
+
+            sourceSchemaOptionsMap.Add(sourceSchemaName, sourceSchemaOptions);
+            schemaSettings.Satisfiability?.MergeInto(satisfiabilityOptions);
+        }
+
         var schemaComposerOptions = new SchemaComposerOptions
         {
-            Merger =
-            {
-                EnableGlobalObjectIdentification = enableGlobalObjectIdentification
-                    ?? existingCompositionSettings.EnableGlobalObjectIdentification
-            }
+            SourceSchemas = sourceSchemaOptionsMap,
+            Merger = mergerOptions,
+            Satisfiability = satisfiabilityOptions
         };
 
-        if (existingCompositionSettings.EnableGlobalObjectIdentification
+        if (existingCompositionSettings.Merger?.EnableGlobalObjectIdentification
             != schemaComposerOptions.Merger.EnableGlobalObjectIdentification)
         {
             compositionLog.Write(
@@ -553,7 +587,7 @@ internal sealed class ComposeCommand : Command
 
         var metadata = new ArchiveMetadata
         {
-            SupportedGatewayFormats = [new Version(2, 0, 0)],
+            SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
             SourceSchemas = [.. sourceSchemas.Keys]
         };
 
@@ -571,7 +605,7 @@ internal sealed class ComposeCommand : Command
         await archive.SetGatewayConfigurationAsync(
             result.Value + Environment.NewLine,
             JsonDocument.Parse(bufferWriter.WrittenMemory),
-            new Version(2, 0, 0),
+            WellKnownVersions.LatestGatewayFormatVersion,
             cancellationToken);
 
         await SaveCompositionSettingsAsync(archive, schemaComposerOptions, cancellationToken);
@@ -697,7 +731,10 @@ internal sealed class ComposeCommand : Command
         return compositionSettings?.Deserialize(JsonSourceGenerationContext.Default.CompositionSettings)
             ?? new CompositionSettings
             {
-                EnableGlobalObjectIdentification = false
+                Merger = new MergerSettings
+                {
+                    EnableGlobalObjectIdentification = false
+                }
             };
     }
 
@@ -708,7 +745,10 @@ internal sealed class ComposeCommand : Command
     {
         var settings = new CompositionSettings
         {
-            EnableGlobalObjectIdentification = options.Merger.EnableGlobalObjectIdentification
+            Merger = new MergerSettings
+            {
+                EnableGlobalObjectIdentification = options.Merger.EnableGlobalObjectIdentification
+            }
         };
         var settingsJson = JsonSerializer.SerializeToDocument(
             settings,
@@ -740,10 +780,5 @@ internal sealed class ComposeCommand : Command
         }
 
         return string.Join(Environment.NewLine + "   ", lines);
-    }
-
-    public record CompositionSettings
-    {
-        public required bool EnableGlobalObjectIdentification { get; init; }
     }
 }

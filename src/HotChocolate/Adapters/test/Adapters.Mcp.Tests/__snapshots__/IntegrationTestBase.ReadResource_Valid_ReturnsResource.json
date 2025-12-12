@@ -1,7 +1,7 @@
 {
   "contents": [
     {
-      "uri": "ui://components/get-books-with-title-1-C7C16BF50987BEE49CA1D2CCC7BBC3D3A3A92660EB0380F842EBA6BB87F56259.html",
+      "uri": "ui://open-ai-components/get-books-with-title-1-C7C16BF50987BEE49CA1D2CCC7BBC3D3A3A92660EB0380F842EBA6BB87F56259.html",
       "mimeType": "text/html+skybridge",
       "text": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>OpenAI Component</title>\n</head>\n<body>\n  <h1>OpenAI Component</h1>\n</body>\n</html>\n",
       "_meta": {

@@ -1,8 +1,0 @@
-"The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."
-enum fusion__Schema {
-  ANOTHER_NAME @fusion__schema_metadata(name: "AnotherNAME")
-  ANOTHER_NAME_1 @fusion__schema_metadata(name: "AnotherName")
-  EXAMPLE_NAME @fusion__schema_metadata(name: "Example-Name")
-  EXAMPLE_NAME_1 @fusion__schema_metadata(name: "Example.Name")
-  EXAMPLE_NAME_2 @fusion__schema_metadata(name: "Example_Name")
-}

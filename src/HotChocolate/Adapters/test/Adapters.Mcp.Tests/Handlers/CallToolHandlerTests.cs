@@ -29,7 +29,7 @@ public sealed class CallToolHandlerTests
     private static async Task<RequestContext<CallToolRequestParams>> CreateRequestContextAsync(
         string toolName)
     {
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
@@ -40,7 +40,7 @@ public sealed class CallToolHandlerTests
             .AddGraphQL()
             .AddAuthorization()
             .AddMcp()
-            .AddMcpToolStorage(storage)
+            .AddMcpStorage(storage)
             .AddQueryType<TestSchema.Query>()
             .AddInterfaceType<TestSchema.IPet>()
             .AddUnionType<TestSchema.IPet>()

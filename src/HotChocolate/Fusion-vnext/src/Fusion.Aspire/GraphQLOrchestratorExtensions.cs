@@ -16,7 +16,7 @@ public static class GraphQLOrchestratorExtensions
     public static IDistributedApplicationBuilder AddGraphQLOrchestrator(
         this IDistributedApplicationBuilder builder)
     {
-        builder.Services.AddLifecycleHook<SchemaComposition>();
+        builder.Services.AddEventingSubscriber<SchemaComposition>();
         return builder;
     }
 }

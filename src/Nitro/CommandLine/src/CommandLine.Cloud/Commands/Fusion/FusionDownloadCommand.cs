@@ -14,6 +14,7 @@ internal sealed class FusionDownloadCommand : Command
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
         AddOption(Opt<OptionalOutputFileOption>.Instance);
+        this.AddNitroCloudDefaultOptions();
 
         this.SetHandler(
             ExecuteAsync,
