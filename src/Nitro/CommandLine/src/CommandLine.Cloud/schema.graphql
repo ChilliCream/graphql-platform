@@ -3136,7 +3136,7 @@ type Query {
   workspaceById(workspaceId: ID!): Workspace
 }
 
-type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & ProcessingError {
+type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & ProcessingError {
   message: String!
 }
 
@@ -3998,7 +3998,7 @@ type ValidationErrorProperty {
   message: String!
 }
 
-type ValidationInProgress implements FusionConfigurationPublishingResult & ClientVersionValidationResult & SchemaVersionValidationResult {
+type ValidationInProgress implements FusionConfigurationPublishingResult & ClientVersionValidationResult & SchemaVersionValidationResult & OpenApiCollectionVersionValidationResult {
   state: ProcessingState!
 }
 

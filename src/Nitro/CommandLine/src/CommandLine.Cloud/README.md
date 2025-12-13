@@ -30,7 +30,7 @@ dotnet graphql generate
 The deployed Nitro Backend only allows persisted operations, so if you change any `*.graphql` files, you need to make sure to re-generate the persisted operations:
 
 ```bash
-dotnet graphql generate --relayFormat --q persisted
+dotnet graphql generate --relayFormat -q persisted
 ```
 
 This operations are then published to Nitro during the release.
