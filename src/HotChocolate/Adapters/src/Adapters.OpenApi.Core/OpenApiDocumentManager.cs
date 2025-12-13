@@ -10,7 +10,7 @@ namespace HotChocolate.Adapters.OpenApi;
 internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenApiDefinitionStorageEventArgs>
 {
     private readonly IOpenApiDefinitionStorage _storage;
-    private readonly DynamicOpenApiDocumentTransformer _transformer;
+    private readonly IDynamicOpenApiDocumentTransformer _transformer;
     private readonly IDynamicEndpointDataSource _dynamicEndpointDataSource;
     private readonly IDisposable _storageSubscription;
     private readonly SemaphoreSlim _updateSemaphore = new(1, 1);
@@ -45,7 +45,7 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
 
     public OpenApiDocumentManager(
         IOpenApiDefinitionStorage storage,
-        DynamicOpenApiDocumentTransformer transformer,
+        IDynamicOpenApiDocumentTransformer transformer,
         IDynamicEndpointDataSource dynamicEndpointDataSource)
     {
         _storage = storage;
@@ -77,7 +77,7 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
             {
                 var rawDocuments = await _storage.GetDocumentsAsync(cancellationToken).ConfigureAwait(false);
 
-                var parser = new OpenApiDocumentParser(schema);
+                var parser = new OpenApiDocumentParser();
                 var newDocuments = new List<IOpenApiDocument>();
 
                 foreach (var document in rawDocuments)
@@ -182,7 +182,7 @@ internal sealed class OpenApiDocumentManager : IAsyncDisposable, IObserver<OpenA
         ISchemaDefinition schema,
         CancellationToken cancellationToken)
     {
-        var parser = new OpenApiDocumentParser(schema);
+        var parser = new OpenApiDocumentParser();
         var events = schema.Services.GetRequiredService<IOpenApiDiagnosticEvents>();
 
         if (args.Type is OpenApiDefinitionStorageEventType.Added or OpenApiDefinitionStorageEventType.Modified
