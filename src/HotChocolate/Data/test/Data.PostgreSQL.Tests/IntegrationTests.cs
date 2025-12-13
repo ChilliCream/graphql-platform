@@ -536,6 +536,39 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
             """);
     }
 
+    [Fact]
+    public async Task Query_ProductTypes_TotalCount_Zero_When_No_Results_Due_To_FilterCondition()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                productTypes(first: 100, order: { name: ASC } where: { name: { eq: "Not Existing" } }) {
+                    totalCount
+                    nodes {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "productTypes": {
+                  "totalCount": 0,
+                  "nodes": []
+                }
+              }
+            }
+            """);
+    }
+
     private static ServiceProvider CreateServer(string connectionString)
     {
         var services = new ServiceCollection();
