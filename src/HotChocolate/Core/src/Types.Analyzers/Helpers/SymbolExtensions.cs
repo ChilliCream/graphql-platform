@@ -178,6 +178,88 @@ public static class SymbolExtensions
         HashSet<ISymbol> visited,
         Func<XDocument, string?>? documentationSelector = null)
     {
+        var doc = GetXmlDocumentationElementCore(symbol, compilation, visited);
+        if (doc == null)
+        {
+            return null;
+        }
+
+        string? summaryText;
+        if (documentationSelector != null)
+        {
+            summaryText = documentationSelector(doc);
+        }
+        else
+        {
+            summaryText = doc.Descendants("summary").FirstOrDefault()?.Value ??
+                doc.Descendants("member").FirstOrDefault()?.Value;
+        }
+
+        if (symbol is IMethodSymbol or IPropertySymbol or IFieldSymbol)
+        {
+            summaryText += GetReturnsElementText(doc);
+
+            var exceptionDoc = GetExceptionDocumentation(doc);
+            if (!string.IsNullOrEmpty(exceptionDoc))
+            {
+                summaryText += "\n\n**Errors:**\n" + exceptionDoc;
+            }
+        }
+
+        return GeneratorUtils.NormalizeXmlDocumentation(summaryText);
+
+        static string GetExceptionDocumentation(XDocument xDocument)
+        {
+            StringBuilder? builder = null;
+            var errorCount = 0;
+            var exceptionElements = xDocument.Descendants("exception");
+            foreach (var exceptionElement in exceptionElements)
+            {
+                if (string.IsNullOrEmpty(exceptionElement.Value))
+                {
+                    continue;
+                }
+
+                var code = exceptionElement.Attribute("code");
+                if (string.IsNullOrEmpty(code?.Value))
+                {
+                    continue;
+                }
+
+                builder ??= new StringBuilder();
+                builder.Append(builder.Length > 0 ? "\n" : string.Empty)
+                    .Append(++errorCount)
+                    .Append('.')
+                    .Append(' ')
+                    .Append(code!.Value)
+                    .Append(':')
+                    .Append(' ')
+                    .Append(exceptionElement.Value);
+            }
+
+            return builder?.ToString() ?? string.Empty;
+        }
+
+        static string GetReturnsElementText(XDocument doc)
+        {
+            var xElement = doc.Descendants("returns").FirstOrDefault();
+            if (xElement?.Value != null)
+            {
+                return "\n\n**Returns:**\n" + xElement.Value;
+            }
+
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Core implementation with cycle detection.
+    /// </summary>
+    private static XDocument? GetXmlDocumentationElementCore(
+        ISymbol symbol,
+        Compilation compilation,
+        HashSet<ISymbol> visited)
+    {
         var docSymbol = symbol is IParameterSymbol ? symbol.ContainingSymbol : symbol;
 
         // Prevent infinite recursion
@@ -200,30 +282,7 @@ public static class SymbolExtensions
             MaterializeInheritdocElements(doc);
             MaterializeSeeElements(doc);
             MaterializeParamRefElements(doc);
-
-            string? summaryText;
-            if (documentationSelector != null)
-            {
-                summaryText = documentationSelector(doc);
-            }
-            else
-            {
-                summaryText = doc.Descendants("summary").FirstOrDefault()?.Value ??
-                    doc.Descendants("member").FirstOrDefault()?.Value;
-            }
-
-            if (symbol is IMethodSymbol or IPropertySymbol or IFieldSymbol)
-            {
-                summaryText += GetReturnsElementText(doc);
-
-                var exceptionDoc = GetExceptionDocumentation(doc);
-                if (!string.IsNullOrEmpty(exceptionDoc))
-                {
-                    summaryText += "\n\n**Errors:**\n" + exceptionDoc;
-                }
-            }
-
-            return GeneratorUtils.NormalizeXmlDocumentation(summaryText);
+            return doc;
         }
         catch
         {
@@ -240,15 +299,130 @@ public static class SymbolExtensions
                     continue;
                 }
 
-                // Try to resolve the inherited documentation
-                var inheritedDoc = ResolveInheritdoc(symbol, inheritdocElement, compilation, visited);
+                XDocument? inheritedDoc = null;
+
+                // Check for cref attribute (explicit reference)
+                var crefAttr = inheritdocElement.Attribute("cref");
+                if (crefAttr != null)
+                {
+                    var referencedSymbol = ResolveDocumentationId(crefAttr.Value, compilation);
+                    if (referencedSymbol != null)
+                    {
+                        inheritedDoc = GetXmlDocumentationElementCore(referencedSymbol, compilation, visited);
+                    }
+                }
+                else
+                {
+                    // No cref - resolve from base class or interface
+                    var baseMember = FindBaseMember(symbol);
+                    if (baseMember != null)
+                    {
+                        inheritedDoc = GetXmlDocumentationElementCore(baseMember, compilation, visited);
+                    }
+                }
+
                 if (inheritedDoc != null)
                 {
-                    inheritdocElement.ReplaceWith(
-                        inheritedDoc.Contains('<')
-                            ? XElement.Parse(inheritedDoc, LoadOptions.PreserveWhitespace)
-                            : inheritedDoc);
+                    // Inheritdoc has no well-defined specification (see:
+                    // https://github.com/dotnet/csharplang/issues/313,
+                    // https://github.com/dotnet/roslyn/issues/68879,
+                    // https://github.com/dotnet/roslyn/discussions/50192 and many others)
+
+                    // So we are programming our own lookup version, which is aso the recommended way:
+                    // "[The] best option is to implement your own version [...]"
+                    // https://github.com/dotnet/roslyn/discussions/50192#discussioncomment-254793
+                    // TODO for review: We could also call the roslyn implementation with reflection, which is what docfx does, see:
+                    // https://github.com/dotnet/docfx/blob/107e3ef0c0c4db7ac984a3d15e40f7942531f255/src/Docfx.Dotnet/ExtensionMethods/ISymbolExtensions.cs#L68
+
+                    // The following rules are used by at last Visual Studio and Rider and docfx:
+                    // On root level, the entire doc header is copied,
+                    // whereas within any other element, only the doc header of this element is inherited.
+                    if (inheritdocElement.Parent == xDocument.Root)
+                    {
+                        // <inheritdoc /> is at root level → inherit everything
+                        // Only exception: "Already defined tags on the current member aren't overridden by the inherited ones."
+                        // (from: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/xmldoc/recommended-tags#inheritdoc)
+                        // No further processing is done, see: https://github.com/dotnet/csharplang/issues/313#issuecomment-1009379408
+                        // Gather existing elements on current member
+                        var existing = xDocument.Descendants();
+                        var toInherit = inheritedDoc.Element("member")!.Descendants();
+
+                        var nodesToInherit = toInherit.Where(inherited => !AlreadyExists(inherited, existing));
+                        inheritdocElement.ReplaceWith(nodesToInherit);
+                    }
+                    else
+                    {
+                        // <inheritdoc /> is inside another element (summary, returns, etc.)
+                        // Find the matching element in the inherited doc and replace it.
+                        // Note that the content of the matching element is also trimmed.
+                        var parent = inheritdocElement.Parent!;
+                        var parentName = parent.Name;
+
+                        XElement? replacement;
+                        switch (parentName.LocalName)
+                        {
+                            case "param":
+                                replacement = MatchByAttribute(parent, inheritedDoc, "param", "name");
+                                break;
+                            case "exception":
+                                replacement = MatchByAttribute(parent, inheritedDoc, "exception", "cref");
+                                break;
+                            default:
+                                replacement = inheritedDoc.Descendants(parentName).FirstOrDefault();
+                                break;
+                        }
+
+                        if (replacement != null)
+                        {
+                            replacement.Value = replacement.Value.Trim();
+                            inheritdocElement.ReplaceWith(replacement);
+                        }
+                        else
+                        {
+                            // No matching element → remove <inheritdoc />
+                            inheritdocElement.Remove();
+                        }
+                    }
                 }
+            }
+
+            static XElement? MatchByAttribute(XElement parent, XDocument inheritedDoc, string elementName, string attr)
+            {
+                var identifier = parent.Attribute(attr)?.Value;
+                if (string.IsNullOrEmpty(identifier))
+                {
+                    return null;
+                }
+
+                return inheritedDoc
+                    .Descendants(elementName)
+                    .FirstOrDefault(e => e.Attribute(attr)?.Value == identifier);
+            }
+
+            static bool AlreadyExists(XElement inherited, IEnumerable<XElement> existingElements)
+            {
+                if (inherited.Name.LocalName is "summary" or "returns")
+                {
+                    return existingElements.Any(e => e.Name == inherited.Name);
+                }
+
+                if (inherited.Name == "param")
+                {
+                    var name = inherited.Attribute("name")?.Value;
+                    return existingElements.Any(e =>
+                        e.Name == "param"
+                        && e.Attribute("name")?.Value == name);
+                }
+
+                if (inherited.Name == "exception")
+                {
+                    var cref = inherited.Attribute("cref")?.Value;
+                    return existingElements.Any(e =>
+                        e.Name == "exception"
+                        && e.Attribute("cref")?.Value == cref);
+                }
+
+                return false;
             }
         }
 
@@ -293,49 +467,6 @@ public static class SymbolExtensions
                     paramref!.ReplaceWith(attribute.Value);
                 }
             }
-        }
-
-        static string GetExceptionDocumentation(XDocument xDocument)
-        {
-            StringBuilder? builder = null;
-            var errorCount = 0;
-            var exceptionElements = xDocument.Descendants("exception");
-            foreach (var exceptionElement in exceptionElements)
-            {
-                if (string.IsNullOrEmpty(exceptionElement.Value))
-                {
-                    continue;
-                }
-
-                var code = exceptionElement.Attribute("code");
-                if (string.IsNullOrEmpty(code?.Value))
-                {
-                    continue;
-                }
-
-                builder ??= new StringBuilder();
-                builder.Append(builder.Length > 0 ? "\n" : string.Empty)
-                    .Append(++errorCount)
-                    .Append('.')
-                    .Append(' ')
-                    .Append(code!.Value)
-                    .Append(':')
-                    .Append(' ')
-                    .Append(exceptionElement.Value);
-            }
-
-            return builder?.ToString() ?? string.Empty;
-        }
-
-        static string GetReturnsElementText(XDocument doc)
-        {
-            var xElement = doc.Descendants("returns").FirstOrDefault();
-            if (xElement?.Value != null)
-            {
-                return "\n\n**Returns:**\n" + xElement.Value;
-            }
-
-            return string.Empty;
         }
     }
 

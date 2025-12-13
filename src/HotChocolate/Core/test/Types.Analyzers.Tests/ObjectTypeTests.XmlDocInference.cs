@@ -323,6 +323,110 @@ public partial class ObjectTypeXmlDocInferenceTests
     }
 
     [Fact]
+    public void XmlDocumentation_ForParameter_WithInheritdoc_Is_Overriden_By_ExplicitParamComment()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using System;
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                namespace TestNamespace;
+
+                public class TestClass
+                {
+                    /// <summary>
+                    /// Foo.
+                    /// </summary>
+                    /// <param name="bar">Bar.</param>
+                    public static string? Foo(int bar) => null;
+                }
+
+                [QueryType]
+                public static partial class Query
+                {
+                    /// <inheritdoc cref="TestClass.Foo(int)" />
+                    /// <param name="bar">Explicit Bar.</param>
+                    public static string? Foo(int bar) => null;
+                }
+                """);
+
+        var content = snapshot.Match();
+        AssertFieldDocumentation(content, "Foo.", "Explicit Bar.");
+    }
+
+    [Fact]
+    public void XmlDocumentation_ForParameter_WithInheritdoc_AndAdditional_ExplicitParamComment()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using System;
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                namespace TestNamespace;
+
+                public class TestClass
+                {
+                    /// <summary>
+                    /// Foo.
+                    /// </summary>
+                    /// <param name="bar">Bar.</param>
+                    public static string? Foo(int bar) => null;
+                }
+
+                [QueryType]
+                public static partial class Query
+                {
+                    /// <inheritdoc cref="TestClass.Foo(int)" />
+                    /// <param name="fooBar">FooBar.</param>
+                    public static string? Foo(int bar, int fooBar) => null;
+                }
+                """);
+
+        var content = snapshot.Match();
+        AssertFieldDocumentation(content, "Foo.", "Bar.", "FooBar.");
+    }
+
+    [Fact]
+    public void XmlDocumentation_ForParameter_WithInheritdoc_WithinParamComment()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using System;
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                namespace TestNamespace;
+
+                public class TestClass
+                {
+                    /// <summary>
+                    /// Foo.
+                    /// </summary>
+                    /// <param name="bar">Bar.</param>
+                    public static string? Foo(int bar) => null;
+                }
+
+                [QueryType]
+                public static partial class Query
+                {
+                    /// <summary>
+                    /// My Foo.
+                    /// </summary>
+                    /// <param name="bar">My Bar (inherited from: <inheritdoc cref="TestClass.Foo(int)" />).</param>
+                    public static string? Foo(int bar) => null;
+                }
+                """);
+
+        var content = snapshot.Match();
+        AssertFieldDocumentation(content, "My Foo.", "My Bar (inherited from: Bar.).");
+    }
+
+    [Fact]
     public void XmlDocumentation_ForParameter_Ignores_ReturnsAndExceptions()
     {
         var snapshot =
