@@ -162,7 +162,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
                 parameter,
                 parameterKind,
                 compilation.CreateTypeReference(parameter),
-                parameter.GetDescriptionFromAttribute(),
+                compilation.GetDescription(parameter)?.Description,
                 compilation.GetDeprecationReason(parameter),
                 key);
         }

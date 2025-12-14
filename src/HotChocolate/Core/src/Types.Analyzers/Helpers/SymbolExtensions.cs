@@ -40,7 +40,7 @@ public static class SymbolExtensions
 
         foreach (var param in parameters)
         {
-            var paramDescription = GetDescriptionFromAttribute(param);
+            var paramDescription = compilation?.GetDescription(param)?.Description ?? GetDescriptionFromAttribute(param);
             var commentXml = method.GetDocumentationCommentXml();
 
             if (paramDescription == null && !string.IsNullOrEmpty(commentXml))
