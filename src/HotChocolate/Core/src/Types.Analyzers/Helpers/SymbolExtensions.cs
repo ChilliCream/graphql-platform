@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using System.Xml.Linq;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
@@ -105,7 +104,7 @@ public static class SymbolExtensions
         // 2. Inheritance-aware resolution when compilation is available
         if (compilation != null)
         {
-            return GetSummaryDocumentationWithInheritance(symbol, compilation, xmlExtractor);
+            return GetDocumentationWithInheritance(symbol, compilation, xmlExtractor);
         }
 
         // 3. Fallback to simple XML extraction without inheritdoc support
@@ -158,104 +157,67 @@ public static class SymbolExtensions
     }
 
     /// <summary>
-    /// Extracts summary text from XML documentation, resolving tags with semantic relevance (f. e. inheritdoc or see).
+    /// Extracts the relevant XML documentation, resolving tags with semantic relevance (f. e. inheritdoc or see).
     /// </summary>
-    private static string? GetSummaryDocumentationWithInheritance(
+    private static string? GetDocumentationWithInheritance(
         ISymbol symbol,
         Compilation compilation,
-        Func<XDocument, string?>? documentationSelector = null)
+        Func<XDocument, string?> documentationSelector)
     {
         var visited = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
-        return GetSummaryDocumentationWithInheritanceCore(symbol, compilation, visited, documentationSelector);
+        return GetDocumentationWithInheritanceCore(symbol, compilation, visited, documentationSelector);
     }
 
     /// <summary>
     /// Core implementation with cycle detection.
     /// </summary>
-    private static string? GetSummaryDocumentationWithInheritanceCore(
+    private static string? GetDocumentationWithInheritanceCore(
         ISymbol symbol,
         Compilation compilation,
         HashSet<ISymbol> visited,
-        Func<XDocument, string?>? documentationSelector = null)
+        Func<XDocument, string?> documentationSelector)
     {
-        var doc = GetXmlDocumentationElementCore(symbol, compilation, visited);
+        var doc = GetXmlDocumentationElement(symbol, compilation, visited);
         if (doc == null)
         {
             return null;
         }
 
-        string? summaryText;
-        if (documentationSelector != null)
-        {
-            summaryText = documentationSelector(doc);
-        }
-        else
-        {
-            summaryText = doc.Descendants("summary").FirstOrDefault()?.Value ??
-                doc.Descendants("member").FirstOrDefault()?.Value;
-        }
+        var summaryText = documentationSelector(doc);
 
         if (symbol is IMethodSymbol or IPropertySymbol or IFieldSymbol)
         {
-            summaryText += GetReturnsElementText(doc);
-
-            var exceptionDoc = GetExceptionDocumentation(doc);
-            if (!string.IsNullOrEmpty(exceptionDoc))
-            {
-                summaryText += "\n\n**Errors:**\n" + exceptionDoc;
-            }
+            summaryText += GetReturnsText(doc);
+            summaryText += GetExceptionText(doc);
         }
 
         return GeneratorUtils.NormalizeXmlDocumentation(summaryText);
 
-        static string GetExceptionDocumentation(XDocument xDocument)
+        static string GetReturnsText(XDocument doc)
         {
-            StringBuilder? builder = null;
-            var errorCount = 0;
-            var exceptionElements = xDocument.Descendants("exception");
-            foreach (var exceptionElement in exceptionElements)
-            {
-                if (string.IsNullOrEmpty(exceptionElement.Value))
-                {
-                    continue;
-                }
-
-                var code = exceptionElement.Attribute("code");
-                if (string.IsNullOrEmpty(code?.Value))
-                {
-                    continue;
-                }
-
-                builder ??= new StringBuilder();
-                builder.Append(builder.Length > 0 ? "\n" : string.Empty)
-                    .Append(++errorCount)
-                    .Append('.')
-                    .Append(' ')
-                    .Append(code!.Value)
-                    .Append(':')
-                    .Append(' ')
-                    .Append(exceptionElement.Value);
-            }
-
-            return builder?.ToString() ?? string.Empty;
+            var returns = doc.Descendants("returns").FirstOrDefault()?.Value;
+            return string.IsNullOrEmpty(returns)
+                ? string.Empty
+                : "\n\n**Returns:**\n" + returns;
         }
 
-        static string GetReturnsElementText(XDocument doc)
+        static string GetExceptionText(XDocument doc)
         {
-            var xElement = doc.Descendants("returns").FirstOrDefault();
-            if (xElement?.Value != null)
-            {
-                return "\n\n**Returns:**\n" + xElement.Value;
-            }
+            var exceptions = doc.Descendants("exception")
+                .Where(x =>
+                    !string.IsNullOrEmpty(x.Value)
+                    && !string.IsNullOrEmpty(x.Attribute("code")?.Value))
+                .Select((e, i) => (Element: e, Index: i + 1))
+                .Select(x => $"{x.Index}. {x.Element.Attribute("code")!.Value}: {x.Element.Value}")
+                .ToArray();
 
-            return string.Empty;
+            return exceptions.Length == 0
+                ? string.Empty
+                : "\n\n**Errors:**\n" + string.Join("\n", exceptions);
         }
     }
 
-    /// <summary>
-    /// Core implementation with cycle detection.
-    /// </summary>
-    private static XDocument? GetXmlDocumentationElementCore(
+    private static XDocument? GetXmlDocumentationElement(
         ISymbol symbol,
         Compilation compilation,
         HashSet<ISymbol> visited)
@@ -308,7 +270,7 @@ public static class SymbolExtensions
                     var referencedSymbol = ResolveDocumentationId(crefAttr.Value, compilation);
                     if (referencedSymbol != null)
                     {
-                        inheritedDoc = GetXmlDocumentationElementCore(referencedSymbol, compilation, visited);
+                        inheritedDoc = GetXmlDocumentationElement(referencedSymbol, compilation, visited);
                     }
                 }
                 else
@@ -317,37 +279,34 @@ public static class SymbolExtensions
                     var baseMember = FindBaseMember(symbol);
                     if (baseMember != null)
                     {
-                        inheritedDoc = GetXmlDocumentationElementCore(baseMember, compilation, visited);
+                        inheritedDoc = GetXmlDocumentationElement(baseMember, compilation, visited);
                     }
                 }
 
                 if (inheritedDoc != null)
                 {
-                    // Inheritdoc has no well-defined specification (see:
+                    // Inheritdoc has no well-defined specification, f. e. see:
                     // https://github.com/dotnet/csharplang/issues/313,
                     // https://github.com/dotnet/roslyn/issues/68879,
-                    // https://github.com/dotnet/roslyn/discussions/50192 and many others)
+                    // https://github.com/dotnet/roslyn/discussions/50192 and many others
 
-                    // So we are programming our own lookup version, which is aso the recommended way:
+                    // For this reason we are programming our own lookup version, which is also the recommended way:
                     // "[The] best option is to implement your own version [...]"
                     // https://github.com/dotnet/roslyn/discussions/50192#discussioncomment-254793
-                    // TODO for review: We could also call the roslyn implementation with reflection, which is what docfx does, see:
-                    // https://github.com/dotnet/docfx/blob/107e3ef0c0c4db7ac984a3d15e40f7942531f255/src/Docfx.Dotnet/ExtensionMethods/ISymbolExtensions.cs#L68
 
                     // The following rules are used by at last Visual Studio and Rider and docfx:
                     // On root level, the entire doc header is copied,
-                    // whereas within any other element, only the doc header of this element is inherited.
+                    // whereas within any other element, only the doc of this element is inherited.
                     if (inheritdocElement.Parent == xDocument.Root)
                     {
                         // <inheritdoc /> is at root level → inherit everything
                         // Only exception: "Already defined tags on the current member aren't overridden by the inherited ones."
-                        // (from: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/xmldoc/recommended-tags#inheritdoc)
+                        // (see: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/xmldoc/recommended-tags#inheritdoc)
                         // No further processing is done, see: https://github.com/dotnet/csharplang/issues/313#issuecomment-1009379408
-                        // Gather existing elements on current member
                         var existing = xDocument.Descendants();
-                        var toInherit = inheritedDoc.Element("member")!.Descendants();
+                        var toInherit = inheritedDoc.Element("member")?.Descendants();
 
-                        var nodesToInherit = toInherit.Where(inherited => !AlreadyExists(inherited, existing));
+                        var nodesToInherit = toInherit?.Where(inherited => !AlreadyExists(inherited, existing));
                         inheritdocElement.ReplaceWith(nodesToInherit);
                     }
                     else
@@ -372,27 +331,16 @@ public static class SymbolExtensions
                                 break;
                         }
 
-                        if (replacement != null)
-                        {
-                            inheritdocElement.ReplaceWith(replacement.Value.Trim());
-                        }
-                        else
-                        {
-                            // No matching element → remove <inheritdoc />
-                            inheritdocElement.Remove();
-                        }
+                        inheritdocElement.ReplaceWith(replacement?.Value.Trim());
                     }
                 }
             }
 
+            return;
+
             static XElement? MatchByAttribute(XElement parent, XDocument inheritedDoc, string elementName, string attr)
             {
                 var identifier = parent.Attribute(attr)?.Value;
-                if (string.IsNullOrEmpty(identifier))
-                {
-                    return null;
-                }
-
                 return inheritedDoc
                     .Descendants(elementName)
                     .FirstOrDefault(e => e.Attribute(attr)?.Value == identifier);
@@ -400,11 +348,6 @@ public static class SymbolExtensions
 
             static bool AlreadyExists(XElement inherited, IEnumerable<XElement> existingElements)
             {
-                if (inherited.Name.LocalName is "summary" or "returns")
-                {
-                    return existingElements.Any(e => e.Name == inherited.Name);
-                }
-
                 if (inherited.Name == "param")
                 {
                     var name = inherited.Attribute("name")?.Value;
@@ -421,7 +364,7 @@ public static class SymbolExtensions
                         && e.Attribute("cref")?.Value == cref);
                 }
 
-                return false;
+                return existingElements.Any(e => e.Name == inherited.Name);
             }
         }
 
@@ -467,55 +410,6 @@ public static class SymbolExtensions
                 }
             }
         }
-    }
-
-    /// <summary>
-    /// Resolves an inheritdoc element by finding the referenced member.
-    /// </summary>
-    private static string? ResolveInheritdoc(
-        ISymbol symbol,
-        XElement inheritdocElement,
-        Compilation compilation,
-        HashSet<ISymbol> visited)
-    {
-        // On root level, the entire doc header is copied, whereas within any other element,
-        // only the doc header of this element is inherited.
-        // This is nowhere documented explictly but the way Visual Studio, Rider and DocFX handle it.
-        Func<XDocument, string?>? selectorFunc =  doc => inheritdocElement.Parent!.Name.LocalName switch
-        {
-            "member" =>doc.Descendants("member").FirstOrDefault()?.ToString(SaveOptions.DisableFormatting),
-            _ => doc.Descendants(inheritdocElement.Parent.Name).FirstOrDefault()?.Value
-        };
-
-        // Check for cref attribute (explicit reference)
-        var crefAttr = inheritdocElement.Attribute("cref");
-        if (crefAttr != null)
-        {
-            var referencedSymbol = ResolveDocumentationId(crefAttr.Value, compilation);
-            if (referencedSymbol != null)
-            {
-                return GetSummaryDocumentationWithInheritanceCore(
-                    referencedSymbol,
-                    compilation,
-                    visited,
-                    selectorFunc);
-            }
-
-            return null;
-        }
-
-        // No cref - resolve from base class or interface
-        var baseMember = FindBaseMember(symbol);
-        if (baseMember != null)
-        {
-            return GetSummaryDocumentationWithInheritanceCore(
-                baseMember,
-                compilation,
-                visited,
-                selectorFunc);
-        }
-
-        return null;
     }
 
     /// <summary>
