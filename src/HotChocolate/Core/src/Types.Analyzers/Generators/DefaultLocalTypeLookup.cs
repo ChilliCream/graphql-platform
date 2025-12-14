@@ -29,16 +29,17 @@ public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfo
             return true;
         }
 
-        foreach (var namespaceString in GetContainingNamespaces(resolverMethod))
+        foreach (var namespaceString in GetPotentialNamespaces(resolverMethod))
         {
-            if (typeNames.Contains($"global::{namespaceString}.{type.Name}"))
+            var candidateName = $"global::{namespaceString}.{type.Name}";
+            if (typeNames.Contains(candidateName))
             {
-                typeDisplayName = typeNames[0];
+                typeDisplayName = candidateName;
                 return true;
             }
         }
 
-        typeDisplayName = type.Name;
+        typeDisplayName = typeNames[0];
         return true;
     }
 
@@ -75,19 +76,27 @@ public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfo
         return _typeNameLookup;
     }
 
-    private static IEnumerable<string> GetContainingNamespaces(IMethodSymbol methodSymbol)
+    private static IEnumerable<string> GetPotentialNamespaces(IMethodSymbol methodSymbol)
     {
-        var namespaces = new HashSet<string>();
         var syntaxTree = methodSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree;
 
-        if (syntaxTree != null)
+        if (syntaxTree is null)
         {
-            var root = syntaxTree.GetRoot();
-            var namespaceDeclarations = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>();
+            return [];
+        }
 
-            foreach (var namespaceDeclaration in namespaceDeclarations)
+        var namespaces = new HashSet<string>();
+        var root = syntaxTree.GetRoot();
+
+        foreach (var descendantNode in root.DescendantNodes())
+        {
+            if (descendantNode is NamespaceDeclarationSyntax namespaceDeclaration)
             {
                 namespaces.Add(namespaceDeclaration.Name.ToString());
+            }
+            else if (descendantNode is FileScopedNamespaceDeclarationSyntax fileScopedNamespace)
+            {
+                namespaces.Add(fileScopedNamespace.Name.ToString());
             }
         }
 

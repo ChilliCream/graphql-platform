@@ -261,7 +261,7 @@ namespace TestNamespace
             public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetEntityAsync_dataLoader()
                 => new HotChocolate.Internal.ParameterDescriptor(
                     "dataLoader",
-                    typeof(IEntityByIdDataLoader),
+                    typeof(global::TestNamespace.DataAccess.Entities.IEntityByIdDataLoader),
                     isNullable: false,
                     []);
 
@@ -271,7 +271,7 @@ namespace TestNamespace
             private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetEntityAsync(global::HotChocolate.Resolvers.IResolverContext context)
             {
                 var args0 = _binding_GetEntityAsync_id.Execute<int>(context);
-                var args1 = _binding_GetEntityAsync_dataLoader.Execute<IEntityByIdDataLoader>(context);
+                var args1 = _binding_GetEntityAsync_dataLoader.Execute<global::TestNamespace.DataAccess.Entities.IEntityByIdDataLoader>(context);
                 var args2 = context.RequestAborted;
                 var result = await global::TestNamespace.Query.GetEntityAsync(args0, args1, args2);
                 return result;
@@ -293,45 +293,6 @@ namespace TestNamespace
     "Severity": "Error",
     "WarningLevel": 0,
     "Location": ": (12,8)-(12,29)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0246)",
-    "MessageFormat": "The type or namespace name '{0}' could not be found (are you missing a using directive or an assembly reference?)",
-    "Message": "The type or namespace name 'IEntityByIdDataLoader' could not be found (are you missing a using directive or an assembly reference?)",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  }
-]
-```
-
-## Assembly Emit Diagnostics
-
-```json
-[
-  {
-    "Id": "CS0246",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "Query.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (95,27)-(95,48)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0246)",
-    "MessageFormat": "The type or namespace name '{0}' could not be found (are you missing a using directive or an assembly reference?)",
-    "Message": "The type or namespace name 'IEntityByIdDataLoader' could not be found (are you missing a using directive or an assembly reference?)",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  },
-  {
-    "Id": "CS0246",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "Query.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (105,71)-(105,92)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0246)",
     "MessageFormat": "The type or namespace name '{0}' could not be found (are you missing a using directive or an assembly reference?)",
     "Message": "The type or namespace name 'IEntityByIdDataLoader' could not be found (are you missing a using directive or an assembly reference?)",
