@@ -374,8 +374,7 @@ public static class SymbolExtensions
 
                         if (replacement != null)
                         {
-                            replacement.Value = replacement.Value.Trim();
-                            inheritdocElement.ReplaceWith(replacement);
+                            inheritdocElement.ReplaceWith(replacement.Value.Trim());
                         }
                         else
                         {
