@@ -66,12 +66,11 @@ public partial class ObjectTypeXmlDocInferenceTests
                 """);
 
         var content = snapshot.Match();
-        var emitted = s_description.Matches(content).Single().Groups;
-        Assert.Equal(
+        AssertFieldDocumentation(
+            content,
             "Query and manages users.\\n    \\nPlease note:\\n* Users ...\\n* Users ...\\n    * Users ...\\n"
             + "    * Users ...\\n    \\nYou need one of the following role: Owner,\\n"
-            + "Editor, use XYZ to manage permissions.",
-            emitted[1].Value);
+            + "Editor, use XYZ to manage permissions.");
     }
 
     [Fact]
@@ -105,8 +104,9 @@ public partial class ObjectTypeXmlDocInferenceTests
                 """);
 
         var content = snapshot.Match();
-        var emitted = s_description.Matches(content).Single().Groups;
-        Assert.Equal("null for the default Record.\\nSee this and\\nthis at\\nhttps://foo.com/bar/baz.", emitted[1].Value);
+        AssertFieldDocumentation(
+            content,
+            "null for the default Record.\\nSee this and\\nthis at\\nhttps://foo.com/bar/baz.");
     }
 
     [Fact]
@@ -135,8 +135,7 @@ public partial class ObjectTypeXmlDocInferenceTests
                 """);
 
         var content = snapshot.Match();
-        var emitted = s_description.Matches(content).Single().Groups;
-        Assert.Equal("This is a parameter reference to id.", emitted[1].Value);
+        AssertFieldDocumentation(content, "This is a parameter reference to id.");
     }
 
     [Fact]
@@ -163,8 +162,7 @@ public partial class ObjectTypeXmlDocInferenceTests
                 """);
 
         var content = snapshot.Match();
-        var emitted = s_description.Matches(content).Single().Groups;
-        Assert.Equal("These are some tags.", emitted[1].Value);
+        AssertFieldDocumentation(content, "These are some tags.");
     }
 
     [Fact]
@@ -200,8 +198,7 @@ public partial class ObjectTypeXmlDocInferenceTests
                 """);
 
         var content = snapshot.Match();
-        var emitted = s_description.Matches(content).Single().Groups;
-        Assert.Equal("Method doc.", emitted[1].Value);
+        AssertFieldDocumentation(content, "Method doc.");
     }
 
     [Fact]
@@ -230,8 +227,7 @@ public partial class ObjectTypeXmlDocInferenceTests
                 """);
 
         var content = snapshot.Match();
-        var emitted = s_description.Matches(content).Single().Groups;
-        Assert.Equal("I am a test class. This should not be escaped: >", emitted[1].Value);
+        AssertFieldDocumentation(content, "I am a test class. This should not be escaped: >");
     }
 
     [Fact]
@@ -261,8 +257,7 @@ public partial class ObjectTypeXmlDocInferenceTests
                  """);
 
         var content = snapshot.Match();
-        var emitted = s_description.Matches(content).Single().Groups;
-        Assert.Equal("Query and manages users.\\n\\n\\n**Returns:**\\nBar", emitted[1].Value);
+        AssertFieldDocumentation(content, "Query and manages users.\\n\\n\\n**Returns:**\\nBar");
     }
 
     [Fact]
@@ -294,8 +289,9 @@ public partial class ObjectTypeXmlDocInferenceTests
                 """);
 
         var content = snapshot.Match();
-        var emitted = s_description.Matches(content).Single().Groups;
-        Assert.Equal("Query and manages users.\\n\\n\\n**Returns:**\\nBar\\n\\n**Errors:**\\n1. FOO_ERROR: Foo Error\\n2. BAR_ERROR: Bar Error", emitted[1].Value);
+        AssertFieldDocumentation(
+            content,
+            "Query and manages users.\\n\\n\\n**Returns:**\\nBar\\n\\n**Errors:**\\n1. FOO_ERROR: Foo Error\\n2. BAR_ERROR: Bar Error");
     }
 
     [Fact]
@@ -328,8 +324,9 @@ public partial class ObjectTypeXmlDocInferenceTests
                 """);
 
         var content = snapshot.Match();
-        var emitted = s_description.Matches(content).Single().Groups;
-        Assert.Equal("Query and manages users.\\n\\n\\n**Returns:**\\nBar\\n\\n**Errors:**\\n1. FOO_ERROR: Foo Error\\n2. BAR_ERROR: Bar Error", emitted[1].Value);
+        AssertFieldDocumentation(
+            content,
+            "Query and manages users.\\n\\n\\n**Returns:**\\nBar\\n\\n**Errors:**\\n1. FOO_ERROR: Foo Error\\n2. BAR_ERROR: Bar Error");
     }
 
     [Fact]
@@ -360,8 +357,7 @@ public partial class ObjectTypeXmlDocInferenceTests
                 """);
 
         var content = snapshot.Match();
-        var emitted = s_description.Matches(content).Single().Groups;
-        Assert.Equal("Query and manages users.\\n\\n\\n**Returns:**\\nBar", emitted[1].Value);
+        AssertFieldDocumentation(content, "Query and manages users.\\n\\n\\n**Returns:**\\nBar");
     }
 
     [Fact]
