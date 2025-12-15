@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Text.Json;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using static HotChocolate.Execution.ErrorHelper;
-using static HotChocolate.Execution.Processing.PathHelper;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -156,46 +156,14 @@ internal static partial class ValueCompletion
         return list.IsNullable;
     }
 
-    internal static void PropagateNullValues(ResultData result)
+    internal static void PropagateNullValues(ResultElement result)
     {
-        if (result.IsInvalidated)
+        result.Invalidate();
+
+        while (result.IsInvalidated || result.IsInvalidated)
         {
-            return;
-        }
+            result = result.Parent;
 
-        result.IsInvalidated = true;
-
-        while (result.Parent is not null)
-        {
-            var index = result.ParentIndex;
-            var parent = result.Parent;
-
-            if (parent.IsInvalidated)
-            {
-                return;
-            }
-
-            switch (parent)
-            {
-                case ObjectResult objectResult:
-                    var field = objectResult[index];
-                    if (field.TrySetNull())
-                    {
-                        return;
-                    }
-                    objectResult.IsInvalidated = true;
-                    break;
-
-                case ListResult listResult:
-                    if (listResult.TrySetNull(index))
-                    {
-                        return;
-                    }
-                    listResult.IsInvalidated = true;
-                    break;
-            }
-
-            result = parent;
         }
     }
 }

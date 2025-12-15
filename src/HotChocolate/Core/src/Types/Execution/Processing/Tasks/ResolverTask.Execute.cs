@@ -6,16 +6,12 @@ namespace HotChocolate.Execution.Processing.Tasks;
 
 internal sealed partial class ResolverTask
 {
-    private async Task ExecuteAsync(CancellationToken cancellationToken)
+    private async ValueTask ExecuteAsync(CancellationToken cancellationToken)
     {
         try
         {
             using (DiagnosticEvents.ResolveFieldValue(_context))
             {
-                // we initialize the field, so we are able to propagate non-null violations
-                // through the result tree.
-                _context.ParentResult.InitValueUnsafe(_context.ResponseIndex, _context.Selection);
-
                 var success = await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
                 CompleteValue(success, cancellationToken);
 

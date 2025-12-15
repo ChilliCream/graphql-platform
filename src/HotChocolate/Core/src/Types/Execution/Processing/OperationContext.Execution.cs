@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution.Processing.Tasks;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -33,6 +34,8 @@ internal sealed partial class OperationContext
         }
     }
 
+    public ResultDocument ResultDocument => throw new NotImplementedException();
+
     public RequestContext RequestContext
     {
         get
@@ -43,10 +46,9 @@ internal sealed partial class OperationContext
     }
 
     public ResolverTask CreateResolverTask(
-        Selection selection,
         object? parent,
-        ObjectResult parentResult,
-        int responseIndex,
+        Selection selection,
+        ResultElement resultValue,
         IImmutableDictionary<string, object?> scopedContextData,
         Path? path = null)
     {
@@ -55,11 +57,10 @@ internal sealed partial class OperationContext
         var resolverTask = _resolverTaskFactory.Create();
 
         resolverTask.Initialize(
-            this,
-            selection,
-            parentResult,
-            responseIndex,
             parent,
+            selection,
+            resultValue,
+            this,
             scopedContextData,
             path);
 

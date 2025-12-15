@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ErrorHelper;
-using static HotChocolate.Execution.Processing.PathHelper;
 using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
 
 namespace HotChocolate.Execution.Processing;

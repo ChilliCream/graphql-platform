@@ -178,8 +178,8 @@ public sealed partial class ResultDocument : IDisposable
                 if (parentTokenType is ElementTokenType.StartArray)
                 {
                     // arrayIndex = abs(child) - (abs(parent) + 1)
-                    var absChild = c.Chunk * Cursor.RowsPerChunk + c.Row;
-                    var absParent = parentCursor.Chunk * Cursor.RowsPerChunk + parentCursor.Row;
+                    var absChild = (c.Chunk * Cursor.RowsPerChunk) + c.Row;
+                    var absParent = (parentCursor.Chunk * Cursor.RowsPerChunk) + parentCursor.Row;
                     var arrayIndex = absChild - (absParent + 1);
                     path = path.Append(arrayIndex);
                 }

@@ -1,25 +1,23 @@
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using static HotChocolate.Execution.ErrorHelper;
-using static HotChocolate.Execution.Processing.PathHelper;
 
 namespace HotChocolate.Execution.Processing;
 
 internal static partial class ValueCompletion
 {
-    public static object? Complete(
+    public static void Complete(
         ValueCompletionContext context,
         Selection selection,
-        ResultData parent,
-        int index,
+        ResultElement resultValue,
         object? result)
-        => Complete(context, selection, selection.Type, parent, index, result);
+        => Complete(context, selection, selection.Type, resultValue, index, result);
 
-    public static object? Complete(
+    public static void Complete(
         ValueCompletionContext context,
         Selection selection,
         IType type,
-        ResultData parent,
-        int index,
+        ResultElement parent,
         object? result)
     {
         var typeKind = type.Kind;
@@ -32,27 +30,29 @@ internal static partial class ValueCompletion
 
         if (result is null)
         {
-            return null;
+            parent.SetNullValue();
+            return;
         }
 
-        if (typeKind is TypeKind.Scalar or TypeKind.Enum)
+        switch (typeKind)
         {
-            return CompleteLeafValue(context, selection, type, parent, index, result);
-        }
+            case TypeKind.Scalar or TypeKind.Enum:
+                CompleteLeafValue(context, selection, type, parent, index, result);
+                break;
 
-        if (typeKind is TypeKind.List)
-        {
-            return CompleteListValue(context, selection, type, parent, index, result);
-        }
+            case TypeKind.List:
+                return CompleteListValue(context, selection, type, parent, index, result);
 
-        if (typeKind is TypeKind.Object or TypeKind.Interface or TypeKind.Union)
-        {
-            return CompleteCompositeValue(context, selection, type, parent, index, result);
-        }
+            case TypeKind.Object or TypeKind.Interface or TypeKind.Union:
+                return CompleteCompositeValue(context, selection, type, parent, index, result);
 
-        var errorPath = CreatePathFromContext(selection, parent, index);
-        var error = UnexpectedValueCompletionError(selection, errorPath);
-        context.OperationContext.ReportError(error, context.ResolverContext, selection);
-        return null;
+            default:
+            {
+                var errorPath = CreatePathFromContext(selection, parent, index);
+                var error = UnexpectedValueCompletionError(selection, errorPath);
+                context.OperationContext.ReportError(error, context.ResolverContext, selection);
+                return null;
+            }
+        }
     }
 }

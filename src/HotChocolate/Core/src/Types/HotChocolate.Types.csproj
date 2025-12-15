@@ -239,6 +239,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>FetchingResources.resx</DependentUpon>
     </Compile>
+
+    <Compile Update="Execution\Processing\SubscriptionExecutor.Subscription.cs">
+      <DependentUpon>SubscriptionExecutor.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

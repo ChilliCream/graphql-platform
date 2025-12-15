@@ -53,11 +53,6 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     /// <inheritdoc />
     public IExecutionTask? Previous { get; set; }
 
-    /// <summary>
-    /// Gets access to the internal result map into which the task will write the result.
-    /// </summary>
-    public ObjectResult ParentResult { get; private set; } = null!;
-
     /// <inheritdoc />
     public object? State { get; set; }
 

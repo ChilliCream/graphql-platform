@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
-using static HotChocolate.Execution.Processing.PathHelper;
 using static HotChocolate.Execution.Processing.ValueCompletion;
 
 namespace HotChocolate.Execution.Processing.Tasks;
@@ -13,18 +13,16 @@ internal static class ResolverTaskFactory
 
     static ResolverTaskFactory() { }
 
-    public static ObjectResult EnqueueResolverTasks(
+    public static void EnqueueResolverTasks(
         OperationContext operationContext,
-        SelectionSet selectionSet,
         object? parent,
-        Path path,
+        ResultElement parentResult,
         IImmutableDictionary<string, object?> scopedContext,
-        ObjectResult? parentResult = null)
+        Path path)
     {
+        var selectionSet = parentResult.AssertSelectionSet();
         var selections = selectionSet.Selections;
-        var selectionsCount = selections.Length;
-        var responseIndex = selectionsCount;
-        parentResult ??= operationContext.Result.RentObject(selectionsCount);
+
         var scheduler = operationContext.Scheduler;
         var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
@@ -40,7 +38,7 @@ internal static class ResolverTaskFactory
             // the scheduler tries to schedule new work first.
             // coincidentally we can use that to schedule a mutation so that we honor the spec
             // guarantees while executing efficient.
-            for (var i = selectionsCount - 1; i >= 0; i--)
+            for (var i = selections.Length - 1; i >= 0; i--)
             {
                 var selection = selections[i];
 
@@ -48,10 +46,9 @@ internal static class ResolverTaskFactory
                 {
                     bufferedTasks.Add(
                         operationContext.CreateResolverTask(
-                            selection,
                             parent,
+                            selection,
                             parentResult,
-                            --responseIndex,
                             scopedContext));
                 }
             }
@@ -59,15 +56,13 @@ internal static class ResolverTaskFactory
             if (bufferedTasks.Count == 0)
             {
                 // in the case all root fields are skipped we execute a dummy task in order
-                // to not have to many extra API for this special case.
+                // to not have extra logic for this case.
                 scheduler.Register(new NoOpExecutionTask(operationContext));
             }
             else
             {
                 scheduler.Register(CollectionsMarshal.AsSpan(bufferedTasks));
             }
-
-            return parentResult;
         }
         finally
         {
@@ -77,6 +72,7 @@ internal static class ResolverTaskFactory
     }
 
     // TODO : remove ?
+    /*
     public static ResolverTask EnqueueElementTasks(
         OperationContext operationContext,
         Selection selection,
@@ -125,6 +121,7 @@ internal static class ResolverTaskFactory
 
         return resolverTask;
     }
+    */
 
     public static ObjectResult? EnqueueOrInlineResolverTasks(
         ValueCompletionContext context,

@@ -25,7 +25,7 @@ public static class MiddlewareContextMarshal
         ArgumentNullException.ThrowIfNull(context);
 
         return context is MiddlewareContext middlewareContext
-            ? middlewareContext.ParentResult
+            ? middlewareContext.ResultValue
             : null;
     }
 

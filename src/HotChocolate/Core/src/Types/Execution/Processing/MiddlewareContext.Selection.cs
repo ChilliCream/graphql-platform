@@ -17,8 +17,6 @@ internal partial class MiddlewareContext
 
     public string ResponseName => _selection.ResponseName;
 
-    public int ResponseIndex { get; private set; }
-
     public FieldDelegate? ResolverPipeline => _selection.ResolverPipeline;
 
     public PureFieldDelegate? PureResolver => _selection.PureResolver;

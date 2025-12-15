@@ -226,7 +226,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             _operationContext.CreateResolverTask(
                 Selection,
                 _parent,
-                ParentResult,
+                ResultValue,
                 ResponseIndex,
                 ScopedContextData);
 

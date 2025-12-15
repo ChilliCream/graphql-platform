@@ -12,11 +12,9 @@ internal sealed partial class ResolverTask
     /// <param name="cancellationToken">The execution cancellation token.</param>
     private void CompleteValue(bool success, CancellationToken cancellationToken)
     {
-        var responseIndex = _context.ResponseIndex;
         var responseName = _context.ResponseName;
-        var parentResult = _context.ParentResult;
+        var resultValue = _context.ResultValue;
         var result = _context.Result;
-        object? completedResult = null;
 
         try
         {
@@ -24,7 +22,7 @@ internal sealed partial class ResolverTask
             if (success)
             {
                 var completionContext = new ValueCompletionContext(_operationContext, _context, _taskBuffer);
-                completedResult = Complete(completionContext, _selection, parentResult, responseIndex, result);
+                Complete(completionContext, _selection, resultValue, result);
             }
         }
         catch (OperationCanceledException)
@@ -42,16 +40,13 @@ internal sealed partial class ResolverTask
             if (!cancellationToken.IsCancellationRequested)
             {
                 _context.ReportError(ex);
-                completedResult = null;
+                resultValue.SetNullValue();
             }
         }
 
-        var isNonNullType = _selection.Type.Kind is TypeKind.NonNull;
-        _context.ParentResult.SetValueUnsafe(responseIndex, responseName, completedResult, !isNonNullType);
-
-        if (completedResult is null && isNonNullType)
+        if (resultValue is { IsNullable: false, IsNullOrInvalidated: true })
         {
-            PropagateNullValues(parentResult);
+            PropagateNullValues(resultValue);
             _completionStatus = ExecutionTaskStatus.Faulted;
             _operationContext.Result.AddNonNullViolation(_selection, _context.Path);
             _taskBuffer.Clear();

@@ -1,49 +1,48 @@
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ErrorHelper;
-using static HotChocolate.Execution.Processing.PathHelper;
 
 namespace HotChocolate.Execution.Processing;
 
 internal static partial class ValueCompletion
 {
-    private static object? CompleteLeafValue(
+    private static void CompleteLeafValue(
         ValueCompletionContext context,
         Selection selection,
-        IType type,
-        ResultData parent,
-        int index,
-        object? result)
+        ILeafType2 type,
+        ResultElement resultValue,
+        object? runtimeValue)
     {
         var operationContext = context.OperationContext;
         var resolverContext = context.ResolverContext;
 
         try
         {
-            var leafType = (ILeafType)type;
-            var runtimeType = leafType.ToRuntimeType();
+            var runtimeType = type.ToRuntimeType();
 
-            if (!runtimeType.IsInstanceOfType(result)
-                && operationContext.Converter.TryConvert(runtimeType, result, out var c))
+            if (!runtimeType.IsInstanceOfType(runtimeValue)
+                && operationContext.Converter.TryConvert(runtimeType, runtimeValue, out var c))
             {
-                result = c;
+                runtimeValue = c;
             }
 
-            return leafType.Serialize(result);
+            type.Serialize(runtimeValue, resultValue);
+            return;
         }
         catch (SerializationException ex)
         {
-            var errorPath = CreatePathFromContext(selection, parent, index);
+            var errorPath = resultValue.Path;
             var error = InvalidLeafValue(ex, selection, errorPath);
             operationContext.ReportError(error, resolverContext, selection);
         }
         catch (Exception ex)
         {
-            var errorPath = CreatePathFromContext(selection, parent, index);
+            var errorPath = resultValue.Path;
             var error = UnexpectedLeafValueSerializationError(ex, selection, errorPath);
             operationContext.ReportError(error, resolverContext, selection);
         }
 
-        return null;
+        resultValue.SetNullValue();
     }
 }

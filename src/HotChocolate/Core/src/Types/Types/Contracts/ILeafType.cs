@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
@@ -109,4 +110,64 @@ public interface ILeafType : IInputTypeDefinition, IOutputTypeDefinition
     /// <c>true</c> if the deserialization was successful; otherwise, <c>false</c>.
     /// </returns>
     bool TryDeserialize(object? resultValue, out object? runtimeValue);
+}
+
+/// <summary>
+/// Represents a GraphQL leaf-type e.g., scalar or enum.
+/// </summary>
+public interface ILeafType2 : IInputTypeDefinition, IOutputTypeDefinition
+{
+    /// <summary>
+    /// Defines if the given <paramref name="runtimeValue"/> is possibly of this type.
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// The runtime value which shall be validated.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the given <paramref name="runtimeValue"/> is possibly of this type.
+    /// </returns>
+    bool IsInstanceOfType(object? runtimeValue);
+
+    /// <summary>
+    /// Parses the GraphQL value syntax of this type into a runtime value representation.
+    /// </summary>
+    /// <param name="valueSyntax">
+    /// A GraphQL value syntax representation of this type.
+    /// </param>
+    /// <returns>
+    /// Returns a runtime value representation of this type.
+    /// </returns>
+    object? ParseLiteral(IValueNode valueSyntax);
+
+    /// <summary>
+    /// Parses a runtime value of this type into a GraphQL value syntax representation.
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// A result value representation of this type.
+    /// </param>
+    /// <returns>
+    /// Returns a GraphQL value syntax representation of the <paramref name="runtimeValue"/>.
+    /// </returns>
+    /// <exception cref="SerializationException">
+    /// Unable to parse the given <paramref name="runtimeValue"/>
+    /// into a GraphQL value syntax representation of this type.
+    /// </exception>
+    IValueNode ParseValue(object? runtimeValue);
+
+    /// <summary>
+    /// Serializes a runtime value of this type to the result value format.
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// A runtime value representation of this type.
+    /// </param>
+    /// <param name="resultValue">
+    ///
+    /// </param>
+    /// <returns>
+    /// Returns a result value representation of this type.
+    /// </returns>
+    /// <exception cref="SerializationException">
+    /// Unable to serialize the given <paramref name="runtimeValue"/>.
+    /// </exception>
+    void Serialize(object? runtimeValue, ResultElement resultValue);
 }

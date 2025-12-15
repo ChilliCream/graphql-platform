@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
@@ -10,7 +11,7 @@ internal partial class MiddlewareContext
     private object? _parent;
     private Path? _path;
 
-    public Path Path => _path ??= PathHelper.CreatePathFromContext(Selection, ParentResult, -1);
+    public Path Path => _path ??= ResultValue.Path.Append(Selection.ResponseName);
 
     public IImmutableDictionary<string, object?> ScopedContextData { get; set; } = null!;
 
@@ -18,7 +19,7 @@ internal partial class MiddlewareContext
 
     public IType? ValueType { get; set; }
 
-    public ObjectResult ParentResult { get; private set; } = null!;
+    public ResultElement ResultValue { get; private set; }
 
     public bool HasErrors { get; private set; }
 

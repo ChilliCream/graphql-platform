@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -17,11 +18,10 @@ internal partial class MiddlewareContext
     }
 
     public void Initialize(
-        OperationContext operationContext,
-        Selection selection,
-        ObjectResult parentResult,
-        int responseIndex,
         object? parent,
+        Selection selection,
+        ResultElement resultValue,
+        OperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContextData,
         Path? path)
     {
@@ -30,8 +30,7 @@ internal partial class MiddlewareContext
         _services = operationContext.Services;
         _selection = selection;
         _path = path;
-        ParentResult = parentResult;
-        ResponseIndex = responseIndex;
+        ResultValue = resultValue;
         _parent = parent;
         _parser = operationContext.InputParser;
         ScopedContextData = scopedContextData;
@@ -60,7 +59,7 @@ internal partial class MiddlewareContext
         IsResultModified = false;
         ValueType = null;
         ResponseIndex = 0;
-        ParentResult = null!;
+        ResultValue = default;
         HasErrors = false;
         Arguments = null!;
         RequestAborted = CancellationToken.None;

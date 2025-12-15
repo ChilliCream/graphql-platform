@@ -23,16 +23,16 @@ internal sealed class QueryExecutor
         OperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContext)
     {
-        var resultMap = EnqueueResolverTasks(
+        EnqueueResolverTasks(
             operationContext,
-            operationContext.Operation.RootSelectionSet,
             operationContext.RootValue,
-            Path.Root,
-            scopedContext);
+            operationContext.ResultDocument.Data,
+            scopedContext,
+            Path.Root);
 
         await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
 
-        return operationContext.SetData(resultMap).BuildResult();
+        return operationContext.BuildResult();
     }
 
     public async Task ExecuteBatchAsync(
@@ -62,14 +62,12 @@ internal sealed class QueryExecutor
             var context = contextOwner.OperationContext;
             context.Scheduler = scheduler;
 
-            var resultMap = EnqueueResolverTasks(
+            EnqueueResolverTasks(
                 context,
-                context.Operation.RootSelectionSet,
                 context.RootValue,
-                Path.Root,
-                scopedContext);
-
-            context.SetData(resultMap);
+                context.ResultDocument.Data,
+                scopedContext,
+                Path.Root);
         }
     }
 

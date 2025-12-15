@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
@@ -8,18 +9,16 @@ internal sealed partial class ResolverTask
     /// Initializes this task after it is retrieved from its pool.
     /// </summary>
     public void Initialize(
-        OperationContext operationContext,
-        Selection selection,
-        ObjectResult parentResult,
-        int responseIndex,
         object? parent,
+        Selection selection,
+        ResultElement resultValue,
+        OperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContextData,
         Path? path)
     {
         _operationContext = operationContext;
         _selection = selection;
-        _context.Initialize(operationContext, selection, parentResult, responseIndex, parent, scopedContextData, path);
-        ParentResult = parentResult;
+        _context.Initialize(parent, selection, resultValue, operationContext, scopedContextData, path);
         IsSerial = selection.Strategy is SelectionExecutionStrategy.Serial;
     }
 
@@ -33,7 +32,6 @@ internal sealed partial class ResolverTask
         _operationContext = null!;
         _selection = null!;
         _context.Clean();
-        ParentResult = null!;
         Status = ExecutionTaskStatus.WaitingToRun;
         IsSerial = false;
         IsRegistered = false;
