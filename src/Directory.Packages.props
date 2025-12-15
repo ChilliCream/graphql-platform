@@ -31,7 +31,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="Microsoft.OpenApi.Readers" Version="1.6.14" />
     <PackageVersion Include="Microsoft.OpenApi" Version="1.6.14" />
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.1.0" />
@@ -50,28 +50,28 @@
     <PackageVersion Include="Spectre.Console" Version="0.52.0" />
     <PackageVersion Include="sqlite-net-pcl" Version="1.9.172" />
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
-    <PackageVersion Include="Squadron.AzureStorage" Version="[0.26.1-preview.2]" />
-    <PackageVersion Include="Squadron.Mongo" Version="[0.26.1-preview.2]" />
-    <PackageVersion Include="Squadron.Nats" Version="[0.26.1-preview.2]" />
-    <PackageVersion Include="Squadron.PostgreSql" Version="[0.26.1-preview.2]" />
-    <PackageVersion Include="Squadron.RabbitMQ" Version="[0.26.1-preview.2]" />
-    <PackageVersion Include="Squadron.RavenDB" Version="[0.26.1-preview.2]" />
-    <PackageVersion Include="Squadron.Redis" Version="[0.26.1-preview.2]" />
+    <PackageVersion Include="Squadron.AzureStorage" Version="0.27.1" />
+    <PackageVersion Include="Squadron.Mongo" Version="0.27.1" />
+    <PackageVersion Include="Squadron.Nats" Version="0.27.1" />
+    <PackageVersion Include="Squadron.PostgreSql" Version="0.27.1" />
+    <PackageVersion Include="Squadron.RabbitMQ" Version="0.27.1" />
+    <PackageVersion Include="Squadron.RavenDB" Version="0.27.1" />
+    <PackageVersion Include="Squadron.Redis" Version="0.27.1" />
     <PackageVersion Include="StackExchange.Redis" Version="2.6.80" />
     <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.13.1" />
     <PackageVersion Include="System.Linq.Async" Version="6.0.3" />
     <PackageVersion Include="System.Reactive" Version="6.0.0" />
-    <PackageVersion Include="Testcontainers" Version="4.7.0" />
+    <PackageVersion Include="Testcontainers" Version="4.9.0" />
     <PackageVersion Include="TUnit" Version="0.25.21" />
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.core" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.execution" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
-    <PackageVersion Include="xunit.v3.assert" Version="3.1.0" />
-    <PackageVersion Include="xunit.v3.extensibility.core" Version="3.1.0" />
-    <PackageVersion Include="xunit.v3" Version="3.1.0" />
+    <PackageVersion Include="xunit.v3.assert" Version="3.2.1" />
+    <PackageVersion Include="xunit.v3.extensibility.core" Version="3.2.1" />
+    <PackageVersion Include="xunit.v3" Version="3.2.1" />
     <PackageVersion Include="xunit" Version="2.9.3" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
@@ -166,8 +166,8 @@
     <PackageVersion Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'debug'">
-    <PackageVersion Include="Roslynator.Analyzers" Version="4.14.1" />
-    <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="4.14.1" />
-    <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="4.14.1" />
+    <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
+    <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="4.15.0" />
+    <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="4.15.0" />
   </ItemGroup>
 </Project>

@@ -267,6 +267,7 @@ dotnet_diagnostic.RCS1097.severity = warning
 dotnet_diagnostic.RCS1118.severity = warning
 # Use conditional access.
 dotnet_diagnostic.RCS1146.severity = warning
+roslynator_null_conditional_operator.avoid_negative_boolean_comparison = true
 dotnet_diagnostic.IDE0031.severity = none
 # Abstract type should not have public constructors.
 dotnet_diagnostic.RCS1160.severity = warning
