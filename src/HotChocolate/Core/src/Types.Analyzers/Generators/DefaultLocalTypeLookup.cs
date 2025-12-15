@@ -8,6 +8,7 @@ namespace HotChocolate.Types.Analyzers.Generators;
 
 public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfos) : ILocalTypeLookup
 {
+    private readonly object? _lock = new();
     private Dictionary<string, List<string>>? _typeNameLookup;
 
     public bool TryGetTypeName(
@@ -46,29 +47,38 @@ public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfo
     {
         if (_typeNameLookup is null)
         {
-            _typeNameLookup = [];
-            foreach (var syntaxInfo in syntaxInfos)
+            lock (_lock)
             {
-                if (syntaxInfo is not DataLoaderInfo dataLoaderInfo)
+                if (_typeNameLookup is null)
                 {
-                    continue;
+                    var typeNameLookup = new Dictionary<string, List<string>>();
+
+                    foreach (var syntaxInfo in syntaxInfos)
+                    {
+                        if (syntaxInfo is not DataLoaderInfo dataLoaderInfo)
+                        {
+                            continue;
+                        }
+
+                        if (!typeNameLookup.TryGetValue(dataLoaderInfo.Name, out var typeNames))
+                        {
+                            typeNames = [];
+                            typeNameLookup[dataLoaderInfo.Name] = typeNames;
+                        }
+
+                        typeNames.Add("global::" + dataLoaderInfo.FullName);
+
+                        if (!typeNameLookup.TryGetValue(dataLoaderInfo.InterfaceName, out typeNames))
+                        {
+                            typeNames = [];
+                            typeNameLookup[dataLoaderInfo.InterfaceName] = typeNames;
+                        }
+
+                        typeNames.Add("global::" + dataLoaderInfo.InterfaceFullName);
+                    }
+
+                    _typeNameLookup = typeNameLookup;
                 }
-
-                if (!_typeNameLookup.TryGetValue(dataLoaderInfo.Name, out var typeNames))
-                {
-                    typeNames = [];
-                    _typeNameLookup[dataLoaderInfo.Name] = typeNames;
-                }
-
-                typeNames.Add("global::" + dataLoaderInfo.FullName);
-
-                if (!_typeNameLookup.TryGetValue(dataLoaderInfo.InterfaceName, out typeNames))
-                {
-                    typeNames = [];
-                    _typeNameLookup[dataLoaderInfo.InterfaceName] = typeNames;
-                }
-
-                typeNames.Add("global::" + dataLoaderInfo.InterfaceFullName);
             }
         }
 
