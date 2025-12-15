@@ -8,16 +8,8 @@ namespace HotChocolate.Adapters.OpenApi;
 
 public static class OpenApiDocumentParser
 {
-    private static readonly ExternalFragmentReferenceFinder s_externalFragmentReferenceFinder = new();
-
     public static OpenApiDocumentParsingResult Parse(DocumentNode document)
     {
-        var localFragments = document.Definitions
-            .OfType<FragmentDefinitionNode>()
-            .ToArray();
-        var localFragmentLookup = localFragments
-            .ToDictionary(f => f.Name.Value);
-
         // An operation document can only define a single operation alongside local fragment definitions.
         var operationDefinitions = document.Definitions.OfType<OperationDefinitionNode>().ToArray();
 
@@ -32,10 +24,14 @@ public static class OpenApiDocumentParser
         if (operationDefinitions.Length == 1)
         {
             var operationDefinition = operationDefinitions[0];
-            return ParseOperation(operationDefinition, document, localFragmentLookup);
+            return ParseOperation(operationDefinition, document);
         }
 
-        if (localFragments.Length == 0)
+        var fragments = document.Definitions
+            .OfType<FragmentDefinitionNode>()
+            .ToArray();
+
+        if (fragments.Length == 0)
         {
             var error = new OpenApiDocumentParsingError(
                 "Document must contain either a single operation or at least one fragment definition.",
@@ -43,37 +39,33 @@ public static class OpenApiDocumentParser
             return OpenApiDocumentParsingResult.Failure(error);
         }
 
-        var fragmentDefinition = localFragments[0];
-        localFragmentLookup.Remove(fragmentDefinition.Name.Value);
+        var fragmentDefinition = fragments[0];
 
-        return ParseFragment(fragmentDefinition, document, localFragmentLookup);
+        return ParseFragment(fragmentDefinition, document);
     }
 
     private static OpenApiDocumentParsingResult ParseFragment(
         FragmentDefinitionNode fragment,
-        DocumentNode document,
-        Dictionary<string, FragmentDefinitionNode> localFragmentLookup)
+        DocumentNode document)
     {
         var name = fragment.Name.Value;
         var description = fragment.Description?.Value;
 
-        var context = new FragmentSpreadFinderContext(localFragmentLookup);
-        s_externalFragmentReferenceFinder.Visit(document, context);
+        var fragmentReferences = FragmentReferenceFinder.Find(document, fragment);
 
         var fragmentDocument = new OpenApiFragmentDocument(
             name,
             description,
             fragment,
-            localFragmentLookup,
-            context.ExternalFragmentReferences);
+            fragmentReferences.Local,
+            fragmentReferences.External);
 
         return OpenApiDocumentParsingResult.Success(fragmentDocument);
     }
 
     private static OpenApiDocumentParsingResult ParseOperation(
         OperationDefinitionNode operation,
-        DocumentNode document,
-        Dictionary<string, FragmentDefinitionNode> localFragmentLookup)
+        DocumentNode document)
     {
         var description = operation.Description?.Value;
 
@@ -111,8 +103,7 @@ public static class OpenApiDocumentParser
                     .Select(RewriteVariableDefinition)
                     .ToArray());
 
-        var context = new FragmentSpreadFinderContext(localFragmentLookup);
-        s_externalFragmentReferenceFinder.Visit(document, context);
+        var fragmentReferences = FragmentReferenceFinder.Find(document, operation);
 
         var operationDocument = new OpenApiOperationDocument(
             description,
@@ -121,8 +112,8 @@ public static class OpenApiDocumentParser
             queryParameters,
             bodyParameter,
             cleanOperation,
-            localFragmentLookup,
-            context.ExternalFragmentReferences);
+            fragmentReferences.Local,
+            fragmentReferences.External);
 
         return OpenApiDocumentParsingResult.Success(operationDocument);
     }
@@ -410,30 +401,5 @@ public static class OpenApiDocumentParser
         return directives.Length == variable.Directives.Count
             ? variable
             : variable.WithDirectives(directives);
-    }
-
-    private sealed class ExternalFragmentReferenceFinder : SyntaxVisitor<FragmentSpreadFinderContext>
-    {
-        protected override ISyntaxVisitorAction Enter(ISyntaxNode node, FragmentSpreadFinderContext context)
-        {
-            if (node is FragmentSpreadNode fragmentSpread)
-            {
-                var fragmentName = fragmentSpread.Name.Value;
-                if (!context.LocalFragmentLookup.ContainsKey(fragmentName))
-                {
-                    context.ExternalFragmentReferences.Add(fragmentName);
-                }
-            }
-
-            return Continue;
-        }
-    }
-
-    private sealed class FragmentSpreadFinderContext(
-        Dictionary<string, FragmentDefinitionNode> localFragmentLookup)
-    {
-        public HashSet<string> ExternalFragmentReferences { get; } = [];
-
-        public Dictionary<string, FragmentDefinitionNode> LocalFragmentLookup { get; } = localFragmentLookup;
     }
 }
