@@ -187,26 +187,20 @@ public sealed class OpenApiCollectionArchive : IDisposable
     /// <summary>
     /// Adds an OpenAPI endpoint to the archive.
     /// </summary>
-    /// <param name="name">The unique name for this endpoint.</param>
+    /// <param name="key">The unique key of this endpoint.</param>
     /// <param name="operation">The operation data to store.</param>
     /// <param name="settings">The settings document for this endpoint.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <exception cref="ArgumentException">Thrown when name is invalid.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when operation is empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when settings is null.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the archive is read-only, metadata is not set, or endpoint already exists.</exception>
     public async Task AddOpenApiEndpointAsync(
-        string name,
+        OpenApiEndpointKey key,
         ReadOnlyMemory<byte> operation,
         JsonDocument settings,
         CancellationToken cancellationToken = default)
     {
-        if (!NameValidator.IsValidName(name))
-        {
-            throw new ArgumentException($"The endpoint name '{name}' is invalid.", nameof(name));
-        }
-
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(operation.Length, 0);
         ArgumentNullException.ThrowIfNull(settings);
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -221,56 +215,50 @@ public sealed class OpenApiCollectionArchive : IDisposable
                 "You need to first define the archive metadata.");
         }
 
-        if (metadata.Endpoints.Contains(name))
+        if (metadata.Endpoints.Contains(key))
         {
             throw new InvalidOperationException(
-                $"An endpoint with the name '{name}' already exists in the archive.");
+                $"An endpoint with HTTP method '{key.HttpMethod}' and route '{key.Route}' already exists in the archive.");
         }
 
-        await using (var stream = _session.OpenWrite(FileNames.GetEndpointOperationPath(name)))
+        await using (var stream = _session.OpenWrite(FileNames.GetEndpointOperationPath(key)))
         {
             await stream.WriteAsync(operation, cancellationToken);
         }
 
-        await using (var stream = _session.OpenWrite(FileNames.GetEndpointSettingsPath(name)))
+        await using (var stream = _session.OpenWrite(FileNames.GetEndpointSettingsPath(key)))
         {
             await using var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
             settings.WriteTo(jsonWriter);
             await jsonWriter.FlushAsync(cancellationToken);
         }
 
-        _metadata = metadata with { Endpoints = metadata.Endpoints.Add(name) };
+        _metadata = metadata with { Endpoints = metadata.Endpoints.Add(key) };
         await SetArchiveMetadataAsync(_metadata, cancellationToken);
     }
 
     /// <summary>
     /// Tries to get an OpenAPI endpoint by name.
     /// </summary>
-    /// <param name="name">The name of the endpoint to retrieve.</param>
+    /// <param name="key">The key of the endpoint to retrieve.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>The OpenAPI endpoint if found, or null if not found.</returns>
-    /// <exception cref="ArgumentException">Thrown when name is invalid.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     public async Task<OpenApiEndpoint?> TryGetOpenApiEndpointAsync(
-        string name,
+        OpenApiEndpointKey key,
         CancellationToken cancellationToken = default)
     {
-        if (!NameValidator.IsValidName(name))
-        {
-            throw new ArgumentException($"The endpoint name '{name}' is invalid.", nameof(name));
-        }
-
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         var metadata = await GetArchiveMetadataAsync(cancellationToken);
 
-        if (metadata?.Endpoints.Contains(name) != true)
+        if (metadata?.Endpoints.Contains(key) != true)
         {
             return null;
         }
 
-        var operationPath = FileNames.GetEndpointOperationPath(name);
-        var settingsPath = FileNames.GetEndpointSettingsPath(name);
+        var operationPath = FileNames.GetEndpointOperationPath(key);
+        var settingsPath = FileNames.GetEndpointSettingsPath(key);
 
         if (!_session.Exists(operationPath) || !_session.Exists(settingsPath))
         {
