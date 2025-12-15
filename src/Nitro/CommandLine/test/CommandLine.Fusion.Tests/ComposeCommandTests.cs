@@ -3,7 +3,6 @@ using System.CommandLine.Builder;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using HotChocolate.Fusion;
-using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Fusion.Tests;
@@ -360,6 +359,32 @@ public sealed class ComposeCommandTests : IDisposable
         // assert
         Assert.Equal(1, exitCode);
         testConsole.Error.ToString()!.ReplaceLineEndings("\n").MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Compose_IgnoredNonAccessibleFields()
+    {
+        // arrange
+        var archiveFileName = CreateTempFile();
+        var builder = GetCommandLineBuilder();
+
+        string[] args =
+        [
+            "compose",
+            "--source-schema-file",
+            "__resources__/valid-example-2/source-schema-a.graphqls",
+            "--source-schema-file",
+            "__resources__/valid-example-2/source-schema-b.graphqls",
+            "--fusion-archive",
+            archiveFileName
+        ];
+        var testConsole = new TestConsole();
+
+        // act
+        var exitCode = await builder.Build().InvokeAsync(args, testConsole);
+
+        // assert
+        Assert.Equal(0, exitCode);
     }
 
     private static CommandLineBuilder GetCommandLineBuilder()

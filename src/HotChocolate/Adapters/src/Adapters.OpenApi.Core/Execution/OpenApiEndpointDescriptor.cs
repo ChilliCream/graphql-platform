@@ -21,7 +21,8 @@ internal sealed class VariableValueInsertionTrie
 internal sealed record VariableValueInsertionTrieLeaf(
     string ParameterKey,
     ITypeDefinition Type,
-    OpenApiEndpointParameterType ParameterType) : IVariableValueInsertionTrieSegment;
+    OpenApiEndpointParameterType ParameterType,
+    bool HasDefaultValue) : IVariableValueInsertionTrieSegment;
 
 internal enum OpenApiEndpointParameterType
 {

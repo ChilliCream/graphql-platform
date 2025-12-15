@@ -4,18 +4,18 @@ using static HotChocolate.Adapters.Mcp.Properties.McpAdapterResources;
 namespace HotChocolate.Adapters.Mcp.Storage;
 
 /// <summary>
-/// Represents an icon that can be used to visually identify an operation tool.
+/// Represents an icon that can be used to visually identify a tool or prompt.
 /// </summary>
-public sealed partial class OperationToolIcon
+public sealed partial class IconDefinition
 {
     /// <summary>
-    /// Represents an icon that can be used to visually identify an operation tool.
+    /// Represents an icon that can be used to visually identify a tool or prompt.
     /// </summary>
     /// <param name="source">
     /// The URI pointing to the icon resource. This can be an HTTP/HTTPS URL pointing to an image
     /// file or a data URI with base64-encoded image data.
     /// </param>
-    public OperationToolIcon(Uri source)
+    public IconDefinition(Uri source)
     {
         Source = source;
     }
@@ -34,7 +34,7 @@ public sealed partial class OperationToolIcon
                 && value.Scheme != "data")
             {
                 throw new ArgumentException(
-                    OperationToolIcon_InvalidIconSourceScheme,
+                    IconDefinition_InvalidIconSourceScheme,
                     nameof(Source));
             }
 
@@ -55,7 +55,7 @@ public sealed partial class OperationToolIcon
             if (value?.Contains('/') == false)
             {
                 throw new ArgumentException(
-                    OperationToolIcon_InvalidIconMimeType,
+                    IconDefinition_InvalidIconMimeType,
                     nameof(MimeType));
             }
 
@@ -75,7 +75,7 @@ public sealed partial class OperationToolIcon
             if (value?.Any(size => !IconSizeRegex().IsMatch(size)) == true)
             {
                 throw new ArgumentException(
-                    OperationToolIcon_InvalidIconSize,
+                    IconDefinition_InvalidIconSize,
                     nameof(Sizes));
             }
 
@@ -84,10 +84,24 @@ public sealed partial class OperationToolIcon
     }
 
     /// <summary>
-    /// The optional theme for this icon. Can be "light", "dark", or a custom theme identifier. Used
-    /// to specify which UI theme the icon is designed for.
+    /// The optional theme for this icon. Can be "light" or "dark". Used to specify which UI theme
+    /// the icon is designed for.
     /// </summary>
-    public string? Theme { get; init; }
+    public string? Theme
+    {
+        get;
+        init
+        {
+            if (value is not null and not "light" and not "dark")
+            {
+                throw new ArgumentException(
+                    IconDefinition_InvalidIconTheme,
+                    nameof(Theme));
+            }
+
+            field = value;
+        }
+    }
 
     [GeneratedRegex(@"^([0-9]+x[0-9]+|any)\z")]
     private static partial Regex IconSizeRegex();

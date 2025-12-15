@@ -1,12 +1,15 @@
+using System.Collections.Immutable;
+using HotChocolate.Fusion.Comparers;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
 public sealed class SourceSchemaPreprocessorTests
 {
     [Fact]
-    public void Preprocess_ApplyInferredKeyDirectivesEnabled_AppliesInferredKeyDirectives()
+    public void Preprocess_InferKeysFromLookupsEnabled_AppliesInferredKeyDirectives()
     {
         // arrange
         var sourceSchemaText =
@@ -67,12 +70,12 @@ public sealed class SourceSchemaPreprocessorTests
                     id: ID!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
-        var schema = sourceSchemaParser.Parse().Value.Single();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
         var preprocessor = new SourceSchemaPreprocessor(schema, []);
 
         // act
-        preprocessor.Process();
+        preprocessor.Preprocess();
         schema.Types.Remove("FieldSelectionMap");
         schema.Types.Remove("FieldSelectionSet");
         schema.DirectiveDefinitions.Clear();
@@ -82,7 +85,7 @@ public sealed class SourceSchemaPreprocessorTests
     }
 
     [Fact]
-    public void Preprocess_ApplyInferredKeyDirectivesDisabled_DoesNotApplyInferredKeyDirectives()
+    public void Preprocess_InferKeysFromLookupsDisabled_DoesNotApplyInferredKeyDirectives()
     {
         // arrange
         var sourceSchemaText =
@@ -97,16 +100,16 @@ public sealed class SourceSchemaPreprocessorTests
                     id: ID!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
-        var schema = sourceSchemaParser.Parse().Value.Single();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
                 [],
-                new SourceSchemaPreprocessorOptions { ApplyInferredKeyDirectives = false });
+                options: new SourceSchemaPreprocessorOptions { InferKeysFromLookups = false });
 
         // act
-        preprocessor.Process();
+        preprocessor.Preprocess();
 
         // assert
         Assert.False(schema.Types["Person"].Directives.ContainsName(WellKnownDirectiveNames.Key));
@@ -143,12 +146,12 @@ public sealed class SourceSchemaPreprocessorTests
                     name: String
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
-        var schema = sourceSchemaParser.Parse().Value.Single();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
         var preprocessor = new SourceSchemaPreprocessor(schema, []);
 
         // act
-        preprocessor.Process();
+        preprocessor.Preprocess();
         schema.Types.Remove("FieldSelectionMap");
         schema.Types.Remove("FieldSelectionSet");
         schema.DirectiveDefinitions.Clear();
@@ -209,16 +212,16 @@ public sealed class SourceSchemaPreprocessorTests
                     id: ID!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
-        var schema = sourceSchemaParser.Parse().Value.Single();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
                 [],
-                new SourceSchemaPreprocessorOptions { InheritInterfaceKeys = false });
+                options: new SourceSchemaPreprocessorOptions { InheritInterfaceKeys = false });
 
         // act
-        preprocessor.Process();
+        preprocessor.Preprocess();
 
         // assert
         Assert.False(schema.Types["Cat"].Directives.ContainsName(WellKnownDirectiveNames.Key));
@@ -252,16 +255,16 @@ public sealed class SourceSchemaPreprocessorTests
                   title: String!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
-        var schema = sourceSchemaParser.Parse().Value.Single();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
                 [],
-                new SourceSchemaPreprocessorOptions { Version = new Version(1, 0, 0) });
+                new Version(1, 0, 0));
 
         // act
-        preprocessor.Process();
+        preprocessor.Preprocess();
         schema.Types.Remove("FieldSelectionMap");
         schema.Types.Remove("FieldSelectionSet");
         schema.DirectiveDefinitions.Clear();
@@ -330,16 +333,16 @@ public sealed class SourceSchemaPreprocessorTests
                   name: String!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
-        var schema = sourceSchemaParser.Parse().Value.Single();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
                 [],
-                new SourceSchemaPreprocessorOptions { Version = new Version(1, 0, 0) });
+                new Version(1, 0, 0));
 
         // act
-        preprocessor.Process();
+        preprocessor.Preprocess();
         schema.Types.Remove("FieldSelectionMap");
         schema.Types.Remove("FieldSelectionSet");
         schema.DirectiveDefinitions.Clear();
@@ -390,16 +393,16 @@ public sealed class SourceSchemaPreprocessorTests
                   name: String!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
-        var schema = sourceSchemaParser.Parse().Value.Single();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
                 [],
-                new SourceSchemaPreprocessorOptions { Version = new Version(1, 0, 0) });
+                new Version(1, 0, 0));
 
         // act
-        preprocessor.Process();
+        preprocessor.Preprocess();
         schema.Types.Remove("FieldSelectionMap");
         schema.Types.Remove("FieldSelectionSet");
         schema.DirectiveDefinitions.Clear();
@@ -460,17 +463,23 @@ public sealed class SourceSchemaPreprocessorTests
                   price: Float!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaTextA, sourceSchemaTextB], new CompositionLog());
-        var schemas = sourceSchemaParser.Parse().Value;
-        var schema = schemas.First();
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser1 = new SourceSchemaParser(sourceSchemaTextA, compositionLog);
+        var sourceSchemaParser2 = new SourceSchemaParser(sourceSchemaTextB, compositionLog);
+        var schema1 = sourceSchemaParser1.Parse().Value;
+        var schema2 = sourceSchemaParser2.Parse().Value;
+        var schemas =
+            ImmutableSortedSet.Create(
+                new SchemaByNameComparer<MutableSchemaDefinition>(), schema1, schema2);
+        var schema = schemas[0];
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
                 schemas,
-                new SourceSchemaPreprocessorOptions { Version = new Version(1, 0, 0) });
+                new Version(1, 0, 0));
 
         // act
-        preprocessor.Process();
+        preprocessor.Preprocess();
         schema.Types.Remove("FieldSelectionMap");
         schema.Types.Remove("FieldSelectionSet");
         schema.DirectiveDefinitions.Clear();

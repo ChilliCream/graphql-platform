@@ -88,6 +88,7 @@ internal static class ServiceCollectionExtensions
                 .AddMcpServer(options =>
                 {
                     configureServerOptions?.Invoke(options);
+                    options.Capabilities?.Prompts?.ListChanged = true;
                     options.Capabilities?.Tools?.ListChanged = true;
                 })
                 .WithHttpTransport(options =>
@@ -113,6 +114,10 @@ internal static class ServiceCollectionExtensions
                         }
                     };
                 })
+                .WithListPromptsHandler(
+                    (context, _) => ValueTask.FromResult(ListPromptsHandler.Handle(context)))
+                .WithGetPromptHandler(
+                    (context, _) => ValueTask.FromResult(GetPromptHandler.Handle(context)))
                 .WithReadResourceHandler(
                     (context, _) => ValueTask.FromResult(ReadResourceHandler.Handle(context)))
                 .WithListToolsHandler(

@@ -18,24 +18,24 @@ namespace HotChocolate.Fusion;
 internal sealed partial class SourceSchemaPreprocessor(
     MutableSchemaDefinition schema,
     ImmutableSortedSet<MutableSchemaDefinition> schemas,
+    Version? sourceSchemaVersion = null,
     SourceSchemaPreprocessorOptions? options = null)
 {
     private readonly SourceSchemaPreprocessorOptions _options = options ?? new SourceSchemaPreprocessorOptions();
 
-    public CompositionResult Process()
+    public CompositionResult Preprocess()
     {
-        var fusionV1CompatibilityMode = _options.Version.Major == 1;
+        var fusionV1CompatibilityMode = sourceSchemaVersion?.Major == 1;
 
         if (fusionV1CompatibilityMode)
         {
             RemoveDirectivesFromBatchFields();
-
             ApplyInferredLookupDirectives();
         }
 
-        if (fusionV1CompatibilityMode || _options.ApplyInferredKeyDirectives)
+        if (fusionV1CompatibilityMode || _options.InferKeysFromLookups)
         {
-            ApplyInferredKeyDirectives();
+            InferKeysFromLookups();
         }
 
         if (fusionV1CompatibilityMode || _options.InheritInterfaceKeys)
@@ -234,7 +234,7 @@ internal sealed partial class SourceSchemaPreprocessor(
     /// <summary>
     /// Applies inferred key directives to types that are returned by lookup fields.
     /// </summary>
-    private void ApplyInferredKeyDirectives()
+    private void InferKeysFromLookups()
     {
         var lookupFieldDefinitions =
             schema.Types

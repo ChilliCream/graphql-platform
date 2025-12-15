@@ -74,6 +74,19 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             }
             """,
             """
+            mutation UpdateDeeplyNestedObject($input: DeeplyNestedInput! @body)
+              @http(method: PUT, route: "/object/{userId:$input.userId}", queryParameters: ["field:$input.object.field2"]) {
+              updateDeeplyNestedObject(input: $input) {
+                userId
+                field
+                object {
+                  otherField
+                  field2
+                }
+              }
+            }
+            """,
+            """
             "The user's address"
             fragment UserAddress on Address {
               street
