@@ -77,22 +77,6 @@ public readonly record struct CompositionResult<TValue>
         return new CompositionResult<TValue>(result.Errors);
     }
 
-    /// <summary>
-    /// Creates a <see cref="CompositionResult{TValue}"/> from a failed
-    /// <see cref="CompositionResult{TValue}"/> where <c>TValue</c> is
-    /// <see cref="IEnumerable{TValue}"/>.
-    /// </summary>
-    public static implicit operator CompositionResult<TValue>(
-        CompositionResult<IEnumerable<TValue>> result)
-    {
-        if (result.Errors.Length == 0)
-        {
-            throw new InvalidOperationException(
-                "Cannot convert a successful enumerable result to a single value result.");
-        }
-
-        return new CompositionResult<TValue>(result.Errors);
-    }
 
     public void Deconstruct(
         out bool isSuccess,

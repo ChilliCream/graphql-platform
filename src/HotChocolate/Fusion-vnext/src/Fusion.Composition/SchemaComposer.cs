@@ -44,7 +44,7 @@ public sealed class SchemaComposer
 
         if (parsingResult.IsFailure)
         {
-            return parsingResult;
+            return parsingResult.Errors;
         }
 
         var schemas =
@@ -65,7 +65,7 @@ public sealed class SchemaComposer
 
         if (preprocessingResult.IsFailure)
         {
-            return preprocessingResult;
+            return preprocessingResult.Errors;
         }
 
         // Enrich Source Schemas
@@ -74,7 +74,7 @@ public sealed class SchemaComposer
 
         if (enrichmentResult.IsFailure)
         {
-            return enrichmentResult;
+            return enrichmentResult.Errors;
         }
 
         // Validate Source Schemas
