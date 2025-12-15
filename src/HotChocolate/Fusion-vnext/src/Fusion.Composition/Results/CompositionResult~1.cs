@@ -77,7 +77,6 @@ public readonly record struct CompositionResult<TValue>
         return new CompositionResult<TValue>(result.Errors);
     }
 
-
     public void Deconstruct(
         out bool isSuccess,
         out bool isFailure,
