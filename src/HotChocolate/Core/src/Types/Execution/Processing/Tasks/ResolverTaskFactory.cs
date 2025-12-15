@@ -123,75 +123,56 @@ internal static class ResolverTaskFactory
     }
     */
 
-    public static ObjectResult? EnqueueOrInlineResolverTasks(
+    public static void EnqueueOrInlineResolverTasks(
         ValueCompletionContext context,
-        ObjectType parentType,
-        ResultData parentResult,
-        int parentIndex,
-        object parent,
-        SelectionSet selectionSet)
+        SelectionSet selectionSet,
+        ObjectType selectionSetType,
+        ResultElement resultValue,
+        object parent)
     {
-        var responseIndex = 0;
-        var selections = selectionSet.Selections;
-        var selectionsCount = selections.Length;
+        Debug.Assert(selectionSet.Type == selectionSetType);
+        Debug.Assert(resultValue.Type == selectionSetType);
+
         var operationContext = context.OperationContext;
-        var result = operationContext.Result.RentObject(selectionsCount);
-        var includeFlags = operationContext.IncludeFlags;
-        var final = !selectionSet.IsConditional;
 
-        result.SetParent(parentResult, parentIndex);
+        resultValue.SetObjectValue(selectionSet);
 
-        foreach (var selection in selections)
+        foreach (var field in resultValue.EnumerateObject())
         {
-            if (result.IsInvalidated)
-            {
-                return null;
-            }
-
-            if (!final && !selection.IsIncluded(includeFlags))
-            {
-                continue;
-            }
+            var selection = field.AssertSelection();
 
             if (selection.Strategy is SelectionExecutionStrategy.Pure)
             {
                 ResolveAndCompleteInline(
                     context,
                     selection,
-                    responseIndex++,
-                    parentType,
-                    parent,
-                    result);
+                    selectionSetType,
+                    field.Value,
+                    parent);
             }
             else
             {
                 context.Tasks.Add(
                     operationContext.CreateResolverTask(
-                        selection,
                         parent,
-                        result,
-                        responseIndex++,
+                        selection,
+                        resultValue,
                         context.ResolverContext.ScopedContextData));
             }
         }
-
-        return result.IsInvalidated ? null : result;
     }
 
     private static void ResolveAndCompleteInline(
         ValueCompletionContext context,
         Selection selection,
-        int responseIndex,
-        ObjectType parentType,
-        object parent,
-        ObjectResult parentResult)
+        ObjectType selectionSetType,
+        ResultElement fieldValue,
+        object parent)
     {
         var operationContext = context.OperationContext;
         var resolverContext = context.ResolverContext;
         var executedSuccessfully = false;
         object? resolverResult = null;
-
-        parentResult.InitValueUnsafe(responseIndex, selection);
 
         try
         {
@@ -199,7 +180,10 @@ internal static class ResolverTaskFactory
             // this should actually only fail if we are unable to coerce
             // the field arguments.
             if (resolverContext.TryCreatePureContext(
-                selection, parentType, parentResult, parent,
+                selection,
+                selectionSetType,
+                fieldValue,
+                parent,
                 out var childContext))
             {
                 // if we have a pure context we can execute out pure resolver.
@@ -215,53 +199,17 @@ internal static class ResolverTaskFactory
         }
         catch (Exception ex)
         {
-            var path = CreatePathFromContext(selection, parentResult, responseIndex);
-            operationContext.ReportError(ex, resolverContext, selection, path);
+            operationContext.ReportError(ex, resolverContext, selection, fieldValue.Path);
         }
 
-        if (executedSuccessfully)
+        if (!executedSuccessfully)
         {
-            // if we were able to execute the resolver we will try to complete the
-            // resolver result inline and commit the value to the result.
-            CompleteInline(
-                operationContext,
-                resolverContext,
-                selection,
-                selection.Type,
-                responseIndex,
-                parentResult,
-                resolverResult,
-                context.Tasks);
+            fieldValue.SetNullValue();
         }
-        else
-        {
-            // if we were not able to execute the resolver we will commit the null value
-            // of the resolver to the object result which could trigger a non-null propagation.
-            CommitValue(
-                operationContext,
-                selection,
-                responseIndex,
-                parentResult,
-                resolverResult);
-        }
-    }
-
-    private static void CompleteInline(
-        OperationContext operationContext,
-        MiddlewareContext resolverContext,
-        Selection selection,
-        IType type,
-        int responseIndex,
-        ObjectResult parentResult,
-        object? value,
-        List<ResolverTask> bufferedTasks)
-    {
-        object? completedValue = null;
 
         try
         {
-            var completionContext = new ValueCompletionContext(operationContext, resolverContext, bufferedTasks);
-            completedValue = Complete(completionContext, selection, type, parentResult, responseIndex, value);
+            Complete(context, selection, fieldValue, resolverResult);
         }
         catch (OperationCanceledException)
         {
@@ -271,33 +219,13 @@ internal static class ResolverTaskFactory
         }
         catch (Exception ex)
         {
-            var errorPath = CreatePathFromContext(selection, parentResult, responseIndex);
-            operationContext.ReportError(ex, resolverContext, selection, errorPath);
+            operationContext.ReportError(ex, resolverContext, selection, fieldValue.Path);
         }
 
-        CommitValue(operationContext, selection, responseIndex, parentResult, completedValue);
-    }
-
-    private static void CommitValue(
-        OperationContext operationContext,
-        ISelection selection,
-        int responseIndex,
-        ObjectResult parentResult,
-        object? completedValue)
-    {
-        var isNonNullType = selection.Type.Kind is TypeKind.NonNull;
-
-        parentResult.SetValueUnsafe(
-            responseIndex,
-            selection.ResponseName,
-            completedValue,
-            !isNonNullType);
-
-        if (completedValue is null && isNonNullType)
+        if (fieldValue is { IsNullable: false, IsNullOrInvalidated: true })
         {
-            PropagateNullValues(parentResult);
-            var errorPath = CreatePathFromContext(selection, parentResult, responseIndex);
-            operationContext.Result.AddNonNullViolation(selection, errorPath);
+            PropagateNullValues(fieldValue);
+            operationContext.Result.AddNonNullViolation(_selection, _context.Path);
         }
     }
 

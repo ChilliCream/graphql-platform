@@ -12,7 +12,6 @@ internal sealed partial class ResolverTask
     /// <param name="cancellationToken">The execution cancellation token.</param>
     private void CompleteValue(bool success, CancellationToken cancellationToken)
     {
-        var responseName = _context.ResponseName;
         var resultValue = _context.ResultValue;
         var result = _context.Result;
 

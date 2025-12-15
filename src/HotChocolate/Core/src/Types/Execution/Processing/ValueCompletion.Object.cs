@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ErrorHelper;
@@ -8,32 +9,31 @@ namespace HotChocolate.Execution.Processing;
 
 internal static partial class ValueCompletion
 {
-    private static ObjectResult? CompleteCompositeValue(
+    private static void CompleteCompositeValue(
         ValueCompletionContext context,
         Selection selection,
         IType type,
-        ResultData parent,
-        int index,
-        object result)
+        ResultElement resultValue,
+        object runtimeValue)
     {
         var operationContext = context.OperationContext;
 
-        if (TryResolveObjectType(context, selection, type, parent, index, result, out var objectType))
+        if (TryResolveObjectType(context, selection, type, resultValue, runtimeValue, out var objectType))
         {
-            var selectionSet = operationContext.CollectFields(selection, objectType);
+            var selectionSet = selection.DeclaringOperation.GetSelectionSet(selection, objectType);
             var runtimeType = objectType.RuntimeType;
 
-            if (!runtimeType.IsInstanceOfType(result)
-                && operationContext.Converter.TryConvert(runtimeType, result, out var converted))
+            if (!runtimeType.IsInstanceOfType(runtimeValue)
+                && operationContext.Converter.TryConvert(runtimeType, runtimeValue, out var converted))
             {
-                result = converted;
+                runtimeValue = converted;
             }
 
-            return EnqueueOrInlineResolverTasks(context, objectType, parent, index, result, selectionSet);
+            return EnqueueOrInlineResolverTasks(context, objectType, parent, index, runtimeValue, selectionSet);
         }
 
         var errorPath = CreatePathFromContext(selection, parent, index);
-        var error = ValueCompletion_CouldNotResolveAbstractType(selection, errorPath, result);
+        var error = ValueCompletion_CouldNotResolveAbstractType(selection, errorPath, runtimeValue);
         operationContext.ReportError(error, context.ResolverContext, selection);
         return null;
     }
@@ -42,9 +42,8 @@ internal static partial class ValueCompletion
         ValueCompletionContext context,
         Selection selection,
         IType fieldType,
-        ResultData parent,
-        int index,
-        object result,
+        ResultElement resultValue,
+        object runtimeValue,
         [NotNullWhen(true)] out ObjectType? objectType)
     {
         try
@@ -64,19 +63,19 @@ internal static partial class ValueCompletion
 
                 case TypeKind.Interface:
                     objectType = ((InterfaceType)fieldType)
-                        .ResolveConcreteType(context.ResolverContext, result);
+                        .ResolveConcreteType(context.ResolverContext, runtimeValue);
                     return objectType is not null;
 
                 case TypeKind.Union:
                     objectType = ((UnionType)fieldType)
-                        .ResolveConcreteType(context.ResolverContext, result);
+                        .ResolveConcreteType(context.ResolverContext, runtimeValue);
                     return objectType is not null;
             }
 
             var error = UnableToResolveTheAbstractType(
                 fieldType.Print(),
                 selection,
-                CreatePathFromContext(selection, parent, index));
+                resultValue.Path);
             context.OperationContext.ReportError(error, context.ResolverContext, selection);
         }
         catch (Exception ex)
@@ -85,7 +84,7 @@ internal static partial class ValueCompletion
                 ex,
                 fieldType.Print(),
                 selection,
-                CreatePathFromContext(selection, parent, index));
+                resultValue.Path);
             context.OperationContext.ReportError(error, context.ResolverContext, selection);
         }
 

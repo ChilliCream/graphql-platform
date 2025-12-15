@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing;
@@ -23,12 +24,12 @@ internal partial class MiddlewareContext
 
     public bool TryCreatePureContext(
         Selection selection,
-        ObjectType parentType,
-        ObjectResult parentResult,
+        ObjectType selectionSetType,
+        ResultElement resultValue,
         object? parent,
         [NotNullWhen(true)] out IResolverContext? context)
     {
-        if (_childContext.Initialize(selection, parentType, parentResult, parent))
+        if (_childContext.Initialize(selection, selectionSetType, resultValue, parent))
         {
             context = _childContext;
             return true;

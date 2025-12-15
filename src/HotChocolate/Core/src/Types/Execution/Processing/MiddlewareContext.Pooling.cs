@@ -58,7 +58,6 @@ internal partial class MiddlewareContext
         LocalContextData = null!;
         IsResultModified = false;
         ValueType = null;
-        ResponseIndex = 0;
         ResultValue = default;
         HasErrors = false;
         Arguments = null!;

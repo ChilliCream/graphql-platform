@@ -40,6 +40,10 @@ public sealed partial class ResultDocument : IDisposable
         internal set => _errors = value;
     }
 
+    public int RequestIndex { get; init; }
+
+    public int VariableIndex { get; init; }
+
     public Dictionary<string, object?>? Extensions { get; set; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

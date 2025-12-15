@@ -4,6 +4,7 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Resolvers;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ThrowHelper;
@@ -15,8 +16,8 @@ internal sealed partial class OperationContext
     private readonly IFactory<ResolverTask> _resolverTaskFactory;
     private readonly WorkScheduler _workScheduler;
     private WorkScheduler _currentWorkScheduler;
-    private readonly ResultBuilder _resultBuilder;
     private readonly AggregateServiceScopeInitializer _serviceScopeInitializer;
+    private ResultDocument _resultDocument = null!;
     private RequestContext _requestContext = null!;
     private Schema _schema = null!;
     private IErrorHandler _errorHandler = null!;
@@ -36,14 +37,12 @@ internal sealed partial class OperationContext
 
     public OperationContext(
         IFactory<ResolverTask> resolverTaskFactory,
-        ResultBuilder resultBuilder,
         ITypeConverter typeConverter,
         AggregateServiceScopeInitializer serviceScopeInitializer)
     {
         _resolverTaskFactory = resolverTaskFactory;
         _workScheduler = new WorkScheduler(this);
         _currentWorkScheduler = _workScheduler;
-        _resultBuilder = resultBuilder;
         _serviceScopeInitializer = serviceScopeInitializer;
         Converter = typeConverter;
     }
@@ -80,19 +79,13 @@ internal sealed partial class OperationContext
         _isInitialized = true;
 
         IncludeFlags = operation.CreateIncludeFlags(variables);
+        _resultDocument = new ResultDocument(operation, IncludeFlags)
+        {
+            RequestIndex = _requestContext.RequestIndex,
+            VariableIndex = variableIndex
+        };
+
         _workScheduler.Initialize(batchDispatcher);
-        _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
-
-        if (requestContext.RequestIndex != -1)
-        {
-            _resultBuilder.SetRequestIndex(requestContext.RequestIndex);
-        }
-
-        if (variableIndex != -1)
-        {
-            _resultBuilder.SetVariableIndex(variableIndex);
-        }
-
         _currentWorkScheduler = _workScheduler;
     }
 
@@ -115,19 +108,13 @@ internal sealed partial class OperationContext
         _isInitialized = true;
 
         IncludeFlags = _operation.CreateIncludeFlags(_variables);
+        _resultDocument = new ResultDocument(_operation, IncludeFlags)
+        {
+            RequestIndex = _requestContext.RequestIndex,
+            VariableIndex = context._variableIndex
+        };
+
         _workScheduler.Initialize(_batchDispatcher);
-        _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
-
-        if (context._requestContext.RequestIndex != -1)
-        {
-            _resultBuilder.SetRequestIndex(context._requestContext.RequestIndex);
-        }
-
-        if (context._variableIndex != -1)
-        {
-            _resultBuilder.SetVariableIndex(context._variableIndex);
-        }
-
         _currentWorkScheduler = _workScheduler;
     }
 
@@ -137,7 +124,7 @@ internal sealed partial class OperationContext
         {
             _currentWorkScheduler = _workScheduler;
             _workScheduler.Clear();
-            _resultBuilder.Clear();
+            _resultDocument = null!;
             _requestContext = null!;
             _schema = null!;
             _errorHandler = null!;

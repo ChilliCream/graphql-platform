@@ -3,6 +3,7 @@ using HotChocolate.Execution.Internal;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ThrowHelper;
@@ -16,19 +17,19 @@ internal partial class MiddlewareContext
         private ITypeConverter? _typeConverter;
         private IReadOnlyDictionary<string, ArgumentValue> _argumentValues = null!;
         private Selection _selection = null!;
-        private ObjectType _parentType = null!;
-        private ObjectResult _parentResult = null!;
+        private ObjectType _selectionSetType = null!;
+        private ResultElement _resultValue;
         private object? _parent;
 
         public bool Initialize(
             Selection selection,
-            ObjectType parentType,
-            ObjectResult parentResult,
+            ObjectType selectionSetType,
+            ResultElement resultValue,
             object? parent)
         {
             _selection = selection;
-            _parentType = parentType;
-            _parentResult = parentResult;
+            _selectionSetType = selectionSetType;
+            _resultValue = resultValue;
             _parent = parent;
             _argumentValues = selection.Arguments;
 
@@ -49,21 +50,21 @@ internal partial class MiddlewareContext
         public void Clear()
         {
             _selection = null!;
-            _parentType = null!;
-            _parentResult = null!;
+            _selectionSetType = null!;
+            _resultValue = default;
             _parent = null;
             _argumentValues = null!;
         }
 
         public Schema Schema => parentContext.Schema;
 
-        public ObjectType ObjectType => _parentType;
+        public ObjectType ObjectType => _selectionSetType;
 
         public Operation Operation => parentContext.Operation;
 
         public Selection Selection => _selection;
 
-        public Path Path => PathHelper.CreatePathFromContext(_selection, _parentResult, -1);
+        public Path Path => _resultValue.Path;
 
         public ulong IncludeFlags => parentContext.IncludeFlags;
 

@@ -26,7 +26,7 @@ internal sealed class QueryExecutor
         EnqueueResolverTasks(
             operationContext,
             operationContext.RootValue,
-            operationContext.ResultDocument.Data,
+            operationContext.Result.Data,
             scopedContext,
             Path.Root);
 
@@ -65,7 +65,7 @@ internal sealed class QueryExecutor
             EnqueueResolverTasks(
                 context,
                 context.RootValue,
-                context.ResultDocument.Data,
+                context.Result.Data,
                 scopedContext,
                 Path.Root);
         }
