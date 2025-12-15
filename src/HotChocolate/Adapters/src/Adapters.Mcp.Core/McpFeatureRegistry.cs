@@ -1,16 +1,25 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using ModelContextProtocol.Protocol;
 
 namespace HotChocolate.Adapters.Mcp;
 
 internal sealed class McpFeatureRegistry
 {
+    private FrozenDictionary<string, (Prompt, ImmutableArray<PromptMessage>)> _prompts
+        = FrozenDictionary<string, (Prompt, ImmutableArray<PromptMessage>)>.Empty;
+
     private FrozenDictionary<string, OperationTool> _tools
         = FrozenDictionary<string, OperationTool>.Empty;
 
     private FrozenDictionary<string, OperationTool> _toolsByOpenAiComponentResourceUri
         = FrozenDictionary<string, OperationTool>.Empty;
+
+    public void UpdatePrompts(ImmutableDictionary<string, (Prompt, ImmutableArray<PromptMessage>)> prompts)
+    {
+        _prompts = prompts.ToFrozenDictionary();
+    }
 
     public void UpdateTools(ImmutableDictionary<string, OperationTool> tools)
     {
@@ -19,6 +28,23 @@ internal sealed class McpFeatureRegistry
             tools.Values
                 .Where(t => t.OpenAiComponentResource is not null)
                 .ToFrozenDictionary(t => t.OpenAiComponentResource!.Uri);
+    }
+
+    public IEnumerable<(Prompt, ImmutableArray<PromptMessage>)> GetPrompts()
+        => _prompts.Values.OrderBy(p => p.Item1.Name);
+
+    public bool TryGetPrompt(
+        string name,
+        [NotNullWhen(true)] out (Prompt, ImmutableArray<PromptMessage>)? prompt)
+    {
+        if (_prompts.TryGetValue(name, out var result))
+        {
+            prompt = result;
+            return true;
+        }
+
+        prompt = null;
+        return false;
     }
 
     public IEnumerable<OperationTool> GetTools()

@@ -74,7 +74,7 @@ public sealed partial class OperationToolDefinition
     /// <summary>
     /// Gets the optional icons for the tool.
     /// </summary>
-    public ImmutableArray<OperationToolIcon>? Icons { get; init; }
+    public ImmutableArray<IconDefinition>? Icons { get; init; }
 
     /// <summary>
     /// Gets a hint indicating whether this operation may cause destructive side effects.
