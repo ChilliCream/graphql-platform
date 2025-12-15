@@ -8,162 +8,136 @@ namespace HotChocolate.Execution.Processing;
 
 internal static partial class ValueCompletion
 {
-    private static object? CompleteListValue(
+    private static void CompleteListValue(
         ValueCompletionContext context,
         Selection selection,
         IType type,
-        ResultData parent,
-        int index,
-        object? result)
+        ResultElement resultValue,
+        object runtimeValue)
     {
-        if (result is null)
+        var elementType = type.InnerType();
+
+        if (runtimeValue is Array array)
         {
-            return null;
+            var i = 0;
+
+            resultValue.SetArrayValue(array.Length);
+
+            foreach (var element in resultValue.EnumerateArray())
+            {
+                Complete(
+                    context,
+                    selection,
+                    elementType,
+                    element,
+                    array.GetValue(i++));
+
+                // if we ran into an error that invalidated the result we abort.
+                if (element.IsInvalidated)
+                {
+                    return;
+                }
+            }
         }
 
-        var elementType = type.InnerType();
-        var isLeafType = elementType.IsLeafType();
+        if (runtimeValue is IList list)
+        {
+            var i = 0;
+
+            resultValue.SetArrayValue(list.Count);
+
+            foreach (var element in resultValue.EnumerateArray())
+            {
+                Complete(
+                    context,
+                    selection,
+                    elementType,
+                    element,
+                    list[i++]);
+
+                // if we ran into an error that invalidated the result we abort.
+                if (element.IsInvalidated)
+                {
+                    return;
+                }
+            }
+        }
+
+        if (runtimeValue is JsonElement { ValueKind: JsonValueKind.Array } node)
+        {
+            resultValue.SetArrayValue(node.GetArrayLength());
+
+            using var runtimeEnumerator = node.EnumerateArray().GetEnumerator();
+
+            foreach (var element in resultValue.EnumerateArray())
+            {
+                runtimeEnumerator.MoveNext();
+
+                Complete(
+                    context,
+                    selection,
+                    elementType,
+                    element,
+                    runtimeEnumerator.Current);
+
+                // if we ran into an error that invalidated the result we abort.
+                if (element.IsInvalidated)
+                {
+                    return;
+                }
+            }
+        }
+
+        if (runtimeValue is IEnumerable enumerable)
+        {
+            var i = 0;
+            var temp = new List<object?>();
+
+            foreach (var value in enumerable)
+            {
+                temp.Add(value);
+            }
+
+            resultValue.SetArrayValue(temp.Count);
+
+            foreach (var element in resultValue.EnumerateArray())
+            {
+                Complete(
+                    context,
+                    selection,
+                    elementType,
+                    element,
+                    temp[i++]);
+
+                // if we ran into an error that invalidated the result we abort.
+                if (element.IsInvalidated)
+                {
+                    return;
+                }
+            }
+        }
+
         var operationContext = context.OperationContext;
         var resolverContext = context.ResolverContext;
-
-        if (result is Array array)
-        {
-            var resultList = operationContext.Result.RentList(array.Length);
-            resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
-            resultList.SetParent(parent, index);
-
-            for (var i = 0; i < array.Length; i++)
-            {
-                var elementResult = array.GetValue(i);
-
-                if (!TryCompleteElement(context, selection, elementType, isLeafType, resultList, i, elementResult))
-                {
-                    operationContext.Result.AddRemovedResult(resultList);
-                    return null;
-                }
-            }
-
-            return resultList;
-        }
-
-        if (result is IList list)
-        {
-            var resultList = operationContext.Result.RentList(list.Count);
-            resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
-            resultList.SetParent(parent, index);
-
-            for (var i = 0; i < list.Count; i++)
-            {
-                if (!TryCompleteElement(context, selection, elementType, isLeafType, resultList, i, list[i]))
-                {
-                    operationContext.Result.AddRemovedResult(resultList);
-                    return null;
-                }
-            }
-
-            return resultList;
-        }
-
-        if (result is IEnumerable enumerable)
-        {
-            var resultList = operationContext.Result.RentList(4);
-            resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
-            resultList.SetParent(parent, index);
-
-            var i = 0;
-
-            foreach (var element in enumerable)
-            {
-                if (resultList.Count == resultList.Capacity)
-                {
-                    resultList.Grow();
-                }
-
-                if (!TryCompleteElement(context, selection, elementType, isLeafType, resultList, i++, element))
-                {
-                    operationContext.Result.AddRemovedResult(resultList);
-                    return null;
-                }
-            }
-
-            return resultList;
-        }
-
-        if (result is JsonElement { ValueKind: JsonValueKind.Array } node)
-        {
-            var resultList = operationContext.Result.RentList(4);
-            resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
-            resultList.SetParent(parent, index);
-
-            var i = 0;
-            foreach (var element in node.EnumerateArray())
-            {
-                if (resultList.Count == resultList.Capacity)
-                {
-                    resultList.Grow();
-                }
-
-                if (!TryCompleteElement(context, selection, elementType, isLeafType, resultList, i++, element))
-                {
-                    operationContext.Result.AddRemovedResult(resultList);
-                    return null;
-                }
-            }
-
-            return resultList;
-        }
-
-        var errorPath = CreatePathFromContext(selection, parent, index);
-        var error = ListValueIsNotSupported(result.GetType(), selection, errorPath);
+        var error = ListValueIsNotSupported(runtimeValue.GetType(), selection, resultValue.Path);
         operationContext.ReportError(error, resolverContext, selection);
-
-        return null;
-    }
-
-    private static bool TryCompleteElement(
-        ValueCompletionContext context,
-        Selection selection,
-        IType elementType,
-        bool isLeafType,
-        ListResult list,
-        int parentIndex,
-        object? elementResult)
-    {
-        // We first add a null entry so that the null-propagation has an element to traverse.
-        var index = list.AddUnsafe(null);
-        var completedElement = Complete(context, selection, elementType, list, parentIndex, elementResult);
-
-        if (completedElement is not null)
-        {
-            if (isLeafType)
-            {
-                list.SetUnsafe(index, completedElement);
-            }
-            else
-            {
-                var resultData = (ResultData)completedElement;
-
-                if (resultData.IsInvalidated)
-                {
-                    return list.IsNullable;
-                }
-
-                list.SetUnsafe(index, resultData);
-            }
-            return true;
-        }
-
-        return list.IsNullable;
     }
 
     internal static void PropagateNullValues(ResultElement result)
     {
         result.Invalidate();
 
-        while (result.IsInvalidated || result.IsInvalidated)
+        do
         {
             result = result.Parent;
 
-        }
+            if (result.IsNullable)
+            {
+                result.SetNullValue();
+                return;
+            }
+
+            result.Invalidate();
+        } while (result is { IsInvalidated: false });
     }
 }

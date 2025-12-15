@@ -78,9 +78,9 @@ public static class CoreExecutionResultExtensions
     /// <summary>
     /// Expects a single GraphQL operation result.
     /// </summary>
-    public static OperationResult ExpectOperationResult(this IExecutionResult result)
+    public static IOperationResult ExpectOperationResult(this IExecutionResult result)
     {
-        if (result is OperationResult qr)
+        if (result is IOperationResult qr)
         {
             return qr;
         }

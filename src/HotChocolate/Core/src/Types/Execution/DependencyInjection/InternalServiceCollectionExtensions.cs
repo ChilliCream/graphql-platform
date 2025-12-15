@@ -2,7 +2,6 @@ using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.DependencyInjection;
-using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
@@ -21,39 +20,6 @@ internal static class InternalServiceCollectionExtensions
         this IServiceCollection services)
     {
         services.TryAddSingleton<VariableCoercionHelper>();
-        return services;
-    }
-
-    internal static IServiceCollection TryAddResultPool(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton(sp =>
-        {
-            var options = new ResultBufferOptions();
-            var modifiers = sp.GetServices<Action<ResultBufferOptions>>();
-
-            foreach (var modifier in modifiers)
-            {
-                modifier.Invoke(options);
-            }
-
-            return options;
-        });
-
-        services.TryAddSingleton(sp =>
-        {
-            var options = sp.GetRequiredService<ResultBufferOptions>();
-            return new ObjectResultPool(options.MaximumRetained, options.MaximumAllowedCapacity, options.BucketSize);
-        });
-
-        services.TryAddSingleton(sp =>
-        {
-            var options = sp.GetRequiredService<ResultBufferOptions>();
-            return new ListResultPool(options.MaximumRetained, options.MaximumAllowedCapacity, options.BucketSize);
-        });
-
-        services.TryAddSingleton<ResultPool>();
-
         return services;
     }
 

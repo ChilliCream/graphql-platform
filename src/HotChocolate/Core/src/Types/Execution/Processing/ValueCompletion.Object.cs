@@ -29,13 +29,17 @@ internal static partial class ValueCompletion
                 runtimeValue = converted;
             }
 
-            return EnqueueOrInlineResolverTasks(context, objectType, parent, index, runtimeValue, selectionSet);
+            EnqueueOrInlineResolverTasks(
+                context,
+                selectionSet,
+                objectType,
+                resultValue,
+                runtimeValue);
+            return;
         }
 
-        var errorPath = CreatePathFromContext(selection, parent, index);
-        var error = ValueCompletion_CouldNotResolveAbstractType(selection, errorPath, runtimeValue);
+        var error = ValueCompletion_CouldNotResolveAbstractType(selection, resultValue.Path, runtimeValue);
         operationContext.ReportError(error, context.ResolverContext, selection);
-        return null;
     }
 
     private static bool TryResolveObjectType(

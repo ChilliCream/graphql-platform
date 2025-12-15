@@ -11,13 +11,13 @@ internal static partial class ValueCompletion
         Selection selection,
         ResultElement resultValue,
         object? result)
-        => Complete(context, selection, selection.Type, resultValue, index, result);
+        => Complete(context, selection, selection.Type, resultValue, result);
 
     public static void Complete(
         ValueCompletionContext context,
         Selection selection,
         IType type,
-        ResultElement parent,
+        ResultElement resultValue,
         object? result)
     {
         var typeKind = type.Kind;
@@ -30,29 +30,28 @@ internal static partial class ValueCompletion
 
         if (result is null)
         {
-            parent.SetNullValue();
+            resultValue.SetNullValue();
             return;
         }
 
         switch (typeKind)
         {
             case TypeKind.Scalar or TypeKind.Enum:
-                CompleteLeafValue(context, selection, type, parent, index, result);
+                CompleteLeafValue(context, selection, (ILeafType2)type, resultValue, result);
                 break;
 
             case TypeKind.List:
-                return CompleteListValue(context, selection, type, parent, index, result);
+                CompleteListValue(context, selection, type, resultValue, result);
+                break;
 
             case TypeKind.Object or TypeKind.Interface or TypeKind.Union:
-                return CompleteCompositeValue(context, selection, type, parent, index, result);
+                CompleteCompositeValue(context, selection, type, resultValue, result);
+                break;
 
             default:
-            {
-                var errorPath = CreatePathFromContext(selection, parent, index);
-                var error = UnexpectedValueCompletionError(selection, errorPath);
+                var error = UnexpectedValueCompletionError(selection, resultValue.Path);
                 context.OperationContext.ReportError(error, context.ResolverContext, selection);
-                return null;
-            }
+                break;
         }
     }
 }

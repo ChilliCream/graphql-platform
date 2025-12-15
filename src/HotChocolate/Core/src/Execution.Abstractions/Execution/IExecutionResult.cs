@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Features;
 
 namespace HotChocolate.Execution;
@@ -21,7 +22,11 @@ public interface IExecutionResult : IFeatureProvider, IAsyncDisposable
     /// Gets the result context data which represent additional
     /// properties that are NOT written to the transport.
     /// </summary>
-    IReadOnlyDictionary<string, object?>? ContextData { get; }
+    ImmutableDictionary<string, object?> ContextData
+    {
+        get => Features.Get<ImmutableDictionary<string, object?>>() ?? ImmutableDictionary<string, object?>.Empty;
+        set => Features.Set(value);
+    }
 
     /// <summary>
     /// Registers a cleanup task for execution resources bound to this execution result.

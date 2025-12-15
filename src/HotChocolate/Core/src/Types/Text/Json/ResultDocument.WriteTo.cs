@@ -28,7 +28,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                 _indentation++;
             }
 
-            if (document._errors?.Count > 0)
+            if (document.Errors?.Count > 0)
             {
                 if (indented)
                 {
@@ -49,7 +49,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                 using var jsonWriter = new Utf8JsonWriter(writer, options);
                 JsonValueFormatter.WriteErrors(
                     jsonWriter,
-                    document._errors,
+                    document.Errors,
                     new JsonSerializerOptions(JsonSerializerDefaults.Web),
                     default);
                 jsonWriter.Flush();

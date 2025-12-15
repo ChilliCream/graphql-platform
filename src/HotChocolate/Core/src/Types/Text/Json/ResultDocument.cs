@@ -1,10 +1,13 @@
 using System.Buffers;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
 using HotChocolate.Types;
 
 namespace HotChocolate.Text.Json;
@@ -18,8 +21,11 @@ public sealed partial class ResultDocument : IDisposable
     private int _nextDataIndex;
     private int _rentedDataSize;
     private readonly List<byte[]> _data = [];
+#if NET10_0_OR_GREATER
+    private readonly Lock _dataChunkLock = new();
+#else
     private readonly object _dataChunkLock = new();
-    private List<IError>? _errors;
+#endif
     private bool _disposed;
 
     internal ResultDocument(Operation operation, ulong includeFlags)
@@ -32,19 +38,6 @@ public sealed partial class ResultDocument : IDisposable
     }
 
     public ResultElement Data { get; }
-
-    // we need extra methods to add stuff
-    public List<IError>? Errors
-    {
-        get => _errors;
-        internal set => _errors = value;
-    }
-
-    public int RequestIndex { get; init; }
-
-    public int VariableIndex { get; init; }
-
-    public Dictionary<string, object?>? Extensions { get; set; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ElementTokenType GetElementTokenType(Cursor cursor)
@@ -216,8 +209,8 @@ public sealed partial class ResultDocument : IDisposable
         // if we have not yet reached the root and the element type of the parent is an object or an array
         // then we need to get still the parent of this row as we want to get the logical parent
         // which is the value level of the property or the element in an array.
-        if (parent != Cursor.Zero
-            && _metaDb.GetElementTokenType(parent) is ElementTokenType.StartObject or ElementTokenType.StartArray)
+        if (parent != Cursor.Zero &&
+            _metaDb.GetElementTokenType(parent) is ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
             parent = _metaDb.GetParentCursor(parent);
 
@@ -449,52 +442,61 @@ public sealed partial class ResultDocument : IDisposable
 
         // Data spans chunk boundaries - this should be rare for typical JSON values
         throw new NotSupportedException(
-            "Reading data that spans chunk boundaries as a span is not supported. "
-            + "Use WriteLocalDataTo for writing to an IBufferWriter instead.");
+            "Reading data that spans chunk boundaries as a span is not supported. " +
+            "Use WriteLocalDataTo for writing to an IBufferWriter instead.");
     }
 
     internal ResultElement CreateObject(Cursor parent, SelectionSet selectionSet)
     {
-        var startObjectCursor = WriteStartObject(parent, selectionSet.Id);
-
-        var selectionCount = 0;
-        foreach (var selection in selectionSet.Selections)
+        lock (_dataChunkLock)
         {
-            WriteEmptyProperty(startObjectCursor, selection);
-            selectionCount++;
+            var startObjectCursor = WriteStartObject(parent, selectionSet.Id);
+
+            var selectionCount = 0;
+            foreach (var selection in selectionSet.Selections)
+            {
+                WriteEmptyProperty(startObjectCursor, selection);
+                selectionCount++;
+            }
+
+            WriteEndObject(startObjectCursor, selectionCount);
+
+            return new ResultElement(this, startObjectCursor);
         }
-
-        WriteEndObject(startObjectCursor, selectionCount);
-
-        return new ResultElement(this, startObjectCursor);
     }
 
     internal ResultElement CreateObject(Cursor parent, int propertyCount)
     {
-        var startObjectCursor = WriteStartObject(parent, isSelectionSet: false);
-
-        for (var i = 0; i < propertyCount; i++)
+        lock (_dataChunkLock)
         {
-            WriteEmptyProperty(startObjectCursor);
+            var startObjectCursor = WriteStartObject(parent, isSelectionSet: false);
+
+            for (var i = 0; i < propertyCount; i++)
+            {
+                WriteEmptyProperty(startObjectCursor);
+            }
+
+            WriteEndObject(startObjectCursor, propertyCount);
+
+            return new ResultElement(this, startObjectCursor);
         }
-
-        WriteEndObject(startObjectCursor, propertyCount);
-
-        return new ResultElement(this, startObjectCursor);
     }
 
     internal ResultElement CreateArray(Cursor parent, int length)
     {
-        var cursor = WriteStartArray(parent, length);
-
-        for (var i = 0; i < length; i++)
+        lock (_dataChunkLock)
         {
-            WriteEmptyValue(cursor);
+            var cursor = WriteStartArray(parent, length);
+
+            for (var i = 0; i < length; i++)
+            {
+                WriteEmptyValue(cursor);
+            }
+
+            WriteEndArray();
+
+            return new ResultElement(this, cursor);
         }
-
-        WriteEndArray();
-
-        return new ResultElement(this, cursor);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

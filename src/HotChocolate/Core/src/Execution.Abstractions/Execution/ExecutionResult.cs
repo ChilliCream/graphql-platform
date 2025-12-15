@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Immutable;
 using HotChocolate.Features;
 
 namespace HotChocolate.Execution;
@@ -15,26 +16,27 @@ public abstract class ExecutionResult : IExecutionResult
 
     protected ExecutionResult()
     {
+        Features = new FeatureCollection();
     }
 
-    protected ExecutionResult((Func<ValueTask>[] Tasks, int Length) cleanupTasks)
+    protected ExecutionResult((Func<ValueTask>[] Tasks, int Length)? cleanupTasks, IFeatureCollection? features)
     {
-        if (cleanupTasks.Tasks is null)
-        {
-            throw new ArgumentNullException(nameof(cleanupTasks));
-        }
-
-        (_cleanUpTasks, _cleanupTasksLength) = cleanupTasks;
+        Features = features ?? new FeatureCollection();
+        (_cleanUpTasks, _cleanupTasksLength) = cleanupTasks ?? ([], 0);
     }
 
     /// <inheritdoc cref="IExecutionResult" />
     public abstract ExecutionResultKind Kind { get; }
 
     /// <inheritdoc cref="IExecutionResult" />
-    public abstract IReadOnlyDictionary<string, object?>? ContextData { get; }
+    public ImmutableDictionary<string, object?> ContextData
+    {
+        get => Features.Get<ImmutableDictionary<string, object?>>() ?? ImmutableDictionary<string, object?>.Empty;
+        set => Features.Set(value);
+    }
 
     /// <inheritdoc cref="IFeatureProvider" />
-    public IFeatureCollection Features { get; } = new FeatureCollection();
+    public IFeatureCollection Features { get; }
 
     /// <summary>
     /// This helper allows someone else to take over the responsibility over the cleanup tasks.

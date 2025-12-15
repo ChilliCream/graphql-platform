@@ -290,32 +290,6 @@ public static partial class RequestExecutorBuilderExtensions
         return builder;
     }
 
-    /// <summary>
-    /// Configures the result buffer options.
-    /// </summary>
-    /// <param name="builder">
-    /// The request executor builder.
-    /// </param>
-    /// <param name="configure">
-    /// The configuration action.
-    /// </param>
-    /// <returns>
-    /// Returns the request executor builder.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="builder"/> is <c>null</c>.
-    /// </exception>
-    public static IRequestExecutorBuilder ModifyResultBuffersOptions(
-        this IRequestExecutorBuilder builder,
-        Action<ResultBufferOptions> configure)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(configure);
-
-        builder.Services.AddSingleton(configure);
-        return builder;
-    }
-
     public static IRequestExecutorBuilder ConfigureSchemaServices(
         this IRequestExecutorBuilder builder,
         Action<IServiceCollection> configureServices)

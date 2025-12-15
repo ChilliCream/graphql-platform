@@ -1,9 +1,9 @@
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Represents a query result object.
+/// Represents a GraphQL operation result payload.
 /// </summary>
-public interface IOperationResult : IExecutionResult
+public interface IOperationResult : IExecutionResult, IResultDataJsonFormatter
 {
     /// <summary>
     /// Gets the index of the request that corresponds to this result.
@@ -16,33 +16,21 @@ public interface IOperationResult : IExecutionResult
     int? VariableIndex { get; }
 
     /// <summary>
-    /// A string that was passed to the label argument of the @defer or @stream
-    /// directive that corresponds to this result.
-    /// </summary>
-    /// <value></value>
-    string? Label { get; }
-
-    /// <summary>
     /// A path to the insertion point that informs the client how to patch a
     /// subsequent delta payload into the original payload.
     /// </summary>
-    /// <value></value>
     Path? Path { get; }
 
     /// <summary>
     /// The data that is being delivered.
     /// </summary>
-    /// <value></value>
-    IReadOnlyDictionary<string, object?>? Data { get; }
+    object? Data { get; }
 
     /// <summary>
-    /// The `items` entry in a stream payload is a list of results from the execution of
-    /// the associated @stream directive. This output will be a list of the same type as
-    /// the field with the associated `@stream` directive. If `items` is set to `null`,
-    /// it indicates that an error has caused a `null` to bubble up to a field higher
-    /// than the list field with the associated `@stream` directive.
+    /// Specifies if data was explicitly set.
+    /// If <c>false</c> the data was not set (including null).
     /// </summary>
-    IReadOnlyList<object?>? Items { get; }
+    bool IsDataSet { get; }
 
     /// <summary>
     /// Gets the GraphQL errors of the result.
@@ -56,22 +44,27 @@ public interface IOperationResult : IExecutionResult
     IReadOnlyDictionary<string, object?>? Extensions { get; }
 
     /// <summary>
-    /// Gets the incremental patches provided with this result.
+    /// Gets the list of pending incremental delivery operations.
+    /// Each pending result announces data that will be delivered incrementally in subsequent payloads.
     /// </summary>
-    IReadOnlyList<IOperationResult>? Incremental { get; }
+    IReadOnlyList<PendingResult>? Pending { get; }
 
     /// <summary>
-    /// A boolean that is present and <c>true</c> when there are more payloads
-    /// that will be sent for this operation. The last payload in a multi payload response
-    /// should return HasNext: <c>false</c>.
-    /// HasNext is null for single-payload responses to preserve backwards compatibility.
+    /// Gets the list of incremental results containing data from @defer or @stream directives.
+    /// Contains the actual data for previously announced pending operations.
     /// </summary>
-    /// <value></value>
-    bool? HasNext { get; }
+    IReadOnlyList<IIncrementalResult>? Incremental { get; }
 
     /// <summary>
-    /// Specifies if data was explicitly set.
-    /// If <c>false</c> the data was not set (including null).
+    /// Gets the list of completed incremental delivery operations.
+    /// Each completed result indicates that all data for a pending operation has been delivered.
     /// </summary>
-    bool IsDataSet { get; }
+    IReadOnlyList<CompletedResult>? Completed { get; }
+
+    /// <summary>
+    /// Indicates whether more payloads will follow in the response stream.
+    /// When <c>true</c>, clients should expect additional incremental data.
+    /// When <c>false</c>, this is the final payload.
+    /// </summary>
+    bool HasNext { get; }
 }

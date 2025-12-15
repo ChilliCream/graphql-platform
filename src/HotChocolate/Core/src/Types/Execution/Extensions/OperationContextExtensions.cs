@@ -7,7 +7,8 @@ internal static class OperationContextExtensions
 {
     extension(OperationContext context)
     {
-        public OperationContext ReportError(Exception exception,
+        public OperationContext ReportError(
+            Exception exception,
             MiddlewareContext resolverContext,
             ISelection? selection = null,
             Path? path = null)
@@ -21,7 +22,7 @@ internal static class OperationContextExtensions
             {
                 foreach (var error in ex.Errors)
                 {
-                    ReportError(context, error, resolverContext, selection);
+                    ReportError(context, error, resolverContext);
                 }
             }
             else
@@ -32,15 +33,15 @@ internal static class OperationContextExtensions
                     .AddLocations(selection.GetSyntaxNodes())
                     .Build();
 
-                ReportError(context, error, resolverContext, selection);
+                ReportError(context, error, resolverContext);
             }
 
             return context;
         }
 
-        public OperationContext ReportError(IError error,
-            MiddlewareContext resolverContext,
-            ISelection? selection = null)
+        public OperationContext ReportError(
+            IError error,
+            MiddlewareContext resolverContext)
         {
             var errors = new List<IError>();
 
@@ -49,50 +50,14 @@ internal static class OperationContextExtensions
                 error,
                 errors);
 
-            selection ??= resolverContext.Selection;
+            context.Result.Errors ??= [];
 
             foreach (var handled in errors)
             {
-                context.Result.AddError(handled, selection);
+                context.Result.Errors.Add(handled);
                 context.DiagnosticEvents.ResolverError(resolverContext, handled);
             }
 
-            return context;
-        }
-
-        public OperationContext SetLabel(string? label)
-        {
-            context.Result.SetLabel(label);
-            return context;
-        }
-
-        public OperationContext SetPath(Path? path)
-        {
-            context.Result.SetPath(path);
-            return context;
-        }
-
-        public OperationContext SetData(ObjectResult objectResult)
-        {
-            context.Result.SetData(objectResult);
-            return context;
-        }
-
-        public OperationContext SetItems(IReadOnlyList<object?> items)
-        {
-            context.Result.SetItems(items);
-            return context;
-        }
-
-        public OperationContext SetPatchId(uint patchId)
-        {
-            context.Result.SetContextData(WellKnownContextData.PatchId, patchId);
-            return context;
-        }
-
-        public OperationContext ClearResult()
-        {
-            context.Result.Clear();
             return context;
         }
 

@@ -8,10 +8,10 @@ namespace HotChocolate.Adapters.OpenApi;
 internal sealed class OpenApiResultFormatter : IOpenApiResultFormatter
 {
     private static readonly JsonWriterOptions s_jsonWriterOptions =
-        new JsonWriterOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+        new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     private static readonly JsonSerializerOptions s_jsonSerializerOptions =
-        new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+        new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public async Task FormatResultAsync(
         IOperationResult operationResult,
@@ -19,7 +19,7 @@ internal sealed class OpenApiResultFormatter : IOpenApiResultFormatter
         OpenApiEndpointDescriptor endpoint,
         CancellationToken cancellationToken)
     {
-        // If the root field is null and we don't have any errors,
+        // If the root field is null, and we don't have any errors,
         // we return HTTP 404 for queries and HTTP 500 otherwise.
         if (operationResult.Data?.TryGetValue(endpoint.ResponseNameToExtract, out var responseData) != true
             || responseData is null)
