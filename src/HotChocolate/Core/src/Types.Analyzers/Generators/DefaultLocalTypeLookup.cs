@@ -92,23 +92,22 @@ public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfo
 
     private static IEnumerable<string> GetPotentialNamespaces(IMethodSymbol methodSymbol)
     {
-        var syntaxTree = methodSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree;
+        var root = methodSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree.GetRoot();
 
-        if (syntaxTree is null)
+        if (root is not CompilationUnitSyntax compilationUnit)
         {
             return [];
         }
 
         var namespaces = new HashSet<string>();
-        var root = syntaxTree.GetRoot();
 
-        foreach (var descendantNode in root.DescendantNodes())
+        foreach (var member in compilationUnit.Members)
         {
-            if (descendantNode is NamespaceDeclarationSyntax namespaceDeclaration)
+            if (member is NamespaceDeclarationSyntax namespaceDeclaration)
             {
                 namespaces.Add(namespaceDeclaration.Name.ToString());
             }
-            else if (descendantNode is FileScopedNamespaceDeclarationSyntax fileScopedNamespace)
+            else if (member is FileScopedNamespaceDeclarationSyntax fileScopedNamespace)
             {
                 namespaces.Add(fileScopedNamespace.Name.ToString());
             }
