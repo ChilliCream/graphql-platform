@@ -1,5 +1,4 @@
 using HotChocolate.Execution;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 
 namespace HotChocolate.ApolloFederation.CertificationSchema.AnnotationBased;
@@ -21,19 +20,22 @@ public class CertificationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 _service {
                     sdl
                 }
-            }");
+            }
+            """);
 
         // assert
-        Assert.IsType<ObjectResult>(
-            Assert.IsType<ObjectResult>(
-                Assert.IsType<OperationResult>(result).Data)
-                    .GetValueOrDefault("_service"))
-                        .GetValueOrDefault("sdl")
-                            .MatchSnapshot();
+        result
+            .ExpectOperationResult()
+            .UnwrapData()
+            .GetProperty("_service")
+            .GetProperty("sdl")
+            .GetString()
+            .MatchSnapshot();
     }
 
     [Fact]
@@ -44,13 +46,15 @@ public class CertificationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"query ($representations: [_Any!]!) {
+            """
+            query ($representations: [_Any!]!) {
                 _entities(representations: $representations) {
                     ... on Product {
                         sku
                     }
                 }
-            }",
+            }
+            """,
             new Dictionary<string, object?>
             {
                 ["representations"] = new List<object?>

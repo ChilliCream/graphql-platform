@@ -21,7 +21,7 @@ public class OffsetDateTimeTypeRfc3339IntegrationTests
 
         Assert.Equal(
             "2020-12-31T18:30:13.000001234+02:00",
-            result.ExpectOperationResult().Data!["test"]);
+            result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class OffsetDateTimeTypeRfc3339IntegrationTests
 
         Assert.Equal(
             "2020-12-31T18:30:13.000001234+02:30",
-            result.ExpectOperationResult().Data!["test"]);
+            result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class OffsetDateTimeTypeRfc3339IntegrationTests
 
         Assert.Equal(
             "2020-12-31T18:40:13.000001234+02:00",
-            result.ExpectOperationResult().Data!["test"]);
+            result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class OffsetDateTimeTypeRfc3339IntegrationTests
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T18:30:13+02:35" } })
                 .Build());
 
-        Assert.Equal("2020-12-31T18:40:13+02:35", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-12-31T18:40:13+02:35", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class OffsetDateTimeTypeRfc3339IntegrationTests
 
         Assert.Equal(
             "2020-12-31T18:40:13.000001234+02:00",
-            result.ExpectOperationResult().Data!["test"]);
+            result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class OffsetDateTimeTypeRfc3339IntegrationTests
                 .SetDocument("mutation { test(arg: \"2020-12-31T18:30:13+02:35\") }")
                 .Build());
 
-        Assert.Equal("2020-12-31T18:40:13+02:35", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-12-31T18:40:13+02:35", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]

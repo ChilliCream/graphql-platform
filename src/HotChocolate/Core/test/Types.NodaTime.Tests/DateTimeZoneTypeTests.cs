@@ -34,21 +34,21 @@ public class DateTimeZoneTypeIntegrationTests
     public void QueryReturnsUtc()
     {
         var result = _testExecutor.Execute("query { test: utc }");
-        Assert.Equal("UTC", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("UTC", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsRome()
     {
         var result = _testExecutor.Execute("query { test: rome }");
-        Assert.Equal("Europe/Rome", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("Europe/Rome", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsChihuahua()
     {
         var result = _testExecutor.Execute("query { test: chihuahua }");
-        Assert.Equal("America/Chihuahua", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("America/Chihuahua", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -59,19 +59,19 @@ public class DateTimeZoneTypeIntegrationTests
                 .SetDocument("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "Europe/Amsterdam" } })
                 .Build());
-        Assert.Equal("Europe/Amsterdam", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("Europe/Amsterdam", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
-    public void DoesntParseIncorrectVariable()
+    public void DoesNotParseIncorrectVariable()
     {
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "Europe/Hamster" } })
                 .Build());
-        Assert.Null(Assert.IsType<OperationResult>(result).Data);
-        Assert.Single(Assert.IsType<OperationResult>(result).Errors!);
+        Assert.True(result.ExpectOperationResult().IsDataNull);
+        Assert.Single(result.ExpectOperationResult().Errors!);
     }
 
     [Fact]
@@ -81,21 +81,21 @@ public class DateTimeZoneTypeIntegrationTests
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"Europe/Amsterdam\") }")
                 .Build());
-        Assert.Equal("Europe/Amsterdam", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("Europe/Amsterdam", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
-    public void DoesntParseIncorrectLiteral()
+    public void DoesNotParseIncorrectLiteral()
     {
         var result = _testExecutor
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"Europe/Hamster\") }")
                 .Build());
-        Assert.Null(Assert.IsType<OperationResult>(result).Data);
-        Assert.Single(Assert.IsType<OperationResult>(result).Errors!);
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors!.First().Code);
+        Assert.Null(result.ExpectOperationResult().Data);
+        Assert.Single(result.ExpectOperationResult().Errors!);
+        Assert.Null(result.ExpectOperationResult().Errors![0].Code);
         Assert.Equal(
             "Unable to deserialize string to DateTimeZone",
-            Assert.IsType<OperationResult>(result).Errors!.First().Message);
+            result.ExpectOperationResult().Errors![0].Message);
     }
 }

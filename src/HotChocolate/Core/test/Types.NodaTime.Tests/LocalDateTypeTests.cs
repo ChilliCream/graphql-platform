@@ -38,7 +38,7 @@ public class LocalDateTypeIntegrationTests
     {
         var result = _testExecutor.Execute("query { test: one }");
 
-        Assert.Equal("5780-05-25", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("5780-05-25", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class LocalDateTypeIntegrationTests
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-21" } })
                 .Build());
 
-        Assert.Equal("2020-02-24", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-02-24", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public class LocalDateTypeIntegrationTests
                 .SetDocument("mutation { test(arg: \"2020-02-20\") }")
                 .Build());
 
-        Assert.Equal("2020-02-23", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-02-23", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]

@@ -104,7 +104,7 @@ public static class TestHelper
         var result = await executor.ExecuteAsync(request);
 
         // assert
-        IOperationResult operationResult = Assert.IsType<OperationResult>(result);
+        var operationResult = Assert.IsType<OperationResult>(result);
         Assert.NotNull(operationResult.Errors);
 
         if (elementInspectors.Length > 0)

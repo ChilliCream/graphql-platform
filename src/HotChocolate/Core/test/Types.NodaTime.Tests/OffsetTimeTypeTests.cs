@@ -44,14 +44,14 @@ public class OffsetTimeTypeIntegrationTests
     public void QueryReturns()
     {
         var result = _testExecutor.Execute("query { test: hours }");
-        Assert.Equal("18:30:13+02", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("18:30:13+02", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsWithMinutes()
     {
         var result = _testExecutor.Execute("query { test: hoursAndMinutes }");
-        Assert.Equal("18:30:13+02:35", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("18:30:13+02:35", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class OffsetTimeTypeIntegrationTests
                 .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13+02" } })
                 .Build());
-        Assert.Equal("18:30:13+02", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("18:30:13+02", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class OffsetTimeTypeIntegrationTests
                 .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13+02:35" } })
                 .Build());
-        Assert.Equal("18:30:13+02:35", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("18:30:13+02:35", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class OffsetTimeTypeIntegrationTests
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"18:30:13+02\") }")
                 .Build());
-        Assert.Equal("18:30:13+02", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("18:30:13+02", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class OffsetTimeTypeIntegrationTests
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"18:30:13+02:35\") }")
                 .Build());
-        Assert.Equal("18:30:13+02:35", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("18:30:13+02:35", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]

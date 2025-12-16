@@ -48,42 +48,42 @@ public class DurationTypeJsonRoundtripIntegrationTests
     public void QueryReturnsSerializedDataWithDecimals()
     {
         var result = _testExecutor.Execute("query { test: positiveWithDecimals }");
-        Assert.Equal("2959:53:10.019", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("2959:53:10.019", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsSerializedDataWithNegativeValue()
     {
         var result = _testExecutor.Execute("query { test: negativeWithDecimals }");
-        Assert.Equal("-2959:53:10.019", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("-2959:53:10.019", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsSerializedDataWithoutDecimals()
     {
         var result = _testExecutor.Execute("query { test: positiveWithoutDecimals }");
-        Assert.Equal("2959:53:10", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("2959:53:10", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsSerializedDataWithoutSeconds()
     {
         var result = _testExecutor.Execute("query { test: positiveWithoutSeconds }");
-        Assert.Equal("2959:53:00", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("2959:53:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsSerializedDataWithoutMinutes()
     {
         var result = _testExecutor.Execute("query { test: positiveWithoutMinutes }");
-        Assert.Equal("2959:00:00", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("2959:00:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsSerializedDataWithRoundtrip()
     {
         var result = _testExecutor.Execute("query { test: positiveWithRoundtrip }");
-        Assert.Equal("2978:01:10", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("2978:01:10", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "238:01:00.019" } })
                 .Build());
-        Assert.Equal("238:11:00.019", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("238:11:00.019", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "238:01:00" } })
                 .Build());
-        Assert.Equal("238:11:00", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("238:11:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "238:01:00" } })
                 .Build());
-        Assert.Equal("238:11:00", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("238:11:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -127,7 +127,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "-238:01:00" } })
                 .Build());
-        Assert.Equal("-237:51:00", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("-237:51:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -138,8 +138,8 @@ public class DurationTypeJsonRoundtripIntegrationTests
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "+09:22:01:00" } })
                 .Build());
-        Assert.Null(Assert.IsType<OperationResult>(result).Data);
-        Assert.Single(Assert.IsType<OperationResult>(result).Errors!);
+        Assert.Null(result.ExpectOperationResult().Data);
+        Assert.Single(result.ExpectOperationResult().Errors!);
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"238:01:00.019\") }")
                 .Build());
-        Assert.Equal("238:11:00.019", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("238:11:00.019", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"238:01:00\") }")
                 .Build());
-        Assert.Equal("238:11:00", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("238:11:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -169,7 +169,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"238:01:00\") }")
                 .Build());
-        Assert.Equal("238:11:00", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("238:11:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"-238:01:00\") }")
                 .Build());
-        Assert.Equal("-237:51:00", Assert.IsType<OperationResult>(result).Data!["test"]);
+        Assert.Equal("-237:51:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -189,7 +189,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"+238:01:00\") }")
                 .Build());
-        Assert.Null(Assert.IsType<OperationResult>(result).Data);
-        Assert.Single(Assert.IsType<OperationResult>(result).Errors!);
+        Assert.Null(result.ExpectOperationResult().Data);
+        Assert.Single(result.ExpectOperationResult().Errors!);
     }
 }

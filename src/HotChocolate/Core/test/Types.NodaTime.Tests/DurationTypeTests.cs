@@ -43,42 +43,42 @@ public class DurationTypeIntegrationTests
     public void QueryReturnsSerializedDataWithDecimals()
     {
         var result = _testExecutor.Execute("query { test: positiveWithDecimals }");
-        Assert.Equal("123:07:53:10.019", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("123:07:53:10.019", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsSerializedDataWithNegativeValue()
     {
         var result = _testExecutor.Execute("query{test: negativeWithDecimals}");
-        Assert.Equal("-123:07:53:10.019", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("-123:07:53:10.019", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsSerializedDataWithoutDecimals()
     {
         var result = _testExecutor.Execute("query{test: positiveWithoutDecimals}");
-        Assert.Equal("123:07:53:10", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("123:07:53:10", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsSerializedDataWithoutSeconds()
     {
         var result = _testExecutor.Execute("query{test:positiveWithoutSeconds}");
-        Assert.Equal("123:07:53:00", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("123:07:53:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsSerializedDataWithoutMinutes()
     {
         var result = _testExecutor.Execute("query{test:positiveWithoutMinutes}");
-        Assert.Equal("123:07:00:00", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("123:07:00:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsSerializedDataWithRoundtrip()
     {
         var result = _testExecutor.Execute("query{test:positiveWithRoundtrip}");
-        Assert.Equal("124:02:01:10", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("124:02:01:10", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class DurationTypeIntegrationTests
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "09:22:01:00.019" } })
                 .Build());
-        Assert.Equal("9:22:11:00.019", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("9:22:11:00.019", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class DurationTypeIntegrationTests
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "09:22:01:00" } })
                 .Build());
-        Assert.Equal("9:22:11:00", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("9:22:11:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class DurationTypeIntegrationTests
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "9:22:01:00" } })
                 .Build());
-        Assert.Equal("9:22:11:00", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("9:22:11:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public class DurationTypeIntegrationTests
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "-9:22:01:00" } })
                 .Build());
-        Assert.Equal("-9:21:51:00", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("-9:21:51:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public class DurationTypeIntegrationTests
                 .SetDocument("mutation { test(arg: \"09:22:01:00.019\") }")
                 .Build());
 
-        Assert.Equal("9:22:11:00.019", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("9:22:11:00.019", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -168,7 +168,7 @@ public class DurationTypeIntegrationTests
                 .SetDocument("mutation { test(arg: \"09:22:01:00\") }")
                 .Build());
 
-        Assert.Equal("9:22:11:00", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("9:22:11:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public class DurationTypeIntegrationTests
                 .SetDocument("mutation { test(arg: \"09:22:01:00\") }")
                 .Build());
 
-        Assert.Equal("9:22:11:00", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("9:22:11:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -190,7 +190,7 @@ public class DurationTypeIntegrationTests
                 .SetDocument("mutation { test(arg: \"-9:22:01:00\") }")
                 .Build());
 
-        Assert.Equal("-9:21:51:00", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("-9:21:51:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]

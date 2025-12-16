@@ -19,7 +19,7 @@ public class OffsetDateTimeTypeExtendedIntegrationTests
     {
         var result = _testExecutor.Execute("query { test: hours }");
 
-        Assert.Equal("2020-12-31T18:30:13.000001234+02", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-12-31T18:30:13.000001234+02", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class OffsetDateTimeTypeExtendedIntegrationTests
     {
         var result = _testExecutor.Execute("query { test: hoursAndMinutes }");
 
-        Assert.Equal("2020-12-31T18:30:13.000001234+02:30", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-12-31T18:30:13.000001234+02:30", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class OffsetDateTimeTypeExtendedIntegrationTests
                     .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T18:30:13+02" } })
                     .Build());
 
-        Assert.Equal("2020-12-31T18:40:13+02", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-12-31T18:40:13+02", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class OffsetDateTimeTypeExtendedIntegrationTests
                     .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T18:30:13+02:35" } })
                     .Build());
 
-        Assert.Equal("2020-12-31T18:40:13+02:35", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-12-31T18:40:13+02:35", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class OffsetDateTimeTypeExtendedIntegrationTests
                     .SetDocument("mutation { test(arg: \"2020-12-31T18:30:13+02\") }")
                     .Build());
 
-        Assert.Equal("2020-12-31T18:40:13+02", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-12-31T18:40:13+02", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class OffsetDateTimeTypeExtendedIntegrationTests
                     .SetDocument("mutation { test(arg: \"2020-12-31T18:30:13+02:35\") }")
                     .Build());
 
-        Assert.Equal("2020-12-31T18:40:13+02:35", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-12-31T18:40:13+02:35", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
