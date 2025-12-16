@@ -548,7 +548,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
         var variableSet = GetVariableValues();
         var features = _features;
 
-        if (features?.IsEmpty != false)
+        if (features is null || features.IsEmpty)
         {
             features = FeatureCollection.Empty;
         }

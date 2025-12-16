@@ -197,7 +197,8 @@ public sealed class InlineFragmentOperationRewriter(
 
     private void CollectInlineFragment(InlineFragmentNode inlineFragment, Context context)
     {
-        if ((inlineFragment.TypeCondition?.Name.Value.Equals(context.Type.Name, StringComparison.Ordinal) != false)
+        if ((inlineFragment.TypeCondition is null
+                || inlineFragment.TypeCondition.Name.Value.Equals(context.Type.Name, StringComparison.Ordinal))
             && inlineFragment.Directives.Count == 0)
         {
             CollectSelections(inlineFragment.SelectionSet, context);
