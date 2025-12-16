@@ -33,19 +33,18 @@ internal sealed partial class OperationContext : IExecutionTaskContext
         void ReportSingle(IError singleError)
         {
             var handled = ErrorHandler.Handle(singleError);
-            Result.Errors ??= [];
 
             if (handled is AggregateError ar)
             {
                 foreach (var ie in ar.Errors)
                 {
-                    Result.Errors.Add(ie);
+                    Result.AddError(ie);
                     _diagnosticEvents.TaskError(task, ie);
                 }
             }
             else
             {
-                Result.Errors.Add(handled);
+                Result.AddError(handled);
                 _diagnosticEvents.TaskError(task, handled);
             }
         }

@@ -45,11 +45,12 @@ internal sealed class AuthorizeRequestMiddleware(
         await next(context);
     }
 
-    private static IOperationResult CreateErrorResult(AuthorizeResult result)
-        => OperationResultBuilder.New()
-            .AddError(CreateError(result))
-            .SetContextData(ExecutionContextData.HttpStatusCode, 401)
-            .Build();
+    private static OperationResult CreateErrorResult(AuthorizeResult authorizeResult)
+    {
+        var result = OperationResult.FromError(CreateError(authorizeResult));
+        result.ContextData = result.ContextData.Add(ExecutionContextData.HttpStatusCode, 401);
+        return result;
+    }
 
     private static IError CreateError(AuthorizeResult result)
     {

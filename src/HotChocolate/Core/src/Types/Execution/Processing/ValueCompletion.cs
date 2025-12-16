@@ -50,7 +50,7 @@ internal static partial class ValueCompletion
 
             default:
                 var error = UnexpectedValueCompletionError(selection, resultValue.Path);
-                context.OperationContext.ReportError(error, context.ResolverContext, selection);
+                context.OperationContext.ReportError(error, context.ResolverContext);
                 break;
         }
     }

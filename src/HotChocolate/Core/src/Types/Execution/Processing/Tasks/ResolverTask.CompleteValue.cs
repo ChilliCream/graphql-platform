@@ -47,7 +47,7 @@ internal sealed partial class ResolverTask
         {
             PropagateNullValues(resultValue);
             _completionStatus = ExecutionTaskStatus.Faulted;
-            _operationContext.Result.AddNonNullViolation(_selection, _context.Path);
+            _operationContext.Result.AddNonNullViolation(_context.Path);
             _taskBuffer.Clear();
         }
     }

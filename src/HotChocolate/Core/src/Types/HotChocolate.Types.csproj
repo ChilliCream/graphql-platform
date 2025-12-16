@@ -243,6 +243,110 @@
     <Compile Update="Execution\Processing\SubscriptionExecutor.Subscription.cs">
       <DependentUpon>SubscriptionExecutor.cs</DependentUpon>
     </Compile>
+
+    <Compile Update="Execution\Processing\WorkScheduler.Execute.cs">
+      <DependentUpon>WorkScheduler.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\WorkScheduler.Pooling.cs">
+      <DependentUpon>WorkScheduler.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.Caches.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.Composite.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.DataLoader.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.ErrorFilter.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.Hashing.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.IdSerializer.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.InputParser.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.Instrumentation.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.Optimizer.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.Services.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.TransactionScope.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.TypeConversion.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.TypeDiscovery.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.UseRequest.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.Validation.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.Convention.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.Document.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.Middleware.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.Paging.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.Relay.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.Resolvers.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.TypeInterceptor.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.TypeModules.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.Types.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

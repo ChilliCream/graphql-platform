@@ -22,6 +22,8 @@ internal sealed class OperationContextOwner : IDisposable
 
     public OperationContextOwner(ObjectPool<OperationContext> operationContextPool)
     {
+        ArgumentNullException.ThrowIfNull(operationContextPool);
+
         _pool = operationContextPool;
         _context = operationContextPool.Get();
     }

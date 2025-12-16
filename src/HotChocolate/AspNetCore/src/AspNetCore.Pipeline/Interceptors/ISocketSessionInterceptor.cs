@@ -80,7 +80,7 @@ public interface ISocketSessionInterceptor
     /// This interception method is guaranteed to be invoked even if the operation
     /// fails or the connection is closed.
     ///
-    /// The cancellation token might be cancelled if the connection is closed.
+    /// The cancellation token might be canceled if the connection is closed.
     /// </summary>
     /// <param name="session">
     /// The socket session.

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Execution.Instrumentation;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
@@ -60,11 +61,8 @@ internal sealed partial class SubscriptionExecutor
                 _diagnosticEvents)
                 .ConfigureAwait(false);
 
-            var response = new ResponseStream(
-                () => subscription.ExecuteAsync(),
-                contextData: new SingleValueExtensionData(
-                    WellKnownContextData.Subscription,
-                    subscription));
+            var response = new ResponseStream(() => subscription.ExecuteAsync());
+            response.ContextData = response.ContextData.SetItem(WellKnownContextData.Subscription, subscription);
             response.RegisterForCleanup(subscription);
             return response;
         }
@@ -75,7 +73,7 @@ internal sealed partial class SubscriptionExecutor
                 await subscription.DisposeAsync().ConfigureAwait(false);
             }
 
-            return new OperationResult(null, ex.Errors);
+            return new OperationResult([..ex.Errors]);
         }
         catch (Exception ex)
         {
@@ -89,11 +87,11 @@ internal sealed partial class SubscriptionExecutor
             return new OperationResult(null, Unwrap(error));
         }
 
-        static IReadOnlyList<IError> Unwrap(IError error)
+        static ImmutableList<IError> Unwrap(IError error)
         {
             if (error is AggregateError aggregateError)
             {
-                return aggregateError.Errors;
+                return [..aggregateError.Errors];
             }
 
             return [error];

@@ -108,14 +108,14 @@ internal partial class MiddlewareContext : IMiddlewareContext
                 foreach (var ie in ar.Errors)
                 {
                     var errorWithPath = EnsurePathAndLocation(ie, _selection.SyntaxNodes[0].Node, Path);
-                    _operationContext.Result.AddError(errorWithPath, _selection);
+                    _operationContext.Result.AddError(errorWithPath);
                     diagnosticEvents.ResolverError(this, errorWithPath);
                 }
             }
             else
             {
                 var errorWithPath = EnsurePathAndLocation(handled, _selection.SyntaxNodes[0].Node, Path);
-                _operationContext.Result.AddError(errorWithPath, _selection);
+                _operationContext.Result.AddError(errorWithPath);
                 diagnosticEvents.ResolverError(this, errorWithPath);
             }
 
@@ -224,10 +224,9 @@ internal partial class MiddlewareContext : IMiddlewareContext
         // this context.
         var resolverTask =
             _operationContext.CreateResolverTask(
-                Selection,
                 _parent,
+                Selection,
                 ResultValue,
-                ResponseIndex,
                 ScopedContextData);
 
         // We need to manually copy the local state.
@@ -249,16 +248,16 @@ internal partial class MiddlewareContext : IMiddlewareContext
         public OperationContext Context { get; set; } = null!;
 
         public void SetResultState(string key, object? value)
-            => Context.Result.SetContextData(key, value);
+            => Context.Result.SetResultState(key, value);
 
         public void SetResultState(string key, UpdateState<object?> value)
-            => Context.Result.SetContextData(key, value);
+            => Context.Result.SetResultState(key, value);
 
         public void SetResultState<TState>(
             string key,
             TState state,
             UpdateState<object?, TState> value)
-            => Context.Result.SetContextData(key, state, value);
+            => Context.Result.SetResultState(key, state, value);
 
         public void SetExtension<TValue>(string key, TValue value)
             => Context.Result.SetExtension(key, new NeedsFormatting<TValue>(value));
@@ -266,12 +265,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
         public void SetExtension<TValue>(string key, UpdateState<TValue> value)
             => Context.Result.SetExtension<NeedsFormatting<TValue>?>(
                 key,
-                (k, c) => new NeedsFormatting<TValue>(
-                    value(
-                        k,
-                        c is null
-                            ? default!
-                            : c.Value)));
+                (k, c) => NeedsFormatting.Create(value(k, c is null ? default! : c.Value)));
 
         public void SetExtension<TValue, TState>(
             string key,
@@ -280,12 +274,6 @@ internal partial class MiddlewareContext : IMiddlewareContext
             => Context.Result.SetExtension<NeedsFormatting<TValue>?, TState>(
                 key,
                 state,
-                (k, c, s) => new NeedsFormatting<TValue>(
-                    value(
-                        k,
-                        c is null
-                            ? default!
-                            : c.Value,
-                        s)));
+                (k, c, s) => NeedsFormatting.Create(value(k, c is null ? default! : c.Value, s)));
     }
 }

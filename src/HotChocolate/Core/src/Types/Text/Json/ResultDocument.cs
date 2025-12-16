@@ -1,13 +1,10 @@
 using System.Buffers;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Features;
 using HotChocolate.Types;
 
 namespace HotChocolate.Text.Json;
@@ -209,8 +206,8 @@ public sealed partial class ResultDocument : IDisposable
         // if we have not yet reached the root and the element type of the parent is an object or an array
         // then we need to get still the parent of this row as we want to get the logical parent
         // which is the value level of the property or the element in an array.
-        if (parent != Cursor.Zero &&
-            _metaDb.GetElementTokenType(parent) is ElementTokenType.StartObject or ElementTokenType.StartArray)
+        if (parent != Cursor.Zero
+            && _metaDb.GetElementTokenType(parent) is ElementTokenType.StartObject or ElementTokenType.StartArray)
         {
             parent = _metaDb.GetParentCursor(parent);
 
@@ -442,8 +439,8 @@ public sealed partial class ResultDocument : IDisposable
 
         // Data spans chunk boundaries - this should be rare for typical JSON values
         throw new NotSupportedException(
-            "Reading data that spans chunk boundaries as a span is not supported. " +
-            "Use WriteLocalDataTo for writing to an IBufferWriter instead.");
+            "Reading data that spans chunk boundaries as a span is not supported. "
+            + "Use WriteLocalDataTo for writing to an IBufferWriter instead.");
     }
 
     internal ResultElement CreateObject(Cursor parent, SelectionSet selectionSet)

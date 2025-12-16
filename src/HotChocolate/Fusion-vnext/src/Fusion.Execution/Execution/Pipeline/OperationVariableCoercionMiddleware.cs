@@ -70,7 +70,7 @@ internal sealed class OperationVariableCoercionMiddleware
                     return true;
                 }
 
-                context.Result = OperationResultBuilder.CreateError(error);
+                context.Result = OperationResult.FromError(error);
                 return false;
             }
         }
@@ -96,7 +96,7 @@ internal sealed class OperationVariableCoercionMiddleware
                     }
                     else
                     {
-                        context.Result = OperationResultBuilder.CreateError(error);
+                        context.Result = OperationResult.FromError(error);
                         return false;
                     }
                 }

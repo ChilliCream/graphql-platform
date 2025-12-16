@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution;
@@ -132,19 +131,24 @@ public static class RequestExecutorServiceProviderExtensions
     /// The cancellation token.
     /// </param>
     /// <returns>
+    /// <para>
     /// Returns the execution result of the given GraphQL <paramref name="request" />.
-    ///
+    /// </para>
+    /// <para>
     /// If the request operation is a simple query or mutation the result is a
-    /// <see cref="IOperationResult" />.
-    ///
+    /// <see cref="OperationResult" />.
+    /// </para>
+    /// <para>
     /// If the request operation is a query or mutation where data is deferred, streamed or
     /// includes live data the result is a <see cref="IResponseStream" /> where each result
-    /// that the <see cref="IResponseStream" /> yields is a <see cref="IOperationResult" />.
-    ///
+    /// that the <see cref="IResponseStream" /> yields is a <see cref="OperationResult" />.
+    /// </para>
+    /// <para>
     /// If the request operation is a subscription the result is a
     /// <see cref="IResponseStream" /> where each result that the
     /// <see cref="IResponseStream" /> yields is a
-    /// <see cref="IOperationResult" />.
+    /// <see cref="OperationResult" />.
+    /// </para>
     /// </returns>
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IServiceProvider services,
@@ -180,16 +184,16 @@ public static class RequestExecutorServiceProviderExtensions
     /// Returns the execution result of the given GraphQL <paramref name="request" />.
     ///
     /// If the request operation is a simple query or mutation the result is a
-    /// <see cref="IOperationResult" />.
+    /// <see cref="OperationResult" />.
     ///
     /// If the request operation is a query or mutation where data is deferred, streamed or
     /// includes live data the result is a <see cref="IResponseStream" /> where each result
-    /// that the <see cref="IResponseStream" /> yields is a <see cref="IOperationResult" />.
+    /// that the <see cref="IResponseStream" /> yields is a <see cref="OperationResult" />.
     ///
     /// If the request operation is a subscription the result is a
     /// <see cref="IResponseStream" /> where each result that the
     /// <see cref="IResponseStream" /> yields is a
-    /// <see cref="IOperationResult" />.
+    /// <see cref="OperationResult" />.
     /// </returns>
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IRequestExecutorBuilder builder,
@@ -225,17 +229,17 @@ public static class RequestExecutorServiceProviderExtensions
     /// Returns the execution result of the given GraphQL <paramref name="query" />.
     ///
     /// If the request operation is a simple query or mutation the result is a
-    /// <see cref="IOperationResult" />.
+    /// <see cref="OperationResult" />.
     ///
     /// If the request operation is a query or mutation where data is deferred, streamed or
     /// includes live data the result is a <see cref="IResponseStream" /> where each result
     /// that the <see cref="IResponseStream" /> yields is a
-    /// <see cref="IOperationResult" />.
+    /// <see cref="OperationResult" />.
     ///
     /// If the request operation is a subscription the result is a
     /// <see cref="IResponseStream" /> where each result that the
     /// <see cref="IResponseStream" /> yields is a
-    /// <see cref="IOperationResult" />.
+    /// <see cref="OperationResult" />.
     /// </returns>
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IServiceProvider services,
@@ -271,19 +275,19 @@ public static class RequestExecutorServiceProviderExtensions
     /// <para>Returns the execution result of the given GraphQL <paramref name="query" />.</para>
     /// <para>
     /// If the request operation is a simple query or mutation the result is a
-    /// <see cref="IOperationResult" />.
+    /// <see cref="OperationResult" />.
     /// </para>
     /// <para>
     /// If the request operation is a query or mutation where data is deferred, streamed or
     /// includes live data the result is a <see cref="IResponseStream" /> where each result
     /// that the <see cref="IResponseStream" /> yields is a
-    /// <see cref="IOperationResult" />.
+    /// <see cref="OperationResult" />.
     /// </para>
     /// <para>
     /// If the request operation is a subscription the result is a
     /// <see cref="IResponseStream" /> where each result that the
     /// <see cref="IResponseStream" /> yields is a
-    /// <see cref="IOperationResult" />.
+    /// <see cref="OperationResult" />.
     /// </para>
     /// </returns>
     public static async Task<IExecutionResult> ExecuteRequestAsync(

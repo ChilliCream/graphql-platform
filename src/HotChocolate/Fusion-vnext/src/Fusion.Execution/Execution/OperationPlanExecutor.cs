@@ -197,7 +197,7 @@ internal sealed class OperationPlanExecutor
         }
     }
 
-    private static async IAsyncEnumerable<IOperationResult> CreateSubscriptionEnumerable(
+    private static async IAsyncEnumerable<OperationResult> CreateSubscriptionEnumerable(
         OperationPlanContext context,
         OperationExecutionNode subscriptionNode,
         SubscriptionResult subscriptionResult,
@@ -217,7 +217,7 @@ internal sealed class OperationPlanExecutor
                 subscriptionNode.SchemaName ?? context.GetDynamicSchemaName(subscriptionNode),
                 subscriptionResult.Id);
 
-            IOperationResult result;
+            OperationResult result;
 
             try
             {

@@ -264,7 +264,7 @@ internal static class MiddlewareHelper
             // to the HTTP response stream.
             Debug.Assert(result is not null, "No GraphQL result was created.");
 
-            if (result is IOperationResult queryResult)
+            if (result is OperationResult queryResult)
             {
                 formatScope = executorSession.DiagnosticEvents.FormatHttpResponse(context, queryResult);
             }
@@ -297,7 +297,7 @@ internal static class MiddlewareHelper
         }
 
         public ValidateAcceptContentTypeResult(
-            IOperationResult errorResult,
+            OperationResult errorResult,
             HttpStatusCode statusCode)
         {
             IsValid = false;
@@ -323,7 +323,7 @@ internal static class MiddlewareHelper
         [MemberNotNullWhen(false, nameof(StatusCode))]
         public bool IsValid { get; }
 
-        public IOperationResult? Error { get; }
+        public OperationResult? Error { get; }
 
         public HttpStatusCode? StatusCode { get; }
 
@@ -365,7 +365,7 @@ internal static class MiddlewareHelper
 
         public GraphQLRequest? Request { get; }
 
-        public IOperationResult? Error { get; }
+        public OperationResult? Error { get; }
 
         public HttpStatusCode? StatusCode { get; }
     }

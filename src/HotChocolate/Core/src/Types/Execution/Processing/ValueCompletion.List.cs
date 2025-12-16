@@ -120,7 +120,7 @@ internal static partial class ValueCompletion
         var operationContext = context.OperationContext;
         var resolverContext = context.ResolverContext;
         var error = ListValueIsNotSupported(runtimeValue.GetType(), selection, resultValue.Path);
-        operationContext.ReportError(error, resolverContext, selection);
+        operationContext.ReportError(error, resolverContext);
     }
 
     internal static void PropagateNullValues(ResultElement result)

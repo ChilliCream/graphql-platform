@@ -122,7 +122,7 @@ internal sealed class OperationExecutionMiddleware
         }
 
         var variableSet = context.VariableValues;
-        var tasks = new Task<IOperationResult>[variableSet.Length];
+        var tasks = new Task<OperationResult>[variableSet.Length];
 
         for (var i = 0; i < variableSet.Length; i++)
         {
@@ -130,7 +130,7 @@ internal sealed class OperationExecutionMiddleware
         }
 
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-        context.Result = new OperationResultBatch(results);
+        context.Result = new OperationResultBatch([..results]);
     }
 
     private async Task ExecuteVariableBatchRequestOptimizedAsync(
@@ -141,7 +141,7 @@ internal sealed class OperationExecutionMiddleware
         var variableSets = context.VariableValues;
         var query = GetQueryRootValue(context);
         var operationContextBuffer = ArrayPool<OperationContextOwner>.Shared.Rent(variableSets.Length);
-        var resultBuffer = ArrayPool<IOperationResult>.Shared.Rent(variableSets.Length);
+        var resultBuffer = ArrayPool<IExecutionResult>.Shared.Rent(variableSets.Length);
 
         for (var variableIndex = 0; variableIndex < variableSets.Length; variableIndex++)
         {
@@ -162,7 +162,7 @@ internal sealed class OperationExecutionMiddleware
                 operationContextBuffer.AsMemory(0, variableSets.Length),
                 resultBuffer.AsMemory(0, variableSets.Length));
 
-            context.Result = new OperationResultBatch(CreateResults(resultBuffer.AsSpan(0, variableSets.Length)));
+            context.Result = new OperationResultBatch([..resultBuffer.AsSpan(0, variableSets.Length)]);
         }
         catch (OperationCanceledException)
         {
@@ -204,9 +204,6 @@ internal sealed class OperationExecutionMiddleware
             operationContexts[variableIndex] = operationContextOwner;
         }
 
-        static IOperationResult[] CreateResults(ReadOnlySpan<IOperationResult> results)
-            => results.ToArray();
-
         static void AbandonContexts(ref OperationContextOwner[]? operationContextBuffer, int length)
         {
             if (operationContextBuffer is not null)
@@ -220,12 +217,12 @@ internal sealed class OperationExecutionMiddleware
 
         static void ReleaseResources(
             ref OperationContextOwner[]? operationContextBuffer,
-            IOperationResult[] resultBuffer,
+            IExecutionResult[] resultBuffer,
             int length)
         {
             var results = resultBuffer.AsSpan(0, length);
             results.Clear();
-            ArrayPool<IOperationResult>.Shared.Return(resultBuffer);
+            ArrayPool<IExecutionResult>.Shared.Return(resultBuffer);
 
             if (operationContextBuffer is null)
             {
@@ -293,7 +290,7 @@ internal sealed class OperationExecutionMiddleware
         }
     }
 
-    private async Task<IOperationResult> ExecuteQueryOrMutationNoStreamAsync(
+    private async Task<OperationResult> ExecuteQueryOrMutationNoStreamAsync(
         RequestContext context,
         IBatchDispatcher batchDispatcher,
         Operation operation,
@@ -329,7 +326,7 @@ internal sealed class OperationExecutionMiddleware
         }
     }
 
-    private async Task<IOperationResult> ExecuteQueryOrMutationAsync(
+    private async Task<OperationResult> ExecuteQueryOrMutationAsync(
         RequestContext context,
         IBatchDispatcher batchDispatcher,
         Operation operation,

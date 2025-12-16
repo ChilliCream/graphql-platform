@@ -261,7 +261,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal IOperationResult Complete(bool reusable = false)
+    internal OperationResult Complete(bool reusable = false)
     {
         var environment = Schema.TryGetEnvironment();
 
@@ -277,7 +277,14 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             : null;
 
         var result = _resultStore.Result;
-        var operationResult = new RawOperationResult(result, contextData: null);
+        var operationResult = new OperationResult(
+            new OperationResultData(
+                result,
+                result.Data.IsNullOrInvalidated,
+                result,
+                result),
+            result.Errors?.ToImmutableList(),
+            result.Extensions?.ToImmutableDictionary());
 
         // we take over the memory owners from the result context
         // and store them on the response so that the server can

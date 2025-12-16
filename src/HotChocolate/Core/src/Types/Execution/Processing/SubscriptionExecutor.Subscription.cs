@@ -103,7 +103,7 @@ internal sealed partial class SubscriptionExecutor
             return subscription;
         }
 
-        public IAsyncEnumerable<IOperationResult> ExecuteAsync()
+        public IAsyncEnumerable<OperationResult> ExecuteAsync()
             => new SubscriptionEnumerable(
                 _requestContext,
                 Id,
@@ -147,7 +147,7 @@ internal sealed partial class SubscriptionExecutor
         /// <returns>
         /// Returns a query result which will be enqueued to the response stream.
         /// </returns>
-        private async Task<IOperationResult> OnEvent(object payload)
+        private async Task<OperationResult> OnEvent(object payload)
         {
             using var es = _diagnosticEvents.OnSubscriptionEvent(_requestContext, _id);
             using var serviceScope = _requestContext.RequestServices.CreateScope();
@@ -183,9 +183,7 @@ internal sealed partial class SubscriptionExecutor
                     rootValue,
                     _resolveQueryRootValue);
 
-                operationContext.Result.SetContextData(
-                    WellKnownContextData.EventMessage,
-                    payload);
+                operationContext.Result.SetResultState(WellKnownContextData.EventMessage, payload);
 
                 var result = await _queryExecutor
                     .ExecuteAsync(operationContext, scopedContextData)
@@ -247,18 +245,17 @@ internal sealed partial class SubscriptionExecutor
 
                 // next we need a result map so that we can store the subscribe temporarily
                 // while executing the subscribe pipeline.
-                var resultMap = operationContext.Result.RentObject(1);
+                var resultMap = operationContext.Result.Data.Data;
                 var rootSelection = _rootSelections.Selections[0];
 
                 // we create a temporary middleware context so that we can use the standard
                 // resolver pipeline.
                 var middlewareContext = new MiddlewareContext();
                 middlewareContext.Initialize(
-                    operationContext,
+                    rootValue,
                     rootSelection,
                     resultMap,
-                    1,
-                    rootValue,
+                    operationContext,
                     _scopedContextData,
                     null);
 
@@ -314,18 +311,19 @@ internal sealed partial class SubscriptionExecutor
             }
             finally
             {
-                operationContext.Result.DiscardResult();
+                operationContext.Result.Data.Dispose();
+                operationContext.Result.Reset();
                 _operationContextPool.Return(operationContext);
             }
         }
     }
 
-    private sealed class SubscriptionEnumerable : IAsyncEnumerable<IOperationResult>
+    private sealed class SubscriptionEnumerable : IAsyncEnumerable<OperationResult>
     {
         private readonly RequestContext _requestContext;
         private readonly ulong _subscriptionId;
         private readonly ISourceStream _sourceStream;
-        private readonly Func<object, Task<IOperationResult>> _onEvent;
+        private readonly Func<object, Task<OperationResult>> _onEvent;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private readonly IErrorHandler _errorHandler;
 
@@ -333,7 +331,7 @@ internal sealed partial class SubscriptionExecutor
             RequestContext requestContext,
             ulong subscriptionId,
             ISourceStream sourceStream,
-            Func<object, Task<IOperationResult>> onEvent,
+            Func<object, Task<OperationResult>> onEvent,
             IExecutionDiagnosticEvents diagnosticEvents,
             IErrorHandler errorHandler)
         {
@@ -345,7 +343,7 @@ internal sealed partial class SubscriptionExecutor
             _errorHandler = errorHandler;
         }
 
-        public IAsyncEnumerator<IOperationResult> GetAsyncEnumerator(
+        public IAsyncEnumerator<OperationResult> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
             try
@@ -371,12 +369,12 @@ internal sealed partial class SubscriptionExecutor
         }
     }
 
-    private sealed class SubscriptionEnumerator : IAsyncEnumerator<IOperationResult>
+    private sealed class SubscriptionEnumerator : IAsyncEnumerator<OperationResult>
     {
         private readonly RequestContext _requestContext;
         private readonly ulong _subscriptionId;
         private readonly IAsyncEnumerator<object?> _eventEnumerator;
-        private readonly Func<object, Task<IOperationResult>> _onEvent;
+        private readonly Func<object, Task<OperationResult>> _onEvent;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private readonly IErrorHandler _errorHandler;
         private readonly CancellationToken _requestAborted;
@@ -387,7 +385,7 @@ internal sealed partial class SubscriptionExecutor
             RequestContext requestContext,
             ulong subscriptionId,
             IAsyncEnumerator<object?> eventEnumerator,
-            Func<object, Task<IOperationResult>> onEvent,
+            Func<object, Task<OperationResult>> onEvent,
             IExecutionDiagnosticEvents diagnosticEvents,
             IErrorHandler errorHandler,
             CancellationToken requestAborted)
@@ -401,7 +399,7 @@ internal sealed partial class SubscriptionExecutor
             _requestAborted = requestAborted;
         }
 
-        public IOperationResult Current { get; private set; } = null!;
+        public OperationResult Current { get; private set; } = null!;
 
         public async ValueTask<bool> MoveNextAsync()
         {
@@ -429,7 +427,7 @@ internal sealed partial class SubscriptionExecutor
                 _diagnosticEvents.SubscriptionEventError(_requestContext, _subscriptionId, ex);
                 _completed = true;
 
-                Current = OperationResultBuilder.CreateError(error);
+                Current = OperationResult.FromError(error);
                 return true;
             }
 
@@ -446,9 +444,9 @@ internal sealed partial class SubscriptionExecutor
         }
     }
 
-    private sealed class ErrorSubscriptionEnumerator : IAsyncEnumerator<IOperationResult>
+    private sealed class ErrorSubscriptionEnumerator : IAsyncEnumerator<OperationResult>
     {
-        public IOperationResult Current => null!;
+        public OperationResult Current => null!;
 
         public ValueTask<bool> MoveNextAsync() => new(false);
 

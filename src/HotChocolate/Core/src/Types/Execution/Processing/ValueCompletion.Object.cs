@@ -39,7 +39,7 @@ internal static partial class ValueCompletion
         }
 
         var error = ValueCompletion_CouldNotResolveAbstractType(selection, resultValue.Path, runtimeValue);
-        operationContext.ReportError(error, context.ResolverContext, selection);
+        operationContext.ReportError(error, context.ResolverContext);
     }
 
     private static bool TryResolveObjectType(
@@ -80,7 +80,7 @@ internal static partial class ValueCompletion
                 fieldType.Print(),
                 selection,
                 resultValue.Path);
-            context.OperationContext.ReportError(error, context.ResolverContext, selection);
+            context.OperationContext.ReportError(error, context.ResolverContext);
         }
         catch (Exception ex)
         {
@@ -89,7 +89,7 @@ internal static partial class ValueCompletion
                 fieldType.Print(),
                 selection,
                 resultValue.Path);
-            context.OperationContext.ReportError(error, context.ResolverContext, selection);
+            context.OperationContext.ReportError(error, context.ResolverContext);
         }
 
         objectType = null;

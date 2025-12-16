@@ -62,7 +62,7 @@ public interface IProtocolHandler
     ValueTask SendResultMessageAsync(
         ISocketSession session,
         string operationSessionId,
-        IOperationResult result,
+        OperationResult result,
         CancellationToken cancellationToken = default);
 
     /// <summary>

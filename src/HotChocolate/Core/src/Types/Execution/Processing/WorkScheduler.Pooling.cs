@@ -16,6 +16,7 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     private RequestContext _requestContext = null!;
     private IBatchDispatcher _batchDispatcher = null!;
     private IDisposable _batchDispatcherSession = null!;
+    private OperationResultBuilder _result = null!;
     private IErrorHandler _errorHandler = null!;
     private IExecutionDiagnosticEvents _diagnosticEvents = null!;
     private readonly ConcurrentDictionary<uint, bool> _completed = new();
@@ -31,6 +32,7 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
         _batchDispatcher = batchDispatcher;
         _batchDispatcherSession = _batchDispatcher.Subscribe(this);
 
+        _result = operationContext.Result;
         _errorHandler = operationContext.ErrorHandler;
         _diagnosticEvents = operationContext.DiagnosticEvents;
         _ct = operationContext.RequestAborted;
@@ -54,6 +56,7 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
         _completed.Clear();
         _signal.Reset();
 
+        _result = null!;
         _batchDispatcherSession.Dispose();
         _batchDispatcherSession = null!;
         _batchDispatcher = null!;

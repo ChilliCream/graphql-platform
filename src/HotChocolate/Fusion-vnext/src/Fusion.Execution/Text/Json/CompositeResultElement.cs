@@ -10,7 +10,7 @@ using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 namespace HotChocolate.Fusion.Text.Json;
 
-public readonly partial struct CompositeResultElement : IRawJsonFormatter
+public readonly partial struct CompositeResultElement
 {
     private readonly CompositeResultDocument _parent;
     private readonly CompositeResultDocument.Cursor _cursor;

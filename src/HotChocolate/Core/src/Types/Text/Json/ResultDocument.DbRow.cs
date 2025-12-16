@@ -39,11 +39,10 @@ public sealed partial class ResultDocument
         {
             Debug.Assert((byte)tokenType < 16);
             Debug.Assert(location is >= 0 and <= 0x07FFFFFF); // 27 bits
-            Debug.Assert(sizeOrLength == UnknownSize || sizeOrLength is >= 0 and <= 0x07FFFFFF); // 27 bits
+            Debug.Assert(sizeOrLength is UnknownSize or >= 0 and <= 0x07FFFFFF); // 27 bits
             Debug.Assert(parentRow is >= 0 and <= 0x07FFFFFF); // 27 bits
             Debug.Assert(operationReferenceId is >= 0 and <= 0x7FFF); // 15 bits
             Debug.Assert(numberOfRows is >= 0 and <= 0x07FFFFFF); // 27 bits
-            Debug.Assert((byte)flags <= 255); // 8 bits (0xFF)
             Debug.Assert((byte)operationReferenceType <= 3); // 2 bits
             Debug.Assert(Unsafe.SizeOf<DbRow>() == Size);
 

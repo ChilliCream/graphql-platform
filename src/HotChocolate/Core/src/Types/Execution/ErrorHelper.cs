@@ -108,30 +108,30 @@ internal static class ErrorHelper
             .Build();
     }
 
-    public static IOperationResult RootTypeNotFound(OperationType operationType) =>
-        OperationResultBuilder.CreateError(
+    public static OperationResult RootTypeNotFound(OperationType operationType)
+    {
+        var result = OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_RootTypeNotFound_Message, operationType)
-                .Build(),
-            new Dictionary<string, object?>
-            {
-                { ExecutionContextData.HttpStatusCode, HttpStatusCode.BadRequest }
-            });
+                .Build());
+        result.ContextData = result.ContextData.Add(ExecutionContextData.HttpStatusCode, HttpStatusCode.BadRequest);
+        return result;
+    }
 
-    public static IOperationResult StateInvalidForOperationResolver() =>
-        OperationResultBuilder.CreateError(
+    public static OperationResult StateInvalidForOperationResolver()
+        => OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForOperationResolver_Message)
                 .Build());
 
-    public static IOperationResult StateInvalidForOperationVariableCoercion() =>
-        OperationResultBuilder.CreateError(
+    public static OperationResult StateInvalidForOperationVariableCoercion()
+        => OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForOperationVariableCoercion_Message)
                 .Build());
 
-    public static IOperationResult StateInvalidForOperationExecution() =>
-        OperationResultBuilder.CreateError(
+    public static OperationResult StateInvalidForOperationExecution()
+        => OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForOperationExecution_Message)
                 .Build());
@@ -139,8 +139,8 @@ internal static class ErrorHelper
     public static IError ValueCompletion_CouldNotResolveAbstractType(
         Selection selection,
         Path path,
-        object result) =>
-        ErrorBuilder.New()
+        object result)
+        => ErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message,
                 result.GetType().FullName ?? result.GetType().Name,
@@ -149,34 +149,39 @@ internal static class ErrorHelper
             .AddLocations(selection)
             .Build();
 
-    public static IOperationResult OperationKindNotAllowed() =>
-        OperationResultBuilder.CreateError(
+    public static OperationResult OperationKindNotAllowed()
+    {
+        var result = OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage("The specified operation kind is not allowed.")
-                .Build(),
-            new Dictionary<string, object?>
-            {
-                { ExecutionContextData.OperationNotAllowed, null }
-            });
+                .Build());
 
-    public static IOperationResult RequestTypeNotAllowed() =>
-        OperationResultBuilder.CreateError(
+        result.ContextData = result.ContextData.Add(ExecutionContextData.OperationNotAllowed, null);
+
+        return result;
+    }
+
+    public static OperationResult RequestTypeNotAllowed()
+    {
+        var result = OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage("Variable batch requests are only allowed for mutations and subscriptions.")
-                .Build(),
-            new Dictionary<string, object?>
-            {
-                { ExecutionContextData.ValidationErrors, null }
-            });
+                .Build());
 
-    public static IOperationResult RequestTimeout(TimeSpan timeout) =>
-        OperationResultBuilder.CreateError(
+        result.ContextData = result.ContextData.Add(ExecutionContextData.ValidationErrors, null);
+
+        return result;
+    }
+
+    public static OperationResult RequestTimeout(TimeSpan timeout)
+        => OperationResult.FromError(
             new Error
             {
                 Message = string.Format(ErrorHelper_RequestTimeout, timeout),
                 Extensions = ImmutableDictionary<string, object?>.Empty.Add("code", ErrorCodes.Execution.Timeout)
             });
 
+    // TODO : Remove?
     public static IError NonNullOutputFieldViolation(Path? path, FieldNode selection)
         => ErrorBuilder.New()
             .SetMessage("Cannot return null for non-nullable field.")

@@ -34,13 +34,13 @@ internal static partial class ValueCompletion
         {
             var errorPath = resultValue.Path;
             var error = InvalidLeafValue(ex, selection, errorPath);
-            operationContext.ReportError(error, resolverContext, selection);
+            operationContext.ReportError(error, resolverContext);
         }
         catch (Exception ex)
         {
             var errorPath = resultValue.Path;
             var error = UnexpectedLeafValueSerializationError(ex, selection, errorPath);
-            operationContext.ReportError(error, resolverContext, selection);
+            operationContext.ReportError(error, resolverContext);
         }
 
         resultValue.SetNullValue();

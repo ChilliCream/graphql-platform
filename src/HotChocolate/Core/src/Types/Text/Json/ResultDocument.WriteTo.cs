@@ -8,13 +8,17 @@ namespace HotChocolate.Text.Json;
 
 public sealed partial class ResultDocument : IRawJsonFormatter
 {
-    public void WriteTo(IBufferWriter<byte> writer, bool indented = false)
+    public void WriteTo(OperationResult result, IBufferWriter<byte> writer, bool indented = false)
     {
-        var formatter = new RawJsonFormatter(this, writer, indented);
+        var formatter = new RawJsonFormatter(result, this, writer, indented);
         formatter.Write();
     }
 
-    internal ref struct RawJsonFormatter(ResultDocument document, IBufferWriter<byte> writer, bool indented)
+    internal ref struct RawJsonFormatter(
+        OperationResult result,
+        ResultDocument document,
+        IBufferWriter<byte> writer,
+        bool indented)
     {
         private int _indentation = 0;
 
@@ -28,7 +32,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                 _indentation++;
             }
 
-            if (document.Errors?.Count > 0)
+            if (result.Errors?.Count > 0)
             {
                 if (indented)
                 {
@@ -49,7 +53,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                 using var jsonWriter = new Utf8JsonWriter(writer, options);
                 JsonValueFormatter.WriteErrors(
                     jsonWriter,
-                    document.Errors,
+                    result.Errors,
                     new JsonSerializerOptions(JsonSerializerDefaults.Web),
                     default);
                 jsonWriter.Flush();
@@ -86,7 +90,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                 WriteObject(root, row);
             }
 
-            if (document.Extensions?.Count > 0)
+            if (result.Extensions?.Count > 0)
             {
                 WriteByte(JsonConstants.Comma);
 
@@ -109,7 +113,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                 using var jsonWriter = new Utf8JsonWriter(writer, options);
                 JsonValueFormatter.WriteDictionary(
                     jsonWriter,
-                    document.Extensions,
+                    result.Extensions,
                     new JsonSerializerOptions(JsonSerializerDefaults.Web),
                     default);
                 jsonWriter.Flush();

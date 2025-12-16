@@ -47,7 +47,7 @@ internal sealed class OperationSession : IOperationSession
 
             switch (result)
             {
-                case IOperationResult queryResult:
+                case OperationResult queryResult:
                     if (queryResult.Data is null && queryResult.Errors is { Count: > 0 })
                     {
                         await _session.Protocol.SendErrorMessageAsync(
@@ -163,7 +163,7 @@ internal sealed class OperationSession : IOperationSession
         return requestBuilder;
     }
 
-    private async Task SendResultMessageAsync(IOperationResult result, CancellationToken ct)
+    private async Task SendResultMessageAsync(OperationResult result, CancellationToken ct)
     {
         result = await _interceptor.OnResultAsync(_session, Id, result, ct);
         await _session.Protocol.SendResultMessageAsync(_session, Id, result, ct);

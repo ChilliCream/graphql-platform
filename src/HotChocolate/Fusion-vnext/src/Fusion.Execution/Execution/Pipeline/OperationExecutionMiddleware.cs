@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
@@ -41,7 +42,7 @@ internal sealed class OperationExecutionMiddleware
 
                     _diagnosticEvents.RequestError(context, error);
 
-                    context.Result = OperationResultBuilder.CreateError(error);
+                    context.Result = OperationResult.FromError(error);
                     return;
                 }
 
@@ -63,7 +64,7 @@ internal sealed class OperationExecutionMiddleware
                             cancellationToken);
                     }
 
-                    var results = await Task.WhenAll(tasks);
+                    var results = ImmutableList.CreateRange(await Task.WhenAll(tasks));
                     context.Result = new OperationResultBatch(results);
                 }
                 else

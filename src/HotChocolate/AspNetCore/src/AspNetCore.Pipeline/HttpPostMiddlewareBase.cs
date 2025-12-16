@@ -221,7 +221,7 @@ HANDLE_RESULT:
             // to the HTTP response stream.
             Debug.Assert(result is not null, "No GraphQL result was created.");
 
-            if (result is IOperationResult operationResult)
+            if (result is OperationResult operationResult)
             {
                 formatScope = session.DiagnosticEvents.FormatHttpResponse(context, operationResult);
             }

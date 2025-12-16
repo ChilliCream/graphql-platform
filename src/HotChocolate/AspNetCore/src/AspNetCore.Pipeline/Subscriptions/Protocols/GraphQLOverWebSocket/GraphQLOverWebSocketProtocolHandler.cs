@@ -209,7 +209,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
     public async ValueTask SendResultMessageAsync(
         ISocketSession session,
         string operationSessionId,
-        IOperationResult result,
+        OperationResult result,
         CancellationToken cancellationToken)
     {
         using var arrayWriter = new PooledArrayWriter();

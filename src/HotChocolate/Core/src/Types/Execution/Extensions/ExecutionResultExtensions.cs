@@ -14,7 +14,7 @@ public static class ExecutionResultExtensions
     private static readonly JsonResultFormatter s_formatterIndented = JsonResultFormatter.Indented;
 
     public static void WriteTo(
-        this IOperationResult result,
+        this OperationResult result,
         IBufferWriter<byte> writer,
         bool withIndentations = true)
     {
@@ -53,7 +53,7 @@ public static class ExecutionResultExtensions
     {
         ArgumentNullException.ThrowIfNull(result);
 
-        if (result is IOperationResult operationResult)
+        if (result is OperationResult operationResult)
         {
             using var writer = new PooledArrayWriter();
 

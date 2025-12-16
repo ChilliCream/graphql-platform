@@ -11,7 +11,7 @@ internal partial class MiddlewareContext
     private object? _parent;
     private Path? _path;
 
-    public Path Path => _path ??= ResultValue.Path.Append(Selection.ResponseName);
+    public Path Path => _path ??= ResultValue.Path;
 
     public IImmutableDictionary<string, object?> ScopedContextData { get; set; } = null!;
 

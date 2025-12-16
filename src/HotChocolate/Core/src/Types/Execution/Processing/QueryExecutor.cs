@@ -5,11 +5,11 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class QueryExecutor
 {
-    public Task<IOperationResult> ExecuteAsync(
+    public Task<OperationResult> ExecuteAsync(
         OperationContext operationContext)
         => ExecuteAsync(operationContext, ImmutableDictionary<string, object?>.Empty);
 
-    public Task<IOperationResult> ExecuteAsync(
+    public Task<OperationResult> ExecuteAsync(
         OperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContext)
     {
@@ -19,14 +19,14 @@ internal sealed class QueryExecutor
         return ExecuteInternalAsync(operationContext, scopedContext);
     }
 
-    private static async Task<IOperationResult> ExecuteInternalAsync(
+    private static async Task<OperationResult> ExecuteInternalAsync(
         OperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContext)
     {
         EnqueueResolverTasks(
             operationContext,
             operationContext.RootValue,
-            operationContext.Result.Data,
+            operationContext.Result.Data.Data,
             scopedContext,
             Path.Root);
 
@@ -37,7 +37,7 @@ internal sealed class QueryExecutor
 
     public async Task ExecuteBatchAsync(
         ReadOnlyMemory<OperationContextOwner> operationContexts,
-        Memory<IOperationResult> results)
+        Memory<IExecutionResult> results)
     {
         var scopedContext = ImmutableDictionary<string, object?>.Empty;
 
@@ -65,7 +65,7 @@ internal sealed class QueryExecutor
             EnqueueResolverTasks(
                 context,
                 context.RootValue,
-                context.Result.Data,
+                context.Result.Data.Data,
                 scopedContext,
                 Path.Root);
         }
@@ -73,7 +73,7 @@ internal sealed class QueryExecutor
 
     private static void BuildResults(
         ReadOnlySpan<OperationContextOwner> operationContexts,
-        Span<IOperationResult> results)
+        Span<IExecutionResult> results)
     {
         for (var i = 0; i < operationContexts.Length; ++i)
         {

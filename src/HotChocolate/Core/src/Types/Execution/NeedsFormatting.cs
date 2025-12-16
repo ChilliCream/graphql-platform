@@ -41,6 +41,9 @@ internal abstract class NeedsFormatting : IResultDataJsonFormatter
 #else
         => FormatValue(writer, options ?? JsonSerializerOptions.Default, nullIgnoreCondition);
 #endif
+
+    public static NeedsFormatting<TValue> Create<TValue>(TValue value)
+        => new(value);
 }
 
 /// <summary>

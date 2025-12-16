@@ -17,7 +17,6 @@ internal sealed partial class OperationContext
     private readonly WorkScheduler _workScheduler;
     private WorkScheduler _currentWorkScheduler;
     private readonly AggregateServiceScopeInitializer _serviceScopeInitializer;
-    private ResultDocument _resultDocument = null!;
     private RequestContext _requestContext = null!;
     private Schema _schema = null!;
     private IErrorHandler _errorHandler = null!;
@@ -79,11 +78,9 @@ internal sealed partial class OperationContext
         _isInitialized = true;
 
         IncludeFlags = operation.CreateIncludeFlags(variables);
-        _resultDocument = new ResultDocument(operation, IncludeFlags)
-        {
-            RequestIndex = _requestContext.RequestIndex,
-            VariableIndex = variableIndex
-        };
+        Result.Data = new ResultDocument(operation, IncludeFlags);
+        Result.RequestIndex = _requestContext.RequestIndex;
+        Result.VariableIndex = variableIndex;
 
         _workScheduler.Initialize(batchDispatcher);
         _currentWorkScheduler = _workScheduler;
@@ -108,11 +105,9 @@ internal sealed partial class OperationContext
         _isInitialized = true;
 
         IncludeFlags = _operation.CreateIncludeFlags(_variables);
-        _resultDocument = new ResultDocument(_operation, IncludeFlags)
-        {
-            RequestIndex = _requestContext.RequestIndex,
-            VariableIndex = context._variableIndex
-        };
+        Result.Data = new ResultDocument(_operation, IncludeFlags);
+        Result.RequestIndex = _requestContext.RequestIndex;
+        Result.VariableIndex = context._variableIndex;
 
         _workScheduler.Initialize(_batchDispatcher);
         _currentWorkScheduler = _workScheduler;
@@ -124,7 +119,6 @@ internal sealed partial class OperationContext
         {
             _currentWorkScheduler = _workScheduler;
             _workScheduler.Clear();
-            _resultDocument = null!;
             _requestContext = null!;
             _schema = null!;
             _errorHandler = null!;
@@ -138,6 +132,7 @@ internal sealed partial class OperationContext
             _resolveQueryRootValue = null!;
             _batchDispatcher = null!;
             _isInitialized = false;
+            Result.Reset();
         }
     }
 

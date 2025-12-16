@@ -22,7 +22,7 @@ internal sealed partial class OperationContext
         }
     }
 
-    public ResultDocument Result => _resultDocument;
+    public OperationResultBuilder Result { get; } = new();
 
     public RequestContext RequestContext
     {

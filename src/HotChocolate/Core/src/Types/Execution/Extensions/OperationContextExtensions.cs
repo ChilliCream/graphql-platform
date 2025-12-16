@@ -45,27 +45,61 @@ internal static class OperationContextExtensions
         {
             var errors = new List<IError>();
 
-            ReportSingleError(
+            UnwrapError(
                 context.ErrorHandler,
                 error,
                 errors);
 
-            context.Result.Errors ??= [];
+            context.Result.AddErrorRange(errors);
 
             foreach (var handled in errors)
             {
-                context.Result.Errors.Add(handled);
                 context.DiagnosticEvents.ResolverError(resolverContext, handled);
             }
 
             return context;
         }
 
-        public IOperationResult BuildResult()
-            => context.Result.BuildResult();
+        public OperationResult BuildResult()
+        {
+            var resultBuilder = context.Result;
+
+            var result = new OperationResult(
+                new OperationResultData(
+                    resultBuilder.Data,
+                    resultBuilder.Data.Data.IsNullOrInvalidated,
+                    resultBuilder.Data,
+                    resultBuilder.Data),
+                resultBuilder.Errors is { Count: > 0 } errors ? errors : null,
+                resultBuilder.Extensions is { Count: > 0 } extensions ? extensions : null)
+            {
+                RequestIndex = resultBuilder.RequestIndex > -1 ? resultBuilder.RequestIndex : 0,
+                VariableIndex =  resultBuilder.VariableIndex > -1 ? resultBuilder.VariableIndex : 0,
+                ContextData = resultBuilder.ContextData
+            };
+
+            if (resultBuilder.Path is not null
+                || resultBuilder.HasNext.HasValue
+                || resultBuilder.Pending is not null
+                || resultBuilder.Incremental is not null
+                || resultBuilder.Completed is not null)
+            {
+                result.Features.Set(
+                    new IncrementalDataFeature
+                    {
+                        Path = resultBuilder.Path,
+                        HasNext = resultBuilder.HasNext,
+                        Pending = resultBuilder.Pending,
+                        Incremental = resultBuilder.Incremental,
+                        Completed = resultBuilder.Completed
+                    });
+            }
+
+            return result;
+        }
     }
 
-    private static void ReportSingleError(
+    private static void UnwrapError(
         IErrorHandler errorHandler,
         IError error,
         List<IError> errors,
@@ -84,11 +118,7 @@ internal static class OperationContextExtensions
         {
             foreach (var innerError in aggregateError.Errors)
             {
-                ReportSingleError(
-                    errorHandler,
-                    innerError,
-                    errors,
-                    depth++);
+                UnwrapError(errorHandler, innerError, errors, depth++);
             }
         }
         else
