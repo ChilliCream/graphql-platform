@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -25,12 +26,11 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions ?? ImmutableDictionary<string, object?>.Empty;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
@@ -63,12 +63,11 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument())
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions ?? ImmutableDictionary<string, object?>.Empty;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()

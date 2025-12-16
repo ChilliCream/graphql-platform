@@ -139,7 +139,7 @@ public class SourceSchemaErrorTests : FusionTestBase
                     {
                         return context =>
                         {
-                            context.Result = OperationResultBuilder.CreateError(
+                            context.Result = OperationResult.FromError(
                                 ErrorBuilder.New()
                                     .SetMessage("A global error")
                                     .Build());
@@ -191,7 +191,7 @@ public class SourceSchemaErrorTests : FusionTestBase
                     {
                         return context =>
                         {
-                            context.Result = OperationResultBuilder.CreateError(
+                            context.Result = OperationResult.FromError(
                                 ErrorBuilder.New()
                                     .SetMessage("A global error")
                                     .Build());
@@ -671,7 +671,7 @@ public class SourceSchemaErrorTests : FusionTestBase
                     {
                         return context =>
                         {
-                            context.Result = OperationResultBuilder.CreateError(
+                            context.Result = OperationResult.FromError(
                                 ErrorBuilder.New()
                                     .SetMessage("A global error")
                                     .Build());

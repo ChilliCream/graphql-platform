@@ -27,7 +27,7 @@ public abstract partial class FusionTestBase
     {
         var snapshot = new Snapshot(postFix, ".yaml");
 
-        var results = new List<HotChocolate.Execution.OperationResult>();
+        var results = new List<OperationResult>();
 
         // We first wait and capture all possible gateway responses.
         await foreach (var result in response.ReadAsResultStreamAsync())
@@ -78,7 +78,7 @@ public abstract partial class FusionTestBase
     private static async Task TryWriteOperationPlanAsync(
         CodeWriter writer,
         Gateway gateway,
-        List<HotChocolate.Execution.OperationResult> results)
+        List<OperationResult> results)
     {
         foreach (var result in results)
         {
@@ -121,7 +121,7 @@ public abstract partial class FusionTestBase
         }
     }
 
-    private void WriteResults(CodeWriter writer, List<HotChocolate.Execution.OperationResult> results)
+    private void WriteResults(CodeWriter writer, List<OperationResult> results)
     {
         if (results is [{ } singleResult])
         {
@@ -154,7 +154,7 @@ public abstract partial class FusionTestBase
         }
     }
 
-    private static void WriteResult(CodeWriter writer, HotChocolate.Execution.OperationResult result)
+    private static void WriteResult(CodeWriter writer, OperationResult result)
     {
         var memoryStream = new MemoryStream();
         using var jsonWriter = new Utf8JsonWriter(memoryStream, new JsonWriterOptions { Indented = true });

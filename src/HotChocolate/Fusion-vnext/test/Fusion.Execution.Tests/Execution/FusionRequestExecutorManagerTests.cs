@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -89,18 +90,14 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                         {
                             var plan = context.GetOperationPlan();
                             context.Result =
-                                OperationResultBuilder.New()
-                                    .SetData(
-                                        new Dictionary<string, object?>
+                                new OperationResult(
+                                    new Dictionary<string, object?>
                                         {
                                             { "foo", null }
                                         })
-                                    .SetContextData(
-                                        new Dictionary<string, object?>
-                                        {
-                                            { "operationPlan", plan }
-                                        })
-                                        .Build();
+                                {
+                                    ContextData = ImmutableDictionary<string, object?>.Empty.Add("operationPlan", plan)
+                                };
                             return ValueTask.CompletedTask;
                         };
                     })

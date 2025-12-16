@@ -2,6 +2,7 @@ using System.IO.Pipelines;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -467,7 +468,14 @@ public class CompositeResultDocumentTests : FusionTestBase
         }
 
         // act
-        compositeResult.WriteTo(buffer, indented: true);
+        var operationResultData = new OperationResultData(
+            compositeResult,
+            compositeResult.Data.IsNullOrInvalidated,
+            compositeResult,
+            compositeResult);
+        var operationResult = new OperationResult(
+            operationResultData);
+        compositeResult.WriteTo(operationResult, buffer, indented: true);
 
         // assert
         var json = Encoding.UTF8.GetString(buffer.WrittenSpan);
@@ -527,7 +535,14 @@ public class CompositeResultDocumentTests : FusionTestBase
         // act
         await using var memoryStream = new MemoryStream();
         var writer = PipeWriter.Create(memoryStream);
-        compositeResult.WriteTo(writer, indented: true);
+        var operationResultData = new OperationResultData(
+            compositeResult,
+            compositeResult.Data.IsNullOrInvalidated,
+            compositeResult,
+            compositeResult);
+        var operationResult = new OperationResult(
+            operationResultData);
+        compositeResult.WriteTo(operationResult, writer, indented: true);
         await writer.FlushAsync();
         await writer.CompleteAsync();
 
