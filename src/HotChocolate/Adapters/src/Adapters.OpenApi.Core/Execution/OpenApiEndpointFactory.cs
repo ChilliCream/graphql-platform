@@ -95,7 +95,7 @@ internal static class OpenApiEndpointFactory
             endpointDefinition.HttpMethod,
             route,
             parameterTrie,
-            endpointDefinition.BodyParameter?.VariableName,
+            endpointDefinition.BodyVariableName,
             responseNameToExtract);
 
         void InsertParametersIntoTrie(

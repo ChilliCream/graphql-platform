@@ -94,7 +94,7 @@ public static class OpenApiDefinitionParser
             return OpenApiDefinitionParsingResult.Failure(queryParametersError);
         }
 
-        TryGetBodyParameter(operation, out var bodyParameter);
+        var bodyVariableName = GetBodyVariableName(operation);
 
         var cleanOperation = RewriteOperation(operation);
 
@@ -109,7 +109,7 @@ public static class OpenApiDefinitionParser
             description,
             [..routeParameters],
             [..queryParameters],
-            bodyParameter,
+            bodyVariableName,
             new DocumentNode(cleanDefinitions),
             fragmentReferences.Local,
             fragmentReferences.External);
@@ -117,28 +117,13 @@ public static class OpenApiDefinitionParser
         return OpenApiDefinitionParsingResult.Success(endpointDefinition);
     }
 
-    private static bool TryGetBodyParameter(
-        OperationDefinitionNode operation,
-        [NotNullWhen(true)] out OpenApiEndpointDefinitionParameter? parameter)
+    private static string? GetBodyVariableName(OperationDefinitionNode operation)
     {
         var variableWithBodyDirective = operation.VariableDefinitions
             .FirstOrDefault(v => v.Directives
                 .Any(d => d.Name.Value == WellKnownDirectiveNames.Body));
 
-        if (variableWithBodyDirective is null)
-        {
-            parameter = null;
-            return false;
-        }
-
-        var variableName = variableWithBodyDirective.Variable.Name.Value;
-
-        parameter = new OpenApiEndpointDefinitionParameter(
-            variableName,
-            variableName,
-            null);
-
-        return true;
+        return variableWithBodyDirective?.Variable.Name.Value;
     }
 
     private static bool TryParseQueryParameters(

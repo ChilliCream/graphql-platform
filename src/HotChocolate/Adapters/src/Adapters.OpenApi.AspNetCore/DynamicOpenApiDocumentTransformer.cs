@@ -79,8 +79,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             Responses = []
         };
 
-        var bodyParameter = endpoint.BodyParameter;
-        var bodyVariable = bodyParameter?.VariableName;
+        var bodyVariableName = endpoint.BodyVariableName;
         var bodyVariableTrie = new InputObjectPathTrie();
 
         foreach (var routeParameter in endpoint.RouteParameters)
@@ -89,7 +88,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
             operation.Parameters.Add(parameter);
 
-            if (routeParameter.VariableName == bodyVariable && routeParameter.InputObjectPath is not null)
+            if (routeParameter.VariableName == bodyVariableName && routeParameter.InputObjectPath is not null)
             {
                 bodyVariableTrie.Add(routeParameter);
             }
@@ -101,15 +100,15 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
             operation.Parameters.Add(parameter);
 
-            if (queryParameter.VariableName == bodyVariable && queryParameter.InputObjectPath is not null)
+            if (queryParameter.VariableName == bodyVariableName && queryParameter.InputObjectPath is not null)
             {
                 bodyVariableTrie.Add(queryParameter);
             }
         }
 
-        if (bodyParameter is not null)
+        if (bodyVariableName is not null)
         {
-            var (graphqlType, _) = GetParameterDetails(endpoint.OperationDefinition, bodyParameter, schema);
+            var (graphqlType, _) = GetBodyVariableDetails(endpoint.OperationDefinition, bodyVariableName, schema);
             var requestBodyType = CreateOpenApiSchemaForType(graphqlType, schema);
 
             RemovePropertiesFromSchema(requestBodyType, bodyVariableTrie);
@@ -1026,6 +1025,34 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         }
 
         return (lastField.Type, null);
+    }
+
+    private static (IType Type, IValueNode? DefaultValue) GetBodyVariableDetails(
+        OperationDefinitionNode operation,
+        string variableName,
+        ISchemaDefinition schema)
+    {
+        var variable = operation.VariableDefinitions
+            .FirstOrDefault(v => v.Variable.Name.Value == variableName);
+
+        if (variable is null)
+        {
+            throw new InvalidOperationException($"Expected to find variable named '{variableName}'.");
+        }
+
+        var namedVariableType = variable.Type.NamedType().Name.Value;
+
+        if (!schema.Types.TryGetType<IInputType>(variable.Type, out var variableType))
+        {
+            throw new InvalidOperationException($"Expected to find type '{namedVariableType}'.");
+        }
+
+        if (variable.DefaultValue is { } defaultValue)
+        {
+            return (variableType.NullableType(), defaultValue);
+        }
+
+        return (variableType, null);
     }
 
     private sealed record EndpointDescriptor(string Path, string HttpMethod, OpenApiOperation Operation);

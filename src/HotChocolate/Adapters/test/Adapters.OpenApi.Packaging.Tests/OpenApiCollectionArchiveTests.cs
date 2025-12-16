@@ -1,4 +1,6 @@
 using System.Text.Json;
+using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Adapters.OpenApi.Packaging;
 
@@ -9,35 +11,35 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public void Create_WithNullStream_ThrowsArgumentNullException()
     {
-        // Act & Assert
+        // act & Assert
         Assert.Throws<ArgumentNullException>(() => OpenApiCollectionArchive.Create(null!));
     }
 
     [Fact]
     public void Open_WithNullStream_ThrowsArgumentNullException()
     {
-        // Act & Assert
+        // act & Assert
         Assert.Throws<ArgumentNullException>(() => OpenApiCollectionArchive.Open(default(Stream)!));
     }
 
     [Fact]
     public void Open_WithNullString_ThrowsArgumentNullException()
     {
-        // Act & Assert
+        // act & Assert
         Assert.Throws<ArgumentNullException>(() => OpenApiCollectionArchive.Open(default(string)!));
     }
 
     [Fact]
     public async Task SetArchiveMetadata_WithValidData_StoresCorrectly()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
             FormatVersion = new Version("2.0.0")
         };
 
-        // Act & Assert
+        // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
 
@@ -50,10 +52,10 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task GetArchiveMetadata_WhenNotSet_ReturnsNull()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
 
-        // Act & Assert
+        // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream);
         var result = await archive.GetArchiveMetadataAsync();
         Assert.Null(result);
@@ -62,10 +64,10 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task SetArchiveMetadata_WithNullMetadata_ThrowsArgumentNullException()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
 
-        // Act & Assert
+        // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream);
         await Assert.ThrowsAsync<ArgumentNullException>(
             () => archive.SetArchiveMetadataAsync(null!));
@@ -74,7 +76,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task CommitAndReopen_PersistsEndpointsAndModels()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var metadata = CreateTestMetadata();
         var operation = "query GetUsers { users { id name } }"u8.ToArray();
@@ -82,7 +84,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
         using var settings = JsonDocument.Parse("""{"method": "GET", "route": "/api/users"}""");
         var key = new OpenApiEndpointKey("GET", "/api/users");
 
-        // Act - Create and commit
+        // act - Create and commit
         using (var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true))
         {
             await archive.SetArchiveMetadataAsync(metadata);
@@ -91,7 +93,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
             await archive.CommitAsync();
         }
 
-        // Assert - Reopen and verify persistence
+        // assert - Reopen and verify persistence
         stream.Position = 0;
         using (var readArchive = OpenApiCollectionArchive.Open(stream, leaveOpen: true))
         {
@@ -113,7 +115,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task UpdateMode_CanAddNewEndpointsToExistingArchive()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var metadata = CreateTestMetadata();
         var operation1 = "query GetUsers { users { id } }"u8.ToArray();
@@ -123,7 +125,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
         var key1 = new OpenApiEndpointKey("GET", "/api/users");
         var key2 = new OpenApiEndpointKey("POST", "/api/users");
 
-        // Act - Create initial archive
+        // act - Create initial archive
         using (var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true))
         {
             await archive.SetArchiveMetadataAsync(metadata);
@@ -131,7 +133,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
             await archive.CommitAsync();
         }
 
-        // Act - Update existing archive
+        // act - Update existing archive
         stream.Position = 0;
         using (var updateArchive = OpenApiCollectionArchive.Open(stream, OpenApiCollectionArchiveMode.Update, leaveOpen: true))
         {
@@ -139,7 +141,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
             await updateArchive.CommitAsync();
         }
 
-        // Assert - Verify both endpoints exist
+        // assert - Verify both endpoints exist
         stream.Position = 0;
         using (var readArchive = OpenApiCollectionArchive.Open(stream, leaveOpen: true))
         {
@@ -158,10 +160,10 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task TryGetOpenApiModel_WithNonExistentModel_ReturnsNull()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
 
-        // Act & Assert
+        // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(CreateTestMetadata());
         var found = await archive.TryGetOpenApiModelAsync("non-existent");
@@ -171,19 +173,19 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task AddOpenApiEndpoint_WithValidData_StoresCorrectly()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var operation = "query GetUsers { users { id name } }"u8.ToArray();
         using var settings = JsonDocument.Parse("""{"method": "GET", "route": "/api/users"}""");
         var metadata = CreateTestMetadata();
         var key = new OpenApiEndpointKey("GET", "/api/users");
 
-        // Act
+        // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
         await archive.AddOpenApiEndpointAsync(key, operation, settings);
 
-        // Assert - Can read immediately within the same session
+        // assert - Can read immediately within the same session
         var endpoint = await archive.TryGetOpenApiEndpointAsync(key);
 
         Assert.NotNull(endpoint);
@@ -197,7 +199,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task AddOpenApiEndpoint_WithMultipleEndpoints_StoresAll()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var operation1 = "query GetUsers { users { id name } }"u8.ToArray();
         var operation2 = "mutation CreateUser($input: CreateUserInput!) { createUser(input: $input) { id } }"u8.ToArray();
@@ -210,14 +212,14 @@ public class OpenApiCollectionArchiveTests : IDisposable
         var key2 = new OpenApiEndpointKey("POST", "/api/users");
         var key3 = new OpenApiEndpointKey("DELETE", "/api/users/{id}");
 
-        // Act
+        // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
         await archive.AddOpenApiEndpointAsync(key1, operation1, settings1);
         await archive.AddOpenApiEndpointAsync(key2, operation2, settings2);
         await archive.AddOpenApiEndpointAsync(key3, operation3, settings3);
 
-        // Assert
+        // assert
         var endpoint1 = await archive.TryGetOpenApiEndpointAsync(key1);
         var endpoint2 = await archive.TryGetOpenApiEndpointAsync(key2);
         var endpoint3 = await archive.TryGetOpenApiEndpointAsync(key3);
@@ -243,13 +245,13 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task AddOpenApiEndpoint_WithoutMetadata_ThrowsInvalidOperationException()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var operation = "query { users { id } }"u8.ToArray();
         using var settings = JsonDocument.Parse("""{"method": "GET", "route": "/api/users"}""");
         var key = new OpenApiEndpointKey("GET", "/api/users");
 
-        // Act & Assert
+        // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream);
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => archive.AddOpenApiEndpointAsync(key, operation, settings));
@@ -258,13 +260,13 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task AddOpenApiEndpoint_WithEmptyOperation_ThrowsArgumentOutOfRangeException()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var operation = ReadOnlyMemory<byte>.Empty;
         using var settings = JsonDocument.Parse("""{"method": "GET", "route": "/api/users"}""");
         var key = new OpenApiEndpointKey("GET", "/api/users");
 
-        // Act & Assert
+        // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(CreateTestMetadata());
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
@@ -274,12 +276,12 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task AddOpenApiEndpoint_WithNullSettings_ThrowsArgumentNullException()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var operation = "query { users { id } }"u8.ToArray();
         var key = new OpenApiEndpointKey("GET", "/api/users");
 
-        // Act & Assert
+        // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(CreateTestMetadata());
         await Assert.ThrowsAsync<ArgumentNullException>(
@@ -289,31 +291,31 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task TryGetOpenApiEndpoint_WhenNotExists_ReturnsNull()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var key = new OpenApiEndpointKey("GET", "/api/non-existent");
 
-        // Act
+        // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(CreateTestMetadata());
 
         var endpoint = await archive.TryGetOpenApiEndpointAsync(key);
 
-        // Assert
+        // assert
         Assert.Null(endpoint);
     }
 
     [Fact]
     public async Task AddOpenApiEndpoint_CommitAndReopen_PersistsEndpoints()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var operation = "query GetUserById($id: ID!) { userById(id: $id) { id name email } }"u8.ToArray();
         using var settings = JsonDocument.Parse("""{"method": "GET", "route": "/api/users/{id}"}""");
         var metadata = CreateTestMetadata();
         var key = new OpenApiEndpointKey("GET", "/api/users/{id}");
 
-        // Act - Create and commit
+        // act - Create and commit
         using (var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true))
         {
             await archive.SetArchiveMetadataAsync(metadata);
@@ -321,7 +323,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
             await archive.CommitAsync();
         }
 
-        // Assert - Reopen and verify persistence
+        // assert - Reopen and verify persistence
         stream.Position = 0;
         using (var readArchive = OpenApiCollectionArchive.Open(stream, leaveOpen: true))
         {
@@ -339,7 +341,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task AddOpenApiEndpoint_WithComplexSettings_PreservesJsonStructure()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var operation = "query SearchUsers($filter: UserFilter!, $first: Int) { users(filter: $filter, first: $first) { id name } }"u8.ToArray();
         const string settingsJson = """
@@ -357,12 +359,12 @@ public class OpenApiCollectionArchiveTests : IDisposable
         var metadata = CreateTestMetadata();
         var key = new OpenApiEndpointKey("GET", "/api/users/search");
 
-        // Act
+        // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
         await archive.AddOpenApiEndpointAsync(key, operation, settings);
 
-        // Assert
+        // assert
         var endpoint = await archive.TryGetOpenApiEndpointAsync(key);
 
         Assert.NotNull(endpoint);
@@ -379,17 +381,17 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task AddOpenApiModel_WithValidData_StoresCorrectly()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var fragment = "fragment UserFields on User { id name email }"u8.ToArray();
         var metadata = CreateTestMetadata();
 
-        // Act
+        // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
         await archive.AddOpenApiModelAsync("UserFields", fragment);
 
-        // Assert - Can read immediately within the same session
+        // assert - Can read immediately within the same session
         var model = await archive.TryGetOpenApiModelAsync("UserFields");
 
         Assert.NotNull(model);
@@ -399,21 +401,21 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task AddOpenApiModel_WithMultipleModels_StoresAll()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var fragment1 = "fragment UserFields on User { id name email }"u8.ToArray();
         var fragment2 = "fragment ProductFields on Product { id title price }"u8.ToArray();
         var fragment3 = "fragment OrderFields on Order { id status createdAt }"u8.ToArray();
         var metadata = CreateTestMetadata();
 
-        // Act
+        // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
         await archive.AddOpenApiModelAsync("UserFields", fragment1);
         await archive.AddOpenApiModelAsync("ProductFields", fragment2);
         await archive.AddOpenApiModelAsync("OrderFields", fragment3);
 
-        // Assert
+        // assert
         var model1 = await archive.TryGetOpenApiModelAsync("UserFields");
         var model2 = await archive.TryGetOpenApiModelAsync("ProductFields");
         var model3 = await archive.TryGetOpenApiModelAsync("OrderFields");
@@ -431,11 +433,11 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task AddOpenApiModel_WithoutMetadata_ThrowsInvalidOperationException()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var fragment = "fragment UserFields on User { id }"u8.ToArray();
 
-        // Act & Assert
+        // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream);
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => archive.AddOpenApiModelAsync("UserFields", fragment));
@@ -444,11 +446,11 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task AddOpenApiModel_WithEmptyFragment_ThrowsArgumentOutOfRangeException()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var fragment = ReadOnlyMemory<byte>.Empty;
 
-        // Act & Assert
+        // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(CreateTestMetadata());
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
@@ -458,28 +460,28 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task TryGetOpenApiModel_WhenNotExists_ReturnsNull()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
 
-        // Act
+        // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(CreateTestMetadata());
 
         var model = await archive.TryGetOpenApiModelAsync("NonExistent");
 
-        // Assert
+        // assert
         Assert.Null(model);
     }
 
     [Fact]
     public async Task AddOpenApiModel_CommitAndReopen_PersistsModels()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var fragment = "fragment UserFields on User { id name email createdAt }"u8.ToArray();
         var metadata = CreateTestMetadata();
 
-        // Act - Create and commit
+        // act - Create and commit
         using (var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true))
         {
             await archive.SetArchiveMetadataAsync(metadata);
@@ -487,7 +489,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
             await archive.CommitAsync();
         }
 
-        // Assert - Reopen and verify persistence
+        // assert - Reopen and verify persistence
         stream.Position = 0;
         using (var readArchive = OpenApiCollectionArchive.Open(stream, leaveOpen: true))
         {
@@ -501,7 +503,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task AddEndpointsAndModels_Together_StoresSeparately()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var operation = "query GetUser($id: ID!) { userById(id: $id) { ...UserFields } }"u8.ToArray();
         var fragment = "fragment UserFields on User { id name email }"u8.ToArray();
@@ -509,19 +511,19 @@ public class OpenApiCollectionArchiveTests : IDisposable
         var metadata = CreateTestMetadata();
         var key = new OpenApiEndpointKey("GET", "/api/users/{id}");
 
-        // Act
+        // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
         await archive.AddOpenApiEndpointAsync(key, operation, endpointSettings);
         await archive.AddOpenApiModelAsync("UserFields", fragment);
 
-        // Assert - Endpoints
+        // assert - Endpoints
         var endpoint = await archive.TryGetOpenApiEndpointAsync(key);
 
         Assert.NotNull(endpoint);
         Assert.Equal(operation, endpoint.Operation.ToArray());
 
-        // Assert - Models
+        // assert - Models
         var model = await archive.TryGetOpenApiModelAsync("UserFields");
 
         Assert.NotNull(model);
@@ -533,14 +535,14 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task AddOpenApiEndpoint_WithDuplicateKey_ThrowsInvalidOperationException()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var operation = "query GetUsers { users { id } }"u8.ToArray();
         using var settings = JsonDocument.Parse("""{"method": "GET", "route": "/api/users"}""");
         var metadata = CreateTestMetadata();
         var key = new OpenApiEndpointKey("GET", "/api/users");
 
-        // Act & Assert
+        // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
         await archive.AddOpenApiEndpointAsync(key, operation, settings);
@@ -552,12 +554,12 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task AddOpenApiModel_WithDuplicateName_ThrowsInvalidOperationException()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var fragment = "fragment UserFields on User { id }"u8.ToArray();
         var metadata = CreateTestMetadata();
 
-        // Act & Assert
+        // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
         await archive.AddOpenApiModelAsync("UserFields", fragment);
@@ -574,13 +576,13 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [InlineData("PATCH", "/api/users/{id}")]
     public async Task AddOpenApiEndpoint_WithValidKeys_Succeeds(string httpMethod, string route)
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var operation = "query GetUsers { users { id } }"u8.ToArray();
         using var settings = JsonDocument.Parse("""{"method": "GET", "route": "/api/users"}""");
         var key = new OpenApiEndpointKey(httpMethod, route);
 
-        // Act & Assert - Should not throw
+        // act & Assert - Should not throw
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(CreateTestMetadata());
         await archive.AddOpenApiEndpointAsync(key, operation, settings);
@@ -593,7 +595,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
     [Fact]
     public async Task GetArchiveMetadata_ReturnsEndpointKeysAndModelNames()
     {
-        // Arrange
+        // arrange
         await using var stream = CreateStream();
         var operation = "query GetUsers { users { id } }"u8.ToArray();
         var fragment = "fragment UserFields on User { id }"u8.ToArray();
@@ -601,17 +603,103 @@ public class OpenApiCollectionArchiveTests : IDisposable
         var metadata = CreateTestMetadata();
         var key = new OpenApiEndpointKey("GET", "/api/users");
 
-        // Act
+        // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
         await archive.AddOpenApiEndpointAsync(key, operation, settings);
         await archive.AddOpenApiModelAsync("UserFields", fragment);
 
-        // Assert
+        // assert
         var retrievedMetadata = await archive.GetArchiveMetadataAsync();
         Assert.NotNull(retrievedMetadata);
         Assert.Contains(key, retrievedMetadata.Endpoints);
         Assert.Contains("UserFields", retrievedMetadata.Models);
+    }
+
+    [Fact]
+    public async Task Serialized_Endpoint_Should_Be_Parseable_As_OpenApiEndpoint_Definition()
+    {
+        // arrange
+        await using var stream = CreateStream();
+        var parserOptions = new ParserOptions(true);
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            "Test description"
+            mutation UpdateDeeplyNestedObject($input: DeeplyNestedInput! @body)
+              @http(method: PUT, route: "/object/{userId:$input.userId}", queryParameters: ["field:$input.object.field2"]) {
+              updateDeeplyNestedObject(input: $input) {
+                userId
+                field
+                object {
+                  otherField
+                  field2
+                }
+              }
+            }
+            """,
+            parserOptions);
+        var endpointDefinition = (OpenApiEndpointDefinition)OpenApiDefinitionParser.Parse(document).Definition!;
+        var settingsDto = endpointDefinition.ToDto();
+        var key = new OpenApiEndpointKey(endpointDefinition.HttpMethod, endpointDefinition.Route);
+
+        using var settings = OpenApiEndpointSettingsSerializer.Format(settingsDto);
+
+        var metadata = CreateTestMetadata();
+
+        // act
+        using (var writeArchive = OpenApiCollectionArchive.Create(stream, leaveOpen: true))
+        {
+            await writeArchive.SetArchiveMetadataAsync(metadata);
+
+            var ms = new MemoryStream();
+            await endpointDefinition.Document.PrintToAsync(ms);
+            await writeArchive.AddOpenApiEndpointAsync(key, ms.ToArray(), settings);
+            await writeArchive.CommitAsync();
+        }
+
+        stream.Position = 0;
+
+        OpenApiEndpointDefinition parsedDefinition;
+        using (var readArchive = OpenApiCollectionArchive.Open(stream, leaveOpen: true))
+        {
+            var readMetadata = await readArchive.GetArchiveMetadataAsync();
+            var endpointKey = readMetadata!.Endpoints[0];
+            using var endpoint = await readArchive.TryGetOpenApiEndpointAsync(endpointKey);
+
+            var readDocument = Utf8GraphQLParser.Parse(endpoint!.Operation.Span, parserOptions);
+            var readSettings = OpenApiEndpointSettingsSerializer.Parse(endpoint.Settings);
+
+            parsedDefinition = OpenApiEndpointDefinition.From(
+                readSettings,
+                endpointKey.HttpMethod,
+                endpointKey.Route,
+                readDocument);
+        }
+
+        // assert
+        Assert.Equal(endpointDefinition.HttpMethod, parsedDefinition.HttpMethod);
+        Assert.Equal(endpointDefinition.Route, parsedDefinition.Route);
+        Assert.Equal(endpointDefinition.Description, parsedDefinition.Description);
+        Assert.Equal(endpointDefinition.BodyVariableName, parsedDefinition.BodyVariableName);
+        Assert.Equal(endpointDefinition.RouteParameters.Length, parsedDefinition.RouteParameters.Length);
+        Assert.Equal(endpointDefinition.QueryParameters.Length, parsedDefinition.QueryParameters.Length);
+
+        for (var i = 0; i < endpointDefinition.RouteParameters.Length; i++)
+        {
+            Assert.Equal(endpointDefinition.RouteParameters[i].Key, parsedDefinition.RouteParameters[i].Key);
+            Assert.Equal(endpointDefinition.RouteParameters[i].VariableName, parsedDefinition.RouteParameters[i].VariableName);
+            Assert.Equal(endpointDefinition.RouteParameters[i].InputObjectPath, parsedDefinition.RouteParameters[i].InputObjectPath);
+        }
+
+        for (var i = 0; i < endpointDefinition.QueryParameters.Length; i++)
+        {
+            Assert.Equal(endpointDefinition.QueryParameters[i].Key, parsedDefinition.QueryParameters[i].Key);
+            Assert.Equal(endpointDefinition.QueryParameters[i].VariableName, parsedDefinition.QueryParameters[i].VariableName);
+            Assert.Equal(endpointDefinition.QueryParameters[i].InputObjectPath, parsedDefinition.QueryParameters[i].InputObjectPath);
+        }
+
+        Assert.Equal(endpointDefinition.Document.ToString(), parsedDefinition.Document.ToString());
     }
 
     private Stream CreateStream()
