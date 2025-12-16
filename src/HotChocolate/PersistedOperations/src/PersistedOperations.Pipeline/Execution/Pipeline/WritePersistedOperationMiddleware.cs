@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
@@ -47,7 +46,7 @@ internal sealed class WritePersistedOperationMiddleware
             && context.Request.Extensions.TryGetValue(PersistedQuery, out var s)
             && s is IReadOnlyDictionary<string, object> settings)
         {
-            var extensions = result.Extensions ?? ImmutableDictionary<string, object?>.Empty;
+            var extensions = result.Extensions;
 
             // hash is found and matches the query key -> store the query
             if (DoHashesMatch(settings, documentInfo.Id, _hashProvider.Name, out var userHash))

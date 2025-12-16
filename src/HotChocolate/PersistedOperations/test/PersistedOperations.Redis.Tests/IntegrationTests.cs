@@ -42,7 +42,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     if (documentInfo.Id == documentId)
                     {
                         var result = c.Result.ExpectOperationResult();
-                        var extensions = result.Extensions ?? [];
+                        var extensions = result.Extensions;
                         result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
@@ -75,7 +75,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     if (documentInfo.Id == documentId)
                     {
                         var result = c.Result.ExpectOperationResult();
-                        var extensions = result.Extensions ?? [];
+                        var extensions = result.Extensions;
                         result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
@@ -123,7 +123,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     if (documentInfo.Id == documentId)
                     {
                         var result = c.Result.ExpectOperationResult();
-                        var extensions = result.Extensions ?? [];
+                        var extensions = result.Extensions;
                         result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
@@ -163,7 +163,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     if (documentInfo.Id == documentId)
                     {
                         var result = c.Result.ExpectOperationResult();
-                        var extensions = result.Extensions ?? [];
+                        var extensions = result.Extensions;
                         result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
@@ -201,7 +201,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     if (documentInfo.Id == documentId)
                     {
                         var result = c.Result.ExpectOperationResult();
-                        var extensions = result.Extensions ?? [];
+                        var extensions = result.Extensions;
                         result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
@@ -236,7 +236,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     if (documentInfo.Id == documentId)
                     {
                         var result = c.Result.ExpectOperationResult();
-                        var extensions = result.Extensions ?? [];
+                        var extensions = result.Extensions;
                         result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })

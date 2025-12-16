@@ -334,9 +334,11 @@ public class MiddlewareContextTests
                 continue;
             }
 
-            Assert.NotNull(queryResult.Incremental?[0].ContextData);
-            Assert.True(queryResult.Incremental[0].ContextData!.TryGetValue("abc", out var value));
-            Assert.Equal(2, value);
+            // TODO : FIX THIS TEST
+            throw new InvalidOperationException();
+            // Assert.NotNull(queryResult.Incremental?[0].ContextData);
+            // Assert.True(queryResult.Incremental[0].ContextData!.TryGetValue("abc", out var value));
+            // Assert.Equal(2, value);
         }
     }
 

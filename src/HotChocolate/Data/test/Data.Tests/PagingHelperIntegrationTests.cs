@@ -544,11 +544,12 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
 
         // Assert
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
         await Snapshot
             .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .Add(operationResult)
             .MatchMarkdownAsync();
     }
 

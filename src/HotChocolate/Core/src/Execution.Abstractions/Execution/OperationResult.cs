@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Collections.Immutable;
 
 namespace HotChocolate.Execution;
 
@@ -27,7 +28,7 @@ public sealed class OperationResult : ExecutionResult
     public OperationResult(
         OperationResultData data,
         ImmutableList<IError>? errors = null,
-        ImmutableDictionary<string, object?>? extensions = null)
+        ImmutableOrderedDictionary<string, object?>? extensions = null)
     {
         if (data.Value is not null && data.Formatter is not null)
         {
@@ -43,8 +44,8 @@ public sealed class OperationResult : ExecutionResult
             ? DataFlags.DataIsSet | DataFlags.DataIsNull
             : DataFlags.DataIsSet;
         Data = data.Value;
-        Errors = errors;
-        Extensions = extensions;
+        Errors = errors ?? [];
+        Extensions = extensions ?? [];
 
         Features.Set(data.Formatter);
 
@@ -76,7 +77,7 @@ public sealed class OperationResult : ExecutionResult
     public OperationResult(
         IReadOnlyDictionary<string, object?>? data,
         ImmutableList<IError>? errors = null,
-        ImmutableDictionary<string, object?>? extensions = null)
+        ImmutableOrderedDictionary<string, object?>? extensions = null)
     {
         if (data is null && errors is null or { Count: 0 } && extensions is null or { Count: 0 })
         {
@@ -88,8 +89,8 @@ public sealed class OperationResult : ExecutionResult
             : DataFlags.DataIsSet;
 
         Data = data;
-        Errors = errors;
-        Extensions = extensions;
+        Errors = errors ?? [];
+        Extensions = extensions ?? [];
     }
 
     /// <summary>
@@ -107,7 +108,7 @@ public sealed class OperationResult : ExecutionResult
     /// <exception cref="ArgumentException">
     /// Thrown when the errors list is empty.
     /// </exception>
-    public OperationResult(ImmutableList<IError> errors, ImmutableDictionary<string, object?>? extensions = null)
+    public OperationResult(ImmutableList<IError> errors, ImmutableOrderedDictionary<string, object?>? extensions = null)
     {
         ArgumentNullException.ThrowIfNull(errors);
 
@@ -118,7 +119,7 @@ public sealed class OperationResult : ExecutionResult
 
         _dataFlags = DataFlags.DataIsNull;
         Errors = errors;
-        Extensions = extensions;
+        Extensions = extensions ?? [];
     }
 
     /// <summary>
@@ -133,7 +134,7 @@ public sealed class OperationResult : ExecutionResult
     /// <exception cref="ArgumentException">
     /// Thrown when the extensions dictionary is empty.
     /// </exception>
-    public OperationResult(ImmutableDictionary<string, object?> extensions)
+    public OperationResult(ImmutableOrderedDictionary<string, object?> extensions)
     {
         ArgumentNullException.ThrowIfNull(extensions);
 
@@ -143,6 +144,7 @@ public sealed class OperationResult : ExecutionResult
         }
 
         _dataFlags = DataFlags.DataIsNull;
+        Errors = [];
         Extensions = extensions;
     }
 
@@ -198,7 +200,7 @@ public sealed class OperationResult : ExecutionResult
     /// <summary>
     /// Gets the GraphQL errors that occurred during execution.
     /// </summary>
-    public ImmutableList<IError>? Errors { get; }
+    public ImmutableList<IError> Errors { get; }
 
     /// <summary>
     /// Gets or sets additional information passed along with the result.
@@ -206,7 +208,7 @@ public sealed class OperationResult : ExecutionResult
     /// <exception cref="ArgumentException">
     /// Thrown when setting to null or empty when data and errors are also null or empty.
     /// </exception>
-    public ImmutableDictionary<string, object?>? Extensions
+    public ImmutableOrderedDictionary<string, object?> Extensions
     {
         get;
         set
@@ -224,9 +226,9 @@ public sealed class OperationResult : ExecutionResult
     /// Gets or sets the list of pending incremental delivery operations.
     /// Each pending result announces data that will be delivered incrementally in subsequent payloads.
     /// </summary>
-    public ImmutableList<PendingResult>? Pending
+    public ImmutableList<PendingResult> Pending
     {
-        get => Features.Get<IncrementalDataFeature>()?.Pending;
+        get => Features.Get<IncrementalDataFeature>()?.Pending ?? [];
         set
         {
             var feature = Features.Get<IncrementalDataFeature>() ?? new IncrementalDataFeature();
@@ -239,9 +241,9 @@ public sealed class OperationResult : ExecutionResult
     /// Gets or sets the list of incremental results containing data from @defer or @stream directives.
     /// Contains the actual data for previously announced pending operations.
     /// </summary>
-    public ImmutableList<IIncrementalResult>? Incremental
+    public ImmutableList<IIncrementalResult> Incremental
     {
-        get => Features.Get<IncrementalDataFeature>()?.Incremental;
+        get => Features.Get<IncrementalDataFeature>()?.Incremental ?? [];
         set
         {
             var feature = Features.Get<IncrementalDataFeature>() ?? new IncrementalDataFeature();
@@ -254,9 +256,9 @@ public sealed class OperationResult : ExecutionResult
     /// Gets or sets the list of completed incremental delivery operations.
     /// Each completed result indicates that all data for a pending operation has been delivered.
     /// </summary>
-    public ImmutableList<CompletedResult>? Completed
+    public ImmutableList<CompletedResult> Completed
     {
-        get => Features.Get<IncrementalDataFeature>()?.Completed;
+        get => Features.Get<IncrementalDataFeature>()?.Completed ?? [];
         set
         {
             var feature = Features.Get<IncrementalDataFeature>() ?? new IncrementalDataFeature();
