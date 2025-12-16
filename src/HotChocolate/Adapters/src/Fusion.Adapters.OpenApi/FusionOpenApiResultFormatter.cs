@@ -1,5 +1,4 @@
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Text.Json;
 using Microsoft.AspNetCore.Http;
 

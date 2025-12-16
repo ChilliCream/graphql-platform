@@ -21,7 +21,7 @@ public interface ICacheConstraints
     int? SharedMaxAge { get; }
 
     /// <summary>
-    /// The scope of the <see cref="IOperationResult"/> that shall be cached.
+    /// The scope of the <see cref="OperationResult"/> that shall be cached.
     /// </summary>
     CacheControlScope Scope { get; }
 

@@ -8,6 +8,48 @@ namespace HotChocolate.Execution;
 /// </summary>
 public static class CoreExecutionResultExtensions
 {
+    extension(IExecutionResult? result)
+    {
+        /// <summary>
+        /// Expects a single GraphQL operation result.
+        /// </summary>
+        public OperationResult ExpectOperationResult()
+        {
+            if (result is OperationResult qr)
+            {
+                return qr;
+            }
+
+            throw new ArgumentException(ExecutionResultExtensions_ExpectOperationResult_NotOperationResult);
+        }
+
+        /// <summary>
+        /// Expects a batch of operation results.
+        /// </summary>
+        public OperationResultBatch ExpectOperationResultBatch()
+        {
+            if (result is OperationResultBatch qr)
+            {
+                return qr;
+            }
+
+            throw new ArgumentException(ExecutionResultExtensions_ExpectOperationResultBatch_NotOperationResultBatch);
+        }
+
+        /// <summary>
+        /// Expect a stream result.
+        /// </summary>
+        public ResponseStream ExpectResponseStream()
+        {
+            if (result is ResponseStream rs)
+            {
+                return rs;
+            }
+
+            throw new ArgumentException(ExecutionResultExtensions_ExpectResponseStream_NotResponseStream);
+        }
+    }
+
     extension(IExecutionResult result)
     {
         /// <summary>
@@ -61,44 +103,5 @@ public static class CoreExecutionResultExtensions
         /// </returns>
         public bool IsStreamResult()
             => result.Kind is BatchResult or DeferredResult or SubscriptionResult;
-
-        /// <summary>
-        /// Expects a single GraphQL operation result.
-        /// </summary>
-        public OperationResult ExpectOperationResult()
-        {
-            if (result is OperationResult qr)
-            {
-                return qr;
-            }
-
-            throw new ArgumentException(ExecutionResultExtensions_ExpectOperationResult_NotOperationResult);
-        }
-
-        /// <summary>
-        /// Expects a batch of operation results.
-        /// </summary>
-        public OperationResultBatch ExpectOperationResultBatch()
-        {
-            if (result is OperationResultBatch qr)
-            {
-                return qr;
-            }
-
-            throw new ArgumentException(ExecutionResultExtensions_ExpectOperationResultBatch_NotOperationResultBatch);
-        }
-
-        /// <summary>
-        /// Expect a stream result.
-        /// </summary>
-        public ResponseStream ExpectResponseStream()
-        {
-            if (result is ResponseStream rs)
-            {
-                return rs;
-            }
-
-            throw new ArgumentException(ExecutionResultExtensions_ExpectResponseStream_NotResponseStream);
-        }
     }
 }

@@ -1140,6 +1140,20 @@ public readonly partial struct ResultElement
         _parent.AssignNumberValue(this, buffer[..bytesWritten]);
     }
 
+    /// <summary>
+    /// Writes this element as JSON to the specified buffer writer.
+    /// </summary>
+    /// <param name="writer">The buffer writer to write to.</param>
+    /// <param name="indented">
+    /// <c>true</c> to write indented JSON; otherwise, <c>false</c>.
+    /// </param>
+    public void WriteTo(IBufferWriter<byte> writer, bool indented = false)
+    {
+        var formatter = new ResultDocument.RawJsonFormatter(_parent, writer, indented);
+        var row = _parent._metaDb.Get(_cursor);
+        formatter.WriteValue(_cursor, row);
+    }
+
     /// <inheritdoc />
     public override string ToString()
     {

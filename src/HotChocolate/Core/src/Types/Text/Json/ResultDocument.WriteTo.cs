@@ -10,19 +10,18 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 {
     public void WriteTo(OperationResult result, IBufferWriter<byte> writer, bool indented = false)
     {
-        var formatter = new RawJsonFormatter(result, this, writer, indented);
-        formatter.Write();
+        var formatter = new RawJsonFormatter(this, writer, indented);
+        formatter.Write(result);
     }
 
     internal ref struct RawJsonFormatter(
-        OperationResult result,
         ResultDocument document,
         IBufferWriter<byte> writer,
         bool indented)
     {
         private int _indentation = 0;
 
-        public void Write()
+        public void Write(OperationResult result)
         {
             WriteByte(JsonConstants.OpenBrace);
 
