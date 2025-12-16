@@ -10,6 +10,7 @@ using static System.Net.Http.HttpCompletionOption;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.HttpTransportVersion;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
+using OperationResult = HotChocolate.Execution.OperationResult;
 
 namespace HotChocolate.AspNetCore;
 

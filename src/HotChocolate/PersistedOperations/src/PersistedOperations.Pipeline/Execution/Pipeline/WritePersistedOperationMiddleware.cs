@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
@@ -40,13 +41,13 @@ internal sealed class WritePersistedOperationMiddleware
             && documentInfo.IsValidated
             && documentInfo.Document is not null
             && !documentInfo.Id.IsEmpty
-            && context.Result is IOperationResult result
+            && context.Result is OperationResult result
             && context.Request.Document is { } document
             && context.Request.Extensions is not null
             && context.Request.Extensions.TryGetValue(PersistedQuery, out var s)
             && s is IReadOnlyDictionary<string, object> settings)
         {
-            var resultBuilder = OperationResultBuilder.FromResult(result);
+            var extensions = result.Extensions ?? ImmutableDictionary<string, object?>.Empty;
 
             // hash is found and matches the query key -> store the query
             if (DoHashesMatch(settings, documentInfo.Id, _hashProvider.Name, out var userHash))
@@ -55,7 +56,7 @@ internal sealed class WritePersistedOperationMiddleware
                 await _operationDocumentStorage.SaveAsync(documentInfo.Id, document).ConfigureAwait(false);
 
                 // add persistence receipt to the result
-                resultBuilder.SetExtension(
+                extensions = extensions.SetItem(
                     PersistedQuery,
                     new Dictionary<string, object>
                     {
@@ -67,7 +68,7 @@ internal sealed class WritePersistedOperationMiddleware
             }
             else
             {
-                resultBuilder.SetExtension(
+                extensions = extensions.SetItem(
                     PersistedQuery,
                     new Dictionary<string, object?>
                     {
@@ -79,7 +80,7 @@ internal sealed class WritePersistedOperationMiddleware
                     });
             }
 
-            context.Result = resultBuilder.Build();
+            result.Extensions = extensions;
         }
     }
 

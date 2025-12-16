@@ -1,7 +1,7 @@
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// The response stream represents a stream of <see cref="IOperationResult" /> that are produced
+/// The response stream represents a stream of <see cref="OperationResult" /> that are produced
 /// by the execution engine.
 /// </summary>
 public interface IResponseStream : IExecutionResult
@@ -9,5 +9,5 @@ public interface IResponseStream : IExecutionResult
     /// <summary>
     /// Reads the result stream.
     /// </summary>
-    IAsyncEnumerable<IOperationResult> ReadResultsAsync();
+    IAsyncEnumerable<OperationResult> ReadResultsAsync();
 }

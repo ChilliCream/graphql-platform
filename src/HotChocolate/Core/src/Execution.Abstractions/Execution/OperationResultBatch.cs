@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -17,13 +19,13 @@ public sealed class OperationResultBatch : ExecutionResult
     /// <exception cref="ArgumentNullException">
     /// <paramref name="results"/> is <c>null</c>.
     /// </exception>
-    public OperationResultBatch(IReadOnlyList<IExecutionResult> results)
+    public OperationResultBatch(ImmutableList<IExecutionResult> results)
     {
         ArgumentNullException.ThrowIfNull(results);
 
         foreach (var result in results)
         {
-            if (result is not IResponseStream and not IOperationResult)
+            if (result is not IResponseStream and not OperationResult)
             {
                 throw new ArgumentException(
                     ExecutionAbstractionsResources.OperationResultBatch_ResponseStreamOrOperationResult,
@@ -32,7 +34,7 @@ public sealed class OperationResultBatch : ExecutionResult
         }
 
         Results = results ?? throw new ArgumentNullException(nameof(results));
-        RegisterForCleanup(() => RunCleanUp(results));
+        RegisterForCleanup(() => RunCleanUp(Results));
     }
 
     /// <summary>
@@ -43,7 +45,7 @@ public sealed class OperationResultBatch : ExecutionResult
     /// <summary>
     /// Gets the results of this batch.
     /// </summary>
-    public IReadOnlyList<IExecutionResult> Results { get; }
+    public ImmutableList<IExecutionResult> Results { get; }
 
     private static async ValueTask RunCleanUp(IReadOnlyList<IExecutionResult> results)
     {

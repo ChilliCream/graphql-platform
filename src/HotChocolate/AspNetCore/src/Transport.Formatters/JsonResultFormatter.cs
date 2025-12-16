@@ -8,7 +8,7 @@ using static HotChocolate.Execution.ResultFieldNames;
 namespace HotChocolate.Transport.Formatters;
 
 /// <summary>
-/// The default JSON formatter for <see cref="IOperationResult"/>.
+/// The default JSON formatter for <see cref="OperationResult"/>.
 /// </summary>
 public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionResultFormatter
 {
@@ -42,12 +42,12 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     }
 
     /// <summary>
-    /// The default JSON formatter for <see cref="IOperationResult"/> with indentations.
+    /// The default JSON formatter for <see cref="OperationResult"/> with indentations.
     /// </summary>
     public static JsonResultFormatter Indented { get; } = new(true);
 
     /// <summary>
-    /// The default JSON formatter for <see cref="IOperationResult"/> without indentations.
+    /// The default JSON formatter for <see cref="OperationResult"/> without indentations.
     /// </summary>
     public static JsonResultFormatter Default { get; } = new();
 
@@ -62,7 +62,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
         return result switch
         {
-            IOperationResult singleResult => FormatInternalAsync(singleResult, writer, cancellationToken),
+            OperationResult singleResult => FormatInternalAsync(singleResult, writer, cancellationToken),
             OperationResultBatch resultBatch => FormatInternalAsync(resultBatch, writer, cancellationToken),
             IResponseStream responseStream => FormatInternalAsync(responseStream, writer, cancellationToken),
             _ => throw new NotSupportedException($"The result type '{result.GetType().FullName}' is not supported.")
@@ -82,7 +82,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     /// <paramref name="result"/> is <c>null</c>.
     /// <paramref name="writer"/> is <c>null</c>.
     /// </exception>
-    public void Format(IOperationResult result, Utf8JsonWriter writer)
+    public void Format(OperationResult result, Utf8JsonWriter writer)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(writer);
@@ -147,7 +147,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         WriteDictionary(writer, dictionary, _serializerOptions, _nullIgnoreCondition);
     }
 
-    public void Format(IOperationResult result, IBufferWriter<byte> writer)
+    public void Format(OperationResult result, IBufferWriter<byte> writer)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(writer);
@@ -155,11 +155,11 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         FormatInternal(result, writer);
     }
 
-    private void FormatInternal(IOperationResult result, IBufferWriter<byte> writer)
+    private void FormatInternal(OperationResult result, IBufferWriter<byte> writer)
     {
-        if (result is IRawJsonFormatter formatter)
+        if (result.JsonFormatter is { } formatter)
         {
-            formatter.WriteTo(writer, _options.Indented);
+            formatter.WriteTo(result, writer, _options.Indented);
             return;
         }
 
@@ -169,7 +169,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     }
 
     public ValueTask FormatAsync(
-        IOperationResult result,
+        OperationResult result,
         PipeWriter writer,
         CancellationToken cancellationToken = default)
     {
@@ -180,7 +180,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     }
 
     private async ValueTask FormatInternalAsync(
-        IOperationResult result,
+        OperationResult result,
         PipeWriter writer,
         CancellationToken cancellationToken)
     {
@@ -197,7 +197,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         {
             switch (result)
             {
-                case IOperationResult singleResult:
+                case OperationResult singleResult:
                     FormatInternal(singleResult, writer);
                     break;
 
@@ -244,7 +244,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         }
     }
 
-    private void WriteResult(Utf8JsonWriter writer, IOperationResult result)
+    private void WriteResult(Utf8JsonWriter writer, OperationResult result)
     {
         writer.WriteStartObject();
 
@@ -260,33 +260,15 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
         WriteErrors(writer, result.Errors);
         WriteData(writer, result);
-        WriteItems(writer, result.Items);
-        WriteIncremental(writer, result.Incremental);
         WriteExtensions(writer, result.Extensions, _serializerOptions, _nullIgnoreCondition);
-        WritePatchInfo(writer, result);
         WriteHasNext(writer, result);
 
         writer.WriteEndObject();
     }
 
-    private static void WritePatchInfo(
-        Utf8JsonWriter writer,
-        IOperationResult result)
-    {
-        if (result.Label is not null)
-        {
-            writer.WriteString("label", result.Label);
-        }
-
-        if (result.Path is not null)
-        {
-            WritePath(writer, result.Path);
-        }
-    }
-
     private static void WriteHasNext(
         Utf8JsonWriter writer,
-        IOperationResult result)
+        OperationResult result)
     {
         if (result.HasNext.HasValue)
         {
@@ -296,7 +278,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
     private void WriteData(
         Utf8JsonWriter writer,
-        IOperationResult result)
+        OperationResult result)
     {
         if (!result.IsDataSet)
         {
@@ -314,23 +296,6 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         WriteValue(writer, result.Data, _serializerOptions, _nullIgnoreCondition);
     }
 
-    private void WriteItems(Utf8JsonWriter writer, IReadOnlyList<object?>? items)
-    {
-        if (items is { Count: > 0 })
-        {
-            writer.WritePropertyName(Items);
-
-            writer.WriteStartArray();
-
-            for (var i = 0; i < items.Count; i++)
-            {
-                WriteValue(writer, items[i], _serializerOptions, _nullIgnoreCondition);
-            }
-
-            writer.WriteEndArray();
-        }
-    }
-
     private void WriteErrors(Utf8JsonWriter writer, IReadOnlyList<IError>? errors)
     {
         if (errors is { Count: > 0 })
@@ -342,23 +307,6 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
             for (var i = 0; i < errors.Count; i++)
             {
                 WriteError(writer, errors[i], _serializerOptions, _nullIgnoreCondition);
-            }
-
-            writer.WriteEndArray();
-        }
-    }
-
-    private void WriteIncremental(Utf8JsonWriter writer, IReadOnlyList<IOperationResult>? patches)
-    {
-        if (patches is { Count: > 0 })
-        {
-            writer.WritePropertyName(Incremental);
-
-            writer.WriteStartArray();
-
-            for (var i = 0; i < patches.Count; i++)
-            {
-                WriteResult(writer, patches[i]);
             }
 
             writer.WriteEndArray();

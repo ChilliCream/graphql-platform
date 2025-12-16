@@ -79,7 +79,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
             statusCode = HttpStatusCode.NotAcceptable;
 
             var error = ErrorHelper.NoSupportedAcceptMediaType();
-            result = OperationResultBuilder.CreateError(error);
+            result = OperationResult.FromError(error);
             session.DiagnosticEvents.HttpRequestError(context, error);
             goto HANDLE_RESULT;
         }
@@ -100,7 +100,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 // GraphQL error result.
                 statusCode = HttpStatusCode.BadRequest;
                 var errors = session.Handle(ex.Errors);
-                result = OperationResultBuilder.CreateError(errors);
+                result = OperationResult.FromError([..errors]);
                 session.DiagnosticEvents.ParserErrors(context, errors);
                 goto HANDLE_RESULT;
             }
@@ -108,7 +108,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
             {
                 statusCode = HttpStatusCode.InternalServerError;
                 var error = ErrorBuilder.FromException(ex).Build();
-                result = OperationResultBuilder.CreateError(error);
+                result = OperationResult.FromError(error);
                 session.DiagnosticEvents.HttpRequestError(context, error);
                 goto HANDLE_RESULT;
             }
@@ -125,7 +125,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 {
                     statusCode = HttpStatusCode.BadRequest;
                     var error = session.Handle(ErrorHelper.RequestHasNoElements());
-                    result = OperationResultBuilder.CreateError(error);
+                    result = OperationResult.FromError(error);
                     session.DiagnosticEvents.HttpRequestError(context, error);
                     break;
                 }
@@ -151,7 +151,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                     {
                         var error = session.Handle(ErrorHelper.InvalidRequest());
                         statusCode = HttpStatusCode.BadRequest;
-                        result = OperationResultBuilder.CreateError(error);
+                        result = OperationResult.FromError(error);
                         session.DiagnosticEvents.HttpRequestError(context, error);
                     }
 
@@ -180,7 +180,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                     {
                         var error = session.Handle(ErrorHelper.InvalidRequest());
                         statusCode = HttpStatusCode.BadRequest;
-                        result = OperationResultBuilder.CreateError(error);
+                        result = OperationResult.FromError(error);
                         session.DiagnosticEvents.HttpRequestError(context, error);
                     }
                     break;
@@ -190,7 +190,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
         {
             // This allows extensions to throw GraphQL exceptions in the GraphQL interceptor.
             statusCode = null; // we let the serializer determine the status code.
-            result = OperationResultBuilder.CreateError(ex.Errors);
+            result = OperationResult.FromError([..ex.Errors]);
 
             foreach (var error in ex.Errors)
             {
@@ -201,7 +201,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
         {
             statusCode = HttpStatusCode.InternalServerError;
             var error = ErrorBuilder.FromException(ex).Build();
-            result = OperationResultBuilder.CreateError(error);
+            result = OperationResult.FromError(error);
             session.DiagnosticEvents.HttpRequestError(context, error);
         }
 

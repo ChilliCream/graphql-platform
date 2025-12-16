@@ -87,7 +87,7 @@ internal sealed class AggregateServerDiagnosticEventListener : IServerDiagnostic
         }
     }
 
-    public IDisposable FormatHttpResponse(HttpContext context, IOperationResult result)
+    public IDisposable FormatHttpResponse(HttpContext context, OperationResult result)
     {
         var scopes = new IDisposable[_listeners.Length];
 

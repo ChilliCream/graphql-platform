@@ -6,11 +6,11 @@ namespace HotChocolate.Execution;
 
 public sealed class ResponseStream : ExecutionResult, IResponseStream
 {
-    private readonly Func<IAsyncEnumerable<IOperationResult>>? _resultStreamFactory;
+    private readonly Func<IAsyncEnumerable<OperationResult>>? _resultStreamFactory;
     private bool _isRead;
 
     public ResponseStream(
-        Func<IAsyncEnumerable<IOperationResult>>? resultStreamFactory,
+        Func<IAsyncEnumerable<OperationResult>>? resultStreamFactory,
         ExecutionResultKind kind = SubscriptionResult)
     {
         _resultStreamFactory = resultStreamFactory ??
@@ -26,13 +26,13 @@ public sealed class ResponseStream : ExecutionResult, IResponseStream
 
     public override ExecutionResultKind Kind { get; }
 
-    public ImmutableList<Func<IOperationResult, IOperationResult>> OnFirstResult
+    public ImmutableList<Func<OperationResult, OperationResult>> OnFirstResult
     {
-        get => Features.Get<ImmutableList<Func<IOperationResult, IOperationResult>>>() ?? [];
+        get => Features.Get<ImmutableList<Func<OperationResult, OperationResult>>>() ?? [];
         set => Features.Set(value);
     }
 
-    public IAsyncEnumerable<IOperationResult> ReadResultsAsync()
+    public IAsyncEnumerable<OperationResult> ReadResultsAsync()
     {
         if (_resultStreamFactory is null)
         {
@@ -51,11 +51,11 @@ public sealed class ResponseStream : ExecutionResult, IResponseStream
     }
 
     private class OperationResultStream(
-        Func<IAsyncEnumerable<IOperationResult>> resultStreamFactory,
-        Func<IOperationResult, IOperationResult> onFirstResult)
-        : IAsyncEnumerable<IOperationResult>
+        Func<IAsyncEnumerable<OperationResult>> resultStreamFactory,
+        Func<OperationResult, OperationResult> onFirstResult)
+        : IAsyncEnumerable<OperationResult>
     {
-        public async IAsyncEnumerator<IOperationResult> GetAsyncEnumerator(
+        public async IAsyncEnumerator<OperationResult> GetAsyncEnumerator(
             CancellationToken cancellationToken)
         {
             var first = true;
@@ -74,7 +74,7 @@ public sealed class ResponseStream : ExecutionResult, IResponseStream
         }
     }
 
-    private IOperationResult ExecuteOnFirstResult(IOperationResult firstResult)
+    private OperationResult ExecuteOnFirstResult(OperationResult firstResult)
     {
         foreach (var mutator in OnFirstResult)
         {

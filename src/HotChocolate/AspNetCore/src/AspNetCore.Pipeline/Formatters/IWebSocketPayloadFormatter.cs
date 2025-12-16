@@ -16,7 +16,7 @@ public interface IWebSocketPayloadFormatter
     /// <param name="jsonWriter">
     /// The JSON writer that is used to write the payload.
     /// </param>
-    void Format(IOperationResult result, Utf8JsonWriter jsonWriter);
+    void Format(OperationResult result, Utf8JsonWriter jsonWriter);
 
     /// <summary>
     /// Formats the <paramref name="error"/> into a WebSocket payload.

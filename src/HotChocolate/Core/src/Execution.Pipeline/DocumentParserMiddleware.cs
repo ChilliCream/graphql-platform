@@ -80,7 +80,7 @@ internal sealed class DocumentParserMiddleware
                                 .AddLocation(new Location(ex.Line, ex.Column))
                                 .Build());
 
-                        context.Result = OperationResultBuilder.CreateError(error);
+                        context.Result = OperationResult.FromError(error);
                         _diagnosticEvents.RequestError(context, ex);
                     }
                 }

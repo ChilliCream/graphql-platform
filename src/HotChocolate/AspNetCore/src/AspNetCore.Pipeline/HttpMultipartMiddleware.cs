@@ -20,7 +20,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     private const string Operations = "operations";
     private const string Map = "map";
     private readonly FormOptions _formOptions;
-    private readonly IOperationResult _multipartRequestError = MultiPartRequestPreflightRequired();
+    private readonly OperationResult _multipartRequestError = MultiPartRequestPreflightRequired();
 
     public HttpMultipartMiddleware(
         HttpRequestDelegate next,

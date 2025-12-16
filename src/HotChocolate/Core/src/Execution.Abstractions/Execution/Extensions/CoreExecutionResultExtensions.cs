@@ -8,109 +8,97 @@ namespace HotChocolate.Execution;
 /// </summary>
 public static class CoreExecutionResultExtensions
 {
-    /// <summary>
-    /// Registers a cleanup task for execution resources bound to this execution result.
-    /// </summary>
-    /// <param name="result">
-    /// The <see cref="IExecutionResult"/>.
-    /// </param>
-    /// <param name="clean">
-    /// A cleanup task that will be executed when this result is disposed.
-    /// </param>
-    public static void RegisterForCleanup(this IExecutionResult result, Action clean)
+    extension(IExecutionResult result)
     {
-        ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(clean);
-
-        result.RegisterForCleanup(() =>
+        /// <summary>
+        /// Registers a cleanup task for execution resources bound to this execution result.
+        /// </summary>
+        /// <param name="clean">
+        /// A cleanup task that will be executed when this result is disposed.
+        /// </param>
+        public void RegisterForCleanup(Action clean)
         {
-            clean();
-            return default;
-        });
-    }
+            ArgumentNullException.ThrowIfNull(clean);
 
-    /// <summary>
-    /// Registers a resource that needs to be disposed when the result is being disposed.
-    /// </summary>
-    /// <param name="result">
-    /// The <see cref="IExecutionResult"/>.
-    /// </param>
-    /// <param name="disposable">
-    /// The resource that needs to be disposed.
-    /// </param>
-    public static void RegisterForCleanup(this IExecutionResult result, IDisposable disposable)
-    {
-        ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(disposable)
-;
-        result.RegisterForCleanup(disposable.Dispose);
-    }
-
-    /// <summary>
-    /// Registers a resource that needs to be disposed when the result is being disposed.
-    /// </summary>
-    /// <param name="result">
-    /// The <see cref="IExecutionResult"/>.
-    /// </param>
-    /// <param name="disposable">
-    /// The resource that needs to be disposed.
-    /// </param>
-    public static void RegisterForCleanup(this IExecutionResult result, IAsyncDisposable disposable)
-    {
-        ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(disposable);
-
-        result.RegisterForCleanup(disposable.DisposeAsync);
-    }
-
-    /// <summary>
-    /// Defines if the specified <paramref name="result"/> is a response stream.
-    /// </summary>
-    /// <param name="result">
-    /// The <see cref="IExecutionResult"/>.
-    /// </param>
-    /// <returns>
-    /// A boolean that specifies if the <paramref name="result"/> is a response stream.
-    /// </returns>
-    public static bool IsStreamResult(this IExecutionResult result)
-        => result.Kind is BatchResult or DeferredResult or SubscriptionResult;
-
-    /// <summary>
-    /// Expects a single GraphQL operation result.
-    /// </summary>
-    public static IOperationResult ExpectOperationResult(this IExecutionResult result)
-    {
-        if (result is IOperationResult qr)
-        {
-            return qr;
+            result.RegisterForCleanup(() =>
+            {
+                clean();
+                return default;
+            });
         }
 
-        throw new ArgumentException(ExecutionResultExtensions_ExpectOperationResult_NotOperationResult);
-    }
-
-    /// <summary>
-    /// Expects a batch of operation results.
-    /// </summary>
-    public static OperationResultBatch ExpectOperationResultBatch(this IExecutionResult result)
-    {
-        if (result is OperationResultBatch qr)
+        /// <summary>
+        /// Registers a resource that needs to be disposed when the result is being disposed.
+        /// </summary>
+        /// <param name="disposable">
+        /// The resource that needs to be disposed.
+        /// </param>
+        public void RegisterForCleanup(IDisposable disposable)
         {
-            return qr;
+            ArgumentNullException.ThrowIfNull(disposable);
+
+            result.RegisterForCleanup(disposable.Dispose);
         }
 
-        throw new ArgumentException(ExecutionResultExtensions_ExpectOperationResultBatch_NotOperationResultBatch);
-    }
-
-    /// <summary>
-    /// Expect a stream result.
-    /// </summary>
-    public static ResponseStream ExpectResponseStream(this IExecutionResult result)
-    {
-        if (result is ResponseStream rs)
+        /// <summary>
+        /// Registers a resource that needs to be disposed when the result is being disposed.
+        /// </summary>
+        /// <param name="disposable">
+        /// The resource that needs to be disposed.
+        /// </param>
+        public void RegisterForCleanup(IAsyncDisposable disposable)
         {
-            return rs;
+            ArgumentNullException.ThrowIfNull(disposable);
+
+            result.RegisterForCleanup(disposable.DisposeAsync);
         }
 
-        throw new ArgumentException(ExecutionResultExtensions_ExpectResponseStream_NotResponseStream);
+        /// <summary>
+        /// Defines if the specified <see cref="IExecutionResult"/> is a response stream.
+        /// </summary>
+        /// <returns>
+        /// A boolean that specifies if the <see cref="IExecutionResult"/> is a response stream.
+        /// </returns>
+        public bool IsStreamResult()
+            => result.Kind is BatchResult or DeferredResult or SubscriptionResult;
+
+        /// <summary>
+        /// Expects a single GraphQL operation result.
+        /// </summary>
+        public OperationResult ExpectOperationResult()
+        {
+            if (result is OperationResult qr)
+            {
+                return qr;
+            }
+
+            throw new ArgumentException(ExecutionResultExtensions_ExpectOperationResult_NotOperationResult);
+        }
+
+        /// <summary>
+        /// Expects a batch of operation results.
+        /// </summary>
+        public OperationResultBatch ExpectOperationResultBatch()
+        {
+            if (result is OperationResultBatch qr)
+            {
+                return qr;
+            }
+
+            throw new ArgumentException(ExecutionResultExtensions_ExpectOperationResultBatch_NotOperationResultBatch);
+        }
+
+        /// <summary>
+        /// Expect a stream result.
+        /// </summary>
+        public ResponseStream ExpectResponseStream()
+        {
+            if (result is ResponseStream rs)
+            {
+                return rs;
+            }
+
+            throw new ArgumentException(ExecutionResultExtensions_ExpectResponseStream_NotResponseStream);
+        }
     }
 }

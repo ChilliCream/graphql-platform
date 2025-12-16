@@ -12,11 +12,14 @@ public interface IRawJsonFormatter
     /// <summary>
     /// Writes the JSON data into the <paramref name="writer"/>.
     /// </summary>
+    /// <param name="result">
+    /// The result that shall be serialized.
+    /// </param>
     /// <param name="writer">
     /// The pipe writer of the transport layer.
     /// </param>
     /// <param name="indented">
     /// Specifies if the JSON shall be indented.
     /// </param>
-    void WriteTo(IBufferWriter<byte> writer, bool indented = false);
+    void WriteTo(OperationResult result, IBufferWriter<byte> writer, bool indented = false);
 }

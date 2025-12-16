@@ -67,12 +67,12 @@ public interface ISocketSessionInterceptor
     /// The cancellation token.
     /// </param>
     /// <returns>
-    /// Returns the result that shall be send to the client.
+    /// Returns the result that shall be sent to the client.
     /// </returns>
-    ValueTask<IOperationResult> OnResultAsync(
+    ValueTask<OperationResult> OnResultAsync(
         ISocketSession session,
         string operationSessionId,
-        IOperationResult result,
+        OperationResult result,
         CancellationToken cancellationToken = default);
 
     /// <summary>
