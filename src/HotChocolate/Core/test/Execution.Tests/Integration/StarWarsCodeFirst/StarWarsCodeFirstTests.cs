@@ -662,7 +662,7 @@ public class StarWarsCodeFirstTests
             }
             """);
 
-        IOperationResult? eventResult = null;
+        OperationResult? eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {
@@ -708,7 +708,7 @@ public class StarWarsCodeFirstTests
             }
             """);
 
-        IOperationResult? eventResult = null;
+        OperationResult? eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {
@@ -756,7 +756,7 @@ public class StarWarsCodeFirstTests
             }
             """);
 
-        IOperationResult? eventResult = null;
+        OperationResult? eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {
@@ -802,7 +802,7 @@ public class StarWarsCodeFirstTests
             }
             """);
 
-        IOperationResult? eventResult = null;
+        OperationResult? eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {

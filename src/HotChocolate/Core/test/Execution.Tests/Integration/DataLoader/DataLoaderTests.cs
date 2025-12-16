@@ -34,10 +34,9 @@ public class DataLoaderTests
                                 .GetRequiredService<IDataLoaderScope>()
                                 .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                        context.Result = OperationResultBuilder
-                            .FromResult((IOperationResult)context.Result!)
-                            .AddExtension("loads", dataLoader.Loads)
-                            .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        var extensions = result.Extensions ?? ImmutableDictionary<string, object?>.Empty;
+                        extensions = extensions.SetItem("loads", dataLoader.Loads);
                     })
                 .UseDefaultPipeline());
 
@@ -101,10 +100,9 @@ public class DataLoaderTests
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                    context.Result = OperationResultBuilder
-                        .FromResult((IOperationResult)context.Result!)
-                        .AddExtension("loads", dataLoader.Loads)
-                        .Build();
+                    var result = context.Result.ExpectOperationResult();
+                    var extensions = result.Extensions ?? ImmutableDictionary<string, object?>.Empty;
+                    extensions = extensions.SetItem("loads", dataLoader.Loads);
                 })
             .UseDefaultPipeline()
             .Services
@@ -136,10 +134,9 @@ public class DataLoaderTests
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                    context.Result = OperationResultBuilder
-                        .FromResult((IOperationResult)context.Result!)
-                        .AddExtension("loads", dataLoader.Loads)
-                        .Build();
+                    var result = context.Result.ExpectOperationResult();
+                    var extensions = result.Extensions ?? ImmutableDictionary<string, object?>.Empty;
+                    extensions = extensions.SetItem("loads", dataLoader.Loads);
                 })
             .UseDefaultPipeline()
             .Services
@@ -174,10 +171,9 @@ public class DataLoaderTests
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                    context.Result = OperationResultBuilder
-                        .FromResult((IOperationResult)context.Result!)
-                        .AddExtension("loads", dataLoader.Loads)
-                        .Build();
+                    var result = context.Result.ExpectOperationResult();
+                    var extensions = result.Extensions ?? ImmutableDictionary<string, object?>.Empty;
+                    extensions = extensions.SetItem("loads", dataLoader.Loads);
                 })
             .UseDefaultPipeline()
             .Services
@@ -259,10 +255,9 @@ public class DataLoaderTests
 
                         var dataLoader = (TestDataLoader)context.RequestServices.GetRequiredService<ITestDataLoader>();
 
-                        context.Result = OperationResultBuilder
-                            .FromResult(((IOperationResult)context.Result!))
-                            .AddExtension("loads", dataLoader.Loads)
-                            .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        var extensions = result.Extensions ?? ImmutableDictionary<string, object?>.Empty;
+                        extensions = extensions.SetItem("loads", dataLoader.Loads);
                     })
                 .UseDefaultPipeline());
 
@@ -326,10 +321,9 @@ public class DataLoaderTests
 
                         var dataLoader = (TestDataLoader)context.RequestServices.GetRequiredService<ITestDataLoader>();
 
-                        context.Result = OperationResultBuilder
-                            .FromResult((IOperationResult)context.Result!)
-                            .AddExtension("loads", dataLoader.Loads)
-                            .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        var extensions = result.Extensions ?? ImmutableDictionary<string, object?>.Empty;
+                        extensions = extensions.SetItem("loads", dataLoader.Loads);
                     })
                 .UseDefaultPipeline());
 
