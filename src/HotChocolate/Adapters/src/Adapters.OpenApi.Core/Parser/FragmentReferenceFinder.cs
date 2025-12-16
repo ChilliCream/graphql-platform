@@ -7,7 +7,7 @@ public static class FragmentReferenceFinder
 {
     private static readonly Visitor s_visitor = new();
 
-    public static FragmentReferenceFinderResult Find(DocumentNode document, OperationDefinitionNode operation)
+    public static FragmentReferenceFinderResult Find(DocumentNode document)
     {
         var localFragmentLookup = CreateLocalFragmentLookup(document);
 

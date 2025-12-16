@@ -6,11 +6,11 @@ public class OpenApiIntegrationTests : OpenApiIntegrationTestBase
 {
     protected override void ConfigureStorage(
         IServiceCollection services,
-        IOpenApiDocumentStorage storage,
+        IOpenApiDefinitionStorage storage,
         OpenApiDiagnosticEventListener? eventListener)
     {
         services.AddGraphQLServer()
-            .AddOpenApiDocumentStorage(storage)
+            .AddOpenApiDefinitionStorage(storage)
             .AddBasicServer();
     }
 }

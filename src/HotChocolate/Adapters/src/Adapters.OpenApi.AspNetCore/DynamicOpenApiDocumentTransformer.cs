@@ -17,20 +17,20 @@ namespace HotChocolate.Adapters.OpenApi;
 
 internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransformer, IDynamicOpenApiDocumentTransformer
 {
-    private List<OperationDescriptor> _operations = [];
-    private List<ComponentDescriptor> _components = [];
+    private List<EndpointDescriptor> _endpoints = [];
+    private List<ModelDescriptor> _models = [];
 
     public Task TransformAsync(
         OpenApiDocument document,
         OpenApiDocumentTransformerContext context,
         CancellationToken cancellationToken)
     {
-        foreach (var operation in _operations)
+        foreach (var operation in _endpoints)
         {
             AddOperation(document, operation.Path, operation.HttpMethod, operation.Operation);
         }
 
-        foreach (var component in _components)
+        foreach (var component in _models)
         {
             AddComponent(document, component.SchemaName, component.Schema);
         }
@@ -38,54 +38,54 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         return Task.CompletedTask;
     }
 
-    public void AddDocuments(
-        OpenApiOperationDocument[] operations,
-        OpenApiFragmentDocument[] fragments,
+    public void AddDefinitions(
+        OpenApiEndpointDefinition[] endpoints,
+        OpenApiModelDefinition[] models,
         ISchemaDefinition schema)
     {
-        var operationDescriptors = new List<OperationDescriptor>();
-        var componentDescriptors = new List<ComponentDescriptor>();
+        var endpointDescriptors = new List<EndpointDescriptor>();
+        var modelDescriptors = new List<ModelDescriptor>();
 
-        var fragmentDocumentLookup = fragments.ToDictionary(f => f.Name);
+        var modelLookup = models.ToDictionary(f => f.Name);
 
-        foreach (var operation in operations)
+        foreach (var endpoint in endpoints)
         {
-            var operationDescriptor = CreateOperationDescriptor(operation, schema, fragmentDocumentLookup);
-            operationDescriptors.Add(operationDescriptor);
+            var endpointDescriptor = CreateEndpointDescriptor(endpoint, schema, modelLookup);
+            endpointDescriptors.Add(endpointDescriptor);
         }
 
-        foreach (var fragment in fragments)
+        foreach (var model in models)
         {
-            var componentDescriptor = CreateComponentDescriptor(fragment, schema, fragmentDocumentLookup);
-            componentDescriptors.Add(componentDescriptor);
+            var modelDescriptor = CreateModelDescriptor(model, schema, modelLookup);
+            modelDescriptors.Add(modelDescriptor);
         }
 
-        _operations = operationDescriptors;
-        _components = componentDescriptors;
+        _endpoints = endpointDescriptors;
+        _models = modelDescriptors;
     }
 
     private const string JsonContentType = "application/json";
 
-    private static OperationDescriptor CreateOperationDescriptor(
-        OpenApiOperationDocument operationDocument,
+    private static EndpointDescriptor CreateEndpointDescriptor(
+        OpenApiEndpointDefinition endpoint,
         ISchemaDefinition schema,
-        Dictionary<string, OpenApiFragmentDocument> fragmentDocumentLookup)
+        Dictionary<string, OpenApiModelDefinition> modelLookup)
     {
         var operation = new OpenApiOperation
         {
-            Description = operationDocument.Description,
-            OperationId = GetOperationId(operationDocument.Name),
+            Description = endpoint.Description,
+            OperationId = GetOperationId(endpoint.OperationDefinition.Name?.Value),
             Parameters = [],
             Responses = []
         };
 
-        var bodyParameter = operationDocument.BodyParameter;
+        var bodyParameter = endpoint.BodyParameter;
         var bodyVariable = bodyParameter?.VariableName;
         var bodyVariableTrie = new InputObjectPathTrie();
 
-        foreach (var routeParameter in operationDocument.Route.Parameters)
+        foreach (var routeParameter in endpoint.RouteParameters)
         {
-            var parameter = CreateOpenApiParameter(operationDocument, routeParameter, ParameterLocation.Path, schema);
+            var parameter = CreateOpenApiParameter(endpoint, routeParameter, ParameterLocation.Path, schema);
 
             operation.Parameters.Add(parameter);
 
@@ -95,9 +95,9 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             }
         }
 
-        foreach (var queryParameter in operationDocument.QueryParameters)
+        foreach (var queryParameter in endpoint.QueryParameters)
         {
-            var parameter = CreateOpenApiParameter(operationDocument, queryParameter, ParameterLocation.Query, schema);
+            var parameter = CreateOpenApiParameter(endpoint, queryParameter, ParameterLocation.Query, schema);
 
             operation.Parameters.Add(parameter);
 
@@ -109,7 +109,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
         if (bodyParameter is not null)
         {
-            var (graphqlType, _) = GetParameterDetails(operationDocument.OperationDefinition, bodyParameter, schema);
+            var (graphqlType, _) = GetParameterDetails(endpoint.OperationDefinition, bodyParameter, schema);
             var requestBodyType = CreateOpenApiSchemaForType(graphqlType, schema);
 
             RemovePropertiesFromSchema(requestBodyType, bodyVariableTrie);
@@ -126,9 +126,9 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             operation.RequestBody = requestBody;
         }
 
-        var operationType = schema.GetOperationType(operationDocument.OperationDefinition.Operation);
+        var operationType = schema.GetOperationType(endpoint.OperationDefinition.Operation);
 
-        if (operationDocument.OperationDefinition.SelectionSet.Selections is not [FieldNode rootField])
+        if (endpoint.OperationDefinition.SelectionSet.Selections is not [FieldNode rootField])
         {
             throw new InvalidOperationException("Expected to have a single field selection on the root");
         }
@@ -140,8 +140,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 rootField.SelectionSet,
                 fieldType,
                 schema,
-                operationDocument.LocalFragmentLookup,
-                fragmentDocumentLookup)
+                endpoint.LocalFragmentsByName,
+                modelLookup)
             : CreateOpenApiSchemaForType(fieldType, schema);
 
         var responseBody = new OpenApiMediaType
@@ -154,33 +154,34 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             Content = new ConcurrentDictionary<string, OpenApiMediaType> { [JsonContentType] = responseBody }
         };
 
-        return new OperationDescriptor(
-            operationDocument.Route.ToOpenApiPath(),
-            operationDocument.HttpMethod,
+        return new EndpointDescriptor(
+            // TODO: This probably has to start with a slash
+            endpoint.Route,
+            endpoint.HttpMethod,
             operation);
     }
 
-    private static ComponentDescriptor CreateComponentDescriptor(
-        OpenApiFragmentDocument fragmentDocument,
+    private static ModelDescriptor CreateModelDescriptor(
+        OpenApiModelDefinition model,
         ISchemaDefinition schema,
-        Dictionary<string, OpenApiFragmentDocument> fragmentDocumentLookup)
+        Dictionary<string, OpenApiModelDefinition> modelLookup)
     {
-        if (!schema.Types.TryGetType(fragmentDocument.FragmentDefinition.TypeCondition.Name.Value,
+        if (!schema.Types.TryGetType(model.FragmentDefinition.TypeCondition.Name.Value,
             out var typeCondition))
         {
             throw new InvalidOperationException("Expected to find type condition type in the schema.");
         }
 
         var componentSchema = CreateOpenApiSchemaForSelectionSet(
-            fragmentDocument.FragmentDefinition.SelectionSet,
+            model.FragmentDefinition.SelectionSet,
             (IOutputType)typeCondition,
             schema,
-            fragmentDocument.LocalFragmentLookup,
-            fragmentDocumentLookup);
+            model.LocalFragmentsByName,
+            modelLookup);
 
-        componentSchema.Description = fragmentDocument.Description;
+        componentSchema.Description = model.Description;
 
-        return new ComponentDescriptor(fragmentDocument.Name, componentSchema);
+        return new ModelDescriptor(model.Name, componentSchema);
     }
 
     private static void AddComponent(
@@ -705,8 +706,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         SelectionSetNode selectionSet,
         IOutputType typeDefinition,
         ISchemaDefinition schemaDefinition,
-        Dictionary<string, FragmentDefinitionNode> fragmentLookup,
-        Dictionary<string, OpenApiFragmentDocument> externalFragmentLookup,
+        Dictionary<string, FragmentDefinitionNode> localFragmentLookup,
+        Dictionary<string, OpenApiModelDefinition> modelLookup,
         bool optional = false)
     {
         if (typeDefinition.IsListType())
@@ -716,8 +717,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 selectionSet,
                 elementType,
                 schemaDefinition,
-                fragmentLookup,
-                externalFragmentLookup,
+                localFragmentLookup,
+                modelLookup,
                 optional);
 
             itemSchema = ApplyNullability(itemSchema, elementType);
@@ -750,8 +751,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                         field.SelectionSet,
                         fieldType,
                         schemaDefinition,
-                        fragmentLookup,
-                        externalFragmentLookup);
+                        localFragmentLookup,
+                        modelLookup);
                 }
                 else
                 {
@@ -781,8 +782,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                     inlineFragment.SelectionSet,
                     (IOutputType)typeCondition,
                     schemaDefinition,
-                    fragmentLookup,
-                    externalFragmentLookup,
+                    localFragmentLookup,
+                    modelLookup,
                     optional: optional || isDifferentType || isSelectionConditional);
 
                 fragmentSchemasByType ??= new Dictionary<string, List<OpenApiSchemaAbstraction>>();
@@ -799,7 +800,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             {
                 var fragmentName = fragmentSpread.Name.Value;
 
-                if (externalFragmentLookup.TryGetValue(fragmentName, out var externalFragment))
+                if (modelLookup.TryGetValue(fragmentName, out var externalFragment))
                 {
                     var typeName = externalFragment.FragmentDefinition.TypeCondition.Name.Value;
 
@@ -828,7 +829,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 }
                 else
                 {
-                    var fragment = fragmentLookup[fragmentName];
+                    var fragment = localFragmentLookup[fragmentName];
                     var typeCondition = schemaDefinition.Types[fragment.TypeCondition.Name.Value];
                     var isDifferentType = !typeCondition.IsAssignableFrom(namedType);
                     var typeName = typeCondition.Name;
@@ -837,8 +838,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                         fragment.SelectionSet,
                         (IOutputType)typeCondition,
                         schemaDefinition,
-                        fragmentLookup,
-                        externalFragmentLookup,
+                        localFragmentLookup,
+                        modelLookup,
                         optional: optional || isDifferentType || isSelectionConditional);
 
                     fragmentSchemasByType ??= new Dictionary<string, List<OpenApiSchemaAbstraction>>();
@@ -916,12 +917,12 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     }
 
     private static OpenApiParameter CreateOpenApiParameter(
-        OpenApiOperationDocument operation,
-        OpenApiRouteSegmentParameter parameter,
+        OpenApiEndpointDefinition endpoint,
+        OpenApiEndpointDefinitionParameter parameter,
         ParameterLocation location,
         ISchemaDefinition schema)
     {
-        var (graphqlType, defaultValue) = GetParameterDetails(operation.OperationDefinition, parameter, schema);
+        var (graphqlType, defaultValue) = GetParameterDetails(endpoint.OperationDefinition, parameter, schema);
 
         return new OpenApiParameter
         {
@@ -967,7 +968,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
     private static (IType Type, IValueNode? DefaultValue) GetParameterDetails(
         OperationDefinitionNode operation,
-        OpenApiRouteSegmentParameter parameter,
+        OpenApiEndpointDefinitionParameter parameter,
         ISchemaDefinition schema)
     {
         var variable = operation.VariableDefinitions
@@ -1027,15 +1028,15 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         return (lastField.Type, null);
     }
 
-    private sealed record OperationDescriptor(string Path, string HttpMethod, OpenApiOperation Operation);
+    private sealed record EndpointDescriptor(string Path, string HttpMethod, OpenApiOperation Operation);
 
-    private sealed record ComponentDescriptor(string SchemaName, OpenApiSchemaAbstraction Schema);
+    private sealed record ModelDescriptor(string SchemaName, OpenApiSchemaAbstraction Schema);
 
     private sealed class InputObjectPathTrie : Dictionary<string, InputObjectPathTrie>
     {
         public bool IsTerminal { get; private set; }
 
-        public void Add(OpenApiRouteSegmentParameter parameter)
+        public void Add(OpenApiEndpointDefinitionParameter parameter)
         {
             if (parameter.InputObjectPath is not { } inputObjectPath || inputObjectPath.Length == 0)
             {
@@ -1101,8 +1102,13 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         }
     }
 
-    private static string GetOperationId(string operationName)
+    private static string GetOperationId(string? operationName)
     {
+        if (string.IsNullOrEmpty(operationName))
+        {
+            return string.Empty;
+        }
+
         if (char.IsLower(operationName[0]))
         {
             return operationName;

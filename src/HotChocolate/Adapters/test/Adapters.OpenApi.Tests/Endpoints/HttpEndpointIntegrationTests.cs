@@ -7,11 +7,11 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
 {
     protected override void ConfigureStorage(
         IServiceCollection services,
-        IOpenApiDocumentStorage storage,
+        IOpenApiDefinitionStorage storage,
         OpenApiDiagnosticEventListener? eventListener)
     {
         var builder = services.AddGraphQLServer()
-            .AddOpenApiDocumentStorage(storage)
+            .AddOpenApiDefinitionStorage(storage)
             .AddBasicServer();
 
         if (eventListener is not null)
@@ -24,7 +24,7 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
     public async Task Http_Post_Body_Field_Has_Wrong_Type()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 

@@ -6,11 +6,11 @@ public class ValidationTests : ValidationTestBase
 {
     protected override void ConfigureStorage(
         IServiceCollection services,
-        IOpenApiDocumentStorage storage,
+        IOpenApiDefinitionStorage storage,
         OpenApiDiagnosticEventListener? eventListener)
     {
         var builder = services.AddGraphQLServer()
-            .AddOpenApiDocumentStorage(storage)
+            .AddOpenApiDefinitionStorage(storage)
             .AddBasicServer();
 
         if (eventListener is not null)

@@ -2,8 +2,8 @@ namespace HotChocolate.Adapters.OpenApi;
 
 public interface IDynamicOpenApiDocumentTransformer
 {
-    void AddDocuments(
-        OpenApiOperationDocument[] operations,
-        OpenApiFragmentDocument[] fragments,
+    void AddDefinitions(
+        OpenApiEndpointDefinition[] endpoints,
+        OpenApiModelDefinition[] models,
         ISchemaDefinition schema);
 }

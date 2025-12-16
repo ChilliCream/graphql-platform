@@ -10,7 +10,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task OpenApi_Includes_Initial_Routes()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
@@ -32,7 +32,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task OperationDocument()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -56,7 +56,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task OperationDocument_With_Default_Value_For_Variable()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             query GetFullUser($userId: ID!, $includeAddress: Boolean! = true)
               @http(method: GET, route: "/users/{userId}/details", queryParameters: ["includeAddress"]) {
@@ -83,7 +83,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task OperationDocument_With_Local_Fragment()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -112,7 +112,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task OperationDocument_With_FragmentDocument_Reference()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -142,7 +142,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task OperationDocument_With_FragmentDocument_Reference_On_Nullable_Field()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -172,7 +172,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task OperationDocument_With_Local_Fragment_With_FragmentDocument_Reference()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -210,7 +210,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task OperationDocument_With_Fields_And_Local_Fragment()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -239,7 +239,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task OperationDocument_With_Fields_And_FragmentDocument_Reference()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -269,7 +269,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task FragmentDocument()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -298,7 +298,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task FragmentDocument_With_Local_Fragment()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -335,7 +335,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task FragmentDocument_With_FragmentDocument_Reference()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -373,7 +373,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task FragmentDocument_With_Local_Fragment_With_FragmentDocument_Reference()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -411,7 +411,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task FragmentDocument_With_Fields_And_Local_Fragment()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -446,7 +446,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task FragmentDocument_With_Fields_And_FragmentDocument_Reference()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             "Fetches a user by their id"
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
@@ -481,7 +481,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task OperationDocument_With_List_Of_Unions()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             "Fetches a list of pets"
             query GetPets @http(method: GET, route: "/pets") {
@@ -514,7 +514,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task OperationDocument_With_List_With_Nullable_And_NonNull_Items()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage(
+        var storage = new TestOpenApiDefinitionStorage(
             """
             "Fetches a list with nullable items"
             query GetListNullableItems @http(method: GET, route: "/list-nullable") {
@@ -543,10 +543,10 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task HotReload_Add_New_Document()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage();
+        var storage = new TestOpenApiDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
@@ -584,7 +584,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task HotReload_Update_Existing_Document()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage();
+        var storage = new TestOpenApiDefinitionStorage();
         storage.AddOrUpdateDocument(
             "users",
             """
@@ -596,7 +596,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
@@ -635,7 +635,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task HotReload_Update_Existing_Document_Different_Route()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage();
+        var storage = new TestOpenApiDefinitionStorage();
         storage.AddOrUpdateDocument(
             "users",
             """
@@ -647,7 +647,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
@@ -686,7 +686,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task HotReload_Update_Existing_Document_With_Invalid_Document()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage();
+        var storage = new TestOpenApiDefinitionStorage();
         storage.AddOrUpdateDocument(
             "users",
             """
@@ -721,7 +721,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task HotReload_Remove_Existing_Operation()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage();
+        var storage = new TestOpenApiDefinitionStorage();
         storage.AddOrUpdateDocument(
             "users",
             """
@@ -733,7 +733,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
@@ -763,7 +763,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     public async Task HotReload_Remove_Non_Existent_Document()
     {
         // arrange
-        var storage = new TestOpenApiDocumentStorage();
+        var storage = new TestOpenApiDefinitionStorage();
         storage.AddOrUpdateDocument(
             "users",
             """

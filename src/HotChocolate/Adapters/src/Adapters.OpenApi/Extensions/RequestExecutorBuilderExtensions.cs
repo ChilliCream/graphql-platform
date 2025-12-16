@@ -8,35 +8,35 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class RequestExecutorBuilderExtensions
 {
-    public static IRequestExecutorBuilder AddOpenApiDocumentStorage(
+    public static IRequestExecutorBuilder AddOpenApiDefinitionStorage(
         this IRequestExecutorBuilder builder,
-        IOpenApiDocumentStorage storage)
+        IOpenApiDefinitionStorage storage)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(storage);
 
-        builder.AddOpenApiDocumentStorageCore();
+        builder.AddOpenApiDefinitionStorageCore();
 
         builder.Services.AddKeyedSingleton(builder.Name, storage);
 
         return builder;
     }
 
-    public static IRequestExecutorBuilder AddOpenApiDocumentStorage<
+    public static IRequestExecutorBuilder AddOpenApiDefinitionStorage<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
-        where T : class, IOpenApiDocumentStorage
+        where T : class, IOpenApiDefinitionStorage
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        builder.AddOpenApiDocumentStorageCore();
+        builder.AddOpenApiDefinitionStorageCore();
 
-        builder.Services.AddKeyedSingleton<IOpenApiDocumentStorage, T>(builder.Name);
+        builder.Services.AddKeyedSingleton<IOpenApiDefinitionStorage, T>(builder.Name);
 
         return builder;
     }
 
-    private static void AddOpenApiDocumentStorageCore(this IRequestExecutorBuilder builder)
+    private static void AddOpenApiDefinitionStorageCore(this IRequestExecutorBuilder builder)
     {
         var schemaName = builder.Name;
 

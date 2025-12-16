@@ -53,7 +53,7 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
 
     protected override void ConfigureStorage(
         IServiceCollection services,
-        IOpenApiDocumentStorage storage,
+        IOpenApiDefinitionStorage storage,
         OpenApiDiagnosticEventListener? eventListener)
     {
         services.AddHttpClient("A")
@@ -75,7 +75,7 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
     public async Task Http_Post_Body_Field_Has_Wrong_Type()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
