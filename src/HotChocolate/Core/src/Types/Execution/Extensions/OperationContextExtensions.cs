@@ -70,11 +70,11 @@ internal static class OperationContextExtensions
                     resultBuilder.Data.Data.IsNullOrInvalidated,
                     resultBuilder.Data,
                     resultBuilder.Data),
-                resultBuilder.Errors is { Count: > 0 } errors ? errors : null,
-                resultBuilder.Extensions is { Count: > 0 } extensions ? extensions : null)
+                resultBuilder.Errors,
+                resultBuilder.Extensions)
             {
                 RequestIndex = resultBuilder.RequestIndex > -1 ? resultBuilder.RequestIndex : 0,
-                VariableIndex =  resultBuilder.VariableIndex > -1 ? resultBuilder.VariableIndex : 0,
+                VariableIndex = resultBuilder.VariableIndex > -1 ? resultBuilder.VariableIndex : 0,
                 ContextData = resultBuilder.ContextData
             };
 

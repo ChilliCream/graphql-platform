@@ -494,6 +494,26 @@ public sealed class ImmutableOrderedDictionary<TKey, TValue> : IImmutableDiction
 
         return new ImmutableOrderedDictionary<TKey, TValue>(keys.ToImmutable(), map.ToImmutable());
     }
+
+    internal static ImmutableOrderedDictionary<TKey, TValue> Create(
+        OrderedDictionary<TKey, TValue> items)
+    {
+        if (items.Count == 0)
+        {
+            return Empty;
+        }
+
+        var keys = ImmutableList.CreateBuilder<TKey>();
+        var map = ImmutableDictionary.CreateBuilder<TKey, TValue>();
+
+        foreach (var item in items)
+        {
+            keys.Add(item.Key);
+            map.Add(item.Key, item.Value);
+        }
+
+        return new ImmutableOrderedDictionary<TKey, TValue>(keys.ToImmutable(), map.ToImmutable());
+    }
 }
 
 /// <summary>
@@ -522,4 +542,22 @@ public static class ImmutableOrderedDictionary
         ReadOnlySpan<KeyValuePair<TKey, TValue>> items)
         where TKey : IEquatable<TKey>
         => ImmutableOrderedDictionary<TKey, TValue>.Create(items);
+}
+
+/// <summary>
+/// Provides extension methods for immutable ordered dictionaries.
+/// </summary>
+public static class ImmutableOrderedDictionaryExtensions
+{
+    /// <summary>
+    /// Converts the specified ordered dictionary to an immutable ordered dictionary.
+    /// </summary>
+    /// <typeparam name="TKey">The type of keys in the dictionary.</typeparam>
+    /// <typeparam name="TValue">The type of values in the dictionary.</typeparam>
+    /// <param name="dictionary">The ordered dictionary to convert.</param>
+    /// <returns>An immutable ordered dictionary containing the same key-value pairs as the input dictionary.</returns>
+    public static ImmutableOrderedDictionary<TKey, TValue> ToImmutableOrderedDictionary<TKey, TValue>(
+        this OrderedDictionary<TKey, TValue> dictionary)
+        where TKey : IEquatable<TKey>
+        => ImmutableOrderedDictionary<TKey, TValue>.Create(dictionary);
 }

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Collections.Immutable;
 using HotChocolate.Resolvers;
 using HotChocolate.Text.Json;
 
@@ -16,22 +17,22 @@ internal sealed class OperationResultBuilder : IOperationResultBuilder
 
     public ResultDocument Data { get; set; } = null!;
 
-    public ImmutableList<IError> Errors { get; set; } = ImmutableList<IError>.Empty;
+    public ImmutableList<IError> Errors { get; set; } = [];
 
-    public ImmutableDictionary<string, object?> Extensions { get; set; } = ImmutableDictionary<string, object?>.Empty;
+    public ImmutableOrderedDictionary<string, object?> Extensions { get; set; } = [];
 
     public ImmutableDictionary<string, object?> ContextData { get; set; } = ImmutableDictionary<string, object?>.Empty;
 
-    public ImmutableList<PendingResult>? Pending { get; set; }
+    public ImmutableList<PendingResult> Pending { get; set; } = [];
 
-    public ImmutableList<IIncrementalResult>? Incremental { get; set; }
+    public ImmutableList<IIncrementalResult> Incremental { get; set; } = [];
 
-    public ImmutableList<CompletedResult>? Completed { get; set; }
+    public ImmutableList<CompletedResult> Completed { get; set; } = [];
 
-    public ImmutableList<Func<ValueTask>> CleanupTasks { get; set; } = ImmutableList<Func<ValueTask>>.Empty;
+    public ImmutableList<Func<ValueTask>> CleanupTasks { get; set; } = [];
 
     // TODO : Is this still needed?
-    public ImmutableHashSet<Path> NonNullViolations { get; set; } = ImmutableHashSet<Path>.Empty;
+    public ImmutableHashSet<Path> NonNullViolations { get; set; } = [];
 
     public bool? HasNext { get; set; }
 
@@ -157,14 +158,14 @@ internal sealed class OperationResultBuilder : IOperationResultBuilder
         VariableIndex = -1;
         Path = null;
         Data = null!;
-        Errors = ImmutableList<IError>.Empty;
-        Pending = ImmutableList<PendingResult>.Empty;
-        Extensions = ImmutableDictionary<string, object?>.Empty;
-        CleanupTasks  = ImmutableList<Func<ValueTask>>.Empty;
-        NonNullViolations = ImmutableHashSet<Path>.Empty;
-        Pending = null;
-        Incremental = null;
-        Completed = null;
+        Errors = [];
+        Extensions = [];
+        ContextData = ImmutableDictionary<string, object?>.Empty;
+        CleanupTasks = [];
+        NonNullViolations = [];
+        Pending = [];
+        Incremental = [];
+        Completed = [];
         HasNext = null;
     }
 }

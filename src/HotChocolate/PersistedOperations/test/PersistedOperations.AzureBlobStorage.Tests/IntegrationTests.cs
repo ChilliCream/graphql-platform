@@ -72,8 +72,7 @@ public class IntegrationTests : IClassFixture<AzureStorageBlobResource>
                     if (c.IsPersistedOperationDocument())
                     {
                         var result = c.Result.ExpectOperationResult();
-                        var extensions = result.Extensions ?? [];
-                        result.Extensions = extensions.SetItem("persistedDocument", true);
+                        result.Extensions = result.Extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()

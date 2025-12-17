@@ -15,7 +15,7 @@ internal static class ResultHelper
 
     public static IExecutionResult CreateError(IError error, CostMetrics? costMetrics)
     {
-        ImmutableDictionary<string, object?>? extensions = null;
+        ImmutableOrderedDictionary<string, object?>? extensions = null;
         if (costMetrics is not null)
         {
             extensions = AddCostMetrics(extensions, costMetrics);
@@ -28,18 +28,18 @@ internal static class ResultHelper
 
     public static IExecutionResult CreateError(IReadOnlyList<IError> errors, CostMetrics? costMetrics)
     {
-        ImmutableDictionary<string, object?>? extensions = null;
+        ImmutableOrderedDictionary<string, object?>? extensions = null;
         if (costMetrics is not null)
         {
             extensions = AddCostMetrics(extensions, costMetrics);
         }
 
-        return new OperationResult([..errors], extensions) { ContextData = s_validationError };
+        return new OperationResult([.. errors], extensions) { ContextData = s_validationError };
     }
 
     public static IExecutionResult CreateResult(this CostMetrics costMetrics)
     {
-        var extensions = AddCostMetrics(ImmutableDictionary<string, object?>.Empty, costMetrics);
+        var extensions = AddCostMetrics([], costMetrics);
         return new OperationResult(extensions: extensions) { ContextData = s_ok };
     }
 
@@ -99,12 +99,13 @@ internal static class ResultHelper
         if (onFirstResult.IsEmpty)
         {
             onFirstResult =
-                ImmutableList.Create<Func<OperationResult, OperationResult>>(
+                [
                     result =>
                     {
                         result.Extensions = AddCostMetrics(result.Extensions, costMetrics);
                         return result;
-                    });
+                    }
+                ];
         }
         else
         {
@@ -121,23 +122,23 @@ internal static class ResultHelper
         return responseStream;
     }
 
-    private static ImmutableDictionary<string, object?> AddCostMetrics(
-        ImmutableDictionary<string, object?>? extensions,
+    private static ImmutableOrderedDictionary<string, object?> AddCostMetrics(
+        ImmutableOrderedDictionary<string, object?>? extensions,
         CostMetrics costMetrics)
     {
         var costMetricsMap = CreateCostMetricsMap(costMetrics);
         return AddCostMetrics(extensions, costMetricsMap);
     }
 
-    private static ImmutableDictionary<string, object?> AddCostMetrics(
-        ImmutableDictionary<string, object?>? extensions,
+    private static ImmutableOrderedDictionary<string, object?> AddCostMetrics(
+        ImmutableOrderedDictionary<string, object?>? extensions,
         ImmutableOrderedDictionary<string, object?> costMetrics)
     {
         const string costKey = "operationCost";
 
         if (extensions is null || extensions.Count == 0)
         {
-            return ImmutableDictionary<string, object?>.Empty.Add(costKey, costMetrics);
+            return ImmutableOrderedDictionary<string, object?>.Empty.Add(costKey, costMetrics);
         }
 
         return extensions.Add(costKey, costMetrics);

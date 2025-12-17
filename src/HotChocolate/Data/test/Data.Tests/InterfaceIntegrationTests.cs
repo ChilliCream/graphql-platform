@@ -63,7 +63,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                     .Build());
 
         var operationResult = result.ExpectOperationResult();
-        operationResult.Extensions = ImmutableDictionary<string, object?>.Empty;
+        operationResult.Extensions = [];
 
         await Snapshot
             .Create(postFix: TestEnvironment.TargetFramework)
@@ -116,7 +116,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                     .Build());
 
         var operationResult = result.ExpectOperationResult();
-        operationResult.Extensions = ImmutableDictionary<string, object?>.Empty;
+        operationResult.Extensions = [];
 
         await Snapshot
             .Create(postFix: TestEnvironment.TargetFramework)
@@ -173,7 +173,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                     .Build());
 
         var operationResult = result.ExpectOperationResult();
-        operationResult.Extensions = ImmutableDictionary<string, object?>.Empty;
+        operationResult.Extensions = [];
 
         await Snapshot
             .Create(postFix: TestEnvironment.TargetFramework)
@@ -217,7 +217,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                     .Build());
 
         var operationResult = result.ExpectOperationResult();
-        operationResult.Extensions = ImmutableDictionary<string, object?>.Empty;
+        operationResult.Extensions = [];
 
         await Snapshot
             .Create(
