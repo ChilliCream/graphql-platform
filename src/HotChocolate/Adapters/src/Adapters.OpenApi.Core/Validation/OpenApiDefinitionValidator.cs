@@ -19,9 +19,10 @@ public sealed class OpenApiDefinitionValidator
         new EndpointMustBeQueryOrMutationRule(),
         new EndpointMustHaveSingleRootFieldRule(),
         new EndpointNoDeferStreamDirectiveRule(),
-        new EndpointModelReferencesMustExistRule(),
+        new EndpointMustHaveValidRouteRule(),
         new EndpointParameterConflictRule(),
         new EndpointRouteUniquenessRule(),
+        new EndpointModelReferencesMustExistRule(),
         new EndpointMustCompileAgainstSchemaRule()
     ];
 

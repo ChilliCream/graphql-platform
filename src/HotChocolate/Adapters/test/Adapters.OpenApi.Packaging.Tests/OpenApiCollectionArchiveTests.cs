@@ -89,7 +89,8 @@ public class OpenApiCollectionArchiveTests : IDisposable
         {
             await archive.SetArchiveMetadataAsync(metadata);
             await archive.AddOpenApiEndpointAsync(key, operation, settings);
-            await archive.AddOpenApiModelAsync("UserFields", fragment);
+            using var modelSettings = CreateEmptyModelSettings();
+            await archive.AddOpenApiModelAsync("UserFields", fragment, modelSettings);
             await archive.CommitAsync();
         }
 
@@ -106,9 +107,9 @@ public class OpenApiCollectionArchiveTests : IDisposable
             Assert.Equal(operation, endpoint.Operation.ToArray());
             endpoint.Dispose();
 
-            var model = await readArchive.TryGetOpenApiModelAsync("UserFields");
+            using var model = await readArchive.TryGetOpenApiModelAsync("UserFields");
             Assert.NotNull(model);
-            Assert.Equal(fragment, model.Fragment.ToArray());
+            Assert.Equal(fragment, model.Document.ToArray());
         }
     }
 
@@ -389,13 +390,14 @@ public class OpenApiCollectionArchiveTests : IDisposable
         // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddOpenApiModelAsync("UserFields", fragment);
+        using var settings = CreateEmptyModelSettings();
+        await archive.AddOpenApiModelAsync("UserFields", fragment, settings);
 
         // assert - Can read immediately within the same session
-        var model = await archive.TryGetOpenApiModelAsync("UserFields");
+        using var model = await archive.TryGetOpenApiModelAsync("UserFields");
 
         Assert.NotNull(model);
-        Assert.Equal(fragment, model.Fragment.ToArray());
+        Assert.Equal(fragment, model.Document.ToArray());
     }
 
     [Fact]
@@ -411,23 +413,26 @@ public class OpenApiCollectionArchiveTests : IDisposable
         // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddOpenApiModelAsync("UserFields", fragment1);
-        await archive.AddOpenApiModelAsync("ProductFields", fragment2);
-        await archive.AddOpenApiModelAsync("OrderFields", fragment3);
+        using var settings1 = CreateEmptyModelSettings();
+        using var settings2 = CreateEmptyModelSettings();
+        using var settings3 = CreateEmptyModelSettings();
+        await archive.AddOpenApiModelAsync("UserFields", fragment1, settings1);
+        await archive.AddOpenApiModelAsync("ProductFields", fragment2, settings2);
+        await archive.AddOpenApiModelAsync("OrderFields", fragment3, settings3);
 
         // assert
-        var model1 = await archive.TryGetOpenApiModelAsync("UserFields");
-        var model2 = await archive.TryGetOpenApiModelAsync("ProductFields");
-        var model3 = await archive.TryGetOpenApiModelAsync("OrderFields");
+        using var model1 = await archive.TryGetOpenApiModelAsync("UserFields");
+        using var model2 = await archive.TryGetOpenApiModelAsync("ProductFields");
+        using var model3 = await archive.TryGetOpenApiModelAsync("OrderFields");
 
         Assert.NotNull(model1);
-        Assert.Equal(fragment1, model1.Fragment.ToArray());
+        Assert.Equal(fragment1, model1.Document.ToArray());
 
         Assert.NotNull(model2);
-        Assert.Equal(fragment2, model2.Fragment.ToArray());
+        Assert.Equal(fragment2, model2.Document.ToArray());
 
         Assert.NotNull(model3);
-        Assert.Equal(fragment3, model3.Fragment.ToArray());
+        Assert.Equal(fragment3, model3.Document.ToArray());
     }
 
     [Fact]
@@ -439,8 +444,9 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream);
+        using var settings = CreateEmptyModelSettings();
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => archive.AddOpenApiModelAsync("UserFields", fragment));
+            () => archive.AddOpenApiModelAsync("UserFields", fragment, settings));
     }
 
     [Fact]
@@ -453,8 +459,9 @@ public class OpenApiCollectionArchiveTests : IDisposable
         // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(CreateTestMetadata());
+        using var settings = CreateEmptyModelSettings();
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            () => archive.AddOpenApiModelAsync("UserFields", fragment));
+            () => archive.AddOpenApiModelAsync("UserFields", fragment, settings));
     }
 
     [Fact]
@@ -485,7 +492,8 @@ public class OpenApiCollectionArchiveTests : IDisposable
         using (var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true))
         {
             await archive.SetArchiveMetadataAsync(metadata);
-            await archive.AddOpenApiModelAsync("UserFields", fragment);
+            using var settings = CreateEmptyModelSettings();
+            await archive.AddOpenApiModelAsync("UserFields", fragment, settings);
             await archive.CommitAsync();
         }
 
@@ -493,10 +501,10 @@ public class OpenApiCollectionArchiveTests : IDisposable
         stream.Position = 0;
         using (var readArchive = OpenApiCollectionArchive.Open(stream, leaveOpen: true))
         {
-            var model = await readArchive.TryGetOpenApiModelAsync("UserFields");
+            using var model = await readArchive.TryGetOpenApiModelAsync("UserFields");
 
             Assert.NotNull(model);
-            Assert.Equal(fragment, model.Fragment.ToArray());
+            Assert.Equal(fragment, model.Document.ToArray());
         }
     }
 
@@ -515,7 +523,8 @@ public class OpenApiCollectionArchiveTests : IDisposable
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
         await archive.AddOpenApiEndpointAsync(key, operation, endpointSettings);
-        await archive.AddOpenApiModelAsync("UserFields", fragment);
+        using var modelSettings = CreateEmptyModelSettings();
+        await archive.AddOpenApiModelAsync("UserFields", fragment, modelSettings);
 
         // assert - Endpoints
         var endpoint = await archive.TryGetOpenApiEndpointAsync(key);
@@ -524,10 +533,10 @@ public class OpenApiCollectionArchiveTests : IDisposable
         Assert.Equal(operation, endpoint.Operation.ToArray());
 
         // assert - Models
-        var model = await archive.TryGetOpenApiModelAsync("UserFields");
+        using var model = await archive.TryGetOpenApiModelAsync("UserFields");
 
         Assert.NotNull(model);
-        Assert.Equal(fragment, model.Fragment.ToArray());
+        Assert.Equal(fragment, model.Document.ToArray());
 
         endpoint.Dispose();
     }
@@ -562,10 +571,12 @@ public class OpenApiCollectionArchiveTests : IDisposable
         // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddOpenApiModelAsync("UserFields", fragment);
+        using var settings = CreateEmptyModelSettings();
+        await archive.AddOpenApiModelAsync("UserFields", fragment, settings);
 
+        using var settings2 = CreateEmptyModelSettings();
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => archive.AddOpenApiModelAsync("UserFields", fragment));
+            () => archive.AddOpenApiModelAsync("UserFields", fragment, settings2));
     }
 
     [Theory]
@@ -607,7 +618,8 @@ public class OpenApiCollectionArchiveTests : IDisposable
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata);
         await archive.AddOpenApiEndpointAsync(key, operation, settings);
-        await archive.AddOpenApiModelAsync("UserFields", fragment);
+        using var modelSettings = CreateEmptyModelSettings();
+        await archive.AddOpenApiModelAsync("UserFields", fragment, modelSettings);
 
         // assert
         var retrievedMetadata = await archive.GetArchiveMetadataAsync();
@@ -621,7 +633,6 @@ public class OpenApiCollectionArchiveTests : IDisposable
     {
         // arrange
         await using var stream = CreateStream();
-        var parserOptions = new ParserOptions(true);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -637,8 +648,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
                 }
               }
             }
-            """,
-            parserOptions);
+            """);
         var endpointDefinition = (OpenApiEndpointDefinition)OpenApiDefinitionParser.Parse(document).Definition!;
         var settingsDto = endpointDefinition.ToDto();
         var key = new OpenApiEndpointKey(endpointDefinition.HttpMethod, endpointDefinition.Route);
@@ -667,7 +677,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
             var endpointKey = readMetadata!.Endpoints[0];
             using var endpoint = await readArchive.TryGetOpenApiEndpointAsync(endpointKey);
 
-            var readDocument = Utf8GraphQLParser.Parse(endpoint!.Operation.Span, parserOptions);
+            var readDocument = Utf8GraphQLParser.Parse(endpoint!.Operation.Span);
             var readSettings = OpenApiEndpointSettingsSerializer.Parse(endpoint.Settings);
 
             parsedDefinition = OpenApiEndpointDefinition.From(
@@ -702,6 +712,63 @@ public class OpenApiCollectionArchiveTests : IDisposable
         Assert.Equal(endpointDefinition.Document.ToString(), parsedDefinition.Document.ToString());
     }
 
+    [Fact]
+    public async Task Serialized_Model_Should_Be_Parseable_As_OpenApiModel_Definition()
+    {
+        // arrange
+        await using var stream = CreateStream();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            "User model with basic fields"
+            fragment UserFields on User {
+              id
+              name
+              email
+            }
+            """);
+        var modelDefinition = (OpenApiModelDefinition)OpenApiDefinitionParser.Parse(document).Definition!;
+        var settingsDto = modelDefinition.ToDto();
+
+        using var settings = OpenApiModelSettingsSerializer.Format(settingsDto);
+
+        var metadata = CreateTestMetadata();
+
+        // act
+        using (var writeArchive = OpenApiCollectionArchive.Create(stream, leaveOpen: true))
+        {
+            await writeArchive.SetArchiveMetadataAsync(metadata);
+
+            var ms = new MemoryStream();
+            await modelDefinition.Document.PrintToAsync(ms);
+            await writeArchive.AddOpenApiModelAsync(modelDefinition.Name, ms.ToArray(), settings);
+            await writeArchive.CommitAsync();
+        }
+
+        stream.Position = 0;
+
+        OpenApiModelDefinition parsedDefinition;
+        using (var readArchive = OpenApiCollectionArchive.Open(stream, leaveOpen: true))
+        {
+            var readMetadata = await readArchive.GetArchiveMetadataAsync();
+            var modelName = readMetadata!.Models[0];
+            using var model = await readArchive.TryGetOpenApiModelAsync(modelName);
+
+            var readDocument = Utf8GraphQLParser.Parse(model!.Document.Span);
+            var readSettings = OpenApiModelSettingsSerializer.Parse(model.Settings);
+
+            parsedDefinition = OpenApiModelDefinition.From(
+                readSettings,
+                modelName,
+                readDocument);
+        }
+
+        // assert
+        Assert.Equal(modelDefinition.Name, parsedDefinition.Name);
+        Assert.Equal(modelDefinition.Description, parsedDefinition.Description);
+        Assert.Equal(modelDefinition.Document.ToString(), parsedDefinition.Document.ToString());
+    }
+
     private Stream CreateStream()
     {
         var stream = new MemoryStream();
@@ -715,6 +782,11 @@ public class OpenApiCollectionArchiveTests : IDisposable
         {
             FormatVersion = new Version("1.0.0")
         };
+    }
+
+    private static JsonDocument CreateEmptyModelSettings()
+    {
+        return JsonDocument.Parse("""{"description": null}""");
     }
 
     public void Dispose()

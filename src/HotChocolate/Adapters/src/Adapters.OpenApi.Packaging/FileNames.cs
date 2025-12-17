@@ -13,6 +13,9 @@ internal static class FileNames
     public static string GetModelFragmentPath(string name)
         => $"models/{name}/fragment.graphql";
 
+    public static string GetModelSettingsPath(string name)
+        => $"models/{name}/settings.json";
+
     private static string GetEndpointDirectoryName(OpenApiEndpointKey key)
         => $"{key.HttpMethod}_{key.Route}";
 }
