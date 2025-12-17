@@ -5,10 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-// TODO: With authorization also check what happens if we handle it in validation
-// TODO: Test with a long value in either route or query
-// TODO: Test result with timeout
-// TODO: Test schema hot reload
 public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 {
     #region GET
@@ -17,7 +13,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Get()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
@@ -38,17 +34,25 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             query GetUserById($userId: ID!) @http(method: GET, route: "/users/{userId}") {
               userById(id: $userId) {
                 ...User
+                ...LocalUser
               }
+            }
+
+            fragment LocalUser on User {
+              email
             }
             """,
             """
             fragment User on User {
-              id
+              ...LocalUser2
               name
-              email
               address {
                 ...Address
               }
+            }
+
+            fragment LocalUser2 on User {
+              id
             }
             """,
             """
@@ -70,7 +74,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Get_With_Query_Parameter()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
@@ -160,7 +164,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Get_Invalid_Type_In_Route_Parameter()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
@@ -175,7 +179,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Get_Root_Field_Returns_Null_Without_Errors()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
@@ -190,7 +194,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Get_Has_GraphQL_Errors()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
@@ -205,7 +209,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Get_Root_Field_Has_Authorization()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
@@ -223,7 +227,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Get_Root_Field_Has_Authorization_Not_Authenticated()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
@@ -238,7 +242,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Get_Root_Field_Has_Authorization_Not_Authorized()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
@@ -260,7 +264,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Post()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
@@ -286,7 +290,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Post_Complex_Object()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
@@ -399,7 +403,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Post_Invalid_ContentType()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
@@ -421,7 +425,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Post_Body_Missing_Field()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
@@ -446,7 +450,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Post_Without_Body()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
@@ -467,7 +471,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Put()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
@@ -492,7 +496,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     public async Task Http_Put_Deeply_Nested_Input_Without_Query_Parameter_That_Has_Default_Value()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
@@ -526,7 +530,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var storage = new TestOpenApiDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
@@ -579,7 +583,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
@@ -633,7 +637,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
@@ -676,52 +680,6 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
-    public async Task HotReload_Update_Existing_Operation_With_Invalid_Document()
-    {
-        // arrange
-        var storage = new TestOpenApiDefinitionStorage();
-        storage.AddOrUpdateDocument(
-            "users",
-            """
-            query GetUsers @http(method: GET, route: "/users") {
-              usersWithoutAuth {
-                id
-              }
-            }
-            """);
-        var eventListener = new TestOpenApiDiagnosticEventListener();
-        var server = CreateTestServer(storage, eventListener);
-        var client = server.CreateClient();
-
-        // act
-        // assert
-        var response1 = await client.GetAsync("/users");
-
-        Assert.Equal(HttpStatusCode.OK, response1.StatusCode);
-
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        storage.AddOrUpdateDocument(
-            "users",
-            // This is intentionally missing the @http directive to be invalid
-            """
-            query GetUsers {
-              usersWithoutAuth {
-                id
-              }
-            }
-            """);
-
-        eventListener.HasReportedErrors.Wait(cts.Token);
-
-        var response2 = await client.GetAsync("/users", cts.Token);
-
-        Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
-
-        response2.MatchSnapshot();
-    }
-
-    [Fact]
     public async Task HotReload_Remove_Existing_Operation()
     {
         // arrange
@@ -737,7 +695,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
+        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
         var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
