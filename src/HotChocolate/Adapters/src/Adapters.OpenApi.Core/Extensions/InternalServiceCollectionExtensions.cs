@@ -12,7 +12,7 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddKeyedSingleton<DynamicEndpointDataSource>(schemaName);
         services.TryAddKeyedSingleton(
             schemaName,
-            static (sp, name) => new OpenApiDocumentManager(
+            static (sp, name) => new OpenApiDefinitionRegistry(
                 sp.GetRequiredKeyedService<IOpenApiDefinitionStorage>(name),
                 sp.GetRequiredKeyedService<IDynamicOpenApiDocumentTransformer>(name),
                 sp.GetRequiredKeyedService<DynamicEndpointDataSource>(name)
@@ -36,7 +36,7 @@ internal static class InternalServiceCollectionExtensions
             _ => applicationServices.GetRequiredKeyedService<IOpenApiDefinitionStorage>(schemaName));
 
         services.TryAddSingleton(
-            _ => applicationServices.GetRequiredKeyedService<OpenApiDocumentManager>(schemaName));
+            _ => applicationServices.GetRequiredKeyedService<OpenApiDefinitionRegistry>(schemaName));
 
         services.TryAddSingleton<IDynamicEndpointDataSource>(
             _ => applicationServices.GetRequiredKeyedService<DynamicEndpointDataSource>(schemaName));

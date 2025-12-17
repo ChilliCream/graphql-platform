@@ -24,7 +24,7 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
     public async Task Http_Post_Body_Field_Has_Wrong_Type()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 

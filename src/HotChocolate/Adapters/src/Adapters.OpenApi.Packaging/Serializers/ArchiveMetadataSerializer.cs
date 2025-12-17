@@ -19,7 +19,10 @@ internal static class ArchiveMetadataSerializer
             jsonWriter.WriteStartArray("endpoints");
             foreach (var endpoint in archiveMetadata.Endpoints)
             {
-                jsonWriter.WriteStringValue(endpoint);
+                jsonWriter.WriteStartObject();
+                jsonWriter.WriteString("httpMethod", endpoint.HttpMethod);
+                jsonWriter.WriteString("route", endpoint.Route);
+                jsonWriter.WriteEndObject();
             }
             jsonWriter.WriteEndArray();
         }
@@ -54,16 +57,20 @@ internal static class ArchiveMetadataSerializer
             throw new JsonException("The archive metadata must contain a formatVersion property.");
         }
 
-        var endpoints = ImmutableArray<string>.Empty;
+        var endpoints = ImmutableArray<OpenApiEndpointKey>.Empty;
         if (root.TryGetProperty("endpoints", out var endpointsProp)
             && endpointsProp.ValueKind is JsonValueKind.Array)
         {
-            var builder = ImmutableArray.CreateBuilder<string>();
+            var builder = ImmutableArray.CreateBuilder<OpenApiEndpointKey>();
             foreach (var item in endpointsProp.EnumerateArray())
             {
-                if (item.ValueKind is JsonValueKind.String)
+                if (item.ValueKind is JsonValueKind.Object
+                    && item.TryGetProperty("httpMethod", out var httpMethodProp)
+                    && httpMethodProp.ValueKind is JsonValueKind.String
+                    && item.TryGetProperty("route", out var routeProp)
+                    && routeProp.ValueKind is JsonValueKind.String)
                 {
-                    builder.Add(item.GetString()!);
+                    builder.Add(new OpenApiEndpointKey(httpMethodProp.GetString()!, routeProp.GetString()!));
                 }
             }
             endpoints = builder.ToImmutable();

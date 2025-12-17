@@ -3,9 +3,9 @@ using System.Text.Json;
 namespace HotChocolate.Adapters.OpenApi.Packaging;
 
 /// <summary>
-/// Represents an OpenAPI endpoint containing operation data and settings.
+/// Represents an OpenAPI endpoint containing the GraphQL document and settings.
 /// </summary>
-/// <param name="Operation">The operation data as raw bytes.</param>
+/// <param name="Operation">The GraphQL document as raw bytes.</param>
 /// <param name="Settings">The settings document for this endpoint.</param>
 public sealed record OpenApiEndpoint(
     ReadOnlyMemory<byte> Operation,
