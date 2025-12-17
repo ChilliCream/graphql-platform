@@ -20,16 +20,11 @@ internal static class OpenApiCollectionHelpers
             new ArchiveMetadata(),
             cancellationToken);
 
-        var parser = new OpenApiDocumentParser();
-
         foreach (var file in files)
         {
             var fileContent = await File.ReadAllBytesAsync(file, cancellationToken);
             var document = Utf8GraphQLParser.Parse(fileContent);
-            // TODO: The id doesn't mean anything, we should probably get rid of it...
-            var openApiDocumentDefinition = new OpenApiDocumentDefinition(file, document);
-
-            var parseResult = parser.Parse(openApiDocumentDefinition);
+            var parseResult = OpenApiDefinitionParser.Parse(document);
 
             if (!parseResult.IsValid)
             {
@@ -37,24 +32,29 @@ internal static class OpenApiCollectionHelpers
                 continue;
             }
 
-            if (parseResult.Document is OpenApiOperationDocument operationDocument)
+            if (parseResult.Definition is OpenApiEndpointDefinition endpoint)
             {
-                var operationBytes = Encoding.UTF8.GetBytes(operationDocument.OperationDefinition.ToString());
-                var settings = CreateJsonSettingsForOperationDocument(operationDocument);
+                var endpointKey = new OpenApiEndpointKey(endpoint.HttpMethod, endpoint.Route);
+                var documentBytes = Encoding.UTF8.GetBytes(endpoint.Document.ToString());
+                var settingsDto = endpoint.ToDto();
+                var settings = OpenApiEndpointSettingsSerializer.Format(settingsDto);
 
                 await collectionArchive.AddOpenApiEndpointAsync(
-                    operationDocument.Name,
-                    operationBytes,
+                    endpointKey,
+                    documentBytes,
                     settings,
                     cancellationToken);
             }
-            else if (parseResult.Document is OpenApiFragmentDocument fragmentDocument)
+            else if (parseResult.Definition is OpenApiModelDefinition model)
             {
-                var fragmentBytes = Encoding.UTF8.GetBytes(fragmentDocument.FragmentDefinition.ToString());
+                var documentBytes = Encoding.UTF8.GetBytes(model.Document.ToString());
+                var settingsDto = model.ToDto();
+                var settings = OpenApiModelSettingsSerializer.Format(settingsDto);
 
                 await collectionArchive.AddOpenApiModelAsync(
-                    fragmentDocument.Name,
-                    fragmentBytes,
+                    model.Name,
+                    documentBytes,
+                    settings,
                     cancellationToken);
             }
             else
@@ -67,24 +67,5 @@ internal static class OpenApiCollectionHelpers
         collectionArchive.Dispose();
 
         return archiveStream;
-    }
-
-    private static JsonDocument CreateJsonSettingsForOperationDocument(OpenApiOperationDocument document)
-    {
-        var obj = new JsonObject();
-        obj.Add("httpMethod", document.HttpMethod);
-        obj.Add("route", document.Route.ToOpenApiPath());
-
-        // TODO: Add other settings
-
-        using var stream = new MemoryStream();
-        using (var writer = new Utf8JsonWriter(stream))
-        {
-            obj.WriteTo(writer);
-        }
-
-        stream.Position = 0;
-
-        return JsonDocument.Parse(stream);
     }
 }
