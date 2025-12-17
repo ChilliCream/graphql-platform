@@ -99,7 +99,7 @@ public sealed class OpenApiCollectionArchive : IDisposable
     {
         ArgumentNullException.ThrowIfNull(stream);
         var readOptions = new OpenApiCollectionArchiveReadOptions(
-            options.MaxAllowedOperationSize ?? OpenApiCollectionArchiveReadOptions.Default.MaxAllowedOperationSize,
+            options.MaxAllowedDocumentSize ?? OpenApiCollectionArchiveReadOptions.Default.MaxAllowedDocumentSize,
             options.MaxAllowedSettingsSize ?? OpenApiCollectionArchiveReadOptions.Default.MaxAllowedSettingsSize);
         return new OpenApiCollectionArchive(stream, mode, leaveOpen, readOptions);
     }
@@ -221,7 +221,7 @@ public sealed class OpenApiCollectionArchive : IDisposable
                 $"An endpoint with HTTP method '{key.HttpMethod}' and route '{key.Route}' already exists in the archive.");
         }
 
-        await using (var stream = _session.OpenWrite(FileNames.GetEndpointOperationPath(key)))
+        await using (var stream = _session.OpenWrite(FileNames.GetEndpointDocumentPath(key)))
         {
             await stream.WriteAsync(document, cancellationToken);
         }
@@ -257,10 +257,10 @@ public sealed class OpenApiCollectionArchive : IDisposable
             return null;
         }
 
-        var operationPath = FileNames.GetEndpointOperationPath(key);
+        var documentPath = FileNames.GetEndpointDocumentPath(key);
         var settingsPath = FileNames.GetEndpointSettingsPath(key);
 
-        if (!_session.Exists(operationPath) || !_session.Exists(settingsPath))
+        if (!_session.Exists(documentPath) || !_session.Exists(settingsPath))
         {
             return null;
         }
@@ -269,12 +269,12 @@ public sealed class OpenApiCollectionArchive : IDisposable
 
         try
         {
-            await using var operationStream = await _session.OpenReadAsync(
-                operationPath,
-                FileKind.Operation,
+            await using var documentStream = await _session.OpenReadAsync(
+                documentPath,
+                FileKind.Document,
                 cancellationToken);
-            await operationStream.CopyToAsync(buffer, cancellationToken);
-            var operation = buffer.WrittenMemory.ToArray();
+            await documentStream.CopyToAsync(buffer, cancellationToken);
+            var document = buffer.WrittenMemory.ToArray();
             buffer.Clear();
 
             await using var settingsStream = await _session.OpenReadAsync(
@@ -283,7 +283,7 @@ public sealed class OpenApiCollectionArchive : IDisposable
                 cancellationToken);
             var settings = await JsonDocument.ParseAsync(settingsStream, cancellationToken: cancellationToken);
 
-            return new OpenApiEndpoint(operation, settings);
+            return new OpenApiEndpoint(document, settings);
         }
         finally
         {
@@ -334,7 +334,7 @@ public sealed class OpenApiCollectionArchive : IDisposable
                 $"A model with the name '{name}' already exists in the archive.");
         }
 
-        await using (var stream = _session.OpenWrite(FileNames.GetModelFragmentPath(name)))
+        await using (var stream = _session.OpenWrite(FileNames.GetModelDocumentPath(name)))
         {
             await stream.WriteAsync(document, cancellationToken);
         }
@@ -376,10 +376,10 @@ public sealed class OpenApiCollectionArchive : IDisposable
             return null;
         }
 
-        var fragmentPath = FileNames.GetModelFragmentPath(name);
+        var documentPath = FileNames.GetModelDocumentPath(name);
         var settingsPath = FileNames.GetModelSettingsPath(name);
 
-        if (!_session.Exists(fragmentPath) || !_session.Exists(settingsPath))
+        if (!_session.Exists(documentPath) || !_session.Exists(settingsPath))
         {
             return null;
         }
@@ -388,12 +388,12 @@ public sealed class OpenApiCollectionArchive : IDisposable
 
         try
         {
-            await using var fragmentStream = await _session.OpenReadAsync(
-                fragmentPath,
-                FileKind.Fragment,
+            await using var documentStream = await _session.OpenReadAsync(
+                documentPath,
+                FileKind.Document,
                 cancellationToken);
-            await fragmentStream.CopyToAsync(buffer, cancellationToken);
-            var fragment = buffer.WrittenMemory.ToArray();
+            await documentStream.CopyToAsync(buffer, cancellationToken);
+            var document = buffer.WrittenMemory.ToArray();
             buffer.Clear();
 
             await using var settingsStream = await _session.OpenReadAsync(
@@ -402,7 +402,7 @@ public sealed class OpenApiCollectionArchive : IDisposable
                 cancellationToken);
             var settings = await JsonDocument.ParseAsync(settingsStream, cancellationToken: cancellationToken);
 
-            return new OpenApiModel(fragment, settings);
+            return new OpenApiModel(document, settings);
         }
         finally
         {
