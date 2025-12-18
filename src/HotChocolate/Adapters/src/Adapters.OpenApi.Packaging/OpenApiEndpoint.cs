@@ -5,10 +5,10 @@ namespace HotChocolate.Adapters.OpenApi.Packaging;
 /// <summary>
 /// Represents an OpenAPI endpoint containing the GraphQL document and settings.
 /// </summary>
-/// <param name="Operation">The GraphQL document as raw bytes.</param>
+/// <param name="Document">The GraphQL document as raw bytes.</param>
 /// <param name="Settings">The settings document for this endpoint.</param>
 public sealed record OpenApiEndpoint(
-    ReadOnlyMemory<byte> Operation,
+    ReadOnlyMemory<byte> Document,
     JsonDocument Settings) : IDisposable
 {
     /// <summary>

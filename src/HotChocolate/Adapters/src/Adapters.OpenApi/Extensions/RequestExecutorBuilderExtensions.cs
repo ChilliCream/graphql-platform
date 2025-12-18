@@ -17,13 +17,14 @@ public static class RequestExecutorBuilderExtensions
 
         builder.AddOpenApiDefinitionStorageCore();
 
-        builder.Services.AddKeyedSingleton(builder.Name, storage);
+        builder.ConfigureSchemaServices(services => services.AddSingleton(storage));
 
         return builder;
     }
 
     public static IRequestExecutorBuilder AddOpenApiDefinitionStorage<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+        T>(
         this IRequestExecutorBuilder builder)
         where T : class, IOpenApiDefinitionStorage
     {
@@ -31,7 +32,23 @@ public static class RequestExecutorBuilderExtensions
 
         builder.AddOpenApiDefinitionStorageCore();
 
-        builder.Services.AddKeyedSingleton<IOpenApiDefinitionStorage, T>(builder.Name);
+        builder.ConfigureSchemaServices(services => services.AddSingleton<IOpenApiDefinitionStorage, T>());
+
+        return builder;
+    }
+
+    public static IRequestExecutorBuilder AddOpenApiDefinitionStorage<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IRequestExecutorBuilder builder,
+        Func<IServiceProvider, T> factory)
+        where T : class, IOpenApiDefinitionStorage
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
+
+        builder.AddOpenApiDefinitionStorageCore();
+
+        builder.ConfigureSchemaServices(services => services.AddSingleton<IOpenApiDefinitionStorage, T>(factory));
 
         return builder;
     }
@@ -40,13 +57,13 @@ public static class RequestExecutorBuilderExtensions
     {
         var schemaName = builder.Name;
 
-        builder.Services.AddOpenApiExporterServices(schemaName);
+        builder.Services.AddOpenApiServices(schemaName);
         builder.Services.AddOpenApiAspNetCoreServices(schemaName);
 
         builder.ConfigureSchemaServices((applicationServices, services) =>
         {
             services.TryAddSingleton<IOpenApiResultFormatter, OpenApiResultFormatter>();
-            services.AddOpenApiExporterSchemaServices(schemaName, applicationServices);
+            services.AddOpenApiSchemaServices(schemaName, applicationServices);
         });
 
         builder.AddWarmupTask<OpenApiWarmupTask>();
