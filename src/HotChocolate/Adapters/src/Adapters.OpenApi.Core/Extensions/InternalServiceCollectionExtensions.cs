@@ -9,13 +9,12 @@ internal static class InternalServiceCollectionExtensions
 {
     public static IServiceCollection AddOpenApiExporterServices(this IServiceCollection services, string schemaName)
     {
-        services.TryAddKeyedSingleton<DynamicEndpointDataSource>(schemaName);
         services.TryAddKeyedSingleton(
             schemaName,
             static (sp, name) => new OpenApiDefinitionRegistry(
                 sp.GetRequiredKeyedService<IOpenApiDefinitionStorage>(name),
                 sp.GetRequiredKeyedService<IDynamicOpenApiDocumentTransformer>(name),
-                sp.GetRequiredKeyedService<DynamicEndpointDataSource>(name)
+                sp.GetRequiredKeyedService<IDynamicEndpointDataSource>(name)
                 ));
         services.TryAddKeyedSingleton(
             schemaName,
@@ -39,7 +38,7 @@ internal static class InternalServiceCollectionExtensions
             _ => applicationServices.GetRequiredKeyedService<OpenApiDefinitionRegistry>(schemaName));
 
         services.TryAddSingleton<IDynamicEndpointDataSource>(
-            _ => applicationServices.GetRequiredKeyedService<DynamicEndpointDataSource>(schemaName));
+            _ => applicationServices.GetRequiredKeyedService<IDynamicEndpointDataSource>(schemaName));
 
         services.TryAddSingleton(
             _ => applicationServices.GetRequiredKeyedService<IDynamicOpenApiDocumentTransformer>(schemaName));
