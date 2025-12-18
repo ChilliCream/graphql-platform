@@ -7,7 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="ChilliCream.Nitro.CommandLine.Cloud" />
+    <InternalsVisibleTo Include="nitro" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="Spectre.Console" />
+    <Using Include="System.CommandLine" />
   </ItemGroup>
 
   <ItemGroup>
