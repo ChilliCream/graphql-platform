@@ -1,5 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-
 namespace HotChocolate.Adapters.OpenApi;
 
 public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
@@ -546,17 +544,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
         var storage = new TestOpenApiDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
-        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
-        {
-            if (@event.Type == OpenApiDocumentEventType.Updated)
-            {
-                documentUpdatedResetEvent.Set();
-            }
-        }));
 
         // act
         // assert
@@ -572,12 +560,14 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             }
             """);
 
-        documentUpdatedResetEvent.Wait(cts.Token);
+        string? openApiDocument2 = null;
+        await SpinWaitAsync(async () =>
+        {
+            openApiDocument2 = await GetOpenApiDocumentAsync(client);
+            return openApiDocument2 != openApiDocument1;
+        }, cts.Token);
 
-        var openApiDocument2 = await GetOpenApiDocumentAsync(client);
-
-        Assert.NotEqual(openApiDocument1, openApiDocument2);
-        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+        openApiDocument2!.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
 
     [Fact]
@@ -596,17 +586,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
-        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
-        {
-            if (@event.Type == OpenApiDocumentEventType.Updated)
-            {
-                documentUpdatedResetEvent.Set();
-            }
-        }));
 
         // act
         // assert
@@ -623,12 +603,14 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             }
             """);
 
-        documentUpdatedResetEvent.Wait(cts.Token);
+        string? openApiDocument2 = null;
+        await SpinWaitAsync(async () =>
+        {
+            openApiDocument2 = await GetOpenApiDocumentAsync(client);
+            return openApiDocument2 != openApiDocument1;
+        }, cts.Token);
 
-        var openApiDocument2 = await GetOpenApiDocumentAsync(client);
-
-        Assert.NotEqual(openApiDocument2, openApiDocument1);
-        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+        openApiDocument2!.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
 
     [Fact]
@@ -647,17 +629,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
-        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
-        {
-            if (@event.Type == OpenApiDocumentEventType.Updated)
-            {
-                documentUpdatedResetEvent.Set();
-            }
-        }));
 
         // act
         // assert
@@ -674,12 +646,14 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             }
             """);
 
-        documentUpdatedResetEvent.Wait(cts.Token);
+        string? openApiDocument2 = null;
+        await SpinWaitAsync(async () =>
+        {
+            openApiDocument2 = await GetOpenApiDocumentAsync(client);
+            return openApiDocument2 != openApiDocument1;
+        }, cts.Token);
 
-        var openApiDocument2 = await GetOpenApiDocumentAsync(client);
-
-        Assert.NotEqual(openApiDocument2, openApiDocument1);
-        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+        openApiDocument2!.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
 
     [Fact(Skip = "Need to determine what best behavior should be")]
@@ -733,17 +707,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
-        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
-        {
-            if (@event.Type == OpenApiDocumentEventType.Updated)
-            {
-                documentUpdatedResetEvent.Set();
-            }
-        }));
 
         // act
         // assert
@@ -751,12 +715,14 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
 
         storage.RemoveDocument("users");
 
-        documentUpdatedResetEvent.Wait(cts.Token);
+        string? openApiDocument2 = null;
+        await SpinWaitAsync(async () =>
+        {
+            openApiDocument2 = await GetOpenApiDocumentAsync(client);
+            return openApiDocument2 != openApiDocument1;
+        }, cts.Token);
 
-        var openApiDocument2 = await GetOpenApiDocumentAsync(client);
-
-        Assert.NotEqual(openApiDocument2, openApiDocument1);
-        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+        openApiDocument2!.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
 
     [Fact]

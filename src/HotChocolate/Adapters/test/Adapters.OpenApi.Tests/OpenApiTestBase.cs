@@ -270,6 +270,15 @@ public abstract class OpenApiTestBase : IAsyncLifetime
         return await response.Content.ReadAsStringAsync();
     }
 
+    protected static async Task SpinWaitAsync(Func<Task<bool>> condition, CancellationToken cancellationToken)
+    {
+        while (!await condition())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await Task.Delay(10, cancellationToken);
+        }
+    }
+
     protected sealed class TestOpenApiDiagnosticEventListener : OpenApiDiagnosticEventListener
     {
         public List<IOpenApiError> Errors { get; } = [];

@@ -211,8 +211,8 @@ internal sealed class OpenApiCollectionArchiveSession : IDisposable
     private int GetAllowedSize(FileKind kind)
         => kind switch
         {
-            FileKind.Operation or FileKind.Fragment
-                => _readOptions.MaxAllowedOperationSize,
+            FileKind.Document
+                => _readOptions.MaxAllowedDocumentSize,
             FileKind.Settings or FileKind.Metadata
                 => _readOptions.MaxAllowedSettingsSize,
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)

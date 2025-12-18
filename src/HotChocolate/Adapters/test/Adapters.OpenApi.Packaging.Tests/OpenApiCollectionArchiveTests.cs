@@ -104,7 +104,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
             var endpoint = await readArchive.TryGetOpenApiEndpointAsync(key);
             Assert.NotNull(endpoint);
-            Assert.Equal(operation, endpoint.Operation.ToArray());
+            Assert.Equal(operation, endpoint.Document.ToArray());
             endpoint.Dispose();
 
             using var model = await readArchive.TryGetOpenApiModelAsync("UserFields");
@@ -148,12 +148,12 @@ public class OpenApiCollectionArchiveTests : IDisposable
         {
             var endpoint1 = await readArchive.TryGetOpenApiEndpointAsync(key1);
             Assert.NotNull(endpoint1);
-            Assert.Equal(operation1, endpoint1.Operation.ToArray());
+            Assert.Equal(operation1, endpoint1.Document.ToArray());
             endpoint1.Dispose();
 
             var endpoint2 = await readArchive.TryGetOpenApiEndpointAsync(key2);
             Assert.NotNull(endpoint2);
-            Assert.Equal(operation2, endpoint2.Operation.ToArray());
+            Assert.Equal(operation2, endpoint2.Document.ToArray());
             endpoint2.Dispose();
         }
     }
@@ -190,7 +190,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
         var endpoint = await archive.TryGetOpenApiEndpointAsync(key);
 
         Assert.NotNull(endpoint);
-        Assert.Equal(operation, endpoint.Operation.ToArray());
+        Assert.Equal(operation, endpoint.Document.ToArray());
         Assert.Equal("GET", endpoint.Settings.RootElement.GetProperty("method").GetString());
         Assert.Equal("/api/users", endpoint.Settings.RootElement.GetProperty("route").GetString());
 
@@ -226,16 +226,16 @@ public class OpenApiCollectionArchiveTests : IDisposable
         var endpoint3 = await archive.TryGetOpenApiEndpointAsync(key3);
 
         Assert.NotNull(endpoint1);
-        Assert.Equal(operation1, endpoint1.Operation.ToArray());
+        Assert.Equal(operation1, endpoint1.Document.ToArray());
         Assert.Equal("GET", endpoint1.Settings.RootElement.GetProperty("method").GetString());
         Assert.Equal("/api/users", endpoint1.Settings.RootElement.GetProperty("route").GetString());
 
         Assert.NotNull(endpoint2);
-        Assert.Equal(operation2, endpoint2.Operation.ToArray());
+        Assert.Equal(operation2, endpoint2.Document.ToArray());
         Assert.Equal("POST", endpoint2.Settings.RootElement.GetProperty("method").GetString());
 
         Assert.NotNull(endpoint3);
-        Assert.Equal(operation3, endpoint3.Operation.ToArray());
+        Assert.Equal(operation3, endpoint3.Document.ToArray());
         Assert.Equal("DELETE", endpoint3.Settings.RootElement.GetProperty("method").GetString());
 
         endpoint1.Dispose();
@@ -331,7 +331,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
             var endpoint = await readArchive.TryGetOpenApiEndpointAsync(key);
 
             Assert.NotNull(endpoint);
-            Assert.Equal(operation, endpoint.Operation.ToArray());
+            Assert.Equal(operation, endpoint.Document.ToArray());
             Assert.Equal("GET", endpoint.Settings.RootElement.GetProperty("method").GetString());
             Assert.Equal("/api/users/{id}", endpoint.Settings.RootElement.GetProperty("route").GetString());
 
@@ -530,7 +530,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
         var endpoint = await archive.TryGetOpenApiEndpointAsync(key);
 
         Assert.NotNull(endpoint);
-        Assert.Equal(operation, endpoint.Operation.ToArray());
+        Assert.Equal(operation, endpoint.Document.ToArray());
 
         // assert - Models
         using var model = await archive.TryGetOpenApiModelAsync("UserFields");
@@ -677,7 +677,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
             var endpointKey = readMetadata!.Endpoints[0];
             using var endpoint = await readArchive.TryGetOpenApiEndpointAsync(endpointKey);
 
-            var readDocument = Utf8GraphQLParser.Parse(endpoint!.Operation.Span);
+            var readDocument = Utf8GraphQLParser.Parse(endpoint!.Document.Span);
             var readSettings = OpenApiEndpointSettingsSerializer.Parse(endpoint.Settings);
 
             parsedDefinition = OpenApiEndpointDefinition.From(
