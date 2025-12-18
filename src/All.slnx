@@ -190,6 +190,7 @@
     <Project Path="HotChocolate/Adapters/src/Fusion.Adapters.Mcp/HotChocolate.Fusion.Adapters.Mcp.csproj" />
     <Project Path="HotChocolate/Adapters/src/Fusion.Adapters.OpenApi/HotChocolate.Fusion.Adapters.OpenApi.csproj" />
     <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi.Packaging/HotChocolate.Adapters.OpenApi.Packaging.csproj" />
+    <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi.AspNetCore/HotChocolate.Adapters.OpenApi.AspNetCore.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Adapters/test/">
     <Project Path="HotChocolate/Adapters/test/Adapters.Mcp.Tests/HotChocolate.Adapters.Mcp.Tests.csproj" />

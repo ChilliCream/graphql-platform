@@ -223,7 +223,7 @@ public sealed class OperationToolFactoryTests
             {
                 Icons =
                 [
-                    new OperationToolIcon(new Uri("https://example.com/icon.png"))
+                    new IconDefinition(new Uri("https://example.com/icon.png"))
                     {
                         MimeType = "image/png",
                         Sizes = ["32x32"],

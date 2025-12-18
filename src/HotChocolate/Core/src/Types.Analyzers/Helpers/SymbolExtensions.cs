@@ -785,29 +785,6 @@ public static class SymbolExtensions
             }
         }
 
-        // DataLoaders are always services
-        if (parameter.Type is INamedTypeSymbol namedTypeSymbol)
-        {
-            foreach (var @interface in namedTypeSymbol.AllInterfaces)
-            {
-                if (@interface.ToDisplayString().StartsWith(WellKnownTypes.DataLoader))
-                {
-                    return true;
-                }
-            }
-
-            // DbContext types are always services
-            var current = namedTypeSymbol.BaseType;
-            while (current is not null)
-            {
-                if (current.ToDisplayString() == WellKnownTypes.DbContext)
-                {
-                    return true;
-                }
-                current = current.BaseType;
-            }
-        }
-
         return false;
     }
 
