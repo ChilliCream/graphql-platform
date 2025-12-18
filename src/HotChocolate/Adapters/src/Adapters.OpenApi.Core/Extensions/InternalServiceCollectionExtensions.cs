@@ -7,15 +7,8 @@ namespace HotChocolate.Adapters.OpenApi;
 
 internal static class InternalServiceCollectionExtensions
 {
-    public static IServiceCollection AddOpenApiExporterServices(this IServiceCollection services, string schemaName)
+    public static IServiceCollection AddOpenApiServices(this IServiceCollection services, string schemaName)
     {
-        services.TryAddKeyedSingleton(
-            schemaName,
-            static (sp, name) => new OpenApiDefinitionRegistry(
-                sp.GetRequiredKeyedService<IOpenApiDefinitionStorage>(name),
-                sp.GetRequiredKeyedService<IDynamicOpenApiDocumentTransformer>(name),
-                sp.GetRequiredKeyedService<IDynamicEndpointDataSource>(name)
-                ));
         services.TryAddKeyedSingleton(
             schemaName,
             static (sp, name) => new HttpRequestExecutorProxy(
@@ -26,22 +19,16 @@ internal static class InternalServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddOpenApiExporterSchemaServices(
+    public static IServiceCollection AddOpenApiSchemaServices(
         this IServiceCollection services,
         string schemaName,
         IServiceProvider applicationServices)
     {
-        services.TryAddSingleton(
-            _ => applicationServices.GetRequiredKeyedService<IOpenApiDefinitionStorage>(schemaName));
-
-        services.TryAddSingleton(
-            _ => applicationServices.GetRequiredKeyedService<OpenApiDefinitionRegistry>(schemaName));
-
-        services.TryAddSingleton<IDynamicEndpointDataSource>(
-            _ => applicationServices.GetRequiredKeyedService<IDynamicEndpointDataSource>(schemaName));
-
-        services.TryAddSingleton(
-            _ => applicationServices.GetRequiredKeyedService<IDynamicOpenApiDocumentTransformer>(schemaName));
+        services.TryAddSingleton(schemaServices => new OpenApiDefinitionRegistry(
+            schemaServices.GetRequiredService<IOpenApiDefinitionStorage>(),
+            applicationServices.GetRequiredKeyedService<IDynamicOpenApiDocumentTransformer>(schemaName),
+            applicationServices.GetRequiredKeyedService<IDynamicEndpointDataSource>(schemaName)
+        ));
 
         services.TryAddSingleton<IOpenApiDiagnosticEvents>(sp =>
         {

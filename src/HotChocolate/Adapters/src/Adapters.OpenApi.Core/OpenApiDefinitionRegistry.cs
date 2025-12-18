@@ -12,7 +12,6 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
     private readonly IDynamicOpenApiDocumentTransformer _transformer;
     private readonly IDynamicEndpointDataSource _dynamicEndpointDataSource;
     private readonly SemaphoreSlim _updateSemaphore = new(1, 1);
-    private readonly EventObservable _eventObservable = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
 
     private ISchemaDefinition? _schema;
@@ -54,12 +53,6 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         }
     }
 
-    public IDisposable Subscribe(IObserver<OpenApiDocumentEvent> observer)
-    {
-        ArgumentNullException.ThrowIfNull(observer);
-        return _eventObservable.Subscribe(observer);
-    }
-
     public async ValueTask DisposeAsync()
     {
         if (!_disposed)
@@ -67,7 +60,6 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
             _disposed = true;
 
             _storage.Changed -= OnStorageChanged;
-            _eventObservable.Dispose();
             _updateSemaphore.Dispose();
 
             await _cancellationTokenSource.CancelAsync().ConfigureAwait(false);
@@ -279,91 +271,5 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         }
 
         _dynamicEndpointDataSource.SetEndpoints(httpEndpoints);
-
-        _eventObservable.RaiseEvent(OpenApiDocumentEvent.Updated());
-    }
-
-    private sealed class EventObservable : IObservable<OpenApiDocumentEvent>, IDisposable
-    {
-#if NET9_0_OR_GREATER
-        private readonly Lock _sync = new();
-#else
-        private readonly object _sync = new();
-#endif
-        private readonly List<Subscription> _subscriptions = [];
-        private bool _disposed;
-
-        public IDisposable Subscribe(IObserver<OpenApiDocumentEvent> observer)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            ArgumentNullException.ThrowIfNull(observer);
-
-            var subscription = new Subscription(this, observer);
-
-            lock (_sync)
-            {
-                _subscriptions.Add(subscription);
-            }
-
-            return subscription;
-        }
-
-        public void RaiseEvent(OpenApiDocumentEvent eventMessage)
-        {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-
-            lock (_sync)
-            {
-                foreach (var subscription in _subscriptions)
-                {
-                    subscription.Observer.OnNext(eventMessage);
-                }
-            }
-        }
-
-        private void Unsubscribe(Subscription subscription)
-        {
-            lock (_sync)
-            {
-                _subscriptions.Remove(subscription);
-            }
-        }
-
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                lock (_sync)
-                {
-                    foreach (var subscription in _subscriptions)
-                    {
-                        subscription.Observer.OnCompleted();
-                    }
-
-                    _subscriptions.Clear();
-                }
-
-                _disposed = true;
-            }
-        }
-
-        private sealed class Subscription(
-            EventObservable parent,
-            IObserver<OpenApiDocumentEvent> observer)
-            : IDisposable
-        {
-            private bool _disposed;
-
-            public IObserver<OpenApiDocumentEvent> Observer { get; } = observer;
-
-            public void Dispose()
-            {
-                if (!_disposed)
-                {
-                    parent.Unsubscribe(this);
-                    _disposed = true;
-                }
-            }
-        }
     }
 }
