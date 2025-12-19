@@ -12,7 +12,7 @@ public abstract class FieldBase
     : IFieldDefinition
     , IFieldCompletion
     , IFieldIndexProvider
-    , IHasRuntimeType
+    , IRuntimeTypeProvider
 {
     private FieldConfiguration? _config;
     private CoreFieldFlags _coreFlags;

@@ -18,7 +18,7 @@ namespace HotChocolate.Types;
 public partial class DirectiveType
     : TypeSystemObject<DirectiveTypeConfiguration>
     , IDirectiveDefinition
-    , IHasRuntimeType
+    , IRuntimeTypeProvider
     , ITypeIdentityProvider
 {
     private Action<IDirectiveTypeDescriptor>? _configure;

@@ -611,7 +611,7 @@ internal static class ThrowHelper
     }
 
     public static LeafCoercionException Scalar_Cannot_CoerceInputLiteral(
-        ScalarType scalarType,
+        ITypeDefinition scalarType,
         IValueNode valueLiteral)
     {
         return string.Format(
@@ -622,7 +622,7 @@ internal static class ThrowHelper
     }
 
     public static LeafCoercionException Scalar_Cannot_CoerceInputValue(
-        ScalarType scalarType,
+        ITypeDefinition scalarType,
         JsonElement inputValue)
     {
         return string.Format(
@@ -634,7 +634,7 @@ internal static class ThrowHelper
 
 
     public static LeafCoercionException Scalar_Cannot_ConvertValueToLiteral(
-        ScalarType scalarType,
+        ITypeDefinition scalarType,
         object runtimeValue)
     {
         // return string.Format(
@@ -645,7 +645,9 @@ internal static class ThrowHelper
         throw new InvalidOperationException();
     }
 
-    public static LeafCoercionException Scalar_Cannot_CoerceOutputValue(ScalarType scalarType, object runtimeValue)
+    public static LeafCoercionException Scalar_Cannot_CoerceOutputValue(
+        ITypeDefinition scalarType,
+        object runtimeValue)
     {
         return string.Format(
             CultureInfo.InvariantCulture,
