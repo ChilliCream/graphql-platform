@@ -42,13 +42,13 @@ public partial class RgbaType : RegexType
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
     {
         return ThrowHelper.RgbaType_ParseLiteral_IsInvalid(this);
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
+    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
     {
         return ThrowHelper.RgbaType_ParseValue_IsInvalid(this);
     }

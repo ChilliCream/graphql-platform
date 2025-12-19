@@ -33,5 +33,5 @@ public interface IScalarTypeDefinition
     /// <returns>
     /// <c>true</c> if the value is an instance of this type; otherwise, <c>false</c>.
     /// </returns>
-    bool IsInstanceOfType(IValueNode value);
+    bool IsValueCompatible(IValueNode value);
 }

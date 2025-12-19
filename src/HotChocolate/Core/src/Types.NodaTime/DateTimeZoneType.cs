@@ -22,7 +22,7 @@ public class DateTimeZoneType : StringToClassBaseType<DateTimeZone>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(DateTimeZone runtimeValue)
+    protected override string CoerceOutputValue(DateTimeZone runtimeValue)
         => runtimeValue.Id;
 
     /// <inheritdoc />

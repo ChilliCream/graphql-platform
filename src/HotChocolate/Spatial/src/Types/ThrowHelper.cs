@@ -6,108 +6,108 @@ namespace HotChocolate.Types.Spatial;
 
 internal static class ThrowHelper
 {
-    public static SerializationException CoordinatesScalar_InvalidCoordinatesObject(IType type)
+    public static LeafCoercionException CoordinatesScalar_InvalidCoordinatesObject(IType type)
         => new(Resources.CoordinatesScalar_InvalidCoordinatesObject, type);
 
-    public static SerializationException CoordinatesScalar_CoordinatesCannotBeNull(IType type)
+    public static LeafCoercionException CoordinatesScalar_CoordinatesCannotBeNull(IType type)
         => new(Resources.CoordinatesScalar_CoordinatesCannotBeNull, type);
 
-    public static SerializationException PositionScalar_InvalidPositionObject(IType type)
+    public static LeafCoercionException PositionScalar_InvalidPositionObject(IType type)
         => new(Resources.PositionScalar_InvalidPositionObject, type);
 
-    public static SerializationException PositionScalar_CoordinatesCannotBeNull(IType type)
+    public static LeafCoercionException PositionScalar_CoordinatesCannotBeNull(IType type)
         => new(Resources.PositionScalar_CoordinatesCannotBeNull, type);
 
     public static ArgumentException Resolver_Type_InvalidGeometryType()
         => new(Resources.Resolver_Type_InvalidGeometryType);
 
-    public static SerializationException Serializer_CouldNotSerialize(IType type)
+    public static LeafCoercionException Serializer_CouldNotSerialize(IType type)
         => new(Resources.Serializer_CouldNotSerialize, type);
 
-    public static SerializationException Serializer_CouldNotDeserialize(IType type)
+    public static LeafCoercionException Serializer_CouldNotDeserialize(IType type)
         => new(Resources.Serializer_CouldNotDeserialize, type);
 
-    public static SerializationException Serializer_Parse_TypeIsInvalid(IType type)
+    public static LeafCoercionException Serializer_Parse_TypeIsInvalid(IType type)
         => new(Resources.Serializer_Parse_TypeIsInvalid, type);
 
-    public static SerializationException Serializer_Parse_ValueKindInvalid(
+    public static LeafCoercionException Serializer_Parse_ValueKindInvalid(
         IType type,
         SyntaxKind syntaxKind)
         => new("Resources.Serializer_Parse_TypeIsInvalid", type);
 
-    public static SerializationException Serializer_CoordinatesIsMissing(IType type)
+    public static LeafCoercionException Serializer_CoordinatesIsMissing(IType type)
         => new(Resources.Serializer_Parse_CoordinatesIsMissing, type);
 
-    public static SerializationException Serializer_TypeIsMissing(IType type)
+    public static LeafCoercionException Serializer_TypeIsMissing(IType type)
         => new(Resources.Serializer_Parse_TypeIsMissing, type);
 
-    public static SerializationException Serializer_Parse_CoordinatesIsInvalid(IType type)
+    public static LeafCoercionException Serializer_Parse_CoordinatesIsInvalid(IType type)
         => new(Resources.Serializer_Parse_CoordinatesIsInvalid, type);
 
-    public static SerializationException Serializer_CouldNotParseLiteral(IType type)
+    public static LeafCoercionException Serializer_CouldNotParseLiteral(IType type)
         => new(Resources.Serializer_CouldNotParseLiteral, type);
 
-    public static SerializationException Serializer_CouldNotParseValue(IType type)
+    public static LeafCoercionException Serializer_CouldNotParseValue(IType type)
         => new(Resources.Serializer_CouldNotParseValue, type);
 
-    public static SerializationException Geometry_Deserialize_TypeIsUnknown(
+    public static LeafCoercionException Geometry_Deserialize_TypeIsUnknown(
         IType type,
         string typeName)
         => new(string.Format(Resources.Geometry_Deserialize_TypeIsUnknown, typeName), type);
 
-    public static SerializationException Geometry_Deserialize_TypeIsMissing(IType type)
+    public static LeafCoercionException Geometry_Deserialize_TypeIsMissing(IType type)
         => new(Resources.Geometry_Deserialize_TypeIsMissing, type);
 
-    public static SerializationException Geometry_Serialize_InvalidGeometryType(
+    public static LeafCoercionException Geometry_Serialize_InvalidGeometryType(
         IType type,
         Type runtimeType)
         => new(
             string.Format(Resources.Geometry_Serialize_InvalidGeometryType, runtimeType.Name),
             type);
 
-    public static SerializationException Geometry_Parse_InvalidGeometryType(
+    public static LeafCoercionException Geometry_Parse_InvalidGeometryType(
         IType type,
         Type runtimeType)
         => new(
             string.Format(Resources.Geometry_Parse_InvalidGeometryType, runtimeType.Name),
             type);
 
-    public static SerializationException Geometry_Serialize_TypeIsUnknown(
+    public static LeafCoercionException Geometry_Serialize_TypeIsUnknown(
         IType type,
         string typeName)
         => new(
             string.Format(Resources.Geometry_Serialize_TypeIsUnknown, typeName),
             type);
 
-    public static SerializationException Geometry_Parse_TypeIsUnknown(
+    public static LeafCoercionException Geometry_Parse_TypeIsUnknown(
         IType type,
         string typeName)
         => new(
             string.Format(Resources.Geometry_Parse_TypeIsUnknown, typeName),
             type);
 
-    public static SerializationException Geometry_Serializer_NotFound(
+    public static LeafCoercionException Geometry_Serializer_NotFound(
         IType type,
         GeoJsonGeometryType geometryType)
         => new(
             string.Format(Resources.Geometry_Serializer_NotFound, geometryType),
             type);
 
-    public static SerializationException Geometry_Serializer_NotFound(
+    public static LeafCoercionException Geometry_Serializer_NotFound(
         IType type,
         string geometryType)
         => new(
             string.Format(Resources.Geometry_Serializer_NotFound, geometryType),
             type);
 
-    public static SerializationException Geometry_Parse_InvalidGeometryKind(
+    public static LeafCoercionException Geometry_Parse_InvalidGeometryKind(
         IType type,
         string typeName)
         => new(
             string.Format(Resources.Geometry_Parse_InvalidGeometryKind, typeName),
             type);
 
-    public static SerializationException Geometry_Parse_InvalidType(IType type)
+    public static LeafCoercionException Geometry_Parse_InvalidType(IType type)
         => new(Resources.Geometry_Parse_InvalidType, type);
 
     public static GraphQLException Transformation_UnknownCRS(int srid) =>
@@ -130,7 +130,7 @@ internal static class ThrowHelper
                 .SetCode(ErrorCodes.Spatial.CoordinateMNotSupported)
                 .Build());
 
-    public static SerializationException Serializer_OperationIsNotSupported(
+    public static LeafCoercionException Serializer_OperationIsNotSupported(
         IType type,
         IGeoJsonSerializer serializer,
         string method) =>

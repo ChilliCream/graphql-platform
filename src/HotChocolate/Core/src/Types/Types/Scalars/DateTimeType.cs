@@ -79,8 +79,8 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
             return value.Value;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+        throw new LeafCoercionException(
+            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, valueSyntax.GetType()),
             this);
     }
 
@@ -111,12 +111,12 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
             return ParseValue(new DateTimeOffset(dt.ToUniversalTime(), TimeSpan.Zero));
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
             this);
     }
 
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         if (runtimeValue is null)
         {

@@ -10,17 +10,17 @@ public class InvalidScalar : ScalarType<string>
     {
     }
 
-    public override bool IsInstanceOfType(IValueNode literal)
+    public override bool IsValueCompatible(IValueNode literal)
     {
         return false;
     }
 
-    public override object? ParseLiteral(IValueNode valueSyntax)
+    public override object? CoerceInputLiteral(IValueNode valueSyntax)
     {
         throw new InvalidOperationException();
     }
 
-    public override IValueNode ParseValue(object? value)
+    public override IValueNode CoerceInputValue(object? value)
     {
         throw new InvalidOperationException();
     }

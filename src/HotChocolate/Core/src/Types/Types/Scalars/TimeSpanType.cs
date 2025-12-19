@@ -53,8 +53,8 @@ public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
             return value.Value;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+        throw new LeafCoercionException(
+            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, valueSyntax.GetType()),
             this);
     }
 
@@ -75,7 +75,7 @@ public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
         if (resultValue is string s
             && TryDeserializeFromString(s, Format, out var timeSpan))
         {
-            return ParseValue(timeSpan);
+            return CoerceInputValue(timeSpan);
         }
 
         if (resultValue is TimeSpan ts)
@@ -83,12 +83,12 @@ public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
             return ParseValue(ts);
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
             this);
     }
 
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         if (runtimeValue is null)
         {

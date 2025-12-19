@@ -12,7 +12,7 @@ public class IntTypeTests
         var literal = new IntValueNode(1);
 
         // act
-        var result = type.IsInstanceOfType(literal);
+        var result = type.IsValueCompatible(literal);
 
         // assert
         Assert.True(result);
@@ -25,7 +25,7 @@ public class IntTypeTests
         var type = new IntType();
 
         // act
-        var result = type.IsInstanceOfType(NullValueNode.Default);
+        var result = type.IsValueCompatible(NullValueNode.Default);
 
         // assert
         Assert.True(result);
@@ -38,7 +38,7 @@ public class IntTypeTests
         var type = new IntType();
 
         // act
-        var result = type.IsInstanceOfType(new FloatValueNode(1M));
+        var result = type.IsValueCompatible(new FloatValueNode(1M));
 
         // assert
         Assert.False(result);
@@ -53,7 +53,7 @@ public class IntTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.IsInstanceOfType(null!));
+            () => type.IsValueCompatible(null!));
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public class IntTypeTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => type.Serialize(input));
     }
 
@@ -106,7 +106,7 @@ public class IntTypeTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => type.Serialize(value));
     }
 
@@ -118,7 +118,7 @@ public class IntTypeTests
         var literal = new IntValueNode(1);
 
         // act
-        var value = type.ParseLiteral(literal);
+        var value = type.CoerceInputLiteral(literal);
 
         // assert
         Assert.IsType<int>(value);
@@ -132,7 +132,7 @@ public class IntTypeTests
         var type = new IntType();
 
         // act
-        var output = type.ParseLiteral(NullValueNode.Default);
+        var output = type.CoerceInputLiteral(NullValueNode.Default);
 
         // assert
         Assert.Null(output);
@@ -147,8 +147,8 @@ public class IntTypeTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseLiteral(input));
+        Assert.Throws<LeafCoercionException>(
+            () => type.CoerceInputLiteral(input));
     }
 
     [Fact]
@@ -160,7 +160,7 @@ public class IntTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.ParseLiteral(null!));
+            () => type.CoerceInputLiteral(null!));
     }
 
     [Fact]
@@ -188,7 +188,7 @@ public class IntTypeTests
         Action action = () => type.ParseValue(input);
 
         // assert
-        Assert.Throws<SerializationException>(action);
+        Assert.Throws<LeafCoercionException>(action);
     }
 
     [Fact]
@@ -216,7 +216,7 @@ public class IntTypeTests
         Action action = () => type.ParseValue(input);
 
         // assert
-        Assert.Throws<SerializationException>(action);
+        Assert.Throws<LeafCoercionException>(action);
     }
 
     [Fact]
@@ -228,8 +228,8 @@ public class IntTypeTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseValue(value));
+        Assert.Throws<LeafCoercionException>(
+            () => type.CoerceInputValue(value));
     }
 
     [Fact]
@@ -240,7 +240,7 @@ public class IntTypeTests
         object input = null!;
 
         // act
-        object output = type.ParseValue(input);
+        object output = type.CoerceInputValue(input);
 
         // assert
         Assert.IsType<NullValueNode>(output);
@@ -254,7 +254,7 @@ public class IntTypeTests
         int? input = 123;
 
         // act
-        var output = (IntValueNode)type.ParseValue(input);
+        var output = (IntValueNode)type.CoerceInputValue(input);
 
         // assert
         Assert.Equal(123, output.ToDouble());

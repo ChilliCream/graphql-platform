@@ -26,19 +26,19 @@ public sealed class GeometryType
     public override object? Deserialize(object? resultValue)
         => GeoJsonGeometrySerializer.Default.Deserialize(this, resultValue);
 
-    public override object? Serialize(object? runtimeValue)
+    public override object? CoerceOutputValue(object? runtimeValue)
         => GeoJsonGeometrySerializer.Default.Serialize(this, runtimeValue);
 
-    public override bool IsInstanceOfType(IValueNode valueSyntax)
+    public override bool IsValueCompatible(IValueNode valueSyntax)
         => GeoJsonGeometrySerializer.Default.IsInstanceOfType(this, valueSyntax);
 
     public override bool IsInstanceOfType(object? runtimeValue)
         => GeoJsonGeometrySerializer.Default.IsInstanceOfType(this, runtimeValue);
 
-    public override object? ParseLiteral(IValueNode valueSyntax)
+    public override object? CoerceInputLiteral(IValueNode valueSyntax)
         => GeoJsonGeometrySerializer.Default.ParseLiteral(this, valueSyntax);
 
-    public override IValueNode ParseValue(object? runtimeValue)
+    public override IValueNode CoerceInputValue(object? runtimeValue)
         => GeoJsonGeometrySerializer.Default.ParseValue(this, runtimeValue);
 
     public override IValueNode ParseResult(object? resultValue)

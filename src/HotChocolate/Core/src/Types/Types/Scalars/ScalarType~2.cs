@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
@@ -8,9 +9,7 @@ namespace HotChocolate.Types;
 /// GraphQL responses take the form of a hierarchical tree;
 /// the leaves on these trees are GraphQL scalars.
 /// </summary>
-public abstract class ScalarType<TRuntimeType, TLiteral>
-    : ScalarType<TRuntimeType>
-    where TLiteral : IValueNode
+public abstract class ScalarType<TRuntimeType, TLiteral> : ScalarType<TRuntimeType> where TLiteral : IValueNode
 {
     /// <inheritdoc />
     protected ScalarType(string name, BindingBehavior bind = BindingBehavior.Explicit)
@@ -19,125 +18,132 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
     }
 
     /// <inheritdoc />
-    public sealed override bool IsInstanceOfType(IValueNode valueSyntax)
+    public override ScalarSerializationType SerializationType
     {
-        ArgumentNullException.ThrowIfNull(valueSyntax);
+        get
+        {
+            if (typeof(TLiteral) == typeof(StringValueNode))
+            {
+                return ScalarSerializationType.String;
+            }
 
-        return valueSyntax is TLiteral casted && IsInstanceOfType(casted)
-            || valueSyntax is NullValueNode;
-    }
+            if (typeof(TLiteral) == typeof(IntValueNode))
+            {
+                return ScalarSerializationType.Int;
+            }
 
-    /// <summary>
-    /// Defines if the specified <paramref name="valueSyntax" />
-    /// can be parsed by this scalar.
-    /// </summary>
-    /// <param name="valueSyntax">
-    /// The literal that shall be checked.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the literal can be parsed by this scalar;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="valueSyntax" /> is <c>null</c>.
-    /// </exception>
-    protected virtual bool IsInstanceOfType(TLiteral valueSyntax)
-    {
-        return true;
+            if (typeof(TLiteral) == typeof(FloatValueNode))
+            {
+                return ScalarSerializationType.Float;
+            }
+
+            if (typeof(TLiteral) == typeof(BooleanValueNode))
+            {
+                return ScalarSerializationType.Boolean;
+            }
+
+            if (typeof(TLiteral) == typeof(ObjectValueNode))
+            {
+                return ScalarSerializationType.Object;
+            }
+
+            if (typeof(TLiteral) == typeof(ListValueNode))
+            {
+                return ScalarSerializationType.List;
+            }
+
+            throw new NotSupportedException();
+        }
     }
 
     /// <inheritdoc />
-    public sealed override bool IsInstanceOfType(object? runtimeValue)
+    public sealed override bool IsValueCompatible(IValueNode valueSyntax)
     {
-        if (runtimeValue is null)
+        ArgumentNullException.ThrowIfNull(valueSyntax);
+
+        if (valueSyntax.Kind == SyntaxKind.NullValue)
         {
             return true;
         }
 
-        if (runtimeValue is TRuntimeType t)
+        return valueSyntax is TLiteral;
+    }
+
+    /// <inheritdoc />
+    public override bool IsValueCompatible(JsonElement inputValue)
+    {
+        if (inputValue.ValueKind == JsonValueKind.Undefined)
         {
-            return IsInstanceOfType(t);
+            return false;
+        }
+
+        if (inputValue.ValueKind == JsonValueKind.Null)
+        {
+            return true;
+        }
+
+        if (SerializationType == ScalarSerializationType.String
+            && inputValue.ValueKind == JsonValueKind.String)
+        {
+            return true;
+        }
+
+        if (SerializationType == ScalarSerializationType.Int
+            && inputValue.ValueKind == JsonValueKind.Number)
+        {
+            return true;
+        }
+
+        if (SerializationType == ScalarSerializationType.Float
+            && inputValue.ValueKind == JsonValueKind.Number)
+        {
+            return true;
+        }
+
+        if (SerializationType == ScalarSerializationType.Boolean
+            && (inputValue.ValueKind == JsonValueKind.True
+                || inputValue.ValueKind == JsonValueKind.False))
+        {
+            return true;
+        }
+
+        if (SerializationType == ScalarSerializationType.Object
+            && inputValue.ValueKind == JsonValueKind.Object)
+        {
+            return true;
+        }
+
+        if (SerializationType == ScalarSerializationType.List
+            && inputValue.ValueKind == JsonValueKind.Array)
+        {
+            return true;
         }
 
         return false;
     }
 
-    /// <summary>
-    /// Defines if the specified <paramref name="runtimeValue" />
-    /// is an instance of this type.
-    /// </summary>
-    /// <param name="runtimeValue">
-    /// A value representation of this type.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the value is a value of this type;
-    /// otherwise, <c>false</c>.
-    /// </returns>
-    protected virtual bool IsInstanceOfType(TRuntimeType runtimeValue)
-    {
-        return true;
-    }
-
     /// <inheritdoc />
-    public sealed override object? ParseLiteral(IValueNode valueSyntax)
+    public sealed override object? CoerceInputLiteral(IValueNode valueLiteral)
     {
-        ArgumentNullException.ThrowIfNull(valueSyntax);
+        ArgumentNullException.ThrowIfNull(valueLiteral);
 
-        if (valueSyntax is TLiteral casted && IsInstanceOfType(casted))
-        {
-            return ParseLiteral(casted);
-        }
-
-        if (valueSyntax is NullValueNode)
+        if (valueLiteral.Kind is SyntaxKind.NullValue)
         {
             return null;
         }
 
-        throw CreateParseLiteralError(valueSyntax);
-    }
-
-    /// <summary>
-    /// Parses the specified <paramref name="valueSyntax" />
-    /// to the .net representation of this type.
-    /// </summary>
-    /// <param name="valueSyntax">
-    /// The literal that shall be parsed.
-    /// </param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="valueSyntax" /> is <c>null</c>.
-    /// </exception>
-    /// <exception cref="SerializationException">
-    /// The specified <paramref name="valueSyntax" /> cannot be parsed
-    /// by this scalar.
-    /// </exception>
-    protected abstract TRuntimeType ParseLiteral(TLiteral valueSyntax);
-
-    /// <inheritdoc />
-    public sealed override IValueNode ParseValue(object? runtimeValue)
-    {
-        if (runtimeValue is null)
+        if (valueLiteral is TLiteral literal)
         {
-            return NullValueNode.Default;
+            return CoerceInputLiteral(literal);
         }
 
-        if (runtimeValue is TRuntimeType t && IsInstanceOfType(t))
-        {
-            return ParseValue(t);
-        }
-
-        throw CreateParseValueError(runtimeValue);
+        throw CreateCoerceInputLiteralError(valueLiteral);
     }
 
-    /// <summary>
-    /// Parses a runtime value into a valueSyntax.
-    /// </summary>
-    /// <param name="runtimeValue">The value to parse</param>
-    /// <returns>The parsed value syntax</returns>
-    protected abstract TLiteral ParseValue(TRuntimeType runtimeValue);
+    public abstract object? CoerceInputLiteral(TLiteral valueLiteral);
 
     /// <summary>
-    /// Creates the exception that will be thrown when <see cref="ParseLiteral(IValueNode)"/> encountered an
+    /// Creates the exception that will be thrown when <see cref="CoerceInputLiteral(IValueNode)"/> encountered an
     /// invalid <see cref="IValueNode "/>
     /// </summary>
     /// <param name="valueSyntax">
@@ -146,27 +152,8 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
     /// <returns>
     /// The created exception that should be thrown
     /// </returns>
-    protected virtual SerializationException CreateParseLiteralError(IValueNode valueSyntax)
-    {
-        return new(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+    protected virtual LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
+        => new LeafCoercionException(
+            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, valueSyntax.GetType()),
             this);
-    }
-
-    /// <summary>
-    /// Creates the exception that will be thrown when <see cref="ParseValue(object?)"/> encountered an
-    /// invalid value.
-    /// </summary>
-    /// <param name="runtimeValue">
-    /// The runtimeValue that should be parsed
-    /// </param>
-    /// <returns>
-    /// The created exception that should be thrown
-    /// </returns>
-    protected virtual SerializationException CreateParseValueError(object runtimeValue)
-    {
-        return new(
-            TypeResourceHelper.Scalar_Cannot_ParseValue(Name, runtimeValue.GetType()),
-            this);
-    }
 }

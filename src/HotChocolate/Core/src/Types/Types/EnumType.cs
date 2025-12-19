@@ -69,7 +69,7 @@ public partial class EnumType
     }
 
     /// <inheritdoc />
-    public bool IsInstanceOfType(IValueNode valueSyntax)
+    public bool IsValueCompatible(IValueNode valueSyntax)
     {
         ArgumentNullException.ThrowIfNull(valueSyntax);
 
@@ -96,7 +96,7 @@ public partial class EnumType
         => runtimeValue is null || RuntimeType.IsInstanceOfType(runtimeValue);
 
     /// <inheritdoc />
-    public object? ParseLiteral(IValueNode valueSyntax)
+    public object? CoerceInputLiteral(IValueNode valueSyntax)
     {
         ArgumentNullException.ThrowIfNull(valueSyntax);
 
@@ -117,13 +117,13 @@ public partial class EnumType
             return null;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+        throw new LeafCoercionException(
+            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, valueSyntax.GetType()),
             this);
     }
 
     /// <inheritdoc />
-    public IValueNode ParseValue(object? runtimeValue)
+    public IValueNode CoerceInputValue(object? runtimeValue)
     {
         if (runtimeValue is null)
         {
@@ -135,8 +135,8 @@ public partial class EnumType
             return new EnumValueNode(enumValue.Name);
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseValue(Name, runtimeValue.GetType()),
+        throw new LeafCoercionException(
+            TypeResourceHelper.Scalar_Cannot_CoerceInputValue(Name, runtimeValue.GetType()),
             this);
     }
 
@@ -159,7 +159,7 @@ public partial class EnumType
             return new EnumValueNode(enumValue.Name);
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
             this);
     }
@@ -188,7 +188,7 @@ public partial class EnumType
             }
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             TypeResourceHelper.Scalar_Cannot_Serialize(Name),
             this);
     }
@@ -201,7 +201,7 @@ public partial class EnumType
             return runtimeValue;
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             TypeResourceHelper.Scalar_Cannot_Deserialize(Name),
             this);
     }

@@ -116,7 +116,7 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
     public string? Pattern { get; set; }
 
     /// <inheritdoc />
-    public bool IsInstanceOfType(IValueNode value)
+    public bool IsValueCompatible(IValueNode value)
     {
         ArgumentNullException.ThrowIfNull(value);
         return true;

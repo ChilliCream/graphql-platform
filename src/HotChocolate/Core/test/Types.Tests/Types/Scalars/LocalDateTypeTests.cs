@@ -78,7 +78,7 @@ public class LocalDateTypeTests
         void Action() => localDateType.Serialize("foo");
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -223,7 +223,7 @@ public class LocalDateTypeTests
         var expectedDateOnly = new DateOnly(2018, 6, 29);
 
         // act
-        var dateOnly = (DateOnly)localDateType.ParseLiteral(literal)!;
+        var dateOnly = (DateOnly)localDateType.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateOnly, dateOnly);
@@ -238,7 +238,7 @@ public class LocalDateTypeTests
         var literal = new StringValueNode(dateTime);
 
         // act
-        var dateTimeOffset = (DateOnly?)localDateType.ParseLiteral(literal);
+        var dateTimeOffset = (DateOnly?)localDateType.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(result, dateTimeOffset);
@@ -255,13 +255,13 @@ public class LocalDateTypeTests
         // act
         void Act()
         {
-            localDateType.ParseLiteral(literal);
+            localDateType.CoerceInputLiteral(literal);
         }
 
         // assert
         Assert.Equal(
             "LocalDate cannot parse the given literal of type `StringValueNode`.",
-            Assert.Throws<SerializationException>(Act).Message);
+            Assert.Throws<LeafCoercionException>(Act).Message);
     }
 
     [InlineData("en-US")]
@@ -282,7 +282,7 @@ public class LocalDateTypeTests
         var expectedDateOnly = new DateOnly(2018, 6, 29);
 
         // act
-        var dateOnly = (DateOnly)localDateType.ParseLiteral(literal)!;
+        var dateOnly = (DateOnly)localDateType.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateOnly, dateOnly);
@@ -296,7 +296,7 @@ public class LocalDateTypeTests
         var literal = NullValueNode.Default;
 
         // act
-        var value = localDateType.ParseLiteral(literal);
+        var value = localDateType.CoerceInputLiteral(literal);
 
         // assert
         Assert.Null(value);
@@ -325,7 +325,7 @@ public class LocalDateTypeTests
         var localDateType = new LocalDateType();
 
         // act
-        var literal = localDateType.ParseValue(null);
+        var literal = localDateType.CoerceInputValue(null);
 
         // assert
         Assert.Equal(NullValueNode.Default, literal);
@@ -419,7 +419,7 @@ public class LocalDateTypeTests
         var exception = Record.Exception(() => localDateType.ParseResult(resultValue));
 
         // assert
-        Assert.IsType<SerializationException>(exception);
+        Assert.IsType<LeafCoercionException>(exception);
     }
 
     [Fact]

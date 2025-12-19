@@ -43,7 +43,7 @@ public class LocalDateType : StringToStructBaseType<LocalDate>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(LocalDate runtimeValue)
+    protected override string CoerceOutputValue(LocalDate runtimeValue)
         => _serializationPattern
             .Format(runtimeValue);
 

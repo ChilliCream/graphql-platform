@@ -776,7 +776,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new EnumValueNode("foo"));
+        var result = type.IsValueCompatible(new EnumValueNode("foo"));
 
         // assert
         Assert.False(result);
@@ -799,7 +799,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new ObjectValueNode([]));
+        var result = type.IsValueCompatible(new ObjectValueNode([]));
 
         // assert
         Assert.True(result);
@@ -822,7 +822,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new ListValueNode([]));
+        var result = type.IsValueCompatible(new ListValueNode([]));
 
         // assert
         Assert.True(result);
@@ -845,7 +845,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new StringValueNode("foo"));
+        var result = type.IsValueCompatible(new StringValueNode("foo"));
 
         // assert
         Assert.True(result);
@@ -868,7 +868,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new IntValueNode(123));
+        var result = type.IsValueCompatible(new IntValueNode(123));
 
         // assert
         Assert.True(result);
@@ -891,7 +891,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new FloatValueNode(1.2));
+        var result = type.IsValueCompatible(new FloatValueNode(1.2));
 
         // assert
         Assert.True(result);
@@ -914,7 +914,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new BooleanValueNode(true));
+        var result = type.IsValueCompatible(new BooleanValueNode(true));
 
         // assert
         Assert.True(result);
@@ -937,7 +937,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(NullValueNode.Default);
+        var result = type.IsValueCompatible(NullValueNode.Default);
 
         // assert
         Assert.True(result);
@@ -960,7 +960,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        void Action() => type.IsInstanceOfType(null!);
+        void Action() => type.IsValueCompatible(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -991,7 +991,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var literal = type.ParseValue(value);
+        var literal = type.CoerceInputValue(value);
 
         // assert
         Assert.IsType(expectedType, literal);
@@ -1014,7 +1014,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var literal = type.ParseValue((decimal)1);
+        var literal = type.CoerceInputValue((decimal)1);
 
         // assert
         Assert.IsType<FloatValueNode>(literal);
@@ -1037,7 +1037,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var literal = type.ParseValue(new List<object>());
+        var literal = type.CoerceInputValue(new List<object>());
 
         // assert
         Assert.IsType<ListValueNode>(literal);
@@ -1060,7 +1060,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var literal = type.ParseValue(new List<string>());
+        var literal = type.CoerceInputValue(new List<string>());
 
         // assert
         Assert.IsType<ListValueNode>(literal);
@@ -1087,7 +1087,7 @@ public class AnyTypeTests
         foo.Bar2 = bar;
 
         // act
-        var literal = type.ParseValue(new List<Foo> { foo, foo });
+        var literal = type.CoerceInputValue(new List<Foo> { foo, foo });
 
         // assert
         Assert.IsType<ListValueNode>(literal);
@@ -1114,7 +1114,7 @@ public class AnyTypeTests
         barCyclic.FooCyclic = fooCyclic;
 
         // act
-        void Act() => type.ParseValue(new List<FooCyclic> { fooCyclic, fooCyclic });
+        void Act() => type.CoerceInputValue(new List<FooCyclic> { fooCyclic, fooCyclic });
 
         // assert
         Assert.Equal(
@@ -1139,7 +1139,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var literal = type.ParseValue(new List<FooRecord> { new(), new() });
+        var literal = type.CoerceInputValue(new List<FooRecord> { new(), new() });
 
         // assert
         Assert.IsType<ListValueNode>(literal);
@@ -1162,7 +1162,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var literal = type.ParseValue(new Foo());
+        var literal = type.CoerceInputValue(new Foo());
 
         // assert
         Assert.IsType<ObjectValueNode>(literal);
@@ -1189,7 +1189,7 @@ public class AnyTypeTests
         barCyclic.FooCyclic = fooCyclic;
 
         // act
-        void Act() => type.ParseValue(fooCyclic);
+        void Act() => type.CoerceInputValue(fooCyclic);
 
         // assert
         Assert.Equal(
@@ -1214,7 +1214,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var literal = type.ParseValue(
+        var literal = type.CoerceInputValue(
             new Dictionary<string, object>());
 
         // assert

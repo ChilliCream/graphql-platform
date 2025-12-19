@@ -93,7 +93,7 @@ public class TimeSpanTypeTests
         Action a = () => timeSpanType.Serialize("bad");
 
         // assert
-        Assert.Throws<SerializationException>(a);
+        Assert.Throws<LeafCoercionException>(a);
     }
 
     [Theory]
@@ -108,7 +108,7 @@ public class TimeSpanTypeTests
 
         // act
         var timeSpan = (TimeSpan?)timeSpanType
-            .ParseLiteral(literal);
+            .CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expectedTimeSpan, timeSpan);
@@ -231,7 +231,7 @@ public class TimeSpanTypeTests
         var literal = NullValueNode.Default;
 
         // act
-        var value = timeSpanType.ParseLiteral(literal);
+        var value = timeSpanType.CoerceInputLiteral(literal);
 
         // assert
         Assert.Null(value);
@@ -244,7 +244,7 @@ public class TimeSpanTypeTests
         var timeSpanType = new TimeSpanType();
 
         // act
-        var literal = timeSpanType.ParseValue(null);
+        var literal = timeSpanType.CoerceInputValue(null);
 
         // assert
         Assert.IsType<NullValueNode>(literal);

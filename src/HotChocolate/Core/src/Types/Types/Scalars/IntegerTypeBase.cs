@@ -44,7 +44,7 @@ public abstract class IntegerTypeBase<TRuntimeType>
         return true;
     }
 
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         if (runtimeValue is null)
         {
@@ -118,7 +118,7 @@ public abstract class IntegerTypeBase<TRuntimeType>
     /// <returns>
     /// The created exception that should be thrown
     /// </returns>
-    protected virtual SerializationException CreateParseResultError(object runtimeValue)
+    protected virtual LeafCoercionException CreateParseResultError(object runtimeValue)
     {
         return new(
             TypeResourceHelper.Scalar_Cannot_ParseResult(Name, runtimeValue.GetType()),

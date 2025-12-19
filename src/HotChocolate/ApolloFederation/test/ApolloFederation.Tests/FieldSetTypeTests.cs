@@ -44,7 +44,7 @@ public class FieldSetTypeTests
         void Action() => type.Deserialize(serialized);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class FieldSetTypeTests
         void Action() => type.Serialize(1);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public class FieldSetTypeTests
         var selectionSet = Syntax.ParseSelectionSet(Braces(selection));
 
         // act
-        var success = type.TrySerialize(selectionSet, out var serialized);
+        var success = type.TryCoerceOutputValue(selectionSet, out var serialized);
 
         // assert
         Assert.True(success);
@@ -157,7 +157,7 @@ public class FieldSetTypeTests
         var type = new FieldSetType();
 
         // act
-        var success = type.TrySerialize(1, out var serialized);
+        var success = type.TryCoerceOutputValue(1, out var serialized);
 
         // assert
         Assert.False(success);
@@ -203,9 +203,9 @@ public class FieldSetTypeTests
         var type = new FieldSetType();
 
         // act
-        void Action() => type.ParseValue(1);
+        void Action() => type.CoerceInputValue(1);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 }

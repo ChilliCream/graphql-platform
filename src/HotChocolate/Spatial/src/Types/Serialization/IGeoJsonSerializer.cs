@@ -48,7 +48,7 @@ internal interface IGeoJsonSerializer
     /// <returns>
     /// Returns a result value representation of this type.
     /// </returns>
-    /// <exception cref="SerializationException">
+    /// <exception cref="LeafCoercionException">
     /// Unable to serialize the given <paramref name="runtimeValue"/>.
     /// </exception>
     object? Serialize(IType type, object? runtimeValue);
@@ -126,7 +126,7 @@ internal interface IGeoJsonSerializer
     /// <returns>
     /// Returns a GraphQL value syntax representation of the <paramref name="runtimeValue"/>.
     /// </returns>
-    /// <exception cref="SerializationException">
+    /// <exception cref="LeafCoercionException">
     /// Unable to parse the given <paramref name="runtimeValue"/>
     /// into a GraphQL value syntax representation of this type.
     /// </exception>
@@ -144,7 +144,7 @@ internal interface IGeoJsonSerializer
     /// <returns>
     /// Returns a GraphQL value syntax representation of the <paramref name="resultValue"/>.
     /// </returns>
-    /// <exception cref="SerializationException">
+    /// <exception cref="LeafCoercionException">
     /// Unable to parse the given <paramref name="resultValue"/>
     /// into a GraphQL value syntax representation of this type.
     /// </exception>

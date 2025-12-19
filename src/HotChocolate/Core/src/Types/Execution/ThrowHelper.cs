@@ -45,7 +45,7 @@ internal static class ThrowHelper
         VariableDefinitionNode variableDefinition,
         Exception? exception = null)
     {
-        var underlyingError = exception is SerializationException serializationException
+        var underlyingError = exception is LeafCoercionException serializationException
             ? serializationException.Message
             : null;
 

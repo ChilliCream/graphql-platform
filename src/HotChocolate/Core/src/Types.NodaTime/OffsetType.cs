@@ -44,7 +44,7 @@ public class OffsetType : StringToStructBaseType<Offset>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(Offset runtimeValue)
+    protected override string CoerceOutputValue(Offset runtimeValue)
         => _serializationPattern
             .Format(runtimeValue);
 

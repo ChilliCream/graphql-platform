@@ -366,7 +366,7 @@ internal static class ErrorHelper
         DirectiveNode? syntaxNode,
         object source,
         Path path,
-        SerializationException exception)
+        LeafCoercionException exception)
     {
         var message = string.Format(
             ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong,

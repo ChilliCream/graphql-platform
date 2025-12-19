@@ -293,13 +293,13 @@ public sealed class InputParser
     {
         try
         {
-            return type.ParseLiteral(resultValue);
+            return type.CoerceInputLiteral(resultValue);
         }
-        catch (SerializationException ex)
+        catch (LeafCoercionException ex)
         {
             if (field is null)
             {
-                throw new SerializationException(ex.Errors[0].WithPath(path), ex.Type, path);
+                throw new LeafCoercionException(ex.Errors[0].WithPath(path), ex.Type, path);
             }
 
             var error = ErrorBuilder.FromError(ex.Errors[0])
@@ -308,7 +308,7 @@ public sealed class InputParser
                 .SetExtension("fieldType", type.Name)
                 .Build();
 
-            throw new SerializationException(error, ex.Type, path);
+            throw new LeafCoercionException(error, ex.Type, path);
         }
     }
 
@@ -587,11 +587,11 @@ public sealed class InputParser
         {
             return type.Deserialize(resultValue);
         }
-        catch (SerializationException ex)
+        catch (LeafCoercionException ex)
         {
             if (field is null)
             {
-                throw new SerializationException(ex.Errors[0].WithPath(path), ex.Type, path);
+                throw new LeafCoercionException(ex.Errors[0].WithPath(path), ex.Type, path);
             }
 
             var error = ErrorBuilder.FromError(ex.Errors[0])
@@ -600,7 +600,7 @@ public sealed class InputParser
                 .SetExtension("fieldType", type.Name)
                 .Build();
 
-            throw new SerializationException(error, ex.Type, path);
+            throw new LeafCoercionException(error, ex.Type, path);
         }
     }
 

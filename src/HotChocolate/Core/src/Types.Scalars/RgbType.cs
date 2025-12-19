@@ -44,13 +44,13 @@ public partial class RgbType : RegexType
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
     {
         return ThrowHelper.RgbType_ParseLiteral_IsInvalid(this);
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
+    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
     {
         return ThrowHelper.RgbType_ParseValue_IsInvalid(this);
     }

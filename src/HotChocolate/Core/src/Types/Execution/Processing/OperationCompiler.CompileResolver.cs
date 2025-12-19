@@ -80,9 +80,9 @@ public sealed partial class OperationCompiler
                         directiveNode,
                         directiveType.Parse(directiveNode));
                 }
-                catch (SerializationException ex)
+                catch (LeafCoercionException ex)
                 {
-                    throw new SerializationException(
+                    throw new LeafCoercionException(
                         ErrorBuilder.FromError(ex.Errors[0])
                             .TryAddLocation(directiveNode)
                             .Build(),

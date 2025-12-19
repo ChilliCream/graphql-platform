@@ -108,7 +108,7 @@ public class GeoJsonPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(new ListValueNode(), type));
     }
 
@@ -121,7 +121,7 @@ public class GeoJsonPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("coordinates", _polygon),
@@ -138,7 +138,7 @@ public class GeoJsonPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Polygon)),
@@ -155,7 +155,7 @@ public class GeoJsonPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Point)),

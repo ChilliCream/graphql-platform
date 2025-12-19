@@ -42,7 +42,7 @@ public class DurationType : StringToStructBaseType<Duration>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(Duration runtimeValue)
+    protected override string CoerceOutputValue(Duration runtimeValue)
         => _serializationPattern
             .Format(runtimeValue);
 

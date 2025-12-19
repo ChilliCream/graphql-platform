@@ -36,7 +36,7 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         var valueSyntax = new StringValueNode("+12:00");
 
         // act
-        var result = scalar.IsInstanceOfType(valueSyntax);
+        var result = scalar.IsValueCompatible(valueSyntax);
 
         // assert
         Assert.True(result);
@@ -50,7 +50,7 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         var valueSyntax = new StringValueNode("-12:00");
 
         // act
-        var result = scalar.IsInstanceOfType(valueSyntax);
+        var result = scalar.IsValueCompatible(valueSyntax);
 
         // assert
         Assert.True(result);
@@ -64,7 +64,7 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         var valueSyntax = new StringValueNode("-00:00");
 
         // act
-        var result = scalar.IsInstanceOfType(valueSyntax);
+        var result = scalar.IsValueCompatible(valueSyntax);
 
         // assert
         Assert.True(result);
@@ -93,7 +93,7 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         var expectedResult = new TimeSpan(-12, 0, 0);
 
         // act
-        object result = (TimeSpan)scalar.ParseLiteral(valueSyntax)!;
+        object result = (TimeSpan)scalar.CoerceInputLiteral(valueSyntax)!;
 
         // assert
         Assert.Equal(expectedResult, result);
@@ -107,10 +107,10 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         var valueSyntax = new StringValueNode("+17:00");
 
         // act
-        var result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
+        var result = Record.Exception(() => scalar.CoerceInputLiteral(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         var valueSyntax = new TimeSpan(0, 0, 0);
 
         // act
-        var result = scalar.ParseValue(valueSyntax);
+        var result = scalar.CoerceInputValue(valueSyntax);
 
         // assert
         Assert.Equal(typeof(StringValueNode), result.GetType());
@@ -135,10 +135,10 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         var runtimeValue = new StringValueNode("foo");
 
         // act
-        var result = Record.Exception(() => scalar.ParseValue(runtimeValue));
+        var result = Record.Exception(() => scalar.CoerceInputValue(runtimeValue));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.Serialize("foo"));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -267,7 +267,7 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.Deserialize(runtimeValue));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -308,7 +308,7 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.ParseResult(runtimeValue));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]

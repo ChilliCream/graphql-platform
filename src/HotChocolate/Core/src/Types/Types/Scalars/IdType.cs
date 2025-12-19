@@ -35,7 +35,7 @@ public class IdType : ScalarType<string>
     {
     }
 
-    public override bool IsInstanceOfType(IValueNode literal)
+    public override bool IsValueCompatible(IValueNode literal)
     {
         ArgumentNullException.ThrowIfNull(literal);
 
@@ -44,7 +44,7 @@ public class IdType : ScalarType<string>
             || literal is NullValueNode;
     }
 
-    public override object? ParseLiteral(IValueNode literal)
+    public override object? CoerceInputLiteral(IValueNode literal)
     {
         ArgumentNullException.ThrowIfNull(literal);
 
@@ -63,12 +63,12 @@ public class IdType : ScalarType<string>
             return null;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, literal.GetType()),
+        throw new LeafCoercionException(
+            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, literal.GetType()),
             this);
     }
 
-    public override IValueNode ParseValue(object? runtimeValue)
+    public override IValueNode CoerceInputValue(object? runtimeValue)
     {
         if (runtimeValue is null)
         {
@@ -80,8 +80,8 @@ public class IdType : ScalarType<string>
             return new StringValueNode(s);
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseValue(Name, runtimeValue.GetType()),
+        throw new LeafCoercionException(
+            TypeResourceHelper.Scalar_Cannot_CoerceInputValue(Name, runtimeValue.GetType()),
             this);
     }
 
@@ -102,12 +102,12 @@ public class IdType : ScalarType<string>
             return new IntValueNode(i);
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
             this);
     }
 
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         if (runtimeValue is null)
         {

@@ -43,7 +43,7 @@ public class NonEmptyStringType : StringType
     }
 
     /// <inheritdoc />
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         if (runtimeValue is string s && s == string.Empty)
         {
@@ -71,13 +71,13 @@ public class NonEmptyStringType : StringType
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
     {
         throw ThrowHelper.NonEmptyStringType_ParseLiteral_IsEmpty(this);
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
+    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
     {
         throw ThrowHelper.NonEmptyStringType_ParseValue_IsEmpty(this);
     }

@@ -21,7 +21,7 @@ public class IsoDayOfWeekType : IntToStructBaseType<IsoDayOfWeek>
     }
 
     /// <inheritdoc />
-    protected override bool TrySerialize(
+    protected override bool TryCoerceOutputValue(
         IsoDayOfWeek runtimeValue,
         [NotNullWhen(true)] out int? resultValue)
     {

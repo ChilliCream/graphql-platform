@@ -129,11 +129,11 @@ public sealed class InputFormatter(ITypeConverter converter)
                 runtimeValue = converted;
             }
 
-            return type.ParseValue(runtimeValue);
+            return type.CoerceInputValue(runtimeValue);
         }
-        catch (SerializationException ex)
+        catch (LeafCoercionException ex)
         {
-            throw new SerializationException(ex.Errors[0], ex.Type, path);
+            throw new LeafCoercionException(ex.Errors[0], ex.Type, path);
         }
     }
 
@@ -295,7 +295,7 @@ public sealed class InputFormatter(ITypeConverter converter)
     {
         if (resultValue is IValueNode node)
         {
-            if (type.IsInstanceOfType(node))
+            if (type.IsValueCompatible(node))
             {
                 return node;
             }
@@ -307,9 +307,9 @@ public sealed class InputFormatter(ITypeConverter converter)
         {
             return type.ParseResult(resultValue);
         }
-        catch (SerializationException ex)
+        catch (LeafCoercionException ex)
         {
-            throw new SerializationException(ex.Errors[0], ex.Type, path);
+            throw new LeafCoercionException(ex.Errors[0], ex.Type, path);
         }
     }
 }

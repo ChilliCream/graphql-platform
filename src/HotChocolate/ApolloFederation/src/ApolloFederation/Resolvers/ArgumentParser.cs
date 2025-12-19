@@ -69,7 +69,7 @@ internal static class ArgumentParser
                     break;
                 }
 
-                var literal = scalarType.ParseLiteral(valueNode)!;
+                var literal = scalarType.CoerceInputLiteral(valueNode)!;
 
                 if (DefaultTypeConverter.Default.TryConvert(typeof(T), literal, out var converted))
                 {
@@ -85,7 +85,7 @@ internal static class ArgumentParser
                     break;
                 }
 
-                value = (T)enumType.ParseLiteral(valueNode)!;
+                value = (T)enumType.CoerceInputLiteral(valueNode)!;
                 return true;
         }
 

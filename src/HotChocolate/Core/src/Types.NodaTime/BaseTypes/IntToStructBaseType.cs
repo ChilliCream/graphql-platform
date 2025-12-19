@@ -34,7 +34,7 @@ public abstract class IntToStructBaseType<TRuntimeType>
             return value.Value;
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             string.Format(IntToStructBaseType_ParseLiteral_UnableToDeserializeInt, Name),
             this);
     }
@@ -42,12 +42,12 @@ public abstract class IntToStructBaseType<TRuntimeType>
     /// <inheritdoc />
     protected override IntValueNode ParseValue(TRuntimeType value)
     {
-        if (TrySerialize(value, out var val))
+        if (TryCoerceOutputValue(value, out var val))
         {
             return new IntValueNode(val.Value);
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             string.Format(IntToStructBaseType_ParseLiteral_UnableToDeserializeInt, Name),
             this);
     }
@@ -70,13 +70,13 @@ public abstract class IntToStructBaseType<TRuntimeType>
             return ParseValue(v);
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             string.Format(IntToStructBaseType_ParseLiteral_UnableToDeserializeInt, Name),
             this);
     }
 
     /// <inheritdoc />
-    public override bool TrySerialize(
+    public override bool TryCoerceOutputValue(
         object? runtimeValue,
         out object? resultValue)
     {
@@ -86,7 +86,7 @@ public abstract class IntToStructBaseType<TRuntimeType>
             return true;
         }
 
-        if (runtimeValue is TRuntimeType dt && TrySerialize(dt, out var val))
+        if (runtimeValue is TRuntimeType dt && TryCoerceOutputValue(dt, out var val))
         {
             resultValue = val.Value;
             return true;
@@ -109,7 +109,7 @@ public abstract class IntToStructBaseType<TRuntimeType>
     /// <returns>
     /// Returns the serialized result value.
     /// </returns>
-    protected abstract bool TrySerialize(
+    protected abstract bool TryCoerceOutputValue(
         TRuntimeType runtimeValue,
         [NotNullWhen(true)] out int? resultValue);
 

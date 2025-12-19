@@ -34,7 +34,7 @@ public sealed class PolicyType : ScalarType<Policy, StringValueNode>
         => new(valueSyntax.Value);
 
     public override IValueNode ParseResult(object? resultValue)
-        => ParseValue(resultValue);
+        => CoerceInputValue(resultValue);
 
     protected override StringValueNode ParseValue(Policy runtimeValue)
         => new(runtimeValue.Value);

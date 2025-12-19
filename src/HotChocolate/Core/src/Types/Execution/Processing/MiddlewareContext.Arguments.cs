@@ -24,10 +24,10 @@ internal partial class MiddlewareContext
         {
             return CoerceArgumentValue<T>(argument);
         }
-        catch (SerializationException ex)
+        catch (LeafCoercionException ex)
         {
             var syntaxNode = Selection.Arguments[argument.Name].ValueLiteral;
-            throw new SerializationException(
+            throw new LeafCoercionException(
                 ErrorBuilder.FromError(ex.Errors[0]).SetPath(Path).TryAddLocation(syntaxNode).Build(),
                 ex.Type,
                 Path);

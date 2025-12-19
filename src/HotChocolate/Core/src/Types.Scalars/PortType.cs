@@ -46,19 +46,19 @@ public class PortType : IntType
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
     {
         throw ThrowHelper.PortType_ParseLiteral_OutOfRange(this);
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
+    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
     {
         throw ThrowHelper.PortType_ParseValue_OutOfRange(this);
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseResultError(object runtimeValue)
+    protected override LeafCoercionException CreateParseResultError(object runtimeValue)
     {
         throw ThrowHelper.PortType_ParseValue_OutOfRange(this);
     }

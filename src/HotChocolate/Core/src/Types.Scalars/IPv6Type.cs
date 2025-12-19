@@ -63,10 +63,10 @@ public partial class IPv6Type : RegexType
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
         => ThrowHelper.IPv6Type_ParseLiteral_IsInvalid(this);
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
+    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
         => ThrowHelper.IPv6Type_ParseValue_IsInvalid(this);
 }

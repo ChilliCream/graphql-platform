@@ -266,10 +266,10 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="Scalar_Cannot_Deserialize" xml:space="preserve">
     <value>{0} cannot deserialize the given value.</value>
   </data>
-  <data name="Scalar_Cannot_ParseLiteral" xml:space="preserve">
+  <data name="Scalar_Cannot_CoerceInputLiteral" xml:space="preserve">
     <value>{0} cannot parse the given literal of type `{1}`.</value>
   </data>
-  <data name="Scalar_Cannot_ParseValue" xml:space="preserve">
+  <data name="Scalar_Cannot_CoerceInputValue" xml:space="preserve">
     <value>{0} cannot parse the given value of type `{1}`.</value>
   </data>
   <data name="Scalar_Cannot_Serialize" xml:space="preserve">

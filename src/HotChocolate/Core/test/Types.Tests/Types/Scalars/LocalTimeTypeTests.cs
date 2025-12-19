@@ -78,7 +78,7 @@ public class LocalTimeTypeTests
         void Action() => localTimeType.Serialize("foo");
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -223,7 +223,7 @@ public class LocalTimeTypeTests
         var expectedTimeOnly = new TimeOnly(8, 46, 14);
 
         // act
-        var timeOnly = (TimeOnly)localTimeType.ParseLiteral(literal)!;
+        var timeOnly = (TimeOnly)localTimeType.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedTimeOnly, timeOnly);
@@ -247,7 +247,7 @@ public class LocalTimeTypeTests
         var expectedTimeOnly = new TimeOnly(8, 46, 14);
 
         // act
-        var timeOnly = (TimeOnly)localTimeType.ParseLiteral(literal)!;
+        var timeOnly = (TimeOnly)localTimeType.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedTimeOnly, timeOnly);
@@ -261,7 +261,7 @@ public class LocalTimeTypeTests
         var literal = NullValueNode.Default;
 
         // act
-        var value = localTimeType.ParseLiteral(literal);
+        var value = localTimeType.CoerceInputLiteral(literal);
 
         // assert
         Assert.Null(value);
@@ -290,7 +290,7 @@ public class LocalTimeTypeTests
         var localTimeType = new LocalTimeType();
 
         // act
-        var literal = localTimeType.ParseValue(null);
+        var literal = localTimeType.CoerceInputValue(null);
 
         // assert
         Assert.Equal(NullValueNode.Default, literal);
@@ -384,7 +384,7 @@ public class LocalTimeTypeTests
         var exception = Record.Exception(() => localTimeType.ParseResult(resultValue));
 
         // assert
-        Assert.IsType<SerializationException>(exception);
+        Assert.IsType<LeafCoercionException>(exception);
     }
 
     [Fact]

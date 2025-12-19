@@ -34,14 +34,14 @@ public abstract class StringToClassBaseType<TRuntimeType>
             return value;
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             string.Format(StringToClassBaseType_ParseLiteral_UnableToDeserializeString, Name),
             this);
     }
 
     /// <inheritdoc />
     protected override StringValueNode ParseValue(TRuntimeType value) =>
-        new(Serialize(value));
+        new(CoerceOutputValue(value));
 
     /// <inheritdoc />
     public override IValueNode ParseResult(object? resultValue)
@@ -61,13 +61,13 @@ public abstract class StringToClassBaseType<TRuntimeType>
             return ParseValue(v);
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             string.Format(StringToClassBaseType_ParseLiteral_UnableToDeserializeString, Name),
             this);
     }
 
     /// <inheritdoc />
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         if (runtimeValue is null)
         {
@@ -77,7 +77,7 @@ public abstract class StringToClassBaseType<TRuntimeType>
 
         if (runtimeValue is TRuntimeType dt)
         {
-            resultValue = Serialize(dt);
+            resultValue = CoerceOutputValue(dt);
             return true;
         }
 
@@ -94,7 +94,7 @@ public abstract class StringToClassBaseType<TRuntimeType>
     /// <returns>
     /// Returns the serialized result value.
     /// </returns>
-    protected abstract string Serialize(TRuntimeType runtimeValue);
+    protected abstract string CoerceOutputValue(TRuntimeType runtimeValue);
 
     /// <inheritdoc />
     public override bool TryDeserialize(object? resultValue, out object? runtimeValue)

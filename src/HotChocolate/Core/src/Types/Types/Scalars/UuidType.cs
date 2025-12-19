@@ -24,7 +24,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     /// </param>
     /// <param name="enforceFormat">
     /// Specifies if the <paramref name="defaultFormat"/> is enforced and violations will cause
-    /// a <see cref="SerializationException"/>. If set to <c>false</c> and the string
+    /// a <see cref="LeafCoercionException"/>. If set to <c>false</c> and the string
     /// does not match the <paramref name="defaultFormat"/> the scalar will try to deserialize
     /// the string using the other formats.
     /// </param>
@@ -55,7 +55,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     /// </param>
     /// <param name="enforceFormat">
     /// Specifies if the <paramref name="defaultFormat"/> is enforced and violations will cause
-    /// a <see cref="SerializationException"/>. If set to <c>false</c> and the string
+    /// a <see cref="LeafCoercionException"/>. If set to <c>false</c> and the string
     /// does not match the <paramref name="defaultFormat"/> the scalar will try to deserialize
     /// the string using the other formats.
     /// </param>
@@ -132,8 +132,8 @@ public class UuidType : ScalarType<Guid, StringValueNode>
             return g;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+        throw new LeafCoercionException(
+            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, valueSyntax.GetType()),
             this);
     }
 
@@ -159,12 +159,12 @@ public class UuidType : ScalarType<Guid, StringValueNode>
             return ParseValue(g);
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, resultValue.GetType()),
+        throw new LeafCoercionException(
+            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, resultValue.GetType()),
             this);
     }
 
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         if (runtimeValue is null)
         {

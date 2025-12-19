@@ -546,7 +546,7 @@ public class VariableCoercionHelperTests
             schema, variableDefinitions, variableValues, coercedValues);
 
         // assert
-        Assert.Throws<SerializationException>(Action)
+        Assert.Throws<LeafCoercionException>(Action)
             .Errors.Select(t => t.WithException(null))
             .ToList()
             .MatchSnapshot();
@@ -581,7 +581,7 @@ public class VariableCoercionHelperTests
             schema, variableDefinitions, variableValues, coercedValues);
 
         // assert
-        Assert.Throws<SerializationException>(Action).Errors.MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action).Errors.MatchSnapshot();
     }
 
     [Fact]
@@ -645,7 +645,7 @@ public class VariableCoercionHelperTests
             schema, variableDefinitions, variableValues, coercedValues);
 
         // assert
-        Assert.Throws<SerializationException>(Action)
+        Assert.Throws<LeafCoercionException>(Action)
             .Errors.Select(t => t.WithException(null))
             .ToList()
             .MatchSnapshot();

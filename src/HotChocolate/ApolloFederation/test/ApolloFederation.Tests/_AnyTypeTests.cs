@@ -80,7 +80,7 @@ public class _AnyTypeTests
         void Action() => type.Deserialize(serialized);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public class _AnyTypeTests
         void Action() => type.Serialize(1);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -187,7 +187,7 @@ public class _AnyTypeTests
         var representation = new Representation("test", objectValueNode);
 
         // act
-        var success = type.TrySerialize(representation, out var serialized);
+        var success = type.TryCoerceOutputValue(representation, out var serialized);
 
         // assert
         Assert.True(success);
@@ -204,7 +204,7 @@ public class _AnyTypeTests
         var type = new AnyType();
 
         // act
-        var success = type.TrySerialize(1, out var serialized);
+        var success = type.TryCoerceOutputValue(1, out var serialized);
 
         // assert
         Assert.False(success);
@@ -218,7 +218,7 @@ public class _AnyTypeTests
         var type = new AnyType();
 
         // act
-        var success = type.TrySerialize(null, out var serialized);
+        var success = type.TryCoerceOutputValue(null, out var serialized);
 
         // assert
         Assert.True(success);
@@ -269,7 +269,7 @@ public class _AnyTypeTests
         );
 
         // act
-        var valueSyntax = type.ParseLiteral(objectValueNode);
+        var valueSyntax = type.CoerceInputLiteral(objectValueNode);
 
         // assert
         var parsedRepresentation = Assert.IsType<Representation>(valueSyntax);
@@ -284,10 +284,10 @@ public class _AnyTypeTests
         var type = new AnyType();
 
         // act
-        void Action() => type.ParseLiteral(new ObjectValueNode());
+        void Action() => type.CoerceInputLiteral(new ObjectValueNode());
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -340,7 +340,7 @@ public class _AnyTypeTests
         void Action() => type.ParseResult(new ObjectValueNode());
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -363,9 +363,9 @@ public class _AnyTypeTests
         var type = new AnyType();
 
         // act
-        void Action() => type.ParseValue(1);
+        void Action() => type.CoerceInputValue(1);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 }

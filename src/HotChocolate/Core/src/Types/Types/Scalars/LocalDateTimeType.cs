@@ -46,7 +46,7 @@ public class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
             string s => new StringValueNode(s),
             DateTimeOffset o => ParseValue(o.DateTime),
             DateTime dt => ParseValue(dt),
-            _ => throw new SerializationException(
+            _ => throw new LeafCoercionException(
                 TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()), this)
         };
     }
@@ -58,8 +58,8 @@ public class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
             return value.Value;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+        throw new LeafCoercionException(
+            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, valueSyntax.GetType()),
             this);
     }
 
@@ -68,7 +68,7 @@ public class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
         return new(Serialize(runtimeValue));
     }
 
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         switch (runtimeValue)
         {

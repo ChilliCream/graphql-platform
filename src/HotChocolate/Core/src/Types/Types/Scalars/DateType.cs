@@ -53,8 +53,8 @@ public class DateType : ScalarType<DateOnly, StringValueNode>
             return value.Value;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+        throw new LeafCoercionException(
+            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, valueSyntax.GetType()),
             this);
     }
 
@@ -70,12 +70,12 @@ public class DateType : ScalarType<DateOnly, StringValueNode>
             DateOnly d => ParseValue(d),
             DateTimeOffset o => ParseValue(DateOnly.FromDateTime(o.UtcDateTime)),
             DateTime dt => ParseValue(DateOnly.FromDateTime(dt.ToUniversalTime())),
-            _ => throw new SerializationException(
+            _ => throw new LeafCoercionException(
                 TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()), this)
         };
     }
 
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         switch (runtimeValue)
         {

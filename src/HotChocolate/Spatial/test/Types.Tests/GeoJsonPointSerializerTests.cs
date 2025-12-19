@@ -67,7 +67,7 @@ public class GeoJsonPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => type.Serialize(""));
+        Assert.Throws<LeafCoercionException>(() => type.Serialize(""));
     }
 
     [Theory]
@@ -156,7 +156,7 @@ public class GeoJsonPointSerializerTests
 
         // act
         // assert
-        Assert.Null(type.ParseLiteral(NullValueNode.Default));
+        Assert.Null(type.CoerceInputLiteral(NullValueNode.Default));
     }
 
     [Theory]
@@ -170,7 +170,7 @@ public class GeoJsonPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(new ListValueNode(), type));
     }
 
@@ -212,7 +212,7 @@ public class GeoJsonPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputParser.ParseLiteral(valueNode, type));
+        Assert.Throws<LeafCoercionException>(() => inputParser.ParseLiteral(valueNode, type));
     }
 
     [Theory]
@@ -229,7 +229,7 @@ public class GeoJsonPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputParser.ParseLiteral(valueNode, type));
+        Assert.Throws<LeafCoercionException>(() => inputParser.ParseLiteral(valueNode, type));
     }
 
     [Theory]
@@ -309,7 +309,7 @@ public class GeoJsonPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputFormatter.FormatResult("", type));
+        Assert.Throws<LeafCoercionException>(() => inputFormatter.FormatResult("", type));
     }
 
     [Theory]
@@ -368,7 +368,7 @@ public class GeoJsonPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputFormatter.FormatValue("", type));
+        Assert.Throws<LeafCoercionException>(() => inputFormatter.FormatValue("", type));
     }
 
     [Theory]
@@ -427,7 +427,7 @@ public class GeoJsonPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputParser.ParseResult("", type));
+        Assert.Throws<LeafCoercionException>(() => inputParser.ParseResult("", type));
     }
 
     [Theory]
@@ -489,7 +489,7 @@ public class GeoJsonPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputParser.ParseResult(serialized, type));
+        Assert.Throws<LeafCoercionException>(() => inputParser.ParseResult(serialized, type));
     }
 
     [Theory]
@@ -508,7 +508,7 @@ public class GeoJsonPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputParser.ParseResult(serialized, type));
+        Assert.Throws<LeafCoercionException>(() => inputParser.ParseResult(serialized, type));
     }
 
     [Theory]
@@ -529,7 +529,7 @@ public class GeoJsonPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputParser.ParseLiteral(valueNode, type));
+        Assert.Throws<LeafCoercionException>(() => inputParser.ParseLiteral(valueNode, type));
     }
 
     private Schema CreateSchema() => SchemaBuilder.New()

@@ -59,12 +59,12 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
             return ParseValue(b);
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
             this);
     }
 
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         if (runtimeValue is null)
         {

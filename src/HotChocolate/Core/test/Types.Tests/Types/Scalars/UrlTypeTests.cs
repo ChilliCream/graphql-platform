@@ -24,7 +24,7 @@ public class UrlTypeTests
         var literal = new StringValueNode(expected.AbsoluteUri);
 
         // act
-        var actual = (Uri?)urlType.ParseLiteral(literal);
+        var actual = (Uri?)urlType.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expected, actual);
@@ -38,7 +38,7 @@ public class UrlTypeTests
         var literal = NullValueNode.Default;
 
         // act
-        var value = urlType.ParseLiteral(literal);
+        var value = urlType.CoerceInputLiteral(literal);
 
         // assert
         Assert.Null(value);
@@ -53,7 +53,7 @@ public class UrlTypeTests
         var literal = new StringValueNode($"{expected}");
 
         // act
-        var actual = (Uri?)urlType.ParseLiteral(literal);
+        var actual = (Uri?)urlType.CoerceInputLiteral(literal);
 
         // Assert
         Assert.Equal(expected, actual);
@@ -68,8 +68,8 @@ public class UrlTypeTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseLiteral(input));
+        Assert.Throws<LeafCoercionException>(
+            () => type.CoerceInputLiteral(input));
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public class UrlTypeTests
         var uri = new Uri("http://domain.test/url");
 
         // Act
-        var isUrlType = urlType.IsInstanceOfType(new StringValueNode(uri.AbsoluteUri));
+        var isUrlType = urlType.IsValueCompatible(new StringValueNode(uri.AbsoluteUri));
 
         // Assert
         Assert.True(isUrlType);
@@ -166,7 +166,7 @@ public class UrlTypeTests
         var urlType = new UrlType();
 
         // act
-        var isUrlType = urlType.IsInstanceOfType(new NullValueNode(null));
+        var isUrlType = urlType.IsValueCompatible(new NullValueNode(null));
 
         // assert
         Assert.True(isUrlType);
@@ -179,7 +179,7 @@ public class UrlTypeTests
         var urlType = new UrlType();
 
         // act
-        var isUrlType = urlType.IsInstanceOfType(
+        var isUrlType = urlType.IsValueCompatible(
             new StringValueNode("$*^domain.test"));
 
         // assert
@@ -193,7 +193,7 @@ public class UrlTypeTests
         var urlType = new UrlType();
 
         // act
-        Action action = () => urlType.IsInstanceOfType(null!);
+        Action action = () => urlType.IsValueCompatible(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -207,7 +207,7 @@ public class UrlTypeTests
         var intValue = new IntValueNode(1);
 
         // act
-        var isUrlType = urlType.IsInstanceOfType(intValue);
+        var isUrlType = urlType.IsValueCompatible(intValue);
 
         // assert
         Assert.False(isUrlType);

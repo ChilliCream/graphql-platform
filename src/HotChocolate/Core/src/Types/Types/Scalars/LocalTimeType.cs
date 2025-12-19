@@ -62,7 +62,7 @@ public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
             TimeOnly t => ParseValue(t),
             DateTimeOffset d => ParseValue(TimeOnly.FromDateTime(d.DateTime)),
             DateTime dt => ParseValue(TimeOnly.FromDateTime(dt)),
-            _ => throw new SerializationException(
+            _ => throw new LeafCoercionException(
                 TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()), this)
         };
     }
@@ -74,8 +74,8 @@ public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
             return value.Value;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+        throw new LeafCoercionException(
+            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, valueSyntax.GetType()),
             this);
     }
 
@@ -84,7 +84,7 @@ public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
         return new(Serialize(runtimeValue));
     }
 
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         switch (runtimeValue)
         {

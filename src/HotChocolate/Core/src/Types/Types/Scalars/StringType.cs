@@ -44,5 +44,5 @@ public class StringType : ScalarType<string, StringValueNode>
         new(runtimeValue);
 
     public override IValueNode ParseResult(object? resultValue) =>
-        ParseValue(resultValue);
+        CoerceInputValue(resultValue);
 }

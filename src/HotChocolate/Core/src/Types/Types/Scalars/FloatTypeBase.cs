@@ -22,7 +22,7 @@ public abstract class FloatTypeBase<TRuntimeType>
 
     public TRuntimeType MaxValue { get; }
 
-    public override bool IsInstanceOfType(IValueNode valueSyntax)
+    public override bool IsValueCompatible(IValueNode valueSyntax)
     {
         ArgumentNullException.ThrowIfNull(valueSyntax);
 
@@ -78,7 +78,7 @@ public abstract class FloatTypeBase<TRuntimeType>
         return true;
     }
 
-    public override object? ParseLiteral(IValueNode valueSyntax)
+    public override object? CoerceInputLiteral(IValueNode valueSyntax)
     {
         ArgumentNullException.ThrowIfNull(valueSyntax);
 
@@ -106,7 +106,7 @@ public abstract class FloatTypeBase<TRuntimeType>
 
     protected abstract TRuntimeType ParseLiteral(IFloatValueLiteral valueSyntax);
 
-    public override IValueNode ParseValue(object? runtimeValue)
+    public override IValueNode CoerceInputValue(object? runtimeValue)
     {
         if (runtimeValue is null)
         {
@@ -144,7 +144,7 @@ public abstract class FloatTypeBase<TRuntimeType>
         throw CreateParseResultError(resultValue);
     }
 
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         if (runtimeValue is null)
         {
@@ -189,7 +189,7 @@ public abstract class FloatTypeBase<TRuntimeType>
     }
 
     /// <summary>
-    /// Creates the exception that will be thrown when <see cref="ParseValue(object?)"/>
+    /// Creates the exception that will be thrown when <see cref="CoerceInputValue(object?)"/>
     /// encountered an invalid runtime value.
     /// </summary>
     /// <param name="runtimeValue">
@@ -198,11 +198,11 @@ public abstract class FloatTypeBase<TRuntimeType>
     /// <returns>
     /// The created exception that should be thrown
     /// </returns>
-    protected virtual SerializationException CreateParseValueError(object runtimeValue)
+    protected virtual LeafCoercionException CreateParseValueError(object runtimeValue)
         => new(TypeResourceHelper.Scalar_Cannot_ParseResult(Name, runtimeValue.GetType()), this);
 
     /// <summary>
-    /// Creates the exception that will be thrown when <see cref="ParseLiteral(IValueNode)"/> encountered an
+    /// Creates the exception that will be thrown when <see cref="CoerceInputLiteral(IValueNode)"/> encountered an
     /// invalid <see cref="IValueNode "/>
     /// </summary>
     /// <param name="valueSyntax">
@@ -211,8 +211,8 @@ public abstract class FloatTypeBase<TRuntimeType>
     /// <returns>
     /// The created exception that should be thrown
     /// </returns>
-    protected virtual SerializationException CreateParseLiteralError(IValueNode valueSyntax)
-        => new(TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()), this);
+    protected virtual LeafCoercionException CreateParseLiteralError(IValueNode valueSyntax)
+        => new(TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, valueSyntax.GetType()), this);
 
     /// <summary>
     /// Creates the exception that will be thrown when <see cref="ParseResult"/> encountered an
@@ -224,6 +224,6 @@ public abstract class FloatTypeBase<TRuntimeType>
     /// <returns>
     /// The created exception that should be thrown
     /// </returns>
-    protected virtual SerializationException CreateParseResultError(object runtimeValue)
+    protected virtual LeafCoercionException CreateParseResultError(object runtimeValue)
         => new(TypeResourceHelper.Scalar_Cannot_ParseResult(Name, runtimeValue.GetType()), this);
 }

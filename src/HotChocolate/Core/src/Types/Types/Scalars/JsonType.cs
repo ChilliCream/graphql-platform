@@ -43,7 +43,7 @@ public sealed class JsonType : ScalarType<JsonElement>
     /// <c>true</c> if the specified <paramref name="valueSyntax"/> can be handled
     /// by the JSON scalar; otherwise <c>false</c>.
     /// </returns>
-    public override bool IsInstanceOfType(IValueNode valueSyntax)
+    public override bool IsValueCompatible(IValueNode valueSyntax)
         => true;
 
     /// <summary>
@@ -55,7 +55,7 @@ public sealed class JsonType : ScalarType<JsonElement>
     /// <returns>
     /// Returns <c>null</c> or a <see cref="JsonElement"/>.
     /// </returns>
-    public override object ParseLiteral(IValueNode valueSyntax)
+    public override object CoerceInputLiteral(IValueNode valueSyntax)
         => JsonFormatter.Format(valueSyntax);
 
     /// <summary>
@@ -67,7 +67,7 @@ public sealed class JsonType : ScalarType<JsonElement>
     /// <returns>
     /// Returns GraphQL value syntax.
     /// </returns>
-    public override IValueNode ParseValue(object? runtimeValue)
+    public override IValueNode CoerceInputValue(object? runtimeValue)
     {
         if (runtimeValue is null)
         {
@@ -84,10 +84,10 @@ public sealed class JsonType : ScalarType<JsonElement>
 
     /// <inheritdoc cref="ScalarType.ParseResult"/>
     public override IValueNode ParseResult(object? resultValue)
-        => ParseValue(resultValue);
+        => CoerceInputValue(resultValue);
 
-    private SerializationException CreateParseValueError(object runtimeValue)
-        => new(TypeResourceHelper.Scalar_Cannot_ParseValue(Name, runtimeValue.GetType()), this);
+    private LeafCoercionException CreateParseValueError(object runtimeValue)
+        => new(TypeResourceHelper.Scalar_Cannot_CoerceInputValue(Name, runtimeValue.GetType()), this);
 
     private static class JsonParser
     {

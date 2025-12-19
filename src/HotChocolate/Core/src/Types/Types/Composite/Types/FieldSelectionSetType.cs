@@ -51,7 +51,7 @@ public sealed class FieldSelectionSetType : ScalarType<SelectionSetNode, StringV
             return new StringValueNode(SerializeSelectionSet(selectionSet));
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage("The field selection set syntax is invalid.")
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -60,7 +60,7 @@ public sealed class FieldSelectionSetType : ScalarType<SelectionSetNode, StringV
     }
 
     /// <inheritdoc />
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         if (runtimeValue is null)
         {

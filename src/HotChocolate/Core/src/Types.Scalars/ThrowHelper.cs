@@ -2,9 +2,9 @@ namespace HotChocolate.Types;
 
 internal static class ThrowHelper
 {
-    public static SerializationException EmailAddressType_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException EmailAddressType_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.EmailAddressType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -13,9 +13,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException EmailAddressType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException EmailAddressType_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.EmailAddressType_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -24,9 +24,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException HexColorType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException HexColorType_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.HexColorType_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -35,9 +35,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException HexColorType_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException HexColorType_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.HexColorType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -46,9 +46,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException HslType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException HslType_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.HslType_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -57,9 +57,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException HslType_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException HslType_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.HslType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -68,9 +68,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException HslaType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException HslaType_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.HslaType_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -79,9 +79,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException HslaType_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException HslaType_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.HslaType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -90,9 +90,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException IPv4Type_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException IPv4Type_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.IPv4Type_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -101,9 +101,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException IPv4Type_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException IPv4Type_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.IPv4Type_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -112,9 +112,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException IPv6Type_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException IPv6Type_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.IPv6Type_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -123,9 +123,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException IPv6Type_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException IPv6Type_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.IPv6Type_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -134,9 +134,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException IsbnType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException IsbnType_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.IsbnType_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -145,9 +145,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException IsbnType_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException IsbnType_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.IsbnType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -156,9 +156,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException LatitudeType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException LatitudeType_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.LatitudeType_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -167,9 +167,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException LatitudeType_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException LatitudeType_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.LatitudeType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -178,9 +178,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException LocalCurrencyType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException LocalCurrencyType_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.LocalCurrencyType_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -189,9 +189,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException LocalCurrencyType_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException LocalCurrencyType_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.LocalCurrencyType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -200,9 +200,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException LongitudeType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException LongitudeType_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.LongitudeType_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -211,9 +211,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException LongitudeType_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException LongitudeType_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.LongitudeType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -222,9 +222,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException MacAddressType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException MacAddressType_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.MacAddressType_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -233,9 +233,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException MacAddressType_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException MacAddressType_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.MacAddressType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -244,10 +244,10 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException NegativeFloatType_ParseLiteral_IsNotNegative(
+    public static LeafCoercionException NegativeFloatType_ParseLiteral_IsNotNegative(
         IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.NegativeFloatType_IsNotNegative_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -256,9 +256,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException NegativeFloatType_ParseValue_IsNotNegative(IType type)
+    public static LeafCoercionException NegativeFloatType_ParseValue_IsNotNegative(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.NegativeFloatType_IsNotNegative_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -267,9 +267,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException NegativeIntType_ParseLiteral_IsNotNegative(IType type)
+    public static LeafCoercionException NegativeIntType_ParseLiteral_IsNotNegative(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.NegativeIntType_IsNotNegative_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -278,9 +278,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException NegativeIntType_ParseValue_IsNotNegative(IType type)
+    public static LeafCoercionException NegativeIntType_ParseValue_IsNotNegative(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.NegativeIntType_IsNotNegative_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -289,9 +289,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException NonEmptyStringType_ParseLiteral_IsEmpty(IType type)
+    public static LeafCoercionException NonEmptyStringType_ParseLiteral_IsEmpty(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.NonEmptyStringType_IsEmpty_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -300,9 +300,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException NonEmptyStringType_ParseValue_IsEmpty(IType type)
+    public static LeafCoercionException NonEmptyStringType_ParseValue_IsEmpty(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.NonEmptyStringType_IsEmpty_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -311,10 +311,10 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException NonNegativeIntType_ParseLiteral_IsNotNonNegative(
+    public static LeafCoercionException NonNegativeIntType_ParseLiteral_IsNotNonNegative(
         IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.NonNegativeIntType_IsNotNonNegative_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -323,10 +323,10 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException NonNegativeIntType_ParseValue_IsNotNonNegative(
+    public static LeafCoercionException NonNegativeIntType_ParseValue_IsNotNonNegative(
         IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.NonNegativeIntType_IsNotNonNegative_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -335,10 +335,10 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException NonPositiveIntType_ParseLiteral_IsNotNonPositive(
+    public static LeafCoercionException NonPositiveIntType_ParseLiteral_IsNotNonPositive(
         IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.NonPositiveIntType_IsNotNonPositive_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -347,10 +347,10 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException NonPositiveFloatType_ParseLiteral_IsNotNonPositive(
+    public static LeafCoercionException NonPositiveFloatType_ParseLiteral_IsNotNonPositive(
         IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.NonPositiveFloatType_IsNotNonPositive_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -359,10 +359,10 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException NonPositiveFloatType_ParseValue_IsNotNonPositive(
+    public static LeafCoercionException NonPositiveFloatType_ParseValue_IsNotNonPositive(
         IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.NonPositiveFloatType_IsNotNonPositive_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -371,10 +371,10 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException NonPositiveIntType_ParseValue_IsNotNonPositive(
+    public static LeafCoercionException NonPositiveIntType_ParseValue_IsNotNonPositive(
         IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.NonPositiveIntType_IsNotNonPositive_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -383,10 +383,10 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException NonNegativeFloatType_ParseLiteral_IsNotNonNegative(
+    public static LeafCoercionException NonNegativeFloatType_ParseLiteral_IsNotNonNegative(
         IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.NonNegativeFloatType_IsNotNonNegative_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -395,10 +395,10 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException NonNegativeFloatType_ParseValue_IsNotNonNegative(
+    public static LeafCoercionException NonNegativeFloatType_ParseValue_IsNotNonNegative(
         IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.NonNegativeFloatType_IsNotNonNegative_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -407,9 +407,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException PhoneNumber_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException PhoneNumber_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.PhoneNumberType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -418,9 +418,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException PhoneNumber_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException PhoneNumber_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.PhoneNumberType_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -429,9 +429,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException PortType_ParseLiteral_OutOfRange(IType type)
+    public static LeafCoercionException PortType_ParseLiteral_OutOfRange(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.PortType_OutOfRange_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -440,9 +440,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException PortType_ParseValue_OutOfRange(IType type)
+    public static LeafCoercionException PortType_ParseValue_OutOfRange(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.PortType_OutOfRange_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -451,9 +451,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException PositiveIntType_ParseLiteral_ZeroOrLess(IType type)
+    public static LeafCoercionException PositiveIntType_ParseLiteral_ZeroOrLess(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.PositiveIntType_ZeroOrLess_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -462,9 +462,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException PositiveIntType_ParseValue_ZeroOrLess(IType type)
+    public static LeafCoercionException PositiveIntType_ParseValue_ZeroOrLess(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.PositiveIntType_ZeroOrLess_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -473,9 +473,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException PostalCodeType_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException PostalCodeType_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.PostalCodeType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -484,9 +484,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException PostalCodeType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException PostalCodeType_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.PostalCodeType_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -495,11 +495,11 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException RegexType_ParseValue_IsInvalid(
+    public static LeafCoercionException RegexType_ParseValue_IsInvalid(
         IType type,
         string name)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     string.Format(
@@ -510,11 +510,11 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException RegexType_ParseLiteral_IsInvalid(
+    public static LeafCoercionException RegexType_ParseLiteral_IsInvalid(
         IType type,
         string name)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     string.Format(
@@ -525,9 +525,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException RgbType_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException RgbType_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.RgbType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -536,9 +536,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException RgbType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException RgbType_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.RgbType_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -547,9 +547,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException RgbaType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException RgbaType_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.RgbaType_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -558,9 +558,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException RgbaType_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException RgbaType_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.RgbaType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -569,9 +569,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException UnsignedShortType_ParseValue_IsNotUnsigned(IType type)
+    public static LeafCoercionException UnsignedShortType_ParseValue_IsNotUnsigned(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.UnsignedShortType_IsNotUnsigned_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -580,9 +580,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException UnsignedShortType_ParseLiteral_IsNotUnsigned(IType type)
+    public static LeafCoercionException UnsignedShortType_ParseLiteral_IsNotUnsigned(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.UnsignedShortType_IsNotUnsigned_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -591,9 +591,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException SignedByteType_ParseValue_IsNotSigned(IType type)
+    public static LeafCoercionException SignedByteType_ParseValue_IsNotSigned(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.SignedByteType_IsNotSigned_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -602,9 +602,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException SignedByteType_ParseLiteral_IsNotSigned(IType type)
+    public static LeafCoercionException SignedByteType_ParseLiteral_IsNotSigned(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.SignedByteType_IsNotSigned_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -613,9 +613,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException UnsignedIntType_ParseValue_IsNotUnsigned(IType type)
+    public static LeafCoercionException UnsignedIntType_ParseValue_IsNotUnsigned(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.UnsignedIntType_IsNotUnsigned_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -624,9 +624,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException UnsignedIntType_ParseLiteral_IsNotUnsigned(IType type)
+    public static LeafCoercionException UnsignedIntType_ParseLiteral_IsNotUnsigned(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.UnsignedIntType_IsNotUnsigned_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -635,9 +635,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException UnsignedLongType_ParseValue_IsNotUnsigned(IType type)
+    public static LeafCoercionException UnsignedLongType_ParseValue_IsNotUnsigned(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.UnsignedLongType_IsNotUnsigned_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -646,9 +646,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException UnsignedLongType_ParseLiteral_IsNotUnsigned(IType type)
+    public static LeafCoercionException UnsignedLongType_ParseLiteral_IsNotUnsigned(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.UnsignedLongType_IsNotUnsigned_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
@@ -657,9 +657,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException UtcOffset_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException UtcOffset_ParseValue_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.UtcOffsetType_IsInvalid_ParseValue)
                 .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
@@ -668,9 +668,9 @@ internal static class ThrowHelper
             type);
     }
 
-    public static SerializationException UtcOffset_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException UtcOffset_ParseLiteral_IsInvalid(IType type)
     {
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ScalarResources.UtcOffsetType_IsInvalid_ParseLiteral)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)

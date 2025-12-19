@@ -15,7 +15,7 @@ public class GeoJsonPositionScalarTest
             new FloatValueNode(1.2));
 
         // act
-        bool? result = type.IsInstanceOfType(coordinate);
+        bool? result = type.IsValueCompatible(coordinate);
 
         // assert
         Assert.True(result);
@@ -32,7 +32,7 @@ public class GeoJsonPositionScalarTest
             new FloatValueNode(3.2));
 
         // act
-        bool? result = type.IsInstanceOfType(coordinate);
+        bool? result = type.IsValueCompatible(coordinate);
 
         // assert
         Assert.True(result);
@@ -46,7 +46,7 @@ public class GeoJsonPositionScalarTest
         var coordinate = NullValueNode.Default;
 
         // act
-        bool? result = type.IsInstanceOfType(coordinate);
+        bool? result = type.IsValueCompatible(coordinate);
 
         // assert
         Assert.True(result);
@@ -62,7 +62,7 @@ public class GeoJsonPositionScalarTest
             new FloatValueNode(1.2));
 
         // act
-        bool? result = type.IsInstanceOfType(coordinate);
+        bool? result = type.IsValueCompatible(coordinate);
 
         // assert
         Assert.False(result);
@@ -79,7 +79,7 @@ public class GeoJsonPositionScalarTest
             new StringValueNode("2"));
 
         // act
-        bool? result = type.IsInstanceOfType(coordinate);
+        bool? result = type.IsValueCompatible(coordinate);
 
         // assert
         Assert.False(result);
@@ -96,7 +96,7 @@ public class GeoJsonPositionScalarTest
                 new FloatValueNode(1.2)));
 
         // act
-        var result = type.IsInstanceOfType(coordinate);
+        var result = type.IsValueCompatible(coordinate);
 
         // assert
         Assert.False(result);
@@ -116,7 +116,7 @@ public class GeoJsonPositionScalarTest
                 new FloatValueNode(1.2)));
 
         // act
-        var result = type.IsInstanceOfType(coordinate);
+        var result = type.IsValueCompatible(coordinate);
 
         // assert
         Assert.False(result);
@@ -132,7 +132,7 @@ public class GeoJsonPositionScalarTest
             new IntValueNode(3),
             new IntValueNode(4));
 
-        bool? result = type.IsInstanceOfType(coordinate);
+        bool? result = type.IsValueCompatible(coordinate);
 
         Assert.False(result);
     }
@@ -143,7 +143,7 @@ public class GeoJsonPositionScalarTest
         var type = new GeoJsonPositionType();
         IValueNode? coordinate = null;
 
-        Assert.Throws<SerializationException>(() => type.ParseLiteral(coordinate!));
+        Assert.Throws<LeafCoercionException>(() => type.CoerceInputLiteral(coordinate!));
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public class GeoJsonPositionScalarTest
         var type = new GeoJsonPositionType();
         var coordinate = NullValueNode.Default;
 
-        var result = type.ParseLiteral(coordinate);
+        var result = type.CoerceInputLiteral(coordinate);
 
         Assert.Null(result);
     }
@@ -166,7 +166,7 @@ public class GeoJsonPositionScalarTest
             new IntValueNode(2)
         );
 
-        var result = type.ParseLiteral(coordinate);
+        var result = type.CoerceInputLiteral(coordinate);
 
         Assert.Equal(1.0, Assert.IsType<Coordinate>(result).X);
         Assert.Equal(2, Assert.IsType<Coordinate>(result).Y);
@@ -182,7 +182,7 @@ public class GeoJsonPositionScalarTest
             new IntValueNode(100)
         );
 
-        var result = type.ParseLiteral(coordinate);
+        var result = type.CoerceInputLiteral(coordinate);
 
         Assert.Equal(1.0, Assert.IsType<CoordinateZ>(result).X);
         Assert.Equal(2.2, Assert.IsType<CoordinateZ>(result).Y);
@@ -198,7 +198,7 @@ public class GeoJsonPositionScalarTest
             new StringValueNode("2.2")
         );
 
-        Assert.Throws<SerializationException>(() => type.ParseLiteral(coordinate));
+        Assert.Throws<LeafCoercionException>(() => type.CoerceInputLiteral(coordinate));
     }
 
     [Fact]
@@ -211,7 +211,7 @@ public class GeoJsonPositionScalarTest
             new StringValueNode("2.2")
         );
 
-        Assert.Throws<SerializationException>(() => type.ParseLiteral(coordinate));
+        Assert.Throws<LeafCoercionException>(() => type.CoerceInputLiteral(coordinate));
     }
 
     [Fact]
@@ -220,7 +220,7 @@ public class GeoJsonPositionScalarTest
         var type = new GeoJsonPositionType();
         var coordinate = new StringValueNode("2.2");
 
-        Assert.Throws<SerializationException>(() => type.ParseLiteral(coordinate));
+        Assert.Throws<LeafCoercionException>(() => type.CoerceInputLiteral(coordinate));
     }
 
     [Fact]
@@ -229,7 +229,7 @@ public class GeoJsonPositionScalarTest
         var type = new GeoJsonPositionType();
         const string item = "this is not a coordinate";
 
-        Assert.Throws<SerializationException>(() => type.ParseValue(item));
+        Assert.Throws<LeafCoercionException>(() => type.CoerceInputValue(item));
     }
 
     [Fact]
@@ -419,7 +419,7 @@ public class GeoJsonPositionScalarTest
         var type = new GeoJsonPositionType();
         const string input = "not a coordinate";
 
-        var result = type.TrySerialize(input, out var value);
+        var result = type.TryCoerceOutputValue(input, out var value);
 
         Assert.False(result);
         Assert.Null(value);
@@ -431,7 +431,7 @@ public class GeoJsonPositionScalarTest
         var type = new GeoJsonPositionType();
         var input = new Coordinate(1, 2);
 
-        var result = type.TrySerialize(input, out var value);
+        var result = type.TryCoerceOutputValue(input, out var value);
 
         Assert.True(result);
         Assert.Equal(2, Assert.IsType<double[]>(value).Length);
@@ -444,7 +444,7 @@ public class GeoJsonPositionScalarTest
         var type = new GeoJsonPositionType();
         var input = new CoordinateZ(1, 2, 100);
 
-        var result = type.TrySerialize(input, out var value);
+        var result = type.TryCoerceOutputValue(input, out var value);
 
         Assert.True(result);
         Assert.Equal(3, Assert.IsType<double[]>(value).Length);
@@ -457,7 +457,7 @@ public class GeoJsonPositionScalarTest
         var type = new GeoJsonPositionType();
         var input = new CoordinateZ(1, 2, double.NaN);
 
-        var result = type.TrySerialize(input, out var value);
+        var result = type.TryCoerceOutputValue(input, out var value);
 
         Assert.True(result);
         Assert.Equal(2, Assert.IsType<double[]>(value).Length);

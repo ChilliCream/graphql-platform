@@ -34,7 +34,7 @@ public sealed class ScopeType : ScalarType<Scope, StringValueNode>
         => new(valueSyntax.Value);
 
     public override IValueNode ParseResult(object? resultValue)
-        => ParseValue(resultValue);
+        => CoerceInputValue(resultValue);
 
     protected override StringValueNode ParseValue(Scope runtimeValue)
         => new(runtimeValue.Value);

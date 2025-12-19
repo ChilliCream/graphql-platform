@@ -62,7 +62,7 @@ public class ScalarTypeTestBase
         var scalar = CreateType<TType>();
 
         // act
-        var result = scalar.IsInstanceOfType(valueSyntax);
+        var result = scalar.IsValueCompatible(valueSyntax);
 
         // assert
         Assert.Equal(expectedResult, result);
@@ -92,7 +92,7 @@ public class ScalarTypeTestBase
         var scalar = CreateType<TType>();
 
         // act
-        var result = scalar.ParseLiteral(valueSyntax);
+        var result = scalar.CoerceInputLiteral(valueSyntax);
 
         // assert
         Assert.Equal(expectedResult, result);
@@ -106,10 +106,10 @@ public class ScalarTypeTestBase
         var scalar = CreateType<TType>();
 
         // act
-        var result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
+        var result = Record.Exception(() => scalar.CoerceInputLiteral(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     protected void ExpectParseValueToMatchType<TType>(
@@ -121,7 +121,7 @@ public class ScalarTypeTestBase
         var scalar = CreateType<TType>();
 
         // act
-        var result = scalar.ParseValue(valueSyntax);
+        var result = scalar.CoerceInputValue(valueSyntax);
 
         // assert
         Assert.Equal(type, result.GetType());
@@ -134,10 +134,10 @@ public class ScalarTypeTestBase
         var scalar = CreateType<TType>();
 
         // act
-        var result = Record.Exception(() => scalar.ParseValue(runtimeValue));
+        var result = Record.Exception(() => scalar.CoerceInputValue(runtimeValue));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     protected void ExpectSerializeToMatch<TType>(
@@ -180,7 +180,7 @@ public class ScalarTypeTestBase
         var result = Record.Exception(() => scalar.Serialize(runtimeValue));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     protected void ExpectDeserializeToThrowSerializationException<TType>(object runtimeValue)
@@ -193,7 +193,7 @@ public class ScalarTypeTestBase
         var result = Record.Exception(() => scalar.Deserialize(runtimeValue));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     protected void ExpectParseResultToMatchType<TType>(
@@ -221,7 +221,7 @@ public class ScalarTypeTestBase
         var result = Record.Exception(() => scalar.ParseResult(runtimeValue));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     protected async Task ExpectScalarTypeToBoundImplicityWhenRegistered<TType, TDefaultClass>()

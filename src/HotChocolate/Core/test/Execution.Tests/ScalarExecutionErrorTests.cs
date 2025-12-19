@@ -123,7 +123,7 @@ public class ScalarExecutionErrorTests
 
         public override Type RuntimeType => typeof(string);
 
-        public override bool IsInstanceOfType(IValueNode literal)
+        public override bool IsValueCompatible(IValueNode literal)
         {
             ArgumentNullException.ThrowIfNull(literal);
 
@@ -145,7 +145,7 @@ public class ScalarExecutionErrorTests
             return value is "a";
         }
 
-        public override object? ParseLiteral(IValueNode literal)
+        public override object? CoerceInputLiteral(IValueNode literal)
         {
             ArgumentNullException.ThrowIfNull(literal);
 
@@ -159,10 +159,10 @@ public class ScalarExecutionErrorTests
                 return "a";
             }
 
-            throw new SerializationException("StringValue is not a.", this);
+            throw new LeafCoercionException("StringValue is not a.", this);
         }
 
-        public override IValueNode ParseValue(object? value)
+        public override IValueNode CoerceInputValue(object? value)
         {
             if (value is null)
             {
@@ -174,11 +174,11 @@ public class ScalarExecutionErrorTests
                 return new StringValueNode("a");
             }
 
-            throw new SerializationException("String is not a.", this);
+            throw new LeafCoercionException("String is not a.", this);
         }
 
         public override IValueNode ParseResult(object? resultValue)
-            => ParseValue(resultValue);
+            => CoerceInputValue(resultValue);
 
         public override bool TrySerialize(
             object? runtimeValue,
@@ -242,7 +242,7 @@ public sealed class NameType : ScalarType<string, StringValueNode>
     {
         if (string.IsNullOrWhiteSpace(valueSyntax.Value))
         {
-            throw new SerializationException("Not a valid name.", this);
+            throw new LeafCoercionException("Not a valid name.", this);
         }
 
         return valueSyntax.Value;
@@ -252,13 +252,13 @@ public sealed class NameType : ScalarType<string, StringValueNode>
         => new(runtimeValue);
 
     public override IValueNode ParseResult(object? resultValue)
-        => ParseValue(resultValue);
+        => CoerceInputValue(resultValue);
 
-    public override object? Serialize(object? runtimeValue)
+    public override object? CoerceOutputValue(object? runtimeValue)
     {
         if (runtimeValue is not string s || string.IsNullOrWhiteSpace(s))
         {
-            throw new SerializationException("Name cannot serialize the given value.", this);
+            throw new LeafCoercionException("Name cannot serialize the given value.", this);
         }
 
         return base.Serialize(runtimeValue);

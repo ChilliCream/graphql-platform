@@ -160,7 +160,7 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
     }
 
     /// <inheritdoc />
-    public bool IsInstanceOfType(IValueNode value)
+    public bool IsValueCompatible(IValueNode value)
     {
         ArgumentNullException.ThrowIfNull(value);
 

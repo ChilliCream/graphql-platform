@@ -74,7 +74,7 @@ public sealed partial class OperationCompiler
                     _inputValueParser.ParseLiteral(value, argument),
                     value);
             }
-            catch (SerializationException ex)
+            catch (LeafCoercionException ex)
             {
                 return new ArgumentValue(
                     argument,

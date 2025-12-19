@@ -119,7 +119,7 @@ public static class TypeExtensions
                     return literal.Kind == SyntaxKind.ObjectValue;
 
                 default:
-                    return ((ILeafType)type).IsInstanceOfType(literal);
+                    return ((ILeafType)type).IsValueCompatible(literal);
             }
         }
     }

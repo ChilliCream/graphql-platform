@@ -4,10 +4,10 @@ namespace HotChocolate.Types;
 /// The serialization exception is thrown whenever a type cannot
 /// serialize, deserialize or parse a value.
 /// </summary>
-public class SerializationException : GraphQLException
+public class LeafCoercionException : GraphQLException
 {
     /// <summary>
-    /// Initializes the <see cref="SerializationException"/>.
+    /// Initializes the <see cref="LeafCoercionException"/>.
     /// </summary>
     /// <param name="message">
     /// The error message.
@@ -18,7 +18,7 @@ public class SerializationException : GraphQLException
     /// <param name="path">
     /// The field path that points to the exact field causing the exception.
     /// </param>
-    public SerializationException(string message, ITypeSystemMember type, Path? path = null)
+    public LeafCoercionException(string message, ITypeSystemMember type, Path? path = null)
         : base(message)
     {
         Type = type;
@@ -26,7 +26,7 @@ public class SerializationException : GraphQLException
     }
 
     /// <summary>
-    /// Initializes the <see cref="SerializationException"/>.
+    /// Initializes the <see cref="LeafCoercionException"/>.
     /// </summary>
     /// <param name="error">
     /// The serialization error object.
@@ -37,7 +37,7 @@ public class SerializationException : GraphQLException
     /// <param name="path">
     /// The field path that points to the exact field causing the exception.
     /// </param>
-    public SerializationException(IError error, ITypeSystemMember type, Path? path = null)
+    public LeafCoercionException(IError error, ITypeSystemMember type, Path? path = null)
         : base(error)
     {
         Type = type;

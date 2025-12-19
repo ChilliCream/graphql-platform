@@ -37,7 +37,7 @@ internal static partial class ValueCompletion
         switch (typeKind)
         {
             case TypeKind.Scalar or TypeKind.Enum:
-                CompleteLeafValue(context, selection, (ILeafType2)type, resultValue, result);
+                CompleteLeafValue(context, selection, (ILeafType)type, resultValue, result);
                 break;
 
             case TypeKind.List:

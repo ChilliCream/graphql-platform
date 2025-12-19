@@ -3,6 +3,7 @@ using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
@@ -44,7 +45,7 @@ public class AnyType : ScalarType
         _objectToDictConverter = new ObjectToDictionaryConverter(Converter);
     }
 
-    public override bool IsInstanceOfType(IValueNode literal)
+    public override bool IsValueCompatible(IValueNode literal)
     {
         ArgumentNullException.ThrowIfNull(literal);
 
@@ -64,7 +65,7 @@ public class AnyType : ScalarType
         }
     }
 
-    public override object? ParseLiteral(IValueNode literal)
+    public override object? CoerceInputLiteral(IValueNode literal)
     {
         switch (literal)
         {
@@ -90,20 +91,20 @@ public class AnyType : ScalarType
                 return null;
 
             default:
-                throw new SerializationException(
-                    TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, literal.GetType()),
+                throw new LeafCoercionException(
+                    TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, literal.GetType()),
                     this);
         }
     }
 
-    public override IValueNode ParseValue(object? value)
+    public override IValueNode CoerceInputValue(object? value)
     {
         return value is null
             ? NullValueNode.Default
             : ParseValue(value, new HashSet<object>(ReferenceEqualityComparer.Instance));
     }
 
-    private IValueNode ParseValue(object? value, ISet<object> set)
+    private IValueNode ParseValue(object? value, HashSet<object> set)
     {
         if (value is null)
         {
@@ -180,35 +181,71 @@ public class AnyType : ScalarType
             return valueNode;
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             TypeResources.AnyType_CycleInObjectGraph,
             this);
     }
 
-    public override IValueNode ParseResult(object? resultValue) =>
-        ParseValue(resultValue);
-
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, ResultElement resultValue)
     {
         if (runtimeValue is null)
         {
-            resultValue = null;
+            resultValue.SetNullValue();
             return true;
         }
 
         switch (runtimeValue)
         {
-            case string:
-            case short:
-            case int:
-            case long:
-            case float:
-            case double:
-            case decimal:
-            case bool:
-            case sbyte:
-            case byte:
-                resultValue = runtimeValue;
+            case string castedString:
+                resultValue.SetStringValue(castedString);
+                return true;
+
+            case short castedShort:
+                resultValue.SetNumberValue(castedShort);
+                return true;
+
+            case int castedInt:
+                resultValue.SetNumberValue(castedInt);
+                return true;
+
+            case long castedLong:
+                resultValue.SetNumberValue(castedLong);
+                return true;
+
+            case float castedFloat:
+                resultValue.SetNumberValue(castedFloat);
+                return true;
+
+            case double castedDouble:
+                resultValue.SetNumberValue(castedDouble);
+                return true;
+
+            case decimal castedDecimal:
+                resultValue.SetNumberValue(castedDecimal);
+                return true;
+
+            case bool castedBool:
+                resultValue.SetBooleanValue(castedBool);
+                return true;
+
+            case sbyte castedSByte:
+                resultValue.SetNumberValue(castedSByte);
+                return true;
+
+            case byte castedByte:
+                resultValue.SetNumberValue(castedByte);
+                return true;
+
+            case ushort castedUShort:
+                resultValue.SetNumberValue(castedUShort);
+                return true;
+
+            case uint castedUInt:
+                resultValue.SetNumberValue(castedUInt);
+                return true;
+
+            case ulong castedULong:
+                resultValue.SetNumberValue(castedULong);
                 return true;
 
             default:
@@ -223,62 +260,6 @@ public class AnyType : ScalarType
                 }
 
                 resultValue = _objectToDictConverter.Convert(runtimeValue);
-                return true;
-        }
-    }
-
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        object? elementValue;
-        runtimeValue = null;
-        switch (resultValue)
-        {
-            case IDictionary<string, object> dictionary:
-            {
-                var result = new Dictionary<string, object?>();
-                foreach (var element in dictionary)
-                {
-                    if (TryDeserialize(element.Value, out elementValue))
-                    {
-                        result[element.Key] = elementValue;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-
-                runtimeValue = result;
-                return true;
-            }
-
-            case IList list:
-            {
-                var result = new object?[list.Count];
-                for (var i = 0; i < list.Count; i++)
-                {
-                    if (TryDeserialize(list[i], out elementValue))
-                    {
-                        result[i] = elementValue;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-
-                runtimeValue = result;
-                return true;
-            }
-
-            // TODO: this is only done for a bug in schema stitching and needs to be removed
-            // once we have release stitching 2.
-            case IValueNode literal:
-                runtimeValue = ParseLiteral(literal);
-                return true;
-
-            default:
-                runtimeValue = resultValue;
                 return true;
         }
     }
