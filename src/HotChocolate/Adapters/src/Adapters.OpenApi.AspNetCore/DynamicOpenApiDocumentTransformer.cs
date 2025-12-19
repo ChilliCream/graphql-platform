@@ -475,8 +475,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         else
         {
             schema.OneOf = jsonSchemaTypes
-                .Select(IOpenApiSchema (t) => new OpenApiSchema { Type = t })
-                .ToList();
+                .ConvertAll(OpenApiSchemaAbstraction (t) => new OpenApiSchema { Type = t });
         }
 #else
         var jsonSchemaTypes = GetJsonSchemaTypes(scalarType);
@@ -785,7 +784,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                     modelLookup,
                     optional: optional || isDifferentType || isSelectionConditional);
 
-                fragmentSchemasByType ??= new Dictionary<string, List<OpenApiSchemaAbstraction>>();
+                fragmentSchemasByType ??= [];
 
                 if (!fragmentSchemasByType.TryGetValue(typeName, out var schemaList))
                 {
@@ -803,7 +802,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 {
                     var typeName = externalFragment.FragmentDefinition.TypeCondition.Name.Value;
 
-                    fragmentSchemasByType ??= new Dictionary<string, List<OpenApiSchemaAbstraction>>();
+                    fragmentSchemasByType ??= [];
 
                     if (!fragmentSchemasByType.TryGetValue(typeName, out var schemaList))
                     {
@@ -841,7 +840,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                         modelLookup,
                         optional: optional || isDifferentType || isSelectionConditional);
 
-                    fragmentSchemasByType ??= new Dictionary<string, List<OpenApiSchemaAbstraction>>();
+                    fragmentSchemasByType ??= [];
 
                     if (!fragmentSchemasByType.TryGetValue(typeName, out var schemaList))
                     {
