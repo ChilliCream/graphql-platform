@@ -474,7 +474,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
         if (inputType.IsScalarType())
         {
-            return ((IScalarTypeDefinition)inputType).IsInstanceOfType(value);
+            return ((IScalarTypeDefinition)inputType).IsValueCompatible(value);
         }
 
         return value.Kind is SyntaxKind.ObjectValue;

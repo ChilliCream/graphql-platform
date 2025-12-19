@@ -1,11 +1,18 @@
 using System.Buffers.Text;
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// The UUID scalar type represents a universally unique identifier (UUID) as defined by RFC 4122.
+/// This type supports multiple GUID string formats (N, D, B, P) and serializes as a string.
+/// </summary>
 public class UuidType : ScalarType<Guid, StringValueNode>
 {
     private const string SpecifiedByUri = "https://tools.ietf.org/html/rfc4122";
@@ -72,7 +79,6 @@ public class UuidType : ScalarType<Guid, StringValueNode>
         : base(name, bind)
     {
         Description = description;
-        SerializationType = ScalarSerializationType.String;
         SpecifiedBy = new Uri(SpecifiedByUri);
         _format = CreateFormatString(defaultFormat);
         _enforceFormat = enforceFormat;
@@ -95,127 +101,60 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     {
     }
 
-    protected override bool IsInstanceOfType(StringValueNode valueSyntax)
+    /// <inheritdoc />
+    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+    {
+        if (TryParseGuid(valueLiteral.Value, valueLiteral.AsSpan(), out var value))
+        {
+            return value;
+        }
+
+        throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
+    }
+
+    /// <inheritdoc />
+    public override object CoerceInputValue(JsonElement inputValue)
+    {
+        if (inputValue.ValueKind is JsonValueKind.String)
+        {
+            var stringValue = inputValue.GetString()!;
+            var bytes = Encoding.UTF8.GetBytes(stringValue);
+
+            if (TryParseGuid(stringValue, bytes, out var value))
+            {
+                return value;
+            }
+        }
+
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
+    }
+
+    /// <inheritdoc />
+    public override void CoerceOutputValue(Guid runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(runtimeValue.ToString(_format));
+
+    /// <inheritdoc />
+    public override IValueNode ValueToLiteral(Guid runtimeValue)
+        => new StringValueNode(runtimeValue.ToString(_format));
+
+    private bool TryParseGuid(string stringValue, ReadOnlySpan<byte> bytes, out Guid value)
     {
         if (_enforceFormat)
         {
-            var value = valueSyntax.AsSpan();
-
-            if (Utf8Parser.TryParse(value, out Guid _, out var consumed, _format[0])
-                && consumed == value.Length)
-            {
-                return true;
-            }
-        }
-        else if (Guid.TryParse(valueSyntax.Value, out _))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    protected override Guid ParseLiteral(StringValueNode valueSyntax)
-    {
-        if (_enforceFormat)
-        {
-            var value = valueSyntax.AsSpan();
-
-            if (Utf8Parser.TryParse(value, out Guid g, out var consumed, _format[0])
-                && consumed == value.Length)
-            {
-                return g;
-            }
-        }
-        else if (Guid.TryParse(valueSyntax.Value, out var g))
-        {
-            return g;
-        }
-
-        throw new LeafCoercionException(
-            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, valueSyntax.GetType()),
-            this);
-    }
-
-    protected override StringValueNode ParseValue(Guid runtimeValue)
-    {
-        return new(runtimeValue.ToString(_format));
-    }
-
-    public override IValueNode ParseResult(object? resultValue)
-    {
-        if (resultValue is null)
-        {
-            return NullValueNode.Default;
-        }
-
-        if (resultValue is string s)
-        {
-            return new StringValueNode(s);
-        }
-
-        if (resultValue is Guid g)
-        {
-            return ParseValue(g);
-        }
-
-        throw new LeafCoercionException(
-            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, resultValue.GetType()),
-            this);
-    }
-
-    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
-    {
-        if (runtimeValue is null)
-        {
-            resultValue = null;
-            return true;
-        }
-
-        if (runtimeValue is Guid guid)
-        {
-            resultValue = guid.ToString(_format);
-            return true;
-        }
-
-        resultValue = null;
-        return false;
-    }
-
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        if (resultValue is null)
-        {
-            runtimeValue = null;
-            return true;
-        }
-
-        if (resultValue is string s)
-        {
-            var bytes = Encoding.UTF8.GetBytes(s);
-
-            if (_enforceFormat
-                && Utf8Parser.TryParse(bytes, out Guid guid, out var consumed, _format[0])
+            if (Utf8Parser.TryParse(bytes, out Guid guid, out var consumed, _format[0])
                 && consumed == bytes.Length)
             {
-                runtimeValue = guid;
-                return true;
-            }
-
-            if (!_enforceFormat && Guid.TryParse(s, out guid))
-            {
-                runtimeValue = guid;
+                value = guid;
                 return true;
             }
         }
-
-        if (resultValue is Guid)
+        else if (Guid.TryParse(stringValue, out var guid))
         {
-            runtimeValue = resultValue;
+            value = guid;
             return true;
         }
 
-        runtimeValue = null;
+        value = default;
         return false;
     }
 
