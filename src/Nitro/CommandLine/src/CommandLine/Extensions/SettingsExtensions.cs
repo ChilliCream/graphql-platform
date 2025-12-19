@@ -11,7 +11,7 @@ internal static class SettingsExtensions
         {
             return new CompositionSettings
             {
-                Merger = new MergerSettings
+                Merger = new CompositionSettings.MergerSettings
                 {
                     AddFusionDefinitions =
                         compositionSettings.Merger?.AddFusionDefinitions
@@ -33,7 +33,18 @@ internal static class SettingsExtensions
         }
     }
 
-    extension(MergerSettings mergerSettings)
+    extension(CompositionSettings.PreprocessorSettings preprocessorSettings)
+    {
+        public void MergeInto(SourceSchemaPreprocessorOptions preprocessorOptions)
+        {
+            if (preprocessorSettings.ExcludeByTag is { } excludeByTag)
+            {
+                preprocessorOptions.ExcludeByTag.UnionWith(excludeByTag);
+            }
+        }
+    }
+
+    extension(CompositionSettings.MergerSettings mergerSettings)
     {
         public SourceSchemaMergerOptions ToOptions()
         {
@@ -68,9 +79,34 @@ internal static class SettingsExtensions
         }
     }
 
-    extension(ParserSettings parserSettings)
+    extension(SourceSchemaSettings sourceSchemaSettings)
     {
-        public SourceSchemaParserOptions ToOptions()
+        public SourceSchemaOptions ToOptions()
+        {
+            var sourceSchemaOptions = new SourceSchemaOptions();
+
+            if (sourceSchemaSettings.Version is { } version)
+            {
+                sourceSchemaOptions.Version = version;
+            }
+
+            if (sourceSchemaSettings.Parser is { } parserSettings)
+            {
+                sourceSchemaOptions.Parser = parserSettings.ToOptions();
+            }
+
+            if (sourceSchemaSettings.Preprocessor is { } preprocessorSettings)
+            {
+                sourceSchemaOptions.Preprocessor = preprocessorSettings.ToOptions();
+            }
+
+            return sourceSchemaOptions;
+        }
+    }
+
+    extension(SourceSchemaSettings.ParserSettings parserSettings)
+    {
+        private SourceSchemaParserOptions ToOptions()
         {
             var parserOptions = new SourceSchemaParserOptions();
 
@@ -83,9 +119,9 @@ internal static class SettingsExtensions
         }
     }
 
-    extension(PreprocessorSettings preprocessorSettings)
+    extension(SourceSchemaSettings.PreprocessorSettings preprocessorSettings)
     {
-        public SourceSchemaPreprocessorOptions ToOptions()
+        private SourceSchemaPreprocessorOptions ToOptions()
         {
             var preprocessorOptions = new SourceSchemaPreprocessorOptions();
 
@@ -103,7 +139,7 @@ internal static class SettingsExtensions
         }
     }
 
-    extension(SatisfiabilitySettings satisfiabilitySettings)
+    extension(SourceSchemaSettings.SatisfiabilitySettings satisfiabilitySettings)
     {
         public void MergeInto(SatisfiabilityOptions satisfiabilityOptions)
         {
@@ -128,31 +164,6 @@ internal static class SettingsExtensions
                     }
                 }
             }
-        }
-    }
-
-    extension(SourceSchemaSettings sourceSchemaSettings)
-    {
-        public SourceSchemaOptions ToOptions()
-        {
-            var sourceSchemaOptions = new SourceSchemaOptions();
-
-            if (sourceSchemaSettings.Version is { } version)
-            {
-                sourceSchemaOptions.Version = version;
-            }
-
-            if (sourceSchemaSettings.Parser is { } parserSettings)
-            {
-                sourceSchemaOptions.Parser = parserSettings.ToOptions();
-            }
-
-            if (sourceSchemaSettings.Preprocessor is { } preprocessorSettings)
-            {
-                sourceSchemaOptions.Preprocessor = preprocessorSettings.ToOptions();
-            }
-
-            return sourceSchemaOptions;
         }
     }
 }

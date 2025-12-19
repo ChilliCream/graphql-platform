@@ -163,7 +163,7 @@ internal sealed class FusionComposeCommand : Command
             environment,
             new CompositionSettings
             {
-                Merger = new MergerSettings
+                Merger = new CompositionSettings.MergerSettings
                 {
                     EnableGlobalObjectIdentification = enableGlobalObjectIdentification
                 }
@@ -191,7 +191,7 @@ internal sealed class FusionComposeCommand : Command
             environment,
             new CompositionSettings
             {
-                Merger = new MergerSettings
+                Merger = new CompositionSettings.MergerSettings
                 {
                     EnableGlobalObjectIdentification = enableGlobalObjectIdentification
                 }
@@ -366,7 +366,7 @@ internal sealed class FusionComposeCommand : Command
                     environment,
                     new CompositionSettings
                     {
-                        Merger = new MergerSettings
+                        Merger = new CompositionSettings.MergerSettings
                         {
                             EnableGlobalObjectIdentification = enableGlobalObjectIdentification
                         }
@@ -466,9 +466,7 @@ internal sealed class FusionComposeCommand : Command
     {
         environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
-        var sourceSchemas = await ReadSourceSchemasAsync(
-            sourceSchemaFiles,
-            cancellationToken);
+        var sourceSchemas = await ReadSourceSchemasAsync(sourceSchemaFiles, cancellationToken);
 
         var existingSourceSchemaNames = new SortedSet<string>(
             await archive.GetSourceSchemaNamesAsync(cancellationToken),
@@ -527,10 +525,11 @@ internal sealed class FusionComposeCommand : Command
         }
 
         var existingCompositionSettings = await GetCompositionSettingsAsync(archive, cancellationToken);
-        var mergedCompositionSettings = compositionSettings?.MergeInto(existingCompositionSettings);
+        var mergedCompositionSettings =
+            compositionSettings?.MergeInto(existingCompositionSettings) ?? existingCompositionSettings;
 
         var sourceSchemaOptionsMap = new Dictionary<string, SourceSchemaOptions>();
-        var mergerOptions = mergedCompositionSettings?.Merger?.ToOptions() ?? new SourceSchemaMergerOptions();
+        var mergerOptions = mergedCompositionSettings.Merger?.ToOptions() ?? new SourceSchemaMergerOptions();
         var satisfiabilityOptions = new SatisfiabilityOptions();
 
         foreach (var (sourceSchemaName, (_, sourceSchemaSettings)) in sourceSchemas)
@@ -538,7 +537,10 @@ internal sealed class FusionComposeCommand : Command
             var schemaSettings =
                 sourceSchemaSettings.Deserialize(SettingsJsonSerializerContext.Default.SourceSchemaSettings)!;
 
-            sourceSchemaOptionsMap.Add(sourceSchemaName, schemaSettings.ToOptions());
+            var sourceSchemaOptions = schemaSettings.ToOptions();
+
+            mergedCompositionSettings.Preprocessor?.MergeInto(sourceSchemaOptions.Preprocessor);
+            sourceSchemaOptionsMap.Add(sourceSchemaName, sourceSchemaOptions);
             schemaSettings.Satisfiability?.MergeInto(satisfiabilityOptions);
         }
 
@@ -727,7 +729,7 @@ internal sealed class FusionComposeCommand : Command
         return compositionSettings?.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
             ?? new CompositionSettings
             {
-                Merger = new MergerSettings
+                Merger = new CompositionSettings.MergerSettings
                 {
                     EnableGlobalObjectIdentification = false
                 }
@@ -741,7 +743,7 @@ internal sealed class FusionComposeCommand : Command
     {
         var settings = new CompositionSettings
         {
-            Merger = new MergerSettings
+            Merger = new CompositionSettings.MergerSettings
             {
                 EnableGlobalObjectIdentification = options.Merger.EnableGlobalObjectIdentification
             }
