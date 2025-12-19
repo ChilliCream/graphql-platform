@@ -50,7 +50,7 @@ public class FloatType : FloatTypeBase<double>
     {
     }
 
-    protected override double ParseLiteral(IFloatValueLiteral valueSyntax) =>
+    protected override double OnCoerceInputLiteral(IFloatValueLiteral valueSyntax) =>
         valueSyntax.ToDouble();
 
     protected override FloatValueNode ParseValue(double runtimeValue) =>

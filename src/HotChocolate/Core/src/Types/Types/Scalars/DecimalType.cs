@@ -47,7 +47,7 @@ public class DecimalType : FloatTypeBase<decimal>
     {
     }
 
-    protected override decimal ParseLiteral(IFloatValueLiteral valueSyntax)
+    protected override decimal OnCoerceInputLiteral(IFloatValueLiteral valueSyntax)
         => valueSyntax.ToDecimal();
 
     protected override FloatValueNode ParseValue(decimal runtimeValue)

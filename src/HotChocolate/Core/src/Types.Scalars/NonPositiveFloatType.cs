@@ -43,13 +43,13 @@ public class NonPositiveFloatType : FloatType
     }
 
     /// <inheritdoc />
-    protected override LeafCoercionException CreateParseLiteralError(IValueNode valueSyntax)
+    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
     {
         throw ThrowHelper.NonPositiveFloatType_ParseLiteral_IsNotNonPositive(this);
     }
 
     /// <inheritdoc />
-    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
+    protected override LeafCoercionException CreateCoerceInputValueError(object runtimeValue)
     {
         throw ThrowHelper.NonPositiveFloatType_ParseValue_IsNotNonPositive(this);
     }

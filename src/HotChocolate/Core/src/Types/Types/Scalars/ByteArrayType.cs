@@ -82,7 +82,7 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
         }
 
         throw new LeafCoercionException(
-            TypeResourceHelper.Scalar_Cannot_CoerceInputValue(Name, inputValue.ValueKind),
+            TypeResourceHelper.Scalar_Cannot_CoerceInputValue(this, inputValue),
             this);
     }
 

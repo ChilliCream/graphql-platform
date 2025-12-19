@@ -80,7 +80,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         }
 
         throw new LeafCoercionException(
-            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, valueLiteral.GetType()),
+            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(this, valueLiteral),
             this);
     }
 
@@ -92,7 +92,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         }
 
         throw new LeafCoercionException(
-            TypeResourceHelper.Scalar_Cannot_CoerceInputValue(Name, inputValue.ValueKind),
+            TypeResourceHelper.Scalar_Cannot_CoerceInputValue(this, inputValue),
             this);
     }
 

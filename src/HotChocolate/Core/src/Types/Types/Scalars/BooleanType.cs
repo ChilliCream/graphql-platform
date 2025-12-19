@@ -56,7 +56,7 @@ public class BooleanType : ScalarType<bool, BooleanValueNode>
 
             default:
                 throw new LeafCoercionException(
-                    TypeResourceHelper.Scalar_Cannot_CoerceInputValue(Name, inputValue.ValueKind),
+                    TypeResourceHelper.Scalar_Cannot_CoerceInputValue(this, inputValue),
                     this);
         }
     }
