@@ -11,7 +11,7 @@ internal sealed class FusionSettingsSetCommand : Command
         Description = "Sets a Fusion composition setting and publishes the updated Fusion configuration to Nitro";
 
         var settingNameArgument = new Argument<string>("SETTING_NAME")
-            .FromAmong(SettingNames.GlobalObjectIdentification);
+            .FromAmong(SettingNames.GlobalObjectIdentification, SettingNames.ExcludeByTag);
 
         var settingValueArgument = new Argument<string>("SETTING_VALUE");
 
@@ -65,6 +65,13 @@ internal sealed class FusionSettingsSetCommand : Command
 
         switch (settingName)
         {
+            case SettingNames.ExcludeByTag:
+                var tags = settingValue
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                compositionSettings.Preprocessor!.ExcludeByTag = tags.ToHashSet();
+                break;
+
             case SettingNames.GlobalObjectIdentification:
                 if (!bool.TryParse(settingValue, out var enableGlobalObjectIdentification))
                 {
@@ -95,6 +102,7 @@ internal sealed class FusionSettingsSetCommand : Command
 
     private static class SettingNames
     {
+        public const string ExcludeByTag = "exclude-by-tag";
         public const string GlobalObjectIdentification = "global-object-identification";
     }
 }

@@ -33,7 +33,7 @@ internal static class CompositionTestHelper
 
         foreach (var schema in schemas)
         {
-            new SourceSchemaPreprocessor(schema, schemas).Preprocess();
+            new SourceSchemaPreprocessor(schema, schemas, log).Preprocess();
             new SourceSchemaEnricher(schema, schemas).Enrich();
         }
 
