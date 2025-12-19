@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Settings;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
@@ -60,6 +61,8 @@ internal sealed class FusionSettingsSetCommand : Command
         IHttpClientFactory httpClientFactory,
         CancellationToken cancellationToken)
     {
+        var compositionSettings = new CompositionSettings();
+
         switch (settingName)
         {
             case SettingNames.GlobalObjectIdentification:
@@ -69,21 +72,25 @@ internal sealed class FusionSettingsSetCommand : Command
                     return ExitCodes.Error;
                 }
 
-                return await FusionPublishCommand.ExecuteAsync(
-                    null,
-                    [],
-                    apiId,
-                    stageName,
-                    tag,
-                    enableGlobalObjectIdentification,
-                    requireExistingConfiguration: true,
-                    console,
-                    client,
-                    httpClientFactory,
-                    cancellationToken);
+                compositionSettings.Merger!.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+                break;
+
             default:
                 throw new ArgumentOutOfRangeException(nameof(settingName));
         }
+
+        return await FusionPublishCommand.ExecuteAsync(
+            null,
+            [],
+            apiId,
+            stageName,
+            tag,
+            compositionSettings,
+            requireExistingConfiguration: true,
+            console,
+            client,
+            httpClientFactory,
+            cancellationToken);
     }
 
     private static class SettingNames

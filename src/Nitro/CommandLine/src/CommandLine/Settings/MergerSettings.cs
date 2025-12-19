@@ -8,7 +8,7 @@ internal sealed record MergerSettings
 
     public DirectiveMergeBehavior? CacheControlMergeBehavior { get; init; }
 
-    public bool? EnableGlobalObjectIdentification { get; init; }
+    public bool? EnableGlobalObjectIdentification { get; set; }
 
     public bool? RemoveUnreferencedDefinitions { get; init; }
 

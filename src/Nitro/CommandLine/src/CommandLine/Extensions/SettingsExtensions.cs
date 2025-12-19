@@ -5,6 +5,34 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal static class SettingsExtensions
 {
+    extension(CompositionSettings compositionSettings)
+    {
+        public CompositionSettings MergeInto(CompositionSettings settings)
+        {
+            return new CompositionSettings
+            {
+                Merger = new MergerSettings
+                {
+                    AddFusionDefinitions =
+                        compositionSettings.Merger?.AddFusionDefinitions
+                        ?? settings.Merger?.AddFusionDefinitions,
+                    CacheControlMergeBehavior =
+                        compositionSettings.Merger?.CacheControlMergeBehavior
+                        ?? settings.Merger?.CacheControlMergeBehavior,
+                    EnableGlobalObjectIdentification =
+                        compositionSettings.Merger?.EnableGlobalObjectIdentification
+                        ?? settings.Merger?.EnableGlobalObjectIdentification,
+                    RemoveUnreferencedDefinitions =
+                        compositionSettings.Merger?.RemoveUnreferencedDefinitions
+                        ?? settings.Merger?.RemoveUnreferencedDefinitions,
+                    TagMergeBehavior =
+                        compositionSettings.Merger?.TagMergeBehavior
+                        ?? settings.Merger?.TagMergeBehavior
+                }
+            };
+        }
+    }
+
     extension(MergerSettings mergerSettings)
     {
         public SourceSchemaMergerOptions ToOptions()
@@ -100,6 +128,31 @@ internal static class SettingsExtensions
                     }
                 }
             }
+        }
+    }
+
+    extension(SourceSchemaSettings sourceSchemaSettings)
+    {
+        public SourceSchemaOptions ToOptions()
+        {
+            var sourceSchemaOptions = new SourceSchemaOptions();
+
+            if (sourceSchemaSettings.Version is { } version)
+            {
+                sourceSchemaOptions.Version = version;
+            }
+
+            if (sourceSchemaSettings.Parser is { } parserSettings)
+            {
+                sourceSchemaOptions.Parser = parserSettings.ToOptions();
+            }
+
+            if (sourceSchemaSettings.Preprocessor is { } preprocessorSettings)
+            {
+                sourceSchemaOptions.Preprocessor = preprocessorSettings.ToOptions();
+            }
+
+            return sourceSchemaOptions;
         }
     }
 }
