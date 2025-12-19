@@ -2,6 +2,7 @@ using System.CommandLine.IO;
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Settings;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
 using static ChilliCream.Nitro.CommandLine.CommandLineResources;
@@ -78,8 +79,8 @@ internal sealed class FusionPublishCommand : Command
                 apiId,
                 stageName,
                 tag,
-                // We'll always take the setting already in the configuration for this
-                enableGlobalObjectIdentification: null,
+                // We'll always take the settings already in the configuration for this
+                compositionSettings: null,
                 requireExistingConfiguration: false,
                 console,
                 apiClient,
@@ -94,7 +95,7 @@ internal sealed class FusionPublishCommand : Command
         string apiId,
         string stageName,
         string tag,
-        bool? enableGlobalObjectIdentification,
+        CompositionSettings? compositionSettings,
         bool requireExistingConfiguration,
         IAnsiConsole console,
         IApiClient client,
@@ -315,7 +316,7 @@ internal sealed class FusionPublishCommand : Command
                 sourceSchemaFiles,
                 archive,
                 environment: stageName,
-                enableGlobalObjectIdentification,
+                compositionSettings,
                 cancellationToken);
 
             var writer = new AnsiStreamWriter(result.IsSuccess ? console.Out : console.Error);
