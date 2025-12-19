@@ -3,15 +3,17 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Properties;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
 /// <summary>
+/// <para>
 /// The JSON scalar type represents a JSON node which can be a string,
 /// a number a boolean, an array, an object or null.
-///
-/// The runtime representation of the JSON scalar is an <see cref="JsonElement"/>.
+/// </para>
+/// <para>The runtime representation of the JSON scalar is an <see cref="JsonElement"/>.</para>
 /// </summary>
 public sealed class JsonType : ScalarType<JsonElement>
 {
@@ -21,7 +23,6 @@ public sealed class JsonType : ScalarType<JsonElement>
     public JsonType(string name, BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
-        SerializationType = ScalarSerializationType.Any;
     }
 
     /// <summary>
@@ -33,61 +34,101 @@ public sealed class JsonType : ScalarType<JsonElement>
     {
     }
 
-    /// <summary>
-    /// Defines if the specified <paramref name="valueSyntax"/> can be handled by the JSON scalar.
-    /// </summary>
-    /// <param name="valueSyntax">
-    /// The GraphQL value syntax that shall be evaluated.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the specified <paramref name="valueSyntax"/> can be handled
-    /// by the JSON scalar; otherwise <c>false</c>.
-    /// </returns>
-    public override bool IsValueCompatible(IValueNode valueSyntax)
-        => true;
+    /// <inheritdoc />
+    public override ScalarSerializationType SerializationType
+        => ScalarSerializationType.Any;
 
-    /// <summary>
-    /// Parses the specified GraphQL value syntax into a <see cref="JsonElement"/>.
-    /// </summary>
-    /// <param name="valueSyntax">
-    /// The GraphQL value syntax that shall be parsed.
-    /// </param>
-    /// <returns>
-    /// Returns <c>null</c> or a <see cref="JsonElement"/>.
-    /// </returns>
-    public override object CoerceInputLiteral(IValueNode valueSyntax)
-        => JsonFormatter.Format(valueSyntax);
+    /// <inheritdoc />
+    public override bool IsValueCompatible(IValueNode valueLiteral)
+        => valueLiteral.Kind is
+            SyntaxKind.ObjectValue or
+            SyntaxKind.ListValue or
+            SyntaxKind.StringValue or
+            SyntaxKind.IntValue or
+            SyntaxKind.FloatValue or
+            SyntaxKind.BooleanValue;
 
-    /// <summary>
-    /// Parses the runtime value into GraphQL value syntax.
-    /// </summary>
-    /// <param name="runtimeValue">
-    /// The runtime value.
-    /// </param>
-    /// <returns>
-    /// Returns GraphQL value syntax.
-    /// </returns>
-    public override IValueNode CoerceInputValue(object? runtimeValue)
+    /// <inheritdoc />
+    public override bool IsValueCompatible(JsonElement inputValue)
+        => inputValue.ValueKind is
+            JsonValueKind.Object or
+            JsonValueKind.Array or
+            JsonValueKind.String or
+            JsonValueKind.Number or
+            JsonValueKind.True or
+            JsonValueKind.False;
+
+    /// <inheritdoc />
+    public override object CoerceInputLiteral(IValueNode valueLiteral)
+        => JsonFormatter.Format(valueLiteral);
+
+    /// <inheritdoc />
+    public override object CoerceInputValue(JsonElement inputValue)
+        => inputValue.Clone();
+
+    /// <inheritdoc />
+    public override void CoerceOutputValue(JsonElement runtimeValue, ResultElement resultValue)
     {
-        if (runtimeValue is null)
+        switch (runtimeValue.ValueKind)
         {
-            return NullValueNode.Default;
-        }
+            case JsonValueKind.String:
+                resultValue.SetStringValue(JsonMarshal.GetRawUtf8Value(runtimeValue));
+                break;
 
-        if (runtimeValue is JsonElement element)
-        {
-            return JsonParser.Parse(element);
-        }
+            case JsonValueKind.Number:
+                resultValue.SetNumberValue(JsonMarshal.GetRawUtf8Value(runtimeValue));
+                break;
 
-        throw CreateParseValueError(runtimeValue);
+            case JsonValueKind.True:
+                resultValue.SetBooleanValue(true);
+                break;
+
+            case JsonValueKind.False:
+                resultValue.SetBooleanValue(false);
+                break;
+
+            case JsonValueKind.Null:
+                resultValue.SetNullValue();
+                break;
+
+            case JsonValueKind.Array:
+            {
+                var length = runtimeValue.GetArrayLength();
+                resultValue.SetArrayValue(length);
+
+                using var enumerator = runtimeValue.EnumerateArray().GetEnumerator();
+
+                foreach (var element in resultValue.EnumerateArray())
+                {
+                    enumerator.MoveNext();
+                    CoerceOutputValue(enumerator.Current, element);
+                }
+                break;
+            }
+
+            case JsonValueKind.Object:
+            {
+                var length = runtimeValue.GetPropertyCount();
+                resultValue.SetObjectValue(length);
+
+                using var enumerator = runtimeValue.EnumerateObject().GetEnumerator();
+
+                foreach (var property in resultValue.EnumerateObject())
+                {
+                    enumerator.MoveNext();
+                    CoerceOutputValue(enumerator.Current.Value, property.Value);
+                }
+                break;
+            }
+
+            default:
+                throw Scalar_Cannot_CoerceOutputValue(this, runtimeValue);
+        }
     }
 
-    /// <inheritdoc cref="ScalarType.ParseResult"/>
-    public override IValueNode ParseResult(object? resultValue)
-        => CoerceInputValue(resultValue);
-
-    private LeafCoercionException CreateParseValueError(object runtimeValue)
-        => new(TypeResourceHelper.Scalar_Cannot_CoerceInputValue(Name, runtimeValue.GetType()), this);
+    /// <inheritdoc />
+    public override IValueNode ValueToLiteral(JsonElement runtimeValue)
+        => JsonParser.Parse(runtimeValue);
 
     private static class JsonParser
     {
