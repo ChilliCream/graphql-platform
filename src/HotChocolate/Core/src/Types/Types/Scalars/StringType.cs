@@ -1,5 +1,8 @@
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
@@ -10,7 +13,6 @@ namespace HotChocolate.Types;
 ///
 /// http://facebook.github.io/graphql/June2018/#sec-String
 /// </summary>
-[SpecScalar]
 public class StringType : ScalarType<string, StringValueNode>
 {
     /// <summary>
@@ -37,12 +39,26 @@ public class StringType : ScalarType<string, StringValueNode>
     {
     }
 
-    protected override string ParseLiteral(StringValueNode valueSyntax) =>
-        valueSyntax.Value;
+    /// <inheritdoc />
+    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+        => valueLiteral.Value;
 
-    protected override StringValueNode ParseValue(string runtimeValue) =>
-        new(runtimeValue);
+    /// <inheritdoc />
+    public override object CoerceInputValue(JsonElement inputValue)
+    {
+        if (inputValue.ValueKind is JsonValueKind.String)
+        {
+            return inputValue.GetString()!;
+        }
 
-    public override IValueNode ParseResult(object? resultValue) =>
-        CoerceInputValue(resultValue);
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
+    }
+
+    /// <inheritdoc />
+    public override void CoerceOutputValue(string runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(runtimeValue);
+
+    /// <inheritdoc />
+    public override IValueNode ValueToLiteral(string runtimeValue)
+        => new StringValueNode(runtimeValue);
 }
