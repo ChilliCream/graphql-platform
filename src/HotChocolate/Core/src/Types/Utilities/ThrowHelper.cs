@@ -1,7 +1,9 @@
 #nullable disable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -606,5 +608,48 @@ internal static class ThrowHelper
         }
 
         return new(builder.Build(), type);
+    }
+
+    public static LeafCoercionException Scalar_Cannot_CoerceInputLiteral(
+        ScalarType scalarType,
+        IValueNode valueLiteral)
+    {
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            TypeResources.Scalar_Cannot_CoerceInputLiteral,
+            typeName,
+            literalType.Name);
+    }
+
+    public static LeafCoercionException Scalar_Cannot_CoerceInputValue(
+        ScalarType scalarType,
+        JsonElement inputValue)
+    {
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            TypeResources.Scalar_Cannot_CoerceInputValue,
+            typeName,
+            valueKind);
+    }
+
+
+    public static LeafCoercionException Scalar_Cannot_ConvertValueToLiteral(
+        ScalarType scalarType,
+        object runtimeValue)
+    {
+        // return string.Format(
+        //    CultureInfo.InvariantCulture,
+        //    TypeResources.Scalar_Cannot_Deserialize,
+        //    typeName);
+
+        throw new InvalidOperationException();
+    }
+
+    public static LeafCoercionException Scalar_Cannot_CoerceOutputValue(ScalarType scalarType, object runtimeValue)
+    {
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            TypeResources.Scalar_Cannot_Serialize,
+            typeName);
     }
 }

@@ -13,7 +13,6 @@ namespace HotChocolate.Types;
 /// https://spec.graphql.org/September2025/#sec-Boolean
 /// </para>
 /// </summary>
-[SpecScalar]
 public class BooleanType : ScalarType<bool, BooleanValueNode>
 {
     /// <summary>
@@ -40,16 +39,15 @@ public class BooleanType : ScalarType<bool, BooleanValueNode>
     {
     }
 
-    public override object? CoerceInputLiteral(BooleanValueNode valueLiteral)
+    /// <inheritdoc />
+    public override object CoerceInputLiteral(BooleanValueNode valueLiteral)
         => valueLiteral.Value;
 
-    public override object? CoerceInputValue(JsonElement inputValue)
+    /// <inheritdoc />
+    public override object CoerceInputValue(JsonElement inputValue)
     {
         switch (inputValue.ValueKind)
         {
-            case JsonValueKind.Null:
-                return null;
-
             case JsonValueKind.True:
                 return true;
 
@@ -58,14 +56,16 @@ public class BooleanType : ScalarType<bool, BooleanValueNode>
 
             default:
                 throw new LeafCoercionException(
-                    TypeResourceHelper.Scalar_Cannot_ParseValue(Name, inputValue.ValueKind.ToString()),
+                    TypeResourceHelper.Scalar_Cannot_CoerceInputValue(Name, inputValue.ValueKind),
                     this);
         }
     }
 
+    /// <inheritdoc />
     public override void CoerceOutputValue(bool runtimeValue, ResultElement resultValue)
         => resultValue.SetBooleanValue(runtimeValue);
 
+    /// <inheritdoc />
     public override IValueNode ValueToLiteral(bool runtimeValue)
         => runtimeValue ? BooleanValueNode.True : BooleanValueNode.False;
 }

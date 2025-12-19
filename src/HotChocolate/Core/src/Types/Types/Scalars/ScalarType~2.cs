@@ -1,6 +1,6 @@
 using System.Text.Json;
 using HotChocolate.Language;
-using HotChocolate.Properties;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
@@ -9,7 +9,10 @@ namespace HotChocolate.Types;
 /// GraphQL responses take the form of a hierarchical tree;
 /// the leaves on these trees are GraphQL scalars.
 /// </summary>
-public abstract class ScalarType<TRuntimeType, TLiteral> : ScalarType<TRuntimeType> where TLiteral : IValueNode
+public abstract class ScalarType<TRuntimeType, TLiteral>
+    : ScalarType<TRuntimeType>
+    where TRuntimeType : notnull
+    where TLiteral : IValueNode
 {
     /// <inheritdoc />
     protected ScalarType(string name, BindingBehavior bind = BindingBehavior.Explicit)
@@ -58,30 +61,11 @@ public abstract class ScalarType<TRuntimeType, TLiteral> : ScalarType<TRuntimeTy
 
     /// <inheritdoc />
     public sealed override bool IsValueCompatible(IValueNode valueSyntax)
-    {
-        ArgumentNullException.ThrowIfNull(valueSyntax);
-
-        if (valueSyntax.Kind == SyntaxKind.NullValue)
-        {
-            return true;
-        }
-
-        return valueSyntax is TLiteral;
-    }
+        => valueSyntax is TLiteral;
 
     /// <inheritdoc />
     public override bool IsValueCompatible(JsonElement inputValue)
     {
-        if (inputValue.ValueKind == JsonValueKind.Undefined)
-        {
-            return false;
-        }
-
-        if (inputValue.ValueKind == JsonValueKind.Null)
-        {
-            return true;
-        }
-
         if (SerializationType == ScalarSerializationType.String
             && inputValue.ValueKind == JsonValueKind.String)
         {
@@ -123,15 +107,8 @@ public abstract class ScalarType<TRuntimeType, TLiteral> : ScalarType<TRuntimeTy
     }
 
     /// <inheritdoc />
-    public sealed override object? CoerceInputLiteral(IValueNode valueLiteral)
+    public sealed override object CoerceInputLiteral(IValueNode valueLiteral)
     {
-        ArgumentNullException.ThrowIfNull(valueLiteral);
-
-        if (valueLiteral.Kind is SyntaxKind.NullValue)
-        {
-            return null;
-        }
-
         if (valueLiteral is TLiteral literal)
         {
             return CoerceInputLiteral(literal);
@@ -140,20 +117,8 @@ public abstract class ScalarType<TRuntimeType, TLiteral> : ScalarType<TRuntimeTy
         throw CreateCoerceInputLiteralError(valueLiteral);
     }
 
-    public abstract object? CoerceInputLiteral(TLiteral valueLiteral);
+    public abstract object CoerceInputLiteral(TLiteral valueLiteral);
 
-    /// <summary>
-    /// Creates the exception that will be thrown when <see cref="CoerceInputLiteral(IValueNode)"/> encountered an
-    /// invalid <see cref="IValueNode "/>
-    /// </summary>
-    /// <param name="valueSyntax">
-    /// The value syntax that should be parsed
-    /// </param>
-    /// <returns>
-    /// The created exception that should be thrown
-    /// </returns>
     protected virtual LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-        => new LeafCoercionException(
-            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, valueSyntax.GetType()),
-            this);
+        => Scalar_Cannot_CoerceInputLiteral(this, valueSyntax);
 }

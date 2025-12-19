@@ -1,6 +1,6 @@
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 /// <typeparam name="TRuntimeType">
 /// The .NET runtime type that this scalar represents.
 /// </typeparam>
-public abstract class ScalarType<TRuntimeType> : ScalarType
+public abstract class ScalarType<TRuntimeType> : ScalarType where TRuntimeType : notnull
 {
     /// <inheritdoc />
     protected ScalarType(string name, BindingBehavior bind = BindingBehavior.Explicit)
@@ -24,36 +24,19 @@ public abstract class ScalarType<TRuntimeType> : ScalarType
     public sealed override Type RuntimeType => typeof(TRuntimeType);
 
     /// <inheritdoc />
-    public override bool IsInstanceOfType(object? runtimeValue)
-    {
-        if (runtimeValue is null)
-        {
-            return true;
-        }
-
-        return RuntimeType.IsInstanceOfType(runtimeValue);
-    }
+    public override bool IsInstanceOfType(object runtimeValue)
+        => RuntimeType.IsInstanceOfType(runtimeValue);
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(object? runtimeValue, ResultElement resultValue)
+    public override void CoerceOutputValue(object runtimeValue, ResultElement resultValue)
     {
-        if (runtimeValue is null)
-        {
-            resultValue.SetNullValue();
-            return;
-        }
-
         if (runtimeValue is TRuntimeType t)
         {
             CoerceOutputValue(t, resultValue);
             return;
         }
 
-        throw new LeafCoercionException(
-            TypeResourceHelper.Scalar_Cannot_CoerceOutputValue(
-                runtimeValue.GetType(),
-                runtimeValue.ToString() ?? "null"),
-            this);
+        throw Scalar_Cannot_CoerceOutputValue(this, runtimeValue);
     }
 
     /// <summary>
@@ -69,26 +52,17 @@ public abstract class ScalarType<TRuntimeType> : ScalarType
     /// <exception cref="LeafCoercionException">
     /// Unable to coerce the given <paramref name="runtimeValue"/> into an output value.
     /// </exception>
-    public abstract void CoerceOutputValue(TRuntimeType? runtimeValue, ResultElement resultValue);
+    public abstract void CoerceOutputValue(TRuntimeType runtimeValue, ResultElement resultValue);
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(object? runtimeValue)
+    public override IValueNode ValueToLiteral(object runtimeValue)
     {
-        if (runtimeValue is null)
-        {
-            return NullValueNode.Default;
-        }
-
         if (runtimeValue is TRuntimeType runtimeType)
         {
             return ValueToLiteral(runtimeType);
         }
 
-        throw new LeafCoercionException(
-            TypeResourceHelper.Scalar_Cannot_ConvertValueToLiteral(
-                runtimeValue.GetType(),
-                runtimeValue.ToString() ?? "null"),
-            this);
+        throw Scalar_Cannot_ConvertValueToLiteral(this, runtimeValue);
     }
 
     /// <summary>
@@ -104,5 +78,5 @@ public abstract class ScalarType<TRuntimeType> : ScalarType
     /// <exception cref="LeafCoercionException">
     /// Unable to convert the given <paramref name="runtimeValue"/> into a literal.
     /// </exception>
-    public abstract IValueNode ValueToLiteral(TRuntimeType? runtimeValue);
+    public abstract IValueNode ValueToLiteral(TRuntimeType runtimeValue);
 }

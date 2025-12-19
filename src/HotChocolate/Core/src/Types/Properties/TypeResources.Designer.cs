@@ -534,12 +534,6 @@ namespace HotChocolate.Properties {
             }
         }
 
-        internal static string Scalar_Cannot_Deserialize {
-            get {
-                return ResourceManager.GetString("Scalar_Cannot_Deserialize", resourceCulture);
-            }
-        }
-
         internal static string Scalar_Cannot_CoerceInputLiteral {
             get {
                 return ResourceManager.GetString("Scalar_Cannot_CoerceInputLiteral", resourceCulture);

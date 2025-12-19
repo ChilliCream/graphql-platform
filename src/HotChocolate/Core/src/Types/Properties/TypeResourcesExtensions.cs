@@ -1,34 +1,13 @@
 using System.Globalization;
+using System.Text.Json;
+using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Properties;
 
 internal static class TypeResourceHelper
 {
-    public static string Scalar_Cannot_ConvertValueToLiteral(Type actualType, string actualValue)
-    {
-        return string.Format(
-            CultureInfo.InvariantCulture,
-            TypeResources.Scalar_Cannot_Deserialize,
-            typeName);
-    }
-
-    public static string Scalar_Cannot_Serialize(string typeName)
-    {
-        return string.Format(
-            CultureInfo.InvariantCulture,
-            TypeResources.Scalar_Cannot_Serialize,
-            typeName);
-    }
-
-    public static string Scalar_Cannot_Deserialize(string typeName)
-    {
-        return string.Format(
-            CultureInfo.InvariantCulture,
-            TypeResources.Scalar_Cannot_Deserialize,
-            typeName);
-    }
-
-    public static string Scalar_Cannot_CoerceInputLiteral(string typeName, Type literalType)
+    public static string Scalar_Cannot_CoerceInputLiteral(ScalarType scalarType, IValueNode valueLiteral)
     {
         return string.Format(
             CultureInfo.InvariantCulture,
@@ -37,22 +16,29 @@ internal static class TypeResourceHelper
             literalType.Name);
     }
 
-    public static string Scalar_Cannot_CoerceInputValue(string typeName, Type valueType)
+    public static string Scalar_Cannot_CoerceInputValue(ScalarType scalarType, JsonElement inputValue)
     {
         return string.Format(
             CultureInfo.InvariantCulture,
             TypeResources.Scalar_Cannot_CoerceInputValue,
             typeName,
-            valueType.FullName);
+            valueKind);
     }
 
-    public static string Scalar_Cannot_ParseResult(string typeName, Type valueType)
+    public static string Scalar_Cannot_ConvertValueToLiteral(ScalarType scalarType, object runtimeValue)
     {
         return string.Format(
             CultureInfo.InvariantCulture,
-            TypeResources.Scalar_Cannot_CoerceInputValue,
-            typeName,
-            valueType.FullName);
+            TypeResources.Scalar_Cannot_Deserialize,
+            typeName);
+    }
+
+    public static string Scalar_Cannot_CoerceOutputValue(ScalarType scalarType, object runtimeValue)
+    {
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            TypeResources.Scalar_Cannot_Serialize,
+            typeName);
     }
 
     public static string Type_Name_IsNotValid(string typeName)

@@ -19,6 +19,9 @@ public interface ILeafType : IInputTypeDefinition, IOutputTypeDefinition
     /// <returns>
     /// <c>true</c> if the given <paramref name="valueLiteral"/> is compatible with this type.
     /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="valueLiteral"/> is <c>null</c>.
+    /// </exception>
     bool IsValueCompatible(IValueNode valueLiteral);
 
     /// <summary>
@@ -36,12 +39,15 @@ public interface ILeafType : IInputTypeDefinition, IOutputTypeDefinition
     /// Determines if the given <paramref name="runtimeValue"/> is an instance of this type.
     /// </summary>
     /// <param name="runtimeValue">
-    /// The runtime value to validate.
+    /// The runtime value to validate. Must not be <c>null</c>.
     /// </param>
     /// <returns>
     /// <c>true</c> if the given <paramref name="runtimeValue"/> is an instance of this type.
     /// </returns>
-    bool IsInstanceOfType(object? runtimeValue);
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="runtimeValue"/> is <c>null</c>.
+    /// </exception>
+    bool IsInstanceOfType(object runtimeValue);
 
     /// <summary>
     /// Coerces a GraphQL literal (AST value node) into a runtime value.
@@ -52,10 +58,13 @@ public interface ILeafType : IInputTypeDefinition, IOutputTypeDefinition
     /// <returns>
     /// Returns the runtime value representation.
     /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="valueLiteral"/> is <c>null</c>.
+    /// </exception>
     /// <exception cref="LeafCoercionException">
     /// Unable to coerce the given <paramref name="valueLiteral"/> into a runtime value.
     /// </exception>
-    object? CoerceInputLiteral(IValueNode valueLiteral);
+    object CoerceInputLiteral(IValueNode valueLiteral);
 
     /// <summary>
     /// Coerces an external input value (deserialized JSON) into a runtime value.
@@ -69,35 +78,43 @@ public interface ILeafType : IInputTypeDefinition, IOutputTypeDefinition
     /// <exception cref="LeafCoercionException">
     /// Unable to coerce the given <paramref name="inputValue"/> into a runtime value.
     /// </exception>
-    object? CoerceInputValue(JsonElement inputValue);
+    object CoerceInputValue(JsonElement inputValue);
 
     /// <summary>
     /// Coerces a runtime value into an external output representation
     /// and writes it to the result.
     /// </summary>
     /// <param name="runtimeValue">
-    /// The runtime value to coerce.
+    /// The runtime value to coerce. Must not be <c>null</c>; null handling
+    /// is the responsibility of the caller.
     /// </param>
     /// <param name="resultValue">
     /// The result element to write the output value to.
     /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="runtimeValue"/> is <c>null</c>.
+    /// </exception>
     /// <exception cref="LeafCoercionException">
     /// Unable to coerce the given <paramref name="runtimeValue"/> into an output value.
     /// </exception>
-    void CoerceOutputValue(object? runtimeValue, ResultElement resultValue);
+    void CoerceOutputValue(object runtimeValue, ResultElement resultValue);
 
     /// <summary>
     /// Converts a runtime value into a GraphQL literal (AST value node).
     /// Used for default value representation in SDL and introspection.
     /// </summary>
     /// <param name="runtimeValue">
-    /// The runtime value to convert.
+    /// The runtime value to convert. Must not be <c>null</c>; null handling
+    /// is the responsibility of the caller.
     /// </param>
     /// <returns>
     /// Returns a GraphQL literal representation of the runtime value.
     /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="runtimeValue"/> is <c>null</c>.
+    /// </exception>
     /// <exception cref="LeafCoercionException">
     /// Unable to convert the given <paramref name="runtimeValue"/> into a literal.
     /// </exception>
-    IValueNode ValueToLiteral(object? runtimeValue);
+    IValueNode ValueToLiteral(object runtimeValue);
 }

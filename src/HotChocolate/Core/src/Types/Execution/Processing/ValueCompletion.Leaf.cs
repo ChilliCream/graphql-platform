@@ -12,14 +12,14 @@ internal static partial class ValueCompletion
         Selection selection,
         ILeafType type,
         ResultElement resultValue,
-        object? runtimeValue)
+        object runtimeValue)
     {
         var operationContext = context.OperationContext;
         var resolverContext = context.ResolverContext;
 
         try
         {
-            var runtimeType = type.ToRuntimeType();
+            var runtimeType = type.RuntimeType;
 
             if (!runtimeType.IsInstanceOfType(runtimeValue)
                 && operationContext.Converter.TryConvert(runtimeType, runtimeValue, out var c))

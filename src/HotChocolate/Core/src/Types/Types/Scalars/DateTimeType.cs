@@ -1,8 +1,9 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
@@ -41,7 +42,6 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         : base(name, bind)
     {
         Description = description;
-        SerializationType = ScalarSerializationType.String;
         Pattern = @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:[Zz]|[+-]\d{2}:\d{2})$";
         SpecifiedBy = new Uri(SpecifiedByUri);
         _enforceSpecFormat = !disableFormatCheck;
@@ -72,134 +72,60 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     {
     }
 
-    protected override DateTimeOffset ParseLiteral(StringValueNode valueSyntax)
+    public override object CoerceInputLiteral(StringValueNode valueLiteral)
     {
-        if (TryDeserializeFromString(valueSyntax.Value, out var value))
+        if (TryParseStringValue(valueLiteral.Value, out var value))
         {
-            return value.Value;
+            return value;
         }
 
         throw new LeafCoercionException(
-            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, valueSyntax.GetType()),
+            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, valueLiteral.GetType()),
             this);
     }
 
-    protected override StringValueNode ParseValue(DateTimeOffset runtimeValue)
+    public override object CoerceInputValue(JsonElement inputValue)
     {
-        return new(Serialize(runtimeValue));
-    }
-
-    public override IValueNode ParseResult(object? resultValue)
-    {
-        if (resultValue is null)
+        if (TryParseStringValue(inputValue.GetString()!, out var value))
         {
-            return NullValueNode.Default;
-        }
-
-        if (resultValue is string s)
-        {
-            return new StringValueNode(s);
-        }
-
-        if (resultValue is DateTimeOffset d)
-        {
-            return ParseValue(d);
-        }
-
-        if (resultValue is DateTime dt)
-        {
-            return ParseValue(new DateTimeOffset(dt.ToUniversalTime(), TimeSpan.Zero));
+            return value;
         }
 
         throw new LeafCoercionException(
-            TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+            TypeResourceHelper.Scalar_Cannot_CoerceInputValue(Name, inputValue.ValueKind),
             this);
     }
 
-    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
+    public override void CoerceOutputValue(DateTimeOffset runtimeValue, ResultElement resultValue)
     {
-        if (runtimeValue is null)
+        if (runtimeValue.Offset == TimeSpan.Zero)
         {
-            resultValue = null;
-            return true;
+            resultValue.SetStringValue(runtimeValue.ToString(UtcFormat, CultureInfo.InvariantCulture));
         }
-
-        if (runtimeValue is DateTimeOffset dt)
+        else
         {
-            resultValue = Serialize(dt);
-            return true;
+            resultValue.SetStringValue(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
         }
-
-        if (runtimeValue is DateTime d)
-        {
-            resultValue = Serialize(new DateTimeOffset(d.ToUniversalTime(), TimeSpan.Zero));
-            return true;
-        }
-
-        resultValue = null;
-        return false;
     }
 
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+    public override IValueNode ValueToLiteral(DateTimeOffset runtimeValue)
     {
-        if (resultValue is null)
+        if (runtimeValue.Offset == TimeSpan.Zero)
         {
-            runtimeValue = null;
-            return true;
+            return new StringValueNode(runtimeValue.ToString(UtcFormat, CultureInfo.InvariantCulture));
         }
-
-        if (resultValue is string s && TryDeserializeFromString(s, out var d))
+        else
         {
-            runtimeValue = d;
-            return true;
+            return new StringValueNode(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
         }
-
-        if (resultValue is DateTimeOffset)
-        {
-            runtimeValue = resultValue;
-            return true;
-        }
-
-        if (resultValue is DateTime dt)
-        {
-            runtimeValue = new DateTimeOffset(
-                dt.ToUniversalTime(),
-                TimeSpan.Zero);
-            return true;
-        }
-
-        runtimeValue = null;
-        return false;
     }
 
-    private static string Serialize(DateTimeOffset value)
+    private bool TryParseStringValue(string serialized, out DateTimeOffset runtimeValue)
     {
-        if (value.Offset == TimeSpan.Zero)
-        {
-            return value.ToString(
-                UtcFormat,
-                CultureInfo.InvariantCulture);
-        }
-
-        return value.ToString(
-            LocalFormat,
-            CultureInfo.InvariantCulture);
-    }
-
-    private bool TryDeserializeFromString(
-        string? serialized,
-        [NotNullWhen(true)] out DateTimeOffset? value)
-    {
-        if (serialized is null)
-        {
-            value = null;
-            return false;
-        }
-
         // Check format.
         if (_enforceSpecFormat && !s_dateTimeScalarRegex.IsMatch(serialized))
         {
-            value = null;
+            runtimeValue = default;
             return false;
         }
 
@@ -207,21 +133,17 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         // https://scalars.graphql.org/andimarek/date-time.html#sec-Overview.No-Unknown-Local-Offset-Convention-
         if (serialized.EndsWith("-00:00"))
         {
-            value = null;
+            runtimeValue = default;
             return false;
         }
 
-        if (DateTimeOffset.TryParse(
-                serialized,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.None,
-                out var dt))
+        if (DateTimeOffset.TryParse(serialized, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
         {
-            value = dt;
+            runtimeValue = dt;
             return true;
         }
 
-        value = null;
+        runtimeValue = default;
         return false;
     }
 }

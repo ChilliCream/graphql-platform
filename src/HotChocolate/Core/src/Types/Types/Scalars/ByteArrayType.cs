@@ -1,5 +1,11 @@
+using System.Buffers;
+using System.Buffers.Text;
+using System.Runtime.InteropServices;
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
@@ -19,7 +25,6 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
         : base(name, bind)
     {
         Description = description;
-        SerializationType = ScalarSerializationType.String;
         Pattern = @"^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$";
     }
 
@@ -32,77 +37,102 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
     {
     }
 
-    protected override byte[] ParseLiteral(StringValueNode valueSyntax)
+    public override object CoerceInputLiteral(StringValueNode valueLiteral)
     {
-        return Convert.FromBase64String(valueSyntax.Value);
+        byte[]? rented = null;
+        var valueSpan = valueLiteral.AsSpan();
+        var length = Base64.GetMaxDecodedFromUtf8Length(valueSpan.Length);
+        var buffer = length <= 256 ? stackalloc byte[length] : rented = ArrayPool<byte>.Shared.Rent(length);
+
+        try
+        {
+            Base64.DecodeFromUtf8(valueSpan, buffer, out _, out var bytesWritten);
+            return buffer[..bytesWritten].ToArray();
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
     }
 
-    protected override StringValueNode ParseValue(byte[] runtimeValue)
+    public override object CoerceInputValue(JsonElement inputValue)
     {
-        return new(Convert.ToBase64String(runtimeValue));
-    }
-
-    public override IValueNode ParseResult(object? resultValue)
-    {
-        if (resultValue is null)
+        if (inputValue.ValueKind == JsonValueKind.String)
         {
-            return NullValueNode.Default;
-        }
+            byte[]? rented = null;
+            var valueSpan = JsonMarshal.GetRawUtf8Value(inputValue);
+            var length = Base64.GetMaxDecodedFromUtf8Length(valueSpan.Length);
+            var buffer = length <= 256 ? stackalloc byte[length] : rented = ArrayPool<byte>.Shared.Rent(length);
 
-        if (resultValue is string s)
-        {
-            return new StringValueNode(s);
-        }
-
-        if (resultValue is byte[] b)
-        {
-            return ParseValue(b);
+            try
+            {
+                Base64.DecodeFromUtf8(valueSpan, buffer, out _, out var bytesWritten);
+                return buffer[..bytesWritten].ToArray();
+            }
+            finally
+            {
+                if (rented is not null)
+                {
+                    ArrayPool<byte>.Shared.Return(rented);
+                }
+            }
         }
 
         throw new LeafCoercionException(
-            TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+            TypeResourceHelper.Scalar_Cannot_CoerceInputValue(Name, inputValue.ValueKind),
             this);
     }
 
-    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
+    public override void CoerceOutputValue(byte[] runtimeValue, ResultElement resultValue)
     {
-        if (runtimeValue is null)
-        {
-            resultValue = null;
-            return true;
-        }
+        byte[]? rented = null;
+        var length = Base64.GetMaxEncodedToUtf8Length(runtimeValue.Length);
+        var buffer = length <= 256 ? stackalloc byte[length] : rented = ArrayPool<byte>.Shared.Rent(length);
 
-        if (runtimeValue is byte[] b)
+        try
         {
-            resultValue = Convert.ToBase64String(b);
-            return true;
+            Base64.EncodeToUtf8(
+                runtimeValue,
+                buffer,
+                out _,
+                out var bytesWritten);
+            resultValue.SetStringValue(buffer[..bytesWritten]);
         }
-
-        resultValue = null;
-        return false;
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
     }
 
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+    public override IValueNode ValueToLiteral(byte[] runtimeValue)
     {
-        if (resultValue is null)
-        {
-            runtimeValue = null;
-            return true;
-        }
+        byte[]? rented = null;
+        var length = Base64.GetMaxEncodedToUtf8Length(runtimeValue.Length);
+        var buffer = length <= 256 ? stackalloc byte[length] : rented = ArrayPool<byte>.Shared.Rent(length);
 
-        if (resultValue is string s)
+        try
         {
-            runtimeValue = Convert.FromBase64String(s);
-            return true;
+            Base64.EncodeToUtf8(
+                runtimeValue,
+                buffer,
+                out _,
+                out var bytesWritten);
+            var encodedBuffer = buffer[..bytesWritten].ToArray();
+            var segment = new ReadOnlyMemorySegment(encodedBuffer);
+            return new StringValueNode(null, segment, false);
         }
-
-        if (resultValue is byte[] b)
+        finally
         {
-            runtimeValue = b;
-            return true;
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
         }
-
-        runtimeValue = null;
-        return false;
     }
 }

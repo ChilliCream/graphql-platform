@@ -17,11 +17,7 @@ public abstract partial class ScalarType
     : TypeSystemObject<ScalarTypeConfiguration>
     , IScalarTypeDefinition
     , ILeafType
-    , IHasRuntimeType
 {
-    private Uri? _specifiedBy;
-    private string? _pattern;
-
     /// <summary>
     /// Gets the type kind.
     /// </summary>
@@ -48,7 +44,7 @@ public abstract partial class ScalarType
     /// </summary>
     public Uri? SpecifiedBy
     {
-        get => _specifiedBy;
+        get;
         protected set
         {
             if (IsExecutable)
@@ -56,7 +52,7 @@ public abstract partial class ScalarType
                 throw new InvalidOperationException(
                     TypeResources.TypeSystem_Immutable);
             }
-            _specifiedBy = value;
+            field = value;
         }
     }
 
@@ -66,7 +62,7 @@ public abstract partial class ScalarType
     /// <inheritdoc />
     public string? Pattern
     {
-        get => _pattern;
+        get;
         protected set
         {
             if (IsExecutable)
@@ -74,7 +70,7 @@ public abstract partial class ScalarType
                 throw new InvalidOperationException(
                     TypeResources.TypeSystem_Immutable);
             }
-            _pattern = value;
+            field = value;
         }
     }
 
@@ -203,27 +199,20 @@ public abstract partial class ScalarType
     }
 
     /// <inheritdoc />
-    public virtual bool IsInstanceOfType(object? runtimeValue)
-    {
-        if (runtimeValue is null)
-        {
-            return true;
-        }
-
-        return RuntimeType.IsInstanceOfType(runtimeValue);
-    }
+    public virtual bool IsInstanceOfType(object runtimeValue)
+        => RuntimeType.IsInstanceOfType(runtimeValue);
 
     /// <inheritdoc />
-    public abstract object? CoerceInputLiteral(IValueNode valueLiteral);
+    public abstract object CoerceInputLiteral(IValueNode valueLiteral);
 
     /// <inheritdoc />
-    public abstract object? CoerceInputValue(JsonElement inputValue);
+    public abstract object CoerceInputValue(JsonElement inputValue);
 
     /// <inheritdoc />
-    public abstract void CoerceOutputValue(object? runtimeValue, ResultElement resultValue);
+    public abstract void CoerceOutputValue(object runtimeValue, ResultElement resultValue);
 
     /// <inheritdoc />
-    public abstract IValueNode ValueToLiteral(object? runtimeValue);
+    public abstract IValueNode ValueToLiteral(object runtimeValue);
 
     /// <summary>
     /// Returns a string that represents the current <see cref="ScalarType"/>.
