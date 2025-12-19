@@ -60,7 +60,7 @@ public class OpenApiEndpointSettingsSerializerTests
                   "key": "userId",
                   "variableName":"userId"
                 }],
-             "queryParameters": [
+              "queryParameters": [
                 {
                   "key": "limit",
                   "variableName": "limit"
