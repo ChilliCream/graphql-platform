@@ -39,7 +39,7 @@ internal sealed class FusionDownloadCommand : Command
         var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
         var outputFile =
             context.ParseResult.GetValueForOption(Opt<OptionalOutputFileOption>.Instance) ??
-            new FileInfo(Path.Combine(System.Environment.CurrentDirectory, "gateway.fgp"));
+            new FileInfo(Path.Combine(Environment.CurrentDirectory, "gateway.fgp"));
 
         console.Title($"Download the fusion configuration {apiId}/{stageName}");
 

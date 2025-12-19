@@ -30,7 +30,7 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
 
         if (toolDefinition.OpenAiComponent is { } openAiComponent)
         {
-            meta = new JsonObject();
+            meta = [];
             AddOpenAiComponentMetadata(meta, toolDefinition);
             openAiComponentResource = CreateOpenAiComponentResource(openAiComponent, toolDefinition);
         }
@@ -171,13 +171,13 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
 
         if (openAiComponent.Description is not null)
         {
-            meta ??= new JsonObject();
+            meta ??= [];
             meta["openai/widgetDescription"] = openAiComponent.Description;
         }
 
         if (openAiComponent.PrefersBorder is not null)
         {
-            meta ??= new JsonObject();
+            meta ??= [];
             meta["openai/widgetPrefersBorder"] = openAiComponent.PrefersBorder;
         }
 
@@ -187,7 +187,7 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
 
             if (csp.ConnectDomains is { Length: > 0 } connectDomains)
             {
-                contentSecurityPolicy ??= new JsonObject();
+                contentSecurityPolicy ??= [];
                 contentSecurityPolicy.Add(
                     "connect_domains",
                     new JsonArray(connectDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
@@ -195,7 +195,7 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
 
             if (csp.ResourceDomains is { Length: > 0 } resourceDomains)
             {
-                contentSecurityPolicy ??= new JsonObject();
+                contentSecurityPolicy ??= [];
                 contentSecurityPolicy.Add(
                     "resource_domains",
                     new JsonArray(resourceDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
@@ -203,14 +203,14 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
 
             if (contentSecurityPolicy is not null)
             {
-                meta ??= new JsonObject();
+                meta ??= [];
                 meta.Add("openai/widgetCSP", contentSecurityPolicy);
             }
         }
 
         if (openAiComponent.Domain is not null)
         {
-            meta ??= new JsonObject();
+            meta ??= [];
             meta.Add("openai/widgetDomain", openAiComponent.Domain);
         }
 

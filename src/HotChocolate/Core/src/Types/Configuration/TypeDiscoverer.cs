@@ -1,7 +1,6 @@
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Configuration;
 

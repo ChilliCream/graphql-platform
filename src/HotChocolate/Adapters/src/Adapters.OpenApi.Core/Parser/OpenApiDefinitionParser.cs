@@ -98,7 +98,7 @@ public static class OpenApiDefinitionParser
 
         var cleanOperation = RewriteOperation(operation);
 
-        List<IDefinitionNode> cleanDefinitions = [cleanOperation, ..document.Definitions];
+        List<IDefinitionNode> cleanDefinitions = [cleanOperation, .. document.Definitions];
         cleanDefinitions.Remove(operation);
 
         var fragmentReferences = FragmentReferenceFinder.Find(document);
@@ -107,8 +107,8 @@ public static class OpenApiDefinitionParser
             httpMethod,
             route,
             description,
-            [..routeParameters],
-            [..queryParameters],
+            [.. routeParameters],
+            [.. queryParameters],
             bodyVariableName,
             new DocumentNode(cleanDefinitions),
             fragmentReferences.Local,
