@@ -1,5 +1,7 @@
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
@@ -11,7 +13,6 @@ namespace HotChocolate.Types;
 ///
 /// http://facebook.github.io/graphql/June2018/#sec-Float
 /// </summary>
-[SpecScalar]
 public class FloatType : FloatTypeBase<double>
 {
     /// <summary>
@@ -50,9 +51,19 @@ public class FloatType : FloatTypeBase<double>
     {
     }
 
-    protected override double OnCoerceInputLiteral(IFloatValueLiteral valueSyntax) =>
-        valueSyntax.ToDouble();
+    /// <inheritdoc />
+    protected override double OnCoerceInputLiteral(IFloatValueLiteral valueSyntax)
+        => valueSyntax.ToDouble();
 
-    protected override FloatValueNode ParseValue(double runtimeValue) =>
-        new(runtimeValue);
+    /// <inheritdoc />
+    protected override double OnCoerceInputValue(JsonElement inputValue)
+        => inputValue.GetDouble();
+
+    /// <inheritdoc />
+    public override void CoerceOutputValue(double runtimeValue, ResultElement resultValue)
+        => resultValue.SetNumberValue(runtimeValue);
+
+    /// <inheritdoc />
+    public override IValueNode ValueToLiteral(double runtimeValue)
+        => new FloatValueNode(runtimeValue);
 }

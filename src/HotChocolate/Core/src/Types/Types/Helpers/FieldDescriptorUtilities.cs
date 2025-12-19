@@ -35,7 +35,7 @@ public static class FieldDescriptorUtilities
         Func<TMember, TField> createdFieldDefinition,
         IDictionary<string, TField> fields,
         ISet<TMember> handledMembers)
-        where TDescriptor : IHasRuntimeType, IHasDescriptorContext
+        where TDescriptor : IRuntimeTypeProvider, IHasDescriptorContext
         where TMember : MemberInfo
         where TField : FieldConfiguration
     {

@@ -47,10 +47,10 @@ public class ByteType : IntegerTypeBase<byte>
     {
     }
 
-    public override object CoerceInputLiteral(IntValueNode valueLiteral)
+    protected override byte OnCoerceInputLiteral(IntValueNode valueLiteral)
         => valueLiteral.ToByte();
 
-    public override object CoerceInputValue(JsonElement inputValue)
+    protected override byte OnCoerceInputValue(JsonElement inputValue)
         => inputValue.GetByte();
 
     public override void CoerceOutputValue(byte runtimeValue, ResultElement resultValue)

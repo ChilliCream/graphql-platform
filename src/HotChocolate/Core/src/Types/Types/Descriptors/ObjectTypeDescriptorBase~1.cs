@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors;
 public abstract class ObjectTypeDescriptorBase<T>
     : ObjectTypeDescriptor
     , IObjectTypeDescriptor<T>
-    , IHasRuntimeType
+    , IRuntimeTypeProvider
 {
     protected ObjectTypeDescriptorBase(
         IDescriptorContext context,
@@ -27,7 +27,7 @@ public abstract class ObjectTypeDescriptorBase<T>
         ObjectTypeConfiguration definition)
         : base(context, definition) { }
 
-    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
+    Type IRuntimeTypeProvider.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCompleteFields(
         IDictionary<string, ObjectFieldConfiguration> fields,

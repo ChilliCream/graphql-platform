@@ -75,26 +75,26 @@ public abstract class IntegerTypeBase<TRuntimeType>
     }
 
     /// <inheritdoc />
-    public sealed override object CoerceInputLiteral(IValueNode valueSyntax)
+    public sealed override object CoerceInputLiteral(IValueNode valueLiteral)
     {
-        if (valueSyntax is IntValueNode intLiteral && IsInstanceOfType(intLiteral))
+        if (valueLiteral is IntValueNode intLiteral && IsInstanceOfType(intLiteral))
         {
             return OnCoerceInputLiteral(intLiteral);
         }
 
-        throw CreateCoerceInputLiteralError(valueSyntax);
+        throw CreateCoerceInputLiteralError(valueLiteral);
     }
 
     /// <summary>
     /// Coerces an int literal into the runtime value.
     /// </summary>
-    /// <param name="valueSyntax">
+    /// <param name="valueLiteral">
     /// The int literal to coerce.
     /// </param>
     /// <returns>
     /// Returns the runtime value representation.
     /// </returns>
-    protected abstract TRuntimeType OnCoerceInputLiteral(IntValueNode valueSyntax);
+    protected abstract TRuntimeType OnCoerceInputLiteral(IntValueNode valueLiteral);
 
     /// <inheritdoc />
     public sealed override object CoerceInputValue(JsonElement inputValue)
