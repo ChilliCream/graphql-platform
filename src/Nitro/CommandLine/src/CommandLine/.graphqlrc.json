@@ -1,11 +1,11 @@
 {
-  "name": "ChilliCream.Nitro.CommandLine.Cloud.Client",
+  "name": "ChilliCream.Nitro.CommandLine.Client",
   "schema": "./schema.graphql",
   "documents": "**/*.graphql",
   "extensions": {
     "strawberryShake": {
       "name": "ApiClient",
-      "namespace": "ChilliCream.Nitro.CommandLine.Cloud.Client",
+      "namespace": "ChilliCream.Nitro.CommandLine.Client",
       "url": "https://api.chillicream.cloud/graphql/",
       "dependencyInjection": true,
       "emitGeneratedCode": true,
