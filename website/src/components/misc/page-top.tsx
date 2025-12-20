@@ -37,7 +37,6 @@ export const PageTop: FC<PageTopProps> = ({ onTopScroll }) => {
 };
 
 const JumpToTop = styled.button`
-  display: none;
   position: fixed;
   right: 24px;
   bottom: 24px;
@@ -47,11 +46,12 @@ const JumpToTop = styled.button`
   width: 42px;
   height: 42px;
   background-color: ${THEME_COLORS.text};
-  opacity: 0.6;
-  transition: opacity 0.2s ease-in-out;
-
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
   &.show {
-    display: initial;
+    opacity: 0.6;
+    visibility: visible;
   }
 
   &:hover {
