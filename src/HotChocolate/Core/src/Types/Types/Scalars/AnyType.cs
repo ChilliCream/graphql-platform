@@ -1,19 +1,14 @@
-using System.Collections;
 using System.Globalization;
-using HotChocolate.Configuration;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Text.Json;
-using HotChocolate.Types.Descriptors.Configurations;
-using HotChocolate.Utilities;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
 public class AnyType : ScalarType
 {
-    private readonly ObjectValueToDictionaryConverter _objectValueToDictConverter = new();
-    private ObjectToDictionaryConverter _objectToDictConverter = null!;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="AnyType"/> class.
     /// </summary>
@@ -24,7 +19,6 @@ public class AnyType : ScalarType
         : base(name, bind)
     {
         Description = description;
-        SerializationType = ScalarSerializationType.Any;
     }
 
     /// <summary>
@@ -37,18 +31,10 @@ public class AnyType : ScalarType
 
     public override Type RuntimeType => typeof(object);
 
-    protected override void OnCompleteType(
-        ITypeCompletionContext context,
-        ScalarTypeConfiguration configuration)
-    {
-        base.OnCompleteType(context, configuration);
-        _objectToDictConverter = new ObjectToDictionaryConverter(Converter);
-    }
+    public override ScalarSerializationType SerializationType => ScalarSerializationType.Any;
 
     public override bool IsValueCompatible(IValueNode literal)
     {
-        ArgumentNullException.ThrowIfNull(literal);
-
         switch (literal)
         {
             case StringValueNode:
@@ -57,7 +43,6 @@ public class AnyType : ScalarType
             case BooleanValueNode:
             case ListValueNode:
             case ObjectValueNode:
-            case NullValueNode:
                 return true;
 
             default:
@@ -65,7 +50,7 @@ public class AnyType : ScalarType
         }
     }
 
-    public override object? CoerceInputLiteral(IValueNode literal)
+    public override object CoerceInputLiteral(IValueNode literal)
     {
         switch (literal)
         {
@@ -82,111 +67,90 @@ public class AnyType : ScalarType
                 return bvn.Value;
 
             case ListValueNode lvn:
-                return _objectValueToDictConverter.Convert(lvn);
+                var list = new List<object?>();
+                foreach (var item in lvn.Items)
+                {
+                    list.Add(CoerceInputLiteral(item));
+                }
+                return list;
 
             case ObjectValueNode ovn:
-                return _objectValueToDictConverter.Convert(ovn);
+                var obj = new Dictionary<string, object?>();
+                foreach (var field in ovn.Fields)
+                {
+                    obj[field.Name.Value] = CoerceInputLiteral(field.Value);
+                }
+                return obj;
 
             case NullValueNode:
-                return null;
+                return null!;
 
             default:
-                throw new LeafCoercionException(
-                    TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(Name, literal.GetType()),
-                    this);
+                throw Scalar_Cannot_CoerceInputLiteral(this, literal);
         }
     }
 
-    public override IValueNode CoerceInputValue(object? value)
+    public override object CoerceInputValue(JsonElement inputValue)
     {
-        return value is null
-            ? NullValueNode.Default
-            : ParseValue(value, new HashSet<object>(ReferenceEqualityComparer.Instance));
-    }
-
-    private IValueNode ParseValue(object? value, HashSet<object> set)
-    {
-        if (value is null)
+        switch (inputValue.ValueKind)
         {
-            return NullValueNode.Default;
-        }
+            case JsonValueKind.String:
+                return inputValue.GetString()!;
 
-        switch (value)
-        {
-            case string s:
-                return new StringValueNode(s);
-            case short s:
-                return new IntValueNode(s);
-            case int i:
-                return new IntValueNode(i);
-            case long l:
-                return new IntValueNode(l);
-            case float f:
-                return new FloatValueNode(f);
-            case double d:
-                return new FloatValueNode(d);
-            case decimal d:
-                return new FloatValueNode(d);
-            case bool b:
-                return new BooleanValueNode(b);
-            case sbyte s:
-                return new IntValueNode(s);
-            case byte b:
-                return new IntValueNode(b);
-        }
+            case JsonValueKind.Number:
+                var rawBytes = JsonMarshal.GetRawUtf8Value(inputValue);
 
-        var type = value.GetType();
-
-        if (type.IsValueType && Converter.TryConvert(
-            type, typeof(string), value, out var converted, out _)
-            && converted is string c)
-        {
-            return new StringValueNode(c);
-        }
-
-        if (set.Add(value))
-        {
-            if (value is IReadOnlyDictionary<string, object> dict)
-            {
-                var fields = new List<ObjectFieldNode>();
-                foreach (var field in dict)
+                // Check for decimal point (0x2E) or exponent (0x65 'e', 0x45 'E')
+                if (rawBytes.IndexOfAny((byte)'.', (byte)'e', (byte)'E') >= 0)
                 {
-                    fields.Add(new ObjectFieldNode(
-                        field.Key,
-                        ParseValue(field.Value, set)));
+                    return inputValue.GetDecimal();
                 }
 
-                set.Remove(value);
-
-                return new ObjectValueNode(fields);
-            }
-
-            if (value is IReadOnlyList<object> list)
-            {
-                var valueList = new List<IValueNode>();
-                foreach (var element in list)
+                if (inputValue.TryGetInt64(out var longValue))
                 {
-                    valueList.Add(ParseValue(element, set));
+                    return longValue;
                 }
 
-                set.Remove(value);
+                // Fallback for numbers outside int64 range
+                return inputValue.GetDecimal();
 
-                return new ListValueNode(valueList);
-            }
+            case JsonValueKind.True:
+                return true;
 
-            var valueNode = ParseValue(_objectToDictConverter.Convert(value), set);
+            case JsonValueKind.False:
+                return false;
 
-            set.Remove(value);
+            case JsonValueKind.Null:
+                return null!;
 
-            return valueNode;
+            case JsonValueKind.Array:
+                var list = new List<object?>();
+                foreach (var item in inputValue.EnumerateArray())
+                {
+                    list.Add(CoerceInputValue(item));
+                }
+                return list;
+
+            case JsonValueKind.Object:
+                var obj = new Dictionary<string, object?>();
+                foreach (var property in inputValue.EnumerateObject())
+                {
+                    obj[property.Name] = CoerceInputValue(property.Value);
+                }
+                return obj;
+
+            default:
+                throw Scalar_Cannot_CoerceInputValue(this, inputValue);
         }
-
-        throw new LeafCoercionException(
-            TypeResources.AnyType_CycleInObjectGraph,
-            this);
     }
 
-    public override bool TryCoerceOutputValue(object? runtimeValue, ResultElement resultValue)
+    public override void CoerceOutputValue(object runtimeValue, ResultElement resultValue)
+    {
+        HashSet<object>? processed = null;
+        TryCoerceOutputValue(runtimeValue, resultValue, ref processed);
+    }
+
+    private static bool TryCoerceOutputValue(object runtimeValue, ResultElement resultValue, ref HashSet<object>? set)
     {
         if (runtimeValue is null)
         {
@@ -248,19 +212,154 @@ public class AnyType : ScalarType
                 resultValue.SetNumberValue(castedULong);
                 return true;
 
-            default:
-                var type = runtimeValue.GetType();
+            case List<object?> castedList:
+            {
+                set ??= new HashSet<object>(ReferenceEqualityComparer.Instance);
 
-                if (type.IsValueType
-                    && Converter.TryConvert(type, typeof(string), runtimeValue, out var c, out _)
-                    && c is string casted)
+                try
                 {
-                    resultValue = casted;
+                    if (!set.Add(castedList))
+                    {
+                        return false;
+                    }
+
+                    using var enumerator = castedList.GetEnumerator();
+
+                    resultValue.SetArrayValue(castedList.Count);
+                    foreach (var element in resultValue.EnumerateArray())
+                    {
+                        enumerator.MoveNext();
+                        if (!TryCoerceOutputValue(enumerator.Current!, element, ref set))
+                        {
+                            element.Invalidate();
+                        }
+                    }
                     return true;
                 }
+                finally
+                {
+                    set?.Remove(castedList);
+                }
+            }
 
-                resultValue = _objectToDictConverter.Convert(runtimeValue);
-                return true;
+            case Dictionary<string, object?> castedObject:
+            {
+                set ??= new HashSet<object>(ReferenceEqualityComparer.Instance);
+
+                try
+                {
+                    if (!set.Add(castedObject))
+                    {
+                        return false;
+                    }
+
+                    using var enumerator = castedObject.GetEnumerator();
+
+                    resultValue.SetObjectValue(castedObject.Count);
+                    foreach (var property in resultValue.EnumerateObject())
+                    {
+                        enumerator.MoveNext();
+                        property.Value.SetPropertyName(enumerator.Current.Key);
+                        if (!TryCoerceOutputValue(enumerator.Current.Value!, property.Value, ref set))
+                        {
+                            property.Value.Invalidate();
+                        }
+                    }
+                    return true;
+                }
+                finally
+                {
+                    set?.Remove(castedObject);
+                }
+            }
+
+            default:
+                return false;
+        }
+    }
+
+    public override IValueNode ValueToLiteral(object runtimeValue)
+    {
+        return runtimeValue is null
+            ? NullValueNode.Default
+            : ValueToLiteral(runtimeValue, null, this);
+    }
+
+    private static IValueNode ValueToLiteral(object? value, HashSet<object>? set, AnyType type)
+    {
+        if (value is null)
+        {
+            return NullValueNode.Default;
+        }
+
+        switch (value)
+        {
+            case string s:
+                return new StringValueNode(s);
+
+            case short s:
+                return new IntValueNode(s);
+            case int i:
+                return new IntValueNode(i);
+            case long l:
+                return new IntValueNode(l);
+            case byte b:
+                return new IntValueNode(b);
+            case sbyte s:
+                return new IntValueNode(s);
+            case ushort u:
+                return new IntValueNode(u);
+            case uint u:
+                return new IntValueNode(u);
+            case ulong u:
+                return new IntValueNode(u);
+
+            case float f:
+                return new FloatValueNode(f);
+            case double d:
+                return new FloatValueNode(d);
+            case decimal d:
+                return new FloatValueNode(d);
+
+            case bool b:
+                return new BooleanValueNode(b);
+        }
+
+        // Handle collections with cycle detection
+        set ??= new HashSet<object>(ReferenceEqualityComparer.Instance);
+
+        if (!set.Add(value))
+        {
+            throw Scalar_Cannot_ConvertValueToLiteral(type, value);
+        }
+
+        try
+        {
+            switch (value)
+            {
+                case IReadOnlyList<object?> list:
+                    var items = new List<IValueNode>(list.Count);
+                    foreach (var item in list)
+                    {
+                        items.Add(ValueToLiteral(item, set, type));
+                    }
+                    return new ListValueNode(items);
+
+                case IReadOnlyDictionary<string, object?> obj:
+                    var fields = new List<ObjectFieldNode>(obj.Count);
+                    foreach (var kvp in obj)
+                    {
+                        fields.Add(new ObjectFieldNode(kvp.Key, ValueToLiteral(kvp.Value, set, type)));
+                    }
+                    return new ObjectValueNode(fields);
+
+                default:
+                    throw Scalar_Cannot_ConvertValueToLiteral(type, value);
+            }
+        }
+        finally
+        {
+            set.Remove(value);
         }
     }
 }

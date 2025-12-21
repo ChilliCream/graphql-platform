@@ -177,6 +177,7 @@ internal static class VariableCoercionHelper
 
             if (oneOf && objectValue.Fields.Count is 0)
             {
+                // TODO : resources
                 error = ErrorBuilder.New()
                     .SetMessage("The OneOf Input Object `{0}` requires that exactly one field is supplied and that field must not be `null`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.", inputObjectType.Name)
                     .SetCode(ErrorCodes.Execution.OneOfNoFieldSet)
@@ -187,6 +188,7 @@ internal static class VariableCoercionHelper
 
             if (oneOf && objectValue.Fields.Count > 1)
             {
+                // TODO : resources
                 error = ErrorBuilder.New()
                     .SetMessage("More than one field of the OneOf Input Object `{0}` is set. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.", inputObjectType.Name)
                     .SetCode(ErrorCodes.Execution.OneOfMoreThanOneFieldSet)
@@ -220,6 +222,7 @@ internal static class VariableCoercionHelper
                     var field = objectValue.Fields[i];
                     if (!inputObjectType.Fields.TryGetField(field.Name.Value, out var fieldDefinition))
                     {
+                        // TODO : resources
                         error = ErrorBuilder.New()
                             .SetMessage(
                                 "The field `{0}` is not defined on the input object type `{1}`.",
@@ -232,6 +235,7 @@ internal static class VariableCoercionHelper
 
                     if (oneOf && field.Value.Kind is SyntaxKind.NullValue)
                     {
+                        // TODO : resources
                         error = ErrorBuilder.New()
                             .SetMessage("`null` was set to the field `{0}`of the OneOf Input Object `{1}`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.", field.Name, inputObjectType.Name)
                             .SetCode(ErrorCodes.Execution.OneOfFieldIsNull)
@@ -293,8 +297,9 @@ internal static class VariableCoercionHelper
 
         if (type is IScalarTypeDefinition scalarType)
         {
-            if (!scalarType.IsInstanceOfType(value))
+            if (!scalarType.IsValueCompatible(value))
             {
+                // TODO : resources
                 error = ErrorBuilder.New()
                     .SetMessage(
                         "The value `{0}` is not a valid value for the scalar type `{1}`.",
@@ -313,6 +318,7 @@ internal static class VariableCoercionHelper
         {
             if (value is not (StringValueNode or EnumValueNode))
             {
+                // TODO : resources
                 error = ErrorBuilder.New()
                     .SetMessage("The value `{0}` is not an enum value.", value.Value ?? "null")
                     .SetExtension("variable", $"{path}")
@@ -322,6 +328,7 @@ internal static class VariableCoercionHelper
 
             if (!enumType.Values.ContainsName((string)value.Value!))
             {
+                // TODO : resources
                 error = ErrorBuilder.New()
                     .SetMessage("The value `{0}` is not a valid value for the enum type `{1}`.", value.Value ?? "null", enumType.Name)
                     .SetExtension("variable", $"{path}")

@@ -186,7 +186,7 @@ public static class FieldInitHelper
 
     internal static Type CompleteRuntimeType(IType type, Type? runtimeType, out bool isOptional)
     {
-        runtimeType ??= (type as IHasRuntimeType)?.RuntimeType ?? typeof(object);
+        runtimeType ??= (type as IRuntimeTypeProvider)?.RuntimeType ?? typeof(object);
 
         if (runtimeType.IsGenericType
             && runtimeType.GetGenericTypeDefinition() == typeof(Optional<>))

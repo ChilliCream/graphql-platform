@@ -50,7 +50,7 @@ public static class TypeExtensions
             return ToRuntimeType(type.InnerType());
         }
 
-        if (type is IHasRuntimeType t)
+        if (type is IRuntimeTypeProvider t)
         {
             return t.RuntimeType;
         }
@@ -60,7 +60,7 @@ public static class TypeExtensions
 
     private static Type LeafTypeToRuntimeType(IType type)
     {
-        if (type.IsLeafType() && type.NamedType() is IHasRuntimeType t)
+        if (type.IsLeafType() && type.NamedType() is IRuntimeTypeProvider t)
         {
             if (!type.IsNonNullType() && t.RuntimeType.IsValueType)
             {

@@ -406,9 +406,10 @@ public sealed partial class ResultDocument : IDisposable
             case ElementTokenType.False:
                 return JsonConstants.FalseValue;
 
-            case ElementTokenType.PropertyName:
+            case ElementTokenType.PropertyName when row.OperationReferenceType is OperationReferenceType.Selection:
                 return _operation.GetSelectionById(row.OperationReferenceId).Utf8ResponseName;
 
+            case ElementTokenType.PropertyName:
             case ElementTokenType.String:
             case ElementTokenType.Number:
                 return ReadLocalData(row.Location, row.SizeOrLength);
@@ -521,11 +522,24 @@ public sealed partial class ResultDocument : IDisposable
             parentRow: _metaDb.GetParent(target.Cursor));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void AssignPropertyName(ResultElement target, ReadOnlySpan<byte> propertyName)
     {
+        var cursor = target.Cursor - 1;
+        var row = _metaDb.Get(cursor);
+        Debug.Assert(row.TokenType is ElementTokenType.PropertyName);
+        Debug.Assert(row.OperationReferenceType is OperationReferenceType.None);
+
         var totalSize = propertyName.Length + 2;
         var position = ClaimDataSpace(totalSize);
-        WriteData(position, propertyName, withQuotes: true);
+        WriteData(position, propertyName, withQuotes: false);
+
+        _metaDb.Replace(
+            cursor: cursor,
+            tokenType: ElementTokenType.PropertyName,
+            location: position,
+            sizeOrLength: totalSize,
+            parentRow: row.ParentRow);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
