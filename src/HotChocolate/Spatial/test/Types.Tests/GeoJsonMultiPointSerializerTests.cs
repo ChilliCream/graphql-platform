@@ -376,7 +376,7 @@ public class GeoJsonMultiPointSerializerTests
 
         // act
         // assert
-        Assert.Null(inputParser.ParseResult(null, type));
+        Assert.Null(inputParser.ParseInputValue(null, type));
     }
 
     [Theory]
@@ -404,7 +404,7 @@ public class GeoJsonMultiPointSerializerTests
         var type = CreateInputType(typeName);
 
         // act
-        var result = inputParser.ParseResult(_geometry, type);
+        var result = inputParser.ParseInputValue(_geometry, type);
 
         // assert
         Assert.Equal(result, _geometry);
@@ -421,7 +421,7 @@ public class GeoJsonMultiPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<LeafCoercionException>(() => inputParser.ParseResult("", type));
+        Assert.Throws<LeafCoercionException>(() => inputParser.ParseInputValue("", type));
     }
 
     [Theory]
@@ -440,7 +440,7 @@ public class GeoJsonMultiPointSerializerTests
             };
 
         // act
-        var result = inputParser.ParseResult(serialized, type);
+        var result = inputParser.ParseInputValue(serialized, type);
 
         // assert
         AssertGeometry(result, 26912);
@@ -461,7 +461,7 @@ public class GeoJsonMultiPointSerializerTests
             };
 
         // act
-        var result = inputParser.ParseResult(serialized, type);
+        var result = inputParser.ParseInputValue(serialized, type);
 
         // assert
         AssertGeometry(result);
@@ -483,7 +483,7 @@ public class GeoJsonMultiPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<LeafCoercionException>(() => inputParser.ParseResult(serialized, type));
+        Assert.Throws<LeafCoercionException>(() => inputParser.ParseInputValue(serialized, type));
     }
 
     [Theory]
@@ -502,7 +502,7 @@ public class GeoJsonMultiPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<LeafCoercionException>(() => inputParser.ParseResult(serialized, type));
+        Assert.Throws<LeafCoercionException>(() => inputParser.ParseInputValue(serialized, type));
     }
 
     [Theory]

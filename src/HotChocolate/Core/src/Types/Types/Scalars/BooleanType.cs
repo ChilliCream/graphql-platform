@@ -2,6 +2,7 @@ using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
@@ -55,9 +56,7 @@ public class BooleanType : ScalarType<bool, BooleanValueNode>
                 return false;
 
             default:
-                throw new LeafCoercionException(
-                    TypeResourceHelper.Scalar_Cannot_CoerceInputValue(this, inputValue),
-                    this);
+                throw Scalar_Cannot_CoerceInputValue(this, inputValue);
         }
     }
 

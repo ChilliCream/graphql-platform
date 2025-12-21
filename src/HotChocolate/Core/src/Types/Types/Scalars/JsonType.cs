@@ -108,7 +108,11 @@ public sealed class JsonType : ScalarType<JsonElement>
 
             case JsonValueKind.Object:
             {
+#if NET9_0_OR_GREATER
                 var length = runtimeValue.GetPropertyCount();
+#else
+                var length = runtimeValue.EnumerateObject().Count();
+#endif
                 resultValue.SetObjectValue(length);
 
                 using var enumerator = runtimeValue.EnumerateObject().GetEnumerator();

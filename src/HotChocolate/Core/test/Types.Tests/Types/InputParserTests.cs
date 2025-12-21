@@ -27,7 +27,7 @@ public class InputParserTests
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
-        var runtimeValue = parser.ParseResult(fieldData, type, Path.Root);
+        var runtimeValue = parser.ParseInputValue(fieldData, type, Path.Root);
 
         // assert
         Assert.IsType<TestInput>(runtimeValue).MatchSnapshot();
@@ -75,7 +75,7 @@ public class InputParserTests
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
-        var runtimeValue = parser.ParseResult(fieldData, type, Path.Root);
+        var runtimeValue = parser.ParseInputValue(fieldData, type, Path.Root);
 
         // assert
         Assert.IsType<Test2Input>(runtimeValue).MatchSnapshot();
@@ -122,7 +122,7 @@ public class InputParserTests
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
-        void Action() => parser.ParseResult(fieldData, type, Path.Root);
+        void Action() => parser.ParseInputValue(fieldData, type, Path.Root);
 
         // assert
         Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
@@ -171,7 +171,7 @@ public class InputParserTests
         var parser = new InputParser(new DefaultTypeConverter());
 
         void Action()
-            => parser.ParseResult(fieldData, type, Path.Root.Append("root"));
+            => parser.ParseInputValue(fieldData, type, Path.Root.Append("root"));
 
         // assert
         Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
@@ -224,7 +224,7 @@ public class InputParserTests
         var parser = new InputParser(new DefaultTypeConverter());
 
         void Action()
-            => parser.ParseResult(fieldData, type, Path.Root.Append("root"));
+            => parser.ParseInputValue(fieldData, type, Path.Root.Append("root"));
 
         // assert
         Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
@@ -487,7 +487,7 @@ public class InputParserTests
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
-        var runtimeValue = parser.ParseResult(fieldData, type, Path.Root);
+        var runtimeValue = parser.ParseInputValue(fieldData, type, Path.Root);
 
         // assert
         Assert.IsType<Test4Input>(runtimeValue).MatchSnapshot();

@@ -1,6 +1,5 @@
 #nullable disable
 
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
@@ -311,17 +310,12 @@ internal static class ThrowHelper
             type,
             path);
 
-    public static LeafCoercionException ParseInputObject_InvalidObjectKind(
+    public static LeafCoercionException ParseInputObject_InvalidValueKind(
         InputObjectType type,
-        Type objectType,
         Path path)
         => new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_ParseInputObject_InvalidObjectKind,
-                    objectType.FullName ?? objectType.Name,
-                    type.Name,
-                    type.RuntimeType.FullName ?? type.RuntimeType.Name)
+                .SetMessage(ThrowHelper_ParseInputObject_InvalidValueKind)
                 .SetPath(path)
                 .SetExtension(nameof(type), type.Name)
                 .Build(),
@@ -345,19 +339,13 @@ internal static class ThrowHelper
             type,
             path);
 
-    public static LeafCoercionException ParseList_InvalidObjectKind(
+    public static LeafCoercionException ParseList_InvalidValueKind(
         ListType type,
-        Type listType,
         Path path)
     {
-        var runtimeType = type.ToRuntimeType();
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_ParseList_InvalidObjectKind,
-                    listType.FullName ?? listType.Name,
-                    type.Print(),
-                    runtimeType.FullName ?? runtimeType.Name)
+                .SetMessage(ThrowHelper_ParseList_InvalidValueKind)
                 .Build(),
             type,
             path);
@@ -614,44 +602,55 @@ internal static class ThrowHelper
         ITypeDefinition scalarType,
         IValueNode valueLiteral)
     {
-        return string.Format(
-            CultureInfo.InvariantCulture,
-            TypeResources.Scalar_Cannot_CoerceInputLiteral,
-            typeName,
-            literalType.Name);
+        return new LeafCoercionException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.Scalar_Cannot_CoerceInputLiteral,
+                    scalarType.Name,
+                    valueLiteral.Kind)
+                .Build(),
+            scalarType);
     }
 
     public static LeafCoercionException Scalar_Cannot_CoerceInputValue(
         ITypeDefinition scalarType,
         JsonElement inputValue)
     {
-        return string.Format(
-            CultureInfo.InvariantCulture,
-            TypeResources.Scalar_Cannot_CoerceInputValue,
-            typeName,
-            valueKind);
+        return new LeafCoercionException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.Scalar_Cannot_CoerceInputValue,
+                    scalarType.Name,
+                    inputValue.ValueKind)
+                .Build(),
+            scalarType);
     }
-
 
     public static LeafCoercionException Scalar_Cannot_ConvertValueToLiteral(
         ITypeDefinition scalarType,
         object runtimeValue)
     {
-        // return string.Format(
-        //    CultureInfo.InvariantCulture,
-        //    TypeResources.Scalar_Cannot_Deserialize,
-        //    typeName);
-
-        throw new InvalidOperationException();
+        return new LeafCoercionException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.Scalar_Cannot_ConvertValueToLiteral,
+                    scalarType.Name,
+                    runtimeValue.GetType().FullName)
+                .Build(),
+            scalarType);
     }
 
     public static LeafCoercionException Scalar_Cannot_CoerceOutputValue(
         ITypeDefinition scalarType,
         object runtimeValue)
     {
-        return string.Format(
-            CultureInfo.InvariantCulture,
-            TypeResources.Scalar_Cannot_Serialize,
-            typeName);
+        return new LeafCoercionException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.Scalar_Cannot_CoerceOutputValue,
+                    scalarType.Name,
+                    runtimeValue.GetType().FullName)
+                .Build(),
+            scalarType);
     }
 }

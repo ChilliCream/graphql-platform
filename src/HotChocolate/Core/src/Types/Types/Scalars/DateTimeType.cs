@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
@@ -79,9 +80,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
             return value;
         }
 
-        throw new LeafCoercionException(
-            TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(this, valueLiteral),
-            this);
+        throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
     }
 
     public override object CoerceInputValue(JsonElement inputValue)
@@ -91,9 +90,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
             return value;
         }
 
-        throw new LeafCoercionException(
-            TypeResourceHelper.Scalar_Cannot_CoerceInputValue(this, inputValue),
-            this);
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
 
     public override void CoerceOutputValue(DateTimeOffset runtimeValue, ResultElement resultValue)

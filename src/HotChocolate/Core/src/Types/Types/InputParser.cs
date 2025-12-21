@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections;
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -416,16 +417,16 @@ public sealed class InputParser
         return type.CreateInstance(fieldValues);
     }
 
-    public object? ParseResult(object? resultValue, IType type, Path? path = null)
+    public object? ParseInputValue(JsonElement inputValue, IType type, Path? path = null)
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        return Deserialize(resultValue, type, path ?? s_root, null);
+        return Deserialize(inputValue, type, path ?? s_root, null);
     }
 
-    private object? Deserialize(object? resultValue, IType type, Path path, InputField? field)
+    private object? Deserialize(JsonElement inputValue, IType type, Path path, InputField? field)
     {
-        if (resultValue is null or NullValueNode)
+        if (inputValue.ValueKind == JsonValueKind.Null)
         {
             if (type.Kind == TypeKind.NonNull)
             {
@@ -443,62 +444,56 @@ public sealed class InputParser
         switch (type.Kind)
         {
             case TypeKind.List:
-                return DeserializeList(resultValue, (ListType)type, path, field);
+                return DeserializeList(inputValue, (ListType)type, path, field);
 
             case TypeKind.InputObject:
-                return DeserializeObject(
-                    resultValue,
-                    (InputObjectType)type,
-                    path);
+                return DeserializeObject(inputValue, (InputObjectType)type, path);
 
             case TypeKind.Enum:
             case TypeKind.Scalar:
-                return DeserializeLeaf(resultValue, (ILeafType)type, path, field);
+                return DeserializeLeaf(inputValue, (ILeafType)type, path, field);
 
             default:
                 throw new NotSupportedException();
         }
     }
 
-    private object DeserializeList(
-        object resultValue,
-        ListType type,
-        Path path,
-        InputField? field)
+    private object DeserializeList(JsonElement inputValue, ListType type, Path path, InputField? field)
     {
-        if (resultValue is IList serializedList)
+        if (inputValue.ValueKind is JsonValueKind.Array)
         {
             var list = CreateList(type);
 
-            for (var i = 0; i < serializedList.Count; i++)
+            var i = 0;
+            foreach (var element in inputValue.EnumerateArray())
             {
-                var newPath = path.Append(i);
-                list.Add(Deserialize(serializedList[i], type.ElementType, newPath, field));
+                var newPath = path.Append(i++);
+                list.Add(Deserialize(element, type.ElementType, newPath, field));
             }
 
             return list;
         }
 
-        if (resultValue is ListValueNode node)
-        {
-            return ParseList(node, type, path, 0, true, field);
-        }
-
-        throw ParseList_InvalidObjectKind(type, resultValue.GetType(), path);
+        throw ParseList_InvalidValueKind(type, path);
     }
 
-    private object DeserializeObject(object resultValue, InputObjectType type, Path path)
+    private object DeserializeObject(JsonElement inputValue, InputObjectType type, Path path)
     {
-        if (resultValue is IReadOnlyDictionary<string, object?> map)
+        if (inputValue.ValueKind is JsonValueKind.Object)
         {
             var oneOf = type.IsOneOf;
+#if NET9_0_OR_GREATER
+            var propertyCount = inputValue.GetPropertyCount();
+#else
+            var propertyCount = inputValue.EnumerateObject().Count();
+#endif
 
-            if (oneOf && map.Count is 0)
+            if (oneOf && propertyCount is 0)
             {
                 throw OneOfNoFieldSet(type, path);
             }
 
-            if (oneOf && map.Count > 1)
+            if (oneOf && propertyCount > 1)
             {
                 throw OneOfMoreThanOneFieldSet(type, path);
             }
@@ -506,15 +501,13 @@ public sealed class InputParser
             var fieldValues = new object?[type.Fields.Count];
             var consumed = 0;
 
-            for (var i = 0; i < type.Fields.Count; i++)
+            foreach (var property in inputValue.EnumerateObject())
             {
-                var field = type.Fields[i];
-
-                if (map.TryGetValue(field.Name, out var fieldValue))
+                if (type.Fields.TryGetField(property.Name, out var field))
                 {
                     var fieldPath = path.Append(field.Name);
 
-                    if (fieldValue is null)
+                    if (property.Value.ValueKind is JsonValueKind.Null)
                     {
                         if (field.Type.Kind is TypeKind.NonNull)
                         {
@@ -527,11 +520,21 @@ public sealed class InputParser
                         }
                     }
 
-                    var value = Deserialize(fieldValue, field.Type, fieldPath, field);
+                    var value = Deserialize(property.Value, field.Type, fieldPath, field);
                     value = FormatAndConvertValue(field, path, null, value, field.IsOptional, true);
 
                     fieldValues[i] = value;
                     consumed++;
+                }
+            }
+
+            for (var i = 0; i < type.Fields.Count; i++)
+            {
+                var field = type.Fields[i];
+
+                if (map.TryGetValue(field.Name, out var fieldValue))
+                {
+
                 }
                 else
                 {
@@ -558,18 +561,7 @@ public sealed class InputParser
             return type.CreateInstance(fieldValues);
         }
 
-        if (type.RuntimeType != typeof(object)
-            && type.RuntimeType.IsInstanceOfType(resultValue))
-        {
-            return resultValue;
-        }
-
-        if (resultValue is ObjectValueNode node)
-        {
-            return ParseObject(node, type, path, 0, true);
-        }
-
-        throw ParseInputObject_InvalidObjectKind(type, resultValue.GetType(), path);
+        throw ParseInputObject_InvalidValueKind(type, resultValue.GetType(), path);
     }
 
     private object? DeserializeLeaf(
