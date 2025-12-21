@@ -12,4 +12,4 @@ jobs:
     name: Apply Labels
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/labeler@v5
+      - uses: actions/labeler@v6
