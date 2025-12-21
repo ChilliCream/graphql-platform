@@ -39,6 +39,8 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
     /// <inheritdoc />
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
     public bool IsIntrospectionType { get; set; }
 

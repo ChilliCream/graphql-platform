@@ -52,6 +52,8 @@ public abstract class FusionComplexTypeDefinition : IComplexTypeDefinition, IFus
     /// </summary>
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     /// <summary>
     /// Gets a value indicating whether this type is marked as inaccessible.
     /// </summary>
