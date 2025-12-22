@@ -4,8 +4,8 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
@@ -81,9 +81,7 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
             }
         }
 
-        throw new LeafCoercionException(
-            TypeResourceHelper.Scalar_Cannot_CoerceInputValue(this, inputValue),
-            this);
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
 
     public override void CoerceOutputValue(byte[] runtimeValue, ResultElement resultValue)

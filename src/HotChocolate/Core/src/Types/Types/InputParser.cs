@@ -523,7 +523,7 @@ public sealed class InputParser
                     var value = Deserialize(property.Value, field.Type, fieldPath, field);
                     value = FormatAndConvertValue(field, path, null, value, field.IsOptional, true);
 
-                    fieldValues[i] = value;
+                    fieldValues[field.Index] = value;
                     consumed++;
                 }
             }

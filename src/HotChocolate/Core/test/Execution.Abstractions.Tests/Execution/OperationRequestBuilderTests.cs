@@ -95,7 +95,7 @@ public class OperationRequestBuilderTests
                       foo
                     }
                     """)
-                .SetVariableValuesJson(
+                .SetVariableValues(
                     """
                     {
                       "one": "bar"

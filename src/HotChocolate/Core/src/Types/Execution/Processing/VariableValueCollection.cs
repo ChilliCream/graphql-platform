@@ -5,7 +5,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Execution.Processing;
 
 internal sealed class VariableValueCollection(
-    Dictionary<string, VariableValueOrLiteral> coercedValues)
+    Dictionary<string, VariableValue> coercedValues)
     : IVariableValueCollection
 {
     public static VariableValueCollection Empty { get; } = new([]);
@@ -40,13 +40,11 @@ internal sealed class VariableValueCollection(
         return false;
     }
 
-    public IEnumerator<VariableValue> GetEnumerator()
+    public IEnumerator<Execution.VariableValue> GetEnumerator()
     {
-        foreach (var item in coercedValues)
+        foreach (var (_, value) in coercedValues)
         {
-            var type = item.Value.Type;
-            var value = item.Value.ValueLiteral;
-            yield return new VariableValue(item.Key, type, value);
+            yield return new Execution.VariableValue(value.Name, value.Type, value.ValueLiteral);
         }
     }
 

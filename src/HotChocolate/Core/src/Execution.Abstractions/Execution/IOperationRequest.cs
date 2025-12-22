@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution;
@@ -36,7 +37,7 @@ public interface IOperationRequest : IExecutionRequest
     /// <summary>
     /// Gets the GraphQL request extension data.
     /// </summary>
-    IReadOnlyDictionary<string, object?>? Extensions { get; }
+    JsonDocument? Extensions { get; }
 
     /// <summary>
     /// GraphQL request flags allow limiting the GraphQL executor capabilities.

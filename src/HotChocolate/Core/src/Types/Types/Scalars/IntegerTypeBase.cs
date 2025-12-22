@@ -1,6 +1,5 @@
 using System.Text.Json;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
@@ -147,5 +146,5 @@ public abstract class IntegerTypeBase<TRuntimeType>
     /// Returns the exception to throw.
     /// </returns>
     protected virtual LeafCoercionException CreateCoerceInputLiteralError(IValueNode literal)
-        => new(TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(this, literal), this);
+        => Scalar_Cannot_CoerceInputLiteral(this, literal);
 }

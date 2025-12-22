@@ -33,7 +33,8 @@ internal static class PipelineTools
         return $"{context.Schema.Name}-{context.ExecutorVersion}-{operationId}";
     }
 
-    public static void CoerceVariables(RequestContext context,
+    public static void CoerceVariables(
+        RequestContext context,
         VariableCoercionHelper coercionHelper,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
         IExecutionDiagnosticEvents diagnosticEvents)
@@ -53,7 +54,7 @@ internal static class PipelineTools
         {
             using (diagnosticEvents.CoerceVariables(context))
             {
-                var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+                var coercedValues = new Dictionary<string, Processing.VariableValue>();
 
                 coercionHelper.CoerceVariableValues(
                     context.Schema,
@@ -77,7 +78,7 @@ internal static class PipelineTools
 
                 for (var i = 0; i < variableSetCount; i++)
                 {
-                    var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+                    var coercedValues = new Dictionary<string, Processing.VariableValue>();
 
                     coercionHelper.CoerceVariableValues(
                         schema,

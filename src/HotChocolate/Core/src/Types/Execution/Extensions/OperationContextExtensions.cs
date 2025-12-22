@@ -80,9 +80,9 @@ internal static class OperationContextExtensions
 
             if (resultBuilder.Path is not null
                 || resultBuilder.HasNext.HasValue
-                || resultBuilder.Pending is not null
-                || resultBuilder.Incremental is not null
-                || resultBuilder.Completed is not null)
+                || !resultBuilder.Pending.IsEmpty
+                || !resultBuilder.Incremental.IsEmpty
+                || !resultBuilder.Completed.IsEmpty)
             {
                 result.Features.Set(
                     new IncrementalDataFeature

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using static HotChocolate.ExecutionAbstractionsResources;
@@ -54,8 +55,8 @@ public sealed class VariableBatchRequest : IOperationRequest
         OperationDocumentHash? documentHash,
         string? operationName,
         ErrorHandlingMode? errorHandlingMode,
-        IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableValues,
-        IReadOnlyDictionary<string, object?>? extensions,
+        JsonDocument? variableValues,
+        JsonDocument? extensions,
         IReadOnlyDictionary<string, object?>? contextData,
         IFeatureCollection? features,
         IServiceProvider? services,
@@ -64,6 +65,16 @@ public sealed class VariableBatchRequest : IOperationRequest
         if (document is null && OperationDocumentId.IsNullOrEmpty(documentId))
         {
             throw new InvalidOperationException(OperationRequest_DocumentOrIdMustBeSet);
+        }
+
+        if (variableValues is not null && variableValues.RootElement.ValueKind is not JsonValueKind.Array)
+        {
+            throw new ArgumentException(VariableBatchRequest_Variables_Must_Be_Array, nameof(variableValues));
+        }
+
+        if (extensions is not null && extensions.RootElement.ValueKind is not JsonValueKind.Object)
+        {
+            throw new ArgumentException(OperationRequest_Extensions_Must_Be_Object, nameof(extensions));
         }
 
         Document = document;
@@ -108,12 +119,12 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// <summary>
     /// Gets a list of variable values for the GraphQL request.
     /// </summary>
-    public IReadOnlyList<IReadOnlyDictionary<string, object?>>? VariableValues { get; }
+    public JsonDocument? VariableValues { get; }
 
     /// <summary>
     /// Gets the GraphQL request extension data.
     /// </summary>
-    public IReadOnlyDictionary<string, object?>? Extensions { get; }
+    public JsonDocument? Extensions { get; }
 
     /// <summary>
     /// Gets the initial request state.
@@ -144,7 +155,7 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// <returns>
     /// Returns a new request with the specified services.
     /// </returns>
-    public VariableBatchRequest WithServices(IServiceProvider services)
+    public VariableBatchRequest WithServices(IServiceProvider? services)
         => new(
             Document,
             DocumentId,
@@ -167,7 +178,7 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// <returns>
     /// Returns a new request with the specified features.
     /// </returns>
-    public VariableBatchRequest WithFeatures(IFeatureCollection features)
+    public VariableBatchRequest WithFeatures(IFeatureCollection? features)
         => new(
             Document,
             DocumentId,

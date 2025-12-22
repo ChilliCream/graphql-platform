@@ -273,8 +273,6 @@ public static class VariableRewriter
     private static IValueNode Rewrite(
         VariableNode node,
         IValueNode defaultValue,
-        IVariableValueCollection variableValues) =>
-        variableValues.TryGetValue(node.Name.Value, out IValueNode? value)
-            ? value ?? NullValueNode.Default
-            : defaultValue;
+        IVariableValueCollection variableValues)
+        => variableValues.TryGetValue(node.Name.Value, out IValueNode? value) ? value : defaultValue;
 }

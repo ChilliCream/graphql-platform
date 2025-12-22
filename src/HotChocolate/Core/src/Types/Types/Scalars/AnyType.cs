@@ -150,7 +150,7 @@ public class AnyType : ScalarType
         TryCoerceOutputValue(runtimeValue, resultValue, ref processed);
     }
 
-    private static bool TryCoerceOutputValue(object runtimeValue, ResultElement resultValue, ref HashSet<object>? set)
+    private static bool TryCoerceOutputValue(object? runtimeValue, ResultElement resultValue, ref HashSet<object>? set)
     {
         if (runtimeValue is null)
         {
@@ -229,7 +229,7 @@ public class AnyType : ScalarType
                     foreach (var element in resultValue.EnumerateArray())
                     {
                         enumerator.MoveNext();
-                        if (!TryCoerceOutputValue(enumerator.Current!, element, ref set))
+                        if (!TryCoerceOutputValue(enumerator.Current, element, ref set))
                         {
                             element.Invalidate();
                         }
@@ -260,7 +260,7 @@ public class AnyType : ScalarType
                     {
                         enumerator.MoveNext();
                         property.Value.SetPropertyName(enumerator.Current.Key);
-                        if (!TryCoerceOutputValue(enumerator.Current.Value!, property.Value, ref set))
+                        if (!TryCoerceOutputValue(enumerator.Current.Value, property.Value, ref set))
                         {
                             property.Value.Invalidate();
                         }
@@ -280,12 +280,11 @@ public class AnyType : ScalarType
 
     public override IValueNode ValueToLiteral(object runtimeValue)
     {
-        return runtimeValue is null
-            ? NullValueNode.Default
-            : ValueToLiteral(runtimeValue, null, this);
+        HashSet<object>? processed = null;
+        return ValueToLiteral(runtimeValue, ref processed, this);
     }
 
-    private static IValueNode ValueToLiteral(object? value, HashSet<object>? set, AnyType type)
+    private static IValueNode ValueToLiteral(object? value, ref HashSet<object>? set, AnyType type)
     {
         if (value is null)
         {
@@ -341,7 +340,7 @@ public class AnyType : ScalarType
                     var items = new List<IValueNode>(list.Count);
                     foreach (var item in list)
                     {
-                        items.Add(ValueToLiteral(item, set, type));
+                        items.Add(ValueToLiteral(item, ref set, type));
                     }
                     return new ListValueNode(items);
 
@@ -349,7 +348,7 @@ public class AnyType : ScalarType
                     var fields = new List<ObjectFieldNode>(obj.Count);
                     foreach (var kvp in obj)
                     {
-                        fields.Add(new ObjectFieldNode(kvp.Key, ValueToLiteral(kvp.Value, set, type)));
+                        fields.Add(new ObjectFieldNode(kvp.Key, ValueToLiteral(kvp.Value, ref set, type)));
                     }
                     return new ObjectValueNode(fields);
 
@@ -359,7 +358,7 @@ public class AnyType : ScalarType
         }
         finally
         {
-            set.Remove(value);
+            set?.Remove(value);
         }
     }
 }

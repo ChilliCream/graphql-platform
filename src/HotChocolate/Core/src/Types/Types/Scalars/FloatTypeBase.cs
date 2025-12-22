@@ -156,5 +156,5 @@ public abstract class FloatTypeBase<TRuntimeType>
     /// Returns the exception to throw.
     /// </returns>
     protected virtual LeafCoercionException CreateCoerceInputLiteralError(IValueNode literal)
-        => new(TypeResourceHelper.Scalar_Cannot_CoerceInputLiteral(this, literal), this);
+        => Scalar_Cannot_CoerceInputLiteral(this, literal);
 }

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using static HotChocolate.ExecutionAbstractionsResources;
@@ -54,8 +55,8 @@ public sealed class OperationRequest : IOperationRequest
         OperationDocumentHash? documentHash,
         string? operationName,
         ErrorHandlingMode? errorHandlingMode,
-        IReadOnlyDictionary<string, object?>? variableValues,
-        IReadOnlyDictionary<string, object?>? extensions,
+        JsonDocument? variableValues,
+        JsonDocument? extensions,
         IReadOnlyDictionary<string, object?>? contextData,
         IFeatureCollection? features,
         IServiceProvider? services,
@@ -63,7 +64,17 @@ public sealed class OperationRequest : IOperationRequest
     {
         if (document is null && OperationDocumentId.IsNullOrEmpty(documentId))
         {
-            throw new InvalidOperationException(OperationRequest_DocumentOrIdMustBeSet);
+            throw new ArgumentException(OperationRequest_DocumentOrIdMustBeSet, nameof(document));
+        }
+
+        if (variableValues is not null && variableValues.RootElement.ValueKind is not JsonValueKind.Object)
+        {
+            throw new ArgumentException(OperationRequest_Variables_Must_Be_Object, nameof(variableValues));
+        }
+
+        if (extensions is not null && extensions.RootElement.ValueKind is not JsonValueKind.Object)
+        {
+            throw new ArgumentException(OperationRequest_Extensions_Must_Be_Object, nameof(extensions));
         }
 
         Document = document;
@@ -108,12 +119,12 @@ public sealed class OperationRequest : IOperationRequest
     /// <summary>
     /// Gets the variable values for the GraphQL request.
     /// </summary>
-    public IReadOnlyDictionary<string, object?>? VariableValues { get; }
+    public JsonDocument? VariableValues { get; }
 
     /// <summary>
     /// Gets the GraphQL request extension data.
     /// </summary>
-    public IReadOnlyDictionary<string, object?>? Extensions { get; }
+    public JsonDocument? Extensions { get; }
 
     /// <summary>
     /// Gets the initial request state.
@@ -259,7 +270,7 @@ public sealed class OperationRequest : IOperationRequest
     /// <returns>
     /// Returns a new request with the specified variable values.
     /// </returns>
-    public OperationRequest WithVariableValues(IReadOnlyDictionary<string, object?> variableValues)
+    public OperationRequest WithVariableValues(JsonDocument? variableValues)
         => new OperationRequest(
             Document,
             DocumentId,
@@ -282,7 +293,7 @@ public sealed class OperationRequest : IOperationRequest
     /// <returns>
     /// Returns a new request with the specified extensions.
     /// </returns>
-    public OperationRequest WithExtensions(IReadOnlyDictionary<string, object?> extensions)
+    public OperationRequest WithExtensions(JsonDocument? extensions)
         => new OperationRequest(
             Document,
             DocumentId,
@@ -305,7 +316,7 @@ public sealed class OperationRequest : IOperationRequest
     /// <returns>
     /// Returns a new request with the specified context data.
     /// </returns>
-    public OperationRequest WithContextData(IReadOnlyDictionary<string, object?> contextData)
+    public OperationRequest WithContextData(IReadOnlyDictionary<string, object?>? contextData)
         => new OperationRequest(
             Document,
             DocumentId,
@@ -328,7 +339,7 @@ public sealed class OperationRequest : IOperationRequest
     /// <returns>
     /// Returns a new request with the specified features.
     /// </returns>
-    public OperationRequest WithFeatures(IFeatureCollection features)
+    public OperationRequest WithFeatures(IFeatureCollection? features)
         => new OperationRequest(
             Document,
             DocumentId,
@@ -351,7 +362,7 @@ public sealed class OperationRequest : IOperationRequest
     /// <returns>
     /// Returns a new request with the specified services.
     /// </returns>
-    public OperationRequest WithServices(IServiceProvider services)
+    public OperationRequest WithServices(IServiceProvider? services)
         => new OperationRequest(
             Document,
             DocumentId,
@@ -432,8 +443,8 @@ public sealed class OperationRequest : IOperationRequest
         OperationDocumentHash? documentHash = null,
         string? operationName = null,
         ErrorHandlingMode? errorHandlingMode = null,
-        IReadOnlyDictionary<string, object?>? variableValues = null,
-        IReadOnlyDictionary<string, object?>? extensions = null,
+        JsonDocument? variableValues = null,
+        JsonDocument? extensions = null,
         IReadOnlyDictionary<string, object?>? contextData = null,
         IFeatureCollection? features = null,
         IServiceProvider? services = null,
@@ -502,8 +513,8 @@ public sealed class OperationRequest : IOperationRequest
         OperationDocumentHash? documentHash = null,
         string? operationName = null,
         ErrorHandlingMode? errorHandlingMode = null,
-        IReadOnlyDictionary<string, object?>? variableValues = null,
-        IReadOnlyDictionary<string, object?>? extensions = null,
+        JsonDocument? variableValues = null,
+        JsonDocument? extensions = null,
         IReadOnlyDictionary<string, object?>? contextData = null,
         IFeatureCollection? features = null,
         IServiceProvider? services = null,
@@ -561,8 +572,8 @@ public sealed class OperationRequest : IOperationRequest
         OperationDocumentHash? documentHash = null,
         string? operationName = null,
         ErrorHandlingMode? errorHandlingMode = null,
-        IReadOnlyDictionary<string, object?>? variableValues = null,
-        IReadOnlyDictionary<string, object?>? extensions = null,
+        JsonDocument? variableValues = null,
+        JsonDocument? extensions = null,
         IReadOnlyDictionary<string, object?>? contextData = null,
         IFeatureCollection? features = null,
         IServiceProvider? services = null,

@@ -24,7 +24,7 @@ public class VariableCoercionHelperTests
         };
 
         var variableValues = new Dictionary<string, object?>();
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
 
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
@@ -42,7 +42,7 @@ public class VariableCoercionHelperTests
         // arrange
         var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
         var variableValues = new Dictionary<string, object?>();
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -70,7 +70,7 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -128,7 +128,7 @@ public class VariableCoercionHelperTests
         };
 
         var variableValues = new Dictionary<string, object?>();
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
 
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
@@ -141,7 +141,7 @@ public class VariableCoercionHelperTests
             {
                 Assert.Equal("abc", t.Key);
                 Assert.Equal("String", Assert.IsType<StringType>(t.Value.Type).Name);
-                Assert.Equal("def", t.Value.Value);
+                Assert.Equal("def", t.Value.RuntimeValue);
                 Assert.Equal("def", Assert.IsType<StringValueNode>(t.Value.ValueLiteral).Value);
             });
     }
@@ -164,7 +164,7 @@ public class VariableCoercionHelperTests
         };
 
         var variableValues = new Dictionary<string, object?>();
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
 
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
@@ -197,7 +197,7 @@ public class VariableCoercionHelperTests
             {"abc", new StringValueNode("xyz")}
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
 
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
@@ -210,7 +210,7 @@ public class VariableCoercionHelperTests
             {
                 Assert.Equal("abc", t.Key);
                 Assert.Equal("String", Assert.IsType<StringType>(t.Value.Type).Name);
-                Assert.Equal("xyz", t.Value.Value);
+                Assert.Equal("xyz", t.Value.RuntimeValue);
                 Assert.Equal("xyz", Assert.IsType<StringValueNode>(t.Value.ValueLiteral).Value);
             });
     }
@@ -237,7 +237,7 @@ public class VariableCoercionHelperTests
             {"abc", "xyz"}
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
 
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
@@ -250,7 +250,7 @@ public class VariableCoercionHelperTests
             {
                 Assert.Equal("abc", t.Key);
                 Assert.Equal("String", Assert.IsType<StringType>(t.Value.Type).Name);
-                Assert.Equal("xyz", t.Value.Value);
+                Assert.Equal("xyz", t.Value.RuntimeValue);
                 t.Value.ValueLiteral.ToString().MatchSnapshot();
             });
     }
@@ -277,7 +277,7 @@ public class VariableCoercionHelperTests
             {"abc", NullValueNode.Default}
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -289,7 +289,7 @@ public class VariableCoercionHelperTests
             {
                 Assert.Equal("abc", t.Key);
                 Assert.Equal("String", Assert.IsType<StringType>(t.Value.Type).Name);
-                Assert.Null(t.Value.Value);
+                Assert.Null(t.Value.RuntimeValue);
                 Assert.IsType<NullValueNode>(t.Value.ValueLiteral);
             });
     }
@@ -316,7 +316,7 @@ public class VariableCoercionHelperTests
             {"abc", null}
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -328,7 +328,7 @@ public class VariableCoercionHelperTests
             {
                 Assert.Equal("abc", t.Key);
                 Assert.Equal("String", Assert.IsType<StringType>(t.Value.Type).Name);
-                Assert.Null(t.Value.Value);
+                Assert.Null(t.Value.RuntimeValue);
                 Assert.IsType<NullValueNode>(t.Value.ValueLiteral);
             });
     }
@@ -355,7 +355,7 @@ public class VariableCoercionHelperTests
             {"abc", new ObjectValueNode(new ObjectFieldNode("stars", 5))}
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -367,7 +367,7 @@ public class VariableCoercionHelperTests
             {
                 Assert.Equal("abc", t.Key);
                 Assert.Equal("ReviewInput", Assert.IsType<ReviewInputType>(t.Value.Type).Name);
-                Assert.Equal(5, Assert.IsType<Review>(t.Value.Value).Stars);
+                Assert.Equal(5, Assert.IsType<Review>(t.Value.RuntimeValue).Stars);
                 Assert.IsType<ObjectValueNode>(t.Value.ValueLiteral);
             });
     }
@@ -394,7 +394,7 @@ public class VariableCoercionHelperTests
             {"abc", new Dictionary<string, object> { {"stars", 5} }}
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -406,7 +406,7 @@ public class VariableCoercionHelperTests
             {
                 Assert.Equal("abc", t.Key);
                 Assert.Equal("ReviewInput", Assert.IsType<ReviewInputType>(t.Value.Type).Name);
-                Assert.Equal(5, Assert.IsType<Review>(t.Value.Value).Stars);
+                Assert.Equal(5, Assert.IsType<Review>(t.Value.RuntimeValue).Stars);
                 t.Value.ValueLiteral.ToString().MatchSnapshot();
             });
     }
@@ -433,7 +433,7 @@ public class VariableCoercionHelperTests
             { "abc", new Review(stars: 5) }
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -445,7 +445,7 @@ public class VariableCoercionHelperTests
             {
                 Assert.Equal("abc", t.Key);
                 Assert.Equal("ReviewInput", Assert.IsType<ReviewInputType>(t.Value.Type).Name);
-                Assert.Equal(5, Assert.IsType<Review>(t.Value.Value).Stars);
+                Assert.Equal(5, Assert.IsType<Review>(t.Value.RuntimeValue).Stars);
                 t.Value.ValueLiteral.ToString().MatchSnapshot();
             });
     }
@@ -472,7 +472,7 @@ public class VariableCoercionHelperTests
             {"abc", NullValueNode.Default}
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -505,7 +505,7 @@ public class VariableCoercionHelperTests
             {"abc", null}
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -538,7 +538,7 @@ public class VariableCoercionHelperTests
             {"abc", new IntValueNode(1)}
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -573,7 +573,7 @@ public class VariableCoercionHelperTests
             { "abc", 1 }
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -605,7 +605,7 @@ public class VariableCoercionHelperTests
             { "abc", 1 }
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -637,7 +637,7 @@ public class VariableCoercionHelperTests
             { "abc", new ObjectValueNode(new ObjectFieldNode("abc", "def")) }
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -695,7 +695,7 @@ public class VariableCoercionHelperTests
             }
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -757,7 +757,7 @@ public class VariableCoercionHelperTests
             }
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -818,7 +818,7 @@ public class VariableCoercionHelperTests
             }
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -877,7 +877,7 @@ public class VariableCoercionHelperTests
             }
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -939,7 +939,7 @@ public class VariableCoercionHelperTests
             }
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -1005,7 +1005,7 @@ public class VariableCoercionHelperTests
             }
         };
 
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
@@ -1044,7 +1044,7 @@ public class VariableCoercionHelperTests
         };
 
         var variableValues = new Dictionary<string, object?>();
-        var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+        var coercedValues = new Dictionary<string, VariableValue>();
 
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
