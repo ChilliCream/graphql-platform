@@ -16,7 +16,9 @@ public sealed record OpenApiModelDefinition(
         string name,
         DocumentNode document)
     {
-        var fragmentReferences = FragmentReferenceFinder.Find(document);
+        var primaryFragmentDefinition = document.Definitions.OfType<FragmentDefinitionNode>().First();
+
+        var fragmentReferences = FragmentReferenceFinder.Find(document, primaryFragmentDefinition);
 
         return new OpenApiModelDefinition(
             name,
