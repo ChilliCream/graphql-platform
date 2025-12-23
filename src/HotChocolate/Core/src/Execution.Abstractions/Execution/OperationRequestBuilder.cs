@@ -1,15 +1,29 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using HotChocolate.Features;
 using HotChocolate.Language;
+using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
 
 /// <summary>
 /// Represents a builder for creating GraphQL operation requests.
 /// </summary>
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 public sealed class OperationRequestBuilder : IFeatureProvider
 {
+    #if !NET9_0_OR_GREATER
+    private static readonly JsonSerializerOptions s_serializerOptions =
+        new(JsonSerializerDefaults.Web)
+        {
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+        };
+    #endif
+
     private IOperationDocument? _document;
     private OperationDocumentId? _documentId;
     private OperationDocumentHash? _documentHash;
@@ -175,12 +189,75 @@ public sealed class OperationRequestBuilder : IFeatureProvider
         if (variableValues.RootElement.ValueKind is not (JsonValueKind.Object or JsonValueKind.Array))
         {
             throw new ArgumentException(
-                "The JSON document must be either null or an array of variable sets.",
+                OperationRequestBuilder_SetVariableValues_JSONDocumentMustBeObjectOrArray,
                 nameof(variableValues));
         }
 
         _variableValues?.Dispose();
         _variableValues = variableValues;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the variable values for the GraphQL request.
+    /// The dictionary will be serialized to JSON internally.
+    /// </summary>
+    /// <param name="variableValues">
+    /// The variable values for the GraphQL request as a dictionary.
+    /// </param>
+    /// <returns>
+    /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
+    /// </returns>
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+    public OperationRequestBuilder SetVariableValues(
+        IReadOnlyDictionary<string, object?>? variableValues)
+    {
+        _variableValues?.Dispose();
+        _variableValues = null;
+
+        if (variableValues is null)
+        {
+            return this;
+        }
+
+#if NET9_0_OR_GREATER
+        _variableValues = JsonSerializer.SerializeToDocument(variableValues, JsonSerializerOptions.Web);
+#else
+        _variableValues = JsonSerializer.SerializeToDocument(variableValues, s_serializerOptions);
+#endif
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the variable values for the GraphQL request as a batch operation.
+    /// Each dictionary in the list represents a set of variables for a separate operation execution.
+    /// The list will be serialized to JSON internally.
+    /// </summary>
+    /// <param name="variableValueSets">
+    /// The list of variable value sets for batch GraphQL request execution.
+    /// </param>
+    /// <returns>
+    /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
+    /// </returns>
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+    public OperationRequestBuilder SetVariableValues(
+        IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableValueSets)
+    {
+        _variableValues?.Dispose();
+        _variableValues = null;
+
+        if (variableValueSets is null)
+        {
+            return this;
+        }
+
+#if NET9_0_OR_GREATER
+        _variableValues = JsonSerializer.SerializeToDocument(variableValueSets, JsonSerializerOptions.Web);
+#else
+        _variableValues = JsonSerializer.SerializeToDocument(variableValueSets, s_serializerOptions);
+#endif
         return this;
     }
 
@@ -194,9 +271,9 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
     public OperationRequestBuilder SetExtensions(
-        IReadOnlyDictionary<string, object?>? extensions)
+        JsonDocument? extensions)
     {
-        _readOnlyExtensions = extensions;
+        _extensions = extensions;
         return this;
     }
 
@@ -209,9 +286,10 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// <returns>
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
-    public OperationRequestBuilder SetGlobalState(IReadOnlyDictionary<string, object?>? contextData)
+    public OperationRequestBuilder SetGlobalState(
+        IReadOnlyDictionary<string, object?>? contextData)
     {
-        _readOnlyContextData = _contextData;
+        _readOnlyContextData = contextData;
         _contextData = null;
         return this;
     }
@@ -375,9 +453,8 @@ public sealed class OperationRequestBuilder : IFeatureProvider
         _documentHash = null;
         _operationName = null;
         _errorHandlingMode = null;
-        _readOnlyVariableValues = null;
         _variableValues = null;
-        _readOnlyExtensions = null;
+        _extensions = null;
         _contextData = null;
         _readOnlyContextData = null;
         _services = null;
@@ -479,7 +556,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
                     _documentHash = operation.DocumentHash,
                     _operationName = operation.OperationName,
                     _errorHandlingMode = operation.ErrorHandlingMode,
-                    _variableValues =  operation.VariableValues,
+                    _variableValues = operation.VariableValues,
                     _readOnlyContextData = operation.ContextData,
                     _extensions = operation.Extensions,
                     _services = operation.Services,
@@ -506,7 +583,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             .SetDocumentHash(request.DocumentHash)
             .SetOperationName(request.OperationName)
             .SetErrorHandlingMode(request.ErrorHandlingMode)
-            .SetVariableValuesSet(request.Variables)
+            .SetVariableValues(request.Variables)
             .SetExtensions(request.Extensions);
 
         if (request.Document is not null)

@@ -22,16 +22,12 @@ public class Utf8GraphQLRequestParserTests
         var batch = Utf8GraphQLRequestParser.Parse(source);
 
         // assert
-        Assert.Collection(
-            batch,
-            r =>
-            {
-                Assert.Null(r.OperationName);
-                Assert.Null(r.DocumentId);
-                Assert.Null(r.Variables);
-                Assert.Null(r.Extensions);
-                r.Document.MatchSnapshot();
-            });
+        var r = Assert.Single(batch);
+        Assert.Null(r.OperationName);
+        Assert.Null(r.DocumentId);
+        Assert.Null(r.Variables);
+        Assert.Null(r.Extensions);
+        r.Document.MatchSnapshot();
     }
 
     [Fact]
@@ -51,15 +47,12 @@ public class Utf8GraphQLRequestParserTests
         var batch = requestParser.Parse();
 
         // assert
-        Assert.Collection(batch,
-            r =>
-            {
-                Assert.Null(r.OperationName);
-                Assert.Null(r.DocumentId);
-                Assert.Null(r.Variables);
-                Assert.Null(r.Extensions);
-                r.Document.MatchSnapshot();
-            });
+        var request = Assert.Single(batch);
+        Assert.Null(request.OperationName);
+        Assert.Null(request.DocumentId);
+        Assert.Null(request.Variables);
+        Assert.Null(request.Extensions);
+        request.Document.MatchSnapshot();
     }
 
     [Fact]
@@ -106,16 +99,13 @@ public class Utf8GraphQLRequestParserTests
         var batch = requestParser.Parse();
 
         // assert
-        Assert.Collection(batch,
-            r =>
-            {
-                Assert.Null(r.OperationName);
-                Assert.Null(r.DocumentId);
-                Assert.Null(r.Variables);
-                Assert.Null(r.Extensions);
+        var request = Assert.Single(batch);
+        Assert.Null(request.OperationName);
+        Assert.Null(request.DocumentId);
+        Assert.Null(request.Variables);
+        Assert.Null(request.Extensions);
 
-                r.Document.MatchSnapshot();
-            });
+        request.Document.MatchSnapshot();
     }
 
     [Fact]
@@ -173,7 +163,7 @@ public class Utf8GraphQLRequestParserTests
     }
 
     [Fact]
-    public void Parse_Skip_Custom_Property()
+    public void Parse_Unknown_Property_Throws()
     {
         // arrange
         var request = new CustomGraphQLRequestDto(
@@ -181,38 +171,12 @@ public class Utf8GraphQLRequestParserTests
             query: FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks());
 
         var source = Encoding.UTF8.GetBytes(
-            JsonConvert.SerializeObject(request
-                ).NormalizeLineBreaks());
+            JsonConvert.SerializeObject(request).NormalizeLineBreaks());
 
-        var buffer = Encoding.UTF8.GetBytes(request.Query);
-        var expectedHash = Convert.ToBase64String(
-            SHA1.Create().ComputeHash(buffer))
-            .Replace("/", "_")
-            .Replace("+", "-")
-            .TrimEnd('=');
-
-        var cache = new DocumentCache();
-
-        var requestParser = new Utf8GraphQLRequestParser(
-            source,
-            new ParserOptions(),
-            cache,
-            new Sha1DocumentHashProvider());
-
-        // act
-        var result = requestParser.Parse();
-
-        // assert
-        Assert.Collection(result,
-            r =>
-            {
-                Assert.Null(r.OperationName);
-                Assert.Null(r.Variables);
-                Assert.Null(r.Extensions);
-
-                Assert.Equal(expectedHash, r.DocumentId?.Value);
-                r.Document.MatchSnapshot();
-            });
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("CustomProperty", exception.Message);
     }
 
     [Fact]
@@ -421,8 +385,7 @@ public class Utf8GraphQLRequestParserTests
                 }).NormalizeLineBreaks());
 
         // act
-        var message =
-            Utf8GraphQLSocketMessageParser.ParseMessage(source);
+        var message = Utf8GraphQLSocketMessageParser.ParseMessage(source);
 
         // assert
         Assert.Equal("foo", message.Type);
@@ -496,17 +459,14 @@ public class Utf8GraphQLRequestParserTests
         var batch = requestParser.Parse();
 
         // assert
-        Assert.Collection(batch,
-            r =>
-            {
-                Assert.Null(r.OperationName);
-                Assert.Equal("hashOfQuery", r.DocumentId?.Value);
-                Assert.NotNull(r.Variables);
-                Assert.Empty(r.Variables.RootElement.EnumerateObject());
-                Assert.True(r.Extensions!.RootElement.TryGetProperty("persistedQuery", out _));
-                Assert.Null(r.Document);
-                Assert.Equal("hashOfQuery", r.DocumentHash?.Value);
-            });
+        var r = Assert.Single(batch);
+        Assert.Null(r.OperationName);
+        Assert.Equal("hashOfQuery", r.DocumentId?.Value);
+        Assert.NotNull(r.Variables);
+        Assert.Empty(r.Variables.RootElement.EnumerateObject());
+        Assert.True(r.Extensions!.RootElement.TryGetProperty("persistedQuery", out _));
+        Assert.Null(r.Document);
+        Assert.Equal("hashOfQuery", r.DocumentHash?.Value);
     }
 
     [Fact]
@@ -550,7 +510,7 @@ public class Utf8GraphQLRequestParserTests
     public void Parse_Invalid_Query()
     {
         // assert
-        Assert.Throws<InvalidOperationException>(
+        Assert.Throws<InvalidGraphQLRequestException>(
             () =>
             {
                 // arrange
@@ -597,7 +557,7 @@ public class Utf8GraphQLRequestParserTests
     public void Parse_Empty_Json()
     {
         // assert
-        Assert.Throws<InvalidOperationException>(
+        Assert.Throws<InvalidGraphQLRequestException>(
             () =>
             {
                 // arrange
@@ -619,7 +579,7 @@ public class Utf8GraphQLRequestParserTests
     public void Parse_Empty_String()
     {
         // assert
-        Assert.Throws<ArgumentException>(
+        Assert.Throws<InvalidGraphQLRequestException>(
             () =>
             {
                 // arrange
@@ -640,7 +600,7 @@ public class Utf8GraphQLRequestParserTests
     public void Parse_Space_String()
     {
         // assert
-        Assert.Throws<ArgumentException>(
+        Assert.Throws<InvalidGraphQLRequestException>(
             () =>
             {
                 // arrange
@@ -975,6 +935,280 @@ public class Utf8GraphQLRequestParserTests
         Assert.Equal("complete", message.Type);
         Assert.Equal("abc", message.Id);
         Assert.False(message.Payload.IsEmpty);
+    }
+
+    [Fact]
+    public void Parse_Query_Invalid_Type_Number_Throws()
+    {
+        // arrange
+        var source = "{\"query\": 123}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("query", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Parse_Query_Invalid_Type_Object_Throws()
+    {
+        // arrange
+        var source = "{\"query\": {}}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("query", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Parse_Query_Invalid_Type_Array_Throws()
+    {
+        // arrange
+        var source = "{\"query\": []}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("query", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Parse_Query_Invalid_Type_Boolean_Throws()
+    {
+        // arrange
+        var source = "{\"query\": true}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("query", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Parse_DocumentId_Invalid_Type_Number_Throws()
+    {
+        // arrange
+        var source = "{\"id\": 456, \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("id", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Parse_DocumentId_Invalid_Type_Object_Throws()
+    {
+        // arrange
+        var source = "{\"documentId\": {}, \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("documentId", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Parse_OperationName_Invalid_Type_Number_Throws()
+    {
+        // arrange
+        var source = "{\"operationName\": 789, \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("operationName", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Parse_OperationName_Invalid_Type_Array_Throws()
+    {
+        // arrange
+        var source = "{\"operationName\": [\"test\"], \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("operationName", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Parse_OnError_Invalid_Type_Number_Throws()
+    {
+        // arrange
+        var source = "{\"onError\": 123, \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("onError", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Parse_OnError_Invalid_Type_Object_Throws()
+    {
+        // arrange
+        var source = "{\"onError\": {\"mode\": \"HALT\"}, \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("onError", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Parse_Variables_Invalid_Type_String_Throws()
+    {
+        // arrange
+        var source = "{\"variables\": \"invalid\", \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("variables", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Parse_Variables_Invalid_Type_Number_Throws()
+    {
+        // arrange
+        var source = "{\"variables\": 123, \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("variables", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Parse_Variables_Array_Accepted()
+    {
+        // arrange
+        var source = "{\"variables\": [1, 2, 3], \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act
+        var result = Utf8GraphQLRequestParser.Parse(source);
+
+        // assert
+        var request = Assert.Single(result);
+        Assert.NotNull(request.Variables);
+    }
+
+    [Fact]
+    public void Parse_Extensions_Invalid_Type_String_Throws()
+    {
+        // arrange
+        var source = "{\"extensions\": \"invalid\", \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("extensions", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Parse_Extensions_Invalid_Type_Array_Throws()
+    {
+        // arrange
+        var source = "{\"extensions\": [], \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("extensions", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Parse_Extensions_Invalid_Type_Number_Throws()
+    {
+        // arrange
+        var source = "{\"extensions\": 456, \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("extensions", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Parse_Invalid_Request_Structure_Number_Throws()
+    {
+        // arrange
+        var source = "123"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("Invalid request structure", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_Invalid_Request_Structure_String_Throws()
+    {
+        // arrange
+        var source = "\"test\""u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("Invalid request structure", exception.Message);
+    }
+
+    [Fact]
+    public void Parse_Query_Null_Accepted()
+    {
+        // arrange
+        var source = "{\"query\": null, \"id\": \"abc\"}"u8.ToArray();
+
+        // act
+        var result = Utf8GraphQLRequestParser.Parse(source);
+
+        // assert
+        var request = Assert.Single(result);
+        Assert.Null(request.Document);
+        Assert.Equal("abc", request.DocumentId?.Value);
+    }
+
+    [Fact]
+    public void Parse_Variables_Null_Accepted()
+    {
+        // arrange
+        var source = "{\"variables\": null, \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act
+        var result = Utf8GraphQLRequestParser.Parse(source);
+
+        // assert
+        var request = Assert.Single(result);
+        Assert.Null(request.Variables);
+    }
+
+    [Fact]
+    public void Parse_Extensions_Null_Accepted()
+    {
+        // arrange
+        var source = "{\"extensions\": null, \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act
+        var result = Utf8GraphQLRequestParser.Parse(source);
+
+        // assert
+        var request = Assert.Single(result);
+        Assert.Null(request.Extensions);
+    }
+
+    [Fact]
+    public void Parse_Multiple_Invalid_Properties_Throws_On_First()
+    {
+        // arrange
+        var source = "{\"query\": 123, \"variables\": \"invalid\", \"extensions\": []}"u8.ToArray();
+
+        // act & assert
+        // Should throw on the first invalid property encountered (query)
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("query", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     private class GraphQLRequestDto(

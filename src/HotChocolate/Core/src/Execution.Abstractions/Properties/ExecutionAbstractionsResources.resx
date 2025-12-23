@@ -57,4 +57,7 @@
   <data name="VariableBatchRequest_Variables_Must_Be_Array" xml:space="preserve">
     <value>VariableValues must be a JSON array or objects.</value>
   </data>
+  <data name="OperationRequestBuilder_SetVariableValues_JSONDocumentMustBeObjectOrArray" xml:space="preserve">
+    <value>The JSON document must be either null or an array of variable sets.</value>
+  </data>
 </root>

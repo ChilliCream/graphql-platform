@@ -2,6 +2,7 @@
 
 using System.Buffers;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
@@ -102,7 +103,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         string? queryId = parameters[QueryIdKey];
         string? operationName = parameters[OperationNameKey];
         string? onError = parameters[OnErrorKey];
-        IReadOnlyDictionary<string, object?>? extensions = null;
+        JsonDocument? extensions = null;
 
         // if we have no query or query id, we cannot execute anything.
         if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(queryId))
@@ -112,7 +113,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             // query extensions.
             if ((string?)parameters[ExtensionsKey] is { Length: > 0 } se)
             {
-                extensions = ParseJsonObject(se);
+                extensions = JsonDocument.Parse(se);
             }
 
             // we will use the request parser utils to extract the hash from the extensions.
@@ -145,16 +146,16 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 document = result.Document;
             }
 
-            IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet = null;
+            JsonDocument? variableSet = null;
             if ((string?)parameters[VariablesKey] is { Length: > 0 } sv)
             {
-                variableSet = ParseVariables(sv);
+                variableSet = JsonDocument.Parse(sv);
             }
 
             if (extensions is null
                 && (string?)parameters[ExtensionsKey] is { Length: > 0 } se)
             {
-                extensions = ParseJsonObject(se);
+                extensions = JsonDocument.Parse(se);
             }
 
             ErrorHandlingMode? errorHandlingMode = null;
@@ -192,17 +193,17 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
         try
         {
-            IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet = null;
+            JsonDocument? variableSet = null;
             if ((string?)parameters[VariablesKey] is { Length: > 0 } sv)
             {
-                variableSet = ParseVariables(sv);
+                variableSet = JsonDocument.Parse(sv);
             }
 
-            IReadOnlyDictionary<string, object?>? extensions = null;
+            JsonDocument? extensions = null;
             if (extensions is null
                 && (string?)parameters[ExtensionsKey] is { Length: > 0 } se)
             {
-                extensions = ParseJsonObject(se);
+                extensions = JsonDocument.Parse(se);
             }
 
             string? onError = parameters[OnErrorKey];
@@ -276,16 +277,27 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         return null;
     }
 
-    public IReadOnlyList<GraphQLRequest> ParseRequest(
-        string sourceText)
+    public IReadOnlyList<GraphQLRequest> ParseRequest(string sourceText)
     {
+        byte[]? rented = null;
+        var maxLength = s_utf8.GetMaxByteCount(sourceText.Length);
+        var span = maxLength < 256 ? stackalloc byte[256] : rented = ArrayPool<byte>.Shared.Rent(maxLength);
+
         try
         {
-            return Parse(sourceText, _parserOptions, _documentCache, _documentHashProvider);
+            s_utf8.GetBytes(sourceText, span);
+            return Parse(span, _parserOptions, _documentCache, _documentHashProvider);
         }
         catch (OperationIdFormatException)
         {
             throw ErrorHelper.InvalidOperationIdFormat();
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
         }
     }
 
@@ -349,13 +361,19 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         string documentId,
         string? operationName)
     {
+        if (!OperationDocumentId.TryParse(documentId, out var parsedDocumentId))
+        {
+            throw new InvalidGraphQLRequestException(
+                "The GraphQL document ID contains invalid characters.");
+        }
+
         var requestParser = new Utf8GraphQLRequestParser(
             request,
             _parserOptions,
             _documentCache,
             _documentHashProvider);
 
-        return requestParser.ParsePersistedOperation(documentId, operationName);
+        return requestParser.ParsePersistedOperation(parsedDocumentId, operationName);
     }
 
     private static void EnsureValidDocumentId(string documentId)

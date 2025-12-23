@@ -100,7 +100,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 // GraphQL error result.
                 statusCode = HttpStatusCode.BadRequest;
                 var errors = session.Handle(ex.Errors);
-                result = OperationResult.FromError([..errors]);
+                result = OperationResult.FromError([.. errors]);
                 session.DiagnosticEvents.ParserErrors(context, errors);
                 goto HANDLE_RESULT;
             }
@@ -190,7 +190,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
         {
             // This allows extensions to throw GraphQL exceptions in the GraphQL interceptor.
             statusCode = null; // we let the serializer determine the status code.
-            result = OperationResult.FromError([..ex.Errors]);
+            result = OperationResult.FromError([.. ex.Errors]);
 
             foreach (var error in ex.Errors)
             {

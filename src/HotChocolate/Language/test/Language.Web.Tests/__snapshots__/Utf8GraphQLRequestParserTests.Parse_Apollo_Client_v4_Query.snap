@@ -2,6 +2,7 @@
   {
     "DocumentId": {
       "IsEmpty": false,
+      "HasValue": true,
       "Value": "foo"
     },
     "DocumentHash": null,

@@ -122,5 +122,11 @@ namespace HotChocolate {
                 return ResourceManager.GetString("VariableBatchRequest_Variables_Must_Be_Array", resourceCulture);
             }
         }
+        
+        internal static string OperationRequestBuilder_SetVariableValues_JSONDocumentMustBeObjectOrArray {
+            get {
+                return ResourceManager.GetString("OperationRequestBuilder_SetVariableValues_JSONDocumentMustBeObjectOrArray", resourceCulture);
+            }
+        }
     }
 }
