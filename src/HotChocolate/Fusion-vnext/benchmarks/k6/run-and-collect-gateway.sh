@@ -11,9 +11,12 @@ echo "PATH: $PATH"
 # Check for required commands
 echo ""
 echo "=== Checking required commands ==="
-for cmd in k6 jq taskset; do
+for cmd in k6 jq taskset dotnet; do
     if command -v $cmd &> /dev/null; then
         echo "✓ $cmd found at: $(command -v $cmd)"
+        if [ "$cmd" = "dotnet" ]; then
+            echo "  dotnet version: $(dotnet --version 2>&1 || echo 'unable to get version')"
+        fi
     else
         echo "✗ $cmd not found"
     fi
@@ -60,7 +63,19 @@ maybe_taskset() {
 cleanup() {
     echo ""
     echo -e "${YELLOW}Cleaning up - stopping any running services...${NC}"
-    "$SCRIPT_DIR/stop-services.sh" > /dev/null 2>&1 || true
+
+    local stop_script="$SCRIPT_DIR/stop-services.sh"
+    echo "DEBUG: Cleanup - executing: $stop_script"
+
+    local temp_log=$(mktemp)
+    if ! "$stop_script" > "$temp_log" 2>&1; then
+        local exit_code=$?
+        echo "WARNING: Cleanup - stop-services.sh failed with exit code $exit_code"
+        echo "=== Script output ==="
+        cat "$temp_log"
+        echo "===================="
+    fi
+    rm -f "$temp_log"
 }
 
 # Register cleanup function to run on exit
@@ -112,7 +127,19 @@ start_infrastructure_gateway_constant() {
         exit 1
     fi
     echo "DEBUG: Executing: $schema_script"
-    "$schema_script" > /dev/null 2>&1 || { echo "ERROR: start-source-schemas.sh failed with exit code $?"; exit 1; }
+
+    # Capture both stdout and stderr for debugging
+    local temp_log=$(mktemp)
+    if ! "$schema_script" > "$temp_log" 2>&1; then
+        local exit_code=$?
+        echo "ERROR: start-source-schemas.sh failed with exit code $exit_code"
+        echo "=== Script output ==="
+        cat "$temp_log"
+        echo "===================="
+        rm -f "$temp_log"
+        exit $exit_code
+    fi
+    rm -f "$temp_log"
 
     echo -e "${YELLOW}    Starting gateway on cores 2-4...${NC}"
     export GATEWAY_CPUSET="2-4"
@@ -128,7 +155,19 @@ start_infrastructure_gateway_constant() {
         exit 1
     fi
     echo "DEBUG: Executing: $gateway_script"
-    "$gateway_script" > /dev/null 2>&1 || { echo "ERROR: start-gateway.sh failed with exit code $?"; exit 1; }
+
+    # Capture both stdout and stderr for debugging
+    temp_log=$(mktemp)
+    if ! "$gateway_script" > "$temp_log" 2>&1; then
+        exit_code=$?
+        echo "ERROR: start-gateway.sh failed with exit code $exit_code"
+        echo "=== Script output ==="
+        cat "$temp_log"
+        echo "===================="
+        rm -f "$temp_log"
+        exit $exit_code
+    fi
+    rm -f "$temp_log"
 
     echo -e "${YELLOW}    Waiting for services to be ready...${NC}"
     sleep 5
@@ -142,14 +181,36 @@ start_infrastructure_gateway_ramping() {
 
     local schema_script="$SCRIPT_DIR/start-source-schemas.sh"
     echo "DEBUG: Executing: $schema_script"
-    "$schema_script" > /dev/null 2>&1 || { echo "ERROR: start-source-schemas.sh failed with exit code $?"; exit 1; }
+
+    local temp_log=$(mktemp)
+    if ! "$schema_script" > "$temp_log" 2>&1; then
+        local exit_code=$?
+        echo "ERROR: start-source-schemas.sh failed with exit code $exit_code"
+        echo "=== Script output ==="
+        cat "$temp_log"
+        echo "===================="
+        rm -f "$temp_log"
+        exit $exit_code
+    fi
+    rm -f "$temp_log"
 
     echo -e "${YELLOW}    Starting gateway on cores 2-5...${NC}"
     export GATEWAY_CPUSET="2-5"
 
     local gateway_script="$SCRIPT_DIR/start-gateway.sh"
     echo "DEBUG: Executing: $gateway_script"
-    "$gateway_script" > /dev/null 2>&1 || { echo "ERROR: start-gateway.sh failed with exit code $?"; exit 1; }
+
+    temp_log=$(mktemp)
+    if ! "$gateway_script" > "$temp_log" 2>&1; then
+        exit_code=$?
+        echo "ERROR: start-gateway.sh failed with exit code $exit_code"
+        echo "=== Script output ==="
+        cat "$temp_log"
+        echo "===================="
+        rm -f "$temp_log"
+        exit $exit_code
+    fi
+    rm -f "$temp_log"
 
     echo -e "${YELLOW}    Waiting for services to be ready...${NC}"
     sleep 5
@@ -163,7 +224,18 @@ start_infrastructure_variable_batch() {
 
     local inventory_script="$SCRIPT_DIR/start-inventory-only.sh"
     echo "DEBUG: Executing: $inventory_script"
-    "$inventory_script" > /dev/null 2>&1 || { echo "ERROR: start-inventory-only.sh failed with exit code $?"; exit 1; }
+
+    local temp_log=$(mktemp)
+    if ! "$inventory_script" > "$temp_log" 2>&1; then
+        local exit_code=$?
+        echo "ERROR: start-inventory-only.sh failed with exit code $exit_code"
+        echo "=== Script output ==="
+        cat "$temp_log"
+        echo "===================="
+        rm -f "$temp_log"
+        exit $exit_code
+    fi
+    rm -f "$temp_log"
 
     echo -e "${YELLOW}    Waiting for service to be ready...${NC}"
     sleep 5
@@ -175,7 +247,18 @@ stop_infrastructure() {
 
     local stop_script="$SCRIPT_DIR/stop-services.sh"
     echo "DEBUG: Executing: $stop_script"
-    "$stop_script" > /dev/null 2>&1 || { echo "ERROR: stop-services.sh failed with exit code $?"; exit 1; }
+
+    local temp_log=$(mktemp)
+    if ! "$stop_script" > "$temp_log" 2>&1; then
+        local exit_code=$?
+        echo "ERROR: stop-services.sh failed with exit code $exit_code"
+        echo "=== Script output ==="
+        cat "$temp_log"
+        echo "===================="
+        rm -f "$temp_log"
+        exit $exit_code
+    fi
+    rm -f "$temp_log"
     sleep 2
 }
 
