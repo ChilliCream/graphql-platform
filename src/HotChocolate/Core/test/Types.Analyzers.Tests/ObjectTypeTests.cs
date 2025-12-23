@@ -189,6 +189,58 @@ public class ObjectTypeTests
     }
 
     [Fact]
+    public async Task NullableValueTypeArgument_With_DefaultValue()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            internal static partial class Query
+            {
+                public static string GetBooleanExplicitValue(bool? bar = false)
+                    => bar?.ToString();
+                public static string GetBooleanExplicitNull(bool? bar = null)
+                    => bar?.ToString();
+                public static string GetBooleanExplicitDefault(bool? bar = default)
+                    => bar?.ToString();
+
+                // Same for decimal, single etc, just a different suffix
+                public static string GetLongExplicitValue(long? bar = 42)
+                    => bar?.ToString();
+                public static string GetLongExplicitValueWithSuffix(long? bar = 42L)
+                    => bar?.ToString();
+                public static string GetLongExplicitNull(long? bar = null)
+                    => bar?.ToString();
+                public static string GetLongExplicitDefault(long? bar = default)
+                    => bar?.ToString();
+
+                public static string GetCharExplicitValue(char? bar = 'c')
+                    => bar?.ToString();
+                public static string GetCharExplicitNull(char? bar = null)
+                    => bar?.ToString();
+                public static string GetCharExplicitDefault(char? bar = default)
+                    => bar?.ToString();
+
+                public static string GetEnumExplicitValue(ConsoleColor? bar = ConsoleColor.Blue)
+                    => bar?.ToString();
+                public static string GetEnumExplicitNull(ConsoleColor? bar = null)
+                    => bar?.ToString();
+                public static string GetEnumExplicitDefault(ConsoleColor? bar = default)
+                    => bar?.ToString();
+            }
+            """).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task XmlDocumentation_With_MultilineDescription()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

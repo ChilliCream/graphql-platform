@@ -10,11 +10,11 @@ namespace HotChocolate.Adapters.OpenApi;
 internal static class OpenApiEndpointFactory
 {
     public static Endpoint Create(
-        OpenApiOperationDocument operationDocument,
-        IDictionary<string, OpenApiFragmentDocument> fragmentsByName,
+        OpenApiEndpointDefinition endpoints,
+        IDictionary<string, OpenApiModelDefinition> modelsByName,
         ISchemaDefinition schema)
     {
-        var endpointDescriptor = CreateEndpointDescriptor(operationDocument, fragmentsByName, schema);
+        var endpointDescriptor = CreateEndpointDescriptor(endpoints, modelsByName, schema);
 
         return CreateEndpoint(schema.Name, endpointDescriptor);
     }
@@ -45,57 +45,75 @@ internal static class OpenApiEndpointFactory
     }
 
     private static OpenApiEndpointDescriptor CreateEndpointDescriptor(
-        OpenApiOperationDocument operationDocument,
-        IDictionary<string, OpenApiFragmentDocument> fragmentsByName,
+        OpenApiEndpointDefinition endpointDefinition,
+        IDictionary<string, OpenApiModelDefinition> modelsByName,
         ISchemaDefinition schema)
     {
-        var definitions = new List<IExecutableDefinitionNode>
-        {
-            operationDocument.OperationDefinition
-        };
+        List<IExecutableDefinitionNode> definitions = [
+            ..endpointDefinition.Document.Definitions.OfType<IExecutableDefinitionNode>()
+        ];
 
-        foreach (var referencedFragmentName in operationDocument.ExternalFragmentReferences)
-        {
-            var fragmentDocument = fragmentsByName[referencedFragmentName];
+        var externalFragmentReferencesQueue = new Queue<string>(endpointDefinition.ExternalFragmentReferences);
+        var processedFragmentReferences = new HashSet<string>();
 
-            definitions.Add(fragmentDocument.FragmentDefinition);
+        while (externalFragmentReferencesQueue.TryDequeue(out var referencedFragmentName))
+        {
+            if (!processedFragmentReferences.Add(referencedFragmentName))
+            {
+                continue;
+            }
+
+            var model = modelsByName[referencedFragmentName];
+            foreach (var definition in model.Document.Definitions.OfType<IExecutableDefinitionNode>())
+            {
+                definitions.Add(definition);
+            }
+
+            foreach (var externalFragmentReference in model.ExternalFragmentReferences)
+            {
+                externalFragmentReferencesQueue.Enqueue(externalFragmentReference);
+            }
         }
 
         var document = new DocumentNode(definitions);
 
-        var rootField = operationDocument.OperationDefinition.SelectionSet.Selections
+        var rootField = endpointDefinition.OperationDefinition.SelectionSet.Selections
             .OfType<FieldNode>()
             .First();
 
         var responseNameToExtract = rootField.Alias?.Value ?? rootField.Name.Value;
 
-        var route = CreateRoutePattern(operationDocument.Route);
+        var route = CreateRoutePattern(endpointDefinition.Route);
 
         var parameterTrie = new VariableValueInsertionTrie();
 
-        InsertParametersIntoTrie(operationDocument.Route.Parameters, OpenApiEndpointParameterType.Route);
-        InsertParametersIntoTrie(operationDocument.QueryParameters, OpenApiEndpointParameterType.Query);
+        InsertParametersIntoTrie(endpointDefinition.RouteParameters, OpenApiEndpointParameterType.Route);
+        InsertParametersIntoTrie(endpointDefinition.QueryParameters, OpenApiEndpointParameterType.Query);
 
         return new OpenApiEndpointDescriptor(
             document,
-            operationDocument.HttpMethod,
+            endpointDefinition.HttpMethod,
             route,
             parameterTrie,
-            operationDocument.BodyParameter?.VariableName,
+            endpointDefinition.BodyVariableName,
             responseNameToExtract);
 
         void InsertParametersIntoTrie(
-            IEnumerable<OpenApiRouteSegmentParameter> parameters,
+            IEnumerable<OpenApiEndpointDefinitionParameter> parameters,
             OpenApiEndpointParameterType parameterType)
         {
             foreach (var parameter in parameters)
             {
-                var inputType = GetTypeFromParameter(parameter, operationDocument.OperationDefinition, schema);
+                var (inputType, hasDefaultValue) = GetParameterDetails(
+                    parameter,
+                    endpointDefinition.OperationDefinition,
+                    schema);
 
                 var leaf = new VariableValueInsertionTrieLeaf(
                     parameter.Key,
                     inputType,
-                    parameterType);
+                    parameterType,
+                    hasDefaultValue);
 
                 var inputObjectPath = parameter.InputObjectPath;
 
@@ -148,8 +166,8 @@ internal static class OpenApiEndpointFactory
         }
     }
 
-    private static ITypeDefinition GetTypeFromParameter(
-        OpenApiRouteSegmentParameter parameter,
+    private static (ITypeDefinition Type, bool HasDefaultValue) GetParameterDetails(
+        OpenApiEndpointDefinitionParameter parameter,
         OperationDefinitionNode operation,
         ISchemaDefinition schema)
     {
@@ -157,6 +175,7 @@ internal static class OpenApiEndpointFactory
             .First(v => v.Variable.Name.Value == parameter.VariableName);
 
         var currentType = schema.Types[variable.Type.NamedType().Name.Value];
+        var hasDefaultValue = variable.DefaultValue is not null;
 
         if (parameter.InputObjectPath is { Length: > 0 })
         {
@@ -170,34 +189,36 @@ internal static class OpenApiEndpointFactory
                 }
 
                 currentType = field.Type.NamedType();
+                hasDefaultValue = field.DefaultValue is not null;
             }
         }
 
-        return currentType;
+        return (currentType, hasDefaultValue);
     }
 
-    private static RoutePattern CreateRoutePattern(OpenApiRoute route)
+    private static RoutePattern CreateRoutePattern(string route)
     {
-        var segments = new List<RoutePatternPathSegment>();
-
-        foreach (var segment in route.Segments)
-        {
-            if (segment is OpenApiRouteSegmentLiteral stringSegment)
-            {
-                segments.Add(
-                    RoutePatternFactory.Segment(
-                        RoutePatternFactory.LiteralPart(stringSegment.Value)));
-            }
-            else if (segment is OpenApiRouteSegmentParameter mapSegment)
-            {
-                // We do not apply route constraints here, as they are not meant for validation but to disambiguate routes:
-                // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/routing#route-constraints
-                segments.Add(
-                    RoutePatternFactory.Segment(
-                        RoutePatternFactory.ParameterPart(mapSegment.Key)));
-            }
-        }
-
-        return RoutePatternFactory.Pattern(segments);
+        return RoutePatternFactory.Parse(route);
+        // var segments = new List<RoutePatternPathSegment>();
+        //
+        // foreach (var segment in route.Segments)
+        // {
+        //     if (segment is OpenApiRouteSegmentLiteral stringSegment)
+        //     {
+        //         segments.Add(
+        //             RoutePatternFactory.Segment(
+        //                 RoutePatternFactory.LiteralPart(stringSegment.Value)));
+        //     }
+        //     else if (segment is OpenApiRouteSegmentParameter mapSegment)
+        //     {
+        //         // We do not apply route constraints here, as they are not meant for validation but to disambiguate routes:
+        //         // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/routing#route-constraints
+        //         segments.Add(
+        //             RoutePatternFactory.Segment(
+        //                 RoutePatternFactory.ParameterPart(mapSegment.Key)));
+        //     }
+        // }
+        //
+        // return RoutePatternFactory.Pattern(segments);
     }
 }

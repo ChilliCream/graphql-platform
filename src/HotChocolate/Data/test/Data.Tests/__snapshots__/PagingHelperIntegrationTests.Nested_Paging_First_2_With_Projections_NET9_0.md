@@ -42,7 +42,7 @@ ORDER BY p1."BrandId", p3."BrandId", p3."Name", p3."Id"
 ## Expression 1
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].Where(t => value(HotChocolate.Data.PagingHelperIntegrationTests+ProductsByBrandDataLoader+<>c__DisplayClass2_0).keys.Contains(t.BrandId)).Select(root => new Product() {Name = root.Name, BrandId = root.BrandId, Id = root.Id}).GroupBy(t => t.BrandId).Select(g => new Group`2() {Key = g.Key, Items = g.OrderBy(t => t.Name).ThenBy(t => t.Id).Take(3).ToList()})
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].Where(t => value(HotChocolate.Data.PagingHelperIntegrationTests+ProductsByBrandDataLoader+<>c__DisplayClass2_0).keys.Contains(t.BrandId)).GroupBy(t => t.BrandId).Select(g => new Group`2() {Key = g.Key, Items = g.OrderBy(t => t.Name).ThenBy(t => t.Id).Select(root => new Product() {Name = root.Name, BrandId = root.BrandId, Id = root.Id}).Take(3).ToList()})
 ```
 
 ## Result

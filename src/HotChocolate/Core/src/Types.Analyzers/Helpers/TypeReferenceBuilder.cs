@@ -1,7 +1,5 @@
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
@@ -93,7 +91,7 @@ public static class TypeReferenceBuilder
     private static (string TypeStructure, string TypeDefinition, bool IsSimpleType) CreateTypeKey(
         ITypeSymbol unwrappedType)
     {
-        bool isNullable;;
+        bool isNullable;
         ITypeSymbol underlyingType;
 
         // We first check if the type is a nullable value type (int?, Guid?, etc.).
@@ -117,9 +115,8 @@ public static class TypeReferenceBuilder
             isNullable = false;
         }
 
-        if (underlyingType is INamedTypeSymbol namedType && IsListType(namedType))
+        if (underlyingType is INamedTypeSymbol namedType && TryGetListElementType(namedType, out var listElementType))
         {
-            var listElementType = namedType.TypeArguments[0];
             var (typeStructure, typeDefinition, _) = CreateTypeKey(listElementType);
 
             if (isNullable)
@@ -242,10 +239,13 @@ public static class TypeReferenceBuilder
         return false;
     }
 
-    private static bool IsListType(INamedTypeSymbol namedType)
+    private static bool TryGetListElementType(
+        INamedTypeSymbol namedType,
+        [NotNullWhen(true)] out ITypeSymbol? elementType)
     {
         if (!namedType.IsGenericType)
         {
+            elementType = null;
             return false;
         }
 
@@ -256,10 +256,13 @@ public static class TypeReferenceBuilder
         if (WellKnownTypes.ListInterfaceTypes.Contains(typeDefinition)
             || WellKnownTypes.ListClassTypes.Contains(typeDefinition))
         {
+            elementType = namedType.TypeArguments[0];
             return true;
         }
 
-        // Check if the type implements any of the known list interfaces
+        // Check if the type implements any of the known list interfaces.
+        // This handles cases like Dictionary<K,V> which implements IEnumerable<KeyValuePair<K,V>>.
+        // We extract the element type from the interface, not from the type's own type arguments.
         foreach (var interfaceType in namedType.AllInterfaces)
         {
             if (!interfaceType.IsGenericType)
@@ -270,6 +273,7 @@ public static class TypeReferenceBuilder
             var interfaceDefinition = GetGenericTypeDefinition(interfaceType.OriginalDefinition);
             if (WellKnownTypes.ListInterfaceTypes.Contains(interfaceDefinition))
             {
+                elementType = interfaceType.TypeArguments[0];
                 return true;
             }
         }
@@ -287,12 +291,14 @@ public static class TypeReferenceBuilder
             var baseDefinition = GetGenericTypeDefinition(currentType.OriginalDefinition);
             if (WellKnownTypes.ListClassTypes.Contains(baseDefinition))
             {
+                elementType = currentType.TypeArguments[0];
                 return true;
             }
 
             currentType = currentType.BaseType;
         }
 
+        elementType = null;
         return false;
     }
 

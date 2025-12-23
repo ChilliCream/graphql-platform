@@ -23,7 +23,11 @@ internal static class ServiceCollectionExtensions
                 static (sp, name) => new McpRequestExecutorProxy(
                     sp.GetRequiredService<IRequestExecutorProvider>(),
                     sp.GetRequiredService<IRequestExecutorEvents>(),
+#if NET10_0_OR_GREATER
                     (string)name))
+#else
+                    (string)name!))
+#endif
             .AddKeyedSingleton(
                 schemaName,
                 static (sp, name) => new StreamableHttpHandlerProxy(
@@ -57,12 +61,12 @@ internal static class ServiceCollectionExtensions
 
         services
             .TryAddSingleton(
-                static sp => new ToolStorageObserver(
+                static sp => new McpStorageObserver(
                     sp.GetRequiredService<ISchemaDefinition>(),
-                    sp.GetRequiredService<ToolRegistry>(),
+                    sp.GetRequiredService<McpFeatureRegistry>(),
                     sp.GetRequiredService<OperationToolFactory>(),
                     sp.GetRequiredService<ConcurrentDictionary<string, McpServer>>(),
-                    sp.GetRequiredService<IOperationToolStorage>(),
+                    sp.GetRequiredService<IMcpStorage>(),
                     sp.GetRequiredService<IMcpDiagnosticEvents>()));
 
         services
@@ -74,7 +78,7 @@ internal static class ServiceCollectionExtensions
                 static sp => sp
                     .GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider
                     .GetRequiredService<ILoggerFactory>())
-            .AddSingleton<ToolRegistry>();
+            .AddSingleton<McpFeatureRegistry>();
 
         var mcpServers = new ConcurrentDictionary<string, McpServer>();
         services.AddSingleton(mcpServers);
@@ -84,6 +88,7 @@ internal static class ServiceCollectionExtensions
                 .AddMcpServer(options =>
                 {
                     configureServerOptions?.Invoke(options);
+                    options.Capabilities?.Prompts?.ListChanged = true;
                     options.Capabilities?.Tools?.ListChanged = true;
                 })
                 .WithHttpTransport(options =>
@@ -109,6 +114,12 @@ internal static class ServiceCollectionExtensions
                         }
                     };
                 })
+                .WithListPromptsHandler(
+                    (context, _) => ValueTask.FromResult(ListPromptsHandler.Handle(context)))
+                .WithGetPromptHandler(
+                    (context, _) => ValueTask.FromResult(GetPromptHandler.Handle(context)))
+                .WithReadResourceHandler(
+                    (context, _) => ValueTask.FromResult(ReadResourceHandler.Handle(context)))
                 .WithListToolsHandler(
                     (context, _) => ValueTask.FromResult(ListToolsHandler.Handle(context)))
                 .WithCallToolHandler(CallToolHandler.HandleAsync);

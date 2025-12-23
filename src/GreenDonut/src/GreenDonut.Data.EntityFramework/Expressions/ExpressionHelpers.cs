@@ -359,6 +359,9 @@ internal static class ExpressionHelpers
     /// <param name="forward">
     /// Defines how the dataset is sorted.
     /// </param>
+    /// <param name="selector">
+    /// Optional selector to apply to each item before materialization.
+    /// </param>
     /// <param name="requestedCount">
     /// The number of items that are requested.
     /// </param>
@@ -378,6 +381,7 @@ internal static class ExpressionHelpers
         ReadOnlySpan<LambdaExpression> orderExpressions,
         ReadOnlySpan<string> orderMethods,
         bool forward,
+        Expression<Func<TV, TV>>? selector,
         ref int requestedCount)
     {
         if (keys.Length == 0)
@@ -412,6 +416,17 @@ internal static class ExpressionHelpers
                 method,
                 source,
                 typedOrderExpression);
+        }
+
+        // apply the selector to each item in the grouping after ordering
+        if (selector is not null)
+        {
+            var selectMethod = typeof(Enumerable)
+                .GetMethods(BindingFlags.Static | BindingFlags.Public)
+                .First(m => m.Name == nameof(Enumerable.Select) && m.GetParameters().Length == 2)
+                .MakeGenericMethod(typeof(TV), typeof(TV));
+
+            source = Expression.Call(selectMethod, source, selector);
         }
 
         var offset = 0;

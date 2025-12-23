@@ -22,16 +22,16 @@ public static class FusionGatewayBuilderExtensions
         builder.AddWarmupTask(async (executor, cancellationToken) =>
         {
             var schema = executor.Schema;
-            var storageObserver = schema.Services.GetRequiredService<ToolStorageObserver>();
+            var storageObserver = schema.Services.GetRequiredService<McpStorageObserver>();
             await storageObserver.StartAsync(cancellationToken);
         });
 
         return builder;
     }
 
-    public static IFusionGatewayBuilder AddMcpToolStorage(
+    public static IFusionGatewayBuilder AddMcpStorage(
         this IFusionGatewayBuilder builder,
-        IOperationToolStorage storage)
+        IMcpStorage storage)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(storage);

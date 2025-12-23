@@ -24,10 +24,11 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
     public async Task ListTools_AfterSchemaUpdate_ReturnsUpdatedTools()
     {
         // arrange
-        var storage = new TestOperationToolStorage();
+        var storage = new TestMcpStorage();
         await storage.AddOrUpdateToolAsync(
-            Utf8GraphQLParser.Parse(
-                await File.ReadAllTextAsync("__resources__/GetSingleField.graphql")));
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync("__resources__/GetSingleField.graphql"))));
         var typeModule = new TestTypeModule();
         var builder = new WebHostBuilder()
             .ConfigureServices(
@@ -36,7 +37,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
                     .AddGraphQL()
                     .AddTypeModule(_ => typeModule)
                     .AddMcp()
-                    .AddMcpToolStorage(storage))
+                    .AddMcpStorage(storage))
             .Configure(
                 app => app
                     .UseRouting()
@@ -94,7 +95,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
     }
 
     protected override Task<TestServer> CreateTestServerAsync(
-        IOperationToolStorage storage,
+        IMcpStorage storage,
         ITypeDefinition[]? additionalTypes = null,
         McpDiagnosticEventListener? diagnosticEventListener = null,
         Action<McpServerOptions>? configureMcpServerOptions = null,
@@ -122,7 +123,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
                             .AddGraphQL()
                             .AddAuthorization()
                             .AddMcp(configureMcpServerOptions, configureMcpServer)
-                            .AddMcpToolStorage(storage)
+                            .AddMcpStorage(storage)
                             .AddQueryType<TestSchema.Query>()
                             .AddMutationType<TestSchema.Mutation>()
                             .AddInterfaceType<TestSchema.IPet>()

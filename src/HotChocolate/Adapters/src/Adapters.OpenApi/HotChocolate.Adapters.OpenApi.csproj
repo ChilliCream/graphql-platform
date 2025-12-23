@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>HotChocolate.Adapters.OpenApi</RootNamespace>
     <PackageId>HotChocolate.Adapters.OpenApi</PackageId>
-    <TargetFrameworks>net10.0; net9.0</TargetFrameworks>
+    <TargetFrameworks>$(OpenApiTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
-    <ProjectReference Include="..\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />
+    <ProjectReference Include="..\Adapters.OpenApi.AspNetCore\HotChocolate.Adapters.OpenApi.AspNetCore.csproj" />
   </ItemGroup>
 
 </Project>

@@ -70,4 +70,30 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
             builder.AddDiagnosticEventListener(_ => eventListener);
         }
     }
+
+    [Fact]
+    public async Task Http_Post_Body_Field_Has_Wrong_Type()
+    {
+        // arrange
+        var storage = CreateBasicTestDefinitionStorage();
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var content = new StringContent(
+            """
+            {
+              "id": "6",
+              "name": "Test",
+              "email": 123
+            }
+            """,
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await client.PostAsync("/users", content);
+
+        // assert
+        response.MatchSnapshot();
+    }
 }

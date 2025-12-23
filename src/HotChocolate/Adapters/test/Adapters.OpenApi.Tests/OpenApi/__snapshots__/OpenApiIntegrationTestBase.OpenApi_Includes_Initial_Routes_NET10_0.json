@@ -393,7 +393,10 @@
                         "array"
                       ],
                       "items": {
-                        "type": "string"
+                        "type": [
+                          "null",
+                          "string"
+                        ]
                       }
                     },
                     "localDate": {
@@ -610,7 +613,10 @@
                     "required": [
                       "id"
                     ],
-                    "type": "object",
+                    "type": [
+                      "null",
+                      "object"
+                    ],
                     "properties": {
                       "id": {
                         "oneOf": [
@@ -871,20 +877,24 @@
                       }
                     },
                     {
-                      "type": "object",
-                      "properties": {
-                        "isPurring": {
-                          "type": "boolean"
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "isPurring": {
+                              "type": "boolean"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "isBarking": {
+                              "type": "boolean"
+                            }
+                          }
                         }
-                      }
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "isBarking": {
-                          "type": "boolean"
-                        }
-                      }
+                      ]
                     }
                   ]
                 }
@@ -916,22 +926,119 @@
                       }
                     },
                     {
-                      "type": "object",
-                      "properties": {
-                        "isPurring": {
-                          "type": "boolean"
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "isPurring": {
+                              "type": "boolean"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "isBarking": {
+                              "type": "boolean"
+                            }
+                          }
                         }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/object/{userId}": {
+      "put": {
+        "operationId": "updateDeeplyNestedObject",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "field",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "DefaultValue"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "required": [
+                  "field",
+                  "object"
+                ],
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "object": {
+                    "required": [
+                      "otherField"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "otherField": {
+                        "type": "string"
                       }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "required": [
+                    "userId",
+                    "field",
+                    "object"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "string"
                     },
-                    {
+                    "field": {
+                      "type": "string"
+                    },
+                    "object": {
+                      "required": [
+                        "otherField",
+                        "field2"
+                      ],
                       "type": "object",
                       "properties": {
-                        "isBarking": {
-                          "type": "boolean"
+                        "otherField": {
+                          "type": "string"
+                        },
+                        "field2": {
+                          "type": "string"
                         }
                       }
                     }
-                  ]
+                  }
                 }
               }
             }

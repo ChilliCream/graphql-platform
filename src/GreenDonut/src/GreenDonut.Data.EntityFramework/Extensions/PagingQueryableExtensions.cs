@@ -444,6 +444,18 @@ public static class PagingQueryableExtensions
         }
 
         source = QueryHelpers.EnsureOrderPropsAreSelected(source);
+
+        // extract the selector before ensuring group props are selected,
+        // as we need to remove it before grouping and re-apply it after
+        var selector = QueryHelpers.ExtractCurrentSelector(source);
+
+        // if we have a selector, remove it before grouping
+        // we'll re-apply it to the grouped items later
+        if (selector is not null)
+        {
+            source = QueryHelpers.RemoveSelector(source);
+        }
+
         source = QueryHelpers.EnsureGroupPropsAreSelected(source, keySelector);
 
         // we need to move the ordering into the select expression we are constructing
@@ -466,6 +478,7 @@ public static class PagingQueryableExtensions
                 ordering.OrderExpressions,
                 ordering.OrderMethods,
                 forward,
+                selector,
                 ref requestedCount);
         var map = new Dictionary<TKey, Page<TValue>>();
 

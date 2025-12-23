@@ -1,4 +1,6 @@
 using System.Collections.Frozen;
+using System.Text;
+using System.Text.Json.Nodes;
 using CaseConverter;
 using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
@@ -7,6 +9,7 @@ using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using Json.Schema;
 using ModelContextProtocol.Protocol;
+using static HotChocolate.Adapters.Mcp.Properties.McpAdapterResources;
 using static HotChocolate.Adapters.Mcp.WellKnownFieldNames;
 
 namespace HotChocolate.Adapters.Mcp;
@@ -22,6 +25,16 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
         var inputSchema = CreateInputSchema(operationNode);
         var outputSchema = CreateOutputSchema(CreateDataSchema(result.Properties, result.RequiredProperties));
 
+        JsonObject? meta = null;
+        Resource? openAiComponentResource = null;
+
+        if (toolDefinition.OpenAiComponent is { } openAiComponent)
+        {
+            meta = [];
+            AddOpenAiComponentMetadata(meta, toolDefinition);
+            openAiComponentResource = CreateOpenAiComponentResource(openAiComponent, toolDefinition);
+        }
+
         var tool = new Tool
         {
             Name = toolDefinition.Name,
@@ -35,10 +48,28 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
                 IdempotentHint = toolDefinition.IdempotentHint ?? result.IdempotentHint,
                 OpenWorldHint = toolDefinition.OpenWorldHint ?? result.OpenWorldHint,
                 ReadOnlyHint = operationNode.Operation is not OperationType.Mutation
-            }
+            },
+            Meta = meta
         };
 
-        return new OperationTool(toolDefinition.Document, tool);
+        if (toolDefinition.Icons is { } icons)
+        {
+            tool.Icons =
+                icons.Select(
+                    icon => new Icon
+                    {
+                        Source = icon.Source.OriginalString,
+                        MimeType = icon.MimeType,
+                        Sizes = icon.Sizes,
+                        Theme = icon.Theme
+                    }).ToList();
+        }
+
+        return new OperationTool(toolDefinition.Document, tool)
+        {
+            OpenAiComponentResource = openAiComponentResource,
+            OpenAiComponentHtml = toolDefinition.OpenAiComponent?.HtmlTemplateText
+        };
     }
 
     private JsonSchema CreateInputSchema(OperationDefinitionNode operation)
@@ -103,6 +134,94 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
                 .Properties(properties)
                 .AdditionalProperties(false)
                 .Required(requiredProperties);
+    }
+
+    private static void AddOpenAiComponentMetadata(
+        JsonObject meta,
+        OperationToolDefinition toolDefinition)
+    {
+        if (toolDefinition.OpenAiComponent is not { } openAiComponent)
+        {
+            return;
+        }
+
+        meta.Add("openai/outputTemplate", toolDefinition.OpenAiComponentOutputTemplate);
+
+        if (openAiComponent.AllowToolCalls)
+        {
+            meta.Add("openai/widgetAccessible", openAiComponent.AllowToolCalls);
+        }
+
+        if (openAiComponent.ToolInvokingStatusText is not null)
+        {
+            meta.Add("openai/toolInvocation/invoking", openAiComponent.ToolInvokingStatusText);
+        }
+
+        if (openAiComponent.ToolInvokedStatusText is not null)
+        {
+            meta.Add("openai/toolInvocation/invoked", openAiComponent.ToolInvokedStatusText);
+        }
+    }
+
+    private static Resource CreateOpenAiComponentResource(
+        OpenAiComponent openAiComponent,
+        OperationToolDefinition toolDefinition)
+    {
+        JsonObject? meta = null;
+
+        if (openAiComponent.Description is not null)
+        {
+            meta ??= [];
+            meta["openai/widgetDescription"] = openAiComponent.Description;
+        }
+
+        if (openAiComponent.PrefersBorder is not null)
+        {
+            meta ??= [];
+            meta["openai/widgetPrefersBorder"] = openAiComponent.PrefersBorder;
+        }
+
+        if (openAiComponent.Csp is { } csp)
+        {
+            JsonObject? contentSecurityPolicy = null;
+
+            if (csp.ConnectDomains is { Length: > 0 } connectDomains)
+            {
+                contentSecurityPolicy ??= [];
+                contentSecurityPolicy.Add(
+                    "connect_domains",
+                    new JsonArray(connectDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
+            }
+
+            if (csp.ResourceDomains is { Length: > 0 } resourceDomains)
+            {
+                contentSecurityPolicy ??= [];
+                contentSecurityPolicy.Add(
+                    "resource_domains",
+                    new JsonArray(resourceDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
+            }
+
+            if (contentSecurityPolicy is not null)
+            {
+                meta ??= [];
+                meta.Add("openai/widgetCSP", contentSecurityPolicy);
+            }
+        }
+
+        if (openAiComponent.Domain is not null)
+        {
+            meta ??= [];
+            meta.Add("openai/widgetDomain", openAiComponent.Domain);
+        }
+
+        return new Resource
+        {
+            Name = string.Format(OperationToolFactory_OpenAiComponentResourceName, toolDefinition.Name),
+            Uri = toolDefinition.OpenAiComponentOutputTemplate!,
+            MimeType = "text/html+skybridge",
+            Size = Encoding.UTF8.GetByteCount(openAiComponent.HtmlTemplateText),
+            Meta = meta
+        };
     }
 
     private static readonly JsonSchema s_integerSchema =

@@ -38,8 +38,8 @@ public sealed class SourceSchemaEnricherTests
                     count: Int!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
-        var schema = sourceSchemaParser.Parse().Value.Single();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
         var enricher = new SourceSchemaEnricher(schema, [schema]);
 
         // act

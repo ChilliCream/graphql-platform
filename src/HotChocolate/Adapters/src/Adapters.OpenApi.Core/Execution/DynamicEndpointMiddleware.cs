@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
@@ -70,7 +71,11 @@ internal sealed class DynamicEndpointMiddleware(
             // If we do not have an operation result, something went wrong and we return HTTP 500.
             if (executionResult is not IOperationResult operationResult)
             {
+#if NET9_0_OR_GREATER
                 await Results.InternalServerError().ExecuteAsync(context);
+#else
+                await Results.StatusCode(500).ExecuteAsync(context);
+#endif
                 return;
             }
 
@@ -78,7 +83,19 @@ internal sealed class DynamicEndpointMiddleware(
             if (operationResult.ContextData?.ContainsKey(ExecutionContextData.ValidationErrors) == true
                 || operationResult is OperationResult { IsDataSet: false })
             {
-                await Results.BadRequest().ExecuteAsync(context);
+                var firstErrorMessage = operationResult.Errors?.FirstOrDefault()?.Message;
+
+                if (!string.IsNullOrEmpty(firstErrorMessage))
+                {
+                    await Results.Problem(
+                        detail: firstErrorMessage,
+                        statusCode: StatusCodes.Status400BadRequest).ExecuteAsync(context);
+                }
+                else
+                {
+                    await Results.BadRequest().ExecuteAsync(context);
+                }
+
                 return;
             }
 
@@ -96,13 +113,19 @@ internal sealed class DynamicEndpointMiddleware(
 
             await formatter.FormatResultAsync(operationResult, context, endpointDescriptor, cancellationToken);
         }
-        catch (InvalidFormatException)
+        catch (BadRequestException badRequestException)
         {
-            await Results.BadRequest().ExecuteAsync(context);
+            await Results.Problem(
+                detail: badRequestException.Message,
+                statusCode: StatusCodes.Status400BadRequest).ExecuteAsync(context);
         }
         catch
         {
+#if NET9_0_OR_GREATER
             await Results.InternalServerError().ExecuteAsync(context);
+#else
+            await Results.StatusCode(500).ExecuteAsync(context);
+#endif
         }
     }
 
@@ -135,7 +158,7 @@ internal sealed class DynamicEndpointMiddleware(
 
             if (read == 0)
             {
-                throw new InvalidOperationException("Expected to have a body");
+                throw new BadRequestException("Expected to have a body");
             }
 
             var jsonValueParser = new JsonValueParser(buffer: variableBuffer);
@@ -162,7 +185,10 @@ internal sealed class DynamicEndpointMiddleware(
         {
             if (segment is VariableValueInsertionTrieLeaf leaf)
             {
-                variables[variableName] = GetValueForParameter(leaf, routeData, query);
+                if (TryGetValueForParameter(leaf, routeData, query, out var value))
+                {
+                    variables[variableName] = value;
+                }
             }
             else if (segment is VariableValueInsertionTrie trie
                 && variables[variableName] is ObjectValueNode objectValue)
@@ -175,7 +201,7 @@ internal sealed class DynamicEndpointMiddleware(
             }
             else
             {
-                throw new InvalidOperationException();
+                throw new NotSupportedException();
             }
         }
     }
@@ -197,13 +223,12 @@ internal sealed class DynamicEndpointMiddleware(
             {
                 if (segment is not VariableValueInsertionTrie trieSegment)
                 {
-                    throw new InvalidOperationException(
-                        "Did not expect to have a value for a field supposed to be filled by a parameter");
+                    throw new BadRequestException($"Unknown field '{fieldName}'");
                 }
 
                 if (field.Value is not ObjectValueNode fieldObject)
                 {
-                    throw new InvalidOperationException($"Expected field '{fieldName}' to be an object");
+                    throw new BadRequestException($"Expected field '{fieldName}' to be an object");
                 }
 
                 var newFieldValue = RewriteObjectValueNode(fieldObject, trieSegment, routeData, query);
@@ -218,35 +243,37 @@ internal sealed class DynamicEndpointMiddleware(
             processedFields.Add(fieldName);
         }
 
-        if (trie.Keys.Count != processedFields.Count)
+        foreach (var (fieldName, segment) in trie)
         {
-            foreach (var (fieldName, segment) in trie)
+            if (processedFields.Contains(fieldName))
             {
-                if (processedFields.Contains(fieldName))
+                continue;
+            }
+
+            IValueNode newValue;
+            if (segment is VariableValueInsertionTrieLeaf leaf)
+            {
+                if (!TryGetValueForParameter(leaf, routeData, query, out var value))
                 {
                     continue;
                 }
 
-                IValueNode newValue;
-                if (segment is VariableValueInsertionTrieLeaf leaf)
-                {
-                    newValue = GetValueForParameter(leaf, routeData, query);
-                }
-                else if (segment is VariableValueInsertionTrie trieSegment)
-                {
-                    newValue = RewriteObjectValueNode(
-                        new ObjectValueNode(),
-                        trieSegment,
-                        routeData,
-                        query);
-                }
-                else
-                {
-                    throw new NotSupportedException();
-                }
-
-                newFields.Add(new ObjectFieldNode(fieldName, newValue));
+                newValue = value;
             }
+            else if (segment is VariableValueInsertionTrie trieSegment)
+            {
+                newValue = RewriteObjectValueNode(
+                    new ObjectValueNode(),
+                    trieSegment,
+                    routeData,
+                    query);
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+
+            newFields.Add(new ObjectFieldNode(fieldName, newValue));
         }
 
         return objectValueNode.WithFields(newFields);
@@ -254,33 +281,63 @@ internal sealed class DynamicEndpointMiddleware(
 
     private static readonly NullValueNode s_nullValueNode = new(null);
 
-    private static IValueNode GetValueForParameter(
+    private static bool TryGetValueForParameter(
         VariableValueInsertionTrieLeaf leaf,
         RouteData routeData,
-        IQueryCollection query)
+        IQueryCollection query,
+        [NotNullWhen(true)] out IValueNode? parameterValue)
     {
+        parameterValue = default;
+
         if (leaf.ParameterType is OpenApiEndpointParameterType.Route)
         {
             if (!routeData.Values.TryGetValue(leaf.ParameterKey, out var value))
             {
-                return s_nullValueNode;
+                if (leaf.HasDefaultValue)
+                {
+                    return false;
+                }
+
+                parameterValue = s_nullValueNode;
+                return true;
             }
 
-            return ParseValueNode(value, leaf.Type);
+            try
+            {
+                parameterValue = ParseValueNode(value, leaf.Type);
+                return true;
+            }
+            catch (InvalidFormatException)
+            {
+                throw new BadRequestException($"Could not parse value for route parameter '{leaf.ParameterKey}'");
+            }
         }
 
         if (leaf.ParameterType is OpenApiEndpointParameterType.Query)
         {
-            if (!query.TryGetValue(leaf.ParameterKey, out var values)
-                || values is not [{ } value])
+            if (!query.TryGetValue(leaf.ParameterKey, out var values) || values is not [{ } value])
             {
-                return s_nullValueNode;
+                if (leaf.HasDefaultValue)
+                {
+                    return false;
+                }
+
+                parameterValue = s_nullValueNode;
+                return true;
             }
 
-            return ParseValueNode(value, leaf.Type);
+            try
+            {
+                parameterValue = ParseValueNode(value, leaf.Type);
+                return true;
+            }
+            catch (InvalidFormatException)
+            {
+                throw new BadRequestException($"Could not parse value for query parameter '{leaf.ParameterKey}'");
+            }
         }
 
-        throw new NotSupportedException();
+        return false;
     }
 
     // TODO: Maybe we can optimize this further, so we don't have to perform a lot of checks at runtime
@@ -388,6 +445,12 @@ internal sealed class DynamicEndpointMiddleware(
             }
         }
 
+#if NET9_0_OR_GREATER
         return Results.InternalServerError();
+#else
+        return Results.StatusCode(500);
+#endif
     }
+
+    private class BadRequestException(string message) : Exception(message);
 }

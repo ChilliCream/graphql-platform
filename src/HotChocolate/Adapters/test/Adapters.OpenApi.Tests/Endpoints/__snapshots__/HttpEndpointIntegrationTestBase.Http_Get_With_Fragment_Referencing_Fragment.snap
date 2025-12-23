@@ -1,0 +1,6 @@
+Headers:
+Content-Type: application/json
+-------------------------->
+Status Code: OK
+-------------------------->
+{"id":"1","name":"User 1","address":{"street":"1 Street"},"email":"1@example.com"}

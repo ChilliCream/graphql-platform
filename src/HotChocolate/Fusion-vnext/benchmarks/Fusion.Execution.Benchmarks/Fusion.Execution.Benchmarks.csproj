@@ -9,9 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" VersionOverride="0.15.4" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" VersionOverride="10.0.0-rc.1.25451.107" />
-
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
   </ItemGroup>
 
   <ItemGroup>

@@ -27,16 +27,16 @@ public static class RequestExecutorBuilderExtensions
             async (executor, cancellationToken) =>
             {
                 var schema = executor.Schema;
-                var storageObserver = schema.Services.GetRequiredService<ToolStorageObserver>();
+                var storageObserver = schema.Services.GetRequiredService<McpStorageObserver>();
                 await storageObserver.StartAsync(cancellationToken);
             });
 
         return builder;
     }
 
-    public static IRequestExecutorBuilder AddMcpToolStorage(
+    public static IRequestExecutorBuilder AddMcpStorage(
         this IRequestExecutorBuilder builder,
-        IOperationToolStorage storage)
+        IMcpStorage storage)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(storage);

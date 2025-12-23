@@ -1,120 +1,47 @@
-using HotChocolate.Adapters.Mcp.Extensions;
+using System.Collections.Immutable;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
+using CaseConverter;
 using HotChocolate.Language;
 using static HotChocolate.Adapters.Mcp.Properties.McpAdapterResources;
-using static HotChocolate.Adapters.Mcp.WellKnownDirectiveNames;
 
 namespace HotChocolate.Adapters.Mcp.Storage;
 
 /// <summary>
-/// Represents a GraphQL operation based MCP tool definition which is used by
-/// Hot Chocolate to create the actual MCP tool..
+/// Represents a GraphQL-operation-based MCP tool definition which is used by
+/// Hot Chocolate to create the actual MCP tool.
 /// </summary>
-public sealed class OperationToolDefinition
+public sealed partial class OperationToolDefinition
 {
+    private readonly OperationDefinitionNode _operation;
+
     /// <summary>
     /// Initializes a new MCP tool definition from a GraphQL operation document.
     /// </summary>
-    /// <param name="name">
-    /// The name of the MCP tool.
-    /// </param>
     /// <param name="document">
     /// GraphQL document containing exactly one operation definition.
-    /// </param>
-    /// <param name="title">
-    /// Optional tool title. Overrides directive metadata if provided.
-    /// </param>
-    /// <param name="destructiveHint">
-    /// Optional destructive operation hint. Overrides directive metadata if provided.
-    /// </param>
-    /// <param name="idempotentHint">
-    /// Optional idempotent operation hint. Overrides directive metadata if provided.
-    /// </param>
-    /// <param name="openWorldHint">
-    /// Optional open-world assumption hint. Overrides directive metadata if provided.
     /// </param>
     /// <exception cref="ArgumentException">
     /// Thrown when document doesn't contain exactly one operation.
     /// </exception>
-    public OperationToolDefinition(
-        string name,
-        DocumentNode document,
-        string? title = null,
-        bool? destructiveHint = null,
-        bool? idempotentHint = null,
-        bool? openWorldHint = null)
+    public OperationToolDefinition(DocumentNode document)
     {
-        ArgumentException.ThrowIfNullOrEmpty(name);
         ArgumentNullException.ThrowIfNull(document);
 
-        OperationDefinitionNode? operation = null;
-
-        foreach (var current in document.Definitions.OfType<OperationDefinitionNode>())
+        try
         {
-            if (operation is not null)
-            {
-                throw new ArgumentException(
-                    OperationToolDefinition_DocumentMustContainSingleOperation,
-                    nameof(document));
-            }
-
-            operation = current;
+            _operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
         }
-
-        if (operation is null)
+        catch (InvalidOperationException)
         {
             throw new ArgumentException(
                 OperationToolDefinition_DocumentMustContainSingleOperation,
                 nameof(document));
         }
 
-        // If we find a tool directive, parse it and remove it from the document.
-        // The tool directive is metadata only and doesn't exist in the target schema.
-        // Removing it prevents execution errors when the operation is executed.
-        var toolDirective = operation.GetMcpToolDirective();
-        if (toolDirective is not null)
-        {
-            var tempDirectives = operation.Directives.ToList();
-            foreach (var directive in operation.Directives)
-            {
-                if (directive.Name.Value.Equals(McpTool))
-                {
-                    tempDirectives.Remove(directive);
-                }
-            }
-
-            IReadOnlyList<DirectiveNode> cleanedDirectives;
-            if (tempDirectives.Count == 0)
-            {
-                cleanedDirectives = [];
-            }
-            else
-            {
-                tempDirectives.Capacity = tempDirectives.Count;
-                cleanedDirectives = tempDirectives;
-            }
-
-            var cleanedOperation = operation.WithDirectives(cleanedDirectives);
-            var cleanedDefinitions = document.Definitions.ToList();
-            cleanedDefinitions.Remove(operation);
-            cleanedDefinitions.Add(cleanedOperation);
-            cleanedDefinitions.Capacity = cleanedDefinitions.Count;
-            document = document.WithDefinitions(cleanedDefinitions);
-        }
-
-        Name = name;
         Document = document;
-
-        // Explicit parameters take precedence over directive metadata.
-        Title = title ?? toolDirective?.Title;
-        DestructiveHint = destructiveHint ?? toolDirective?.DestructiveHint;
-        IdempotentHint = idempotentHint ?? toolDirective?.IdempotentHint;
-        OpenWorldHint = openWorldHint ?? toolDirective?.OpenWorldHint;
     }
-
-    /// <summary>
-    /// Gets the name of the MCP tool.
-    /// </summary>
-    public string Name { get; }
 
     /// <summary>
     /// Gets the GraphQL document containing operation that represents the MCP tool.
@@ -122,22 +49,74 @@ public sealed class OperationToolDefinition
     public DocumentNode Document { get; }
 
     /// <summary>
+    /// Gets the name of the MCP tool.
+    /// </summary>
+    public string Name
+    {
+        get => field ??= _operation.Name!.Value.ToSnakeCase();
+        init
+        {
+            if (!ValidateToolNameRegex().IsMatch(value))
+            {
+                throw new ArgumentException(
+                    string.Format(OperationToolDefinition_InvalidToolName, value, ValidateToolNameRegex()));
+            }
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Gets the optional human-readable title for the tool.
     /// </summary>
-    public string? Title { get; }
+    public string? Title { get; init; }
+
+    /// <summary>
+    /// Gets the optional icons for the tool.
+    /// </summary>
+    public ImmutableArray<IconDefinition>? Icons { get; init; }
 
     /// <summary>
     /// Gets a hint indicating whether this operation may cause destructive side effects.
     /// </summary>
-    public bool? DestructiveHint { get; }
+    public bool? DestructiveHint { get; init; }
 
     /// <summary>
     /// Gets a hint indicating whether this operation is idempotent (safe to retry).
     /// </summary>
-    public bool? IdempotentHint { get; }
+    public bool? IdempotentHint { get; init; }
 
     /// <summary>
     /// Gets a hint indicating whether this operation assumes an open-world model.
     /// </summary>
-    public bool? OpenWorldHint { get; }
+    public bool? OpenWorldHint { get; init; }
+
+    /// <summary>
+    /// Gets the optional OpenAI component configuration for this tool.
+    /// </summary>
+    public OpenAiComponent? OpenAiComponent
+    {
+        get;
+        init
+        {
+            field = value;
+
+            if (value is null)
+            {
+                OpenAiComponentOutputTemplate = null;
+            }
+            else
+            {
+                var name = Name.ToKebabCase();
+                var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value.HtmlTemplateText)));
+                OpenAiComponentOutputTemplate = $"ui://open-ai-components/{name}-{hash}.html";
+            }
+        }
+    }
+
+    public string? OpenAiComponentOutputTemplate { get; private set; }
+
+    /// <summary>Regex that validates tool names.</summary>
+    [GeneratedRegex(@"^[A-Za-z0-9_.-]{1,128}\z")]
+    private static partial Regex ValidateToolNameRegex();
 }
