@@ -2,6 +2,30 @@
 
 set -eo pipefail
 
+# Enable verbose logging to diagnose errors
+echo "=== Debug Info ==="
+echo "Script directory: $( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+echo "Current directory: $(pwd)"
+echo "PATH: $PATH"
+
+# Check for required commands
+echo ""
+echo "=== Checking required commands ==="
+for cmd in k6 jq taskset; do
+    if command -v $cmd &> /dev/null; then
+        echo "✓ $cmd found at: $(command -v $cmd)"
+    else
+        echo "✗ $cmd not found"
+    fi
+done
+
+# List all .sh files in the script directory
+echo ""
+echo "=== Available scripts in $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd) ==="
+ls -la "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"/*.sh 2>/dev/null || echo "No .sh files found"
+echo "=================="
+echo ""
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -76,11 +100,35 @@ calculate_median() {
 start_infrastructure_gateway_constant() {
     echo -e "${YELLOW}    Starting source schemas on cores 5-15...${NC}"
     export SOURCES_CPUSET="5-15"
-    "$SCRIPT_DIR/start-source-schemas.sh" > /dev/null 2>&1
+
+    local schema_script="$SCRIPT_DIR/start-source-schemas.sh"
+    echo "DEBUG: Checking for script: $schema_script"
+    if [ ! -f "$schema_script" ]; then
+        echo "ERROR: Script not found: $schema_script"
+        exit 1
+    fi
+    if [ ! -x "$schema_script" ]; then
+        echo "ERROR: Script not executable: $schema_script"
+        exit 1
+    fi
+    echo "DEBUG: Executing: $schema_script"
+    "$schema_script" > /dev/null 2>&1 || { echo "ERROR: start-source-schemas.sh failed with exit code $?"; exit 1; }
 
     echo -e "${YELLOW}    Starting gateway on cores 2-4...${NC}"
     export GATEWAY_CPUSET="2-4"
-    "$SCRIPT_DIR/start-gateway.sh" > /dev/null 2>&1
+
+    local gateway_script="$SCRIPT_DIR/start-gateway.sh"
+    echo "DEBUG: Checking for script: $gateway_script"
+    if [ ! -f "$gateway_script" ]; then
+        echo "ERROR: Script not found: $gateway_script"
+        exit 1
+    fi
+    if [ ! -x "$gateway_script" ]; then
+        echo "ERROR: Script not executable: $gateway_script"
+        exit 1
+    fi
+    echo "DEBUG: Executing: $gateway_script"
+    "$gateway_script" > /dev/null 2>&1 || { echo "ERROR: start-gateway.sh failed with exit code $?"; exit 1; }
 
     echo -e "${YELLOW}    Waiting for services to be ready...${NC}"
     sleep 5
@@ -91,11 +139,17 @@ start_infrastructure_gateway_constant() {
 start_infrastructure_gateway_ramping() {
     echo -e "${YELLOW}    Starting source schemas on cores 6-15...${NC}"
     export SOURCES_CPUSET="6-15"
-    "$SCRIPT_DIR/start-source-schemas.sh" > /dev/null 2>&1
+
+    local schema_script="$SCRIPT_DIR/start-source-schemas.sh"
+    echo "DEBUG: Executing: $schema_script"
+    "$schema_script" > /dev/null 2>&1 || { echo "ERROR: start-source-schemas.sh failed with exit code $?"; exit 1; }
 
     echo -e "${YELLOW}    Starting gateway on cores 2-5...${NC}"
     export GATEWAY_CPUSET="2-5"
-    "$SCRIPT_DIR/start-gateway.sh" > /dev/null 2>&1
+
+    local gateway_script="$SCRIPT_DIR/start-gateway.sh"
+    echo "DEBUG: Executing: $gateway_script"
+    "$gateway_script" > /dev/null 2>&1 || { echo "ERROR: start-gateway.sh failed with exit code $?"; exit 1; }
 
     echo -e "${YELLOW}    Waiting for services to be ready...${NC}"
     sleep 5
@@ -106,7 +160,10 @@ start_infrastructure_gateway_ramping() {
 start_infrastructure_variable_batch() {
     echo -e "${YELLOW}    Starting inventory service on cores 2-5...${NC}"
     export INVENTORY_CPUSET="2-5"
-    "$SCRIPT_DIR/start-inventory-only.sh" > /dev/null 2>&1
+
+    local inventory_script="$SCRIPT_DIR/start-inventory-only.sh"
+    echo "DEBUG: Executing: $inventory_script"
+    "$inventory_script" > /dev/null 2>&1 || { echo "ERROR: start-inventory-only.sh failed with exit code $?"; exit 1; }
 
     echo -e "${YELLOW}    Waiting for service to be ready...${NC}"
     sleep 5
@@ -115,7 +172,10 @@ start_infrastructure_variable_batch() {
 # Function to stop infrastructure
 stop_infrastructure() {
     echo -e "${YELLOW}    Stopping services...${NC}"
-    "$SCRIPT_DIR/stop-services.sh" > /dev/null 2>&1
+
+    local stop_script="$SCRIPT_DIR/stop-services.sh"
+    echo "DEBUG: Executing: $stop_script"
+    "$stop_script" > /dev/null 2>&1 || { echo "ERROR: stop-services.sh failed with exit code $?"; exit 1; }
     sleep 2
 }
 
@@ -125,7 +185,16 @@ echo -e "${BLUE}Running No Recursion Test - Constant Mode (${NUM_RUNS} runs)...$
 for i in $(seq 1 $NUM_RUNS); do
     echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
     start_infrastructure_gateway_constant
-    maybe_taskset "0-1" k6 run --summary-export=/tmp/no-recursion-summary-${i}.json "$SCRIPT_DIR/no-recursion.js"
+
+    local k6_script="$SCRIPT_DIR/no-recursion.js"
+    echo "DEBUG: Checking for k6 script: $k6_script"
+    if [ ! -f "$k6_script" ]; then
+        echo "ERROR: k6 script not found: $k6_script"
+        exit 1
+    fi
+    echo "DEBUG: Running k6 test: $k6_script"
+    maybe_taskset "0-1" k6 run --summary-export=/tmp/no-recursion-summary-${i}.json "$k6_script" || { echo "ERROR: k6 run failed with exit code $?"; exit 1; }
+
     stop_infrastructure
 done
 
