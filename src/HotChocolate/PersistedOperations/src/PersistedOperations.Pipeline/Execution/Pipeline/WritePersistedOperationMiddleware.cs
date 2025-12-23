@@ -44,7 +44,7 @@ internal sealed class WritePersistedOperationMiddleware
             && context.Result is OperationResult result
             && context.Request.Document is { } document
             && context.Request.Extensions is not null
-            && context.Request.Extensions.RootElement.TryGetProperty(PersistedQuery, out var settings)
+            && context.Request.Extensions.Document.RootElement.TryGetProperty(PersistedQuery, out var settings)
             && settings.ValueKind is JsonValueKind.Object)
         {
             var extensions = result.Extensions;

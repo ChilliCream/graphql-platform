@@ -28,18 +28,21 @@ internal sealed class VariableCoercionHelper
         ArgumentNullException.ThrowIfNull(variableDefinitions);
         ArgumentNullException.ThrowIfNull(coercedValues);
 
-        if (variableValues.ValueKind is JsonValueKind.Object)
+        if (variableValues.ValueKind is not (JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined))
         {
             throw new ArgumentException("variables must be a JSON Object", nameof(variableValues));
         }
+
+        var hasVariables = variableValues.ValueKind is JsonValueKind.Object;
 
         for (var i = 0; i < variableDefinitions.Count; i++)
         {
             var variableDefinition = variableDefinitions[i];
             var variableName = variableDefinition.Variable.Name.Value;
             var variableType = AssertInputType(schema, variableDefinition);
+            JsonElement propertyValue = default;
 
-            var hasValue = variableValues.TryGetProperty(variableName, out var propertyValue);
+            var hasValue = hasVariables && variableValues.TryGetProperty(variableName, out propertyValue);
 
             if (!hasValue && variableDefinition.DefaultValue is { Kind: not SyntaxKind.NullValue } defaultValue)
             {

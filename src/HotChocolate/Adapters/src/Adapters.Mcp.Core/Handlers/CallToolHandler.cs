@@ -1,10 +1,8 @@
 using System.Security.Claims;
 using System.Text;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,25 +37,16 @@ internal static class CallToolHandler
         }
 
         var requestExecutor = services.GetRequiredService<IRequestExecutor>();
-        var arguments = context.Params?.Arguments ?? Enumerable.Empty<KeyValuePair<string, JsonElement>>();
-
-        Dictionary<string, object?> variableValues = [];
-        using var buffer = new PooledArrayWriter();
-        var jsonValueParser = new JsonValueParser(buffer: buffer);
-
-        foreach (var (name, value) in arguments)
-        {
-            variableValues.Add(name, jsonValueParser.Parse(value));
-        }
-
         var rootServiceProvider = services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
         var httpContext = rootServiceProvider.GetRequiredService<IHttpContextAccessor>().HttpContext!;
         var requestBuilder = CreateRequestBuilder(httpContext);
-        var request =
-            requestBuilder
-                .SetDocument(tool.DocumentNode)
-                .SetVariableValues(variableValues)
-                .Build();
+
+        if (context.Params?.Arguments is { Count: > 0 } arguments)
+        {
+            requestBuilder.SetVariableValues(arguments);
+        }
+
+        var request = requestBuilder.SetDocument(tool.DocumentNode).Build();
         var result = await requestExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         var operationResult = result.ExpectOperationResult();
 

@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
+using HotChocolate.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using static HotChocolate.ExecutionAbstractionsResources;
@@ -16,20 +16,20 @@ namespace HotChocolate.Execution;
 #endif
 public sealed class OperationRequestBuilder : IFeatureProvider
 {
-    #if !NET9_0_OR_GREATER
+#if !NET9_0_OR_GREATER
     private static readonly JsonSerializerOptions s_serializerOptions =
         new(JsonSerializerDefaults.Web)
         {
             TypeInfoResolver = new DefaultJsonTypeInfoResolver()
         };
-    #endif
+#endif
 
     private IOperationDocument? _document;
     private OperationDocumentId? _documentId;
     private OperationDocumentHash? _documentHash;
     private string? _operationName;
-    private JsonDocument? _variableValues;
-    private JsonDocument? _extensions;
+    private JsonDocumentOwner? _variableValues;
+    private JsonDocumentOwner? _extensions;
     private ErrorHandlingMode? _errorHandlingMode;
     private Dictionary<string, object?>? _contextData;
     private IReadOnlyDictionary<string, object?>? _readOnlyContextData;
@@ -194,8 +194,45 @@ public sealed class OperationRequestBuilder : IFeatureProvider
         }
 
         _variableValues?.Dispose();
-        _variableValues = variableValues;
+        _variableValues = new JsonDocumentOwner(variableValues);
         return this;
+    }
+
+    public OperationRequestBuilder SetVariableValues(
+        IEnumerable<KeyValuePair<string, JsonElement>>? variableValues)
+    {
+        _variableValues?.Dispose();
+        _variableValues = null;
+
+        if (variableValues is null)
+        {
+            return this;
+        }
+
+        var buffer = new PooledArrayWriter();
+
+        try
+        {
+            using (var jsonWriter = new Utf8JsonWriter(buffer))
+            {
+                jsonWriter.WriteStartObject();
+                foreach (var (name, value) in variableValues)
+                {
+                    jsonWriter.WritePropertyName(name);
+                    value.WriteTo(jsonWriter);
+                }
+                jsonWriter.WriteEndObject();
+            }
+
+            var document = JsonDocument.Parse(buffer.WrittenMemory);
+            _variableValues = new JsonDocumentOwner(document, buffer);
+            return this;
+        }
+        catch
+        {
+            buffer.Dispose();
+            throw;
+        }
     }
 
     /// <summary>
@@ -222,9 +259,9 @@ public sealed class OperationRequestBuilder : IFeatureProvider
         }
 
 #if NET9_0_OR_GREATER
-        _variableValues = JsonSerializer.SerializeToDocument(variableValues, JsonSerializerOptions.Web);
+        _variableValues = new(JsonSerializer.SerializeToDocument(variableValues, JsonSerializerOptions.Web));
 #else
-        _variableValues = JsonSerializer.SerializeToDocument(variableValues, s_serializerOptions);
+        _variableValues = new(JsonSerializer.SerializeToDocument(variableValues, s_serializerOptions));
 #endif
         return this;
     }
@@ -254,9 +291,9 @@ public sealed class OperationRequestBuilder : IFeatureProvider
         }
 
 #if NET9_0_OR_GREATER
-        _variableValues = JsonSerializer.SerializeToDocument(variableValueSets, JsonSerializerOptions.Web);
+        _variableValues = new(JsonSerializer.SerializeToDocument(variableValueSets, JsonSerializerOptions.Web));
 #else
-        _variableValues = JsonSerializer.SerializeToDocument(variableValueSets, s_serializerOptions);
+        _variableValues = new(JsonSerializer.SerializeToDocument(variableValueSets, s_serializerOptions));
 #endif
         return this;
     }
@@ -273,7 +310,15 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     public OperationRequestBuilder SetExtensions(
         JsonDocument? extensions)
     {
-        _extensions = extensions;
+        _variableValues?.Dispose();
+        _variableValues = null;
+
+        if (extensions is null)
+        {
+            return this;
+        }
+
+        _extensions = new(extensions);
         return this;
     }
 
@@ -480,7 +525,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             features = FeatureCollection.Empty;
         }
 
-        if (_variableValues?.RootElement.ValueKind is JsonValueKind.Array)
+        if (_variableValues?.Document.RootElement.ValueKind is JsonValueKind.Array)
         {
             request = new VariableBatchRequest(
                 document: _document,

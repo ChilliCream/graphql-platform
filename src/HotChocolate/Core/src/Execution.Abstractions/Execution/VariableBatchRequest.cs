@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using static HotChocolate.ExecutionAbstractionsResources;
@@ -55,8 +56,8 @@ public sealed class VariableBatchRequest : IOperationRequest
         OperationDocumentHash? documentHash,
         string? operationName,
         ErrorHandlingMode? errorHandlingMode,
-        JsonDocument? variableValues,
-        JsonDocument? extensions,
+        JsonDocumentOwner variableValues,
+        JsonDocumentOwner? extensions,
         IReadOnlyDictionary<string, object?>? contextData,
         IFeatureCollection? features,
         IServiceProvider? services,
@@ -67,12 +68,12 @@ public sealed class VariableBatchRequest : IOperationRequest
             throw new InvalidOperationException(OperationRequest_DocumentOrIdMustBeSet);
         }
 
-        if (variableValues is not null && variableValues.RootElement.ValueKind is not JsonValueKind.Array)
+        if (variableValues.Document.RootElement.ValueKind is not JsonValueKind.Array)
         {
             throw new ArgumentException(VariableBatchRequest_Variables_Must_Be_Array, nameof(variableValues));
         }
 
-        if (extensions is not null && extensions.RootElement.ValueKind is not JsonValueKind.Object)
+        if (extensions is not null && extensions.Document.RootElement.ValueKind is not JsonValueKind.Object)
         {
             throw new ArgumentException(OperationRequest_Extensions_Must_Be_Object, nameof(extensions));
         }
@@ -119,12 +120,12 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// <summary>
     /// Gets a list of variable values for the GraphQL request.
     /// </summary>
-    public JsonDocument? VariableValues { get; }
+    public JsonDocumentOwner VariableValues { get; }
 
     /// <summary>
     /// Gets the GraphQL request extension data.
     /// </summary>
-    public JsonDocument? Extensions { get; }
+    public JsonDocumentOwner? Extensions { get; }
 
     /// <summary>
     /// Gets the initial request state.

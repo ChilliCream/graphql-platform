@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using static HotChocolate.ExecutionAbstractionsResources;
@@ -55,8 +56,8 @@ public sealed class OperationRequest : IOperationRequest
         OperationDocumentHash? documentHash,
         string? operationName,
         ErrorHandlingMode? errorHandlingMode,
-        JsonDocument? variableValues,
-        JsonDocument? extensions,
+        JsonDocumentOwner? variableValues,
+        JsonDocumentOwner? extensions,
         IReadOnlyDictionary<string, object?>? contextData,
         IFeatureCollection? features,
         IServiceProvider? services,
@@ -67,12 +68,12 @@ public sealed class OperationRequest : IOperationRequest
             throw new ArgumentException(OperationRequest_DocumentOrIdMustBeSet, nameof(document));
         }
 
-        if (variableValues is not null && variableValues.RootElement.ValueKind is not JsonValueKind.Object)
+        if (variableValues is not null && variableValues.Document.RootElement.ValueKind is not JsonValueKind.Object)
         {
             throw new ArgumentException(OperationRequest_Variables_Must_Be_Object, nameof(variableValues));
         }
 
-        if (extensions is not null && extensions.RootElement.ValueKind is not JsonValueKind.Object)
+        if (extensions is not null && extensions.Document.RootElement.ValueKind is not JsonValueKind.Object)
         {
             throw new ArgumentException(OperationRequest_Extensions_Must_Be_Object, nameof(extensions));
         }
@@ -119,12 +120,12 @@ public sealed class OperationRequest : IOperationRequest
     /// <summary>
     /// Gets the variable values for the GraphQL request.
     /// </summary>
-    public JsonDocument? VariableValues { get; }
+    public JsonDocumentOwner? VariableValues { get; }
 
     /// <summary>
     /// Gets the GraphQL request extension data.
     /// </summary>
-    public JsonDocument? Extensions { get; }
+    public JsonDocumentOwner? Extensions { get; }
 
     /// <summary>
     /// Gets the initial request state.
@@ -277,7 +278,7 @@ public sealed class OperationRequest : IOperationRequest
             DocumentHash,
             OperationName,
             ErrorHandlingMode,
-            variableValues,
+            variableValues is null ? null : new JsonDocumentOwner(variableValues),
             Extensions,
             ContextData,
             Features,
@@ -301,7 +302,7 @@ public sealed class OperationRequest : IOperationRequest
             OperationName,
             ErrorHandlingMode,
             VariableValues,
-            extensions,
+            extensions is null ? null : new JsonDocumentOwner(extensions),
             ContextData,
             Features,
             Services,
@@ -461,8 +462,8 @@ public sealed class OperationRequest : IOperationRequest
             documentHash,
             operationName,
             errorHandlingMode,
-            variableValues,
-            extensions,
+            variableValues is null ? null : new(variableValues),
+            extensions is null ? null : new(extensions),
             contextData,
             features,
             services,
@@ -584,8 +585,8 @@ public sealed class OperationRequest : IOperationRequest
             documentHash,
             operationName,
             errorHandlingMode,
-            variableValues,
-            extensions,
+            variableValues is null ? null : new(variableValues),
+            extensions is null ? null : new(extensions),
             contextData,
             features,
             services,

@@ -8,7 +8,6 @@ namespace HotChocolate.Execution.Pipeline;
 
 internal static class PipelineTools
 {
-    private static readonly Dictionary<string, object?> s_empty = [];
     private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
 
     public static string CreateOperationId(string documentId, string? operationName)
@@ -59,7 +58,7 @@ internal static class PipelineTools
                 coercionHelper.CoerceVariableValues(
                     context.Schema,
                     variableDefinitions,
-                    operationRequest.VariableValues ?? s_empty,
+                    operationRequest.VariableValues?.Document.RootElement ?? default,
                     coercedValues);
 
                 context.VariableValues = [new VariableValueCollection(coercedValues)];
@@ -72,21 +71,21 @@ internal static class PipelineTools
             using (diagnosticEvents.CoerceVariables(context))
             {
                 var schema = context.Schema;
-                var variableSetCount = variableBatchRequest.VariableValues?.Count ?? 0;
-                var variableSetInput = variableBatchRequest.VariableValues!;
-                var variableSet = new IVariableValueCollection[variableSetCount];
+                var variableValueSets = variableBatchRequest.VariableValues.Document.RootElement;
+                var variableSet = new IVariableValueCollection[variableValueSets.GetArrayLength()];
+                var i = 0;
 
-                for (var i = 0; i < variableSetCount; i++)
+                foreach (var variableValues in variableValueSets.EnumerateArray())
                 {
                     var coercedValues = new Dictionary<string, Processing.VariableValue>();
 
                     coercionHelper.CoerceVariableValues(
                         schema,
                         variableDefinitions,
-                        variableSetInput[i],
+                        variableValues,
                         coercedValues);
 
-                    variableSet[i] = new VariableValueCollection(coercedValues);
+                    variableSet[i++] = new VariableValueCollection(coercedValues);
                 }
 
                 context.VariableValues = ImmutableCollectionsMarshal.AsImmutableArray(variableSet);

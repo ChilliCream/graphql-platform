@@ -498,86 +498,85 @@ public sealed class InputParser
                 throw OneOfMoreThanOneFieldSet(type, path);
             }
 
+            var processedFields = StringSetPool.Shared.Rent();
+            List<string>? invalidFieldNames = null;
             var fieldValues = new object?[type.Fields.Count];
             var consumed = 0;
 
-            foreach (var property in inputValue.EnumerateObject())
+            try
             {
-                if (type.Fields.TryGetField(property.Name, out var field))
+                foreach (var property in inputValue.EnumerateObject())
                 {
-                    var fieldPath = path.Append(field.Name);
-
-                    if (property.Value.ValueKind is JsonValueKind.Null)
+                    if (type.Fields.TryGetField(property.Name, out var field))
                     {
-                        if (field.Type.Kind is TypeKind.NonNull)
+                        var fieldPath = path.Append(field.Name);
+                        if (processedFields.Add(property.Name))
                         {
-                            throw NonNullInputViolation(type, fieldPath, field);
-                        }
+                            if (property.Value.ValueKind is JsonValueKind.Null)
+                            {
+                                if (field.Type.Kind is TypeKind.NonNull)
+                                {
+                                    throw NonNullInputViolation(type, fieldPath, field);
+                                }
 
-                        if (oneOf)
-                        {
-                            throw OneOfFieldIsNull(type, fieldPath, field);
+                                if (oneOf)
+                                {
+                                    throw OneOfFieldIsNull(type, fieldPath, field);
+                                }
+                            }
+
+                            var value = Deserialize(property.Value, field.Type, fieldPath, field);
+                            value = FormatAndConvertValue(field, path, null, value, field.IsOptional, true);
+
+                            fieldValues[field.Index] = value;
+                            consumed++;
                         }
                     }
-
-                    var value = Deserialize(property.Value, field.Type, fieldPath, field);
-                    value = FormatAndConvertValue(field, path, null, value, field.IsOptional, true);
-
-                    fieldValues[field.Index] = value;
-                    consumed++;
-                }
-            }
-
-            for (var i = 0; i < type.Fields.Count; i++)
-            {
-                var field = type.Fields[i];
-
-                if (map.TryGetValue(field.Name, out var fieldValue))
-                {
-
-                }
-                else
-                {
-                    var fieldPath = path.Append(field.Name);
-                    fieldValues[i] = CreateDefaultValue(field, fieldPath, 0);
-                }
-            }
-
-            if (!_ignoreAdditionalInputFields && consumed < map.Count)
-            {
-                var invalidFieldNames = new List<string>();
-
-                foreach (var key in map.Keys)
-                {
-                    if (!type.Fields.ContainsField(key))
+                    else if (!_ignoreAdditionalInputFields)
                     {
-                        invalidFieldNames.Add(key);
+                        invalidFieldNames ??= [];
+                        invalidFieldNames.Add(property.Name);
                     }
                 }
 
+                if (processedFields.Count < fieldValues.Length)
+                {
+                    for (var i = 0; i < fieldValues.Length; i++)
+                    {
+                        var field = type.Fields[i];
+                        if (processedFields.Add(field.Name))
+                        {
+                            var fieldPath = path.Append(field.Name);
+                            fieldValues[i] = CreateDefaultValue(field, fieldPath, 0);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                StringSetPool.Shared.Return(processedFields);
+            }
+
+            if (invalidFieldNames?.Count > 0)
+            {
                 throw InvalidInputFieldNames(type, invalidFieldNames, path);
             }
 
             return type.CreateInstance(fieldValues);
         }
 
-        throw ParseInputObject_InvalidValueKind(type, resultValue.GetType(), path);
+        throw ParseInputObject_InvalidValueKind(type, path);
     }
 
-    private object? DeserializeLeaf(
-        object resultValue,
+    private static object? DeserializeLeaf(
+        JsonElement inputValue,
         ILeafType type,
         Path path,
         InputField? field)
     {
-        if (resultValue is IValueNode node)
-        {
-            return ParseLeaf(node, type, path, field);
-        }
-
         try
         {
-            return type.Deserialize(resultValue);
+            return type.CoerceInputValue(inputValue);
         }
         catch (LeafCoercionException ex)
         {
