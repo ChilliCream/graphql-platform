@@ -93,6 +93,9 @@
   <data name="LogEntryHelper_UndefinedArgumentType" xml:space="preserve">
     <value>The type '{0}' of argument '{1}' is not defined in the schema.</value>
   </data>
+  <data name="LogEntryHelper_UndefinedDirective" xml:space="preserve">
+    <value>The directive '@{0}' on '{1}' is not defined in the schema.</value>
+  </data>
   <data name="LogEntryHelper_UndefinedFieldType" xml:space="preserve">
     <value>The type '{0}' of field '{1}' is not defined in the schema.</value>
   </data>

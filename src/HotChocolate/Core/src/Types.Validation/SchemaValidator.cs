@@ -38,6 +38,7 @@ public sealed class SchemaValidator
     public void AddDefaultRules()
     {
         _rules.Add(new DirectiveDefinitionIncludesLocationRule());
+        _rules.Add(new DirectiveIsDefinedRule());
         _rules.Add(new EnumValueIsDefinedRule());
         _rules.Add(new NoInputObjectCycleRule());
         _rules.Add(new NoInputObjectDefaultValueCycleRule());
@@ -80,7 +81,7 @@ public sealed class SchemaValidator
         foreach (var type in schema.Types)
         {
             PublishEvent(new TypeEvent(type), context);
-            PublishDirectiveArgumentAssignmentEvents(type, context);
+            PublishDirectiveEvents(type, context);
 
             if (type is INameProvider namedMember)
             {
@@ -114,10 +115,10 @@ public sealed class SchemaValidator
                             PublishEvent(new InputValueEvent(argument), context);
                             PublishEvent(new NamedMemberEvent(argument), context);
 
-                            PublishDirectiveArgumentAssignmentEvents(argument, context);
+                            PublishDirectiveEvents(argument, context);
                         }
 
-                        PublishDirectiveArgumentAssignmentEvents(field, context);
+                        PublishDirectiveEvents(field, context);
                     }
 
                     break;
@@ -143,7 +144,7 @@ public sealed class SchemaValidator
                         PublishEvent(new InputValueEvent(field), context);
                         PublishEvent(new NamedMemberEvent(field), context);
 
-                        PublishDirectiveArgumentAssignmentEvents(field, context);
+                        PublishDirectiveEvents(field, context);
                     }
 
                     break;
@@ -168,12 +169,14 @@ public sealed class SchemaValidator
         }
     }
 
-    private void PublishDirectiveArgumentAssignmentEvents(
+    private void PublishDirectiveEvents(
         IDirectivesProvider member,
         ValidationContext context)
     {
         foreach (var directive in member.Directives)
         {
+            PublishEvent(new DirectiveEvent(directive, member), context);
+
             foreach (var argumentAssignment in directive.Arguments)
             {
                 if (!directive.Definition.Arguments.TryGetField(
