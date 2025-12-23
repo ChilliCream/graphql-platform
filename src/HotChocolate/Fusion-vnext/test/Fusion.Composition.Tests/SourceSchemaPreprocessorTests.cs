@@ -61,6 +61,19 @@ public sealed class SourceSchemaPreprocessorTests
                 }
 
                 scalar Scalar1 @tag(name: "remove")
+
+                directive @tag(name: String!) repeatable on
+                    | SCHEMA
+                    | SCALAR
+                    | OBJECT
+                    | FIELD_DEFINITION
+                    | ARGUMENT_DEFINITION
+                    | INTERFACE
+                    | UNION
+                    | ENUM
+                    | ENUM_VALUE
+                    | INPUT_OBJECT
+                    | INPUT_FIELD_DEFINITION
                 """);
         var compositionLog = new CompositionLog();
         var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
@@ -103,6 +116,19 @@ public sealed class SourceSchemaPreprocessorTests
                 input Input @tag(name: "remove") {
                     field: ID!
                 }
+
+                directive @tag(name: String!) repeatable on
+                    | SCHEMA
+                    | SCALAR
+                    | OBJECT
+                    | FIELD_DEFINITION
+                    | ARGUMENT_DEFINITION
+                    | INTERFACE
+                    | UNION
+                    | ENUM
+                    | ENUM_VALUE
+                    | INPUT_OBJECT
+                    | INPUT_FIELD_DEFINITION
                 """);
         var compositionLog = new CompositionLog();
         var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);

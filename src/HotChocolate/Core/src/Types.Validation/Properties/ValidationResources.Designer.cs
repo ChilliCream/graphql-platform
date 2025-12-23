@@ -285,6 +285,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The directive &apos;@{0}&apos; on &apos;{1}&apos; is not defined in the schema..
+        /// </summary>
+        internal static string LogEntryHelper_UndefinedDirective {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_UndefinedDirective", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{0}&apos; of field &apos;{1}&apos; is not defined in the schema..
         /// </summary>
         internal static string LogEntryHelper_UndefinedFieldType {

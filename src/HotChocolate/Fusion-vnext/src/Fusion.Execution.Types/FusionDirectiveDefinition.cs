@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -83,6 +84,9 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     /// Gets the runtime type of the directive.
     /// </summary>
     public Type RuntimeType { get; } = typeof(object);
+
+    /// <inheritdoc />
+    public IFeatureCollection Features => field ??= new FeatureCollection();
 
     /// <summary>
     /// Gets a string that represents the current object.

@@ -365,6 +365,19 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry UndefinedDirective(IDirective directive, ITypeSystemMember member)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_UndefinedDirective,
+                directive.Name,
+                member is ISchemaCoordinateProvider m ? m.Coordinate.ToString() : "?")
+            .SetCode(LogEntryCodes.UndefinedDirective)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(member)
+            .Build();
+    }
+
     public static LogEntry UndefinedFieldType(IFieldDefinition field)
     {
         return LogEntryBuilder.New()
