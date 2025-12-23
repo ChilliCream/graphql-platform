@@ -38,6 +38,7 @@ public sealed class SchemaValidator
     public void AddDefaultRules()
     {
         _rules.Add(new DirectiveDefinitionIncludesLocationRule());
+        _rules.Add(new EnumValueIsDefinedRule());
         _rules.Add(new NoInputObjectCycleRule());
         _rules.Add(new NoInputObjectDefaultValueCycleRule());
         _rules.Add(new NonEmptyEnumTypeRule());
@@ -79,6 +80,7 @@ public sealed class SchemaValidator
         foreach (var type in schema.Types)
         {
             PublishEvent(new TypeEvent(type), context);
+            PublishDirectiveArgumentAssignmentEvents(type, context);
 
             if (type is INameProvider namedMember)
             {
@@ -111,7 +113,11 @@ public sealed class SchemaValidator
                             PublishEvent(new ArgumentEvent(argument), context);
                             PublishEvent(new InputValueEvent(argument), context);
                             PublishEvent(new NamedMemberEvent(argument), context);
+
+                            PublishDirectiveArgumentAssignmentEvents(argument, context);
                         }
+
+                        PublishDirectiveArgumentAssignmentEvents(field, context);
                     }
 
                     break;
@@ -136,6 +142,8 @@ public sealed class SchemaValidator
                         PublishEvent(new InputFieldEvent(field), context);
                         PublishEvent(new InputValueEvent(field), context);
                         PublishEvent(new NamedMemberEvent(field), context);
+
+                        PublishDirectiveArgumentAssignmentEvents(field, context);
                     }
 
                     break;
@@ -156,6 +164,32 @@ public sealed class SchemaValidator
                 PublishEvent(new ArgumentEvent(argument), context);
                 PublishEvent(new InputValueEvent(argument), context);
                 PublishEvent(new NamedMemberEvent(argument), context);
+            }
+        }
+    }
+
+    private void PublishDirectiveArgumentAssignmentEvents(
+        IDirectivesProvider member,
+        ValidationContext context)
+    {
+        foreach (var directive in member.Directives)
+        {
+            foreach (var argumentAssignment in directive.Arguments)
+            {
+                if (!directive.Definition.Arguments.TryGetField(
+                    argumentAssignment.Name,
+                    out var directiveArgument))
+                {
+                    continue;
+                }
+
+                PublishEvent(
+                    new DirectiveArgumentAssignmentEvent(
+                        argumentAssignment,
+                        directiveArgument,
+                        directive,
+                        member),
+                    context);
             }
         }
     }
