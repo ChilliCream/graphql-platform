@@ -4,6 +4,15 @@ using HotChocolate.Types;
 namespace HotChocolate.Events;
 
 /// <summary>
+/// Represents an event that is triggered when a directive argument assignment is encountered during schema validation.
+/// </summary>
+public sealed record DirectiveArgumentAssignmentEvent(
+    ArgumentAssignment Assignment,
+    IInputValueDefinition Argument,
+    IDirective Directive,
+    ITypeSystemMember Member) : IValidationEvent;
+
+/// <summary>
 /// Represents an event that is triggered when an argument is encountered during schema validation.
 /// </summary>
 public sealed record ArgumentEvent(IInputValueDefinition Argument) : IValidationEvent;
