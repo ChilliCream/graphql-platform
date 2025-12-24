@@ -23,7 +23,6 @@ public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableP
         QueryableProjectionContext context,
         ISelection selection)
     {
-        var field = selection.Field;
         var filterFeature = selection.GetFilterFeature();
 
         if (filterFeature is not null

@@ -675,7 +675,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
 
         // act
         // assert
-        var openApiDocument1 = await GetOpenApiDocumentAsync(client);
+        await GetOpenApiDocumentAsync(client);
 
         storage.AddOrUpdateDocument(
             "users",

@@ -8,7 +8,6 @@ public class SessionPoolTests
     public void Constructor_AllArgs_CreateObject()
     {
         // arrange
-        Mock<ISocketProtocol> protocol = new();
         var optionsMonitor = new Mock<ISocketClientFactory>().Object;
 
         // act
@@ -23,7 +22,6 @@ public class SessionPoolTests
     public void Constructor_MonitorNull_CreateObject()
     {
         // arrange
-        Mock<ISocketProtocol> protocol = new();
         ISocketClientFactory optionsMonitor = null!;
 
         // act
@@ -107,7 +105,7 @@ public class SessionPoolTests
             .Returns(() => socket);
         var pool = new SessionPool(optionsMonitor);
         var first = await pool.CreateAsync("Foo");
-        var second = await pool.CreateAsync("Foo");
+        await pool.CreateAsync("Foo");
 
         // act
         await first.DisposeAsync();

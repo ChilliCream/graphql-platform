@@ -56,11 +56,8 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
     [Fact]
     public void InferFieldsFromType()
     {
-        // arrange
+        // arrange & act
         var descriptor = new ObjectTypeDescriptor<Foo>(Context);
-
-        // act
-        IObjectTypeDescriptor<Foo> desc = descriptor;
 
         // assert
         Assert.Collection(
