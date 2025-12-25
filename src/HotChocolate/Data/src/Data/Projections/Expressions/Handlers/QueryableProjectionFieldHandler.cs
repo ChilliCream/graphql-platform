@@ -9,6 +9,8 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers;
 public class QueryableProjectionFieldHandler
     : QueryableProjectionHandlerBase
 {
+    private static readonly NullabilityInfoContext _nullabilityInfoContext = new();
+
     public override bool CanHandle(ISelection selection) =>
         selection.Field.Member is { }
         && selection.SelectionSet is not null;
@@ -89,7 +91,10 @@ public class QueryableProjectionFieldHandler
             return true;
         }
 
-        if (context.InMemory)
+        // TODO: Use existing utility function/extension method? Cache?
+        var nullabilityInfo = _nullabilityInfoContext.Create(propertyInfo);
+
+        if (context.InMemory && nullabilityInfo.ReadState == NullabilityState.Nullable)
         {
             parentScope.Level
                 .Peek()
