@@ -84,7 +84,8 @@ internal static class GeneratorHelpers
             SingleCodeFile = configSettings.UseSingleFile ?? args.UseSingleFile,
             RequestStrategy = configSettings.RequestStrategy ?? args.Strategy,
             HashProvider = GetHashProvider(configSettings.HashAlgorithm ?? args.HashAlgorithm),
-            TransportProfiles = MapTransportProfiles(configSettings.TransportProfiles)
+            TransportProfiles = MapTransportProfiles(configSettings.TransportProfiles),
+            GenerateWithHttpStatusCodeCaptureMethod = configSettings.GenerateWithHttpStatusCodeCaptureMethod ?? args.GenerateWithHttpStatusCodeCaptureMethod
         };
     }
 
