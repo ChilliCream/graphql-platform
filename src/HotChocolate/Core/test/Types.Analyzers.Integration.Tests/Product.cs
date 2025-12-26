@@ -1,4 +1,5 @@
 using System.Reflection;
+using GreenDonut.Data;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
@@ -40,8 +41,18 @@ public static partial class TelevisionType
 [QueryType]
 public static partial class Query
 {
+    [GraphQLIgnore]
+    public static PagingArguments PagingArguments { get; private set; }
+
     public static Product GetProduct()
         => new Book { Id = "1", Title = "GraphQL in Action" };
+
+    [UsePaging]
+    public static IEnumerable<int> GetInts(PagingArguments pagingArguments)
+    {
+        PagingArguments = pagingArguments;
+        return [];
+    }
 
     [UsePaging]
     [RewriteAfterToVersion]
