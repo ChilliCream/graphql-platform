@@ -25,6 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.OpenApi.Packaging\HotChocolate.Adapters.OpenApi.Packaging.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
@@ -36,6 +38,7 @@
 
   <ItemGroup>
     <PackageReference Include="Duende.IdentityModel.OidcClient" VersionOverride="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" />
     <PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" />
     <PackageReference Include="Spectre.Console" />
     <PackageReference Include="Spectre.Console.Json" />

@@ -410,6 +410,7 @@ fragment PersistedQueryValidationError on PersistedQueryValidationError {
     }
   }
 }
+
 fragment ClientVersionValidationFailed on ClientVersionValidationFailed {
   state
   errors {
@@ -464,6 +465,10 @@ fragment WaitForApproval on WaitForApproval {
         ...InvalidGraphQLSchemaError
         ...PersistedQueryValidationError
       }
+    }
+    ... on OpenApiCollectionDeployment {
+      # TODO: We need to query for errors here
+      __typename
     }
   }
 }
@@ -673,5 +678,42 @@ fragment SchemaChangeViolationError on SchemaChangeViolationError {
   message
   changes {
     ...SchemaChangeLogEntry
+  }
+}
+
+fragment OpenApiCollectionNotFoundError on OpenApiCollectionNotFoundError {
+  openApiCollectionId
+  ...Error
+}
+
+fragment OpenApiCollectionVersionNotFoundError on OpenApiCollectionVersionNotFoundError {
+  tag
+  message
+  openApiCollectionId
+  ...Error
+}
+
+fragment OpenApiCollectionVersionValidationFailed on OpenApiCollectionVersionValidationFailed {
+  state
+  errors {
+    ...ProcessingTimeoutError
+    ...UnexpectedProcessingError
+  }
+}
+
+fragment OpenApiCollectionVersionValidationSuccess on OpenApiCollectionVersionValidationSuccess {
+  state
+}
+
+fragment OpenApiCollectionVersionPublishSuccess on OpenApiCollectionVersionPublishSuccess {
+  state
+}
+
+fragment OpenApiCollectionVersionPublishFailed on OpenApiCollectionVersionPublishFailed {
+  state
+  errors {
+    ...UnexpectedProcessingError
+    ...ProcessingTimeoutError
+    ...ConcurrentOperationError
   }
 }
