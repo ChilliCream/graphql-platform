@@ -2,7 +2,7 @@
 title: Introspection
 ---
 
-Introspection is what enables GraphQL's rich tooling ecosystem as well powerful IDEs like [Nitro](/products/nitro) or GraphiQL.
+Introspection is what enables GraphQL's rich tooling ecosystem as well powerful IDEs like [Nitro](/products/nitro) or GraphiQL. By default, introspection is only enabled in the "Development" environment.
 
 Every GraphQL server exposes a `__schema` and `__type` field on the query type as well as an `__typename` field on each type. These fields are used to gain insights into the schema of our GraphQL server.
 
@@ -60,22 +60,22 @@ While these fields can be useful to us, they are mainly intended for use in deve
 
 While introspection is a powerful feature that can tremendously improve our development workflow, it can also be used as an attack vector. A malicious user could for example request all details about all the types of our GraphQL server. Depending on the number of types this can degrade the performance of our GraphQL server. If our API should not be browsed by other developers we have the option to disable the introspection feature.
 
-We can disable introspection by calling `AllowIntrospection()` with a `false` argument on the `IRequestExecutorBuilder`.
+We can disable introspection by calling `DisableIntrospection()` on the `IRequestExecutorBuilder`. Note that despite this, introspection is still enabled in the "Development" environment.
 
 ```csharp
 builder.Services
     .AddGraphQLServer()
-    .AllowIntrospection(false);
+    .DisableIntrospection();
 ```
 
 While clients can still issue introspection queries, Hot Chocolate will now return an error response.
 
-But we most likely do not want to disable introspection while developing, so we can toggle it based on the current hosting environment.
+But we most likely do not want to disable introspection while developing, so we can toggle it based on the current hosting environment. This is also the default behaviour.
 
 ```csharp
 builder.Services
     .AddGraphQLServer()
-    .AllowIntrospection(builder.Environment.IsDevelopment());
+    .DisableIntrospection(!builder.Environment.IsDevelopment());
 ```
 
 ## Allowlisting requests
@@ -91,7 +91,7 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
     {
         if (context.Request.Headers.ContainsKey("X-Allow-Introspection"))
         {
-            requestBuilder.AllowIntrospection();
+            requestBuilder.DisableIntrospection(false);
         }
 
         return base.OnCreateAsync(context, requestExecutor, requestBuilder,
@@ -104,7 +104,7 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
 builder.Services
     .AddGraphQLServer()
     // We disable introspection per default
-    .AllowIntrospection(false)
+    .DisableIntrospection()
     .AddHttpRequestInterceptor<IntrospectionInterceptor>();
 ```
 
@@ -145,7 +145,7 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
     {
         if (context.Request.Headers.ContainsKey("X-Allow-Introspection"))
         {
-            requestBuilder.AllowIntrospection();
+            requestBuilder.DisableIntrospection(false);
         }
         else
         {
