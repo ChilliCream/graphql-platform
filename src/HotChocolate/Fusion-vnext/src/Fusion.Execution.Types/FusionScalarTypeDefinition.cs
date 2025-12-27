@@ -58,6 +58,8 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
     /// </summary>
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     /// <summary>
     /// Gets a value indicating whether this scalar type is marked as inaccessible.
     /// </summary>
@@ -160,7 +162,7 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
     }
 
     /// <inheritdoc />
-    public bool IsInstanceOfType(IValueNode value)
+    public bool IsValueCompatible(IValueNode value)
     {
         ArgumentNullException.ThrowIfNull(value);
 

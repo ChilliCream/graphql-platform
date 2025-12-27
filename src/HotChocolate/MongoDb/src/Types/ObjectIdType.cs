@@ -45,5 +45,5 @@ public class ObjectIdType
 
     /// <inheritdoc />
     public override IValueNode ParseResult(object? resultValue) =>
-        ParseValue(resultValue);
+        CoerceInputValue(resultValue);
 }

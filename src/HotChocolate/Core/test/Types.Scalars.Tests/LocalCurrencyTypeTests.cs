@@ -52,7 +52,7 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
         var valueSyntax = new StringValueNode("$10.99");
 
         // act
-        var result = scalar.IsInstanceOfType(valueSyntax);
+        var result = scalar.IsValueCompatible(valueSyntax);
 
         // assert
         Assert.True(result);
@@ -79,7 +79,7 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
         var valueSyntax = new StringValueNode("10,99 €");
 
         // act
-        var result = scalar.IsInstanceOfType(valueSyntax);
+        var result = scalar.IsValueCompatible(valueSyntax);
 
         // assert
         Assert.True(result);
@@ -93,10 +93,10 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
         var valueSyntax = new StringValueNode("$10.99");
 
         // act
-        var result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
+        var result = Record.Exception(() => scalar.CoerceInputLiteral(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
         const decimal expectedResult = 24.99m;
 
         // act
-        object result = (decimal)scalar.ParseLiteral(valueSyntax)!;
+        object result = (decimal)scalar.CoerceInputLiteral(valueSyntax)!;
 
         // assert
         Assert.Equal(expectedResult, result);
@@ -123,7 +123,7 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
         const decimal expectedResult = 24.99m;
 
         // act
-        object result = (decimal)scalar.ParseLiteral(valueSyntax)!;
+        object result = (decimal)scalar.CoerceInputLiteral(valueSyntax)!;
 
         // assert
         Assert.Equal(expectedResult, result);
@@ -142,7 +142,7 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
         const decimal expectedDecimal = 9.99m;
 
         // act
-        var result = (decimal)scalar.ParseLiteral(valueSyntax)!;
+        var result = (decimal)scalar.CoerceInputLiteral(valueSyntax)!;
 
         // assert
         Assert.Equal(expectedDecimal, result);
@@ -156,10 +156,10 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
         var valueSyntax = new StringValueNode("foo");
 
         // act
-        var result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
+        var result = Record.Exception(() => scalar.CoerceInputLiteral(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -170,7 +170,7 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
         const decimal valueSyntax = 24.95m;
 
         // act
-        var result = scalar.ParseValue(valueSyntax);
+        var result = scalar.CoerceInputValue(valueSyntax);
 
         // assert
         Assert.Equal(typeof(StringValueNode), result.GetType());
@@ -184,10 +184,10 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
         var runtimeValue = new StringValueNode("foo");
 
         // act
-        var result = Record.Exception(() => scalar.ParseValue(runtimeValue));
+        var result = Record.Exception(() => scalar.CoerceInputValue(runtimeValue));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -299,7 +299,7 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.Serialize("foo"));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -313,7 +313,7 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.Deserialize(runtimeValue));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -354,7 +354,7 @@ public class LocalCurrencyTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.ParseResult(runtimeValue));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]

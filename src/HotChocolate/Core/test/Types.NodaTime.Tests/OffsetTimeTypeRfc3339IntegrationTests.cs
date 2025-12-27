@@ -17,14 +17,14 @@ public class OffsetTimeTypeRfc3339IntegrationTests
     public void QueryReturns()
     {
         var result = _testExecutor.Execute("query { test: hours }");
-        Assert.Equal("18:30:13.010011234+02:00", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("18:30:13.010011234+02:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsWithMinutes()
     {
         var result = _testExecutor.Execute("query { test: hoursAndMinutes }");
-        Assert.Equal("18:30:13.010011234+02:35", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("18:30:13.010011234+02:35", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class OffsetTimeTypeRfc3339IntegrationTests
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13.010011234+02:00" } })
                 .Build());
 
-        Assert.Equal("18:30:13.010011234+02:00", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("18:30:13.010011234+02:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class OffsetTimeTypeRfc3339IntegrationTests
                 .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13.010011234+02:35" } })
                 .Build());
-        Assert.Equal("18:30:13.010011234+02:35", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("18:30:13.010011234+02:35", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class OffsetTimeTypeRfc3339IntegrationTests
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"18:30:13.010011234+02:00\") }")
                 .Build());
-        Assert.Equal("18:30:13.010011234+02:00", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("18:30:13.010011234+02:00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class OffsetTimeTypeRfc3339IntegrationTests
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"18:30:13.010011234+02:35\") }")
                 .Build());
-        Assert.Equal("18:30:13.010011234+02:35", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("18:30:13.010011234+02:35", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]

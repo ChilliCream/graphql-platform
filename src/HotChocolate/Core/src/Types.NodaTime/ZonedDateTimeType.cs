@@ -49,7 +49,7 @@ public class ZonedDateTimeType : StringToStructBaseType<ZonedDateTime>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(ZonedDateTime runtimeValue)
+    protected override string CoerceOutputValue(ZonedDateTime runtimeValue)
         => _serializationPattern
             .Format(runtimeValue);
 

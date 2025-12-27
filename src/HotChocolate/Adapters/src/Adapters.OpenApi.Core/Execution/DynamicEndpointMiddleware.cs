@@ -1,12 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;
 
@@ -62,14 +62,14 @@ internal sealed class DynamicEndpointMiddleware(
                 requestBuilder.Build(),
                 cancellationToken).ConfigureAwait(false);
 
-            // If the request was cancelled, we do not attempt to write a response.
+            // If the request was canceled, we do not attempt to write a response.
             if (cancellationToken.IsCancellationRequested)
             {
                 return;
             }
 
-            // If we do not have an operation result, something went wrong and we return HTTP 500.
-            if (executionResult is not IOperationResult operationResult)
+            // If we do not have an operation result, something went wrong, and we return HTTP 500.
+            if (executionResult is not OperationResult operationResult)
             {
 #if NET9_0_OR_GREATER
                 await Results.InternalServerError().ExecuteAsync(context);
@@ -80,8 +80,8 @@ internal sealed class DynamicEndpointMiddleware(
             }
 
             // If the request had validation errors or execution didn't start, we return HTTP 400.
-            if (operationResult.ContextData?.ContainsKey(ExecutionContextData.ValidationErrors) == true
-                || operationResult is OperationResult { IsDataSet: false })
+            if (operationResult.ContextData.ContainsKey(ExecutionContextData.ValidationErrors)
+                || operationResult is { IsDataSet: false })
             {
                 var firstErrorMessage = operationResult.Errors?.FirstOrDefault()?.Message;
 
@@ -287,7 +287,7 @@ internal sealed class DynamicEndpointMiddleware(
         IQueryCollection query,
         [NotNullWhen(true)] out IValueNode? parameterValue)
     {
-        parameterValue = default;
+        parameterValue = null;
 
         if (leaf.ParameterType is OpenApiEndpointParameterType.Route)
         {

@@ -26,7 +26,7 @@ public class UuidTypeTests
         var literal = new NullValueNode(null);
 
         // act
-        var isOfType = uuidType.IsInstanceOfType(literal);
+        var isOfType = uuidType.IsValueCompatible(literal);
 
         // assert
         Assert.True(isOfType);
@@ -40,7 +40,7 @@ public class UuidTypeTests
         var literal = new IntValueNode(123);
 
         // act
-        var isOfType = uuidType.IsInstanceOfType(literal);
+        var isOfType = uuidType.IsValueCompatible(literal);
 
         // assert
         Assert.False(isOfType);
@@ -53,7 +53,7 @@ public class UuidTypeTests
         var uuidType = new UuidType();
 
         // act
-        void Action() => uuidType.IsInstanceOfType(null!);
+        void Action() => uuidType.IsValueCompatible(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -97,7 +97,7 @@ public class UuidTypeTests
         void Action() => uuidType.Serialize(value);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -168,8 +168,8 @@ public class UuidTypeTests
         var literalB = new StringValueNode(expected.ToString("P"));
 
         // act
-        var runtimeValueA = (Guid)uuidType.ParseLiteral(literalA)!;
-        var runtimeValueB = (Guid)uuidType.ParseLiteral(literalB)!;
+        var runtimeValueA = (Guid)uuidType.CoerceInputLiteral(literalA)!;
+        var runtimeValueB = (Guid)uuidType.CoerceInputLiteral(literalB)!;
 
         // assert
         Assert.Equal(expected, runtimeValueA);
@@ -185,10 +185,10 @@ public class UuidTypeTests
         var literal = new StringValueNode(expected.ToString("N"));
 
         // act
-        void Action() => uuidType.ParseLiteral(literal);
+        void Action() => uuidType.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -199,10 +199,10 @@ public class UuidTypeTests
         var literal = new IntValueNode(123);
 
         // act
-        void Action() => uuidType.ParseLiteral(literal);
+        void Action() => uuidType.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -213,7 +213,7 @@ public class UuidTypeTests
         var literal = NullValueNode.Default;
 
         // act
-        var value = uuidType.ParseLiteral(literal);
+        var value = uuidType.CoerceInputLiteral(literal);
 
         // assert
         Assert.Null(value);
@@ -226,7 +226,7 @@ public class UuidTypeTests
         var uuidType = new UuidType();
 
         // act
-        void Action() => uuidType.ParseLiteral(null!);
+        void Action() => uuidType.CoerceInputLiteral(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -255,7 +255,7 @@ public class UuidTypeTests
         Guid? guid = null;
 
         // act
-        var stringLiteral = uuidType.ParseValue(guid);
+        var stringLiteral = uuidType.CoerceInputValue(guid);
 
         // assert
         Assert.True(stringLiteral is NullValueNode);
@@ -270,10 +270,10 @@ public class UuidTypeTests
         const int value = 123;
 
         // act
-        void Action() => uuidType.ParseValue(value);
+        void Action() => uuidType.CoerceInputValue(value);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -354,7 +354,7 @@ public class UuidTypeTests
         var literal = new StringValueNode(guid.ToString(format.ToString()));
 
         // act
-        var deserialized = (Guid)uuidType.ParseLiteral(literal)!;
+        var deserialized = (Guid)uuidType.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Equal(guid, deserialized);
@@ -381,10 +381,10 @@ public class UuidTypeTests
         var uuidType = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
 
         // act
-        void Fail() => uuidType.ParseLiteral(input);
+        void Fail() => uuidType.CoerceInputLiteral(input);
 
         // assert
-        Assert.Throws<SerializationException>(Fail);
+        Assert.Throws<LeafCoercionException>(Fail);
     }
 
     [InlineData(false)]
@@ -397,7 +397,7 @@ public class UuidTypeTests
         var uuidType = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
 
         // act
-        var guid = (Guid)uuidType.ParseLiteral(input)!;
+        var guid = (Guid)uuidType.CoerceInputLiteral(input)!;
 
         // assert
         Assert.Equal(input.Value, guid.ToString("D"));
@@ -416,7 +416,7 @@ public class UuidTypeTests
         void Fail() => uuidType.Deserialize(input);
 
         // assert
-        Assert.Throws<SerializationException>(Fail);
+        Assert.Throws<LeafCoercionException>(Fail);
     }
 
     [InlineData(false)]
@@ -445,7 +445,7 @@ public class UuidTypeTests
         var uuidType = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
 
         // act
-        var result = uuidType.IsInstanceOfType(input);
+        var result = uuidType.IsValueCompatible(input);
 
         // assert
         Assert.False(result);
@@ -461,7 +461,7 @@ public class UuidTypeTests
         var uuidType = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
 
         // act
-        var result = uuidType.IsInstanceOfType(input);
+        var result = uuidType.IsValueCompatible(input);
 
         // assert
         Assert.True(result);

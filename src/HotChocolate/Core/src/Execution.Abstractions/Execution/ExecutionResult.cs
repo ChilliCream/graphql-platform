@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Immutable;
 using HotChocolate.Features;
 
 namespace HotChocolate.Execution;
@@ -8,48 +9,23 @@ namespace HotChocolate.Execution;
 /// </summary>
 public abstract class ExecutionResult : IExecutionResult
 {
-    protected static readonly ArrayPool<Func<ValueTask>> CleanUpTaskPool = ArrayPool<Func<ValueTask>>.Shared;
+    private static readonly ArrayPool<Func<ValueTask>> s_cleanUpTaskPool = ArrayPool<Func<ValueTask>>.Shared;
     private Func<ValueTask>[] _cleanUpTasks = [];
     private int _cleanupTasksLength;
     private bool _disposed;
-
-    protected ExecutionResult()
-    {
-    }
-
-    protected ExecutionResult((Func<ValueTask>[] Tasks, int Length) cleanupTasks)
-    {
-        if (cleanupTasks.Tasks is null)
-        {
-            throw new ArgumentNullException(nameof(cleanupTasks));
-        }
-
-        (_cleanUpTasks, _cleanupTasksLength) = cleanupTasks;
-    }
 
     /// <inheritdoc cref="IExecutionResult" />
     public abstract ExecutionResultKind Kind { get; }
 
     /// <inheritdoc cref="IExecutionResult" />
-    public abstract IReadOnlyDictionary<string, object?>? ContextData { get; }
+    public ImmutableDictionary<string, object?> ContextData
+    {
+        get => Features.Get<ImmutableDictionary<string, object?>>() ?? ImmutableDictionary<string, object?>.Empty;
+        set => Features.Set(value);
+    }
 
     /// <inheritdoc cref="IFeatureProvider" />
     public IFeatureCollection Features { get; } = new FeatureCollection();
-
-    /// <summary>
-    /// This helper allows someone else to take over the responsibility over the cleanup tasks.
-    /// This object no longer will track them after they were taken over.
-    /// </summary>
-    private protected (Func<ValueTask>[] Tasks, int Length) TakeCleanUpTasks()
-    {
-        var tasks = _cleanUpTasks;
-        var taskLength = _cleanupTasksLength;
-
-        _cleanUpTasks = [];
-        _cleanupTasksLength = 0;
-
-        return (tasks, taskLength);
-    }
 
     /// <inheritdoc cref="IExecutionResult" />
     public void RegisterForCleanup(Func<ValueTask> clean)
@@ -58,17 +34,17 @@ public abstract class ExecutionResult : IExecutionResult
 
         if (_cleanUpTasks.Length == 0)
         {
-            _cleanUpTasks = CleanUpTaskPool.Rent(8);
+            _cleanUpTasks = s_cleanUpTaskPool.Rent(8);
             _cleanupTasksLength = 0;
         }
         else if (_cleanupTasksLength >= _cleanUpTasks.Length)
         {
-            var buffer = CleanUpTaskPool.Rent(_cleanupTasksLength * 2);
+            var buffer = s_cleanUpTaskPool.Rent(_cleanupTasksLength * 2);
             var currentBuffer = _cleanUpTasks.AsSpan();
 
             currentBuffer.CopyTo(buffer);
             currentBuffer.Clear();
-            CleanUpTaskPool.Return(_cleanUpTasks);
+            s_cleanUpTaskPool.Return(_cleanUpTasks);
 
             _cleanUpTasks = buffer;
         }
@@ -96,7 +72,7 @@ public abstract class ExecutionResult : IExecutionResult
                 }
 
                 tasks.AsSpan(0, _cleanupTasksLength).Clear();
-                CleanUpTaskPool.Return(tasks);
+                s_cleanUpTaskPool.Return(tasks);
             }
 
             _disposed = true;

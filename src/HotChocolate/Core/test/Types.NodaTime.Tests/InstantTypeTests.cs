@@ -38,7 +38,7 @@ public class InstantTypeIntegrationTests
 
         Assert.Equal(
             "2020-02-20T17:42:59.000001234Z",
-            result.ExpectOperationResult().Data!["test"]);
+            result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class InstantTypeIntegrationTests
 
         Assert.Equal(
             "2020-02-21T17:52:59.000001234Z",
-            result.ExpectOperationResult().Data!["test"]);
+            result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class InstantTypeIntegrationTests
 
         Assert.Equal(
             "2020-02-20T17:52:59.000001234Z",
-            result.ExpectOperationResult().Data!["test"]);
+            result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]

@@ -55,6 +55,8 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition, IFusionTyp
     /// </summary>
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     /// <summary>
     /// Gets a value indicating whether this union type is marked as inaccessible.
     /// </summary>

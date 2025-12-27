@@ -19,7 +19,7 @@ public class LocalDateTypeFullRoundtripIntegrationTests
     {
         var result = _testExecutor.Execute("query { test: one }");
 
-        Assert.Equal("5780-05-25 (Hebrew Civil)", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("5780-05-25 (Hebrew Civil)", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public class LocalDateTypeFullRoundtripIntegrationTests
                     .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-21 (Hebrew Civil)" } })
                     .Build());
 
-        Assert.Equal("2020-02-24 (Hebrew Civil)", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-02-24 (Hebrew Civil)", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class LocalDateTypeFullRoundtripIntegrationTests
                     .SetDocument("mutation { test(arg: \"2020-02-20 (Hebrew Civil)\") }")
                     .Build());
 
-        Assert.Equal("2020-02-23 (Hebrew Civil)", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-02-23 (Hebrew Civil)", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]

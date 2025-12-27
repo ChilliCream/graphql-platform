@@ -1,14 +1,19 @@
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
 /// <summary>
+/// <para>
 /// The Boolean scalar type represents true or false.
-///
-/// http://facebook.github.io/graphql/June2018/#sec-Boolean
+/// </para>
+/// <para>
+/// https://spec.graphql.org/September2025/#sec-Boolean
+/// </para>
 /// </summary>
-[SpecScalar]
 public class BooleanType : ScalarType<bool, BooleanValueNode>
 {
     /// <summary>
@@ -35,30 +40,31 @@ public class BooleanType : ScalarType<bool, BooleanValueNode>
     {
     }
 
-    protected override bool ParseLiteral(BooleanValueNode valueSyntax)
-    {
-        return valueSyntax.Value;
-    }
+    /// <inheritdoc />
+    public override object CoerceInputLiteral(BooleanValueNode valueLiteral)
+        => valueLiteral.Value;
 
-    protected override BooleanValueNode ParseValue(bool runtimeValue)
+    /// <inheritdoc />
+    public override object CoerceInputValue(JsonElement inputValue)
     {
-        return runtimeValue ? BooleanValueNode.True : BooleanValueNode.False;
-    }
-
-    public override IValueNode ParseResult(object? resultValue)
-    {
-        if (resultValue is null)
+        switch (inputValue.ValueKind)
         {
-            return NullValueNode.Default;
-        }
+            case JsonValueKind.True:
+                return true;
 
-        if (resultValue is bool b)
-        {
-            return b ? BooleanValueNode.True : BooleanValueNode.False;
-        }
+            case JsonValueKind.False:
+                return false;
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
-            this);
+            default:
+                throw Scalar_Cannot_CoerceInputValue(this, inputValue);
+        }
     }
+
+    /// <inheritdoc />
+    public override void CoerceOutputValue(bool runtimeValue, ResultElement resultValue)
+        => resultValue.SetBooleanValue(runtimeValue);
+
+    /// <inheritdoc />
+    public override IValueNode ValueToLiteral(bool runtimeValue)
+        => runtimeValue ? BooleanValueNode.True : BooleanValueNode.False;
 }

@@ -63,7 +63,7 @@ public class LocalDateTimeTypeTests
         void Action() => localDateTimeType.Serialize("foo");
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -191,7 +191,7 @@ public class LocalDateTimeTypeTests
         var expectedDateTime = new DateTime(2018, 6, 29, 8, 46, 14);
 
         // act
-        var dateTime = (DateTime)localDateTimeType.ParseLiteral(literal)!;
+        var dateTime = (DateTime)localDateTimeType.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -215,7 +215,7 @@ public class LocalDateTimeTypeTests
         var expectedDateTime = new DateTime(2018, 6, 29, 8, 46, 14);
 
         // act
-        var dateTime = (DateTime)localDateTimeType.ParseLiteral(literal)!;
+        var dateTime = (DateTime)localDateTimeType.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -229,7 +229,7 @@ public class LocalDateTimeTypeTests
         var literal = NullValueNode.Default;
 
         // act
-        var value = localDateTimeType.ParseLiteral(literal);
+        var value = localDateTimeType.CoerceInputLiteral(literal);
 
         // assert
         Assert.Null(value);
@@ -258,7 +258,7 @@ public class LocalDateTimeTypeTests
         var localDateTimeType = new LocalDateTimeType();
 
         // act
-        var literal = localDateTimeType.ParseValue(null);
+        var literal = localDateTimeType.CoerceInputValue(null);
 
         // assert
         Assert.Equal(NullValueNode.Default, literal);
@@ -336,7 +336,7 @@ public class LocalDateTimeTypeTests
         var exception = Record.Exception(() => localDateTimeType.ParseResult(resultValue));
 
         // assert
-        Assert.IsType<SerializationException>(exception);
+        Assert.IsType<LeafCoercionException>(exception);
     }
 
     [Fact]

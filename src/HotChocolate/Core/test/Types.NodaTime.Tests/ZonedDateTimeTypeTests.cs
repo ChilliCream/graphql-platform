@@ -47,7 +47,7 @@ public class ZonedDateTimeTypeIntegrationTests
         var result = _testExecutor.Execute("query { test: rome }");
         Assert.Equal(
             "2020-12-31T18:30:13 Asia/Kathmandu +05:45",
-            Assert.IsType<OperationResult>(result).Data!["test"]);
+            result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class ZonedDateTimeTypeIntegrationTests
         var result = _testExecutor.Execute("query { test: utc }");
         Assert.Equal(
             "2020-12-31T18:30:13 UTC +00",
-            Assert.IsType<OperationResult>(result).Data!["test"]);
+            result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public class ZonedDateTimeTypeIntegrationTests
                     .Build());
         Assert.Equal(
             "2020-12-31T19:40:13 Asia/Kathmandu +05:45",
-            Assert.IsType<OperationResult>(result).Data!["test"]);
+            result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class ZonedDateTimeTypeIntegrationTests
                     .Build());
         Assert.Equal(
             "2020-12-31T19:40:13 UTC +00",
-            Assert.IsType<OperationResult>(result).Data!["test"]);
+            result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public class ZonedDateTimeTypeIntegrationTests
                     .Build());
         Assert.Equal(
             "2020-12-31T19:40:13 Asia/Kathmandu +05:45",
-            result.ExpectOperationResult().Data!["test"]);
+            result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public class ZonedDateTimeTypeIntegrationTests
                 OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"2020-12-31T19:30:13 UTC +00\") }")
                     .Build());
-        Assert.Equal("2020-12-31T19:40:13 UTC +00", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-12-31T19:40:13 UTC +00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]

@@ -59,7 +59,7 @@ public class IdTypeTests
         var input = new StringValueNode("123456");
 
         // act
-        var result = type.IsInstanceOfType(input);
+        var result = type.IsValueCompatible(input);
 
         // assert
         Assert.True(result);
@@ -73,7 +73,7 @@ public class IdTypeTests
         var input = new IntValueNode(123456);
 
         // act
-        var result = type.IsInstanceOfType(input);
+        var result = type.IsValueCompatible(input);
 
         // assert
         Assert.True(result);
@@ -87,7 +87,7 @@ public class IdTypeTests
         var input = NullValueNode.Default;
 
         // act
-        var result = type.IsInstanceOfType(input);
+        var result = type.IsValueCompatible(input);
 
         // assert
         Assert.True(result);
@@ -101,7 +101,7 @@ public class IdTypeTests
         var input = new FloatValueNode(123456.0);
 
         // act
-        var result = type.IsInstanceOfType(input);
+        var result = type.IsValueCompatible(input);
 
         // assert
         Assert.False(result);
@@ -116,7 +116,7 @@ public class IdTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.IsInstanceOfType(null!));
+            () => type.IsValueCompatible(null!));
     }
 
     [Fact]
@@ -222,7 +222,7 @@ public class IdTypeTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => type.Serialize(input));
     }
 
@@ -234,7 +234,7 @@ public class IdTypeTests
         var input = new StringValueNode("123456");
 
         // act
-        var output = type.ParseLiteral(input);
+        var output = type.CoerceInputLiteral(input);
 
         // assert
         Assert.IsType<string>(output);
@@ -249,7 +249,7 @@ public class IdTypeTests
         var input = new IntValueNode(123456);
 
         // act
-        var output = type.ParseLiteral(input);
+        var output = type.CoerceInputLiteral(input);
 
         // assert
         Assert.IsType<string>(output);
@@ -264,7 +264,7 @@ public class IdTypeTests
         var input = NullValueNode.Default;
 
         // act
-        var output = type.ParseLiteral(input);
+        var output = type.CoerceInputLiteral(input);
 
         // assert
         Assert.Null(output);
@@ -279,8 +279,8 @@ public class IdTypeTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseLiteral(input));
+        Assert.Throws<LeafCoercionException>(
+            () => type.CoerceInputLiteral(input));
     }
 
     [Fact]
@@ -292,7 +292,7 @@ public class IdTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(() =>
-            type.ParseLiteral(null!));
+            type.CoerceInputLiteral(null!));
     }
 
     [Fact]
@@ -304,8 +304,8 @@ public class IdTypeTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseValue(input));
+        Assert.Throws<LeafCoercionException>(
+            () => type.CoerceInputValue(input));
     }
 
     [Fact]
@@ -316,7 +316,7 @@ public class IdTypeTests
         object input = null!;
 
         // act
-        object output = type.ParseValue(input);
+        object output = type.CoerceInputValue(input);
 
         // assert
         Assert.IsType<NullValueNode>(output);
@@ -330,7 +330,7 @@ public class IdTypeTests
         object input = "hello";
 
         // act
-        object output = type.ParseValue(input);
+        object output = type.CoerceInputValue(input);
 
         // assert
         Assert.IsType<StringValueNode>(output);

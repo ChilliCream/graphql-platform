@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace HotChocolate.Language;
 
 /// <summary>
@@ -39,8 +41,8 @@ public sealed class GraphQLRequest
         OperationDocumentHash? documentHash = null,
         string? operationName = null,
         ErrorHandlingMode? errorHandlingMode = null,
-        IReadOnlyList<IReadOnlyDictionary<string, object?>>? variables = null,
-        IReadOnlyDictionary<string, object?>? extensions = null)
+        JsonDocument? variables = null,
+        JsonDocument? extensions = null)
     {
         if (document is null && documentId?.IsEmpty is not false)
         {
@@ -87,10 +89,10 @@ public sealed class GraphQLRequest
     /// Gets a list of variables for the operation.
     /// For a standard GraphQL request this list will contain a single variable set or be <c>null</c>.
     /// </summary>
-    public IReadOnlyList<IReadOnlyDictionary<string, object?>>? Variables { get; }
+    public JsonDocument? Variables { get; }
 
     /// <summary>
     /// Gets the GraphQL request extensions map.
     /// </summary>
-    public IReadOnlyDictionary<string, object?>? Extensions { get; }
+    public JsonDocument? Extensions { get; }
 }

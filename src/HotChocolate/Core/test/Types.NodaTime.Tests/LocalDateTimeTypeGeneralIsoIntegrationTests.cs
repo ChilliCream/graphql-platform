@@ -19,7 +19,7 @@ public class LocalDateTimeTypeGeneralIsoIntegrationTests
     {
         var result = _testExecutor.Execute("query { test: one }");
 
-        Assert.Equal("2020-02-07T17:42:59", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-02-07T17:42:59", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class LocalDateTimeTypeGeneralIsoIntegrationTests
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-21T17:42:59" } })
                 .Build());
 
-        Assert.Equal("2020-02-21T17:52:59", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-02-21T17:52:59", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class LocalDateTimeTypeGeneralIsoIntegrationTests
                 .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59\") }")
                 .Build());
 
-        Assert.Equal("2020-02-20T17:52:59", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-02-20T17:52:59", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]

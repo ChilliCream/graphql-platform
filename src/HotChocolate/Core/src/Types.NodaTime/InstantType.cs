@@ -42,7 +42,7 @@ public class InstantType : StringToStructBaseType<Instant>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(Instant runtimeValue)
+    protected override string CoerceOutputValue(Instant runtimeValue)
         => _serializationPattern
             .Format(runtimeValue);
 

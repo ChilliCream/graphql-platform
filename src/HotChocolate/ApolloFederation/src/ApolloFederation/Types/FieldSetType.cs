@@ -78,7 +78,7 @@ public sealed class FieldSetType : ScalarType<SelectionSetNode, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         if (runtimeValue is null)
         {

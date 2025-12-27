@@ -37,7 +37,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         StringValueNode valueSyntax = new("89° 0' 0.000\" S");
 
         // act
-        var result = scalar.IsInstanceOfType(valueSyntax);
+        var result = scalar.IsValueCompatible(valueSyntax);
 
         // assert
         Assert.True(result);
@@ -110,7 +110,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.ParseResult(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -138,7 +138,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.ParseResult(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.ParseResult(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -180,7 +180,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.ParseResult(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Theory]
@@ -225,10 +225,10 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         StringValueNode valueSyntax = new("foo");
 
         // act
-        var result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
+        var result = Record.Exception(() => scalar.CoerceInputLiteral(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -239,7 +239,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         var literal = NullValueNode.Default;
 
         // act
-        var value = scalar.ParseLiteral(literal)!;
+        var value = scalar.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Null(value);
@@ -253,7 +253,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         const double valueSyntax = 74.3;
 
         // act
-        var result = scalar.ParseValue(valueSyntax);
+        var result = scalar.CoerceInputValue(valueSyntax);
 
         // assert
         Assert.Equal(typeof(StringValueNode), result.GetType());
@@ -283,7 +283,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         StringValueNode expected = new(literal);
 
         // act
-        var result = scalar.ParseValue(runtime);
+        var result = scalar.CoerceInputValue(runtime);
 
         // assert
         Assert.Equal(expected, result, SyntaxComparer.BySyntax);
@@ -297,10 +297,10 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         const double runtimeValue = 91d;
 
         // act
-        var result = Record.Exception(() => scalar.ParseValue(runtimeValue));
+        var result = Record.Exception(() => scalar.CoerceInputValue(runtimeValue));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -311,10 +311,10 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         const double runtimeValue = -91d;
 
         // act
-        var result = Record.Exception(() => scalar.ParseValue(runtimeValue));
+        var result = Record.Exception(() => scalar.CoerceInputValue(runtimeValue));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -345,7 +345,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.Deserialize(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -360,7 +360,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.Deserialize(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -389,7 +389,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.Serialize(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -403,7 +403,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.Serialize(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -432,7 +432,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.Serialize(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -446,7 +446,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         var result = Record.Exception(() => scalar.Serialize(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -484,7 +484,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         int precision = 8)
     {
         return Math.Round(
-            (double)scalar.ParseLiteral(valueSyntax)!,
+            (double)scalar.CoerceInputLiteral(valueSyntax)!,
             precision,
             MidpointRounding.AwayFromZero);
     }

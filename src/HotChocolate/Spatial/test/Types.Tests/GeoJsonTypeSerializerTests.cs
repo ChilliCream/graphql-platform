@@ -232,7 +232,7 @@ public class GeoJsonTypeSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => serializer.ParseValue(type.Object, ""));
     }
 
@@ -324,7 +324,7 @@ public class GeoJsonTypeSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => serializer.ParseResult(type.Object, ""));
     }
 

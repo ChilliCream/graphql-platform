@@ -2,12 +2,6 @@
   "errors": [
     {
       "message": "You must provide a `first` value to properly paginate the `LettersConnection`.",
-      "locations": [
-        {
-          "line": 3,
-          "column": 21
-        }
-      ],
       "path": [
         "letters"
       ],

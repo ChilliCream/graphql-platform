@@ -63,11 +63,12 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                     .Build());
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
         await Snapshot
             .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .Add(operationResult)
             .MatchMarkdownAsync();
     }
 
@@ -115,11 +116,12 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                     .Build());
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
         await Snapshot
             .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .Add(operationResult)
             .MatchMarkdownAsync();
     }
 
@@ -171,11 +173,12 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                     .Build());
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
         await Snapshot
             .Create(postFix: TestEnvironment.TargetFramework)
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .Add(operationResult)
             .MatchMarkdownAsync();
     }
 
@@ -214,6 +217,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                     .Build());
 
         var operationResult = result.ExpectOperationResult();
+        operationResult.Extensions = [];
 
         await Snapshot
             .Create(
@@ -221,7 +225,7 @@ public class InterfaceIntegrationTests(PostgreSqlResource resource)
                     ? TestEnvironment.TargetFramework
                     : null)
             .AddQueries(queries)
-            .Add(operationResult.WithExtensions(ImmutableDictionary<string, object?>.Empty))
+            .Add(operationResult)
             .MatchMarkdownAsync();
     }
 

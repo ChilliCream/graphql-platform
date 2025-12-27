@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 #endif
+using HotChocolate.Buffers;
 
 #if FUSION
 namespace HotChocolate.Fusion.Transport.Http;
@@ -103,6 +104,19 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// </returns>
     public HttpResponseHeaders TrailingHeaders => _message.TrailingHeaders;
 
+#if FUSION
+    /// <summary>
+    /// Reads the GraphQL response as a <see cref="SourceResultDocument"/>.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// A cancellation token that can be used to cancel the HTTP request.
+    /// </param>
+    /// <returns>
+    /// A <see cref="ValueTask{TResult}"/> that represents the asynchronous read operation
+    /// to read the <see cref="SourceResultDocument"/> from the underlying <see cref="HttpResponseMessage"/>.
+    /// </returns>
+    public ValueTask<SourceResultDocument> ReadAsResultAsync(CancellationToken cancellationToken = default)
+#else
     /// <summary>
     /// Reads the GraphQL response as a <see cref="OperationResult"/>.
     /// </summary>
@@ -113,9 +127,6 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// A <see cref="ValueTask{TResult}"/> that represents the asynchronous read operation
     /// to read the <see cref="OperationResult"/> from the underlying <see cref="HttpResponseMessage"/>.
     /// </returns>
-#if FUSION
-    public ValueTask<SourceResultDocument> ReadAsResultAsync(CancellationToken cancellationToken = default)
-#else
     public ValueTask<OperationResult> ReadAsResultAsync(CancellationToken cancellationToken = default)
 #endif
     {
@@ -160,7 +171,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 #if FUSION
         // we try and read the first chunk into a single chunk.
         var reader = PipeReader.Create(stream, s_options);
-        var currentChunk = JsonMemory.Rent();
+        var currentChunk = JsonMemory.Rent(JsonMemoryKind.Json);
         var currentChunkPosition = 0;
         var chunkIndex = 0;
         var chunks = ArrayPool<byte[]>.Shared.Rent(64);
@@ -215,7 +226,7 @@ public sealed class GraphQLHttpResponse : IDisposable
                                 }
 
                                 chunks[chunkIndex++] = currentChunk;
-                                currentChunk = JsonMemory.Rent();
+                                currentChunk = JsonMemory.Rent(JsonMemoryKind.Json);
                                 currentChunkPosition = 0;
                             }
                         }
@@ -253,7 +264,7 @@ public sealed class GraphQLHttpResponse : IDisposable
                                 }
 
                                 chunks[chunkIndex++] = currentChunk;
-                                currentChunk = JsonMemory.Rent();
+                                currentChunk = JsonMemory.Rent(JsonMemoryKind.Json);
                                 currentChunkPosition = 0;
                             }
                         }
@@ -300,6 +311,17 @@ public sealed class GraphQLHttpResponse : IDisposable
 #endif
     }
 
+#if FUSION
+    /// <summary>
+    /// Reads the GraphQL response as a <see cref="IAsyncEnumerable{T}"/> of <see cref="SourceResultDocument"/>.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="IAsyncEnumerable{T}"/> of <see cref="SourceResultDocument"/> that represents the asynchronous
+    /// read operation to read the stream of <see cref="SourceResultDocument"/>s from the underlying
+    /// <see cref="HttpResponseMessage"/>.
+    /// </returns>
+    public IAsyncEnumerable<SourceResultDocument> ReadAsResultStreamAsync()
+#else
     /// <summary>
     /// Reads the GraphQL response as a <see cref="IAsyncEnumerable{T}"/> of <see cref="OperationResult"/>.
     /// </summary>
@@ -308,9 +330,6 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// read operation to read the stream of <see cref="OperationResult"/>s from the underlying
     /// <see cref="HttpResponseMessage"/>.
     /// </returns>
-#if FUSION
-    public IAsyncEnumerable<SourceResultDocument> ReadAsResultStreamAsync()
-#else
     public IAsyncEnumerable<OperationResult> ReadAsResultStreamAsync()
 #endif
     {

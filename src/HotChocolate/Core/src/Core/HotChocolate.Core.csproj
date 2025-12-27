@@ -18,8 +18,6 @@
     <ProjectReference Include="..\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj" />
     <ProjectReference Include="..\Types.CursorPagination.Extensions\HotChocolate.Types.CursorPagination.Extensions.csproj" />
     <ProjectReference Include="..\Validation\HotChocolate.Validation.csproj" />
-    <ProjectReference Include="..\Fetching\HotChocolate.Fetching.csproj" />
-    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
   </ItemGroup>
 
 </Project>

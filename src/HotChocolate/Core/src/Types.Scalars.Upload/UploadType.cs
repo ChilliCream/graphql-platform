@@ -54,7 +54,7 @@ public class UploadType : ScalarType<IFile, FileValueNode>
     protected override FileValueNode ParseValue(IFile runtimeValue) =>
         new(runtimeValue);
 
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         throw new GraphQLException(
             UploadResources.UploadType_TrySerialize_NotSupported);

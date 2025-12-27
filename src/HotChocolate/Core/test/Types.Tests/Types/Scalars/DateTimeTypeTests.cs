@@ -70,7 +70,7 @@ public class DateTimeTypeTests
         Action a = () => dateTimeType.Serialize("foo");
 
         // assert
-        Assert.Throws<SerializationException>(a);
+        Assert.Throws<LeafCoercionException>(a);
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class DateTimeTypeTests
             new TimeSpan(4, 0, 0));
 
         // act
-        var dateTime = (DateTimeOffset)dateTimeType.ParseLiteral(literal)!;
+        var dateTime = (DateTimeOffset)dateTimeType.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -100,7 +100,7 @@ public class DateTimeTypeTests
         var literal = new StringValueNode(dateTime);
 
         // act
-        var dateTimeOffset = (DateTimeOffset?)dateTimeType.ParseLiteral(literal);
+        var dateTimeOffset = (DateTimeOffset?)dateTimeType.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(result, dateTimeOffset);
@@ -117,13 +117,13 @@ public class DateTimeTypeTests
         // act
         void Act()
         {
-            dateTimeType.ParseLiteral(literal);
+            dateTimeType.CoerceInputLiteral(literal);
         }
 
         // assert
         Assert.Equal(
             "DateTime cannot parse the given literal of type `StringValueNode`.",
-            Assert.Throws<SerializationException>(Act).Message);
+            Assert.Throws<LeafCoercionException>(Act).Message);
     }
 
     [InlineData("en-US")]
@@ -146,7 +146,7 @@ public class DateTimeTypeTests
             new TimeSpan(4, 0, 0));
 
         // act
-        var dateTime = (DateTimeOffset)dateTimeType.ParseLiteral(literal)!;
+        var dateTime = (DateTimeOffset)dateTimeType.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -326,7 +326,7 @@ public class DateTimeTypeTests
         var literal = NullValueNode.Default;
 
         // act
-        var value = dateTimeType.ParseLiteral(literal);
+        var value = dateTimeType.CoerceInputLiteral(literal);
 
         // assert
         Assert.Null(value);
@@ -374,7 +374,7 @@ public class DateTimeTypeTests
         var dateTimeType = new DateTimeType();
 
         // act
-        var literal = dateTimeType.ParseValue(null);
+        var literal = dateTimeType.CoerceInputValue(null);
 
         // assert
         Assert.IsType<NullValueNode>(literal);

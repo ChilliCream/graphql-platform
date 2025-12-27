@@ -13,14 +13,18 @@ public class NullTests : FusionTestBase
         using var server1 = CreateSourceSchema(
             "A",
             b => b.AddQueryType<SourceSchema1.Query>()
-                .InsertUseRequest(WellKnownRequestMiddleware.OperationExecutionMiddleware, (_, _) => context =>
-                {
-                    context.Result = OperationResultBuilder.New()
-                        .SetData(new Dictionary<string, object?> { ["nonNullString"] = null })
-                        .Build();
-
-                    return ValueTask.CompletedTask;
-                }, key: "SetNull"));
+                .InsertUseRequest(
+                    WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                    (_, _) => context =>
+                    {
+                        context.Result = new OperationResult(
+                            new Dictionary<string, object?>
+                            {
+                                ["nonNullString"] = null
+                            });
+                        return ValueTask.CompletedTask;
+                    },
+                    key: "SetNull"));
 
         // act
         using var gateway = await CreateCompositeSchemaAsync(

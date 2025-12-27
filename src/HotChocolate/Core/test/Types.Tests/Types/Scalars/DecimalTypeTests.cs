@@ -12,7 +12,7 @@ public class DecimalTypeTests
         var type = new DecimalType();
 
         // act
-        var result = type.IsInstanceOfType(CreateExponentialLiteral());
+        var result = type.IsValueCompatible(CreateExponentialLiteral());
 
         // assert
         Assert.True(result);
@@ -25,7 +25,7 @@ public class DecimalTypeTests
         var type = new DecimalType();
 
         // act
-        var result = type.IsInstanceOfType(NullValueNode.Default);
+        var result = type.IsValueCompatible(NullValueNode.Default);
 
         // assert
         Assert.True(result);
@@ -38,7 +38,7 @@ public class DecimalTypeTests
         var type = new DecimalType();
 
         // act
-        var result = type.IsInstanceOfType(new IntValueNode(123));
+        var result = type.IsValueCompatible(new IntValueNode(123));
 
         // assert
         Assert.True(result);
@@ -51,7 +51,7 @@ public class DecimalTypeTests
         var type = new DecimalType();
 
         // act
-        var result = type.IsInstanceOfType(new StringValueNode("123"));
+        var result = type.IsValueCompatible(new StringValueNode("123"));
 
         // assert
         Assert.False(result);
@@ -66,7 +66,7 @@ public class DecimalTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.IsInstanceOfType(null!));
+            () => type.IsValueCompatible(null!));
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class DecimalTypeTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => type.Serialize(input));
     }
 
@@ -119,7 +119,7 @@ public class DecimalTypeTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => type.Serialize(value));
     }
 
@@ -131,7 +131,7 @@ public class DecimalTypeTests
         var literal = CreateFixedPointLiteral();
 
         // act
-        var value = type.ParseLiteral(literal);
+        var value = type.CoerceInputLiteral(literal);
 
         // assert
         Assert.IsType<decimal>(value);
@@ -146,7 +146,7 @@ public class DecimalTypeTests
         var literal = CreateExponentialLiteral();
 
         // act
-        var value = type.ParseLiteral(literal);
+        var value = type.CoerceInputLiteral(literal);
 
         // assert
         Assert.IsType<decimal>(value);
@@ -161,7 +161,7 @@ public class DecimalTypeTests
         var literal = new IntValueNode(123);
 
         // act
-        var value = type.ParseLiteral(literal);
+        var value = type.CoerceInputLiteral(literal);
 
         // assert
         Assert.IsType<decimal>(value);
@@ -175,7 +175,7 @@ public class DecimalTypeTests
         var type = new DecimalType();
 
         // act
-        var output = type.ParseLiteral(NullValueNode.Default);
+        var output = type.CoerceInputLiteral(NullValueNode.Default);
 
         // assert
         Assert.Null(output);
@@ -190,8 +190,8 @@ public class DecimalTypeTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseLiteral(input));
+        Assert.Throws<LeafCoercionException>(
+            () => type.CoerceInputLiteral(input));
     }
 
     [Fact]
@@ -203,7 +203,7 @@ public class DecimalTypeTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => type.ParseLiteral(null!));
+            () => type.CoerceInputLiteral(null!));
     }
 
     [Fact]
@@ -231,7 +231,7 @@ public class DecimalTypeTests
         Action action = () => type.ParseValue(input);
 
         // assert
-        Assert.Throws<SerializationException>(action);
+        Assert.Throws<LeafCoercionException>(action);
     }
 
     [Fact]
@@ -259,7 +259,7 @@ public class DecimalTypeTests
         Action action = () => type.ParseValue(input);
 
         // assert
-        Assert.Throws<SerializationException>(action);
+        Assert.Throws<LeafCoercionException>(action);
     }
 
     [Fact]
@@ -271,8 +271,8 @@ public class DecimalTypeTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseValue(value));
+        Assert.Throws<LeafCoercionException>(
+            () => type.CoerceInputValue(value));
     }
 
     [Fact]
@@ -283,7 +283,7 @@ public class DecimalTypeTests
         object input = null!;
 
         // act
-        object output = type.ParseValue(input);
+        object output = type.CoerceInputValue(input);
 
         // assert
         Assert.IsType<NullValueNode>(output);
@@ -297,7 +297,7 @@ public class DecimalTypeTests
         decimal? input = 123M;
 
         // act
-        var output = (FloatValueNode)type.ParseValue(input);
+        var output = (FloatValueNode)type.CoerceInputValue(input);
 
         // assert
         Assert.Equal(123M, output.ToDecimal());

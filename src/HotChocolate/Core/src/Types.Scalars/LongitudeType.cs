@@ -46,7 +46,7 @@ public class LongitudeType : ScalarType<double, StringValueNode>
             null => NullValueNode.Default,
 
             string s when Longitude.TryDeserialize(s, out var runtimeValue) =>
-                ParseValue(runtimeValue),
+                CoerceInputValue(runtimeValue),
 
             int i => ParseValue(i),
 
@@ -79,7 +79,7 @@ public class LongitudeType : ScalarType<double, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         switch (runtimeValue)
         {

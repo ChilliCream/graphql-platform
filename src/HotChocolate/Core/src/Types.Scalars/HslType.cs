@@ -42,13 +42,13 @@ public partial class HslType : RegexType
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
     {
         return ThrowHelper.HslType_ParseLiteral_IsInvalid(this);
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
+    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
     {
         return ThrowHelper.HslType_ParseValue_IsInvalid(this);
     }

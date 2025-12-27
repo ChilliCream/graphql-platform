@@ -12,7 +12,7 @@ public class DefaultWebSocketPayloadFormatter(WebSocketPayloadFormatterOptions o
     private readonly JsonResultFormatter _jsonFormatter = new(options.Json);
 
     /// <inheritdoc />
-    public void Format(IOperationResult result, Utf8JsonWriter jsonWriter)
+    public void Format(OperationResult result, Utf8JsonWriter jsonWriter)
     {
         _jsonFormatter.Format(result, jsonWriter);
     }

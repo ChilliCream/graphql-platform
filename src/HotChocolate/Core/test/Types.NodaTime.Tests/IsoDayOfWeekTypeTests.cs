@@ -39,7 +39,7 @@ public class IsoDayOfWeekTypeIntegrationTests
     {
         var result = _testExecutor.Execute("query { test: monday }");
 
-        Assert.Equal(1, result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal(1, result.ExpectOperationResult().UnwrapData().GetProperty("test").GetInt32());
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class IsoDayOfWeekTypeIntegrationTests
     {
         var result = _testExecutor.Execute("query { test: sunday }");
 
-        Assert.Equal(7, result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal(7, result.ExpectOperationResult().UnwrapData().GetProperty("test").GetInt32());
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class IsoDayOfWeekTypeIntegrationTests
     {
         var result = _testExecutor.Execute("query { test: friday }");
 
-        Assert.Equal(5, result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal(5, result.ExpectOperationResult().UnwrapData().GetProperty("test").GetInt32());
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class IsoDayOfWeekTypeIntegrationTests
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", 1 } })
                 .Build());
 
-        Assert.Equal(2, result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal(2, result.ExpectOperationResult().UnwrapData().GetProperty("test").GetInt32());
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class IsoDayOfWeekTypeIntegrationTests
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", 7 } })
                 .Build());
 
-        Assert.Equal(1, result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal(1, result.ExpectOperationResult().UnwrapData().GetProperty("test").GetInt32());
     }
 
     [Fact]

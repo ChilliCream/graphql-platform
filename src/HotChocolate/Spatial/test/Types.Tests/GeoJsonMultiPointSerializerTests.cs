@@ -74,7 +74,7 @@ public class GeoJsonMultiPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => type.Serialize(""));
+        Assert.Throws<LeafCoercionException>(() => type.Serialize(""));
     }
 
     [Theory]
@@ -179,7 +179,7 @@ public class GeoJsonMultiPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(new ListValueNode(), type));
     }
 
@@ -221,7 +221,7 @@ public class GeoJsonMultiPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputParser.ParseLiteral(valueNode, type));
+        Assert.Throws<LeafCoercionException>(() => inputParser.ParseLiteral(valueNode, type));
     }
 
     [Theory]
@@ -238,7 +238,7 @@ public class GeoJsonMultiPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputParser.ParseLiteral(valueNode, type));
+        Assert.Throws<LeafCoercionException>(() => inputParser.ParseLiteral(valueNode, type));
     }
 
     [Theory]
@@ -318,7 +318,7 @@ public class GeoJsonMultiPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputFormatter.FormatResult("", type));
+        Assert.Throws<LeafCoercionException>(() => inputFormatter.FormatResult("", type));
     }
 
     [Theory]
@@ -362,7 +362,7 @@ public class GeoJsonMultiPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputFormatter.FormatValue("", type));
+        Assert.Throws<LeafCoercionException>(() => inputFormatter.FormatValue("", type));
     }
 
     [Theory]
@@ -376,7 +376,7 @@ public class GeoJsonMultiPointSerializerTests
 
         // act
         // assert
-        Assert.Null(inputParser.ParseResult(null, type));
+        Assert.Null(inputParser.ParseInputValue(null, type));
     }
 
     [Theory]
@@ -404,7 +404,7 @@ public class GeoJsonMultiPointSerializerTests
         var type = CreateInputType(typeName);
 
         // act
-        var result = inputParser.ParseResult(_geometry, type);
+        var result = inputParser.ParseInputValue(_geometry, type);
 
         // assert
         Assert.Equal(result, _geometry);
@@ -421,7 +421,7 @@ public class GeoJsonMultiPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputParser.ParseResult("", type));
+        Assert.Throws<LeafCoercionException>(() => inputParser.ParseInputValue("", type));
     }
 
     [Theory]
@@ -440,7 +440,7 @@ public class GeoJsonMultiPointSerializerTests
             };
 
         // act
-        var result = inputParser.ParseResult(serialized, type);
+        var result = inputParser.ParseInputValue(serialized, type);
 
         // assert
         AssertGeometry(result, 26912);
@@ -461,7 +461,7 @@ public class GeoJsonMultiPointSerializerTests
             };
 
         // act
-        var result = inputParser.ParseResult(serialized, type);
+        var result = inputParser.ParseInputValue(serialized, type);
 
         // assert
         AssertGeometry(result);
@@ -483,7 +483,7 @@ public class GeoJsonMultiPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputParser.ParseResult(serialized, type));
+        Assert.Throws<LeafCoercionException>(() => inputParser.ParseInputValue(serialized, type));
     }
 
     [Theory]
@@ -502,7 +502,7 @@ public class GeoJsonMultiPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputParser.ParseResult(serialized, type));
+        Assert.Throws<LeafCoercionException>(() => inputParser.ParseInputValue(serialized, type));
     }
 
     [Theory]
@@ -522,7 +522,7 @@ public class GeoJsonMultiPointSerializerTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(() => inputParser.ParseLiteral(valueNode, type));
+        Assert.Throws<LeafCoercionException>(() => inputParser.ParseLiteral(valueNode, type));
     }
 
     private Schema CreateSchema() => SchemaBuilder.New()

@@ -90,7 +90,6 @@
     <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseReader.cs">
       <Link>Transport\Http\Sse\SseReader.cs</Link>
     </Compile>
-
     <Compile Update="Text\Json\SourceResultElement.ObjectEnumerator.cs">
       <DependentUpon>SourceResultElement.cs</DependentUpon>
     </Compile>

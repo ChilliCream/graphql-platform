@@ -45,10 +45,10 @@ public partial class EmailAddressType : RegexType
     { }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
         => ThrowHelper.EmailAddressType_ParseLiteral_IsInvalid(this);
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
+    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
         => ThrowHelper.EmailAddressType_ParseValue_IsInvalid(this);
 }

@@ -19,7 +19,7 @@ public class OffsetDateTypeFullRoundtripIntegrationTests
     {
         var result = _testExecutor.Execute("query { test: hours }");
 
-        Assert.Equal("2020-12-31+02 (Gregorian)", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-12-31+02 (Gregorian)", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class OffsetDateTypeFullRoundtripIntegrationTests
     {
         var result = _testExecutor.Execute("query { test: hoursAndMinutes }");
 
-        Assert.Equal("2020-12-31+02:35 (Gregorian)", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-12-31+02:35 (Gregorian)", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class OffsetDateTypeFullRoundtripIntegrationTests
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31+02 (Gregorian)" } })
                 .Build());
 
-        Assert.Equal("2020-12-31+02 (Gregorian)", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-12-31+02 (Gregorian)", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class OffsetDateTypeFullRoundtripIntegrationTests
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31+02:35 (Gregorian)" } })
                 .Build());
 
-        Assert.Equal("2020-12-31+02:35 (Gregorian)", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-12-31+02:35 (Gregorian)", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public class OffsetDateTypeFullRoundtripIntegrationTests
                 .SetDocument("mutation { test(arg: \"2020-12-31+02 (Gregorian)\") }")
                 .Build());
 
-        Assert.Equal("2020-12-31+02 (Gregorian)", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-12-31+02 (Gregorian)", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class OffsetDateTypeFullRoundtripIntegrationTests
                 .SetDocument("mutation { test(arg: \"2020-12-31+02:35 (Gregorian)\") }")
                 .Build());
 
-        Assert.Equal("2020-12-31+02:35 (Gregorian)", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("2020-12-31+02:35 (Gregorian)", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]

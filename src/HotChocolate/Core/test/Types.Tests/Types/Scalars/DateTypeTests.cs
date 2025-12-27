@@ -78,7 +78,7 @@ public class DateTypeTests
         void Action() => dateType.Serialize("foo");
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -223,7 +223,7 @@ public class DateTypeTests
         var expectedDateTime = new DateOnly(2018, 6, 29);
 
         // act
-        var dateTime = (DateOnly)dateType.ParseLiteral(literal)!;
+        var dateTime = (DateOnly)dateType.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -247,7 +247,7 @@ public class DateTypeTests
         var expectedDateTime = new DateOnly(2018, 6, 29);
 
         // act
-        var dateTime = (DateOnly)dateType.ParseLiteral(literal)!;
+        var dateTime = (DateOnly)dateType.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -261,7 +261,7 @@ public class DateTypeTests
         var literal = NullValueNode.Default;
 
         // act
-        var value = dateType.ParseLiteral(literal);
+        var value = dateType.CoerceInputLiteral(literal);
 
         // assert
         Assert.Null(value);
@@ -290,7 +290,7 @@ public class DateTypeTests
         var dateType = new DateType();
 
         // act
-        var literal = dateType.ParseValue(null);
+        var literal = dateType.CoerceInputValue(null);
 
         // assert
         Assert.Equal(NullValueNode.Default, literal);
@@ -384,7 +384,7 @@ public class DateTypeTests
         var exception = Record.Exception(() => dateType.ParseResult(resultValue));
 
         // assert
-        Assert.IsType<SerializationException>(exception);
+        Assert.IsType<LeafCoercionException>(exception);
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Parsers;
@@ -20,7 +21,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     private const string Operations = "operations";
     private const string Map = "map";
     private readonly FormOptions _formOptions;
-    private readonly IOperationResult _multipartRequestError = MultiPartRequestPreflightRequired();
+    private readonly OperationResult _multipartRequestError = MultiPartRequestPreflightRequired();
 
     public HttpMultipartMiddleware(
         HttpRequestDelegate next,
@@ -173,17 +174,20 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         GraphQLRequest request,
         IDictionary<string, IFile> fileMap)
     {
-        if (request.Variables is not [Dictionary<string, object?> mutableVariables])
+        if (request.Variables is null
+            || request.Variables.RootElement.ValueKind is not JsonValueKind.Object)
         {
             throw new InvalidOperationException(
                 HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable);
         }
 
+        var mutableVariables = JsonNode.Parse(request.Variables.RootElement.GetRawText())!;
+
         foreach (var (objectPath, file) in fileMap)
         {
             var path = VariablePath.Parse(objectPath);
 
-            if (!mutableVariables.TryGetValue(path.Key.Value, out var value))
+            if (!mutableVariables.AsObject().TryGetPropertyValue(path.Key.Value, out var value))
             {
                 throw ThrowHelper.HttpMultipartMiddleware_VariableNotFound(objectPath);
             }

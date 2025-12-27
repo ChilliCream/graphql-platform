@@ -67,7 +67,7 @@ public class LocalCurrencyType : ScalarType<decimal, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         switch (runtimeValue)
         {

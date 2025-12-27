@@ -55,7 +55,7 @@ public class RegexType : StringType
         => _validationRegex.IsMatch(valueSyntax.Value);
 
     /// <inheritdoc />
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         if (runtimeValue is null)
         {
@@ -95,10 +95,10 @@ public class RegexType : StringType
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
         => ThrowHelper.RegexType_ParseLiteral_IsInvalid(this, Name);
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
+    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
         => ThrowHelper.RegexType_ParseValue_IsInvalid(this, Name);
 }

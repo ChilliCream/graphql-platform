@@ -39,7 +39,7 @@ public class LocalTimeTypeIntegrationTests
     {
         var result = _testExecutor.Execute("query { test: one }");
 
-        Assert.Equal("12:42:13.031011234", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("12:42:13.031011234", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class LocalTimeTypeIntegrationTests
                     .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13.031011234" } })
                     .Build());
 
-        Assert.Equal("12:52:13.031011234", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("12:52:13.031011234", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public class LocalTimeTypeIntegrationTests
                     .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13" } })
                     .Build());
 
-        Assert.Equal("12:52:13", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("12:52:13", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class LocalTimeTypeIntegrationTests
                     .SetDocument("mutation { test(arg: \"12:42:13.031011234\") }")
                     .Build());
 
-        Assert.Equal("12:52:13.031011234", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("12:52:13.031011234", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class LocalTimeTypeIntegrationTests
                     .SetDocument("mutation { test(arg: \"12:42:13\") }")
                     .Build());
 
-        Assert.Equal("12:52:13", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("12:52:13", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]

@@ -1,4 +1,4 @@
-﻿{
+{
   "errors": [
     {
       "message": "Detected a non-null violation in argument `name`.",

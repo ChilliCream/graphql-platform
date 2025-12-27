@@ -12,7 +12,7 @@ public class BooleanTypeTests
 
         // act
         var booleanType = new BooleanType();
-        var result = booleanType.ParseLiteral(literal);
+        var result = booleanType.CoerceInputLiteral(literal);
 
         // assert
         Assert.IsType<bool>(result);
@@ -29,9 +29,9 @@ public class BooleanTypeTests
 
         // act
         var booleanType = new BooleanType();
-        var isIntLiteralInstanceOf = booleanType.IsInstanceOfType(boolLiteral);
-        var isStringLiteralInstanceOf = booleanType.IsInstanceOfType(stringLiteral);
-        var isNullLiteralInstanceOf = booleanType.IsInstanceOfType(nullLiteral);
+        var isIntLiteralInstanceOf = booleanType.IsValueCompatible(boolLiteral);
+        var isStringLiteralInstanceOf = booleanType.IsValueCompatible(stringLiteral);
+        var isNullLiteralInstanceOf = booleanType.IsValueCompatible(nullLiteral);
 
         // assert
         Assert.True(isIntLiteralInstanceOf);
@@ -89,7 +89,7 @@ public class BooleanTypeTests
         Action a = () => booleanType.Serialize("foo");
 
         // assert
-        Assert.Throws<SerializationException>(a);
+        Assert.Throws<LeafCoercionException>(a);
     }
 
     [Fact]
@@ -129,6 +129,6 @@ public class BooleanTypeTests
         Action a = () => booleanType.Serialize("foo");
 
         // assert
-        Assert.Throws<SerializationException>(a);
+        Assert.Throws<LeafCoercionException>(a);
     }
 }

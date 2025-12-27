@@ -26,7 +26,7 @@ public class ByteArrayTypeTests
         var literal = new NullValueNode(null);
 
         // act
-        var isOfType = byteArrayType.IsInstanceOfType(literal);
+        var isOfType = byteArrayType.IsValueCompatible(literal);
 
         // assert
         Assert.True(isOfType);
@@ -41,7 +41,7 @@ public class ByteArrayTypeTests
         var literal = new IntValueNode(123);
 
         // act
-        var isOfType = byteArrayType.IsInstanceOfType(literal);
+        var isOfType = byteArrayType.IsValueCompatible(literal);
 
         // assert
         Assert.False(isOfType);
@@ -54,7 +54,7 @@ public class ByteArrayTypeTests
         var byteArrayType = new ByteArrayType();
 
         // act
-        Action action = () => byteArrayType.IsInstanceOfType(null!);
+        Action action = () => byteArrayType.IsValueCompatible(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -101,7 +101,7 @@ public class ByteArrayTypeTests
         Action action = () => byteArrayType.Serialize(value);
 
         // assert
-        Assert.Throws<SerializationException>(action);
+        Assert.Throws<LeafCoercionException>(action);
     }
 
     [Fact]
@@ -189,7 +189,7 @@ public class ByteArrayTypeTests
 
         // act
         var actual = (byte[]?)byteArrayType
-            .ParseLiteral(literal);
+            .CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expected, actual);
@@ -203,10 +203,10 @@ public class ByteArrayTypeTests
         var literal = new IntValueNode(123);
 
         // act
-        Action action = () => byteArrayType.ParseLiteral(literal);
+        Action action = () => byteArrayType.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Throws<SerializationException>(action);
+        Assert.Throws<LeafCoercionException>(action);
     }
 
     [Fact]
@@ -217,7 +217,7 @@ public class ByteArrayTypeTests
         var literal = NullValueNode.Default;
 
         // act
-        var value = byteArrayType.ParseLiteral(literal);
+        var value = byteArrayType.CoerceInputLiteral(literal);
 
         // assert
         Assert.Null(value);
@@ -230,7 +230,7 @@ public class ByteArrayTypeTests
         var byteArrayType = new ByteArrayType();
 
         // act
-        Action action = () => byteArrayType.ParseLiteral(null!);
+        Action action = () => byteArrayType.CoerceInputLiteral(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -261,7 +261,7 @@ public class ByteArrayTypeTests
 
         // act
         var stringLiteral =
-            byteArrayType.ParseValue(guid);
+            byteArrayType.CoerceInputValue(guid);
 
         // assert
         Assert.True(stringLiteral is NullValueNode);
@@ -276,10 +276,10 @@ public class ByteArrayTypeTests
         const int value = 123;
 
         // act
-        Action action = () => byteArrayType.ParseValue(value);
+        Action action = () => byteArrayType.CoerceInputValue(value);
 
         // assert
-        Assert.Throws<SerializationException>(action);
+        Assert.Throws<LeafCoercionException>(action);
     }
 
     [Fact]

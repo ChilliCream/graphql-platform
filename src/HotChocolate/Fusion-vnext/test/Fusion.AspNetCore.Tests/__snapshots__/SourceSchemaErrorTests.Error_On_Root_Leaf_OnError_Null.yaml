@@ -55,12 +55,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Could not resolve Product.name",
-                    "locations": [
-                      {
-                        "line": 3,
-                        "column": 5
-                      }
-                    ],
                     "path": [
                       "productById",
                       "name"

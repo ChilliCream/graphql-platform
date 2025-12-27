@@ -15,11 +15,7 @@ public static class CommonTestExtensions
                 await next(context);
                 if (context.ContextData.TryGetValue("ex", out var queryString))
                 {
-                    context.Result =
-                        OperationResultBuilder
-                            .FromResult(context.Result!.ExpectOperationResult())
-                            .SetContextData("ex", queryString)
-                            .Build();
+                    context.Result!.ContextData = context.Result.ContextData.SetItem("ex", queryString);
                 }
             })
             .UseDefaultPipeline()

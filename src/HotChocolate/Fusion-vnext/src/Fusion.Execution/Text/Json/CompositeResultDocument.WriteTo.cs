@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument : IRawJsonFormatter
 {
-    public void WriteTo(IBufferWriter<byte> writer, bool indented = false)
+    public void WriteTo(OperationResult result, IBufferWriter<byte> writer, bool indented = false)
     {
         var formatter = new RawJsonFormatter(this, writer, indented);
         formatter.Write();

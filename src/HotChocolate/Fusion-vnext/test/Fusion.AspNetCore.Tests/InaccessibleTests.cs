@@ -1015,17 +1015,17 @@ public class InaccessibleTests : FusionTestBase
 
                 public override Type RuntimeType => typeof(string);
 
-                public override bool IsInstanceOfType(IValueNode valueSyntax)
+                public override bool IsValueCompatible(IValueNode valueSyntax)
                     => valueSyntax is StringValueNode;
 
-                public override object? ParseLiteral(IValueNode valueSyntax)
+                public override object? CoerceInputLiteral(IValueNode valueSyntax)
                     => valueSyntax is StringValueNode s ? s.Value : null;
 
-                public override IValueNode ParseValue(object? runtimeValue)
+                public override IValueNode CoerceInputValue(object? runtimeValue)
                     => new StringValueNode(runtimeValue?.ToString() ?? "");
 
                 public override IValueNode ParseResult(object? resultValue)
-                    => ParseValue(resultValue);
+                    => CoerceInputValue(resultValue);
 
                 public override bool TrySerialize(object? runtimeValue, out object? resultValue)
                 {

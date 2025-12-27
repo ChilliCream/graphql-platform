@@ -73,7 +73,7 @@ public sealed class _AnyType : ScalarType<Representation, ObjectValueNode>
     }
 
     /// <inheritdoc />
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         if (runtimeValue is null)
         {
@@ -83,7 +83,7 @@ public sealed class _AnyType : ScalarType<Representation, ObjectValueNode>
 
         if (runtimeValue is Representation)
         {
-            resultValue = ParseValue(runtimeValue);
+            resultValue = CoerceInputValue(runtimeValue);
             return true;
         }
 

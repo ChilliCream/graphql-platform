@@ -213,7 +213,7 @@ public class QueryParserTests
 
         // assert
         var snapshot = new Snapshot();
-        snapshot.Add(document, "Query");
+        snapshot.Add(document.ToString(), "Query");
         snapshot.Add(document, "AST", Json);
         snapshot.Match();
     }
@@ -232,7 +232,7 @@ public class QueryParserTests
         var document = parser.Parse();
 
         // assert
-        document.MatchSnapshot();
+        document.ToString().MatchSnapshot(extension: ".graphql");;
     }
 
     [Fact]
@@ -249,7 +249,7 @@ public class QueryParserTests
         var document = parser.Parse();
 
         // assert
-        document.MatchSnapshot();
+        document.ToString().MatchSnapshot(extension: ".graphql");;
     }
 
     [Fact]
@@ -266,7 +266,7 @@ public class QueryParserTests
         var document = parser.Parse();
 
         // assert
-        document.MatchSnapshot();
+        document.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -478,7 +478,7 @@ public class QueryParserTests
         var document = parser.Parse();
 
         // assert
-        document.MatchSnapshot();
+        document.ToString().MatchSnapshot(extension: ".graphql");;
     }
 
     [Fact(Skip = "Implement Parse Variable Directives")]
@@ -493,6 +493,6 @@ public class QueryParserTests
         var document = parser.Parse();
 
         // assert
-        document.MatchSnapshot();
+        document.ToString().MatchSnapshot(extension: ".graphql");;
     }
 }

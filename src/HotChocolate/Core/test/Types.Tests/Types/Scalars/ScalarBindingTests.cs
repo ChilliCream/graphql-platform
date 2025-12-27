@@ -57,17 +57,17 @@ public class ScalarBindingTests
         {
         }
 
-        public override bool IsInstanceOfType(IValueNode literal)
+        public override bool IsValueCompatible(IValueNode literal)
         {
             throw new NotImplementedException();
         }
 
-        public override object? ParseLiteral(IValueNode valueSyntax)
+        public override object? CoerceInputLiteral(IValueNode valueSyntax)
         {
             throw new NotImplementedException();
         }
 
-        public override IValueNode ParseValue(object? value)
+        public override IValueNode CoerceInputValue(object? value)
         {
             throw new NotImplementedException();
         }
@@ -85,17 +85,17 @@ public class ScalarBindingTests
         {
         }
 
-        public override bool IsInstanceOfType(IValueNode literal)
+        public override bool IsValueCompatible(IValueNode literal)
         {
             throw new NotImplementedException();
         }
 
-        public override object? ParseLiteral(IValueNode valueSyntax)
+        public override object? CoerceInputLiteral(IValueNode valueSyntax)
         {
             throw new NotImplementedException();
         }
 
-        public override IValueNode ParseValue(object? value)
+        public override IValueNode CoerceInputValue(object? value)
         {
             throw new NotImplementedException();
         }

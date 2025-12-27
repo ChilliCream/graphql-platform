@@ -25,7 +25,7 @@ public class StringTypeTests
         var input = new StringValueNode("123456");
 
         // act
-        var result = type.IsInstanceOfType(input);
+        var result = type.IsValueCompatible(input);
 
         // assert
         Assert.True(result);
@@ -39,7 +39,7 @@ public class StringTypeTests
         var input = NullValueNode.Default;
 
         // act
-        var result = type.IsInstanceOfType(input);
+        var result = type.IsValueCompatible(input);
 
         // assert
         Assert.True(result);
@@ -53,7 +53,7 @@ public class StringTypeTests
         var input = new IntValueNode(123456);
 
         // act
-        var result = type.IsInstanceOfType(input);
+        var result = type.IsValueCompatible(input);
 
         // assert
         Assert.False(result);
@@ -67,7 +67,7 @@ public class StringTypeTests
 
         // act
         // assert
-        Assert.Throws<ArgumentNullException>(() => type.IsInstanceOfType(null!));
+        Assert.Throws<ArgumentNullException>(() => type.IsValueCompatible(null!));
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class StringTypeTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => type.Serialize(input));
     }
 
@@ -119,7 +119,7 @@ public class StringTypeTests
         var input = new StringValueNode("123456");
 
         // act
-        var output = type.ParseLiteral(input);
+        var output = type.CoerceInputLiteral(input);
 
         // assert
         Assert.IsType<string>(output);
@@ -134,7 +134,7 @@ public class StringTypeTests
         var input = NullValueNode.Default;
 
         // act
-        var output = type.ParseLiteral(input);
+        var output = type.CoerceInputLiteral(input);
 
         // assert
         Assert.Null(output);
@@ -149,8 +149,8 @@ public class StringTypeTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseLiteral(input));
+        Assert.Throws<LeafCoercionException>(
+            () => type.CoerceInputLiteral(input));
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public class StringTypeTests
 
         // act
         // assert
-        Assert.Throws<ArgumentNullException>(() => type.ParseLiteral(null!));
+        Assert.Throws<ArgumentNullException>(() => type.CoerceInputLiteral(null!));
     }
 
     [Fact]
@@ -173,8 +173,8 @@ public class StringTypeTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseValue(input));
+        Assert.Throws<LeafCoercionException>(
+            () => type.CoerceInputValue(input));
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public class StringTypeTests
         object input = null!;
 
         // act
-        object output = type.ParseValue(input);
+        object output = type.CoerceInputValue(input);
 
         // assert
         Assert.IsType<NullValueNode>(output);

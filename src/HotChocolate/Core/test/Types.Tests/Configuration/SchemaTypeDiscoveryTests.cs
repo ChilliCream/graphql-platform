@@ -185,17 +185,17 @@ public class SchemaTypeDiscoveryTests
 
         public override Type RuntimeType => typeof(byte[]);
 
-        public override bool IsInstanceOfType(IValueNode literal)
+        public override bool IsValueCompatible(IValueNode literal)
         {
             throw new NotSupportedException();
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        public override object CoerceInputLiteral(IValueNode literal)
         {
             throw new NotSupportedException();
         }
 
-        public override IValueNode ParseValue(object? value)
+        public override IValueNode CoerceInputValue(object? value)
         {
             throw new NotSupportedException();
         }
@@ -205,7 +205,7 @@ public class SchemaTypeDiscoveryTests
             throw new NotSupportedException();
         }
 
-        public override object Serialize(object? runtimeValue)
+        public override object CoerceOutputValue(object? runtimeValue)
         {
             throw new NotSupportedException();
         }

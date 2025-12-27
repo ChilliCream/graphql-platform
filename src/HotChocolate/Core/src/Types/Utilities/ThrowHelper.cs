@@ -2,6 +2,7 @@
 
 using System.Globalization;
 using System.Reflection;
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -12,11 +13,6 @@ namespace HotChocolate.Utilities;
 
 internal static class ThrowHelper
 {
-    public static ArgumentException String_NullOrEmpty(string parameterName) =>
-        new ArgumentException(
-            $"'{parameterName}' cannot be null or empty",
-            parameterName);
-
     public static GraphQLException EventMessage_InvalidCast(
         Type expectedType,
         Type messageType) =>
@@ -24,8 +20,8 @@ internal static class ThrowHelper
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_EventMessage_InvalidCast,
-                    messageType.FullName!,
-                    expectedType.FullName!)
+                    messageType.FullName,
+                    expectedType.FullName)
                 .Build());
 
     public static GraphQLException EventMessage_NotFound() =>
@@ -194,10 +190,10 @@ internal static class ThrowHelper
                 .SetMessage(ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed)
                 .Build());
 
-    public static SerializationException RequiredInputFieldIsMissing(
+    public static LeafCoercionException RequiredInputFieldIsMissing(
         IInputValueInfo field,
         Path fieldPath)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_RequiredInputFieldIsMissing,
@@ -208,7 +204,7 @@ internal static class ThrowHelper
             field.Type,
             fieldPath);
 
-    public static SerializationException InvalidInputFieldNames<T>(
+    public static LeafCoercionException InvalidInputFieldNames<T>(
         T type,
         IReadOnlyList<string> invalidFieldNames,
         Path path)
@@ -216,7 +212,7 @@ internal static class ThrowHelper
     {
         if (invalidFieldNames.Count == 1)
         {
-            throw new SerializationException(
+            throw new LeafCoercionException(
                 ErrorBuilder.New()
                     .SetMessage(
                         ThrowHelper_InvalidInputFieldNames_Single,
@@ -229,7 +225,7 @@ internal static class ThrowHelper
                 path);
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_InvalidInputFieldNames,
@@ -242,7 +238,7 @@ internal static class ThrowHelper
             path);
     }
 
-    public static SerializationException OneOfNoFieldSet(
+    public static LeafCoercionException OneOfNoFieldSet(
         InputObjectType type,
         Path? path)
     {
@@ -254,7 +250,7 @@ internal static class ThrowHelper
         return new(builder.Build(), type, path);
     }
 
-    public static SerializationException OneOfMoreThanOneFieldSet(
+    public static LeafCoercionException OneOfMoreThanOneFieldSet(
         InputObjectType type,
         Path? path)
     {
@@ -266,7 +262,7 @@ internal static class ThrowHelper
         return new(builder.Build(), type, path);
     }
 
-    public static SerializationException OneOfFieldIsNull(
+    public static LeafCoercionException OneOfFieldIsNull(
         InputObjectType type,
         Path? path,
         InputField field)
@@ -280,7 +276,7 @@ internal static class ThrowHelper
         return new(builder.Build(), type, path);
     }
 
-    public static SerializationException NonNullInputViolation(
+    public static LeafCoercionException NonNullInputViolation(
         ITypeSystemMember type,
         Path? path,
         IInputValueInfo? field = null)
@@ -298,11 +294,11 @@ internal static class ThrowHelper
         return new(builder.Build(), type, path);
     }
 
-    public static SerializationException ParseInputObject_InvalidSyntaxKind(
+    public static LeafCoercionException ParseInputObject_InvalidSyntaxKind(
         InputObjectType type,
         SyntaxKind kind,
         Path path)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_ParseInputObject_InvalidSyntaxKind,
@@ -314,28 +310,23 @@ internal static class ThrowHelper
             type,
             path);
 
-    public static SerializationException ParseInputObject_InvalidObjectKind(
+    public static LeafCoercionException ParseInputObject_InvalidValueKind(
         InputObjectType type,
-        Type objectType,
         Path path)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_ParseInputObject_InvalidObjectKind,
-                    objectType.FullName ?? objectType.Name,
-                    type.Name,
-                    type.RuntimeType.FullName ?? type.RuntimeType.Name)
+                .SetMessage(ThrowHelper_ParseInputObject_InvalidValueKind)
                 .SetPath(path)
                 .SetExtension(nameof(type), type.Name)
                 .Build(),
             type,
             path);
 
-    public static SerializationException ParseNestedList_InvalidSyntaxKind(
+    public static LeafCoercionException ParseNestedList_InvalidSyntaxKind(
         ListType type,
         SyntaxKind kind,
         Path path)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_ParseNestedList_InvalidSyntaxKind,
@@ -348,29 +339,23 @@ internal static class ThrowHelper
             type,
             path);
 
-    public static SerializationException ParseList_InvalidObjectKind(
+    public static LeafCoercionException ParseList_InvalidValueKind(
         ListType type,
-        Type listType,
         Path path)
     {
-        var runtimeType = type.ToRuntimeType();
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_ParseList_InvalidObjectKind,
-                    listType.FullName ?? listType.Name,
-                    type.Print(),
-                    runtimeType.FullName ?? runtimeType.Name)
+                .SetMessage(ThrowHelper_ParseList_InvalidValueKind)
                 .Build(),
             type,
             path);
     }
 
-    public static SerializationException FormatValueList_InvalidObjectKind(
+    public static LeafCoercionException FormatValueList_InvalidObjectKind(
         ListType type,
         Type listType,
         Path path)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_FormatValueList_InvalidObjectKind,
@@ -381,11 +366,11 @@ internal static class ThrowHelper
             type,
             path);
 
-    public static SerializationException FormatResultObject_InvalidObjectKind(
+    public static LeafCoercionException FormatResultObject_InvalidObjectKind(
         InputObjectType type,
         Type objectType,
         Path path)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_FormatResultObject_InvalidObjectKind,
@@ -398,11 +383,11 @@ internal static class ThrowHelper
             type,
             path);
 
-    public static SerializationException FormatResultList_InvalidObjectKind(
+    public static LeafCoercionException FormatResultList_InvalidObjectKind(
         ListType type,
         Type listType,
         Path path)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_FormatResultList_InvalidObjectKind,
@@ -413,11 +398,11 @@ internal static class ThrowHelper
             type,
             path);
 
-    public static SerializationException FormatResultLeaf_InvalidSyntaxKind(
+    public static LeafCoercionException FormatResultLeaf_InvalidSyntaxKind(
         IType type,
         SyntaxKind kind,
         Path path)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_FormatResultLeaf_InvalidSyntaxKind,
@@ -591,7 +576,7 @@ internal static class ThrowHelper
                 .Build());
     }
 
-    public static SerializationException InvalidTypeConversion(
+    public static LeafCoercionException InvalidTypeConversion(
         ITypeSystemMember type,
         IInputValueInfo inputField,
         Path inputFieldPath,
@@ -611,5 +596,61 @@ internal static class ThrowHelper
         }
 
         return new(builder.Build(), type);
+    }
+
+    public static LeafCoercionException Scalar_Cannot_CoerceInputLiteral(
+        ITypeDefinition scalarType,
+        IValueNode valueLiteral)
+    {
+        return new LeafCoercionException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.Scalar_Cannot_CoerceInputLiteral,
+                    scalarType.Name,
+                    valueLiteral.Kind)
+                .Build(),
+            scalarType);
+    }
+
+    public static LeafCoercionException Scalar_Cannot_CoerceInputValue(
+        ITypeDefinition scalarType,
+        JsonElement inputValue)
+    {
+        return new LeafCoercionException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.Scalar_Cannot_CoerceInputValue,
+                    scalarType.Name,
+                    inputValue.ValueKind)
+                .Build(),
+            scalarType);
+    }
+
+    public static LeafCoercionException Scalar_Cannot_ConvertValueToLiteral(
+        ITypeDefinition scalarType,
+        object runtimeValue)
+    {
+        return new LeafCoercionException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.Scalar_Cannot_ConvertValueToLiteral,
+                    scalarType.Name,
+                    runtimeValue.GetType().FullName)
+                .Build(),
+            scalarType);
+    }
+
+    public static LeafCoercionException Scalar_Cannot_CoerceOutputValue(
+        ITypeDefinition scalarType,
+        object runtimeValue)
+    {
+        return new LeafCoercionException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.Scalar_Cannot_CoerceOutputValue,
+                    scalarType.Name,
+                    runtimeValue.GetType().FullName)
+                .Build(),
+            scalarType);
     }
 }

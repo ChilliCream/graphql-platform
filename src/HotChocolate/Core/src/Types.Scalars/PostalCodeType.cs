@@ -183,7 +183,7 @@ public class PostalCodeType : StringType
     }
 
     /// <inheritdoc />
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
     {
         if (runtimeValue is null)
         {
@@ -223,13 +223,13 @@ public class PostalCodeType : StringType
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
     {
         return ThrowHelper.PostalCodeType_ParseLiteral_IsInvalid(this);
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
+    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
     {
         return ThrowHelper.PostalCodeType_ParseValue_IsInvalid(this);
     }

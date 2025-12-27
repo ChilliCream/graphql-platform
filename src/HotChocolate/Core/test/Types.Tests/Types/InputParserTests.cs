@@ -27,7 +27,7 @@ public class InputParserTests
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
-        var runtimeValue = parser.ParseResult(fieldData, type, Path.Root);
+        var runtimeValue = parser.ParseInputValue(fieldData, type, Path.Root);
 
         // assert
         Assert.IsType<TestInput>(runtimeValue).MatchSnapshot();
@@ -75,7 +75,7 @@ public class InputParserTests
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
-        var runtimeValue = parser.ParseResult(fieldData, type, Path.Root);
+        var runtimeValue = parser.ParseInputValue(fieldData, type, Path.Root);
 
         // assert
         Assert.IsType<Test2Input>(runtimeValue).MatchSnapshot();
@@ -122,10 +122,10 @@ public class InputParserTests
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
-        void Action() => parser.ParseResult(fieldData, type, Path.Root);
+        void Action() => parser.ParseInputValue(fieldData, type, Path.Root);
 
         // assert
-        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
     }
 
     [Fact]
@@ -147,7 +147,7 @@ public class InputParserTests
         void Action() => parser.ParseLiteral(fieldData, type, Path.Root);
 
         // assert
-        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
     }
 
     [Fact]
@@ -171,10 +171,10 @@ public class InputParserTests
         var parser = new InputParser(new DefaultTypeConverter());
 
         void Action()
-            => parser.ParseResult(fieldData, type, Path.Root.Append("root"));
+            => parser.ParseInputValue(fieldData, type, Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
     }
 
     [Fact]
@@ -199,7 +199,7 @@ public class InputParserTests
             => parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
     }
 
     [Fact]
@@ -224,10 +224,10 @@ public class InputParserTests
         var parser = new InputParser(new DefaultTypeConverter());
 
         void Action()
-            => parser.ParseResult(fieldData, type, Path.Root.Append("root"));
+            => parser.ParseInputValue(fieldData, type, Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public class InputParserTests
             => parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
     }
 
     [Fact]
@@ -331,7 +331,7 @@ public class InputParserTests
                 Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
     }
 
     [Fact]
@@ -413,7 +413,7 @@ public class InputParserTests
         void Fail() => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Fail).Errors.MatchSnapshot();
     }
 
     [Fact]
@@ -440,7 +440,7 @@ public class InputParserTests
             => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Fail).Errors.MatchSnapshot();
     }
 
     [Fact]
@@ -487,7 +487,7 @@ public class InputParserTests
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
-        var runtimeValue = parser.ParseResult(fieldData, type, Path.Root);
+        var runtimeValue = parser.ParseInputValue(fieldData, type, Path.Root);
 
         // assert
         Assert.IsType<Test4Input>(runtimeValue).MatchSnapshot();

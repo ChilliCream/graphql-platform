@@ -30,8 +30,8 @@ internal sealed class QueryCacheMiddleware
         }
 
         if (!context.TryGetOperation(out var operation)
-            || !operation.ContextData.TryGetValue(ExecutionContextData.CacheControlHeaderValue, out var value)
-            || value is not CacheControlHeaderValue cacheControlHeaderValue)
+            || !operation.Features.TryGet<CacheControlHeaderValue>(out var headerValue)
+            || !operation.Features.TryGet<ImmutableCacheConstraints>(out var constraints))
         {
             return;
         }
@@ -39,23 +39,16 @@ internal sealed class QueryCacheMiddleware
         // only single operation results can be cached.
         var operationResult = context.Result?.ExpectOperationResult();
 
-        if (operationResult is { Errors: null })
+        if (operationResult is { Errors: null, ContextData: { } contextData })
         {
-            var contextData =
-                operationResult.ContextData is not null
-                    ? new ExtensionData(operationResult.ContextData)
-                    : [];
+            contextData = contextData.Add(ExecutionContextData.CacheControlHeaderValue, headerValue);
 
-            contextData.Add(ExecutionContextData.CacheControlHeaderValue, cacheControlHeaderValue);
-
-            if (operation.ContextData.TryGetValue(ExecutionContextData.VaryHeaderValue, out var varyValue)
-                && varyValue is string varyHeaderValue
-                && !string.IsNullOrEmpty(varyHeaderValue))
+            if (constraints.Vary.Length > 0)
             {
-                contextData.Add(ExecutionContextData.VaryHeaderValue, varyHeaderValue);
+                contextData =contextData.Add(ExecutionContextData.VaryHeaderValue, constraints.Vary);
             }
 
-            context.Result = operationResult.WithContextData(contextData);
+            operationResult.ContextData = contextData;
         }
     }
 

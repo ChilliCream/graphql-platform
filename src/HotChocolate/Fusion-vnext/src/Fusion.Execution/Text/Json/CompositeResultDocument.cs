@@ -14,7 +14,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
     private List<IError>? _errors;
-    private Dictionary<string, object?>? _extensions;
+    private OrderedDictionary<string, object?>? _extensions;
     internal MetaDb _metaDb;
     private bool _disposed;
 
@@ -35,7 +35,7 @@ public sealed partial class CompositeResultDocument : IDisposable
         internal set => _errors = value;
     }
 
-    public Dictionary<string, object?>? Extensions
+    public OrderedDictionary<string, object?>? Extensions
     {
         get => _extensions;
         internal set => _extensions = value;

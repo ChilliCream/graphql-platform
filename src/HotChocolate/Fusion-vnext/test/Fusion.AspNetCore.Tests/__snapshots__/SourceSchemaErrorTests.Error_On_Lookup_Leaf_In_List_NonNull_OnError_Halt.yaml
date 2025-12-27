@@ -113,12 +113,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Could not resolve Product",
-                    "locations": [
-                      {
-                        "line": 4,
-                        "column": 3
-                      }
-                    ],
                     "path": [
                       "productById"
                     ]
@@ -133,12 +127,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Could not resolve Product",
-                    "locations": [
-                      {
-                        "line": 4,
-                        "column": 3
-                      }
-                    ],
                     "path": [
                       "productById"
                     ]
@@ -153,12 +141,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Could not resolve Product",
-                    "locations": [
-                      {
-                        "line": 4,
-                        "column": 3
-                      }
-                    ],
                     "path": [
                       "productById"
                     ]

@@ -116,7 +116,7 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         }
 
         // Rent the first chunk
-        chunks[0] = JsonMemory.Rent();
+        chunks[0] = JsonMemory.Rent(JsonMemoryKind.Json);
 
         var currentChunkIndex = 0;
         var currentChunkOffset = 0;
@@ -132,7 +132,7 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         }
         catch
         {
-            JsonMemory.Return(chunks, currentChunkIndex + 1);
+            JsonMemory.Return(JsonMemoryKind.Json, chunks, currentChunkIndex + 1);
             ArrayPool<byte[]>.Shared.Return(chunks);
             throw;
         }
@@ -334,7 +334,7 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
         {
             Debug.Fail("foo");
 
-            chunks[currentChunkIndex] = JsonMemory.Rent();
+            chunks[currentChunkIndex] = JsonMemory.Rent(JsonMemoryKind.Json);
         }
     }
 

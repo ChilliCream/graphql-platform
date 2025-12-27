@@ -39,7 +39,7 @@ public class PeriodType : StringToClassBaseType<Period>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(Period runtimeValue)
+    protected override string CoerceOutputValue(Period runtimeValue)
         => _serializationPattern.Format(runtimeValue);
 
     /// <inheritdoc />

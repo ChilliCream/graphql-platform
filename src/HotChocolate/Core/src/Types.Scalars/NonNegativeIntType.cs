@@ -43,19 +43,19 @@ public class NonNegativeIntType : IntType
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
     {
         throw ThrowHelper.NonNegativeIntType_ParseLiteral_IsNotNonNegative(this);
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
+    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
     {
         throw ThrowHelper.NonNegativeIntType_ParseValue_IsNotNonNegative(this);
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseResultError(object runtimeValue)
+    protected override LeafCoercionException CreateParseResultError(object runtimeValue)
     {
         throw ThrowHelper.NonNegativeIntType_ParseValue_IsNotNonNegative(this);
     }

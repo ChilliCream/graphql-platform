@@ -5,6 +5,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
+/// <summary>
+/// Represents a field selection during execution in the Fusion execution engine.
+/// </summary>
 public sealed class Selection : ISelection
 {
     private readonly FieldSelectionNode[] _syntaxNodes;
@@ -44,26 +47,40 @@ public sealed class Selection : ISelection
         _utf8ResponseName = Utf8StringCache.GetUtf8String(responseName);
     }
 
+    /// <inheritdoc />
     public int Id { get; }
 
+    /// <inheritdoc />
     public string ResponseName { get; }
 
     internal ReadOnlySpan<byte> Utf8ResponseName => _utf8ResponseName;
 
+    /// <inheritdoc />
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
 
+    /// <inheritdoc />
     public bool IsConditional => _includeFlags.Length > 0;
 
+    /// <inheritdoc />
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
 
+    /// <inheritdoc />
     public IOutputFieldDefinition Field { get; }
 
+    /// <inheritdoc />
     public IType Type => Field.Type;
 
+    /// <summary>
+    /// Gets the selection set that contains this selection.
+    /// </summary>
     public SelectionSet DeclaringSelectionSet { get; private set; } = null!;
 
+    /// <inheritdoc />
     ISelectionSet ISelection.DeclaringSelectionSet => DeclaringSelectionSet;
 
+    /// <summary>
+    /// Gets the syntax nodes that contributed to this selection.
+    /// </summary>
     public ReadOnlySpan<FieldSelectionNode> SyntaxNodes => _syntaxNodes;
 
     internal ResolveFieldValue? Resolver => Field.Features.Get<ResolveFieldValue>();
@@ -76,6 +93,7 @@ public sealed class Selection : ISelection
         }
     }
 
+    /// <inheritdoc />
     public bool IsIncluded(ulong includeFlags)
     {
         if (_includeFlags.Length == 0)

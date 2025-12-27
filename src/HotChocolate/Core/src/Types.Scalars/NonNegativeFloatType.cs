@@ -43,19 +43,19 @@ public class NonNegativeFloatType : FloatType
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
     {
         throw ThrowHelper.NonNegativeFloatType_ParseLiteral_IsNotNonNegative(this);
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
+    protected override LeafCoercionException CreateCoerceInputValueError(object runtimeValue)
     {
         throw ThrowHelper.NonNegativeFloatType_ParseValue_IsNotNonNegative(this);
     }
 
     /// <inheritdoc />
-    protected override SerializationException CreateParseResultError(object runtimeValue)
+    protected override LeafCoercionException CreateParseResultError(object runtimeValue)
     {
         throw ThrowHelper.NonNegativeFloatType_ParseValue_IsNotNonNegative(this);
     }

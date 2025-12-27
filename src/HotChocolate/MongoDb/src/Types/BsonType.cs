@@ -44,7 +44,7 @@ public class BsonType : ScalarType
     public override Type RuntimeType => typeof(BsonValue);
 
     /// <inheritdoc />
-    public override bool IsInstanceOfType(IValueNode valueSyntax)
+    public override bool IsValueCompatible(IValueNode valueSyntax)
     {
         ArgumentNullException.ThrowIfNull(valueSyntax);
 
@@ -115,13 +115,13 @@ public class BsonType : ScalarType
     }
 
     /// <inheritdoc />
-    public override object? ParseLiteral(IValueNode valueSyntax)
+    public override object? CoerceInputLiteral(IValueNode valueSyntax)
     {
         return ParseLiteralToBson(valueSyntax);
     }
 
     /// <inheritdoc />
-    public override IValueNode ParseValue(object? runtimeValue)
+    public override IValueNode CoerceInputValue(object? runtimeValue)
     {
         if (runtimeValue is null)
         {
@@ -175,7 +175,7 @@ public class BsonType : ScalarType
             List<ObjectFieldNode> fields = [];
             foreach (var field in doc)
             {
-                fields.Add(new ObjectFieldNode(field.Name, ParseValue(field.Value)));
+                fields.Add(new ObjectFieldNode(field.Name, CoerceInputValue(field.Value)));
             }
 
             return new ObjectValueNode(fields);
@@ -186,7 +186,7 @@ public class BsonType : ScalarType
             List<IValueNode> valueList = [];
             foreach (var element in arr)
             {
-                valueList.Add(ParseValue(element));
+                valueList.Add(CoerceInputValue(element));
             }
 
             return new ListValueNode(valueList);
@@ -207,7 +207,7 @@ public class BsonType : ScalarType
 
     /// <inheritdoc />
     public override IValueNode ParseResult(object? resultValue) =>
-        ParseValue(resultValue);
+        CoerceInputValue(resultValue);
 
     public override bool TrySerialize(object? runtimeValue, out object? resultValue)
     {
@@ -315,7 +315,7 @@ public class BsonType : ScalarType
                 return false;
 
             case IValueNode literal:
-                resultValue = ParseLiteral(literal);
+                resultValue = CoerceInputLiteral(literal);
                 return true;
 
             default:
@@ -370,7 +370,7 @@ public class BsonType : ScalarType
             }
 
             case IValueNode literal:
-                runtimeValue = ParseLiteral(literal);
+                runtimeValue = CoerceInputLiteral(literal);
                 return true;
 
             default:

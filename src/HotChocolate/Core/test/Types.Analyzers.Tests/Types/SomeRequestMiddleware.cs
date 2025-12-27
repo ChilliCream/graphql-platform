@@ -9,15 +9,13 @@ public class SomeRequestMiddleware(RequestDelegate next, Service1 service1, Serv
         await next(context);
 
         context.Result =
-            OperationResultBuilder.New()
-                .SetData(
-                    new Dictionary<string, object?>
+            new OperationResult(
+                new Dictionary<string, object?>
+                {
                     {
-                        {
-                            $"{service1.Say()} {service3.Hello()} {service2.World()}", true
-                        }
-                    })
-                .Build();
+                        $"{service1.Say()} {service3.Hello()} {service2.World()}", true
+                    }
+                });
     }
 }
 

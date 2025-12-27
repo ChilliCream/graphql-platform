@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.Buffers;
@@ -236,7 +237,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
     public async ValueTask SendResultMessageAsync(
         ISocketSession session,
         string operationSessionId,
-        IOperationResult result,
+        OperationResult result,
         CancellationToken cancellationToken)
     {
         using var arrayWriter = new PooledArrayWriter();
@@ -348,7 +349,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         }
 
         var id = idProp.GetString()!;
-        var request = Parse(payloadProp.GetRawText());
+        var request = Parse(JsonMarshal.GetRawUtf8Value(payloadProp));
 
         if (request.Count == 0)
         {

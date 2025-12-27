@@ -1,5 +1,4 @@
 using HotChocolate.Execution;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 
 namespace HotChocolate.ApolloFederation.CertificationSchema.CodeFirst;
@@ -30,10 +29,13 @@ public class CertificationTests
             """);
 
         // assert
-        var queryResult = Assert.IsType<OperationResult>(result);
-        var data = Assert.IsType<ObjectResult>(queryResult.Data);
-        var service = Assert.IsType<ObjectResult>(data.GetValueOrDefault("_service"));
-        service.GetValueOrDefault("sdl").MatchSnapshot();
+        result
+            .ExpectOperationResult()
+            .UnwrapData()
+            .GetProperty("_service")
+            .GetProperty("sdl")
+            .GetString()
+            .MatchSnapshot();
     }
 
     [Fact]

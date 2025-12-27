@@ -789,7 +789,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new EnumValueNode("foo"));
+        var result = type.IsValueCompatible(new EnumValueNode("foo"));
 
         // assert
         Assert.False(result);
@@ -812,7 +812,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new ObjectValueNode([]));
+        var result = type.IsValueCompatible(new ObjectValueNode([]));
 
         // assert
         Assert.True(result);
@@ -835,7 +835,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new ListValueNode([]));
+        var result = type.IsValueCompatible(new ListValueNode([]));
 
         // assert
         Assert.True(result);
@@ -858,7 +858,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new StringValueNode("foo"));
+        var result = type.IsValueCompatible(new StringValueNode("foo"));
 
         // assert
         Assert.True(result);
@@ -881,7 +881,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new IntValueNode(123));
+        var result = type.IsValueCompatible(new IntValueNode(123));
 
         // assert
         Assert.True(result);
@@ -904,7 +904,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new FloatValueNode(1.2));
+        var result = type.IsValueCompatible(new FloatValueNode(1.2));
 
         // assert
         Assert.True(result);
@@ -927,7 +927,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(new BooleanValueNode(true));
+        var result = type.IsValueCompatible(new BooleanValueNode(true));
 
         // assert
         Assert.True(result);
@@ -950,7 +950,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var result = type.IsInstanceOfType(NullValueNode.Default);
+        var result = type.IsValueCompatible(NullValueNode.Default);
 
         // assert
         Assert.True(result);
@@ -973,7 +973,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        void Action() => type.IsInstanceOfType(null!);
+        void Action() => type.IsValueCompatible(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -1004,7 +1004,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var literal = type.ParseValue(value);
+        var literal = type.CoerceInputValue(value);
 
         // assert
         Assert.IsType(expectedType, literal);
@@ -1027,7 +1027,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var literal = type.ParseValue((decimal)1);
+        var literal = type.CoerceInputValue((decimal)1);
 
         // assert
         Assert.IsType<StringValueNode>(literal);
@@ -1050,7 +1050,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var literal = type.ParseValue(new List<object>());
+        var literal = type.CoerceInputValue(new List<object>());
 
         // assert
         Assert.IsType<ListValueNode>(literal);
@@ -1073,7 +1073,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var literal = type.ParseValue(new List<string>());
+        var literal = type.CoerceInputValue(new List<string>());
 
         // assert
         Assert.IsType<ListValueNode>(literal);
@@ -1096,7 +1096,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var literal = type.ParseValue(new List<Foo>());
+        var literal = type.CoerceInputValue(new List<Foo>());
 
         // assert
         Assert.IsType<ListValueNode>(literal);
@@ -1119,7 +1119,7 @@ public class BsonTypeTests
         var type = schema.Types.GetType<BsonType>("Bson");
 
         // act
-        var literal = type.ParseValue(
+        var literal = type.CoerceInputValue(
             new Dictionary<string, object>());
 
         // assert

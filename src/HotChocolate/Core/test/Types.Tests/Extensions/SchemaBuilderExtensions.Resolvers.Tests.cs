@@ -18,7 +18,7 @@ public class SchemaBuilderExtensionsResolversTests
                 new Func<IResolverContext, object>(c => new object()));
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class SchemaBuilderExtensionsResolversTests
                     c => Task.FromResult(new object())));
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public class SchemaBuilderExtensionsResolversTests
                     c => "abc"));
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public class SchemaBuilderExtensionsResolversTests
                     c => Task.FromResult("abc")));
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]
@@ -241,7 +241,7 @@ public class SchemaBuilderExtensionsResolversTests
                 new Func<object>(() => "abc"));
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]

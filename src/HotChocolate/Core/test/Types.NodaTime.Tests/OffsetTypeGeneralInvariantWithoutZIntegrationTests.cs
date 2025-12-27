@@ -18,21 +18,21 @@ public class OffsetTypeGeneralInvariantWithoutZIntegrationTests
     public void QueryReturns()
     {
         var result = _testExecutor.Execute("query { test: hours }");
-        Assert.Equal("+02", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("+02", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsWithMinutes()
     {
         var result = _testExecutor.Execute("query { test: hoursAndMinutes }");
-        Assert.Equal("+02:35", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("+02:35", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
     public void QueryReturnsWithZ()
     {
         var result = _testExecutor.Execute("query { test: zOffset }");
-        Assert.Equal("+00", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("+00", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class OffsetTypeGeneralInvariantWithoutZIntegrationTests
                 .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "+02" } })
                 .Build());
-        Assert.Equal("+03:05", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("+03:05", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class OffsetTypeGeneralInvariantWithoutZIntegrationTests
                 .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
                 .SetVariableValues(new Dictionary<string, object?> { { "arg", "+02:35" } })
                 .Build());
-        Assert.Equal("+03:40", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("+03:40", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class OffsetTypeGeneralInvariantWithoutZIntegrationTests
                 .SetDocument("mutation { test(arg: \"+02\") }")
                 .Build());
 
-        Assert.Equal("+03:05", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("+03:05", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -87,7 +87,7 @@ public class OffsetTypeGeneralInvariantWithoutZIntegrationTests
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"+02:35\") }")
                 .Build());
-        Assert.Equal("+03:40", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("+03:40", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public class OffsetTypeGeneralInvariantWithoutZIntegrationTests
             .Execute(OperationRequestBuilder.New()
                 .SetDocument("mutation { test(arg: \"+00\") }")
                 .Build());
-        Assert.Equal("+01:05", result.ExpectOperationResult().Data!["test"]);
+        Assert.Equal("+01:05", result.ExpectOperationResult().UnwrapData().GetProperty("test").GetString());
     }
 
     [Fact]

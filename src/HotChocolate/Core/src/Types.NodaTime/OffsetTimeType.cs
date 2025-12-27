@@ -43,7 +43,7 @@ public class OffsetTimeType : StringToStructBaseType<OffsetTime>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(OffsetTime runtimeValue)
+    protected override string CoerceOutputValue(OffsetTime runtimeValue)
         => _serializationPattern
             .Format(runtimeValue);
 
