@@ -7,33 +7,26 @@ namespace HotChocolate.Adapters.OpenApi.Validation;
 /// </summary>
 internal sealed class EndpointMustHaveSingleRootFieldRule : IOpenApiEndpointDefinitionValidationRule
 {
-    public ValueTask<OpenApiDefinitionValidationResult> ValidateAsync(
-        OpenApiEndpointDefinition endpoint,
-        IOpenApiDefinitionValidationContext context,
-        CancellationToken cancellationToken)
+    public OpenApiDefinitionValidationResult Validate(OpenApiEndpointDefinition endpoint)
     {
         var selectionSet = endpoint.OperationDefinition.SelectionSet;
-        OpenApiDefinitionValidationResult result;
 
         if (selectionSet.Selections.Count != 1)
         {
-            result = OpenApiDefinitionValidationResult.Failure(
+            return OpenApiDefinitionValidationResult.Failure(
                 new OpenApiDefinitionValidationError(
                     $"Endpoint '{endpoint.OperationDefinition.Name!.Value}' must have exactly one root field selection, but found {selectionSet.Selections.Count}.",
                     endpoint));
         }
-        else if (selectionSet.Selections[0] is not FieldNode)
+
+        if (selectionSet.Selections[0] is not FieldNode)
         {
-            result = OpenApiDefinitionValidationResult.Failure(
+            return OpenApiDefinitionValidationResult.Failure(
                 new OpenApiDefinitionValidationError(
                     $"Endpoint '{endpoint.OperationDefinition.Name!.Value}' must have a single root field selection, but found a fragment spread or inline fragment.",
                     endpoint));
         }
-        else
-        {
-            result = OpenApiDefinitionValidationResult.Success();
-        }
 
-        return ValueTask.FromResult(result);
+        return OpenApiDefinitionValidationResult.Success();
     }
 }

@@ -9,10 +9,7 @@ internal sealed class ModelNoDeferStreamDirectiveRule : IOpenApiModelDefinitionV
 {
     private static readonly DeferStreamDirectiveFinder s_finder = new();
 
-    public ValueTask<OpenApiDefinitionValidationResult> ValidateAsync(
-        OpenApiModelDefinition model,
-        IOpenApiDefinitionValidationContext context,
-        CancellationToken cancellationToken)
+    public OpenApiDefinitionValidationResult Validate(OpenApiModelDefinition model)
     {
         var documentNode = CreateDocumentNode(model);
         var finderContext = new DeferStreamDirectiveFinder.DeferStreamFinderContext();
@@ -21,13 +18,13 @@ internal sealed class ModelNoDeferStreamDirectiveRule : IOpenApiModelDefinitionV
 
         if (finderContext.FoundDirective is not null)
         {
-            return ValueTask.FromResult(OpenApiDefinitionValidationResult.Failure(
+            return OpenApiDefinitionValidationResult.Failure(
                 new OpenApiDefinitionValidationError(
                     $"Model '{model.Name}' contains the '@{finderContext.FoundDirective}' directive, which is not allowed in OpenAPI definitions.",
-                    model)));
+                    model));
         }
 
-        return ValueTask.FromResult(OpenApiDefinitionValidationResult.Success());
+        return OpenApiDefinitionValidationResult.Success();
     }
 
     private static DocumentNode CreateDocumentNode(OpenApiModelDefinition model)

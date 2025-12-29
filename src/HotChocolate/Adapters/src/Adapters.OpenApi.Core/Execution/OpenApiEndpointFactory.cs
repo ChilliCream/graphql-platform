@@ -1,8 +1,10 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
+using Microsoft.Extensions.DependencyInjection;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.Adapters.OpenApi;
@@ -63,7 +65,11 @@ internal static class OpenApiEndpointFactory
                 continue;
             }
 
-            var model = modelsByName[referencedFragmentName];
+            if (!modelsByName.TryGetValue(referencedFragmentName, out var model))
+            {
+                continue;
+            }
+
             foreach (var definition in model.Document.Definitions.OfType<IExecutableDefinitionNode>())
             {
                 definitions.Add(definition);
@@ -90,8 +96,14 @@ internal static class OpenApiEndpointFactory
         InsertParametersIntoTrie(endpointDefinition.RouteParameters, OpenApiEndpointParameterType.Route);
         InsertParametersIntoTrie(endpointDefinition.QueryParameters, OpenApiEndpointParameterType.Query);
 
+        var documentValidator = schema.Services.GetRequiredService<DocumentValidator>();
+
+        var validationResult = documentValidator.Validate(schema, document);
+        var hasValidDocument = !validationResult.HasErrors;
+
         return new OpenApiEndpointDescriptor(
             document,
+            hasValidDocument,
             endpointDefinition.HttpMethod,
             route,
             parameterTrie,

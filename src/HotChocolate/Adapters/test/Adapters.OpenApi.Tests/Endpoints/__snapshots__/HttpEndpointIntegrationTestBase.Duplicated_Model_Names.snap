@@ -3,4 +3,4 @@ Content-Type: application/json
 -------------------------->
 Status Code: OK
 -------------------------->
-[{"id":"1"},{"id":"2"},{"id":"3"}]
+[{"address":{"street":"1 Street"}},{"address":{"street":"2 Street"}},{"address":{"street":"3 Street"}}]

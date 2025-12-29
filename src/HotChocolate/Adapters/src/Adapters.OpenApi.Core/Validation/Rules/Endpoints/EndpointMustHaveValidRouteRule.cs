@@ -7,26 +7,19 @@ namespace HotChocolate.Adapters.OpenApi.Validation;
 /// </summary>
 internal sealed class EndpointMustHaveValidRouteRule : IOpenApiEndpointDefinitionValidationRule
 {
-    public ValueTask<OpenApiDefinitionValidationResult> ValidateAsync(
-        OpenApiEndpointDefinition endpoint,
-        IOpenApiDefinitionValidationContext context,
-        CancellationToken cancellationToken)
+    public OpenApiDefinitionValidationResult Validate(OpenApiEndpointDefinition endpoint)
     {
-        OpenApiDefinitionValidationResult result;
         try
         {
             RoutePatternFactory.Parse(endpoint.Route);
-
-            result = OpenApiDefinitionValidationResult.Success();
+            return OpenApiDefinitionValidationResult.Success();
         }
         catch (RoutePatternException)
         {
-            result = OpenApiDefinitionValidationResult.Failure(
+            return OpenApiDefinitionValidationResult.Failure(
                 new OpenApiDefinitionValidationError(
                     $"Route pattern '{endpoint.Route}' is invalid.",
                     endpoint));
         }
-
-        return ValueTask.FromResult(result);
     }
 }

@@ -6,10 +6,7 @@ namespace HotChocolate.Adapters.OpenApi.Validation;
 /// </summary>
 internal sealed class EndpointParameterConflictRule : IOpenApiEndpointDefinitionValidationRule
 {
-    public ValueTask<OpenApiDefinitionValidationResult> ValidateAsync(
-        OpenApiEndpointDefinition endpoint,
-        IOpenApiDefinitionValidationContext context,
-        CancellationToken cancellationToken)
+    public OpenApiDefinitionValidationResult Validate(OpenApiEndpointDefinition endpoint)
     {
         var errors = new List<OpenApiDefinitionValidationError>();
 
@@ -40,8 +37,8 @@ internal sealed class EndpointParameterConflictRule : IOpenApiEndpointDefinition
         }
 
         return errors.Count == 0
-            ? ValueTask.FromResult(OpenApiDefinitionValidationResult.Success())
-            : ValueTask.FromResult(OpenApiDefinitionValidationResult.Failure(errors));
+            ? OpenApiDefinitionValidationResult.Success()
+            : OpenApiDefinitionValidationResult.Failure(errors);
     }
 
     private static string GetParameterKey(OpenApiEndpointDefinitionParameter parameter)

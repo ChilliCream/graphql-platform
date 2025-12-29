@@ -41,23 +41,37 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     public void AddDefinitions(
         OpenApiEndpointDefinition[] endpoints,
         OpenApiModelDefinition[] models,
+        IDictionary<string, OpenApiModelDefinition> modelsByName,
         ISchemaDefinition schema)
     {
         var endpointDescriptors = new List<EndpointDescriptor>();
         var modelDescriptors = new List<ModelDescriptor>();
-
-        var modelLookup = models.ToDictionary(f => f.Name);
+        var operationIdUsages  = new Dictionary<string, int>();
 
         foreach (var endpoint in endpoints)
         {
-            var endpointDescriptor = CreateEndpointDescriptor(endpoint, schema, modelLookup);
-            endpointDescriptors.Add(endpointDescriptor);
+            try
+            {
+                var endpointDescriptor = CreateEndpointDescriptor(endpoint, schema, modelsByName, operationIdUsages);
+                endpointDescriptors.Add(endpointDescriptor);
+            }
+            catch
+            {
+                // If the construction of an endpoint descriptor fails, we just skip over it.
+            }
         }
 
         foreach (var model in models)
         {
-            var modelDescriptor = CreateModelDescriptor(model, schema, modelLookup);
-            modelDescriptors.Add(modelDescriptor);
+            try
+            {
+                var modelDescriptor = CreateModelDescriptor(model, schema, modelsByName);
+                modelDescriptors.Add(modelDescriptor);
+            }
+            catch
+            {
+                // If the construction of an model descriptor fails, we just skip over it.
+            }
         }
 
         _endpoints = endpointDescriptors;
@@ -69,12 +83,13 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     private static EndpointDescriptor CreateEndpointDescriptor(
         OpenApiEndpointDefinition endpoint,
         ISchemaDefinition schema,
-        Dictionary<string, OpenApiModelDefinition> modelLookup)
+        IDictionary<string, OpenApiModelDefinition> modelsByName,
+        IDictionary<string, int> operationIdUsages)
     {
         var operation = new OpenApiOperation
         {
             Description = endpoint.Description,
-            OperationId = GetOperationId(endpoint.OperationDefinition.Name?.Value),
+            OperationId = CreateOperationId(endpoint.OperationDefinition.Name?.Value, operationIdUsages),
             Parameters = [],
             Responses = []
         };
@@ -140,7 +155,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 fieldType,
                 schema,
                 endpoint.LocalFragmentsByName,
-                modelLookup)
+                modelsByName)
             : CreateOpenApiSchemaForType(fieldType, schema);
 
         var responseBody = new OpenApiMediaType
@@ -154,7 +169,6 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         };
 
         return new EndpointDescriptor(
-            // TODO: This probably has to start with a slash
             endpoint.Route,
             endpoint.HttpMethod,
             operation);
@@ -163,7 +177,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     private static ModelDescriptor CreateModelDescriptor(
         OpenApiModelDefinition model,
         ISchemaDefinition schema,
-        Dictionary<string, OpenApiModelDefinition> modelLookup)
+        IDictionary<string, OpenApiModelDefinition> modelsByName)
     {
         if (!schema.Types.TryGetType(model.FragmentDefinition.TypeCondition.Name.Value,
             out var typeCondition))
@@ -176,7 +190,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             (IOutputType)typeCondition,
             schema,
             model.LocalFragmentsByName,
-            modelLookup);
+            modelsByName);
 
         componentSchema.Description = model.Description;
 
@@ -191,7 +205,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         document.Components ??= new OpenApiComponents();
         document.Components.Schemas ??= new Dictionary<string, OpenApiSchemaAbstraction>();
 
-        document.Components.Schemas.Add(schemaName, schema);
+        document.Components.Schemas.TryAdd(schemaName, schema);
     }
 
     private static void AddOperation(
@@ -704,8 +718,8 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         SelectionSetNode selectionSet,
         IOutputType typeDefinition,
         ISchemaDefinition schemaDefinition,
-        Dictionary<string, FragmentDefinitionNode> localFragmentLookup,
-        Dictionary<string, OpenApiModelDefinition> modelLookup,
+        IDictionary<string, FragmentDefinitionNode> localFragmentLookup,
+        IDictionary<string, OpenApiModelDefinition> modelsByName,
         bool optional = false)
     {
         if (typeDefinition.IsListType())
@@ -716,7 +730,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                 elementType,
                 schemaDefinition,
                 localFragmentLookup,
-                modelLookup,
+                modelsByName,
                 optional);
 
             itemSchema = ApplyNullability(itemSchema, elementType);
@@ -750,7 +764,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                         fieldType,
                         schemaDefinition,
                         localFragmentLookup,
-                        modelLookup);
+                        modelsByName);
                 }
                 else
                 {
@@ -766,7 +780,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
                 typeSchema = ApplyNullability(typeSchema, fieldType);
 
-                fieldSchema.Properties!.Add(responseName, typeSchema);
+                fieldSchema.Properties!.TryAdd(responseName, typeSchema);
             }
             else if (selection is InlineFragmentNode inlineFragment)
             {
@@ -781,7 +795,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                     (IOutputType)typeCondition,
                     schemaDefinition,
                     localFragmentLookup,
-                    modelLookup,
+                    modelsByName,
                     optional: optional || isDifferentType || isSelectionConditional);
 
                 fragmentSchemasByType ??= [];
@@ -798,7 +812,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             {
                 var fragmentName = fragmentSpread.Name.Value;
 
-                if (modelLookup.TryGetValue(fragmentName, out var externalFragment))
+                if (modelsByName.TryGetValue(fragmentName, out var externalFragment))
                 {
                     var typeName = externalFragment.FragmentDefinition.TypeCondition.Name.Value;
 
@@ -837,7 +851,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
                         (IOutputType)typeCondition,
                         schemaDefinition,
                         localFragmentLookup,
-                        modelLookup,
+                        modelsByName,
                         optional: optional || isDifferentType || isSelectionConditional);
 
                     fragmentSchemasByType ??= [];
@@ -1128,11 +1142,28 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
         }
     }
 
+    private static string CreateOperationId(string? operationName, IDictionary<string, int> usages)
+    {
+        var operationId = GetOperationId(operationName);
+
+        if (!usages.TryGetValue(operationId, out var usage))
+        {
+            usages[operationId] = 0;
+
+            return operationId;
+        }
+
+        usage++;
+        usages[operationId] = usage;
+
+        return $"{operationId}_{usage}";
+    }
+
     private static string GetOperationId(string? operationName)
     {
         if (string.IsNullOrEmpty(operationName))
         {
-            return string.Empty;
+            return "unknown";
         }
 
         if (char.IsLower(operationName[0]))
