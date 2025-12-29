@@ -8,10 +8,7 @@ public sealed class OpenApiDefinitionValidator
 {
     private static readonly ImmutableArray<IOpenApiModelDefinitionValidationRule> s_modelValidationRules =
     [
-        new ModelNameUniquenessRule(),
-        new ModelTypeConditionMustExistInSchemaRule(),
-        new ModelNoDeferStreamDirectiveRule(),
-        new ModelReferencesMustExistRule()
+        new ModelNoDeferStreamDirectiveRule()
     ];
 
     private static readonly ImmutableArray<IOpenApiEndpointDefinitionValidationRule> s_endpointValidationRules =
@@ -20,22 +17,16 @@ public sealed class OpenApiDefinitionValidator
         new EndpointMustHaveSingleRootFieldRule(),
         new EndpointNoDeferStreamDirectiveRule(),
         new EndpointMustHaveValidRouteRule(),
-        new EndpointParameterConflictRule(),
-        new EndpointRouteUniquenessRule(),
-        new EndpointModelReferencesMustExistRule(),
-        new EndpointMustCompileAgainstSchemaRule()
+        new EndpointParameterConflictRule()
     ];
 
-    public async ValueTask<OpenApiDefinitionValidationResult> ValidateAsync(
-        IOpenApiDefinition definition,
-        IOpenApiDefinitionValidationContext context,
-        CancellationToken cancellationToken)
+    public OpenApiDefinitionValidationResult Validate(IOpenApiDefinition definition)
     {
         if (definition is OpenApiEndpointDefinition endpoint)
         {
             foreach (var rule in s_endpointValidationRules)
             {
-                var result = await rule.ValidateAsync(endpoint, context, cancellationToken).ConfigureAwait(false);
+                var result = rule.Validate(endpoint);
                 if (!result.IsValid)
                 {
                     return result;
@@ -46,7 +37,7 @@ public sealed class OpenApiDefinitionValidator
         {
             foreach (var rule in s_modelValidationRules)
             {
-                var result = await rule.ValidateAsync(model, context, cancellationToken).ConfigureAwait(false);
+                var result = rule.Validate(model);
                 if (!result.IsValid)
                 {
                     return result;

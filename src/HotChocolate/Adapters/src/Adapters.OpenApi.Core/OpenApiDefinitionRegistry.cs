@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using HotChocolate.Utilities;
-using HotChocolate.Validation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -45,7 +44,7 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
             var events = schema.Services.GetRequiredService<IOpenApiDiagnosticEvents>();
             var definitions = await _storage.GetDefinitionsAsync(cancellationToken).ConfigureAwait(false);
 
-            await UpdateAllDefinitionsAsync(definitions.ToList(), schema, events, cancellationToken).ConfigureAwait(false);
+            UpdateAllDefinitions(definitions.ToList(), schema, events);
         }
         finally
         {
@@ -98,7 +97,7 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
             var events = _schema.Services.GetRequiredService<IOpenApiDiagnosticEvents>();
             var definitions = await _storage.GetDefinitionsAsync(cancellationToken).ConfigureAwait(false);
 
-            await UpdateAllDefinitionsAsync(definitions.ToList(), _schema, events, cancellationToken).ConfigureAwait(false);
+            UpdateAllDefinitions(definitions.ToList(), _schema, events);
         }
         catch
         {
@@ -110,11 +109,10 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         }
     }
 
-    private async Task UpdateAllDefinitionsAsync(
+    private void UpdateAllDefinitions(
         List<IOpenApiDefinition> definitions,
         ISchemaDefinition schema,
-        IOpenApiDiagnosticEvents events,
-        CancellationToken cancellationToken)
+        IOpenApiDiagnosticEvents events)
     {
         var newModels = definitions.OfType<OpenApiModelDefinition>().ToList();
         var newEndpoints = definitions.OfType<OpenApiEndpointDefinition>().ToList();
@@ -122,12 +120,6 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         var validModelBuilder = ImmutableDictionary.CreateBuilder<string, OpenApiModelDefinition>();
         var validEndpointBuilder = ImmutableDictionary.CreateBuilder<string, OpenApiEndpointDefinition>();
 
-        var documentValidator = schema.Services.GetRequiredService<DocumentValidator>();
-        var validationContext = new OpenApiDefinitionValidationContext(
-            ImmutableDictionary<string, OpenApiEndpointDefinition>.Empty,
-            ImmutableDictionary<string, OpenApiModelDefinition>.Empty,
-            schema,
-            documentValidator);
         var validator = new OpenApiDefinitionValidator();
 
         // Validate models
@@ -160,9 +152,7 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
                     var modelsWithName = modelsByName[modelName];
                     foreach (var model in modelsWithName)
                     {
-                        var validationResult =
-                            await validator.ValidateAsync(model, validationContext, cancellationToken)
-                                .ConfigureAwait(false);
+                        var validationResult = validator.Validate(model);
 
                         if (!validationResult.IsValid)
                         {
@@ -193,14 +183,11 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
 
                 foreach (var model in modelsWithName)
                 {
-                    var validationResult =
-                        await validator.ValidateAsync(model, validationContext, cancellationToken)
-                            .ConfigureAwait(false);
+                    var validationResult = validator.Validate(model);
 
                     if (validationResult.IsValid)
                     {
                         validModelBuilder.Add(model.Name, model);
-                        validationContext.ModelsByName.TryAdd(model.Name, model);
                     }
                     else
                     {
@@ -221,8 +208,7 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         // Validate endpoints
         foreach (var newEndpoint in newEndpoints)
         {
-            var validationResult = await validator.ValidateAsync(newEndpoint, validationContext, cancellationToken)
-                .ConfigureAwait(false);
+            var validationResult = validator.Validate(newEndpoint);
 
             if (!validationResult.IsValid)
             {
@@ -232,7 +218,6 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
             {
                 var endpointName = newEndpoint.OperationDefinition.Name!.Value;
                 validEndpointBuilder.Add(endpointName, newEndpoint);
-                validationContext.EndpointsByName[endpointName] = newEndpoint;
             }
         }
 
