@@ -798,7 +798,9 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             """
             query GetUsers @http(method: GET, route: "/users") {
               usersWithoutAuth {
-                id
+                address {
+                  street
+                }
               }
             }
             """);
@@ -826,7 +828,9 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             """,
             """
             fragment User on User {
-              id
+              address {
+                street
+              }
             }
             """,
             """

@@ -817,6 +817,29 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
+    public async Task Duplicated_Field()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
     public async Task Duplicated_Routes()
     {
         // arrange
@@ -832,7 +855,9 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             """
             query GetUsers @http(method: GET, route: "/users") {
               usersWithoutAuth {
-                id
+                address {
+                  street
+                }
               }
             }
             """);
@@ -890,7 +915,9 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             """,
             """
             fragment User on User {
-              id
+              address {
+                street
+              }
             }
             """,
             """

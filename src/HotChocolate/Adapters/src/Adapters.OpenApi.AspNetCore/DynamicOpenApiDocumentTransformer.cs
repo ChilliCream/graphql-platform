@@ -780,7 +780,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
                 typeSchema = ApplyNullability(typeSchema, fieldType);
 
-                fieldSchema.Properties!.Add(responseName, typeSchema);
+                fieldSchema.Properties!.TryAdd(responseName, typeSchema);
             }
             else if (selection is InlineFragmentNode inlineFragment)
             {

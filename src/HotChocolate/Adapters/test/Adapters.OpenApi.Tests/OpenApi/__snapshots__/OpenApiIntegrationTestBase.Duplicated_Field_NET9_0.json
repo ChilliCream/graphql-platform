@@ -16,7 +16,22 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/User"
+                    "required": [
+                      "id"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "integer"
+                          }
+                        ]
+                      }
+                    }
                   }
                 }
               }
@@ -26,27 +41,5 @@
       }
     }
   },
-  "components": {
-    "schemas": {
-      "User": {
-        "required": [
-          "address"
-        ],
-        "type": "object",
-        "properties": {
-          "address": {
-            "required": [
-              "street"
-            ],
-            "type": "object",
-            "properties": {
-              "street": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+  "components": { }
 }
