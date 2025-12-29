@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,6 +6,8 @@ namespace HotChocolate.Adapters.OpenApi;
 
 internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
 {
+    private static readonly OpenApiDefinitionValidator s_validator = new();
+
     private readonly IOpenApiDefinitionStorage _storage;
     private readonly IDynamicOpenApiDocumentTransformer _transformer;
     private readonly IDynamicEndpointDataSource _dynamicEndpointDataSource;
@@ -15,9 +16,6 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
 
     private ISchemaDefinition? _schema;
     private bool _disposed;
-
-    private ImmutableDictionary<string, OpenApiModelDefinition> _modelsByName
-        = ImmutableDictionary<string, OpenApiModelDefinition>.Empty;
 
     public OpenApiDefinitionRegistry(
         IOpenApiDefinitionStorage storage,
@@ -114,139 +112,52 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         ISchemaDefinition schema,
         IOpenApiDiagnosticEvents events)
     {
-        var newModels = definitions.OfType<OpenApiModelDefinition>().ToList();
-        var newEndpoints = definitions.OfType<OpenApiEndpointDefinition>().ToList();
-
-        var validModelBuilder = ImmutableDictionary.CreateBuilder<string, OpenApiModelDefinition>();
-        var validEndpointBuilder = ImmutableDictionary.CreateBuilder<string, OpenApiEndpointDefinition>();
-
-        var validator = new OpenApiDefinitionValidator();
-
-        // Validate models
-        var validatedModelNames = new HashSet<string>();
-        var modelDependenciesByName = new Dictionary<string, HashSet<string>>();
-
-        var modelsByName = new Dictionary<string, List<OpenApiModelDefinition>>();
-        foreach (var newModel in newModels)
+        foreach (var definition in definitions)
         {
-            if (!modelsByName.TryGetValue(newModel.Name, out var modelsWithName))
-            {
-                modelsWithName = [];
-                modelsByName[newModel.Name] = modelsWithName;
-                modelDependenciesByName[newModel.Name] = [.. newModel.ExternalFragmentReferences];
-            }
-
-            modelsWithName.Add(newModel);
-        }
-
-        var remainingModels = new HashSet<string>(modelsByName.Keys);
-        var previousRemainingCount = -1;
-
-        while (remainingModels.Count > 0)
-        {
-            if (remainingModels.Count == previousRemainingCount)
-            {
-                // Circular dependency or missing dependencies
-                foreach (var modelName in remainingModels)
-                {
-                    var modelsWithName = modelsByName[modelName];
-                    foreach (var model in modelsWithName)
-                    {
-                        var validationResult = validator.Validate(model);
-
-                        if (!validationResult.IsValid)
-                        {
-                            events.ValidationErrors(validationResult.Errors.Value);
-                        }
-                    }
-                }
-
-                break;
-            }
-
-            previousRemainingCount = remainingModels.Count;
-            var modelNamesToValidate = new List<string>();
-
-            foreach (var modelName in remainingModels)
-            {
-                var dependencies = modelDependenciesByName[modelName];
-                if (dependencies.Count == 0 || dependencies.All(validatedModelNames.Contains))
-                {
-                    modelNamesToValidate.Add(modelName);
-                }
-            }
-
-            foreach (var modelName in modelNamesToValidate)
-            {
-                var modelsWithName = modelsByName[modelName];
-                var allValid = true;
-
-                foreach (var model in modelsWithName)
-                {
-                    var validationResult = validator.Validate(model);
-
-                    if (validationResult.IsValid)
-                    {
-                        validModelBuilder.Add(model.Name, model);
-                    }
-                    else
-                    {
-                        allValid = false;
-                        events.ValidationErrors(validationResult.Errors.Value);
-                    }
-                }
-
-                if (allValid && modelsWithName.Count > 0)
-                {
-                    validatedModelNames.Add(modelName);
-                }
-
-                remainingModels.Remove(modelName);
-            }
-        }
-
-        // Validate endpoints
-        foreach (var newEndpoint in newEndpoints)
-        {
-            var validationResult = validator.Validate(newEndpoint);
+            var validationResult = s_validator.Validate(definition);
 
             if (!validationResult.IsValid)
             {
                 events.ValidationErrors(validationResult.Errors.Value);
             }
-            else
-            {
-                var endpointName = newEndpoint.OperationDefinition.Name!.Value;
-                validEndpointBuilder.Add(endpointName, newEndpoint);
-            }
         }
 
-        _modelsByName = validModelBuilder.ToImmutable();
-
-        UpdateEndpointsAndOpenApiDefinitions(
-            validEndpointBuilder.Values,
-            validModelBuilder.Values,
-            schema);
+        UpdateEndpointsAndOpenApiDefinitions(definitions, schema);
     }
 
     private void UpdateEndpointsAndOpenApiDefinitions(
-        IEnumerable<OpenApiEndpointDefinition> endpoints,
-        IEnumerable<OpenApiModelDefinition> models,
+        List<IOpenApiDefinition> definitions,
         ISchemaDefinition schema)
     {
-        var sortedEndpoints = endpoints.OrderBy(e => e.OperationDefinition.Name!.Value).ToArray();
-        var sortedModels = models.OrderBy(m => m.Name).ToArray();
+        var endpoints = definitions
+            .OfType<OpenApiEndpointDefinition>()
+            .OrderBy(e => e.OperationDefinition.Name?.Value)
+            .ToArray();
+        var models = definitions
+            .OfType<OpenApiModelDefinition>()
+            .OrderBy(m => m.Name)
+            .ToArray();
 
-        _transformer.AddDefinitions(sortedEndpoints, sortedModels, schema);
+        var modelsByName = CreateModelsByNameLookup(models);
+
+        _transformer.AddDefinitions(endpoints, models, modelsByName, schema);
 
         // Update endpoints
         var httpEndpoints = new List<Endpoint>();
+        var processedEndpoints = new HashSet<(string, string)>();
 
-        foreach (var endpoint in sortedEndpoints)
+        foreach (var endpoint in endpoints)
         {
+            var key = (endpoint.HttpMethod, endpoint.Route);
+
+            if (!processedEndpoints.Add(key))
+            {
+                continue;
+            }
+
             try
             {
-                var httpEndpoint = OpenApiEndpointFactory.Create(endpoint, _modelsByName, schema);
+                var httpEndpoint = OpenApiEndpointFactory.Create(endpoint, modelsByName, schema);
                 httpEndpoints.Add(httpEndpoint);
             }
             catch
@@ -256,5 +167,18 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         }
 
         _dynamicEndpointDataSource.SetEndpoints(httpEndpoints);
+    }
+
+    private static Dictionary<string, OpenApiModelDefinition> CreateModelsByNameLookup(
+        IEnumerable<OpenApiModelDefinition> models)
+    {
+        var lookup = new Dictionary<string, OpenApiModelDefinition>();
+
+        foreach (var model in models)
+        {
+            lookup.TryAdd(model.Name, model);
+        }
+
+        return lookup;
     }
 }

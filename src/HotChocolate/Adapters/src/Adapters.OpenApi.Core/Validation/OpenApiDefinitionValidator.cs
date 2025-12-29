@@ -3,7 +3,6 @@ using HotChocolate.Adapters.OpenApi.Validation;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-// TODO: Operation Ids need to be unique, so operation names need to be unique as well
 public sealed class OpenApiDefinitionValidator
 {
     private static readonly ImmutableArray<IOpenApiModelDefinitionValidationRule> s_modelValidationRules =
