@@ -74,7 +74,7 @@ public static class OpenApiDefinitionParser
         if (httpDirective is null)
         {
             var error = new OpenApiDefinitionParsingError(
-                $"Operation must be annotated with @http directive.",
+                "Operation must be annotated with @http directive.",
                 document);
             return OpenApiDefinitionParsingResult.Failure(error);
         }
