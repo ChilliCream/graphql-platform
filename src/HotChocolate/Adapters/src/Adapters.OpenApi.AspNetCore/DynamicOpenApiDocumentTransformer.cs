@@ -46,7 +46,7 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     {
         var endpointDescriptors = new List<EndpointDescriptor>();
         var modelDescriptors = new List<ModelDescriptor>();
-        var operationIdUsages  = new Dictionary<string, int>();
+        var operationIdUsages = new Dictionary<string, int>();
 
         foreach (var endpoint in endpoints)
         {

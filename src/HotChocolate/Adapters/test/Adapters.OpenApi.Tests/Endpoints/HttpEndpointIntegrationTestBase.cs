@@ -409,7 +409,9 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         // act
         var content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["id"] = "6", ["name"] = "Test", ["email"] = "Email"
+            ["id"] = "6",
+            ["name"] = "Test",
+            ["email"] = "Email"
         });
 
         var response = await client.PostAsync("/users", content);
