@@ -187,7 +187,7 @@ file static class ClientExtensions
         IReadOnlyList<StageUpdateInput> updatedStages,
         CancellationToken cancellationToken)
     {
-        var updateInput = new UpdateStagesInput() { ApiId = apiId, UpdatedStages = updatedStages };
+        var updateInput = new UpdateStagesInput { ApiId = apiId, UpdatedStages = updatedStages };
 
         var updateResult = await client.UpdateStages.ExecuteAsync(updateInput, cancellationToken);
 
@@ -275,7 +275,7 @@ file static class Extensions
         }
 
         var conditionInputs = selectedStages
-            .Select(x => new StageConditionUpdateInput() { AfterStage = x })
+            .Select(x => new StageConditionUpdateInput { AfterStage = x })
             .ToArray();
 
         return new StageUpdateInput

@@ -57,9 +57,9 @@ internal sealed class SetApiSettingsApiCommand : Command
             .ExecuteAsync(new UpdateApiSettingsInput
             {
                 ApiId = id,
-                Settings = new PartialApiSettingsInput()
+                Settings = new PartialApiSettingsInput
                 {
-                    SchemaRegistry = new PartialSchemaRegistrySettingsInput()
+                    SchemaRegistry = new PartialSchemaRegistrySettingsInput
                     {
                         TreatDangerousAsBreaking = treatDangerousChangesAsBreaking,
                         AllowBreakingSchemaChanges = allowBreakingSchemaChanges

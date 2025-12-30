@@ -992,7 +992,7 @@ public abstract class IntegrationTestBase
                     new HttpClientTransportOptions
                     {
                         Endpoint = new Uri(httpClient.BaseAddress!, "/graphql/mcp"),
-                        AdditionalHeaders = new Dictionary<string, string>()
+                        AdditionalHeaders = new Dictionary<string, string>
                         {
                             { "Authorization", $"Bearer {token}" }
                         }
