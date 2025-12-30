@@ -1443,7 +1443,7 @@ internal sealed class SourceSchemaMerger
         var stringType = BuiltIns.String.Create();
         var booleanType = BuiltIns.Boolean.Create();
 
-        return new Dictionary<string, MutableDirectiveDefinition>()
+        return new Dictionary<string, MutableDirectiveDefinition>
         {
             {
                 DirectiveNames.FusionEnumValue,

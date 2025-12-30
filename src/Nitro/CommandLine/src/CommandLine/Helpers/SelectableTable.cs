@@ -325,7 +325,7 @@ internal static class SelectableTableExtension
         this SelectableTable<TEdge> table,
         string text)
     {
-        return table.AddAddon(_ => new CustomMarkup()
+        return table.AddAddon(_ => new CustomMarkup
         {
             Content = new Markup($"[grey dim]{text}[/]"),
             IsSelectable = false
