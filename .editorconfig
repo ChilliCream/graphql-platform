@@ -228,6 +228,8 @@ dotnet_diagnostic.IDE0074.severity = warning
 dotnet_diagnostic.IDE0079.severity = none # see https://github.com/dotnet/roslyn/issues/75887
 # Use pattern matching (not operator).
 dotnet_diagnostic.IDE0083.severity = warning
+# Remove unnecessary discard.
+dotnet_diagnostic.IDE0110.severity = warning
 # Remove unnecessary lambda expression.
 dotnet_diagnostic.IDE0200.severity = warning
 # Struct can be made 'readonly'.
