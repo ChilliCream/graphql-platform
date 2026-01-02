@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Routing.Patterns;
 namespace HotChocolate.Adapters.OpenApi.Validation;
 
 /// <summary>
-/// Validates that an endpoint has a valid route pattern.
+/// Validates that an endpoint definition has a valid route pattern.
 /// </summary>
 internal sealed class EndpointMustHaveValidRouteRule : IOpenApiEndpointDefinitionValidationRule
 {
@@ -18,8 +18,7 @@ internal sealed class EndpointMustHaveValidRouteRule : IOpenApiEndpointDefinitio
         {
             return OpenApiDefinitionValidationResult.Failure(
                 new OpenApiDefinitionValidationError(
-                    $"Route pattern '{endpoint.Route}' is invalid.",
-                    endpoint));
+                    $"Route pattern '{endpoint.Route}' is invalid."));
         }
     }
 }

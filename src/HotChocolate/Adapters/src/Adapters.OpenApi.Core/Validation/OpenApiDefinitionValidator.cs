@@ -13,8 +13,10 @@ public sealed class OpenApiDefinitionValidator
     private static readonly ImmutableArray<IOpenApiEndpointDefinitionValidationRule> s_endpointValidationRules =
     [
         new EndpointMustBeQueryOrMutationRule(),
+        new EndpointMustHaveOperationNameRule(),
         new EndpointMustHaveSingleRootFieldRule(),
         new EndpointNoDeferStreamDirectiveRule(),
+        new EndpointHttpMethodMustBeValidRule(),
         new EndpointMustHaveValidRouteRule(),
         new EndpointParameterConflictRule()
     ];

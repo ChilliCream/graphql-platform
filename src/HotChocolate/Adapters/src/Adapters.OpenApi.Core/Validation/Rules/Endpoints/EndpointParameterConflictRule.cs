@@ -31,8 +31,7 @@ internal sealed class EndpointParameterConflictRule : IOpenApiEndpointDefinition
             if (count > 1)
             {
                 errors.Add(new OpenApiDefinitionValidationError(
-                    $"Endpoint '{endpoint.OperationDefinition.Name!.Value}' has conflicting parameters that map to '${key}'.",
-                    endpoint));
+                    $"Endpoint '{endpoint.OperationDefinition.Name!.Value}' has conflicting parameters that map to '${key}'."));
             }
         }
 

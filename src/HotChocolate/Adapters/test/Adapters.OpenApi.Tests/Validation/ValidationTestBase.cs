@@ -90,7 +90,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
         // assert
         var error = Assert.Single(eventListener.Errors);
         Assert.Equal(
-            "Endpoint 'OnUserUpdated' is a subscription. Only queries and mutations are allowed for OpenAPI endpoints.",
+            "The endpoint must be either a query or mutation.",
             error.Message);
     }
 
@@ -294,6 +294,32 @@ public abstract class ValidationTestBase : OpenApiTestBase
         // assert
         var error = Assert.Single(eventListener.Errors);
         Assert.Equal("Endpoint 'GetUsers' contains the '@stream' directive, which is not allowed in OpenAPI definitions.", error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_Without_Operation_Name_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query @http(method: GET, route: "/users") {
+              users {
+                id
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("The endpoint must have an operation name.", error.Message);
     }
 
     #endregion
