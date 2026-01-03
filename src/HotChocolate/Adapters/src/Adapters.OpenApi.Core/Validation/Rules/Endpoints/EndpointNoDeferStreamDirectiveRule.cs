@@ -3,13 +3,15 @@ using HotChocolate.Language;
 namespace HotChocolate.Adapters.OpenApi.Validation;
 
 /// <summary>
-/// Validates that endpoint definitions cannot contain @defer or @stream directives.
+/// Validates that an endpoint definition cannot contain @defer or @stream directives.
 /// </summary>
 internal sealed class EndpointNoDeferStreamDirectiveRule : IOpenApiEndpointDefinitionValidationRule
 {
     private static readonly DeferStreamDirectiveFinder s_finder = new();
 
-    public OpenApiDefinitionValidationResult Validate(OpenApiEndpointDefinition endpoint)
+    public OpenApiDefinitionValidationResult Validate(
+        OpenApiEndpointDefinition endpoint,
+        IOpenApiDefinitionValidationContext context)
     {
         var documentNode = CreateDocumentNode(endpoint);
         var finderContext = new DeferStreamDirectiveFinder.DeferStreamFinderContext();
@@ -20,7 +22,7 @@ internal sealed class EndpointNoDeferStreamDirectiveRule : IOpenApiEndpointDefin
         {
             return OpenApiDefinitionValidationResult.Failure(
                 new OpenApiDefinitionValidationError(
-                    $"Endpoint '{endpoint.OperationDefinition.Name!.Value}' contains the '@{finderContext.FoundDirective}' directive, which is not allowed in OpenAPI definitions.",
+                    $"Endpoint contains the '@{finderContext.FoundDirective}' directive, which is not supported for OpenAPI endpoints.",
                     endpoint));
         }
 

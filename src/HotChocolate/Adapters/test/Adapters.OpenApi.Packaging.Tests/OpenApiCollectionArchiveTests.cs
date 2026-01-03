@@ -649,7 +649,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
               }
             }
             """);
-        var endpointDefinition = (OpenApiEndpointDefinition)OpenApiDefinitionParser.Parse(document).Definition!;
+        var endpointDefinition = (OpenApiEndpointDefinition)OpenApiDefinitionParser.Parse(document);
         var settingsDto = endpointDefinition.ToDto();
         var key = new OpenApiEndpointKey(endpointDefinition.HttpMethod, endpointDefinition.Route);
 
@@ -727,7 +727,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
               email
             }
             """);
-        var modelDefinition = (OpenApiModelDefinition)OpenApiDefinitionParser.Parse(document).Definition!;
+        var modelDefinition = (OpenApiModelDefinition)OpenApiDefinitionParser.Parse(document);
         var settingsDto = modelDefinition.ToDto();
 
         using var settings = OpenApiModelSettingsSerializer.Format(settingsDto);

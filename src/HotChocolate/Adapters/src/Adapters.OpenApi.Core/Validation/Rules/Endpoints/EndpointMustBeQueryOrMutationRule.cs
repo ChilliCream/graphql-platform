@@ -3,11 +3,13 @@ using HotChocolate.Language;
 namespace HotChocolate.Adapters.OpenApi.Validation;
 
 /// <summary>
-/// Validates that endpoint definitions can only be query or mutation (not subscription).
+/// Validates that an endpoint definition can only be query or mutation (not subscription).
 /// </summary>
 internal sealed class EndpointMustBeQueryOrMutationRule : IOpenApiEndpointDefinitionValidationRule
 {
-    public OpenApiDefinitionValidationResult Validate(OpenApiEndpointDefinition endpoint)
+    public OpenApiDefinitionValidationResult Validate(
+        OpenApiEndpointDefinition endpoint,
+        IOpenApiDefinitionValidationContext context)
     {
         var operationType = endpoint.OperationDefinition.Operation;
 
@@ -15,7 +17,7 @@ internal sealed class EndpointMustBeQueryOrMutationRule : IOpenApiEndpointDefini
         {
             return OpenApiDefinitionValidationResult.Failure(
                 new OpenApiDefinitionValidationError(
-                    $"Endpoint '{endpoint.OperationDefinition.Name!.Value}' is a subscription. Only queries and mutations are allowed for OpenAPI endpoints.",
+                    "Endpoint operation type is 'subscription', but only 'query' and 'mutation' are supported.",
                     endpoint));
         }
 
