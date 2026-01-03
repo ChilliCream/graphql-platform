@@ -73,7 +73,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
             var archiveStream =
                 await OpenApiCollectionHelpers.BuildOpenApiCollectionArchive(files, ct);
 
-            var input = new ValidateOpenApiCollectionInput()
+            var input = new ValidateOpenApiCollectionInput
             {
                 OpenApiCollectionId = openApiCollectionId,
                 Stage = stage,

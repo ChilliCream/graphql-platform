@@ -20,17 +20,20 @@ internal static class OpenApiCollectionHelpers
 
         foreach (var file in files)
         {
-            var fileContent = await File.ReadAllBytesAsync(file, cancellationToken);
-            var document = Utf8GraphQLParser.Parse(fileContent);
-            var parseResult = OpenApiDefinitionParser.Parse(document);
-
-            if (!parseResult.IsValid)
+            IOpenApiDefinition definition;
+            try
+            {
+                var fileContent = await File.ReadAllBytesAsync(file, cancellationToken);
+                var document = Utf8GraphQLParser.Parse(fileContent);
+                definition = OpenApiDefinitionParser.Parse(document);
+            }
+            catch
             {
                 // TODO: Handle properly
                 continue;
             }
 
-            if (parseResult.Definition is OpenApiEndpointDefinition endpoint)
+            if (definition is OpenApiEndpointDefinition endpoint)
             {
                 var endpointKey = new OpenApiEndpointKey(endpoint.HttpMethod, endpoint.Route);
                 var documentBytes = Encoding.UTF8.GetBytes(endpoint.Document.ToString());
@@ -43,7 +46,7 @@ internal static class OpenApiCollectionHelpers
                     settings,
                     cancellationToken);
             }
-            else if (parseResult.Definition is OpenApiModelDefinition model)
+            else if (definition is OpenApiModelDefinition model)
             {
                 var documentBytes = Encoding.UTF8.GetBytes(model.Document.ToString());
                 var settingsDto = model.ToDto();
