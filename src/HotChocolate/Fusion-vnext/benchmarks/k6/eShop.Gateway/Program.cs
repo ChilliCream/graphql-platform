@@ -358,7 +358,7 @@ public class MetaDbCollector : EventListener
             using var log = new StreamWriter(stream);
 
             log.WriteLine("===========================================");
-            log.WriteLine($"MetaDb Leak Detection Report");
+            log.WriteLine("MetaDb Leak Detection Report");
             log.WriteLine($"Generated: {DateTime.UtcNow:O}");
             log.WriteLine("===========================================");
             log.WriteLine();

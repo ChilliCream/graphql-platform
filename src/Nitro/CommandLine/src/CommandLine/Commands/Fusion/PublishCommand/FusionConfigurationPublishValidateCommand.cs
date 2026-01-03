@@ -66,7 +66,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 
             var stream = FileHelpers.CreateFileStream(configurationFile);
 
-            var input = new ValidateFusionConfigurationCompositionInput()
+            var input = new ValidateFusionConfigurationCompositionInput
             {
                 RequestId = requestId,
                 Configuration = new(stream, "gateway.fgp")

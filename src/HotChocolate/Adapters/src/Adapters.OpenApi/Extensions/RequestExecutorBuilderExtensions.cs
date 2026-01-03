@@ -23,8 +23,7 @@ public static class RequestExecutorBuilderExtensions
     }
 
     public static IRequestExecutorBuilder AddOpenApiDefinitionStorage<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
-        T>(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class, IOpenApiDefinitionStorage
     {

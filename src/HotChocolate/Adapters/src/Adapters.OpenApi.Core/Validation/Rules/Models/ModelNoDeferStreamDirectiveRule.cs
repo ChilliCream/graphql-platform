@@ -3,16 +3,15 @@ using HotChocolate.Language;
 namespace HotChocolate.Adapters.OpenApi.Validation;
 
 /// <summary>
-/// Validates that model definitions cannot contain @defer or @stream directives.
+/// Validates that a model definition cannot contain @defer or @stream directives.
 /// </summary>
 internal sealed class ModelNoDeferStreamDirectiveRule : IOpenApiModelDefinitionValidationRule
 {
     private static readonly DeferStreamDirectiveFinder s_finder = new();
 
-    public ValueTask<OpenApiDefinitionValidationResult> ValidateAsync(
+    public OpenApiDefinitionValidationResult Validate(
         OpenApiModelDefinition model,
-        IOpenApiDefinitionValidationContext context,
-        CancellationToken cancellationToken)
+        IOpenApiDefinitionValidationContext context)
     {
         var documentNode = CreateDocumentNode(model);
         var finderContext = new DeferStreamDirectiveFinder.DeferStreamFinderContext();
@@ -21,13 +20,13 @@ internal sealed class ModelNoDeferStreamDirectiveRule : IOpenApiModelDefinitionV
 
         if (finderContext.FoundDirective is not null)
         {
-            return ValueTask.FromResult(OpenApiDefinitionValidationResult.Failure(
+            return OpenApiDefinitionValidationResult.Failure(
                 new OpenApiDefinitionValidationError(
-                    $"Model '{model.Name}' contains the '@{finderContext.FoundDirective}' directive, which is not allowed in OpenAPI definitions.",
-                    model)));
+                    $"Model contains the '@{finderContext.FoundDirective}' directive, which is not supported for OpenAPI models.",
+                    model));
         }
 
-        return ValueTask.FromResult(OpenApiDefinitionValidationResult.Success());
+        return OpenApiDefinitionValidationResult.Success();
     }
 
     private static DocumentNode CreateDocumentNode(OpenApiModelDefinition model)

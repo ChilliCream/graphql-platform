@@ -52,7 +52,6 @@ public class ByteArrayTypeTests
     {
         // arrange
         var byteArrayType = new ByteArrayType();
-        var guid = Guid.NewGuid();
 
         // act
         Action action = () => byteArrayType.IsInstanceOfType(null!);

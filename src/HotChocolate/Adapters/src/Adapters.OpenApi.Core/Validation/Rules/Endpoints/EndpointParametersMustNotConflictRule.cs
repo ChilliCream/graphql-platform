@@ -4,16 +4,20 @@ namespace HotChocolate.Adapters.OpenApi.Validation;
 /// Validates that query parameters and route parameters cannot conflict naming wise,
 /// i.e. map to the same variable or input value field.
 /// </summary>
-internal sealed class EndpointParameterConflictRule : IOpenApiEndpointDefinitionValidationRule
+internal sealed class EndpointParametersMustNotConflictRule : IOpenApiEndpointDefinitionValidationRule
 {
-    public ValueTask<OpenApiDefinitionValidationResult> ValidateAsync(
+    public OpenApiDefinitionValidationResult Validate(
         OpenApiEndpointDefinition endpoint,
-        IOpenApiDefinitionValidationContext context,
-        CancellationToken cancellationToken)
+        IOpenApiDefinitionValidationContext context)
     {
-        var errors = new List<OpenApiDefinitionValidationError>();
+        List<OpenApiDefinitionValidationError>? errors = null;
 
         var parameterMappings = new Dictionary<string, int>();
+
+        if (endpoint.BodyVariableName is not null)
+        {
+            parameterMappings.Add(endpoint.BodyVariableName, 1);
+        }
 
         foreach (var routeParam in endpoint.RouteParameters)
         {
@@ -33,15 +37,16 @@ internal sealed class EndpointParameterConflictRule : IOpenApiEndpointDefinition
         {
             if (count > 1)
             {
+                errors ??= [];
                 errors.Add(new OpenApiDefinitionValidationError(
-                    $"Endpoint '{endpoint.OperationDefinition.Name!.Value}' has conflicting parameters that map to '${key}'.",
+                    $"Endpoint has {count} parameters mapping to the same variable(-path) '${key}'. Each variable(-path) can only be mapped once.",
                     endpoint));
             }
         }
 
-        return errors.Count == 0
-            ? ValueTask.FromResult(OpenApiDefinitionValidationResult.Success())
-            : ValueTask.FromResult(OpenApiDefinitionValidationResult.Failure(errors));
+        return errors is not { Count: > 0 }
+            ? OpenApiDefinitionValidationResult.Success()
+            : OpenApiDefinitionValidationResult.Failure(errors);
     }
 
     private static string GetParameterKey(OpenApiEndpointDefinitionParameter parameter)

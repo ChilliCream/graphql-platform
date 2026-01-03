@@ -154,7 +154,7 @@ public class DocumentValidatorTests
                 }
             """,
             t => Assert.Equal(
-                $"More than one argument with the same name in an argument set "
+                "More than one argument with the same name in an argument set "
                 + "is ambiguous and invalid.",
                 t.Message));
     }
@@ -193,7 +193,7 @@ public class DocumentValidatorTests
             }
             """,
             t => Assert.Equal(
-                $"Subscription operations must have exactly one root field.",
+                "Subscription operations must have exactly one root field.",
                 t.Message),
             t => Assert.Equal(
                 "The field `disallowedSecondRootFieldNonExisting` does not exist "

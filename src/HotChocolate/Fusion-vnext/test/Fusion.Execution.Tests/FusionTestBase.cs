@@ -126,6 +126,9 @@ public abstract class FusionTestBase : IDisposable
               id: ID!
               quantity: Int!
             }
+
+            directive @cost(weight: String!)
+                on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
             """",
             """"
             interface Node {
@@ -182,6 +185,9 @@ public abstract class FusionTestBase : IDisposable
               quantity: Int!
               price: Float!
             }
+
+            directive @cost(weight: String!)
+                on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
             """",
             """"
             "The node interface is implemented by entities that have a global unique identifier."

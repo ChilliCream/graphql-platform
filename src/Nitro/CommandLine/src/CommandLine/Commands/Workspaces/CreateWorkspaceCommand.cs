@@ -37,7 +37,7 @@ internal sealed class CreateWorkspaceCommand : Command
         CancellationToken ct)
     {
         console.WriteLine();
-        console.WriteLine($"Creating a workspace");
+        console.WriteLine("Creating a workspace");
         console.WriteLine();
 
         var name = await context.OptionOrAskAsync("Name", Opt<WorkspaceNameOption>.Instance, ct);

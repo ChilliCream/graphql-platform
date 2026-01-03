@@ -55,6 +55,22 @@ internal static class DirectivesProviderExtensions
             return null;
         }
 
+        public HashSet<string> GetTags()
+        {
+            var tags = new HashSet<string>();
+            var tagDirectives = member.Directives.Where(d => d.Name == WellKnownDirectiveNames.Tag);
+
+            foreach (var tagDirective in tagDirectives)
+            {
+                if (tagDirective.Arguments[ArgumentNames.Name] is StringValueNode name)
+                {
+                    tags.Add(name.Value);
+                }
+            }
+
+            return tags;
+        }
+
         public bool ExistsInSchema(string schemaName)
         {
             return member.Directives.AsEnumerable().Any(

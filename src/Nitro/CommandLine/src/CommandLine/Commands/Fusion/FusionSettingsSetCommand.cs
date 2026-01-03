@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Settings;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
@@ -10,7 +11,7 @@ internal sealed class FusionSettingsSetCommand : Command
         Description = "Sets a Fusion composition setting and publishes the updated Fusion configuration to Nitro";
 
         var settingNameArgument = new Argument<string>("SETTING_NAME")
-            .FromAmong(SettingNames.GlobalObjectIdentification);
+            .FromAmong(SettingNames.GlobalObjectIdentification, SettingNames.ExcludeByTag);
 
         var settingValueArgument = new Argument<string>("SETTING_VALUE");
 
@@ -60,8 +61,17 @@ internal sealed class FusionSettingsSetCommand : Command
         IHttpClientFactory httpClientFactory,
         CancellationToken cancellationToken)
     {
+        var compositionSettings = new CompositionSettings();
+
         switch (settingName)
         {
+            case SettingNames.ExcludeByTag:
+                var tags = settingValue
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                compositionSettings.Preprocessor!.ExcludeByTag = tags.ToHashSet();
+                break;
+
             case SettingNames.GlobalObjectIdentification:
                 if (!bool.TryParse(settingValue, out var enableGlobalObjectIdentification))
                 {
@@ -69,25 +79,30 @@ internal sealed class FusionSettingsSetCommand : Command
                     return ExitCodes.Error;
                 }
 
-                return await FusionPublishCommand.ExecuteAsync(
-                    null,
-                    [],
-                    apiId,
-                    stageName,
-                    tag,
-                    enableGlobalObjectIdentification,
-                    requireExistingConfiguration: true,
-                    console,
-                    client,
-                    httpClientFactory,
-                    cancellationToken);
+                compositionSettings.Merger!.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+                break;
+
             default:
                 throw new ArgumentOutOfRangeException(nameof(settingName));
         }
+
+        return await FusionPublishCommand.ExecuteAsync(
+            null,
+            [],
+            apiId,
+            stageName,
+            tag,
+            compositionSettings,
+            requireExistingConfiguration: true,
+            console,
+            client,
+            httpClientFactory,
+            cancellationToken);
     }
 
     private static class SettingNames
     {
+        public const string ExcludeByTag = "exclude-by-tag";
         public const string GlobalObjectIdentification = "global-object-identification";
     }
 }

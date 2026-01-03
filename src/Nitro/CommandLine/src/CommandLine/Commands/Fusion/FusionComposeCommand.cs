@@ -161,7 +161,13 @@ internal sealed class FusionComposeCommand : Command
             sourceSchemaFiles,
             archiveFile,
             environment,
-            enableGlobalObjectIdentification,
+            new CompositionSettings
+            {
+                Merger = new CompositionSettings.MergerSettings
+                {
+                    EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                }
+            },
             printSchema,
             cancellationToken);
     }
@@ -183,7 +189,13 @@ internal sealed class FusionComposeCommand : Command
             sourceSchemaFiles,
             archiveFile,
             environment,
-            enableGlobalObjectIdentification,
+            new CompositionSettings
+            {
+                Merger = new CompositionSettings.MergerSettings
+                {
+                    EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                }
+            },
             false,
             cancellationToken);
 
@@ -352,7 +364,13 @@ internal sealed class FusionComposeCommand : Command
                     sourceSchemaFiles,
                     archiveFile,
                     environment,
-                    enableGlobalObjectIdentification,
+                    new CompositionSettings
+                    {
+                        Merger = new CompositionSettings.MergerSettings
+                        {
+                            EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                        }
+                    },
                     false,
                     cancellationToken);
             }
@@ -383,7 +401,7 @@ internal sealed class FusionComposeCommand : Command
         List<string> sourceSchemaFiles,
         string archiveFile,
         string? environment,
-        bool? enableGlobalObjectIdentification,
+        CompositionSettings compositionSettings,
         bool printSchema,
         CancellationToken cancellationToken)
     {
@@ -400,7 +418,7 @@ internal sealed class FusionComposeCommand : Command
                 sourceSchemaFiles,
                 archive,
                 environment,
-                enableGlobalObjectIdentification,
+                compositionSettings,
                 cancellationToken);
 
             var writer = result.IsSuccess ? console.Out : console.Error;
@@ -443,14 +461,12 @@ internal sealed class FusionComposeCommand : Command
         List<string> sourceSchemaFiles,
         FusionArchive archive,
         string? environment,
-        bool? enableGlobalObjectIdentification,
+        CompositionSettings? compositionSettings,
         CancellationToken cancellationToken)
     {
         environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
-        var sourceSchemas = await ReadSourceSchemasAsync(
-            sourceSchemaFiles,
-            cancellationToken);
+        var sourceSchemas = await ReadSourceSchemasAsync(sourceSchemaFiles, cancellationToken);
 
         var existingSourceSchemaNames = new SortedSet<string>(
             await archive.GetSourceSchemaNamesAsync(cancellationToken),
@@ -509,38 +525,21 @@ internal sealed class FusionComposeCommand : Command
         }
 
         var existingCompositionSettings = await GetCompositionSettingsAsync(archive, cancellationToken);
+        var mergedCompositionSettings =
+            compositionSettings?.MergeInto(existingCompositionSettings) ?? existingCompositionSettings;
 
         var sourceSchemaOptionsMap = new Dictionary<string, SourceSchemaOptions>();
-        var mergerOptions = existingCompositionSettings.Merger?.ToOptions() ?? new SourceSchemaMergerOptions();
+        var mergerOptions = mergedCompositionSettings.Merger?.ToOptions() ?? new SourceSchemaMergerOptions();
         var satisfiabilityOptions = new SatisfiabilityOptions();
-
-        if (enableGlobalObjectIdentification.HasValue)
-        {
-            mergerOptions.EnableGlobalObjectIdentification = enableGlobalObjectIdentification.Value;
-        }
 
         foreach (var (sourceSchemaName, (_, sourceSchemaSettings)) in sourceSchemas)
         {
             var schemaSettings =
                 sourceSchemaSettings.Deserialize(SettingsJsonSerializerContext.Default.SourceSchemaSettings)!;
 
-            var sourceSchemaOptions = new SourceSchemaOptions();
+            var sourceSchemaOptions = schemaSettings.ToOptions();
 
-            if (schemaSettings.Version is { } version)
-            {
-                sourceSchemaOptions.Version = version;
-            }
-
-            if (schemaSettings.Parser is { } parserSettings)
-            {
-                sourceSchemaOptions.Parser = parserSettings.ToOptions();
-            }
-
-            if (schemaSettings.Preprocessor is { } preprocessorSettings)
-            {
-                sourceSchemaOptions.Preprocessor = preprocessorSettings.ToOptions();
-            }
-
+            mergedCompositionSettings.Preprocessor?.MergeInto(sourceSchemaOptions.Preprocessor);
             sourceSchemaOptionsMap.Add(sourceSchemaName, sourceSchemaOptions);
             schemaSettings.Satisfiability?.MergeInto(satisfiabilityOptions);
         }
@@ -730,7 +729,7 @@ internal sealed class FusionComposeCommand : Command
         return compositionSettings?.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
             ?? new CompositionSettings
             {
-                Merger = new MergerSettings
+                Merger = new CompositionSettings.MergerSettings
                 {
                     EnableGlobalObjectIdentification = false
                 }
@@ -744,7 +743,7 @@ internal sealed class FusionComposeCommand : Command
     {
         var settings = new CompositionSettings
         {
-            Merger = new MergerSettings
+            Merger = new CompositionSettings.MergerSettings
             {
                 EnableGlobalObjectIdentification = options.Merger.EnableGlobalObjectIdentification
             }

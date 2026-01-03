@@ -2,8 +2,7 @@ namespace HotChocolate.Adapters.OpenApi;
 
 internal interface IOpenApiEndpointDefinitionValidationRule
 {
-    ValueTask<OpenApiDefinitionValidationResult> ValidateAsync(
+    OpenApiDefinitionValidationResult Validate(
         OpenApiEndpointDefinition endpoint,
-        IOpenApiDefinitionValidationContext context,
-        CancellationToken cancellationToken);
+        IOpenApiDefinitionValidationContext context);
 }

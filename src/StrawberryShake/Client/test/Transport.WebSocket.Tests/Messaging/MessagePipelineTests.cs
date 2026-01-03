@@ -10,7 +10,7 @@ public class MessagePipelineTests
     {
         // arrange
         ProcessAsync a = (_, _) => default;
-        ISocketClient socketClient = new SocketClientStub() { IsClosed = false };
+        ISocketClient socketClient = new SocketClientStub { IsClosed = false };
 
         // act
         await using var messagePipeline = new MessagePipeline(socketClient, a);

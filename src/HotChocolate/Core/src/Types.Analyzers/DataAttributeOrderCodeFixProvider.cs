@@ -119,7 +119,7 @@ public sealed class DataAttributeOrderCodeFixProvider : CodeFixProvider
 
         // Add non-data attributes in their original relative order
         var processedLists = new HashSet<AttributeListSyntax>();
-        foreach (var (attribute, originalList, _, _) in nonDataAttributes)
+        foreach (var (_, originalList, _, _) in nonDataAttributes)
         {
             if (processedLists.Contains(originalList))
             {

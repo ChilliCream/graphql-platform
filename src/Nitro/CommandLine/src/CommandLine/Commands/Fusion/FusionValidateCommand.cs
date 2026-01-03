@@ -182,7 +182,7 @@ internal sealed class FusionValidateCommand : Command
         {
             throw new InvalidOperationException(
                 $"Failed to retrieve gateway configuration from the fusion archive (format version: {latestVersion}). "
-                + $"The archive may be corrupted, unsupported, or missing required configuration.");
+                + "The archive may be corrupted, unsupported, or missing required configuration.");
         }
 
         return await configuration.OpenReadSchemaAsync(ct);

@@ -59,6 +59,7 @@ public sealed class SchemaComposer
                 return new SourceSchemaPreprocessor(
                     schema,
                     schemas,
+                    _log,
                     options?.Version,
                     options?.Preprocessor).Preprocess();
             }).Combine();
