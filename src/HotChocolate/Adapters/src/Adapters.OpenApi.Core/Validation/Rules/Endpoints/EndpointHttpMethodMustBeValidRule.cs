@@ -7,13 +7,17 @@ namespace HotChocolate.Adapters.OpenApi.Validation;
 /// </summary>
 internal sealed class EndpointHttpMethodMustBeValidRule : IOpenApiEndpointDefinitionValidationRule
 {
-    public OpenApiDefinitionValidationResult Validate(OpenApiEndpointDefinition endpoint)
+    public OpenApiDefinitionValidationResult Validate(
+        OpenApiEndpointDefinition endpoint,
+        IOpenApiDefinitionValidationContext context)
     {
         if (!IsValidHttpMethod(endpoint.HttpMethod))
         {
+            var method = string.IsNullOrEmpty(endpoint.HttpMethod) ? "(empty)" : endpoint.HttpMethod;
             return OpenApiDefinitionValidationResult.Failure(
                 new OpenApiDefinitionValidationError(
-                    $"Endpoint '{endpoint.OperationDefinition.Name!.Value}' has an invalid HTTP method."));
+                    $"Endpoint has invalid HTTP method '{method}'. Allowed methods are GET, POST, PUT, PATCH, and DELETE.",
+                    endpoint));
         }
 
         return OpenApiDefinitionValidationResult.Success();

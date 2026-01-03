@@ -1,4 +1,6 @@
 using HotChocolate.Execution;
+using HotChocolate.Language;
+using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Adapters.OpenApi;
 
@@ -32,7 +34,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
 
         // assert
         var error = Assert.Single(eventListener.Errors);
-        Assert.Equal("Model 'User' contains the '@defer' directive, which is not allowed in OpenAPI definitions.", error.Message);
+        Assert.Equal("Model contains the '@defer' directive, which is not supported for OpenAPI models.", error.Message);
     }
 
     [Fact]
@@ -58,7 +60,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
 
         // assert
         var error = Assert.Single(eventListener.Errors);
-        Assert.Equal("Model 'Query' contains the '@stream' directive, which is not allowed in OpenAPI definitions.", error.Message);
+        Assert.Equal("Model contains the '@stream' directive, which is not supported for OpenAPI models.", error.Message);
     }
 
     #endregion
@@ -89,9 +91,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
 
         // assert
         var error = Assert.Single(eventListener.Errors);
-        Assert.Equal(
-            "The endpoint must be either a query or mutation.",
-            error.Message);
+        Assert.Equal("Endpoint operation type is 'subscription', but only 'query' and 'mutation' are supported.", error.Message);
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
 
         // assert
         var error = Assert.Single(eventListener.Errors);
-        Assert.Equal("Endpoint 'GetUsers' must have exactly one root field selection, but found 2.", error.Message);
+        Assert.Equal("Endpoint must select exactly one root field.", error.Message);
     }
 
     [Fact]
@@ -150,9 +150,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
 
         // assert
         var error = Assert.Single(eventListener.Errors);
-        Assert.Equal(
-            "Endpoint 'GetUser' must have a single root field selection, but found a fragment spread or inline fragment.",
-            error.Message);
+        Assert.Equal("Endpoint must select exactly one root field.", error.Message);
     }
 
     [Fact]
@@ -178,11 +176,37 @@ public abstract class ValidationTestBase : OpenApiTestBase
 
         // assert
         var error = Assert.Single(eventListener.Errors);
-        Assert.Equal("Endpoint 'GetUser' has conflicting parameters that map to '$userId'.", error.Message);
+        Assert.Equal("Endpoint has 2 parameters mapping to the same variable(-path) '$userId'. Each variable(-path) can only be mapped once.", error.Message);
     }
 
     [Fact]
-    public async Task Endpoint_Parameter_Conflict_Same_Location_RaisesError()
+    public async Task Endpoint_Parameter_Conflict_BodyVariable_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser($userId: ID! @body) @http(method: GET, route: "/users/{userId}") {
+              userById(id: $userId) {
+                id
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Endpoint has 2 parameters mapping to the same variable(-path) '$userId'. Each variable(-path) can only be mapped once.", error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_Parameter_Conflict_Same_InputObjectPath_RaisesError()
     {
         // arrange
         using var cts = new CancellationTokenSource(s_testTimeout);
@@ -206,24 +230,43 @@ public abstract class ValidationTestBase : OpenApiTestBase
 
         // assert
         var error = Assert.Single(eventListener.Errors);
-        Assert.Equal("Endpoint 'UpdateUser' has conflicting parameters that map to '$user.id'.", error.Message);
+        Assert.Equal("Endpoint has 2 parameters mapping to the same variable(-path) '$user.id'. Each variable(-path) can only be mapped once.", error.Message);
     }
 
     [Fact]
-    public async Task Endpoint_Route_Pattern_Same_With_Different_Method_Does_Not_RaiseError()
+    public async Task Endpoint_RouteParameter_ReferencesNonExistentVariable_RaisesError()
     {
         // arrange
         using var cts = new CancellationTokenSource(s_testTimeout);
         var storage = new TestOpenApiDefinitionStorage(
             """
-            query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+            query GetUser($userId: ID!) @http(method: GET, route: "/users/{nonExistent}") {
               userById(id: $userId) {
                 id
               }
             }
-            """,
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Route parameter 'nonExistent' references variable '$nonExistent' which does not exist in the operation.", error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_RouteParameter_Has_Invalid_InputObjectPath_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
             """
-            mutation UpdateUser($user: UserInput! @body) @http(method: PUT, route: "/users/{userId:$user.id}") {
+            mutation UpdateUser($user: UserInput! @body) @http(method: PUT, route: "/users/{userId:$user.userId}") {
               updateUser(user: $user) {
                 id
                 name
@@ -237,8 +280,65 @@ public abstract class ValidationTestBase : OpenApiTestBase
         // act
         await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
 
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
         // assert
-        Assert.Empty(eventListener.Errors);
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Route parameter 'userId' has an invalid input object path 'userId' for variable '$user'.", error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_QueryParameter_ReferencesNonExistentVariable_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser($userId: ID!) @http(method: GET, route: "/users", queryParameters: ["nonExistent"]) {
+              userById(id: $userId) {
+                id
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Query parameter 'nonExistent' references variable '$nonExistent' which does not exist in the operation.", error.Message);
+    }
+
+    [Fact]
+    public async Task Endpoint_QueryParameter_Has_Invalid_InputObjectPath_RaisesError()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            mutation UpdateUser($user: UserInput! @body) @http(method: PUT, route: "/users", queryParameters: ["userId:$user.userId"]) {
+              updateUser(user: $user) {
+                id
+                name
+                email
+              }
+            }
+            """);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal("Query parameter 'userId' has an invalid input object path 'userId' for variable '$user'.", error.Message);
     }
 
     [Fact]
@@ -267,7 +367,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
 
         // assert
         var error = Assert.Single(eventListener.Errors);
-        Assert.Equal("Endpoint 'GetUser' contains the '@defer' directive, which is not allowed in OpenAPI definitions.", error.Message);
+        Assert.Equal("Endpoint contains the '@defer' directive, which is not supported for OpenAPI endpoints.", error.Message);
     }
 
     [Fact]
@@ -293,7 +393,7 @@ public abstract class ValidationTestBase : OpenApiTestBase
 
         // assert
         var error = Assert.Single(eventListener.Errors);
-        Assert.Equal("Endpoint 'GetUsers' contains the '@stream' directive, which is not allowed in OpenAPI definitions.", error.Message);
+        Assert.Equal("Endpoint contains the '@stream' directive, which is not supported for OpenAPI endpoints.", error.Message);
     }
 
     [Fact]
@@ -319,7 +419,57 @@ public abstract class ValidationTestBase : OpenApiTestBase
 
         // assert
         var error = Assert.Single(eventListener.Errors);
-        Assert.Equal("The endpoint must have an operation name.", error.Message);
+        Assert.Equal("Endpoint is missing a named GraphQL operation. Anonymous operations are not supported.", error.Message);
+    }
+
+    [Theory]
+    // No leading slash
+    [InlineData("api/users")]
+    // No trailing slash
+    [InlineData("/api/")]
+    // Not just root segment
+    [InlineData("/")]
+    // No mapping syntax
+    [InlineData("/api/users/{userId:int}")]
+    // Spaces
+    [InlineData("/api/ users")]
+    // Catch all
+    [InlineData("/api/{**catchAll}")]
+    // Optional parameters
+    [InlineData("/api/{status?}")]
+    public async Task Endpoint_InvalidRoute_RaisesError(string route)
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(s_testTimeout);
+        var storage = new TestOpenApiDefinitionStorage();
+        var definition = OpenApiEndpointDefinition.From(
+            new OpenApiEndpointSettingsDto(
+                null,
+                [],
+                [],
+                null),
+            "GET",
+            route,
+            Utf8GraphQLParser.Parse(
+                """
+                  query GetUsers {
+                    users {
+                      id
+                    }
+                  }
+                  """));
+        storage.AddOrUpdateDefinition("1", definition);
+        var eventListener = new TestOpenApiDiagnosticEventListener();
+        var server = CreateTestServer(storage, eventListener);
+
+        // act
+        await server.Services.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        eventListener.HasReportedErrors.Wait(cts.Token);
+
+        // assert
+        var error = Assert.Single(eventListener.Errors);
+        Assert.Equal($"Endpoint has invalid route pattern '{route}'.", error.Message);
     }
 
     #endregion

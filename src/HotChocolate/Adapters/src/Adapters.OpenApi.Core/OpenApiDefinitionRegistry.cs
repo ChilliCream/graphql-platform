@@ -112,17 +112,23 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         ISchemaDefinition schema,
         IOpenApiDiagnosticEvents events)
     {
+        var validDefinitions = new List<IOpenApiDefinition>();
+        var validationContext = new OpenApiDefinitionValidationContext(schema);
+
         foreach (var definition in definitions)
         {
-            var validationResult = s_validator.Validate(definition);
+            var validationResult = s_validator.Validate(definition, validationContext);
 
             if (!validationResult.IsValid)
             {
                 events.ValidationErrors(validationResult.Errors.Value);
+                continue;
             }
+
+            validDefinitions.Add(definition);
         }
 
-        UpdateEndpointsAndOpenApiDefinitions(definitions, schema);
+        UpdateEndpointsAndOpenApiDefinitions(validDefinitions, schema);
     }
 
     private void UpdateEndpointsAndOpenApiDefinitions(

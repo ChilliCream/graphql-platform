@@ -348,11 +348,16 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
         public void AddOrUpdateDocument(string id, string document)
         {
+            var documentNode = Utf8GraphQLParser.Parse(document);
+            var definition = OpenApiDefinitionParser.Parse(documentNode);
+
+            AddOrUpdateDefinition(id, definition);
+        }
+
+        public void AddOrUpdateDefinition(string id, IOpenApiDefinition definition)
+        {
             lock (_lock)
             {
-                var documentNode = Utf8GraphQLParser.Parse(document);
-                var definition = OpenApiDefinitionParser.Parse(documentNode);
-
                 _definitionsById[id] = definition;
                 OnChanged();
             }
