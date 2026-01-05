@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Text.Json;
@@ -74,7 +75,7 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue)
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (TryParseStringValue(inputValue.GetString()!, out var value))
         {

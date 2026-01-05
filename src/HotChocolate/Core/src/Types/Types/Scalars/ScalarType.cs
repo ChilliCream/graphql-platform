@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Text.Json;
@@ -112,7 +113,7 @@ public abstract partial class ScalarType
     /// </returns>
     public bool Equals(IType? other) => ReferenceEquals(other, this);
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IScalarTypeDefinition.IsValueCompatible" />
     public virtual bool IsValueCompatible(IValueNode valueLiteral)
     {
         ArgumentNullException.ThrowIfNull(valueLiteral);
@@ -206,7 +207,7 @@ public abstract partial class ScalarType
     public abstract object CoerceInputLiteral(IValueNode valueLiteral);
 
     /// <inheritdoc />
-    public abstract object CoerceInputValue(JsonElement inputValue);
+    public abstract object CoerceInputValue(JsonElement inputValue, IFeatureProvider context);
 
     /// <inheritdoc />
     public abstract void CoerceOutputValue(object runtimeValue, ResultElement resultValue);

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -48,7 +49,7 @@ public class UrlType : ScalarType<Uri, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue)
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (inputValue.ValueKind is JsonValueKind.String
             && TryParseUri(inputValue.GetString()!, out var value))

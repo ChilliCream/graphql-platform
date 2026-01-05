@@ -43,7 +43,8 @@ internal sealed class OperationResolverMiddleware
                     operationId ?? Guid.NewGuid().ToString("N"),
                     documentInfo.Hash.Value,
                     context.Request.OperationName,
-                    documentInfo.Document);
+                    documentInfo.Document,
+                    context);
 
                 context.SetOperation(operation);
             }

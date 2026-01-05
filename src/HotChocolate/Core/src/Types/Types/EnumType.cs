@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -67,7 +68,18 @@ public partial class EnumType
         return Values.TryGetValue(name, out value);
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Tries to get the runtime value of an enum value by its name.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the enum value to retrieve.
+    /// </param>
+    /// <param name="runtimeValue">
+    /// When this method returns, contains the runtime value if found; otherwise, <c>null</c>.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the enum value was found; otherwise, <c>false</c>.
+    /// </returns>
     public bool TryGetRuntimeValue(string name, [NotNullWhen(true)] out object? runtimeValue)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
@@ -121,7 +133,7 @@ public partial class EnumType
     }
 
     /// <inheritdoc />
-    public object CoerceInputValue(JsonElement inputValue)
+    public object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (inputValue.ValueKind is JsonValueKind.String
             && Values.TryGetValue(inputValue.GetString()!, out var enumValue))

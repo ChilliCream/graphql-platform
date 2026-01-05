@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using static HotChocolate.Utilities.ThrowHelper;
 
@@ -96,7 +97,7 @@ public abstract class IntegerTypeBase<TRuntimeType>
     protected abstract TRuntimeType OnCoerceInputLiteral(IntValueNode valueLiteral);
 
     /// <inheritdoc />
-    public sealed override object CoerceInputValue(JsonElement inputValue)
+    public sealed override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (inputValue.ValueKind is JsonValueKind.Number)
         {
@@ -123,7 +124,7 @@ public abstract class IntegerTypeBase<TRuntimeType>
     protected abstract TRuntimeType OnCoerceInputValue(JsonElement inputValue);
 
     /// <summary>
-    /// Creates the exception to throw when <see cref="CoerceInputValue(JsonElement)"/>
+    /// Creates the exception to throw when <see cref="CoerceInputValue(JsonElement, IFeatureProvider)"/>
     /// encounters an incompatible input value.
     /// </summary>
     /// <param name="inputValue">

@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections;
 using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -30,7 +31,10 @@ public sealed class InputParser
         _ignoreAdditionalInputFields = options.IgnoreAdditionalInputFields;
     }
 
-    public object? ParseLiteral(IValueNode value, IInputValueInfo field, Type? targetType = null)
+    public object? ParseLiteral(
+        IValueNode value,
+        IInputValueInfo field,
+        Type? targetType = null)
     {
         ArgumentNullException.ThrowIfNull(value);
         ArgumentNullException.ThrowIfNull(field);
@@ -286,7 +290,7 @@ public sealed class InputParser
         throw ParseInputObject_InvalidSyntaxKind(type, resultValue.Kind, path);
     }
 
-    private static object? ParseLeaf(
+    private static object ParseLeaf(
         IValueNode resultValue,
         ILeafType type,
         Path path,
@@ -417,14 +421,20 @@ public sealed class InputParser
         return type.CreateInstance(fieldValues);
     }
 
-    public object? ParseInputValue(JsonElement inputValue, IType type, Path? path = null)
+    public object? ParseInputValue(JsonElement inputValue, IType type, IFeatureProvider context, Path? path = null)
     {
         ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(context);
 
-        return Deserialize(inputValue, type, path ?? s_root, null);
+        return Deserialize(inputValue, type, path ?? s_root, null, context);
     }
 
-    private object? Deserialize(JsonElement inputValue, IType type, Path path, InputField? field)
+    private object? Deserialize(
+        JsonElement inputValue,
+        IType type,
+        Path path,
+        InputField? field,
+        IFeatureProvider context)
     {
         if (inputValue.ValueKind == JsonValueKind.Null)
         {
@@ -444,21 +454,26 @@ public sealed class InputParser
         switch (type.Kind)
         {
             case TypeKind.List:
-                return DeserializeList(inputValue, (ListType)type, path, field);
+                return DeserializeList(inputValue, (ListType)type, path, field, context);
 
             case TypeKind.InputObject:
-                return DeserializeObject(inputValue, (InputObjectType)type, path);
+                return DeserializeObject(inputValue, (InputObjectType)type, path, context);
 
             case TypeKind.Enum:
             case TypeKind.Scalar:
-                return DeserializeLeaf(inputValue, (ILeafType)type, path, field);
+                return DeserializeLeaf(inputValue, (ILeafType)type, path, field, context);
 
             default:
                 throw new NotSupportedException();
         }
     }
 
-    private object DeserializeList(JsonElement inputValue, ListType type, Path path, InputField? field)
+    private object DeserializeList(
+        JsonElement inputValue,
+        ListType type,
+        Path path,
+        InputField? field,
+        IFeatureProvider context)
     {
         if (inputValue.ValueKind is JsonValueKind.Array)
         {
@@ -468,7 +483,7 @@ public sealed class InputParser
             foreach (var element in inputValue.EnumerateArray())
             {
                 var newPath = path.Append(i++);
-                list.Add(Deserialize(element, type.ElementType, newPath, field));
+                list.Add(Deserialize(element, type.ElementType, newPath, field, context));
             }
 
             return list;
@@ -477,7 +492,7 @@ public sealed class InputParser
         throw ParseList_InvalidValueKind(type, path);
     }
 
-    private object DeserializeObject(JsonElement inputValue, InputObjectType type, Path path)
+    private object DeserializeObject(JsonElement inputValue, InputObjectType type, Path path, IFeatureProvider context)
     {
         if (inputValue.ValueKind is JsonValueKind.Object)
         {
@@ -501,7 +516,6 @@ public sealed class InputParser
             var processedFields = StringSetPool.Shared.Rent();
             List<string>? invalidFieldNames = null;
             var fieldValues = new object?[type.Fields.Count];
-            var consumed = 0;
 
             try
             {
@@ -525,11 +539,10 @@ public sealed class InputParser
                                 }
                             }
 
-                            var value = Deserialize(property.Value, field.Type, fieldPath, field);
+                            var value = Deserialize(property.Value, field.Type, fieldPath, field, context);
                             value = FormatAndConvertValue(field, path, null, value, field.IsOptional, true);
 
                             fieldValues[field.Index] = value;
-                            consumed++;
                         }
                     }
                     else if (!_ignoreAdditionalInputFields)
@@ -568,15 +581,16 @@ public sealed class InputParser
         throw ParseInputObject_InvalidValueKind(type, path);
     }
 
-    private static object? DeserializeLeaf(
+    private static object DeserializeLeaf(
         JsonElement inputValue,
         ILeafType type,
         Path path,
-        InputField? field)
+        InputField? field,
+        IFeatureProvider context)
     {
         try
         {
-            return type.CoerceInputValue(inputValue);
+            return type.CoerceInputValue(inputValue, context);
         }
         catch (LeafCoercionException ex)
         {
@@ -618,7 +632,14 @@ public sealed class InputParser
                 : value;
         }
 
-        return ParseAndFormatAndConvertLiteral(field.DefaultValue, path, stack, false, field, field.IsOptional, false);
+        return ParseAndFormatAndConvertLiteral(
+            field.DefaultValue,
+            path,
+            stack,
+            false,
+            field,
+            field.IsOptional,
+            false);
     }
 
     private object? CreateDefaultValue(DirectiveArgument field, Path path, int stack)
@@ -644,7 +665,14 @@ public sealed class InputParser
                 : value;
         }
 
-        return ParseAndFormatAndConvertLiteral(field.DefaultValue, path, stack, false, field, field.IsOptional, false);
+        return ParseAndFormatAndConvertLiteral(
+            field.DefaultValue,
+            path,
+            stack,
+            false,
+            field,
+            field.IsOptional,
+            false);
     }
 
     private object? ParseAndFormatAndConvertLiteral(

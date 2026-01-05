@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Text.Json;
@@ -81,7 +82,7 @@ public class IdType : ScalarType<string>
     /// Accepts JSON strings and integer numbers. Floating-point numbers
     /// (containing '.', 'e', or 'E') are rejected.
     /// </remarks>
-    public override object CoerceInputValue(JsonElement inputValue)
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (inputValue.ValueKind is JsonValueKind.String)
         {

@@ -1,5 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+#if !NET9_0_OR_GREATER
+using System.Text.Json.Serialization.Metadata;
+#endif
 using HotChocolate.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Language;

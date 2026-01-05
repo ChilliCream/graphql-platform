@@ -416,5 +416,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame", resourceCulture);
             }
         }
+        
+        internal static string VariableCoercionHelper_CoerceVariableValues_VariablesMustBeObject {
+            get {
+                return ResourceManager.GetString("VariableCoercionHelper_CoerceVariableValues_VariablesMustBeObject", resourceCulture);
+            }
+        }
     }
 }

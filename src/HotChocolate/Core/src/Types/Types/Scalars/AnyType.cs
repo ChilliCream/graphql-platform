@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -90,7 +91,7 @@ public class AnyType : ScalarType
         }
     }
 
-    public override object CoerceInputValue(JsonElement inputValue)
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         switch (inputValue.ValueKind)
         {
@@ -127,7 +128,7 @@ public class AnyType : ScalarType
                 var list = new List<object?>();
                 foreach (var item in inputValue.EnumerateArray())
                 {
-                    list.Add(CoerceInputValue(item));
+                    list.Add(CoerceInputValue(item, context));
                 }
                 return list;
 
@@ -135,7 +136,7 @@ public class AnyType : ScalarType
                 var obj = new Dictionary<string, object?>();
                 foreach (var property in inputValue.EnumerateObject())
                 {
-                    obj[property.Name] = CoerceInputValue(property.Value);
+                    obj[property.Name] = CoerceInputValue(property.Value, context);
                 }
                 return obj;
 

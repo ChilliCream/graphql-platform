@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Text.Json;
@@ -63,7 +64,7 @@ public sealed class JsonType : ScalarType<JsonElement>
         => JsonFormatter.Format(valueLiteral);
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue)
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
         => inputValue.Clone();
 
     /// <inheritdoc />

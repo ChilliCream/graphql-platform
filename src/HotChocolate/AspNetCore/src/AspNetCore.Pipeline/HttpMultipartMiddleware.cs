@@ -135,7 +135,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
             throw ThrowHelper.HttpMultipartMiddleware_MapNotSpecified();
         }
 
-        // Validate file mappings and bring them in an easy to use format
+        // Validate file mappings and bring them in an easy-to-use format
         var pathToFileMap = MapFilesToObjectPaths(map, form.Files);
 
         return new HttpMultipartRequest(operations, pathToFileMap);

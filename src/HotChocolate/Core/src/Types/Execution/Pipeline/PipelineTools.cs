@@ -59,7 +59,8 @@ internal static class PipelineTools
                     context.Schema,
                     variableDefinitions,
                     operationRequest.VariableValues?.Document.RootElement ?? default,
-                    coercedValues);
+                    coercedValues,
+                    context);
 
                 context.VariableValues = [new VariableValueCollection(coercedValues)];
                 return;
@@ -83,7 +84,8 @@ internal static class PipelineTools
                         schema,
                         variableDefinitions,
                         variableValues,
-                        coercedValues);
+                        coercedValues,
+                        context);
 
                     variableSet[i++] = new VariableValueCollection(coercedValues);
                 }

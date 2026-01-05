@@ -2,6 +2,7 @@ using System.Buffers.Text;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Text.Json;
@@ -113,7 +114,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue)
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (inputValue.ValueKind is JsonValueKind.String)
         {

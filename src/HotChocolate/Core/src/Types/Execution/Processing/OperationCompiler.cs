@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -37,14 +38,16 @@ public sealed partial class OperationCompiler
     public static Operation Compile(
         string id,
         DocumentNode document,
-        Schema schema)
+        Schema schema,
+        IFeatureProvider? context = null)
         => Compile(id, id, null, document, schema);
 
     public static Operation Compile(
         string id,
         string? operationName,
         DocumentNode document,
-        Schema schema)
+        Schema schema,
+        IFeatureProvider? context = null)
         => Compile(id, id, operationName, document, schema);
 
     public static Operation Compile(
@@ -52,20 +55,22 @@ public sealed partial class OperationCompiler
         string hash,
         string? operationName,
         DocumentNode document,
-        Schema schema)
+        Schema schema,
+        IFeatureProvider? context = null)
         => new OperationCompiler(
             schema,
             new InputParser(),
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
                 new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()),
             new OperationCompilerOptimizers())
-            .Compile(id, hash, operationName, document);
+            .Compile(id, hash, operationName, document, context ?? EmptyFeatureProvider.Instance);
 
     public Operation Compile(
         string id,
         string hash,
         string? operationName,
-        DocumentNode document)
+        DocumentNode document,
+        IFeatureProvider context)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(document);
@@ -121,10 +126,10 @@ public sealed partial class OperationCompiler
 
             if (_optimizers.OperationOptimizers.Length > 0)
             {
-                var context = new OperationOptimizerContext(operation);
+                var optimizerContext = new OperationOptimizerContext(operation);
                 foreach (var optimizer in _optimizers.OperationOptimizers)
                 {
-                    optimizer.OptimizeOperation(context);
+                    optimizer.OptimizeOperation(optimizerContext);
                 }
             }
 

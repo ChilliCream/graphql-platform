@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
 
@@ -72,13 +73,16 @@ public interface ILeafType : IInputTypeDefinition, IOutputTypeDefinition
     /// <param name="inputValue">
     /// The deserialized JSON input value to coerce.
     /// </param>
+    /// <param name="context">
+    /// Provides access to the coercion context.
+    /// </param>
     /// <returns>
     /// Returns the runtime value representation.
     /// </returns>
     /// <exception cref="LeafCoercionException">
     /// Unable to coerce the given <paramref name="inputValue"/> into a runtime value.
     /// </exception>
-    object CoerceInputValue(JsonElement inputValue);
+    object CoerceInputValue(JsonElement inputValue, IFeatureProvider context);
 
     /// <summary>
     /// Coerces a runtime value into an external output representation

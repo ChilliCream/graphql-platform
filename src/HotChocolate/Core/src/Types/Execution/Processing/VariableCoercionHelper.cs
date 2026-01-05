@@ -1,6 +1,8 @@
 using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Properties.Resources;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -22,7 +24,8 @@ internal sealed class VariableCoercionHelper
         ISchemaDefinition schema,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
         JsonElement variableValues,
-        Dictionary<string, VariableValue> coercedValues)
+        Dictionary<string, VariableValue> coercedValues,
+        IFeatureProvider context)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(variableDefinitions);
@@ -30,7 +33,9 @@ internal sealed class VariableCoercionHelper
 
         if (variableValues.ValueKind is not (JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined))
         {
-            throw new ArgumentException("variables must be a JSON Object", nameof(variableValues));
+            throw new ArgumentException(
+                VariableCoercionHelper_CoerceVariableValues_VariablesMustBeObject,
+                nameof(variableValues));
         }
 
         var hasVariables = variableValues.ValueKind is JsonValueKind.Object;
@@ -74,7 +79,12 @@ internal sealed class VariableCoercionHelper
             }
             else
             {
-                coercedValues[variableName] = CoerceVariableValue(variableDefinition, variableType, propertyValue);
+                coercedValues[variableName] =
+                    CoerceVariableValue(
+                        variableDefinition,
+                        variableType,
+                        propertyValue,
+                        context);
             }
         }
     }
@@ -82,17 +92,21 @@ internal sealed class VariableCoercionHelper
     private VariableValue CoerceVariableValue(
         VariableDefinitionNode variableDefinition,
         IInputType variableType,
-        JsonElement inputValue)
+        JsonElement inputValue,
+        IFeatureProvider context)
     {
         var root = Path.Root.Append(variableDefinition.Variable.Name.Value);
 
         try
         {
+            var runtimeValue = _inputParser.ParseInputValue(inputValue, variableType, context, path: root);
+            var valueLiteral = _inputFormatter.FormatValue(inputValue, variableType, root);
+
             return new VariableValue(
                 variableDefinition.Variable.Name.Value,
                 variableType,
-                _inputParser.ParseInputValue(inputValue, variableType, root),
-                _inputFormatter.FormatValue(inputValue, variableType, root));
+                runtimeValue,
+                valueLiteral);
         }
         catch (GraphQLException)
         {

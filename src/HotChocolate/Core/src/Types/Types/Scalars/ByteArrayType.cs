@@ -3,6 +3,7 @@ using System.Buffers.Text;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -58,7 +59,7 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
         }
     }
 
-    public override object CoerceInputValue(JsonElement inputValue)
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (inputValue.ValueKind == JsonValueKind.String)
         {

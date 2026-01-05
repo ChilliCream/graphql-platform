@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
@@ -51,7 +52,7 @@ public sealed class FieldSelectionMapType : ScalarType<IValueSelectionNode, Stri
     }
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue)
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (inputValue.ValueKind is JsonValueKind.String)
         {

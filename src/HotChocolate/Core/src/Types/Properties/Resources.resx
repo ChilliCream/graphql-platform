@@ -303,4 +303,7 @@
   <data name="SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame" xml:space="preserve">
     <value>The provided response name must be the same as on the selection.</value>
   </data>
+  <data name="VariableCoercionHelper_CoerceVariableValues_VariablesMustBeObject" xml:space="preserve">
+    <value>variables must be a JSON Object</value>
+  </data>
 </root>

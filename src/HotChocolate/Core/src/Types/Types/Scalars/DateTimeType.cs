@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Text.Json;
@@ -83,7 +84,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
     }
 
-    public override object CoerceInputValue(JsonElement inputValue)
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (TryParseStringValue(inputValue.GetString()!, out var value))
         {
