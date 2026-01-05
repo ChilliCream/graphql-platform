@@ -17,7 +17,7 @@ public static class FusionGatewayBuilderExtensions
 
         builder.AddOpenApiDefinitionStorageCore();
 
-        builder.ConfigureSchemaServices((_, services) => services.AddSingleton(storage));
+        builder.Services.AddKeyedSingleton(builder.Name, storage);
 
         return builder;
     }
@@ -31,7 +31,7 @@ public static class FusionGatewayBuilderExtensions
 
         builder.AddOpenApiDefinitionStorageCore();
 
-        builder.ConfigureSchemaServices((_, services) => services.AddSingleton<IOpenApiDefinitionStorage, T>());
+        builder.Services.AddKeyedSingleton<IOpenApiDefinitionStorage, T>(builder.Name);
 
         return builder;
     }
@@ -47,7 +47,9 @@ public static class FusionGatewayBuilderExtensions
 
         builder.AddOpenApiDefinitionStorageCore();
 
-        builder.ConfigureSchemaServices((_, services) => services.AddSingleton<IOpenApiDefinitionStorage, T>(factory));
+        builder.Services.AddKeyedSingleton<IOpenApiDefinitionStorage, T>(
+            builder.Name,
+            (sp, _) => factory(sp));
 
         return builder;
     }
@@ -59,12 +61,18 @@ public static class FusionGatewayBuilderExtensions
         builder.Services.AddOpenApiServices(schemaName);
         builder.Services.AddOpenApiAspNetCoreServices(schemaName);
 
-        builder.ConfigureSchemaServices((applicationServices, services) =>
+        builder.ConfigureSchemaServices((_, schemaServices) =>
         {
-            services.TryAddSingleton<IOpenApiResultFormatter, FusionOpenApiResultFormatter>();
-            services.AddOpenApiSchemaServices(schemaName, applicationServices);
+            schemaServices.TryAddSingleton<IOpenApiResultFormatter, FusionOpenApiResultFormatter>();
+            schemaServices.AddOpenApiSchemaServices();
         });
 
-        builder.AddWarmupTask<OpenApiWarmupTask>();
+        builder.AddWarmupTask(schemaServices =>
+        {
+            var registry = schemaServices.GetRootServiceProvider()
+                .GetRequiredKeyedService<OpenApiDefinitionRegistry>(schemaName);
+
+            return new OpenApiWarmupTask(registry);
+        });
     }
 }
