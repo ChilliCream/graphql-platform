@@ -37,6 +37,12 @@ public sealed record OpenApiModelDefinition : IOpenApiDefinition
         string name,
         DocumentNode document)
     {
+        if (!document.Definitions.All(d => d is FragmentDefinitionNode))
+        {
+            throw new ArgumentException("The document can only contain fragment definitions.",
+                nameof(document));
+        }
+
         var fragmentDefinition = document.Definitions.OfType<FragmentDefinitionNode>().FirstOrDefault() ??
             throw new ArgumentException("The document must contain at least one fragment definition.",
                 nameof(document));
