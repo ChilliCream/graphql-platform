@@ -1,24 +1,33 @@
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using HotChocolate.Adapters.OpenApi.Validation;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Adapters.OpenApi;
 
+/// <summary>
+/// Parses OpenAPI definitions from GraphQL documents.
+/// </summary>
 public static class OpenApiDefinitionParser
 {
-    public static OpenApiDefinitionParsingResult Parse(DocumentNode document)
+    /// <summary>
+    /// Parses an OpenAPI definition from a GraphQL document.
+    /// </summary>
+    /// <param name="document">The GraphQL document to parse.</param>
+    /// <returns>The parsed OpenAPI definition.</returns>
+    /// <exception cref="OpenApiDefinitionParsingException">
+    /// Thrown when the document cannot be parsed as a valid OpenAPI definition.
+    /// </exception>
+    public static IOpenApiDefinition Parse(DocumentNode document)
     {
         // An operation document can only define a single operation alongside local fragment definitions.
         var operationDefinitions = document.Definitions.OfType<OperationDefinitionNode>().ToArray();
 
         if (operationDefinitions.Length > 1)
         {
-            var error = new OpenApiDefinitionParsingError(
-                "Document must contain either a single operation or at least one fragment definition.",
-                document);
-            return OpenApiDefinitionParsingResult.Failure(error);
+            throw new OpenApiDefinitionParsingException(
+                "Document must contain either a single operation or at least one fragment definition.");
         }
 
         if (operationDefinitions.Length == 1)
@@ -33,10 +42,8 @@ public static class OpenApiDefinitionParser
 
         if (fragments.Length == 0)
         {
-            var error = new OpenApiDefinitionParsingError(
-                "Document must contain either a single operation or at least one fragment definition.",
-                document);
-            return OpenApiDefinitionParsingResult.Failure(error);
+            throw new OpenApiDefinitionParsingException(
+                "Document must contain either a single operation or at least one fragment definition.");
         }
 
         var fragmentDefinition = fragments[0];
@@ -44,7 +51,7 @@ public static class OpenApiDefinitionParser
         return ParseFragment(fragmentDefinition, document);
     }
 
-    private static OpenApiDefinitionParsingResult ParseFragment(
+    private static OpenApiModelDefinition ParseFragment(
         FragmentDefinitionNode fragment,
         DocumentNode document)
     {
@@ -53,17 +60,16 @@ public static class OpenApiDefinitionParser
 
         var fragmentReferences = FragmentReferenceFinder.Find(document, fragment);
 
-        var modelDefinition = new OpenApiModelDefinition(
+        return new OpenApiModelDefinition(
             name,
             description,
             document,
+            fragment,
             fragmentReferences.Local,
             fragmentReferences.External);
-
-        return OpenApiDefinitionParsingResult.Success(modelDefinition);
     }
 
-    private static OpenApiDefinitionParsingResult ParseOperation(
+    private static OpenApiEndpointDefinition ParseOperation(
         OperationDefinitionNode operation,
         DocumentNode document)
     {
@@ -73,48 +79,34 @@ public static class OpenApiDefinitionParser
 
         if (httpDirective is null)
         {
-            var error = new OpenApiDefinitionParsingError(
-                $"Operation must be annotated with @http directive.",
-                document);
-            return OpenApiDefinitionParsingResult.Failure(error);
+            throw new OpenApiDefinitionParsingException(
+                "Operation must be annotated with @http directive.");
         }
 
-        if (!TryParseHttpMethod(httpDirective, document, out var httpMethod, out var httpMethodError))
-        {
-            return OpenApiDefinitionParsingResult.Failure(httpMethodError);
-        }
-
-        if (!TryParseRoute(httpDirective, document, out var route, out var routeParameters, out var routeError))
-        {
-            return OpenApiDefinitionParsingResult.Failure(routeError);
-        }
-
-        if (!TryParseQueryParameters(httpDirective, document, out var queryParameters, out var queryParametersError))
-        {
-            return OpenApiDefinitionParsingResult.Failure(queryParametersError);
-        }
+        var httpMethod = ParseHttpMethod(httpDirective);
+        var (route, routeParameters) = ParseRoute(httpDirective);
+        var queryParameters = ParseQueryParameters(httpDirective);
 
         var bodyVariableName = GetBodyVariableName(operation);
 
         var cleanOperation = RewriteOperation(operation);
 
-        List<IDefinitionNode> cleanDefinitions = [cleanOperation, ..document.Definitions];
+        List<IDefinitionNode> cleanDefinitions = [cleanOperation, .. document.Definitions];
         cleanDefinitions.Remove(operation);
 
         var fragmentReferences = FragmentReferenceFinder.Find(document);
 
-        var endpointDefinition = new OpenApiEndpointDefinition(
+        return new OpenApiEndpointDefinition(
             httpMethod,
             route,
             description,
-            [..routeParameters],
-            [..queryParameters],
+            [.. routeParameters],
+            [.. queryParameters],
             bodyVariableName,
             new DocumentNode(cleanDefinitions),
+            cleanOperation,
             fragmentReferences.Local,
             fragmentReferences.External);
-
-        return OpenApiDefinitionParsingResult.Success(endpointDefinition);
     }
 
     private static string? GetBodyVariableName(OperationDefinitionNode operation)
@@ -126,101 +118,67 @@ public static class OpenApiDefinitionParser
         return variableWithBodyDirective?.Variable.Name.Value;
     }
 
-    private static bool TryParseQueryParameters(
-        DirectiveNode httpDirective,
-        DocumentNode document,
-        out List<OpenApiEndpointDefinitionParameter> parameters,
-        [NotNullWhen(false)] out OpenApiDefinitionParsingError? error)
+    private static List<OpenApiEndpointDefinitionParameter> ParseQueryParameters(DirectiveNode httpDirective)
     {
-        parameters = [];
-
         var value = httpDirective.Arguments
             .FirstOrDefault(x => x.Name.Value == WellKnownArgumentNames.QueryParameters)?.Value;
 
         if (value is null)
         {
-            parameters = [];
-            error = null;
-            return true;
+            return [];
         }
 
         if (value is StringValueNode { Value: var singleValue })
         {
-            if (!TryParseParameter(singleValue, document, out var parameter, out error))
-            {
-                return false;
-            }
-
-            parameters = [parameter];
-            error = null;
-            return true;
+            var parameter = ParseParameter(singleValue);
+            return [parameter];
         }
 
         if (value is not ListValueNode listValue)
         {
-            error = new OpenApiDefinitionParsingError(
-                $"'{WellKnownArgumentNames.QueryParameters}' argument on @http directive must be a list of strings.",
-                document);
-            return false;
+            throw new OpenApiDefinitionParsingException(
+                $"'{WellKnownArgumentNames.QueryParameters}' argument on @http directive must be a list of strings.");
         }
 
-        parameters = [];
+        var parameters = new List<OpenApiEndpointDefinitionParameter>();
 
         foreach (var item in listValue.Items)
         {
             if (item is not StringValueNode { Value: var stringValue })
             {
-                error = new OpenApiDefinitionParsingError(
-                    $"'{WellKnownArgumentNames.QueryParameters}' argument on @http directive must contain only string values.",
-                    document);
-                return false;
+                throw new OpenApiDefinitionParsingException(
+                    $"'{WellKnownArgumentNames.QueryParameters}' argument on @http directive must contain only string values.");
             }
 
-            if (!TryParseParameter(stringValue, document, out var parameter, out error))
-            {
-                return false;
-            }
-
+            var parameter = ParseParameter(stringValue);
             parameters.Add(parameter);
         }
 
-        error = null;
-        return true;
+        return parameters;
     }
 
-    private static bool TryParseRoute(
-        DirectiveNode httpDirective,
-        DocumentNode document,
-        [NotNullWhen(true)] out string? route,
-        [NotNullWhen(true)] out List<OpenApiEndpointDefinitionParameter>? parameters,
-        [NotNullWhen(false)] out OpenApiDefinitionParsingError? error)
+    private static (string Route, List<OpenApiEndpointDefinitionParameter> Parameters) ParseRoute(
+        DirectiveNode httpDirective)
     {
-        route = null;
-        parameters = null;
-
         var routeArgument = httpDirective.Arguments
             .FirstOrDefault(x => x.Name.Value == WellKnownArgumentNames.Route);
 
         if (routeArgument is null)
         {
-            error = new OpenApiDefinitionParsingError(
-                $"@http directive must have a '{WellKnownArgumentNames.Route}' argument.",
-                document);
-            return false;
+            throw new OpenApiDefinitionParsingException(
+                $"@http directive must have a '{WellKnownArgumentNames.Route}' argument.");
         }
 
         var value = routeArgument.Value;
 
         if (value is not StringValueNode { Value: var stringValue } || string.IsNullOrEmpty(stringValue))
         {
-            error = new OpenApiDefinitionParsingError(
-                $"'{WellKnownArgumentNames.Route}' argument on @http directive must be a non-empty string.",
-                document);
-            return false;
+            throw new OpenApiDefinitionParsingException(
+                $"'{WellKnownArgumentNames.Route}' argument on @http directive must be a non-empty string.");
         }
 
         var routeBuilder = new StringBuilder();
-        parameters = [];
+        var parameters = new List<OpenApiEndpointDefinitionParameter>();
 
         foreach (var segment in stringValue.Split('/', StringSplitOptions.RemoveEmptyEntries))
         {
@@ -229,10 +187,7 @@ public static class OpenApiDefinitionParser
             if (segment.StartsWith("{") && segment.EndsWith("}"))
             {
                 var parameterKey = segment[1..^1];
-                if (!TryParseParameter(parameterKey, document, out var parameter, out error))
-                {
-                    return false;
-                }
+                var parameter = ParseParameter(parameterKey);
 
                 parameters.Add(parameter);
 
@@ -246,36 +201,23 @@ public static class OpenApiDefinitionParser
             }
         }
 
-        route = routeBuilder.ToString();
-        error = null;
-
-        return true;
+        return (routeBuilder.ToString(), parameters);
     }
 
-    private static bool TryParseParameter(
-        string input,
-        DocumentNode document,
-        [NotNullWhen(true)] out OpenApiEndpointDefinitionParameter? parameter,
-        [NotNullWhen(false)] out OpenApiDefinitionParsingError? error)
+    private static OpenApiEndpointDefinitionParameter ParseParameter(string input)
     {
-        parameter = null;
-
         var span = input.AsSpan();
         var colonIndex = span.IndexOf(':');
 
         if (colonIndex == -1)
         {
-            parameter = new OpenApiEndpointDefinitionParameter(input, input, null);
-            error = null;
-            return true;
+            return new OpenApiEndpointDefinitionParameter(input, input, null);
         }
 
         if (colonIndex + 1 >= span.Length || span[colonIndex + 1] != '$')
         {
-            error = new OpenApiDefinitionParsingError(
-                $"Parameter variable mappings must start with '$', got '{input}'.",
-                document);
-            return false;
+            throw new OpenApiDefinitionParsingException(
+                $"Parameter variable mappings must start with '$', got '{input}'.");
         }
 
         var key = span[..colonIndex].ToString();
@@ -287,12 +229,10 @@ public static class OpenApiDefinitionParser
 
         if (firstDotIndex == -1)
         {
-            parameter = new OpenApiEndpointDefinitionParameter(
+            return new OpenApiEndpointDefinitionParameter(
                 key,
                 mappingSyntax.ToString(),
                 null);
-            error = null;
-            return true;
         }
 
         var variable = mappingSyntax[..firstDotIndex].ToString();
@@ -323,58 +263,38 @@ public static class OpenApiDefinitionParser
                 : pathSpan[(dotIndex + 1)..];
         }
 
-        parameter = new OpenApiEndpointDefinitionParameter(
+        return new OpenApiEndpointDefinitionParameter(
             key,
             variable,
             builder.MoveToImmutable());
-        error = null;
-        return true;
     }
 
-    private static bool TryParseHttpMethod(
-        DirectiveNode httpDirective,
-        DocumentNode document,
-        [NotNullWhen(true)] out string? httpMethod,
-        [NotNullWhen(false)] out OpenApiDefinitionParsingError? error)
+    private static string ParseHttpMethod(DirectiveNode httpDirective)
     {
-        httpMethod = null;
-
         var methodArgument = httpDirective.Arguments
             .FirstOrDefault(x => x.Name.Value == WellKnownArgumentNames.Method);
 
         if (methodArgument is null)
         {
-            error = new OpenApiDefinitionParsingError(
-                $"@http directive must have a '{WellKnownArgumentNames.Method}' argument.",
-                document);
-            return false;
+            throw new OpenApiDefinitionParsingException(
+                $"@http directive must have a '{WellKnownArgumentNames.Method}' argument.");
         }
 
         var value = methodArgument.Value;
 
         if (value is not EnumValueNode { Value: var stringValue } || string.IsNullOrEmpty(stringValue))
         {
-            error = new OpenApiDefinitionParsingError(
-                $"'{WellKnownArgumentNames.Method}' argument on @http directive must be a non-empty enum value.",
-                document);
-            return false;
+            throw new OpenApiDefinitionParsingException(
+                $"'{WellKnownArgumentNames.Method}' argument on @http directive must be a non-empty enum value.");
         }
 
-        if (stringValue != HttpMethods.Get
-            && stringValue != HttpMethods.Post
-            && stringValue != HttpMethods.Put
-            && stringValue != HttpMethods.Patch
-            && stringValue != HttpMethods.Delete)
+        if (!EndpointHttpMethodMustBeValidRule.IsValidHttpMethod(stringValue))
         {
-            error = new OpenApiDefinitionParsingError(
-                $"'{WellKnownArgumentNames.Method}' argument on @http directive received an invalid value '{stringValue}'.",
-                document);
-            return false;
+            throw new OpenApiDefinitionParsingException(
+                $"'{WellKnownArgumentNames.Method}' argument on @http directive received an invalid value '{stringValue}'.");
         }
 
-        httpMethod = stringValue;
-        error = null;
-        return true;
+        return stringValue;
     }
 
     private static OperationDefinitionNode RewriteOperation(OperationDefinitionNode operation)

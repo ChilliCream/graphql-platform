@@ -105,6 +105,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Source schema preprocessing failed..
+        /// </summary>
+        internal static string ErrorHelper_SourceSchemaPreprocessingFailed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_SourceSchemaPreprocessingFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Source schema validation failed..
         /// </summary>
         internal static string ErrorHelper_SourceSchemaValidationFailed {

@@ -86,7 +86,7 @@ public class RequiredArgumentRuleTests
             }
             """,
             t => Assert.Equal(
-                $"The argument `nonNullBooleanArg` is required.", t.Message));
+                "The argument `nonNullBooleanArg` is required.", t.Message));
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class RequiredArgumentRuleTests
             }
             """,
             t => Assert.Equal(
-                $"The argument `nonNullBooleanArg` is required.", t.Message));
+                "The argument `nonNullBooleanArg` is required.", t.Message));
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public class RequiredArgumentRuleTests
             }
             """,
             t => Assert.Equal(
-                $"The argument `if` is required.", t.Message));
+                "The argument `if` is required.", t.Message));
     }
     [Fact]
     public void BadMultipleNullValueType()

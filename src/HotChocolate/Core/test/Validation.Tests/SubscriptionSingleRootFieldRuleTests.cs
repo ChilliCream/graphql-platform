@@ -74,7 +74,7 @@ public class SubscriptionSingleRootFieldRuleTests
             }
             """,
             t => Assert.Equal(
-                $"Subscription operations must "
+                "Subscription operations must "
                 + "have exactly one root field.", t.Message));
     }
 
@@ -92,7 +92,7 @@ public class SubscriptionSingleRootFieldRuleTests
             }
             """,
             t => Assert.Equal(
-                $"Subscription operations must "
+                "Subscription operations must "
                 + "have exactly one root field.", t.Message));
     }
 
@@ -111,7 +111,7 @@ public class SubscriptionSingleRootFieldRuleTests
             }
             """,
             t => Assert.Equal(
-                $"Subscription operations must "
+                "Subscription operations must "
                 + "have exactly one root field.", t.Message));
     }
 
@@ -133,7 +133,7 @@ public class SubscriptionSingleRootFieldRuleTests
             }
             """,
             t => Assert.Equal(
-                $"Subscription operations must "
+                "Subscription operations must "
                 + "have exactly one root field.", t.Message));
     }
 
@@ -269,7 +269,7 @@ public class SubscriptionSingleRootFieldRuleTests
             }
             """,
             t => Assert.Equal(
-                $"Subscription operations must "
+                "Subscription operations must "
                 + "have exactly one root field.", t.Message));
     }
 

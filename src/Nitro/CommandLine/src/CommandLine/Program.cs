@@ -1,8 +1,5 @@
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
-using ChilliCream.Nitro.CommandLine;
-using ChilliCream.Nitro.CommandLine.Cloud;
-using ChilliCream.Nitro.CommandLine.Fusion;
 
 var builder = new CommandLineBuilder(new NitroRootCommand())
     .AddNitroCloudConfiguration()
@@ -10,7 +7,6 @@ var builder = new CommandLineBuilder(new NitroRootCommand())
     .UseExceptionMiddleware()
     .UseExtendedConsole();
 
-var (_, fusionCommand) = builder.Command.AddNitroCloudCommands();
-fusionCommand.AddFusionComposeCommand();
+builder.Command.AddNitroCloudCommands();
 
 return await builder.Build().InvokeAsync(args);

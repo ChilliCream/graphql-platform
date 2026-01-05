@@ -270,13 +270,22 @@ public abstract class OpenApiTestBase : IAsyncLifetime
         return await response.Content.ReadAsStringAsync();
     }
 
+    protected static async Task SpinWaitAsync(Func<Task<bool>> condition, CancellationToken cancellationToken)
+    {
+        while (!await condition())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await Task.Delay(10, cancellationToken);
+        }
+    }
+
     protected sealed class TestOpenApiDiagnosticEventListener : OpenApiDiagnosticEventListener
     {
-        public List<IOpenApiError> Errors { get; } = [];
+        public List<OpenApiDefinitionValidationError> Errors { get; } = [];
 
         public ManualResetEventSlim HasReportedErrors { get; } = new(false);
 
-        public override void ValidationErrors(IReadOnlyList<IOpenApiError> errors)
+        public override void ValidationErrors(IReadOnlyList<OpenApiDefinitionValidationError> errors)
         {
             Errors.AddRange(errors);
             HasReportedErrors.Set();
@@ -321,13 +330,10 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                 foreach (var document in documents)
                 {
                     var documentNode = Utf8GraphQLParser.Parse(document);
-                    var parseResult = OpenApiDefinitionParser.Parse(documentNode);
+                    var definition = OpenApiDefinitionParser.Parse(documentNode);
 
-                    if (parseResult.IsValid)
-                    {
-                        _definitionsById.Add(index.ToString(), parseResult.Definition);
-                        index++;
-                    }
+                    _definitionsById.Add(index.ToString(), definition);
+                    index++;
                 }
             }
         }
@@ -342,16 +348,18 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
         public void AddOrUpdateDocument(string id, string document)
         {
+            var documentNode = Utf8GraphQLParser.Parse(document);
+            var definition = OpenApiDefinitionParser.Parse(documentNode);
+
+            AddOrUpdateDefinition(id, definition);
+        }
+
+        public void AddOrUpdateDefinition(string id, IOpenApiDefinition definition)
+        {
             lock (_lock)
             {
-                var documentNode = Utf8GraphQLParser.Parse(document);
-                var parseResult = OpenApiDefinitionParser.Parse(documentNode);
-
-                if (parseResult.IsValid)
-                {
-                    _definitionsById[id] = parseResult.Definition;
-                    OnChanged();
-                }
+                _definitionsById[id] = definition;
+                OnChanged();
             }
         }
 

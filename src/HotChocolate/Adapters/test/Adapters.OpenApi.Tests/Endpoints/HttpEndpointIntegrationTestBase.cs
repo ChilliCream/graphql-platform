@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;
 
@@ -530,17 +529,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var storage = new TestOpenApiDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
-        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
-        {
-            if (@event.Type == OpenApiDocumentEventType.Updated)
-            {
-                documentUpdatedResetEvent.Set();
-            }
-        }));
 
         // act
         // assert
@@ -558,13 +547,14 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             }
             """);
 
-        documentUpdatedResetEvent.Wait(cts.Token);
+        HttpResponseMessage? response2 = null;
+        await SpinWaitAsync(async () =>
+        {
+            response2 = await client.GetAsync("/users");
+            return response2.StatusCode == HttpStatusCode.OK;
+        }, cts.Token);
 
-        var response2 = await client.GetAsync("/users");
-
-        Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
-
-        response2.MatchSnapshot();
+        response2!.MatchSnapshot();
     }
 
     [Fact]
@@ -583,17 +573,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
-        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
-        {
-            if (@event.Type == OpenApiDocumentEventType.Updated)
-            {
-                documentUpdatedResetEvent.Set();
-            }
-        }));
 
         // act
         // assert
@@ -611,14 +591,15 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             }
             """);
 
-        documentUpdatedResetEvent.Wait(cts.Token);
+        HttpResponseMessage? response2 = null;
+        await SpinWaitAsync(async () =>
+        {
+            response2 = await client.GetAsync("/users");
+            var content = await response2.Content.ReadAsStringAsync();
+            return content != content1;
+        }, cts.Token);
 
-        var response2 = await client.GetAsync("/users");
-        var content2 = await response2.Content.ReadAsStringAsync();
-
-        Assert.NotEqual(content2, content1);
-
-        response2.MatchSnapshot();
+        response2!.MatchSnapshot();
     }
 
     [Fact]
@@ -637,17 +618,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
-        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
-        {
-            if (@event.Type == OpenApiDocumentEventType.Updated)
-            {
-                documentUpdatedResetEvent.Set();
-            }
-        }));
 
         // act
         // assert
@@ -666,17 +637,18 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             }
             """);
 
-        documentUpdatedResetEvent.Wait(cts.Token);
-
-        var newRouteResponse = await client.GetAsync("/users-new");
-
-        Assert.Equal(HttpStatusCode.OK, newRouteResponse.StatusCode);
+        HttpResponseMessage? newRouteResponse = null;
+        await SpinWaitAsync(async () =>
+        {
+            newRouteResponse = await client.GetAsync("/users-new");
+            return newRouteResponse.StatusCode == HttpStatusCode.OK;
+        }, cts.Token);
 
         var oldRouteResponse2 = await client.GetAsync("/users");
 
         Assert.Equal(HttpStatusCode.NotFound, oldRouteResponse2.StatusCode);
 
-        newRouteResponse.MatchSnapshot();
+        newRouteResponse!.MatchSnapshot();
     }
 
     [Fact]
@@ -695,17 +667,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDefinitionRegistry>(ISchemaDefinition.DefaultName);
-        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
-        {
-            if (@event.Type == OpenApiDocumentEventType.Updated)
-            {
-                documentUpdatedResetEvent.Set();
-            }
-        }));
 
         // act
         // assert
@@ -715,11 +677,11 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 
         storage.RemoveDocument("users");
 
-        documentUpdatedResetEvent.Wait(cts.Token);
-
-        var response2 = await client.GetAsync("/users");
-
-        Assert.Equal(HttpStatusCode.NotFound, response2.StatusCode);
+        await SpinWaitAsync(async () =>
+        {
+            var response = await client.GetAsync("/users");
+            return response.StatusCode == HttpStatusCode.NotFound;
+        }, cts.Token);
     }
 
     [Fact]
@@ -750,6 +712,143 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         var response2 = await client.GetAsync("/users");
 
         Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+    }
+
+    #endregion
+
+    #region Invalid
+
+    [Fact]
+    public async Task Missing_Field()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              nonExistentField(id: $userId) {
+                id
+              }
+            }
+            """,
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        // assert
+        var validResponse = await client.GetAsync("/users");
+
+        Assert.Equal(HttpStatusCode.OK, validResponse.StatusCode);
+
+        var invalidResponse = await client.GetAsync("/users/1");
+
+        Assert.Equal(HttpStatusCode.InternalServerError, invalidResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Missing_Model_References()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              nonExistentField(id: $userId) {
+                ...User
+              }
+            }
+            """,
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        // assert
+        var validResponse = await client.GetAsync("/users");
+
+        Assert.Equal(HttpStatusCode.OK, validResponse.StatusCode);
+
+        var invalidResponse = await client.GetAsync("/users/1");
+
+        Assert.Equal(HttpStatusCode.InternalServerError, invalidResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Duplicated_Routes()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsersWithName @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+                name
+              }
+            }
+            """,
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                address {
+                  street
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/users");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Duplicated_Model_Names()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                ...User
+              }
+            }
+            """,
+            """
+            fragment User on User {
+              address {
+                street
+              }
+            }
+            """,
+            """
+            fragment User on User {
+              id
+              name
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/users");
+
+        // assert
+        response.MatchSnapshot();
     }
 
     #endregion

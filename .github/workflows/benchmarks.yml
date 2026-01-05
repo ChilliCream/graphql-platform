@@ -39,6 +39,19 @@ jobs:
           fetch-depth: 0
           show-progress: false
 
+      - name: Install .NET
+        run: |
+          if ! command -v dotnet &> /dev/null; then
+            echo "Installing .NET..."
+            curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+            chmod +x dotnet-install.sh
+            ./dotnet-install.sh --channel 10.0 --install-dir $HOME/.dotnet
+            rm dotnet-install.sh
+            echo "$HOME/.dotnet" >> $GITHUB_PATH
+            export PATH="$HOME/.dotnet:$PATH"
+          fi
+          dotnet --version
+
       - name: Install k6
         run: |
           if ! command -v k6 &> /dev/null; then

@@ -69,7 +69,7 @@ public sealed class DataAttributeOrderAnalyzer : DiagnosticAnalyzer
 
         // Check if the order is correct
         var previousOrder = -1;
-        foreach (var (attribute, order, _) in dataAttributes)
+        foreach (var (_, order, _) in dataAttributes)
         {
             if (order < previousOrder)
             {

@@ -3,18 +3,51 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-public sealed record OpenApiEndpointDefinition(
-    string HttpMethod,
-    string Route,
-    string? Description,
-    ImmutableArray<OpenApiEndpointDefinitionParameter> RouteParameters,
-    ImmutableArray<OpenApiEndpointDefinitionParameter> QueryParameters,
-    string? BodyVariableName,
-    DocumentNode Document,
-    Dictionary<string, FragmentDefinitionNode> LocalFragmentsByName,
-    HashSet<string> ExternalFragmentReferences) : IOpenApiDefinition
+public sealed class OpenApiEndpointDefinition : IOpenApiDefinition
 {
-    public OperationDefinitionNode OperationDefinition => Document.Definitions.OfType<OperationDefinitionNode>().First();
+    internal OpenApiEndpointDefinition(
+        string httpMethod,
+        string route,
+        string? description,
+        ImmutableArray<OpenApiEndpointDefinitionParameter> routeParameters,
+        ImmutableArray<OpenApiEndpointDefinitionParameter> queryParameters,
+        string? bodyVariableName,
+        DocumentNode document,
+        OperationDefinitionNode operationDefinition,
+        Dictionary<string, FragmentDefinitionNode> localFragmentsByName,
+        HashSet<string> externalFragmentReferences)
+    {
+        HttpMethod = httpMethod;
+        Route = route;
+        Description = description;
+        RouteParameters = routeParameters;
+        QueryParameters = queryParameters;
+        BodyVariableName = bodyVariableName;
+        Document = document;
+        OperationDefinition = operationDefinition;
+        LocalFragmentsByName = localFragmentsByName;
+        ExternalFragmentReferences = externalFragmentReferences;
+    }
+
+    public string HttpMethod { get; }
+
+    public string Route { get; }
+
+    public string? Description { get; }
+
+    public ImmutableArray<OpenApiEndpointDefinitionParameter> RouteParameters { get; }
+
+    public ImmutableArray<OpenApiEndpointDefinitionParameter> QueryParameters { get; }
+
+    public string? BodyVariableName { get; }
+
+    public DocumentNode Document { get; }
+
+    public OperationDefinitionNode OperationDefinition { get; }
+
+    public Dictionary<string, FragmentDefinitionNode> LocalFragmentsByName { get; }
+
+    public HashSet<string> ExternalFragmentReferences { get; }
 
     public static OpenApiEndpointDefinition From(
         OpenApiEndpointSettingsDto settings,
@@ -22,6 +55,10 @@ public sealed record OpenApiEndpointDefinition(
         string route,
         DocumentNode document)
     {
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().SingleOrDefault() ??
+            throw new ArgumentException("The document must contain exactly one operation definition.",
+                nameof(document));
+
         var fragmentReferences = FragmentReferenceFinder.Find(document);
 
         return new OpenApiEndpointDefinition(
@@ -32,6 +69,7 @@ public sealed record OpenApiEndpointDefinition(
             settings.QueryParameters,
             settings.BodyVariableName,
             document,
+            operationDefinition,
             fragmentReferences.Local,
             fragmentReferences.External);
     }
@@ -39,8 +77,3 @@ public sealed record OpenApiEndpointDefinition(
     public OpenApiEndpointSettingsDto ToDto()
         => new OpenApiEndpointSettingsDto(Description, RouteParameters, QueryParameters, BodyVariableName);
 }
-
-public sealed record OpenApiEndpointDefinitionParameter(
-    string Key,
-    string VariableName,
-    ImmutableArray<string>? InputObjectPath);

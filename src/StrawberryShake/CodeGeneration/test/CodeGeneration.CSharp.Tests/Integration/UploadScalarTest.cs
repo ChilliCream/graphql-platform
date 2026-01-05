@@ -109,11 +109,11 @@ public class UploadScalarTest : ServerTestBase
             null,
             null,
             null,
-            new TestInput()
+            new TestInput
             {
-                Bar = new BarInput()
+                Bar = new BarInput
                 {
-                    Baz = new BazInput() { File = new Upload(data, "test-file", contentType) }
+                    Baz = new BazInput { File = new Upload(data, "test-file", contentType) }
                 }
             },
             null,
@@ -144,18 +144,18 @@ public class UploadScalarTest : ServerTestBase
             null,
             new[]
             {
-                new TestInput()
+                new TestInput
                 {
-                    Bar = new BarInput()
+                    Bar = new BarInput
                     {
-                        Baz = new BazInput() { File = new Upload(dataA, "A", contentType) }
+                        Baz = new BazInput { File = new Upload(dataA, "A", contentType) }
                     }
                 },
-                new TestInput()
+                new TestInput
                 {
-                    Bar = new BarInput()
+                    Bar = new BarInput
                     {
-                        Baz = new BazInput() { File = new Upload(dataB, "B", contentType) }
+                        Baz = new BazInput { File = new Upload(dataB, "B", contentType) }
                     }
                 }
             },
@@ -190,18 +190,18 @@ public class UploadScalarTest : ServerTestBase
             {
                 new[]
                 {
-                    new TestInput()
+                    new TestInput
                     {
-                        Bar = new BarInput()
+                        Bar = new BarInput
                         {
-                            Baz = new BazInput() { File = new Upload(dataA, "A", contentType) }
+                            Baz = new BazInput { File = new Upload(dataA, "A", contentType) }
                         }
                     },
-                    new TestInput()
+                    new TestInput
                     {
-                        Bar = new BarInput()
+                        Bar = new BarInput
                         {
-                            Baz = new BazInput() { File = new Upload(dataB, "B", contentType) }
+                            Baz = new BazInput { File = new Upload(dataB, "B", contentType) }
                         }
                     }
                 }

@@ -7,6 +7,11 @@ internal static class InternalServiceCollectionExtensions
 {
     public static IServiceCollection AddOpenApiAspNetCoreServices(this IServiceCollection services, string schemaName)
     {
+        services.TryAddKeyedSingleton<DynamicEndpointDataSource>(schemaName);
+        services.TryAddKeyedSingleton<IDynamicEndpointDataSource>(
+            schemaName,
+            (sp, key) => sp.GetRequiredKeyedService<DynamicEndpointDataSource>(key));
+
         services.TryAddKeyedSingleton<DynamicOpenApiDocumentTransformer>(schemaName);
         services.TryAddKeyedSingleton<IDynamicOpenApiDocumentTransformer>(
             schemaName,
