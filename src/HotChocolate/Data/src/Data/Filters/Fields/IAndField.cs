@@ -4,7 +4,7 @@ namespace HotChocolate.Data.Filters;
 
 public interface IAndField
     : IInputValueDefinition
-    , IHasRuntimeType
+    , IRuntimeTypeProvider
 {
     IFilterInputType DeclaringType { get; }
 }
