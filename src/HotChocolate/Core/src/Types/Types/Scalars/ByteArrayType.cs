@@ -6,7 +6,6 @@ using HotChocolate.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
-using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
@@ -38,7 +37,7 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
     {
     }
 
-    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+    protected override byte[] OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
         byte[]? rented = null;
         var valueSpan = valueLiteral.AsSpan();
@@ -59,33 +58,28 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
         }
     }
 
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    protected override byte[] OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (inputValue.ValueKind == JsonValueKind.String)
-        {
-            byte[]? rented = null;
-            var valueSpan = JsonMarshal.GetRawUtf8Value(inputValue);
-            var length = Base64.GetMaxDecodedFromUtf8Length(valueSpan.Length);
-            var buffer = length <= 256 ? stackalloc byte[length] : rented = ArrayPool<byte>.Shared.Rent(length);
+        byte[]? rented = null;
+        var valueSpan = JsonMarshal.GetRawUtf8Value(inputValue);
+        var length = Base64.GetMaxDecodedFromUtf8Length(valueSpan.Length);
+        var buffer = length <= 256 ? stackalloc byte[length] : rented = ArrayPool<byte>.Shared.Rent(length);
 
-            try
+        try
+        {
+            Base64.DecodeFromUtf8(valueSpan, buffer, out _, out var bytesWritten);
+            return buffer[..bytesWritten].ToArray();
+        }
+        finally
+        {
+            if (rented is not null)
             {
-                Base64.DecodeFromUtf8(valueSpan, buffer, out _, out var bytesWritten);
-                return buffer[..bytesWritten].ToArray();
-            }
-            finally
-            {
-                if (rented is not null)
-                {
-                    ArrayPool<byte>.Shared.Return(rented);
-                }
+                ArrayPool<byte>.Shared.Return(rented);
             }
         }
-
-        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
 
-    public override void CoerceOutputValue(byte[] runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(byte[] runtimeValue, ResultElement resultValue)
     {
         byte[]? rented = null;
         var length = Base64.GetMaxEncodedToUtf8Length(runtimeValue.Length);
@@ -109,7 +103,7 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
         }
     }
 
-    public override IValueNode ValueToLiteral(byte[] runtimeValue)
+    protected override StringValueNode OnValueToLiteral(byte[] runtimeValue)
     {
         byte[]? rented = null;
         var length = Base64.GetMaxEncodedToUtf8Length(runtimeValue.Length);

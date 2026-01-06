@@ -35,7 +35,7 @@ public sealed class FieldSelectionSetType : ScalarType<SelectionSetNode, StringV
     }
 
     /// <inheritdoc />
-    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+    protected override SelectionSetNode OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
         try
         {
@@ -51,29 +51,24 @@ public sealed class FieldSelectionSetType : ScalarType<SelectionSetNode, StringV
     }
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    protected override SelectionSetNode OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (inputValue.ValueKind is JsonValueKind.String)
+        try
         {
-            try
-            {
-                return ParseSelectionSet(inputValue.GetString()!);
-            }
-            catch (SyntaxException)
-            {
-                // Fall through to throw error
-            }
+            return ParseSelectionSet(inputValue.GetString()!);
         }
-
-        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
+        catch (SyntaxException)
+        {
+            throw Scalar_Cannot_CoerceInputValue(this, inputValue);
+        }
     }
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(SelectionSetNode runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(SelectionSetNode runtimeValue, ResultElement resultValue)
         => resultValue.SetStringValue(SerializeSelectionSet(runtimeValue));
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(SelectionSetNode runtimeValue)
+    protected override StringValueNode OnValueToLiteral(SelectionSetNode runtimeValue)
         => new StringValueNode(SerializeSelectionSet(runtimeValue));
 
     /// <summary>

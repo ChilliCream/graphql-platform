@@ -74,7 +74,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     {
     }
 
-    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+    protected override DateTimeOffset OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
         if (TryParseStringValue(valueLiteral.Value, out var value))
         {
@@ -84,7 +84,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
     }
 
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    protected override DateTimeOffset OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (TryParseStringValue(inputValue.GetString()!, out var value))
         {
@@ -94,7 +94,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
 
-    public override void CoerceOutputValue(DateTimeOffset runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(DateTimeOffset runtimeValue, ResultElement resultValue)
     {
         if (runtimeValue.Offset == TimeSpan.Zero)
         {
@@ -106,7 +106,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         }
     }
 
-    public override IValueNode ValueToLiteral(DateTimeOffset runtimeValue)
+    protected override StringValueNode OnValueToLiteral(DateTimeOffset runtimeValue)
     {
         if (runtimeValue.Offset == TimeSpan.Zero)
         {

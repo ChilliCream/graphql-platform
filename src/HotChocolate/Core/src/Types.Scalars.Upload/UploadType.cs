@@ -21,16 +21,33 @@ public sealed class UploadType : ScalarType<IFile, StringValueNode>
         Description = UploadResources.UploadType_Description;
     }
 
-    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+    /// <summary>
+    /// This operation is not supported. Upload scalars cannot be used in GraphQL literals.
+    /// </summary>
+    /// <param name="valueLiteral">The GraphQL literal (not used).</param>
+    /// <returns>Never returns; always throws.</returns>
+    /// <exception cref="NotSupportedException">Always thrown as literal input is not supported.</exception>
+    protected override IFile OnCoerceInputLiteral(StringValueNode valueLiteral)
         => throw new NotSupportedException();
 
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    /// <summary>
+    /// Coerces a JSON string value containing a file reference into an <see cref="IFile"/> instance.
+    /// The file reference is looked up using the <see cref="IFileLookup"/> service from the context.
+    /// </summary>
+    /// <param name="inputValue">
+    /// The JSON element containing the file reference as a string.
+    /// </param>
+    /// <param name="context">
+    /// The feature provider context containing the <see cref="IFileLookup"/> service.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IFile"/> instance representing the uploaded file.
+    /// </returns>
+    /// <exception cref="LeafCoercionException">
+    /// Thrown when the file reference cannot be found in the file lookup service.
+    /// </exception>
+    protected override IFile OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (inputValue.ValueKind is not JsonValueKind.String)
-        {
-            throw new LeafCoercionException("A file reference must be a string.", this);
-        }
-
         var fileLookup = context.Features.Get<IFileLookup>();
         var fileName = inputValue.GetString()!;
 
@@ -46,9 +63,21 @@ public sealed class UploadType : ScalarType<IFile, StringValueNode>
         return file;
     }
 
-    public override void CoerceOutputValue(IFile runtimeValue, ResultElement resultValue)
+    /// <summary>
+    /// This operation is not supported. Upload scalars are input-only and cannot be used in output.
+    /// </summary>
+    /// <param name="runtimeValue">The runtime value (not used).</param>
+    /// <param name="resultValue">The result element (not used).</param>
+    /// <exception cref="NotSupportedException">Always thrown as output coercion is not supported.</exception>
+    protected override void OnCoerceOutputValue(IFile runtimeValue, ResultElement resultValue)
         => throw new NotSupportedException();
 
-    public override IValueNode ValueToLiteral(IFile runtimeValue)
+    /// <summary>
+    /// This operation is not supported. Upload scalars cannot be converted to GraphQL literals.
+    /// </summary>
+    /// <param name="runtimeValue">The runtime value (not used).</param>
+    /// <returns>Never returns; always throws.</returns>
+    /// <exception cref="NotSupportedException">Always thrown as value to literal conversion is not supported.</exception>
+    protected override StringValueNode OnValueToLiteral(IFile runtimeValue)
         => throw new NotSupportedException();
 }

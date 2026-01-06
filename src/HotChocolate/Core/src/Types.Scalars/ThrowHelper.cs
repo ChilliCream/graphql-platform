@@ -495,7 +495,7 @@ internal static class ThrowHelper
             type);
     }
 
-    public static LeafCoercionException RegexType_ParseValue_IsInvalid(
+    public static LeafCoercionException RegexType_InvalidFormat(
         IType type,
         string name)
     {
@@ -503,22 +503,7 @@ internal static class ThrowHelper
             ErrorBuilder.New()
                 .SetMessage(
                     string.Format(
-                        ScalarResources.RegexType_IsInvalid_ParseValue,
-                        name))
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException RegexType_ParseLiteral_IsInvalid(
-        IType type,
-        string name)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(
-                    string.Format(
-                        ScalarResources.RegexType_IsInvalid_ParseLiteral,
+                        ScalarResources.RegexType_InvalidFormat,
                         name))
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .Build(),

@@ -31,7 +31,7 @@ public abstract class StringToStructBaseType<TRuntimeType>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+    protected override TRuntimeType OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
         if (TryCoerceRuntimeValue(valueLiteral.Value, out var runtimeValue))
         {
@@ -44,10 +44,9 @@ public abstract class StringToStructBaseType<TRuntimeType>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    protected override TRuntimeType OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (inputValue.ValueKind is JsonValueKind.String
-            && TryCoerceRuntimeValue(inputValue.GetString()!, out var runtimeValue))
+        if (TryCoerceRuntimeValue(inputValue.GetString()!, out var runtimeValue))
         {
             return runtimeValue.Value;
         }
@@ -58,7 +57,7 @@ public abstract class StringToStructBaseType<TRuntimeType>
     }
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(TRuntimeType runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(TRuntimeType runtimeValue, ResultElement resultValue)
     {
         if (TryCoerceOutputValue(runtimeValue, out var value))
         {
@@ -72,7 +71,7 @@ public abstract class StringToStructBaseType<TRuntimeType>
     }
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(TRuntimeType runtimeValue)
+    protected override StringValueNode OnValueToLiteral(TRuntimeType runtimeValue)
     {
         if (TryCoerceOutputValue(runtimeValue, out var value))
         {

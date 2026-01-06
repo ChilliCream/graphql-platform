@@ -57,10 +57,10 @@ public class LongType : IntegerTypeBase<long>
         => inputValue.GetInt64();
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(long runtimeValue, ResultElement resultValue)
+    public override void OnCoerceOutputValue(long runtimeValue, ResultElement resultValue)
         => resultValue.SetNumberValue(runtimeValue);
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(long runtimeValue)
+    public override IValueNode OnValueToLiteral(long runtimeValue)
         => new IntValueNode(runtimeValue);
 }

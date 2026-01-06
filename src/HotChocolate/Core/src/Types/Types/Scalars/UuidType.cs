@@ -103,7 +103,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+    protected override Guid OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
         if (TryParseGuid(valueLiteral.Value, valueLiteral.AsSpan(), out var value))
         {
@@ -114,28 +114,25 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    protected override Guid OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (inputValue.ValueKind is JsonValueKind.String)
-        {
-            var stringValue = inputValue.GetString()!;
-            var bytes = Encoding.UTF8.GetBytes(stringValue);
+        var stringValue = inputValue.GetString()!;
+        var bytes = Encoding.UTF8.GetBytes(stringValue);
 
-            if (TryParseGuid(stringValue, bytes, out var value))
-            {
-                return value;
-            }
+        if (TryParseGuid(stringValue, bytes, out var value))
+        {
+            return value;
         }
 
         throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(Guid runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(Guid runtimeValue, ResultElement resultValue)
         => resultValue.SetStringValue(runtimeValue.ToString(_format));
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(Guid runtimeValue)
+    protected override StringValueNode OnValueToLiteral(Guid runtimeValue)
         => new StringValueNode(runtimeValue.ToString(_format));
 
     private bool TryParseGuid(string stringValue, ReadOnlySpan<byte> bytes, out Guid value)

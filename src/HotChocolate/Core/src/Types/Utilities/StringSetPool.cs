@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace HotChocolate.Utilities;
 
 internal sealed class StringSetPool(int size = 64)
@@ -9,16 +11,12 @@ internal sealed class StringSetPool(int size = 64)
 
     public void Return(HashSet<string> set)
     {
-        if (set is null)
-        {
-            return;
-        }
-
+        Debug.Assert(set != null);
         set.Clear();
         _bucket.Return(set);
     }
 
-    public static StringSetPool Shared { get; } = new StringSetPool();
+    public static StringSetPool Shared { get; } = new();
 
     private sealed class Bucket
     {

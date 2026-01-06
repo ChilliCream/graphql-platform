@@ -36,7 +36,7 @@ public sealed class FieldSelectionMapType : ScalarType<IValueSelectionNode, Stri
     }
 
     /// <inheritdoc />
-    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+    protected override IValueSelectionNode OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
         try
         {
@@ -52,29 +52,24 @@ public sealed class FieldSelectionMapType : ScalarType<IValueSelectionNode, Stri
     }
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    protected override IValueSelectionNode OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (inputValue.ValueKind is JsonValueKind.String)
+        try
         {
-            try
-            {
-                return ParseValueSelection(inputValue.GetString()!);
-            }
-            catch (SyntaxException)
-            {
-                // Fall through to throw error
-            }
+            return ParseValueSelection(inputValue.GetString()!);
         }
-
-        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
+        catch (SyntaxException)
+        {
+            throw Scalar_Cannot_CoerceInputValue(this, inputValue);
+        }
     }
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(IValueSelectionNode runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(IValueSelectionNode runtimeValue, ResultElement resultValue)
         => resultValue.SetStringValue(FormatValueSelection(runtimeValue));
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(IValueSelectionNode runtimeValue)
+    protected override StringValueNode OnValueToLiteral(IValueSelectionNode runtimeValue)
         => new StringValueNode(FormatValueSelection(runtimeValue));
 
     /// <summary>

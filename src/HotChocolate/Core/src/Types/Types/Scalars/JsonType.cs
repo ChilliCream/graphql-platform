@@ -68,7 +68,7 @@ public sealed class JsonType : ScalarType<JsonElement>
         => inputValue.Clone();
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(JsonElement runtimeValue, ResultElement resultValue)
+    public override void OnCoerceOutputValue(JsonElement runtimeValue, ResultElement resultValue)
     {
         switch (runtimeValue.ValueKind)
         {
@@ -102,7 +102,7 @@ public sealed class JsonType : ScalarType<JsonElement>
                 foreach (var element in resultValue.EnumerateArray())
                 {
                     enumerator.MoveNext();
-                    CoerceOutputValue(enumerator.Current, element);
+                    OnCoerceOutputValue(enumerator.Current, element);
                 }
                 break;
             }
@@ -121,7 +121,7 @@ public sealed class JsonType : ScalarType<JsonElement>
                 foreach (var property in resultValue.EnumerateObject())
                 {
                     enumerator.MoveNext();
-                    CoerceOutputValue(enumerator.Current.Value, property.Value);
+                    OnCoerceOutputValue(enumerator.Current.Value, property.Value);
                 }
                 break;
             }
@@ -132,7 +132,7 @@ public sealed class JsonType : ScalarType<JsonElement>
     }
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(JsonElement runtimeValue)
+    public override IValueNode OnValueToLiteral(JsonElement runtimeValue)
         => JsonParser.Parse(runtimeValue);
 
     private static class JsonParser

@@ -56,7 +56,7 @@ public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+    protected override TimeOnly OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
         if (TryParseStringValue(valueLiteral.Value, out var value))
         {
@@ -67,7 +67,7 @@ public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    protected override TimeOnly OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (TryParseStringValue(inputValue.GetString()!, out var value))
         {
@@ -78,11 +78,11 @@ public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(TimeOnly runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(TimeOnly runtimeValue, ResultElement resultValue)
         => resultValue.SetStringValue(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(TimeOnly runtimeValue)
+    protected override StringValueNode OnValueToLiteral(TimeOnly runtimeValue)
         => new StringValueNode(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
 
     private bool TryParseStringValue(string serialized, out TimeOnly value)

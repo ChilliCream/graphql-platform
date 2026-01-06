@@ -3,7 +3,6 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Text.Json;
-using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
@@ -42,30 +41,18 @@ public class BooleanType : ScalarType<bool, BooleanValueNode>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputLiteral(BooleanValueNode valueLiteral)
+    protected override bool OnCoerceInputLiteral(BooleanValueNode valueLiteral)
         => valueLiteral.Value;
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
-    {
-        switch (inputValue.ValueKind)
-        {
-            case JsonValueKind.True:
-                return true;
-
-            case JsonValueKind.False:
-                return false;
-
-            default:
-                throw Scalar_Cannot_CoerceInputValue(this, inputValue);
-        }
-    }
+    protected override bool OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        => inputValue.ValueKind is JsonValueKind.True;
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(bool runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(bool runtimeValue, ResultElement resultValue)
         => resultValue.SetBooleanValue(runtimeValue);
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(bool runtimeValue)
+    protected override BooleanValueNode OnValueToLiteral(bool runtimeValue)
         => runtimeValue ? BooleanValueNode.True : BooleanValueNode.False;
 }

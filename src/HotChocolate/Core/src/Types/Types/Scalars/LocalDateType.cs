@@ -64,7 +64,7 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+    protected override DateOnly OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
         if (TryParseStringValue(valueLiteral.Value, out var value))
         {
@@ -75,7 +75,7 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    protected override DateOnly OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (TryParseStringValue(inputValue.GetString()!, out var value))
         {
@@ -86,11 +86,11 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(DateOnly runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(DateOnly runtimeValue, ResultElement resultValue)
         => resultValue.SetStringValue(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(DateOnly runtimeValue)
+    protected override StringValueNode OnValueToLiteral(DateOnly runtimeValue)
         => new StringValueNode(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
 
     private bool TryParseStringValue(string serialized, out DateOnly value)

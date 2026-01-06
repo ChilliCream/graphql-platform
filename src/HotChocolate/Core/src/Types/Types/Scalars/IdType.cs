@@ -104,10 +104,10 @@ public class IdType : ScalarType<string>
     }
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(string runtimeValue, ResultElement resultValue)
+    public override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
         => resultValue.SetStringValue(runtimeValue);
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(string runtimeValue)
+    public override IValueNode OnValueToLiteral(string runtimeValue)
         => new StringValueNode(runtimeValue);
 }

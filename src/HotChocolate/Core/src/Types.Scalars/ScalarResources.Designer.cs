@@ -654,20 +654,11 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0}Type cannot parse the provided literal. The provided value does not match the regular expression pattern..
+        ///   Looks up a localized string similar to {0}Type cannot parse the provided value. The value does not match the required regular expression pattern.
         /// </summary>
-        internal static string RegexType_IsInvalid_ParseLiteral {
+        internal static string RegexType_InvalidFormat {
             get {
-                return ResourceManager.GetString("RegexType_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {0}Type cannot parse the provided value. The provided value does not match the regular expression pattern..
-        /// </summary>
-        internal static string RegexType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("RegexType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("RegexType_InvalidFormat", resourceCulture);
             }
         }
         

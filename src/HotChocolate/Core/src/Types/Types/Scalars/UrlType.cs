@@ -38,7 +38,7 @@ public class UrlType : ScalarType<Uri, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+    protected override Uri OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
         if (TryParseUri(valueLiteral.Value, out var value))
         {
@@ -49,10 +49,9 @@ public class UrlType : ScalarType<Uri, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    protected override Uri OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (inputValue.ValueKind is JsonValueKind.String
-            && TryParseUri(inputValue.GetString()!, out var value))
+        if (TryParseUri(inputValue.GetString()!, out var value))
         {
             return value;
         }
@@ -61,7 +60,7 @@ public class UrlType : ScalarType<Uri, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(Uri runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(Uri runtimeValue, ResultElement resultValue)
     {
         var serialized = runtimeValue.IsAbsoluteUri
             ? runtimeValue.AbsoluteUri
@@ -70,7 +69,7 @@ public class UrlType : ScalarType<Uri, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(Uri runtimeValue)
+    protected override StringValueNode OnValueToLiteral(Uri runtimeValue)
     {
         var value = runtimeValue.IsAbsoluteUri
             ? runtimeValue.AbsoluteUri

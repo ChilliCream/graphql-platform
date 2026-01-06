@@ -315,11 +315,8 @@
   <data name="PostalCodeType_IsInvalid_ParseValue" xml:space="preserve">
     <value>PostalCodeType cannot parse the provided value. The provided value is an invalid postal code.</value>
   </data>
-  <data name="RegexType_IsInvalid_ParseLiteral" xml:space="preserve">
-    <value>{0}Type cannot parse the provided literal. The provided value does not match the regular expression pattern.</value>
-  </data>
-  <data name="RegexType_IsInvalid_ParseValue" xml:space="preserve">
-    <value>{0}Type cannot parse the provided value. The provided value does not match the regular expression pattern.</value>
+  <data name="RegexType_InvalidFormat" xml:space="preserve">
+    <value>{0}Type cannot parse the provided value. The value does not match the required regular expression pattern.</value>
   </data>
   <data name="RgbType_Description" xml:space="preserve">
     <value>The Rgb scalar type represents a valid CSS RGB color as defined in https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba().</value>

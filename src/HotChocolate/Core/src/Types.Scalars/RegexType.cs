@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
@@ -8,7 +10,7 @@ namespace HotChocolate.Types;
 /// The Regular Expression scalar type represents textual data, represented as UTF‐8 character
 /// sequences following a pattern defined as a <see cref="Regex"/>
 /// </summary>
-public class RegexType : StringType
+public class RegexType : ScalarType<string, StringValueNode>
 {
     protected internal const int DefaultRegexTimeoutInMs = 200;
 
@@ -42,75 +44,65 @@ public class RegexType : StringType
         Regex regex,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
-        : base(name, description, bind)
+        : base(name, bind)
     {
         _validationRegex = regex;
+        Description = description;
     }
 
     /// <inheritdoc />
-    protected override bool IsInstanceOfType(string runtimeValue)
-        => _validationRegex.IsMatch(runtimeValue);
-
-    /// <inheritdoc />
-    protected override bool IsInstanceOfType(StringValueNode valueSyntax)
-        => _validationRegex.IsMatch(valueSyntax.Value);
+    public override bool IsInstanceOfType(object runtimeValue)
+        => runtimeValue is string s && _validationRegex.IsMatch(s);
 
     public override bool IsValueCompatible(IValueNode valueLiteral)
-    {
-        return base.IsValueCompatible(valueLiteral);
-    }
-
+        => valueLiteral is StringValueNode stringLiteral && _validationRegex.IsMatch(stringLiteral.Value);
 
     public override bool IsValueCompatible(JsonElement inputValue)
+        => inputValue.ValueKind is JsonValueKind.String && _validationRegex.IsMatch(inputValue.GetString()!);
+
+    protected override string OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        return base.IsValueCompatible(inputValue);
+        if (_validationRegex.IsMatch(valueLiteral.Value))
+        {
+            return valueLiteral.Value;
+        }
+
+        throw FormatException();
     }
 
-    /// <inheritdoc />
-    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
+    protected override string OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (runtimeValue is null)
+        var runtimeValue = inputValue.GetString()!;
+
+        if (_validationRegex.IsMatch(runtimeValue))
         {
-            resultValue = null;
-            return true;
+            return runtimeValue;
         }
 
-        if (runtimeValue is string s
-            && _validationRegex.IsMatch(s))
-        {
-            resultValue = s;
-            return true;
-        }
-
-        resultValue = null;
-        return false;
+        throw FormatException();
     }
 
-    /// <inheritdoc />
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+    protected override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
     {
-        if (resultValue is null)
+        if (_validationRegex.IsMatch(runtimeValue))
         {
-            runtimeValue = null;
-            return true;
+            resultValue.SetStringValue(runtimeValue);
+            return;
         }
 
-        if (resultValue is string s
-            && _validationRegex.IsMatch(s))
-        {
-            runtimeValue = s;
-            return true;
-        }
-
-        runtimeValue = null;
-        return false;
+        throw FormatException();
     }
 
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-        => ThrowHelper.RegexType_ParseLiteral_IsInvalid(this, Name);
+    protected override StringValueNode OnValueToLiteral(string runtimeValue)
+    {
+        if (_validationRegex.IsMatch(runtimeValue))
+        {
+            return new StringValueNode(runtimeValue);
+        }
 
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
-        => ThrowHelper.RegexType_ParseValue_IsInvalid(this, Name);
+        throw FormatException();
+    }
+
+    protected virtual LeafCoercionException FormatException()
+        => ThrowHelper.RegexType_InvalidFormat(this, Name);
 }

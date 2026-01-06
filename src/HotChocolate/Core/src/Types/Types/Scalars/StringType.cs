@@ -41,25 +41,18 @@ public class StringType : ScalarType<string, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+    protected override string OnCoerceInputLiteral(StringValueNode valueLiteral)
         => valueLiteral.Value;
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
-    {
-        if (inputValue.ValueKind is JsonValueKind.String)
-        {
-            return inputValue.GetString()!;
-        }
-
-        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
-    }
+    protected override string OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        => inputValue.GetString()!;
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(string runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
         => resultValue.SetStringValue(runtimeValue);
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(string runtimeValue)
+    protected override StringValueNode OnValueToLiteral(string runtimeValue)
         => new StringValueNode(runtimeValue);
 }

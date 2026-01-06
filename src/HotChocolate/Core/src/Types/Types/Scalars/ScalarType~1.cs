@@ -24,15 +24,11 @@ public abstract class ScalarType<TRuntimeType> : ScalarType where TRuntimeType :
     public sealed override Type RuntimeType => typeof(TRuntimeType);
 
     /// <inheritdoc />
-    public override bool IsInstanceOfType(object runtimeValue)
-        => RuntimeType.IsInstanceOfType(runtimeValue);
-
-    /// <inheritdoc />
     public override void CoerceOutputValue(object runtimeValue, ResultElement resultValue)
     {
         if (runtimeValue is TRuntimeType t)
         {
-            CoerceOutputValue(t, resultValue);
+            OnCoerceOutputValue(t, resultValue);
             return;
         }
 
@@ -52,14 +48,14 @@ public abstract class ScalarType<TRuntimeType> : ScalarType where TRuntimeType :
     /// <exception cref="LeafCoercionException">
     /// Unable to coerce the given <paramref name="runtimeValue"/> into an output value.
     /// </exception>
-    public abstract void CoerceOutputValue(TRuntimeType runtimeValue, ResultElement resultValue);
+    public abstract void OnCoerceOutputValue(TRuntimeType runtimeValue, ResultElement resultValue);
 
     /// <inheritdoc />
     public override IValueNode ValueToLiteral(object runtimeValue)
     {
         if (runtimeValue is TRuntimeType runtimeType)
         {
-            return ValueToLiteral(runtimeType);
+            return OnValueToLiteral(runtimeType);
         }
 
         throw Scalar_Cannot_ConvertValueToLiteral(this, runtimeValue);
@@ -78,5 +74,5 @@ public abstract class ScalarType<TRuntimeType> : ScalarType where TRuntimeType :
     /// <exception cref="LeafCoercionException">
     /// Unable to convert the given <paramref name="runtimeValue"/> into a literal.
     /// </exception>
-    public abstract IValueNode ValueToLiteral(TRuntimeType runtimeValue);
+    public abstract IValueNode OnValueToLiteral(TRuntimeType runtimeValue);
 }

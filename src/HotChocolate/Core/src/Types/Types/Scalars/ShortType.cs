@@ -55,10 +55,10 @@ public class ShortType : IntegerTypeBase<short>
         => inputValue.GetInt16();
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(short runtimeValue, ResultElement resultValue)
+    public override void OnCoerceOutputValue(short runtimeValue, ResultElement resultValue)
         => resultValue.SetNumberValue(runtimeValue);
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(short runtimeValue)
+    public override IValueNode OnValueToLiteral(short runtimeValue)
         => new IntValueNode(runtimeValue);
 }

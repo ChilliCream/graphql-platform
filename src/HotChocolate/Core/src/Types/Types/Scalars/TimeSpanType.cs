@@ -49,7 +49,7 @@ public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+    protected override TimeSpan OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
         if (TryParseStringValue(valueLiteral.Value, Format, out var value))
         {
@@ -60,7 +60,7 @@ public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    protected override TimeSpan OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (TryParseStringValue(inputValue.GetString()!, Format, out var value))
         {
@@ -71,7 +71,7 @@ public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(TimeSpan runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(TimeSpan runtimeValue, ResultElement resultValue)
     {
         var serialized = Format == TimeSpanFormat.Iso8601
             ? XmlConvert.ToString(runtimeValue)
@@ -80,7 +80,7 @@ public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(TimeSpan runtimeValue)
+    protected override StringValueNode OnValueToLiteral(TimeSpan runtimeValue)
     {
         return Format == TimeSpanFormat.Iso8601
             ? new StringValueNode(XmlConvert.ToString(runtimeValue))

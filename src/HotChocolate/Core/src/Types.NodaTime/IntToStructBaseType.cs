@@ -30,11 +30,11 @@ public abstract class IntToStructBaseType<TRuntimeType>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputLiteral(IntValueNode valueLiteral)
+    protected override TRuntimeType OnCoerceInputLiteral(IntValueNode valueLiteral)
     {
         if (TryCoerceRuntimeValue(valueLiteral.ToInt32(), out var runtimeValue))
         {
-            return runtimeValue;
+            return runtimeValue.Value;
         }
 
         throw new LeafCoercionException(
@@ -43,12 +43,11 @@ public abstract class IntToStructBaseType<TRuntimeType>
     }
 
     /// <inheritdoc />
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    protected override TRuntimeType OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (inputValue.ValueKind is not JsonValueKind.Number
-            && TryCoerceRuntimeValue(inputValue.GetInt32(), out var runtimeValue))
+        if (TryCoerceRuntimeValue(inputValue.GetInt32(), out var runtimeValue))
         {
-            return runtimeValue;
+            return runtimeValue.Value;
         }
 
         throw new LeafCoercionException(
@@ -57,7 +56,7 @@ public abstract class IntToStructBaseType<TRuntimeType>
     }
 
     /// <inheritdoc />
-    public override void CoerceOutputValue(TRuntimeType runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(TRuntimeType runtimeValue, ResultElement resultValue)
     {
         if (TryCoerceOutputValue(runtimeValue, out var value))
         {
@@ -71,7 +70,7 @@ public abstract class IntToStructBaseType<TRuntimeType>
     }
 
     /// <inheritdoc />
-    public override IValueNode ValueToLiteral(TRuntimeType runtimeValue)
+    protected override IntValueNode OnValueToLiteral(TRuntimeType runtimeValue)
     {
         if (TryCoerceOutputValue(runtimeValue, out var value))
         {
