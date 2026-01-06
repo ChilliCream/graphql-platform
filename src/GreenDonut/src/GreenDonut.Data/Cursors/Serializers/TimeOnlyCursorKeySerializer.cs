@@ -12,7 +12,7 @@ internal sealed class TimeOnlyCursorKeySerializer : ICursorKeySerializer
     private const string TimeFormat = "HHmmssfffffff";
 
     public bool IsSupported(Type type)
-        => type == typeof(TimeOnly);
+        => type == typeof(TimeOnly) || type == typeof(TimeOnly?);
 
     public MethodInfo GetCompareToMethod(Type type)
         => s_compareTo;

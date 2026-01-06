@@ -67,6 +67,9 @@ public readonly record struct PagingArguments
     /// </summary>
     public bool EnableRelativeCursors { get; init; }
 
+    /// <summary>Defines the null ordering to be used.</summary>
+    public NullOrdering NullOrdering { get; init; }
+
     /// <summary>
     /// Deconstructs the paging arguments into its components.
     /// </summary>

@@ -13,7 +13,7 @@ internal sealed class DateTimeCursorKeySerializer : ICursorKeySerializer
     private const string DateTimeFormat = "yyyyMMddHHmmssfffffff";
 
     public bool IsSupported(Type type)
-        => type == typeof(DateTime);
+        => type == typeof(DateTime) || type == typeof(DateTime?);
 
     public MethodInfo GetCompareToMethod(Type type)
         => s_compareTo;
