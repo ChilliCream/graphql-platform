@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -53,6 +54,17 @@ public class RegexType : StringType
     /// <inheritdoc />
     protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         => _validationRegex.IsMatch(valueSyntax.Value);
+
+    public override bool IsValueCompatible(IValueNode valueLiteral)
+    {
+        return base.IsValueCompatible(valueLiteral);
+    }
+
+
+    public override bool IsValueCompatible(JsonElement inputValue)
+    {
+        return base.IsValueCompatible(inputValue);
+    }
 
     /// <inheritdoc />
     public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)

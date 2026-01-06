@@ -118,9 +118,9 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
     public string? Pattern { get; set; }
 
     /// <inheritdoc />
-    public bool IsValueCompatible(IValueNode value)
+    public bool IsValueCompatible(IValueNode valueLiteral)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(valueLiteral);
         return true;
     }
 

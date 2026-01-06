@@ -21,8 +21,8 @@ public sealed class GeoJsonPositionType : ScalarType<Coordinate>
         Description = Resources.GeoJsonPositionScalar_Description;
     }
 
-    public override bool IsValueCompatible(IValueNode valueSyntax)
-        => GeoJsonPositionSerializer.Default.IsInstanceOfType(this, valueSyntax);
+    public override bool IsValueCompatible(IValueNode valueLiteral)
+        => GeoJsonPositionSerializer.Default.IsInstanceOfType(this, valueLiteral);
 
     public override object? CoerceInputLiteral(IValueNode valueSyntax)
         => GeoJsonPositionSerializer.Default.ParseLiteral(this, valueSyntax);

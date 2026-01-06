@@ -162,16 +162,16 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
     }
 
     /// <inheritdoc />
-    public bool IsValueCompatible(IValueNode value)
+    public bool IsValueCompatible(IValueNode valueLiteral)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(valueLiteral);
 
         if (ValueKind == ScalarValueKind.Any)
         {
             return true;
         }
 
-        return value.Kind switch
+        return valueLiteral.Kind switch
         {
             SyntaxKind.NullValue => true,
             SyntaxKind.EnumValue => false,

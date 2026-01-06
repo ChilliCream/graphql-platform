@@ -29,9 +29,9 @@ public interface IScalarTypeDefinition
     /// <summary>
     /// Checks if the value is an instance of this type.
     /// </summary>
-    /// <param name="value">The value to check.</param>
+    /// <param name="valueLiteral">The value to check.</param>
     /// <returns>
     /// <c>true</c> if the value is an instance of this type; otherwise, <c>false</c>.
     /// </returns>
-    bool IsValueCompatible(IValueNode value);
+    bool IsValueCompatible(IValueNode valueLiteral);
 }

@@ -44,11 +44,11 @@ public class BsonType : ScalarType
     public override Type RuntimeType => typeof(BsonValue);
 
     /// <inheritdoc />
-    public override bool IsValueCompatible(IValueNode valueSyntax)
+    public override bool IsValueCompatible(IValueNode valueLiteral)
     {
-        ArgumentNullException.ThrowIfNull(valueSyntax);
+        ArgumentNullException.ThrowIfNull(valueLiteral);
 
-        switch (valueSyntax)
+        switch (valueLiteral)
         {
             case StringValueNode:
             case IntValueNode:

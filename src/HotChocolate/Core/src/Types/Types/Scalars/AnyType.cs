@@ -34,9 +34,9 @@ public class AnyType : ScalarType
 
     public override ScalarSerializationType SerializationType => ScalarSerializationType.Any;
 
-    public override bool IsValueCompatible(IValueNode literal)
+    public override bool IsValueCompatible(IValueNode valueLiteral)
     {
-        switch (literal)
+        switch (valueLiteral)
         {
             case StringValueNode:
             case IntValueNode:

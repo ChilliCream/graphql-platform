@@ -123,16 +123,16 @@ public class ScalarExecutionErrorTests
 
         public override Type RuntimeType => typeof(string);
 
-        public override bool IsValueCompatible(IValueNode literal)
+        public override bool IsValueCompatible(IValueNode valueLiteral)
         {
-            ArgumentNullException.ThrowIfNull(literal);
+            ArgumentNullException.ThrowIfNull(valueLiteral);
 
-            if (literal is NullValueNode)
+            if (valueLiteral is NullValueNode)
             {
                 return true;
             }
 
-            return literal is StringValueNode { Value: "a" };
+            return valueLiteral is StringValueNode { Value: "a" };
         }
 
         public override bool IsInstanceOfType(object? value)

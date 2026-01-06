@@ -57,7 +57,7 @@ public class ScalarBindingTests
         {
         }
 
-        public override bool IsValueCompatible(IValueNode literal)
+        public override bool IsValueCompatible(IValueNode valueLiteral)
         {
             throw new NotImplementedException();
         }
@@ -85,7 +85,7 @@ public class ScalarBindingTests
         {
         }
 
-        public override bool IsValueCompatible(IValueNode literal)
+        public override bool IsValueCompatible(IValueNode valueLiteral)
         {
             throw new NotImplementedException();
         }

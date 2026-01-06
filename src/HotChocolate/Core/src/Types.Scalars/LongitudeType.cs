@@ -35,8 +35,8 @@ public class LongitudeType : ScalarType<double, StringValueNode>
     }
 
     /// <inheritdoc />
-    protected override bool IsInstanceOfType(double runtimeValue) =>
-        Longitude.IsValid(runtimeValue);
+    public override bool IsInstanceOfType(object runtimeValue)
+        => runtimeValue is double d && Longitude.IsValid(d);
 
     /// <inheritdoc />
     public override IValueNode ParseResult(object? resultValue)

@@ -29,8 +29,8 @@ public sealed class GeometryType
     public override object? CoerceOutputValue(object? runtimeValue)
         => GeoJsonGeometrySerializer.Default.Serialize(this, runtimeValue);
 
-    public override bool IsValueCompatible(IValueNode valueSyntax)
-        => GeoJsonGeometrySerializer.Default.IsInstanceOfType(this, valueSyntax);
+    public override bool IsValueCompatible(IValueNode valueLiteral)
+        => GeoJsonGeometrySerializer.Default.IsInstanceOfType(this, valueLiteral);
 
     public override bool IsInstanceOfType(object? runtimeValue)
         => GeoJsonGeometrySerializer.Default.IsInstanceOfType(this, runtimeValue);

@@ -1015,8 +1015,8 @@ public class InaccessibleTests : FusionTestBase
 
                 public override Type RuntimeType => typeof(string);
 
-                public override bool IsValueCompatible(IValueNode valueSyntax)
-                    => valueSyntax is StringValueNode;
+                public override bool IsValueCompatible(IValueNode valueLiteral)
+                    => valueLiteral is StringValueNode;
 
                 public override object? CoerceInputLiteral(IValueNode valueSyntax)
                     => valueSyntax is StringValueNode s ? s.Value : null;

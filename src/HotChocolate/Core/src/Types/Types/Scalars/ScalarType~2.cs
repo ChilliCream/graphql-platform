@@ -1,5 +1,7 @@
 using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
@@ -16,10 +18,13 @@ namespace HotChocolate.Types;
 /// The GraphQL literal (AST value node) type that this scalar accepts.
 /// </typeparam>
 public abstract class ScalarType<TRuntimeType, TLiteral>
-    : ScalarType<TRuntimeType>
+    : ScalarType
     where TRuntimeType : notnull
     where TLiteral : IValueNode
 {
+    // ReSharper disable once StaticMemberInGenericType
+    private static readonly ScalarSerializationType s_serializationType = DetermineSerializationType();
+
     /// <inheritdoc />
     protected ScalarType(string name, BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
@@ -27,97 +32,17 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
     }
 
     /// <inheritdoc />
-    public override ScalarSerializationType SerializationType
-    {
-        get
-        {
-            if (typeof(TLiteral) == typeof(StringValueNode))
-            {
-                return ScalarSerializationType.String;
-            }
-
-            if (typeof(TLiteral) == typeof(IntValueNode))
-            {
-                return ScalarSerializationType.Int;
-            }
-
-            if (typeof(TLiteral) == typeof(FloatValueNode))
-            {
-                return ScalarSerializationType.Float;
-            }
-
-            if (typeof(TLiteral) == typeof(BooleanValueNode))
-            {
-                return ScalarSerializationType.Boolean;
-            }
-
-            if (typeof(TLiteral) == typeof(ObjectValueNode))
-            {
-                return ScalarSerializationType.Object;
-            }
-
-            if (typeof(TLiteral) == typeof(ListValueNode))
-            {
-                return ScalarSerializationType.List;
-            }
-
-            throw new NotSupportedException();
-        }
-    }
+    public sealed override Type RuntimeType => typeof(TRuntimeType);
 
     /// <inheritdoc />
-    public sealed override bool IsValueCompatible(IValueNode valueSyntax)
-        => valueSyntax is TLiteral;
-
-    /// <inheritdoc />
-    public override bool IsValueCompatible(JsonElement inputValue)
-    {
-        if (SerializationType == ScalarSerializationType.String
-            && inputValue.ValueKind == JsonValueKind.String)
-        {
-            return true;
-        }
-
-        if (SerializationType == ScalarSerializationType.Int
-            && inputValue.ValueKind == JsonValueKind.Number)
-        {
-            return true;
-        }
-
-        if (SerializationType == ScalarSerializationType.Float
-            && inputValue.ValueKind == JsonValueKind.Number)
-        {
-            return true;
-        }
-
-        if (SerializationType == ScalarSerializationType.Boolean
-            && (inputValue.ValueKind == JsonValueKind.True
-                || inputValue.ValueKind == JsonValueKind.False))
-        {
-            return true;
-        }
-
-        if (SerializationType == ScalarSerializationType.Object
-            && inputValue.ValueKind == JsonValueKind.Object)
-        {
-            return true;
-        }
-
-        if (SerializationType == ScalarSerializationType.List
-            && inputValue.ValueKind == JsonValueKind.Array)
-        {
-            return true;
-        }
-
-        return false;
-    }
+    public sealed override ScalarSerializationType SerializationType => s_serializationType;
 
     /// <inheritdoc />
     public sealed override object CoerceInputLiteral(IValueNode valueLiteral)
     {
         if (valueLiteral is TLiteral literal)
         {
-            return CoerceInputLiteral(literal);
+            return OnCoerceInputLiteral(literal);
         }
 
         throw CreateCoerceInputLiteralError(valueLiteral);
@@ -130,23 +55,199 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
     /// The GraphQL literal to coerce.
     /// </param>
     /// <returns>
-    /// Returns the runtime value representation.
+    /// Returns the runtime value representation of type <typeparamref name="TRuntimeType"/>.
     /// </returns>
     /// <exception cref="LeafCoercionException">
     /// Unable to coerce the given <paramref name="valueLiteral"/> into a runtime value.
     /// </exception>
-    public abstract object CoerceInputLiteral(TLiteral valueLiteral);
+    protected abstract TRuntimeType OnCoerceInputLiteral(TLiteral valueLiteral);
+
+    /// <inheritdoc />
+    public sealed override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    {
+        switch (s_serializationType)
+        {
+            case ScalarSerializationType.String
+                when inputValue.ValueKind is not JsonValueKind.String:
+            case ScalarSerializationType.Int
+                when inputValue.ValueKind is not JsonValueKind.Number:
+            case ScalarSerializationType.Float
+                when inputValue.ValueKind is not JsonValueKind.Number:
+            case ScalarSerializationType.Boolean
+                when inputValue.ValueKind is not (JsonValueKind.True or JsonValueKind.False):
+            case ScalarSerializationType.Object
+                when inputValue.ValueKind is not JsonValueKind.Object:
+            case ScalarSerializationType.List
+                when inputValue.ValueKind is not JsonValueKind.Array:
+                throw CreateCoerceInputValueError(inputValue);
+
+            default:
+                return OnCoerceInputValue(inputValue, context);
+        }
+    }
+
+    /// <summary>
+    /// Coerces a JSON input value into a runtime value.
+    /// </summary>
+    /// <param name="inputValue">
+    /// The JSON element to coerce.
+    /// </param>
+    /// <param name="context">
+    /// The feature provider context for accessing additional services.
+    /// </param>
+    /// <returns>
+    /// Returns the runtime value representation of type <typeparamref name="TRuntimeType"/>.
+    /// </returns>
+    /// <exception cref="LeafCoercionException">
+    /// Unable to coerce the given <paramref name="inputValue"/> into a runtime value.
+    /// </exception>
+    /// <remarks>
+    /// This method is called after the JSON value kind has been validated to match the expected
+    /// serialization type. The implementation should parse the JSON value and convert it to the
+    /// runtime type.
+    /// </remarks>
+    protected abstract TRuntimeType OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context);
+
+    /// <inheritdoc />
+    public sealed override void CoerceOutputValue(object runtimeValue, ResultElement resultValue)
+    {
+        if (runtimeValue is TRuntimeType castedRuntimeValue)
+        {
+            OnCoerceOutputValue(castedRuntimeValue, resultValue);
+            return;
+        }
+
+        throw CreateCoerceOutputValueError(runtimeValue);
+    }
+
+    /// <summary>
+    /// Coerces a runtime value into a result value for serialization.
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// The runtime value to serialize.
+    /// </param>
+    /// <param name="resultValue">
+    /// The result element to write the serialized value to.
+    /// </param>
+    /// <exception cref="LeafCoercionException">
+    /// Unable to coerce the given <paramref name="runtimeValue"/> into a result value.
+    /// </exception>
+    /// <remarks>
+    /// This method is responsible for writing the runtime value to the result element using
+    /// appropriate methods like <c>SetStringValue</c>, <c>SetNumberValue</c>, etc.
+    /// </remarks>
+    protected abstract void OnCoerceOutputValue(TRuntimeType runtimeValue, ResultElement resultValue);
+
+    /// <inheritdoc />
+    public sealed override IValueNode ValueToLiteral(object runtimeValue)
+    {
+        if (runtimeValue is TRuntimeType literal)
+        {
+            return OnValueToLiteral(literal);
+        }
+
+        throw CreateValueToLiteralError(runtimeValue);
+    }
+
+    /// <summary>
+    /// Converts a runtime value into a GraphQL literal (AST value node).
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// The runtime value to convert.
+    /// </param>
+    /// <returns>
+    /// Returns the GraphQL literal representation of type <typeparamref name="TLiteral"/>.
+    /// </returns>
+    /// <exception cref="LeafCoercionException">
+    /// Unable to convert the given <paramref name="runtimeValue"/> into a literal.
+    /// </exception>
+    /// <remarks>
+    /// This method is typically used for query rewriting and value serialization scenarios
+    /// where a runtime value needs to be represented as a GraphQL AST node.
+    /// </remarks>
+    protected abstract TLiteral OnValueToLiteral(TRuntimeType runtimeValue);
 
     /// <summary>
     /// Creates the exception to throw when <see cref="CoerceInputLiteral(IValueNode)"/>
     /// encounters an incompatible <see cref="IValueNode"/>.
     /// </summary>
-    /// <param name="valueSyntax">
+    /// <param name="valueLiteral">
     /// The value syntax that could not be coerced.
     /// </param>
     /// <returns>
     /// Returns the exception to throw.
     /// </returns>
-    protected virtual LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-        => Scalar_Cannot_CoerceInputLiteral(this, valueSyntax);
+    protected virtual LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueLiteral)
+        => Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
+
+    /// <summary>
+    /// Creates the exception to throw when <see cref="CoerceInputValue(JsonElement, IFeatureProvider)"/>
+    /// encounters an incompatible <see cref="JsonElement"/>.
+    /// </summary>
+    /// <param name="inputValue">
+    /// The JSON value that could not be coerced.
+    /// </param>
+    /// <returns>
+    /// Returns the exception to throw.
+    /// </returns>
+    protected virtual LeafCoercionException CreateCoerceInputValueError(JsonElement inputValue)
+        => Scalar_Cannot_CoerceInputValue(this, inputValue);
+
+    /// <summary>
+    /// Creates the exception to throw when <see cref="CoerceOutputValue(object, ResultElement)"/>
+    /// encounters an incompatible runtime value.
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// The runtime value that could not be coerced.
+    /// </param>
+    /// <returns>
+    /// Returns the exception to throw.
+    /// </returns>
+    protected virtual LeafCoercionException CreateCoerceOutputValueError(object runtimeValue)
+        => Scalar_Cannot_CoerceOutputValue(this, runtimeValue);
+
+    /// <summary>
+    /// Creates the exception to throw when <see cref="ValueToLiteral(object)"/>
+    /// encounters an incompatible runtime value.
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// The runtime value that could not be converted to a literal.
+    /// </param>
+    /// <returns>
+    /// Returns the exception to throw.
+    /// </returns>
+    protected virtual LeafCoercionException CreateValueToLiteralError(object runtimeValue)
+        => Scalar_Cannot_ConvertValueToLiteral(this, runtimeValue);
+
+    private static ScalarSerializationType DetermineSerializationType()
+    {
+        if (typeof(TLiteral) == typeof(StringValueNode))
+        {
+            return ScalarSerializationType.String;
+        }
+        else if (typeof(TLiteral) == typeof(IntValueNode))
+        {
+            return ScalarSerializationType.Int;
+        }
+        else if (typeof(TLiteral) == typeof(FloatValueNode))
+        {
+            return ScalarSerializationType.Float;
+        }
+        else if (typeof(TLiteral) == typeof(BooleanValueNode))
+        {
+            return ScalarSerializationType.Boolean;
+        }
+        else if (typeof(TLiteral) == typeof(ObjectValueNode))
+        {
+            return ScalarSerializationType.Object;
+        }
+        else if (typeof(TLiteral) == typeof(ListValueNode))
+        {
+            return ScalarSerializationType.List;
+        }
+        else
+        {
+            throw new InvalidOperationException("Invalid literal type.");
+        }
+    }
 }

@@ -185,7 +185,7 @@ public class SchemaTypeDiscoveryTests
 
         public override Type RuntimeType => typeof(byte[]);
 
-        public override bool IsValueCompatible(IValueNode literal)
+        public override bool IsValueCompatible(IValueNode valueLiteral)
         {
             throw new NotSupportedException();
         }

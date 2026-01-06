@@ -18,7 +18,7 @@ public class _AnyTypeTests
     }
 
     [Fact]
-    public void Deserialize()
+    public void CoerceInputLiteral()
     {
         // arrange
         var type = new AnyType();
@@ -29,7 +29,7 @@ public class _AnyTypeTests
         );
 
         // act
-        var representationObject = type.Deserialize(serialized);
+        var representationObject = type.CoerceInputLiteral(serialized);
 
         // assert
         var representation = Assert.IsType<Representation>(representationObject);
@@ -70,64 +70,19 @@ public class _AnyTypeTests
     }
 
     [Fact]
-    public void Deserialize_Invalid_Format()
+    public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
         var type = new AnyType();
         var serialized = new ObjectValueNode();
 
         // act
-        void Action() => type.Deserialize(serialized);
+        void Action() => type.CoerceInputLiteral(serialized);
 
         // assert
         Assert.Throws<LeafCoercionException>(Action);
     }
 
-    [Fact]
-    public void TryDeserialize()
-    {
-        // arrange
-        var type = new AnyType();
-        var serialized = new ObjectValueNode(
-            new ObjectFieldNode(AnyType.TypeNameField, "test"),
-            new ObjectFieldNode("foo", "bar"));
-
-        // act
-        var success = type.TryDeserialize(serialized, out var representation);
-
-        // assert
-        Assert.True(success);
-        Assert.IsType<Representation>(representation);
-    }
-
-    [Fact]
-    public void TryDeserialize_Null()
-    {
-        // arrange
-        var type = new AnyType();
-
-        // act
-        var success = type.TryDeserialize(null, out var representation);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(representation);
-    }
-
-    [Fact]
-    public void TryDeserialize_Invalid_Type()
-    {
-        // arrange
-        var type = new AnyType();
-        const int serialized = 1;
-
-        // act
-        var success = type.TryDeserialize(serialized, out var representation);
-
-        // assert
-        Assert.False(success);
-        Assert.Null(representation);
-    }
 
     [Fact]
     public void Serialize()
@@ -144,10 +99,12 @@ public class _AnyTypeTests
                 "bar"
             )
         );
+
         var representation = new Representation("test", objectValueNode);
 
+
         // act
-        var serialized = (ISyntaxNode)type.Serialize(representation)!;
+        var serialized = type.CoerceOutputValue(representation)!;
 
         // assert
         Assert.Equal(

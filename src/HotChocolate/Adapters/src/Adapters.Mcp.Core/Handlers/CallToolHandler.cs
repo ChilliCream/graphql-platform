@@ -1,3 +1,6 @@
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -14,6 +17,10 @@ namespace HotChocolate.Adapters.Mcp.Handlers;
 
 internal static class CallToolHandler
 {
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
     public static async ValueTask<CallToolResult> HandleAsync(
         RequestContext<CallToolRequestParams> context,
         CancellationToken cancellationToken)
@@ -63,10 +70,14 @@ internal static class CallToolHandler
             // serialized JSON can be returned in a TextContent block.)
             Content = [new TextContentBlock { Text = jsonOperationResult }],
             StructuredContent = JsonNode.Parse(jsonOperationResult),
-            IsError = operationResult.Errors?.Any()
+            IsError = !operationResult.Errors.IsEmpty
         };
     }
 
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
     private static OperationRequestBuilder CreateRequestBuilder(HttpContext httpContext)
     {
         var requestBuilder = new OperationRequestBuilder();

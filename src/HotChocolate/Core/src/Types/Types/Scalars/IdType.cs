@@ -54,8 +54,8 @@ public class IdType : ScalarType<string>
         => ScalarSerializationType.String | ScalarSerializationType.Int;
 
     /// <inheritdoc />
-    public override bool IsValueCompatible(IValueNode literal)
-        => literal is StringValueNode or IntValueNode;
+    public override bool IsValueCompatible(IValueNode valueLiteral)
+        => valueLiteral is StringValueNode or IntValueNode;
 
     /// <inheritdoc />
     public override bool IsValueCompatible(JsonElement inputValue)

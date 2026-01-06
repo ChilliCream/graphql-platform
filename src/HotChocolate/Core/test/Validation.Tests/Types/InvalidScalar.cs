@@ -10,7 +10,7 @@ public class InvalidScalar : ScalarType<string>
     {
     }
 
-    public override bool IsValueCompatible(IValueNode literal)
+    public override bool IsValueCompatible(IValueNode valueLiteral)
     {
         return false;
     }
