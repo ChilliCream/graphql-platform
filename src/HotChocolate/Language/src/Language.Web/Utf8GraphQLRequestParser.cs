@@ -4,7 +4,7 @@ using static HotChocolate.Language.Properties.LangWebResources;
 
 namespace HotChocolate.Language;
 
-public ref partial struct Utf8GraphQLRequestParser
+public ref struct Utf8GraphQLRequestParser
 {
     private const string PersistedQuery = "persistedQuery";
     private static readonly JsonReaderOptions s_jsonOptions = new()
@@ -15,31 +15,38 @@ public ref partial struct Utf8GraphQLRequestParser
     private static readonly ArrayPool<GraphQLRequest> s_requestPool = ArrayPool<GraphQLRequest>.Shared;
     private static readonly ArrayPool<byte> s_bytePool = ArrayPool<byte>.Shared;
 
-    private readonly ReadOnlySpan<byte> _requestData;
     private readonly IDocumentHashProvider? _hashProvider;
     private readonly IDocumentCache? _cache;
     private readonly bool _useCache;
     private readonly ParserOptions _options;
 
     public Utf8GraphQLRequestParser(
-        ReadOnlySpan<byte> requestData,
         ParserOptions? options = null,
         IDocumentCache? cache = null,
         IDocumentHashProvider? hashProvider = null)
     {
-        _requestData = requestData;
         _options = options ?? ParserOptions.Default;
         _cache = cache;
         _hashProvider = hashProvider;
         _useCache = cache is not null;
     }
 
-    public readonly IReadOnlyList<GraphQLRequest> Parse()
+    public readonly GraphQLRequest[] Parse(ReadOnlySpan<byte> requestData)
+    {
+        var reader = new Utf8JsonReader(requestData, s_jsonOptions);
+        return Parse(ref reader);
+    }
+
+    public readonly GraphQLRequest[] Parse(ReadOnlySequence<byte> requestData)
+    {
+        var reader = new Utf8JsonReader(requestData, s_jsonOptions);
+        return Parse(ref reader);
+    }
+
+    private readonly GraphQLRequest[] Parse(ref Utf8JsonReader reader)
     {
         try
         {
-            var reader = new Utf8JsonReader(_requestData, s_jsonOptions);
-
             if (!reader.Read())
             {
                 throw new InvalidGraphQLRequestException(
@@ -61,12 +68,31 @@ public ref partial struct Utf8GraphQLRequestParser
         }
     }
 
-    public readonly GraphQLRequest ParsePersistedOperation(OperationDocumentId operationId, string? operationName)
+    public readonly GraphQLRequest ParsePersistedOperation(
+        OperationDocumentId operationId,
+        string? operationName,
+        ReadOnlySpan<byte> requestData)
+    {
+        var reader = new Utf8JsonReader(requestData, s_jsonOptions);
+        return ParsePersistedOperation(operationId, operationName, ref reader);
+    }
+
+    public readonly GraphQLRequest ParsePersistedOperation(
+        OperationDocumentId operationId,
+        string? operationName,
+        ReadOnlySequence<byte> requestData)
+    {
+        var reader = new Utf8JsonReader(requestData, s_jsonOptions);
+        return ParsePersistedOperation(operationId, operationName, ref reader);
+    }
+
+    private readonly GraphQLRequest ParsePersistedOperation(
+        OperationDocumentId operationId,
+        string? operationName,
+        ref Utf8JsonReader reader)
     {
         try
         {
-            var reader = new Utf8JsonReader(_requestData, s_jsonOptions);
-
             if (!reader.Read())
             {
                 throw new InvalidGraphQLRequestException(
@@ -420,10 +446,17 @@ public ref partial struct Utf8GraphQLRequestParser
         return false;
     }
 
-    public static IReadOnlyList<GraphQLRequest> Parse(
+    public static GraphQLRequest[] Parse(
         ReadOnlySpan<byte> requestData,
         ParserOptions? options = null,
         IDocumentCache? cache = null,
         IDocumentHashProvider? hashProvider = null)
-        => new Utf8GraphQLRequestParser(requestData, options, cache, hashProvider).Parse();
+        => new Utf8GraphQLRequestParser(options, cache, hashProvider).Parse(requestData);
+
+    public static GraphQLRequest[] Parse(
+        ReadOnlySequence<byte> requestData,
+        ParserOptions? options = null,
+        IDocumentCache? cache = null,
+        IDocumentHashProvider? hashProvider = null)
+        => new Utf8GraphQLRequestParser(options, cache, hashProvider).Parse(requestData);
 }

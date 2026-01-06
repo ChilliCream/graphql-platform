@@ -351,7 +351,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         var id = idProp.GetString()!;
         var request = Parse(JsonMarshal.GetRawUtf8Value(payloadProp));
 
-        if (request.Count == 0)
+        if (request.Length == 0)
         {
             message = null;
             return false;

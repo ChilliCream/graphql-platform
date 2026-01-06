@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace HotChocolate.Language;
 
-public ref partial struct Utf8GraphQLSocketMessageParser
+public ref struct Utf8GraphQLSocketMessageParser
 {
     private static readonly JsonReaderOptions s_jsonOptions = new()
     {

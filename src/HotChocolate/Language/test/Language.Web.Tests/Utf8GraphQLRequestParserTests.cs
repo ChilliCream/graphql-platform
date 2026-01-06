@@ -42,9 +42,8 @@ public class Utf8GraphQLRequestParserTests
 
         // act
         var parserOptions = new ParserOptions();
-        var requestParser = new Utf8GraphQLRequestParser(
-            source, parserOptions);
-        var batch = requestParser.Parse();
+        var requestParser = new Utf8GraphQLRequestParser(parserOptions);
+        var batch = requestParser.Parse(source);
 
         // assert
         var request = Assert.Single(batch);
@@ -67,9 +66,8 @@ public class Utf8GraphQLRequestParserTests
 
         // act
         var parserOptions = new ParserOptions();
-        var requestParser = new Utf8GraphQLRequestParser(
-            source, parserOptions);
-        var batch = requestParser.Parse();
+        var requestParser = new Utf8GraphQLRequestParser(parserOptions);
+        var batch = requestParser.Parse(source);
 
         // assert
         Assert.Collection(batch,

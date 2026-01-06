@@ -324,7 +324,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         var requestData = JsonMarshal.GetRawUtf8Value(payloadProp);
         var request = Parse(requestData);
 
-        if (request.Count == 0)
+        if (request.Length == 0)
         {
             message = null;
             return false;

@@ -55,9 +55,9 @@ internal static class MiddlewareHelper
         {
             try
             {
-                return new ParseRequestResult(
-                    executorSession.RequestParser.ParseRequestFromParams(
-                        context.Request.Query));
+                var request = executorSession.RequestParser.ParseRequestFromParams(context.Request.Query);
+                context.Response.RegisterForDispose(request);
+                return new ParseRequestResult(request);
             }
             catch (GraphQLRequestException ex)
             {
@@ -87,11 +87,13 @@ internal static class MiddlewareHelper
         {
             try
             {
-                return new ParseRequestResult(
+                var request =
                     executorSession.RequestParser.ParsePersistedOperationRequestFromParams(
                         operationId,
                         operationName,
-                        context.Request.Query));
+                        context.Request.Query);
+                context.Response.RegisterForDispose(request);
+                return new ParseRequestResult(request);
             }
             catch (GraphQLRequestException ex)
             {
@@ -126,8 +128,9 @@ internal static class MiddlewareHelper
                     await executorSession.RequestParser.ParsePersistedOperationRequestAsync(
                         operationId,
                         operationName,
-                        context.Request.Body,
+                        context.Request.BodyReader,
                         context.RequestAborted);
+                context.Response.RegisterForDispose(request);
             }
             catch (GraphQLRequestException ex)
             {
@@ -191,6 +194,10 @@ internal static class MiddlewareHelper
         return requestFlags;
     }
 
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
     public static async Task<ExecuteRequestResult> ExecuteRequestAsync(
         GraphQLRequest request,
         RequestFlags flags,
