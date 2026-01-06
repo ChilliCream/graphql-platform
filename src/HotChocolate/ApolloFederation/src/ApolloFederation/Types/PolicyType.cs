@@ -1,5 +1,9 @@
+using System.Text.Json;
 using HotChocolate.ApolloFederation.Properties;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation.Types;
 
@@ -30,12 +34,22 @@ public sealed class PolicyType : ScalarType<Policy, StringValueNode>
         Description = FederationResources.PolicyType_Description;
     }
 
-    protected override Policy ParseLiteral(StringValueNode valueSyntax)
-        => new(valueSyntax.Value);
+    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+        => new Policy(valueLiteral.Value);
 
-    public override IValueNode ParseResult(object? resultValue)
-        => CoerceInputValue(resultValue);
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    {
+        if (inputValue.ValueKind is JsonValueKind.String)
+        {
+            return new Policy(inputValue.GetString()!);
+        }
 
-    protected override StringValueNode ParseValue(Policy runtimeValue)
-        => new(runtimeValue.Value);
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
+    }
+
+    public override void CoerceOutputValue(Policy runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(runtimeValue.Value);
+
+    public override IValueNode ValueToLiteral(Policy runtimeValue)
+        => new StringValueNode(runtimeValue.Value);
 }
