@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -31,20 +32,22 @@ public class PositiveIntType : IntType
     }
 
     /// <inheritdoc />
-    protected override bool IsInstanceOfType(IntValueNode valueSyntax)
-    {
-        return IsInstanceOfType(base.ParseLiteral(valueSyntax));
-    }
+    public override bool IsInstanceOfType(object runtimeValue)
+        => runtimeValue is int i && i >= MinValue;
+
+    /// <inheritdoc />
+    public override bool IsValueCompatible(IValueNode valueLiteral)
+        => valueLiteral is IntValueNode intValueNode && intValueNode.ToInt32() >= MinValue;
+
+    /// <inheritdoc />
+    public override bool IsValueCompatible(JsonElement inputValue)
+        => inputValue.ValueKind is JsonValueKind.Number && inputValue.GetInt32() >= MinValue;
 
     /// <inheritdoc />
     protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-    {
-        throw ThrowHelper.PositiveIntType_ParseLiteral_ZeroOrLess(this);
-    }
+        => ThrowHelper.PositiveIntType_ParseLiteral_ZeroOrLess(this);
 
     /// <inheritdoc />
-    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
-    {
-        throw ThrowHelper.PositiveIntType_ParseValue_ZeroOrLess(this);
-    }
+    protected override LeafCoercionException CreateCoerceInputValueError(JsonElement inputValue)
+        => ThrowHelper.PositiveIntType_ParseValue_ZeroOrLess(this);
 }

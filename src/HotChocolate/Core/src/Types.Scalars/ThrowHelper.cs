@@ -2,242 +2,121 @@ namespace HotChocolate.Types;
 
 internal static class ThrowHelper
 {
-    public static LeafCoercionException EmailAddressType_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException EmailAddressType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.EmailAddressType_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.EmailAddressType_InvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .SetExtension("actualType", WellKnownScalarTypes.EmailAddress)
                 .Build(),
             type);
     }
 
-    public static LeafCoercionException EmailAddressType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException HexColorType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.EmailAddressType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.EmailAddress)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException HexColorType_ParseValue_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.HexColorType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.HexColor)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException HexColorType_ParseLiteral_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.HexColorType_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.HexColorType_InvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .SetExtension("actualType", WellKnownScalarTypes.HexColor)
                 .Build(),
             type);
     }
 
-    public static LeafCoercionException HslType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException HslType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.HslType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.Hsl)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException HslType_ParseLiteral_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.HslType_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.HslType_InvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .SetExtension("actualType", WellKnownScalarTypes.Hsl)
                 .Build(),
             type);
     }
 
-    public static LeafCoercionException HslaType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException HslaType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.HslaType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.Hsla)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException HslaType_ParseLiteral_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.HslaType_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.HslaType_InvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .SetExtension("actualType", WellKnownScalarTypes.Hsla)
                 .Build(),
             type);
     }
 
-    public static LeafCoercionException IPv4Type_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException IPv4Type_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.IPv4Type_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.IPv4)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException IPv4Type_ParseLiteral_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.IPv4Type_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.IPv4Type_InvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .SetExtension("actualType", WellKnownScalarTypes.IPv4)
                 .Build(),
             type);
     }
 
-    public static LeafCoercionException IPv6Type_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException IPv6Type_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.IPv6Type_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.IPv6)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException IPv6Type_ParseLiteral_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.IPv6Type_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.IPv6Type_InvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .SetExtension("actualType", WellKnownScalarTypes.IPv6)
                 .Build(),
             type);
     }
 
-    public static LeafCoercionException IsbnType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException IsbnType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.IsbnType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.Isbn)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException IsbnType_ParseLiteral_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.IsbnType_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.IsbnType_InvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .SetExtension("actualType", WellKnownScalarTypes.Isbn)
                 .Build(),
             type);
     }
 
-    public static LeafCoercionException LatitudeType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException LatitudeType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.LatitudeType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.Latitude)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException LatitudeType_ParseLiteral_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.LatitudeType_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.LatitudeType_InvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .SetExtension("actualType", WellKnownScalarTypes.Latitude)
                 .Build(),
             type);
     }
 
-    public static LeafCoercionException LocalCurrencyType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException LocalCurrencyType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.LocalCurrencyType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.LocalCurrency)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException LocalCurrencyType_ParseLiteral_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.LocalCurrencyType_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.LocalCurrencyType_InvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .SetExtension("actualType", WellKnownScalarTypes.LocalCurrency)
                 .Build(),
             type);
     }
 
-    public static LeafCoercionException LongitudeType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException LongitudeType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.LongitudeType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.Longitude)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException LongitudeType_ParseLiteral_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.LongitudeType_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.LongitudeType_InvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .SetExtension("actualType", WellKnownScalarTypes.Longitude)
                 .Build(),
             type);
     }
 
-    public static LeafCoercionException MacAddressType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException MacAddressType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.MacAddressType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.MacAddress)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException MacAddressType_ParseLiteral_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.MacAddressType_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.MacAddressType_InvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .SetExtension("actualType", WellKnownScalarTypes.MacAddress)
                 .Build(),
@@ -407,23 +286,12 @@ internal static class ThrowHelper
             type);
     }
 
-    public static LeafCoercionException PhoneNumber_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException PhoneNumberType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.PhoneNumberType_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.PhoneNumberType_InvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                .SetExtension("actualType", WellKnownScalarTypes.PhoneNumber)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException PhoneNumber_ParseValue_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.PhoneNumberType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                 .SetExtension("actualType", WellKnownScalarTypes.PhoneNumber)
                 .Build(),
             type);
@@ -510,44 +378,22 @@ internal static class ThrowHelper
             type);
     }
 
-    public static LeafCoercionException RgbType_ParseLiteral_IsInvalid(IType type)
+    public static LeafCoercionException RgbType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.RgbType_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.RgbType_InvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .SetExtension("actualType", WellKnownScalarTypes.Rgb)
                 .Build(),
             type);
     }
 
-    public static LeafCoercionException RgbType_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException RgbaType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.RgbType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.Rgb)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException RgbaType_ParseValue_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.RgbaType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.Rgba)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException RgbaType_ParseLiteral_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.RgbaType_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.RgbaType_InvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .SetExtension("actualType", WellKnownScalarTypes.Rgba)
                 .Build(),
@@ -642,22 +488,11 @@ internal static class ThrowHelper
             type);
     }
 
-    public static LeafCoercionException UtcOffset_ParseValue_IsInvalid(IType type)
+    public static LeafCoercionException UtcOffsetType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(ScalarResources.UtcOffsetType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.UtcOffset)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException UtcOffset_ParseLiteral_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.UtcOffsetType_IsInvalid_ParseLiteral)
+                .SetMessage(ScalarResources.UtcOffsetType_InvalidFormat)
                 .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                 .SetExtension("actualType", WellKnownScalarTypes.UtcOffset)
                 .Build(),

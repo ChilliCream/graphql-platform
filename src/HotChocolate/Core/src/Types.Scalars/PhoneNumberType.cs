@@ -43,15 +43,6 @@ public partial class PhoneNumberType : RegexType
     {
     }
 
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-    {
-        return ThrowHelper.PhoneNumber_ParseLiteral_IsInvalid(this);
-    }
-
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
-    {
-        return ThrowHelper.PhoneNumber_ParseValue_IsInvalid(this);
-    }
+    protected override LeafCoercionException FormatException()
+        => ThrowHelper.PhoneNumberType_InvalidFormat(this);
 }

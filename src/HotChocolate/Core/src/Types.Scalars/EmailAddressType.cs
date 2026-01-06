@@ -45,5 +45,5 @@ public partial class EmailAddressType : RegexType
     { }
 
     protected override LeafCoercionException FormatException()
-        => ThrowHelper.EmailAddressType_ParseLiteral_IsInvalid(this);
+        => ThrowHelper.EmailAddressType_InvalidFormat(this);
 }

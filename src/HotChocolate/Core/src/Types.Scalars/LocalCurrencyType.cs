@@ -1,6 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
@@ -39,68 +42,37 @@ public class LocalCurrencyType : ScalarType<decimal, StringValueNode>
     }
 
     /// <inheritdoc />
-    public override IValueNode ParseResult(object? resultValue)
+    protected override decimal OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        return resultValue switch
-        {
-            null => NullValueNode.Default,
-            string s => new StringValueNode(s),
-            decimal d => ParseValue(d),
-            _ => throw ThrowHelper.LocalCurrencyType_ParseValue_IsInvalid(this)
-        };
-    }
-
-    /// <inheritdoc />
-    protected override decimal ParseLiteral(StringValueNode valueSyntax)
-    {
-        if (TryDeserializeFromString(valueSyntax.Value, out var value))
+        if (TryDeserializeFromString(valueLiteral.Value, out var value))
         {
             return value.Value;
         }
 
-        throw ThrowHelper.LocalCurrencyType_ParseLiteral_IsInvalid(this);
-    }
-
-    protected override StringValueNode ParseValue(decimal runtimeValue)
-    {
-        return new(Serialize(runtimeValue));
+        throw ThrowHelper.LocalCurrencyType_InvalidFormat(this);
     }
 
     /// <inheritdoc />
-    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
+    protected override decimal OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        switch (runtimeValue)
+        if (TryDeserializeFromString(inputValue.GetString(), out var value))
         {
-            case null:
-                resultValue = null;
-                return true;
-            case decimal d:
-                resultValue = Serialize(d);
-                return true;
-            default:
-                resultValue = null;
-                return false;
+            return value.Value;
         }
+
+        throw ThrowHelper.LocalCurrencyType_InvalidFormat(this);
     }
 
     /// <inheritdoc />
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+    protected override void OnCoerceOutputValue(decimal runtimeValue, ResultElement resultValue)
     {
-        switch (resultValue)
-        {
-            case null:
-                runtimeValue = null;
-                return true;
-            case string s when TryDeserializeFromString(s, out var d):
-                runtimeValue = d;
-                return true;
-            case decimal d:
-                runtimeValue = d;
-                return true;
-            default:
-                runtimeValue = null;
-                return false;
-        }
+        resultValue.SetStringValue(Serialize(runtimeValue));
+    }
+
+    /// <inheritdoc />
+    protected override StringValueNode OnValueToLiteral(decimal runtimeValue)
+    {
+        return new StringValueNode(Serialize(runtimeValue));
     }
 
     private string Serialize(IFormattable value)

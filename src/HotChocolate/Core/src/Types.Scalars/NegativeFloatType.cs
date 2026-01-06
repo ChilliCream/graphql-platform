@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -30,32 +31,22 @@ public class NegativeFloatType : FloatType
     }
 
     /// <inheritdoc />
-    protected override bool IsInstanceOfType(double runtimeValue)
-    {
-        return runtimeValue < MaxValue;
-    }
+    public override bool IsInstanceOfType(object runtimeValue)
+        => runtimeValue is double d && d < MaxValue;
 
     /// <inheritdoc />
-    protected override bool IsInstanceOfType(IFloatValueLiteral valueSyntax)
-    {
-        return valueSyntax.ToDouble() < MaxValue;
-    }
+    public override bool IsValueCompatible(IValueNode valueLiteral)
+        => valueLiteral is IFloatValueLiteral floatValueLiteral && floatValueLiteral.ToDouble() < MaxValue;
+
+    /// <inheritdoc />
+    public override bool IsValueCompatible(JsonElement inputValue)
+        => inputValue.ValueKind is JsonValueKind.Number && inputValue.GetDouble() < MaxValue;
 
     /// <inheritdoc />
     protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-    {
-        throw ThrowHelper.NegativeFloatType_ParseLiteral_IsNotNegative(this);
-    }
+        => ThrowHelper.NegativeFloatType_ParseLiteral_IsNotNegative(this);
 
     /// <inheritdoc />
-    protected override LeafCoercionException CreateCoerceInputValueError(object runtimeValue)
-    {
-        throw ThrowHelper.NegativeFloatType_ParseValue_IsNotNegative(this);
-    }
-
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateParseResultError(object runtimeValue)
-    {
-        throw ThrowHelper.NegativeFloatType_ParseValue_IsNotNegative(this);
-    }
+    protected override LeafCoercionException CreateCoerceInputValueError(JsonElement inputValue)
+        => ThrowHelper.NegativeFloatType_ParseValue_IsNotNegative(this);
 }

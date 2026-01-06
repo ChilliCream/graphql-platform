@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -31,32 +32,22 @@ public class NonNegativeIntType : IntType
     }
 
     /// <inheritdoc />
-    protected override bool IsInstanceOfType(int runtimeValue)
-    {
-        return runtimeValue >= MinValue;
-    }
+    public override bool IsInstanceOfType(object runtimeValue)
+        => runtimeValue is int i && i >= MinValue;
 
     /// <inheritdoc />
-    protected override bool IsInstanceOfType(IntValueNode valueSyntax)
-    {
-        return valueSyntax.ToInt32() >= MinValue;
-    }
+    public override bool IsValueCompatible(IValueNode valueLiteral)
+        => valueLiteral is IntValueNode intValueNode && intValueNode.ToInt32() >= MinValue;
+
+    /// <inheritdoc />
+    public override bool IsValueCompatible(JsonElement inputValue)
+        => inputValue.ValueKind is JsonValueKind.Number && inputValue.GetInt32() >= MinValue;
 
     /// <inheritdoc />
     protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-    {
-        throw ThrowHelper.NonNegativeIntType_ParseLiteral_IsNotNonNegative(this);
-    }
+        => ThrowHelper.NonNegativeIntType_ParseLiteral_IsNotNonNegative(this);
 
     /// <inheritdoc />
-    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
-    {
-        throw ThrowHelper.NonNegativeIntType_ParseValue_IsNotNonNegative(this);
-    }
-
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateParseResultError(object runtimeValue)
-    {
-        throw ThrowHelper.NonNegativeIntType_ParseValue_IsNotNonNegative(this);
-    }
+    protected override LeafCoercionException CreateCoerceInputValueError(JsonElement inputValue)
+        => ThrowHelper.NonNegativeIntType_ParseValue_IsNotNonNegative(this);
 }

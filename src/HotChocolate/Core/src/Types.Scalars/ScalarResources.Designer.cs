@@ -69,20 +69,11 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to EmailAddressType cannot parse the provided literal. The provided value does not meet the RFC 5322 specification..
+        ///   Looks up a localized string similar to EmailAddressType cannot parse the provided value. The provided value does not meet the RFC 5322 specification.
         /// </summary>
-        internal static string EmailAddressType_IsInvalid_ParseLiteral {
+        internal static string EmailAddressType_InvalidFormat {
             get {
-                return ResourceManager.GetString("EmailAddressType_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to EmailAddressType cannot parse the provided value. The provided value does not meet the RFC 5322 specification..
-        /// </summary>
-        internal static string EmailAddressType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("EmailAddressType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("EmailAddressType_InvalidFormat", resourceCulture);
             }
         }
         
@@ -96,74 +87,47 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to HexColorType cannot parse the provided literal. The provided value is not a valid HEX color code..
+        ///   Looks up a localized string similar to HexColorType cannot parse the provided value. The provided value is not a valid HEX color code.
         /// </summary>
-        internal static string HexColorType_IsInvalid_ParseLiteral {
+        internal static string HexColorType_InvalidFormat {
             get {
-                return ResourceManager.GetString("HexColorType_IsInvalid_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("HexColorType_InvalidFormat", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to HexColorType cannot parse the provided value. The provided value is not a valid HEX color code..
-        /// </summary>
-        internal static string HexColorType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("HexColorType_IsInvalid_ParseValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The Hsla scalar type represents a CSS HSLA color as defined in https://www.w3.org/TR/css-color-3/#hsla-color..
+        ///   Looks up a localized string similar to The Hsla scalar type represents a CSS HSLA color as defined in https://www.w3.org/TR/css-color-3/#hsla-color.
         /// </summary>
         internal static string HslaType_Description {
             get {
                 return ResourceManager.GetString("HslaType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
-        ///   Looks up a localized string similar to HslaType cannot parse the provided literal. The provided value is not a valid CSS HSLA color code..
+        ///   Looks up a localized string similar to HslaType cannot parse the provided value. The provided value is not a valid CSS HSLA color code.
         /// </summary>
-        internal static string HslaType_IsInvalid_ParseLiteral {
+        internal static string HslaType_InvalidFormat {
             get {
-                return ResourceManager.GetString("HslaType_IsInvalid_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("HslaType_InvalidFormat", resourceCulture);
             }
         }
-        
+
         /// <summary>
-        ///   Looks up a localized string similar to HslaType cannot parse the provided value. The provided value is not a valid CSS HSLA color code..
-        /// </summary>
-        internal static string HslaType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("HslaType_IsInvalid_ParseValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The Hsl scalar type represents a valid CSS HSL color defined in https://www.w3.org/TR/css-color-3/#hsl-color..
+        ///   Looks up a localized string similar to The Hsl scalar type represents a valid CSS HSL color defined in https://www.w3.org/TR/css-color-3/#hsl-color.
         /// </summary>
         internal static string HslType_Description {
             get {
                 return ResourceManager.GetString("HslType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
-        ///   Looks up a localized string similar to HslType cannot parse the provided literal. The provided value is not a valid CSS HSL color code..
+        ///   Looks up a localized string similar to HslType cannot parse the provided value. The provided value is not a valid CSS HSL color code.
         /// </summary>
-        internal static string HslType_IsInvalid_ParseLiteral {
+        internal static string HslType_InvalidFormat {
             get {
-                return ResourceManager.GetString("HslType_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to HslType cannot parse the provided value. The provided value is not a valid CSS HSL color code..
-        /// </summary>
-        internal static string HslType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("HslType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("HslType_InvalidFormat", resourceCulture);
             }
         }
         
@@ -177,20 +141,11 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IPv4Type cannot parse the provided literal. The provided value is not a valid IPv4 address..
+        ///   Looks up a localized string similar to IPv4Type cannot parse the provided value. The provided value is not a valid IPv4 address.
         /// </summary>
-        internal static string IPv4Type_IsInvalid_ParseLiteral {
+        internal static string IPv4Type_InvalidFormat {
             get {
-                return ResourceManager.GetString("IPv4Type_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to IPv4Type cannot parse the provided value. The provided value is not a valid IPv4 address..
-        /// </summary>
-        internal static string IPv4Type_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("IPv4Type_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("IPv4Type_InvalidFormat", resourceCulture);
             }
         }
         
@@ -204,20 +159,11 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IPv6Type cannot parse the provided literal. The provided value is not a valid IPv6 address..
+        ///   Looks up a localized string similar to IPv6Type cannot parse the provided value. The provided value is not a valid IPv6 address.
         /// </summary>
-        internal static string IPv6Type_IsInvalid_ParseLiteral {
+        internal static string IPv6Type_InvalidFormat {
             get {
-                return ResourceManager.GetString("IPv6Type_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to IPv6Type cannot parse the provided value. The provided value is not a valid IPv6 address..
-        /// </summary>
-        internal static string IPv6Type_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("IPv6Type_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("IPv6Type_InvalidFormat", resourceCulture);
             }
         }
         
@@ -231,20 +177,11 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IsbnType cannot parse the provided literal. The provided value is not a valid ISBN number..
+        ///   Looks up a localized string similar to IsbnType cannot parse the provided value. The provided value is not a valid ISBN number.
         /// </summary>
-        internal static string IsbnType_IsInvalid_ParseLiteral {
+        internal static string IsbnType_InvalidFormat {
             get {
-                return ResourceManager.GetString("IsbnType_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to IsbnType cannot parse the provided value. The provided value is not a valid ISBN number..
-        /// </summary>
-        internal static string IsbnType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("IsbnType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("IsbnType_InvalidFormat", resourceCulture);
             }
         }
         
@@ -258,20 +195,11 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to LatitudeType cannot parse the provided literal. The provided value was not a valid decimal degrees latitude number..
+        ///   Looks up a localized string similar to LatitudeType cannot parse the provided value. The provided value was not a valid decimal degrees latitude number.
         /// </summary>
-        internal static string LatitudeType_IsInvalid_ParseLiteral {
+        internal static string LatitudeType_InvalidFormat {
             get {
-                return ResourceManager.GetString("LatitudeType_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to LatitudeType cannot parse the provided value. The provided value was not a valid decimal degrees latitude number..
-        /// </summary>
-        internal static string LatitudeType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("LatitudeType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("LatitudeType_InvalidFormat", resourceCulture);
             }
         }
         
@@ -285,20 +213,11 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to LocalCurrencyType cannot parse the provided literal. The provided value is not a valid local currency..
+        ///   Looks up a localized string similar to LocalCurrencyType cannot parse the provided value. The provided value is not a valid local currency.
         /// </summary>
-        internal static string LocalCurrencyType_IsInvalid_ParseLiteral {
+        internal static string LocalCurrencyType_InvalidFormat {
             get {
-                return ResourceManager.GetString("LocalCurrencyType_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to LocalCurrencyType cannot parse the provided value. The provided value is not a valid local currency..
-        /// </summary>
-        internal static string LocalCurrencyType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("LocalCurrencyType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("LocalCurrencyType_InvalidFormat", resourceCulture);
             }
         }
         
@@ -312,20 +231,11 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to LongitudeType cannot parse the provided literal. The provided value is not a valid longitude number..
+        ///   Looks up a localized string similar to LongitudeType cannot parse the provided value. The provided value is not a valid longitude number.
         /// </summary>
-        internal static string LongitudeType_IsInvalid_ParseLiteral {
+        internal static string LongitudeType_InvalidFormat {
             get {
-                return ResourceManager.GetString("LongitudeType_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to LongitudeType cannot parse the provided value. The provided value is not a valid longitude number..
-        /// </summary>
-        internal static string LongitudeType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("LongitudeType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("LongitudeType_InvalidFormat", resourceCulture);
             }
         }
         
@@ -339,20 +249,11 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MacAddressType cannot parse the provided literal. The provided value is not a valid MAC address..
+        ///   Looks up a localized string similar to MacAddressType cannot parse the provided value. The provided value is not a valid MAC address.
         /// </summary>
-        internal static string MacAddressType_IsInvalid_ParseLiteral {
+        internal static string MacAddressType_InvalidFormat {
             get {
-                return ResourceManager.GetString("MacAddressType_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to MacAddressType cannot parse the provided value. The provided value is not a valid MAC address..
-        /// </summary>
-        internal static string MacAddressType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("MacAddressType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("MacAddressType_InvalidFormat", resourceCulture);
             }
         }
         
@@ -555,20 +456,11 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to PhoneNumberType cannot parse the provided literal. The provided value does not meet the standard E.164 format..
+        ///   Looks up a localized string similar to PhoneNumberType cannot parse the provided value. The provided value does not meet the standard E.164 format.
         /// </summary>
-        internal static string PhoneNumberType_IsInvalid_ParseLiteral {
+        internal static string PhoneNumberType_InvalidFormat {
             get {
-                return ResourceManager.GetString("PhoneNumberType_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to PhoneNumberType cannot parse the provided value. The provided value does not meet the standard E.164 format..
-        /// </summary>
-        internal static string PhoneNumberType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("PhoneNumberType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("PhoneNumberType_InvalidFormat", resourceCulture);
             }
         }
         
@@ -672,47 +564,29 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to RgbaType cannot parse the provided literal. The provided value is not a valid CSS RGBA color..
+        ///   Looks up a localized string similar to RgbaType cannot parse the provided value. The provided value is not a valid CSS RGBA color.
         /// </summary>
-        internal static string RgbaType_IsInvalid_ParseLiteral {
+        internal static string RgbaType_InvalidFormat {
             get {
-                return ResourceManager.GetString("RgbaType_IsInvalid_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("RgbaType_InvalidFormat", resourceCulture);
             }
         }
-        
+
         /// <summary>
-        ///   Looks up a localized string similar to RgbaType cannot parse the provided value. The provided value is not a valid CSS RGBA color..
-        /// </summary>
-        internal static string RgbaType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("RgbaType_IsInvalid_ParseValue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The Rgb scalar type represents a valid CSS RGB color as defined in https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()..
+        ///   Looks up a localized string similar to The Rgb scalar type represents a valid CSS RGB color as defined in https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba().
         /// </summary>
         internal static string RgbType_Description {
             get {
                 return ResourceManager.GetString("RgbType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
-        ///   Looks up a localized string similar to RgbType cannot parse the provided literal. The provided value is not a valid CSS RGB color..
+        ///   Looks up a localized string similar to RgbType cannot parse the provided value. The provided value is not a valid CSS RGB color.
         /// </summary>
-        internal static string RgbType_IsInvalid_ParseLiteral {
+        internal static string RgbType_InvalidFormat {
             get {
-                return ResourceManager.GetString("RgbType_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to RgbType cannot parse the provided value. The provided value is not a valid CSS RGB color..
-        /// </summary>
-        internal static string RgbType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("RgbType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("RgbType_InvalidFormat", resourceCulture);
             }
         }
         
@@ -834,20 +708,11 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to UtcOffsetType cannot parse the provided literal. The provided value is not a valid UTC offset..
+        ///   Looks up a localized string similar to UtcOffsetType cannot parse the provided value. The provided value is not a valid UTC offset.
         /// </summary>
-        internal static string UtcOffsetType_IsInvalid_ParseLiteral {
+        internal static string UtcOffsetType_InvalidFormat {
             get {
-                return ResourceManager.GetString("UtcOffsetType_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to UtcOffsetType cannot parse the provided value. The provided value is not a valid UTC offset..
-        /// </summary>
-        internal static string UtcOffsetType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("UtcOffsetType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("UtcOffsetType_InvalidFormat", resourceCulture);
             }
         }
     }

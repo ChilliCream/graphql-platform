@@ -57,19 +57,13 @@ public class UnsignedLongType : IntegerTypeBase<ulong>
 
     /// <inheritdoc />
     protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-    {
-        throw ThrowHelper.UnsignedLongType_ParseLiteral_IsNotUnsigned(this);
-    }
+        => ThrowHelper.UnsignedLongType_ParseLiteral_IsNotUnsigned(this);
 
     /// <inheritdoc />
     protected override LeafCoercionException CreateParseValueError(object runtimeValue)
-    {
-        throw ThrowHelper.UnsignedLongType_ParseValue_IsNotUnsigned(this);
-    }
+        => ThrowHelper.UnsignedLongType_ParseValue_IsNotUnsigned(this);
 
     /// <inheritdoc />
     protected override LeafCoercionException CreateParseResultError(object runtimeValue)
-    {
-        throw ThrowHelper.UnsignedLongType_ParseValue_IsNotUnsigned(this);
-    }
+        => ThrowHelper.UnsignedLongType_ParseValue_IsNotUnsigned(this);
 }

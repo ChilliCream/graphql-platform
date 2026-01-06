@@ -57,19 +57,13 @@ public class UnsignedIntType : IntegerTypeBase<uint>
 
     /// <inheritdoc />
     protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-    {
-        throw ThrowHelper.UnsignedIntType_ParseLiteral_IsNotUnsigned(this);
-    }
+        => ThrowHelper.UnsignedIntType_ParseLiteral_IsNotUnsigned(this);
 
     /// <inheritdoc />
     protected override LeafCoercionException CreateParseValueError(object runtimeValue)
-    {
-        throw ThrowHelper.UnsignedIntType_ParseValue_IsNotUnsigned(this);
-    }
+        => ThrowHelper.UnsignedIntType_ParseValue_IsNotUnsigned(this);
 
     /// <inheritdoc />
     protected override LeafCoercionException CreateParseResultError(object runtimeValue)
-    {
-        throw ThrowHelper.UnsignedIntType_ParseValue_IsNotUnsigned(this);
-    }
+        => ThrowHelper.UnsignedIntType_ParseValue_IsNotUnsigned(this);
 }

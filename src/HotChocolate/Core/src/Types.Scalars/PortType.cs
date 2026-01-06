@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -34,32 +35,22 @@ public class PortType : IntType
     }
 
     /// <inheritdoc />
-    protected override bool IsInstanceOfType(int runtimeValue)
-    {
-        return runtimeValue >= MinValue && runtimeValue <= MaxValue;
-    }
+    public override bool IsInstanceOfType(object runtimeValue)
+        => runtimeValue is int i && i >= MinValue && i <= MaxValue;
 
     /// <inheritdoc />
-    protected override bool IsInstanceOfType(IntValueNode valueSyntax)
-    {
-        return valueSyntax.ToInt32() >= MinValue && valueSyntax.ToInt32() <= MaxValue;
-    }
+    public override bool IsValueCompatible(IValueNode valueLiteral)
+        => valueLiteral is IntValueNode intValueNode && intValueNode.ToInt32() >= MinValue && intValueNode.ToInt32() <= MaxValue;
+
+    /// <inheritdoc />
+    public override bool IsValueCompatible(JsonElement inputValue)
+        => inputValue.ValueKind is JsonValueKind.Number && inputValue.GetInt32() >= MinValue && inputValue.GetInt32() <= MaxValue;
 
     /// <inheritdoc />
     protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-    {
-        throw ThrowHelper.PortType_ParseLiteral_OutOfRange(this);
-    }
+        => ThrowHelper.PortType_ParseLiteral_OutOfRange(this);
 
     /// <inheritdoc />
-    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
-    {
-        throw ThrowHelper.PortType_ParseValue_OutOfRange(this);
-    }
-
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateParseResultError(object runtimeValue)
-    {
-        throw ThrowHelper.PortType_ParseValue_OutOfRange(this);
-    }
+    protected override LeafCoercionException CreateCoerceInputValueError(JsonElement inputValue)
+        => ThrowHelper.PortType_ParseValue_OutOfRange(this);
 }

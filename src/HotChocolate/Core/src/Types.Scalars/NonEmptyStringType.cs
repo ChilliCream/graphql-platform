@@ -1,9 +1,10 @@
+using System.Text.Json;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The NonEmptyString scalar type represents non empty textual data, represented as
+/// The NonEmptyString scalar type represents non-empty textual data, represented as
 /// UTF‐8 character sequences with at least one character
 /// </summary>
 public class NonEmptyStringType : StringType
@@ -31,54 +32,22 @@ public class NonEmptyStringType : StringType
     }
 
     /// <inheritdoc />
-    protected override bool IsInstanceOfType(string runtimeValue)
-    {
-        return runtimeValue != string.Empty;
-    }
+    public override bool IsInstanceOfType(object runtimeValue)
+        => runtimeValue is string s && s != string.Empty;
 
     /// <inheritdoc />
-    protected override bool IsInstanceOfType(StringValueNode valueSyntax)
-    {
-        return valueSyntax.Value != string.Empty;
-    }
+    public override bool IsValueCompatible(IValueNode valueLiteral)
+        => valueLiteral is StringValueNode stringValueNode && stringValueNode.Value != string.Empty;
 
     /// <inheritdoc />
-    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
-    {
-        if (runtimeValue is string s && s == string.Empty)
-        {
-            resultValue = null;
-            return false;
-        }
-
-        return base.TrySerialize(runtimeValue, out resultValue);
-    }
-
-    /// <inheritdoc />
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        if (!base.TryDeserialize(resultValue, out runtimeValue))
-        {
-            return false;
-        }
-
-        if (runtimeValue is string s && s == string.Empty)
-        {
-            return false;
-        }
-
-        return true;
-    }
+    public override bool IsValueCompatible(JsonElement inputValue)
+        => inputValue.ValueKind is JsonValueKind.String && inputValue.GetString() != string.Empty;
 
     /// <inheritdoc />
     protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-    {
-        throw ThrowHelper.NonEmptyStringType_ParseLiteral_IsEmpty(this);
-    }
+        => ThrowHelper.NonEmptyStringType_ParseLiteral_IsEmpty(this);
 
     /// <inheritdoc />
-    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
-    {
-        throw ThrowHelper.NonEmptyStringType_ParseValue_IsEmpty(this);
-    }
+    protected override LeafCoercionException CreateCoerceInputValueError(JsonElement inputValue)
+        => ThrowHelper.NonEmptyStringType_ParseValue_IsEmpty(this);
 }

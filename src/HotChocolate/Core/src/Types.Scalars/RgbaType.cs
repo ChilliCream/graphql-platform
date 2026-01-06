@@ -41,15 +41,6 @@ public partial class RgbaType : RegexType
     {
     }
 
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-    {
-        return ThrowHelper.RgbaType_ParseLiteral_IsInvalid(this);
-    }
-
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
-    {
-        return ThrowHelper.RgbaType_ParseValue_IsInvalid(this);
-    }
+    protected override LeafCoercionException FormatException()
+        => ThrowHelper.RgbaType_InvalidFormat(this);
 }

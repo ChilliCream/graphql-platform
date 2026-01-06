@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -17,7 +18,6 @@ public class NegativeIntType : IntType
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, description, int.MinValue, -1, bind)
     {
-        Description = description;
     }
 
     /// <summary>
@@ -32,32 +32,22 @@ public class NegativeIntType : IntType
     }
 
     /// <inheritdoc />
-    protected override bool IsInstanceOfType(int runtimeValue)
-    {
-        return runtimeValue <= MaxValue;
-    }
+    public override bool IsInstanceOfType(object runtimeValue)
+        => runtimeValue is int i && i <= MaxValue;
 
     /// <inheritdoc />
-    protected override bool IsInstanceOfType(IntValueNode valueSyntax)
-    {
-        return valueSyntax.ToInt32() <= MaxValue;
-    }
+    public override bool IsValueCompatible(IValueNode valueLiteral)
+        => valueLiteral is IntValueNode intValueNode && intValueNode.ToInt32() <= MaxValue;
+
+    /// <inheritdoc />
+    public override bool IsValueCompatible(JsonElement inputValue)
+        => inputValue.ValueKind is JsonValueKind.Number && inputValue.GetInt32() <= MaxValue;
 
     /// <inheritdoc />
     protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-    {
-        throw ThrowHelper.NegativeIntType_ParseLiteral_IsNotNegative(this);
-    }
+        => ThrowHelper.NegativeIntType_ParseLiteral_IsNotNegative(this);
 
     /// <inheritdoc />
-    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
-    {
-        throw ThrowHelper.NegativeIntType_ParseValue_IsNotNegative(this);
-    }
-
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateParseResultError(object runtimeValue)
-    {
-        throw ThrowHelper.NegativeIntType_ParseValue_IsNotNegative(this);
-    }
+    protected override LeafCoercionException CreateCoerceInputValueError(JsonElement inputValue)
+        => ThrowHelper.NegativeIntType_ParseValue_IsNotNegative(this);
 }

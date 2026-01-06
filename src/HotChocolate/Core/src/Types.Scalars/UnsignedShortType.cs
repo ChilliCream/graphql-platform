@@ -57,19 +57,13 @@ public class UnsignedShortType : IntegerTypeBase<ushort>
 
     /// <inheritdoc />
     protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-    {
-        throw ThrowHelper.UnsignedShortType_ParseLiteral_IsNotUnsigned(this);
-    }
+        => ThrowHelper.UnsignedShortType_ParseLiteral_IsNotUnsigned(this);
 
     /// <inheritdoc />
     protected override LeafCoercionException CreateParseValueError(object runtimeValue)
-    {
-        throw ThrowHelper.UnsignedShortType_ParseValue_IsNotUnsigned(this);
-    }
+        => ThrowHelper.UnsignedShortType_ParseValue_IsNotUnsigned(this);
 
     /// <inheritdoc />
     protected override LeafCoercionException CreateParseResultError(object runtimeValue)
-    {
-        throw ThrowHelper.UnsignedShortType_ParseValue_IsNotUnsigned(this);
-    }
+        => ThrowHelper.UnsignedShortType_ParseValue_IsNotUnsigned(this);
 }

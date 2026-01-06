@@ -57,15 +57,6 @@ public class MacAddressType : RegexType
     {
     }
 
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-    {
-        return ThrowHelper.MacAddressType_ParseLiteral_IsInvalid(this);
-    }
-
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
-    {
-        return ThrowHelper.MacAddressType_ParseValue_IsInvalid(this);
-    }
+    protected override LeafCoercionException FormatException()
+        => ThrowHelper.MacAddressType_InvalidFormat(this);
 }

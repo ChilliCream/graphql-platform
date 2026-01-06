@@ -41,15 +41,6 @@ public partial class HslType : RegexType
     {
     }
 
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-    {
-        return ThrowHelper.HslType_ParseLiteral_IsInvalid(this);
-    }
-
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
-    {
-        return ThrowHelper.HslType_ParseValue_IsInvalid(this);
-    }
+    protected override LeafCoercionException FormatException()
+        => ThrowHelper.HslType_InvalidFormat(this);
 }

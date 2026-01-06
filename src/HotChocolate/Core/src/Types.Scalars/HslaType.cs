@@ -41,11 +41,6 @@ public partial class HslaType : RegexType
     {
     }
 
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueSyntax)
-        => ThrowHelper.HslaType_ParseLiteral_IsInvalid(this);
-
-    /// <inheritdoc />
-    protected override LeafCoercionException CreateParseValueError(object runtimeValue)
-        => ThrowHelper.HslaType_ParseValue_IsInvalid(this);
+    protected override LeafCoercionException FormatException()
+        => ThrowHelper.HslaType_InvalidFormat(this);
 }
