@@ -97,7 +97,7 @@ internal sealed class OperationSession : IOperationSession
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
-            // the operation was cancelled so we do nothings
+            // the operation was canceled so we do nothing
         }
         catch (Exception ex)
         {
@@ -125,6 +125,8 @@ internal sealed class OperationSession : IOperationSession
 
             // signal that the subscription is completed.
             Complete();
+
+            request.Dispose();
         }
     }
 

@@ -1,5 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using NodaTime.Text;
 using static HotChocolate.Types.NodaTime.Properties.NodaTimeResources;
 
@@ -28,11 +31,11 @@ public abstract class StringToStructBaseType<TRuntimeType>
     }
 
     /// <inheritdoc />
-    protected override TRuntimeType ParseLiteral(StringValueNode literal)
+    public override object CoerceInputLiteral(StringValueNode valueLiteral)
     {
-        if (TryDeserialize(literal.Value, out var value))
+        if (TryCoerceRuntimeValue(valueLiteral.Value, out var runtimeValue))
         {
-            return value.Value;
+            return runtimeValue.Value;
         }
 
         throw new LeafCoercionException(
@@ -41,27 +44,12 @@ public abstract class StringToStructBaseType<TRuntimeType>
     }
 
     /// <inheritdoc />
-    protected override StringValueNode ParseValue(TRuntimeType value)
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        return new(CoerceOutputValue(value));
-    }
-
-    /// <inheritdoc />
-    public override IValueNode ParseResult(object? resultValue)
-    {
-        if (resultValue is null)
+        if (inputValue.ValueKind is JsonValueKind.String
+            && TryCoerceRuntimeValue(inputValue.GetString()!, out var runtimeValue))
         {
-            return NullValueNode.Default;
-        }
-
-        if (resultValue is string s)
-        {
-            return new StringValueNode(s);
-        }
-
-        if (resultValue is TRuntimeType v)
-        {
-            return ParseValue(v);
+            return runtimeValue.Value;
         }
 
         throw new LeafCoercionException(
@@ -70,70 +58,65 @@ public abstract class StringToStructBaseType<TRuntimeType>
     }
 
     /// <inheritdoc />
-    public override bool TryCoerceOutputValue(object? runtimeValue, out object? resultValue)
+    public override void CoerceOutputValue(TRuntimeType runtimeValue, ResultElement resultValue)
     {
-        if (runtimeValue is null)
+        if (TryCoerceOutputValue(runtimeValue, out var value))
         {
-            resultValue = null;
-            return true;
+            resultValue.SetStringValue(value);
+            return;
         }
 
-        if (runtimeValue is TRuntimeType dt)
-        {
-            resultValue = CoerceOutputValue(dt);
-            return true;
-        }
-
-        resultValue = null;
-        return false;
+        throw new LeafCoercionException(
+            string.Format(StringToStructBaseType_ParseLiteral_UnableToCoerceOutputValue, Name),
+            this);
     }
-
-    /// <summary>
-    /// Serializes the .net runtime representation to the serialized result representation.
-    /// </summary>
-    /// <param name="runtimeValue">
-    /// The .net value representation.
-    /// </param>
-    /// <returns>
-    /// Returns the serialized result value.
-    /// </returns>
-    protected abstract string CoerceOutputValue(TRuntimeType runtimeValue);
 
     /// <inheritdoc />
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+    public override IValueNode ValueToLiteral(TRuntimeType runtimeValue)
     {
-        if (resultValue is null)
+        if (TryCoerceOutputValue(runtimeValue, out var value))
         {
-            runtimeValue = null;
-            return true;
+            return new StringValueNode(value);
         }
 
-        if (resultValue is string s && TryDeserialize(s, out var val))
-        {
-            runtimeValue = val;
-            return true;
-        }
-
-        runtimeValue = null;
-        return false;
+        throw new LeafCoercionException(
+            string.Format(StringToStructBaseType_ParseLiteral_UnableToCoerceOutputValue, Name),
+            this);
     }
 
     /// <summary>
-    /// Tries to deserializes the value from the output format to the .net
-    /// runtime representation.
+    /// Attempts to coerce a string input value to the runtime type.
     /// </summary>
     /// <param name="resultValue">
-    /// The serialized result value.
+    /// The string value to coerce.
     /// </param>
     /// <param name="runtimeValue">
-    /// The .net runtime representation.
+    /// When this method returns, contains the coerced runtime value if the conversion succeeded,
+    /// or the default value if the conversion failed.
     /// </param>
     /// <returns>
-    /// <c>true</c> if the serialized value was correctly deserialized; otherwise, <c>false</c>.
+    /// <c>true</c> if the coercion was successful; otherwise, <c>false</c>.
     /// </returns>
-    protected abstract bool TryDeserialize(
+    protected abstract bool TryCoerceRuntimeValue(
         string resultValue,
         [NotNullWhen(true)] out TRuntimeType? runtimeValue);
+
+    /// <summary>
+    /// Attempts to coerce a runtime value to a string output value.
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// The runtime value to coerce.
+    /// </param>
+    /// <param name="resultValue">
+    /// When this method returns, contains the coerced string value if the conversion succeeded,
+    /// or null if the conversion failed.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the coercion was successful; otherwise, <c>false</c>.
+    /// </returns>
+    protected abstract bool TryCoerceOutputValue(
+        TRuntimeType runtimeValue,
+        [NotNullWhen(true)] out string? resultValue);
 
     protected string CreateDescription(
         IPattern<TRuntimeType>[] allowedPatterns,

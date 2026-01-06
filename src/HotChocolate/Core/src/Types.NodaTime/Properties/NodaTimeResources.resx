@@ -21,11 +21,20 @@
   <data name="IntToStructBaseType_ParseLiteral_UnableToDeserializeInt" xml:space="preserve">
     <value>Unable to deserialize integer to {0}</value>
   </data>
+  <data name="IntToStructBaseType_ParseLiteral_UnableToCoerceOutputValue" xml:space="preserve">
+    <value>Unable to serialize {0} to integer</value>
+  </data>
   <data name="StringToClassBaseType_ParseLiteral_UnableToDeserializeString" xml:space="preserve">
     <value>Unable to deserialize string to {0}</value>
   </data>
+  <data name="StringToClassBaseType_ParseLiteral_UnableToCoerceOutputValue" xml:space="preserve">
+    <value>Unable to serialize {0} to string</value>
+  </data>
   <data name="StringToStructBaseType_ParseLiteral_UnableToDeserializeString" xml:space="preserve">
     <value>Unable to deserialize string to {0}</value>
+  </data>
+  <data name="StringToStructBaseType_ParseLiteral_UnableToCoerceOutputValue" xml:space="preserve">
+    <value>Unable to serialize {0} to string</value>
   </data>
   <data name="DateTimeZoneType_Description" xml:space="preserve">
     <value>Represents a time zone - a mapping between UTC and local time.
