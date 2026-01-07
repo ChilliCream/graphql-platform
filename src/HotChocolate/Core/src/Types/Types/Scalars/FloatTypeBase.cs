@@ -2,6 +2,7 @@ using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
@@ -64,59 +65,47 @@ public abstract class FloatTypeBase<TRuntimeType>
         => inputValue.ValueKind is JsonValueKind.Number;
 
     /// <inheritdoc />
-    public override bool IsInstanceOfType(object runtimeValue)
+    public sealed override object CoerceInputLiteral(IValueNode valueLiteral)
     {
-        if (runtimeValue is TRuntimeType value)
+        if (valueLiteral is FloatValueNode floatLiteral)
         {
-            return value.CompareTo(MinValue) != -1
-                && value.CompareTo(MaxValue) != 1;
-        }
-
-        return false;
-    }
-
-    /// <inheritdoc />
-    public sealed override object CoerceInputLiteral(IValueNode valueSyntax)
-    {
-        if (valueSyntax is FloatValueNode floatLiteral && IsInstanceOfType(floatLiteral))
-        {
-            return OnCoerceInputLiteral(floatLiteral);
+            var runtimeValue = OnCoerceInputLiteral(floatLiteral);
+            AssertFormat(runtimeValue);
+            return runtimeValue;
         }
 
         // Input coercion rules specify that float values can be coerced
         // from IntValueNode and FloatValueNode:
         // http://facebook.github.io/graphql/June2018/#sec-Float
-
-        if (valueSyntax is IntValueNode intLiteral && IsInstanceOfType(intLiteral))
+        if (valueLiteral is IntValueNode intLiteral)
         {
-            return OnCoerceInputLiteral(intLiteral);
+            var runtimeValue = OnCoerceInputLiteral(intLiteral);
+            AssertFormat(runtimeValue);
+            return runtimeValue;
         }
 
-        throw CreateCoerceInputLiteralError(valueSyntax);
+        throw CreateCoerceInputLiteralError(valueLiteral);
     }
 
     /// <summary>
     /// Coerces a float or int literal into the runtime value.
     /// </summary>
-    /// <param name="valueSyntax">
+    /// <param name="valueLiteral">
     /// The float or int literal to coerce.
     /// </param>
     /// <returns>
     /// Returns the runtime value representation.
     /// </returns>
-    protected abstract TRuntimeType OnCoerceInputLiteral(IFloatValueLiteral valueSyntax);
+    protected abstract TRuntimeType OnCoerceInputLiteral(IFloatValueLiteral valueLiteral);
 
     /// <inheritdoc />
     public sealed override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (inputValue.ValueKind is JsonValueKind.Number)
         {
-            var value = OnCoerceInputValue(inputValue);
-            if (value.CompareTo(MinValue) != -1
-                && value.CompareTo(MaxValue) != 1)
-            {
-                return value;
-            }
+            var runtimeValue = OnCoerceInputValue(inputValue);
+            AssertFormat(runtimeValue);
+            return runtimeValue;
         }
 
         throw CreateCoerceInputValueError(inputValue);
@@ -133,12 +122,50 @@ public abstract class FloatTypeBase<TRuntimeType>
     /// </returns>
     protected abstract TRuntimeType OnCoerceInputValue(JsonElement inputValue);
 
+    /// <inheritdoc />
+    public override void CoerceOutputValue(object runtimeValue, ResultElement resultValue)
+    {
+        if (runtimeValue is TRuntimeType castedRuntimeValue)
+        {
+            AssertFormat(castedRuntimeValue);
+            OnCoerceOutputValue(castedRuntimeValue, resultValue);
+            return;
+        }
+
+        throw Scalar_Cannot_CoerceOutputValue(this, runtimeValue);
+    }
+
+    /// <inheritdoc />
+    public override IValueNode ValueToLiteral(object runtimeValue)
+    {
+        if (runtimeValue is TRuntimeType castedRuntimeValue)
+        {
+            AssertFormat(castedRuntimeValue);
+            return OnValueToLiteral(castedRuntimeValue);
+        }
+
+        throw CreateValueToLiteralError(runtimeValue);
+    }
+
+    /// <summary>
+    /// Creates the exception to throw when <see cref="CoerceInputLiteral(IValueNode)"/>
+    /// encounters an incompatible <see cref="IValueNode"/>.
+    /// </summary>
+    /// <param name="valueLiteral">
+    /// The value syntax that could not be coerced.
+    /// </param>
+    /// <returns>
+    /// Returns the exception to throw.
+    /// </returns>
+    protected virtual LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueLiteral)
+        => Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
+
     /// <summary>
     /// Creates the exception to throw when <see cref="CoerceInputValue(JsonElement, IFeatureProvider)"/>
-    /// encounters an incompatible input value.
+    /// encounters an incompatible <see cref="JsonElement"/>.
     /// </summary>
     /// <param name="inputValue">
-    /// The input value that could not be coerced.
+    /// The JSON value that could not be coerced.
     /// </param>
     /// <returns>
     /// Returns the exception to throw.
@@ -147,15 +174,32 @@ public abstract class FloatTypeBase<TRuntimeType>
         => Scalar_Cannot_CoerceInputValue(this, inputValue);
 
     /// <summary>
-    /// Creates the exception to throw when <see cref="CoerceInputLiteral(IValueNode)"/>
-    /// encounters an incompatible <see cref="IValueNode"/>.
+    /// Creates the exception to throw when a runtime value is outside
+    /// the allowed min/max range.
     /// </summary>
-    /// <param name="literal">
-    /// The value syntax that could not be coerced.
+    /// <param name="runtimeValue">
+    /// The runtime value that is out of range.
     /// </param>
     /// <returns>
     /// Returns the exception to throw.
     /// </returns>
-    protected virtual LeafCoercionException CreateCoerceInputLiteralError(IValueNode literal)
-        => Scalar_Cannot_CoerceInputLiteral(this, literal);
+    protected virtual LeafCoercionException FormatError(TRuntimeType runtimeValue)
+        => Scalar_FormatIsInvalid(this, runtimeValue);
+
+    /// <summary>
+    /// Validates that the runtime value is within the allowed min/max range.
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// The runtime value to validate.
+    /// </param>
+    /// <exception cref="LeafCoercionException">
+    /// Thrown when the value is less than <see cref="MinValue"/> or greater than <see cref="MaxValue"/>.
+    /// </exception>
+    private void AssertFormat(TRuntimeType runtimeValue)
+    {
+        if (runtimeValue.CompareTo(MinValue) == -1 || runtimeValue.CompareTo(MaxValue) == 1)
+        {
+            throw FormatError(runtimeValue);
+        }
+    }
 }

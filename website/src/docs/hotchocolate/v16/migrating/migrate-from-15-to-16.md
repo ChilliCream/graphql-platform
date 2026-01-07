@@ -284,6 +284,21 @@ With Hot Chocolate 16 we introduced a lot more abstractions, meaning we pulled o
 
 So, if you were referencing HotChocolate.Execution or HotChocolate.Fetching directly make sure to remove references to these libraries and replace them with HotChocolate.Types.
 
+## Simpler Scalar Type
+
+TODO
+
+## Removed Scalars
+
+TODO
+
+NegativeFloat
+NonNegativeFloat
+NegativeInt
+NonPositiveInt
+NonEmptyString
+NonNegativeInt
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

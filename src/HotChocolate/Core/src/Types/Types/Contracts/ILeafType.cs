@@ -37,20 +37,6 @@ public interface ILeafType : IInputTypeDefinition, IOutputTypeDefinition
     bool IsValueCompatible(JsonElement inputValue);
 
     /// <summary>
-    /// Determines if the given <paramref name="runtimeValue"/> is an instance of this type.
-    /// </summary>
-    /// <param name="runtimeValue">
-    /// The runtime value to validate. Must not be <c>null</c>.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the given <paramref name="runtimeValue"/> is an instance of this type.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="runtimeValue"/> is <c>null</c>.
-    /// </exception>
-    bool IsInstanceOfType(object runtimeValue);
-
-    /// <summary>
     /// Coerces a GraphQL literal (AST value node) into a runtime value.
     /// </summary>
     /// <param name="valueLiteral">

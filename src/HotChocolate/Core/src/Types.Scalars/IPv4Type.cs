@@ -43,6 +43,6 @@ public partial class IPv4Type : RegexType
     {
     }
 
-    protected override LeafCoercionException FormatException()
+    protected override LeafCoercionException FormatException(string runtimeValue)
         => ThrowHelper.IPv4Type_InvalidFormat(this);
 }

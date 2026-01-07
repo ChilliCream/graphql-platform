@@ -999,4 +999,22 @@ Type: `{0}`</value>
   <data name="ThrowHelper_InvalidTypeConversion" xml:space="preserve">
     <value>The value provided for `{0}` is not in a valid format.</value>
   </data>
+  <data name="Scalar_FormatIsInvalid" xml:space="preserve">
+    <value>The runtime value `{0}` of the scalar `{1}` has an invalid format.</value>
+  </data>
+  <data name="SignedByteType_Description" xml:space="preserve">
+    <value>The SignedByte scalar type represents a numeric non-fractional value greater than or equal to -127.</value>
+  </data>
+  <data name="UnsignedShortType_Description" xml:space="preserve">
+    <value>The UnsignedShort scalar type represents a unsigned 16-bit numeric non-fractional value greater than or equal to 0.</value>
+  </data>
+  <data name="UnsignedIntType_Description" xml:space="preserve">
+    <value>The UnsignedInt scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.</value>
+  </data>
+  <data name="UnsignedLongType_Description" xml:space="preserve">
+    <value>The UnsignedLong scalar type represents a unsigned 64-bit numeric non-fractional value greater than or equal to 0.</value>
+  </data>
+  <data name="RegexType_InvalidFormat" xml:space="preserve">
+    <value>{0}Type cannot parse the provided value. The value does not match the required regular expression pattern.</value>
+  </data>
 </root>

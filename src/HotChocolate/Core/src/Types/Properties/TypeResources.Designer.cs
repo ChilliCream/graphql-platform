@@ -1994,5 +1994,41 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ThrowHelper_InvalidTypeConversion", resourceCulture);
             }
         }
+        
+        internal static string Scalar_FormatIsInvalid {
+            get {
+                return ResourceManager.GetString("Scalar_FormatIsInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string SignedByteType_Description {
+            get {
+                return ResourceManager.GetString("SignedByteType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string UnsignedShortType_Description {
+            get {
+                return ResourceManager.GetString("UnsignedShortType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string UnsignedIntType_Description {
+            get {
+                return ResourceManager.GetString("UnsignedIntType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string UnsignedLongType_Description {
+            get {
+                return ResourceManager.GetString("UnsignedLongType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string RegexType_InvalidFormat {
+            get {
+                return ResourceManager.GetString("RegexType_InvalidFormat", resourceCulture);
+            }
+        }
     }
 }

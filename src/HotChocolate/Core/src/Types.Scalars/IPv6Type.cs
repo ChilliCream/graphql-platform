@@ -62,6 +62,6 @@ public partial class IPv6Type : RegexType
     {
     }
 
-    protected override LeafCoercionException FormatException()
+    protected override LeafCoercionException FormatException(string runtimeValue)
         => ThrowHelper.IPv6Type_InvalidFormat(this);
 }

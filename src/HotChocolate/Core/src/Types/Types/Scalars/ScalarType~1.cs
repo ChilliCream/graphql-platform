@@ -32,7 +32,7 @@ public abstract class ScalarType<TRuntimeType> : ScalarType where TRuntimeType :
             return;
         }
 
-        throw Scalar_Cannot_CoerceOutputValue(this, runtimeValue);
+        throw CreateCoerceOutputValueError(runtimeValue);
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public abstract class ScalarType<TRuntimeType> : ScalarType where TRuntimeType :
             return OnValueToLiteral(runtimeType);
         }
 
-        throw Scalar_Cannot_ConvertValueToLiteral(this, runtimeValue);
+        throw CreateValueToLiteralError(runtimeValue);
     }
 
     /// <summary>
@@ -75,4 +75,30 @@ public abstract class ScalarType<TRuntimeType> : ScalarType where TRuntimeType :
     /// Unable to convert the given <paramref name="runtimeValue"/> into a literal.
     /// </exception>
     public abstract IValueNode OnValueToLiteral(TRuntimeType runtimeValue);
+
+    /// <summary>
+    /// Creates the exception to throw when <see cref="CoerceOutputValue(object, ResultElement)"/>
+    /// encounters an incompatible runtime value.
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// The runtime value that could not be coerced.
+    /// </param>
+    /// <returns>
+    /// Returns the exception to throw.
+    /// </returns>
+    protected virtual LeafCoercionException CreateCoerceOutputValueError(object runtimeValue)
+        => Scalar_Cannot_CoerceOutputValue(this, runtimeValue);
+
+    /// <summary>
+    /// Creates the exception to throw when <see cref="ValueToLiteral(object)"/>
+    /// encounters an incompatible runtime value.
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// The runtime value that could not be converted to a literal.
+    /// </param>
+    /// <returns>
+    /// Returns the exception to throw.
+    /// </returns>
+    protected virtual LeafCoercionException CreateValueToLiteralError(object runtimeValue)
+        => Scalar_Cannot_ConvertValueToLiteral(this, runtimeValue);
 }

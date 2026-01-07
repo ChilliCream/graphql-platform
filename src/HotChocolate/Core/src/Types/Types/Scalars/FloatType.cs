@@ -52,8 +52,8 @@ public class FloatType : FloatTypeBase<double>
     }
 
     /// <inheritdoc />
-    protected override double OnCoerceInputLiteral(IFloatValueLiteral valueSyntax)
-        => valueSyntax.ToDouble();
+    protected override double OnCoerceInputLiteral(IFloatValueLiteral valueLiteral)
+        => valueLiteral.ToDouble();
 
     /// <inheritdoc />
     protected override double OnCoerceInputValue(JsonElement inputValue)

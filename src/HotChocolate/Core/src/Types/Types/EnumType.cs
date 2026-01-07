@@ -117,10 +117,6 @@ public partial class EnumType
     }
 
     /// <inheritdoc />
-    public bool IsInstanceOfType(object? runtimeValue)
-        => RuntimeType.IsInstanceOfType(runtimeValue);
-
-    /// <inheritdoc />
     public object CoerceInputLiteral(IValueNode valueLiteral)
     {
         if (valueLiteral is EnumValueNode enumValueLiteral

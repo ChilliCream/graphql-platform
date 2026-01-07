@@ -626,6 +626,20 @@ internal static class ThrowHelper
             scalarType);
     }
 
+    public static LeafCoercionException Scalar_FormatIsInvalid(
+        ITypeDefinition scalarType,
+        object runtimeValue)
+    {
+        return new LeafCoercionException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.Scalar_FormatIsInvalid,
+                    runtimeValue,
+                    scalarType.Name)
+                .Build(),
+            scalarType);
+    }
+
     public static LeafCoercionException Scalar_Cannot_ConvertValueToLiteral(
         ITypeDefinition scalarType,
         object runtimeValue)
@@ -652,5 +666,20 @@ internal static class ThrowHelper
                     runtimeValue.GetType().FullName)
                 .Build(),
             scalarType);
+    }
+
+    public static LeafCoercionException RegexType_InvalidFormat(
+        IType type,
+        string name)
+    {
+        return new LeafCoercionException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    string.Format(
+                        TypeResources.RegexType_InvalidFormat,
+                        name))
+                .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                .Build(),
+            type);
     }
 }

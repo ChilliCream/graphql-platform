@@ -57,6 +57,6 @@ public class MacAddressType : RegexType
     {
     }
 
-    protected override LeafCoercionException FormatException()
+    protected override LeafCoercionException FormatException(string runtimeValue)
         => ThrowHelper.MacAddressType_InvalidFormat(this);
 }

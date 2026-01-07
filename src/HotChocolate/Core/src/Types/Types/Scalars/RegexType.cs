@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
@@ -50,59 +51,40 @@ public class RegexType : ScalarType<string, StringValueNode>
         Description = description;
     }
 
-    /// <inheritdoc />
-    public override bool IsInstanceOfType(object runtimeValue)
-        => runtimeValue is string s && _validationRegex.IsMatch(s);
-
-    public override bool IsValueCompatible(IValueNode valueLiteral)
-        => valueLiteral is StringValueNode stringLiteral && _validationRegex.IsMatch(stringLiteral.Value);
-
-    public override bool IsValueCompatible(JsonElement inputValue)
-        => inputValue.ValueKind is JsonValueKind.String && _validationRegex.IsMatch(inputValue.GetString()!);
-
     protected override string OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        if (_validationRegex.IsMatch(valueLiteral.Value))
-        {
-            return valueLiteral.Value;
-        }
-
-        throw FormatException();
+        var runtimeValue = valueLiteral.Value;
+        AssertFormat(runtimeValue);
+        return runtimeValue;
     }
 
     protected override string OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         var runtimeValue = inputValue.GetString()!;
-
-        if (_validationRegex.IsMatch(runtimeValue))
-        {
-            return runtimeValue;
-        }
-
-        throw FormatException();
+        AssertFormat(runtimeValue);
+        return runtimeValue;
     }
 
     protected override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
     {
-        if (_validationRegex.IsMatch(runtimeValue))
-        {
-            resultValue.SetStringValue(runtimeValue);
-            return;
-        }
-
-        throw FormatException();
+        AssertFormat(runtimeValue);
+        resultValue.SetStringValue(runtimeValue);
     }
 
     protected override StringValueNode OnValueToLiteral(string runtimeValue)
     {
-        if (_validationRegex.IsMatch(runtimeValue))
-        {
-            return new StringValueNode(runtimeValue);
-        }
-
-        throw FormatException();
+        AssertFormat(runtimeValue);
+        return new StringValueNode(runtimeValue);
     }
 
-    protected virtual LeafCoercionException FormatException()
-        => ThrowHelper.RegexType_InvalidFormat(this, Name);
+    private void AssertFormat(string runtimeValue)
+    {
+        if (!_validationRegex.IsMatch(runtimeValue))
+        {
+            throw FormatException(runtimeValue);
+        }
+    }
+
+    protected virtual LeafCoercionException FormatException(string runtimeValue)
+        => RegexType_InvalidFormat(this, Name);
 }

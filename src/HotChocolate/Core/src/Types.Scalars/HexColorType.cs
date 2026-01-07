@@ -41,6 +41,6 @@ public partial class HexColorType : RegexType
     {
     }
 
-    protected override LeafCoercionException FormatException()
+    protected override LeafCoercionException FormatException(string runtimeValue)
         => ThrowHelper.HexColorType_InvalidFormat(this);
 }

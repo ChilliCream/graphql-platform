@@ -46,6 +46,6 @@ public partial class IsbnType : RegexType
     {
     }
 
-    protected override LeafCoercionException FormatException()
+    protected override LeafCoercionException FormatException(string runtimeValue)
         => ThrowHelper.IsbnType_InvalidFormat(this);
 }

@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 public partial class RgbType : RegexType
 {
     private const string ValidationPattern =
-        "((?:rgba?)\\((?:[0-9]+%?(?:,|\\s)+){2,3}[\\s\\/]*[0-9\\.]+%?\\))";
+        "(rgb\\((?:[0-9]+%?(?:,|\\s)+){2}[0-9]+%?\\))";
 
     [GeneratedRegex(ValidationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
@@ -33,7 +33,7 @@ public partial class RgbType : RegexType
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="IPv6Type"/> class.
+    /// Initializes a new instance of the <see cref="RgbType"/> class.
     /// </summary>
     [ActivatorUtilitiesConstructor]
     public RgbType()
@@ -43,6 +43,6 @@ public partial class RgbType : RegexType
     {
     }
 
-    protected override LeafCoercionException FormatException()
+    protected override LeafCoercionException FormatException(string runtimeValue)
         => ThrowHelper.RgbType_InvalidFormat(this);
 }

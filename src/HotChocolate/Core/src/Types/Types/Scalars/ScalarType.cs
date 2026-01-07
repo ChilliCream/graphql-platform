@@ -200,10 +200,6 @@ public abstract partial class ScalarType
     }
 
     /// <inheritdoc />
-    public virtual bool IsInstanceOfType(object runtimeValue)
-        => RuntimeType.IsInstanceOfType(runtimeValue);
-
-    /// <inheritdoc />
     public abstract object CoerceInputLiteral(IValueNode valueLiteral);
 
     /// <inheritdoc />

@@ -48,7 +48,7 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
     /// <inheritdoc />
     protected override TimeSpan OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (OffsetLookup.TryDeserialize(inputValue.GetString(), out var parsed))
+        if (OffsetLookup.TryDeserialize(inputValue.GetString()!, out var parsed))
         {
             return parsed;
         }
@@ -140,15 +140,9 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
         public static bool TrySerialize(
             TimeSpan value,
             [NotNullWhen(true)] out string? result)
-        {
-            return s_timeSpanToOffset.TryGetValue(value, out result);
-        }
+            => s_timeSpanToOffset.TryGetValue(value, out result);
 
-        public static bool TryDeserialize(
-            string value,
-            [NotNullWhen(true)] out TimeSpan result)
-        {
-            return s_offsetToTimeSpan.TryGetValue(value, out result);
-        }
+        public static bool TryDeserialize( string value, out TimeSpan result)
+            => s_offsetToTimeSpan.TryGetValue(value, out result);
     }
 }

@@ -44,6 +44,6 @@ public partial class EmailAddressType : RegexType
             ScalarResources.EmailAddressType_Description)
     { }
 
-    protected override LeafCoercionException FormatException()
+    protected override LeafCoercionException FormatException(string runtimeValue)
         => ThrowHelper.EmailAddressType_InvalidFormat(this);
 }

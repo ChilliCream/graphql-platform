@@ -49,8 +49,8 @@ public class DecimalType : FloatTypeBase<decimal>
     }
 
     /// <inheritdoc />
-    protected override decimal OnCoerceInputLiteral(IFloatValueLiteral valueSyntax)
-        => valueSyntax.ToDecimal();
+    protected override decimal OnCoerceInputLiteral(IFloatValueLiteral valueLiteral)
+        => valueLiteral.ToDecimal();
 
     /// <inheritdoc />
     protected override decimal OnCoerceInputValue(JsonElement inputValue)

@@ -4,7 +4,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The `PhoneNumber` scalar type scalar type represents a value that conforms to the standard
+/// The `PhoneNumber` scalar type represents a value that conforms to the standard
 /// E.164 format. <a href="https://en.wikipedia.org/wiki/E.164">See More</a>.
 /// </summary>
 public partial class PhoneNumberType : RegexType
@@ -43,6 +43,6 @@ public partial class PhoneNumberType : RegexType
     {
     }
 
-    protected override LeafCoercionException FormatException()
+    protected override LeafCoercionException FormatException(string runtimeValue)
         => ThrowHelper.PhoneNumberType_InvalidFormat(this);
 }
