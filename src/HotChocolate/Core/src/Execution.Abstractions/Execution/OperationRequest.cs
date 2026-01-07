@@ -11,6 +11,8 @@ namespace HotChocolate.Execution;
 /// </summary>
 public sealed class OperationRequest : IOperationRequest
 {
+    private bool _disposed;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="OperationRequest" /> class.
     /// </summary>
@@ -146,6 +148,17 @@ public sealed class OperationRequest : IOperationRequest
     /// GraphQL request flags allow limiting the GraphQL executor capabilities.
     /// </summary>
     public RequestFlags Flags { get; }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            VariableValues?.Dispose();
+            Extensions?.Dispose();
+            _disposed = true;
+        }
+    }
 
     /// <summary>
     /// Creates a new request with the specified document.

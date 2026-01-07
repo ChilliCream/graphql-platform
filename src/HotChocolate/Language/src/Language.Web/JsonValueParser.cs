@@ -184,6 +184,17 @@ public ref struct JsonValueParser
     }
 
     /// <summary>
+    /// Parses a JSON span as a GraphQL value node.
+    /// </summary>
+    /// <param name="json">The JSON span to parse.</param>
+    /// <returns>The parsed GraphQL value node.</returns>
+    public IValueNode Parse(ReadOnlySequence<byte> json)
+    {
+        var reader = new Utf8JsonReader(json, isFinalBlock: true, state: default);
+        return Parse(ref reader);
+    }
+
+    /// <summary>
     /// Parses a JSON reader as a GraphQL value node.
     /// </summary>
     /// <param name="reader">The JSON reader to parse.</param>

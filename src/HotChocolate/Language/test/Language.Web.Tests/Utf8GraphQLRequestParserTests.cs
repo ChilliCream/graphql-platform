@@ -92,9 +92,8 @@ public class Utf8GraphQLRequestParserTests
 
         // act
         var parserOptions = new ParserOptions();
-        var requestParser = new Utf8GraphQLRequestParser(
-            source, parserOptions);
-        var batch = requestParser.Parse();
+        var requestParser = new Utf8GraphQLRequestParser(parserOptions);
+        var batch = requestParser.Parse(source);
 
         // assert
         var request = Assert.Single(batch);
@@ -126,12 +125,11 @@ public class Utf8GraphQLRequestParserTests
         var cache = new DocumentCache();
 
         var requestParser = new Utf8GraphQLRequestParser(
-            source,
             new ParserOptions(),
             cache,
             new Sha1DocumentHashProvider());
 
-        var first = requestParser.Parse();
+        var first = requestParser.Parse(source);
 
         cache.TryAddDocument(
             first[0].DocumentId?.Value!,
@@ -139,12 +137,11 @@ public class Utf8GraphQLRequestParserTests
 
         // act
         requestParser = new Utf8GraphQLRequestParser(
-            source,
             new ParserOptions(),
             cache,
             new Sha1DocumentHashProvider());
 
-        var second = requestParser.Parse();
+        var second = requestParser.Parse(source);
 
         // assert
         Assert.Equal(first[0].Document, second[0].Document);
@@ -199,13 +196,12 @@ public class Utf8GraphQLRequestParserTests
         var cache = new DocumentCache();
 
         var requestParser = new Utf8GraphQLRequestParser(
-            source,
             new ParserOptions(),
             cache,
             new Sha1DocumentHashProvider());
 
         // act
-        var result = requestParser.Parse();
+        var result = requestParser.Parse(source);
 
         // assert
         Assert.Collection(result,
@@ -241,10 +237,10 @@ public class Utf8GraphQLRequestParserTests
             JsonConvert.SerializeObject(request
             ).NormalizeLineBreaks());
 
-        var requestParser = new Utf8GraphQLRequestParser(source);
+        var requestParser = new Utf8GraphQLRequestParser();
 
         // act
-        var result = requestParser.Parse();
+        var result = requestParser.Parse(source);
 
         // assert
         Assert.Collection(result,
@@ -322,9 +318,8 @@ public class Utf8GraphQLRequestParserTests
 
         // act
         var parserOptions = new ParserOptions();
-        var requestParser = new Utf8GraphQLRequestParser(
-            source, parserOptions);
-        var batch = requestParser.Parse();
+        var requestParser = new Utf8GraphQLRequestParser(parserOptions);
+        var batch = requestParser.Parse(source);
 
         // assert
         var snapshot = new Snapshot();
@@ -422,11 +417,10 @@ public class Utf8GraphQLRequestParserTests
         // act
         var parserOptions = new ParserOptions();
         var requestParser = new Utf8GraphQLRequestParser(
-            source,
             parserOptions,
             new DocumentCache(),
             new Sha256DocumentHashProvider());
-        var batch = requestParser.Parse();
+        var batch = requestParser.Parse(source);
 
         // assert
         var request = Assert.Single(batch);
@@ -450,11 +444,10 @@ public class Utf8GraphQLRequestParserTests
         // act
         var parserOptions = new ParserOptions();
         var requestParser = new Utf8GraphQLRequestParser(
-            source,
             parserOptions,
             new DocumentCache(),
             new Sha256DocumentHashProvider());
-        var batch = requestParser.Parse();
+        var batch = requestParser.Parse(source);
 
         // assert
         var r = Assert.Single(batch);
@@ -478,11 +471,10 @@ public class Utf8GraphQLRequestParserTests
         // act
         var parserOptions = new ParserOptions();
         var requestParser = new Utf8GraphQLRequestParser(
-            source,
             parserOptions,
             new DocumentCache(),
             new Sha256DocumentHashProvider(HashFormat.Hex));
-        var batch = requestParser.Parse();
+        var batch = requestParser.Parse(source);
 
         // assert
         Assert.Collection(batch,
@@ -515,13 +507,12 @@ public class Utf8GraphQLRequestParserTests
                 var source = Encoding.UTF8.GetBytes("{\"query\":\"\"}".NormalizeLineBreaks());
                 var parserOptions = new ParserOptions();
                 var requestParser = new Utf8GraphQLRequestParser(
-                    source,
                     parserOptions,
                     new DocumentCache(),
                     new Sha256DocumentHashProvider());
 
                 // act
-                requestParser.Parse();
+                requestParser.Parse(source);
             });
     }
 
@@ -538,13 +529,12 @@ public class Utf8GraphQLRequestParserTests
             """.NormalizeLineBreaks());
         var parserOptions = new ParserOptions();
         var requestParser = new Utf8GraphQLRequestParser(
-            source,
             parserOptions,
             new DocumentCache(),
             new Sha256DocumentHashProvider());
 
         // act
-        var batch = requestParser.Parse();
+        var batch = requestParser.Parse(source);
 
         // assert
         var request = Assert.Single(batch);
@@ -563,13 +553,12 @@ public class Utf8GraphQLRequestParserTests
                 .NormalizeLineBreaks());
                 var parserOptions = new ParserOptions();
                 var requestParser = new Utf8GraphQLRequestParser(
-                    source,
                     parserOptions,
                     new DocumentCache(),
                     new Sha256DocumentHashProvider());
 
                 // act
-                requestParser.Parse();
+                requestParser.Parse(source);
             });
     }
 
@@ -584,13 +573,12 @@ public class Utf8GraphQLRequestParserTests
                 var source = Encoding.UTF8.GetBytes(string.Empty);
                 var parserOptions = new ParserOptions();
                 var requestParser = new Utf8GraphQLRequestParser(
-                    source,
                     parserOptions,
                     new DocumentCache(),
                     new Sha256DocumentHashProvider());
 
                 // act
-                requestParser.Parse();
+                requestParser.Parse(source);
             });
     }
 
@@ -605,13 +593,12 @@ public class Utf8GraphQLRequestParserTests
                 var source = " "u8.ToArray();
                 var parserOptions = new ParserOptions();
                 var requestParser = new Utf8GraphQLRequestParser(
-                    source,
                     parserOptions,
                     new DocumentCache(),
                     new Sha256DocumentHashProvider());
 
                 // act
-                requestParser.Parse();
+                requestParser.Parse(source);
             });
     }
 
@@ -664,7 +651,7 @@ public class Utf8GraphQLRequestParserTests
         var batch = Utf8GraphQLRequestParser.Parse(source);
 
         // assert
-        Assert.Equal(3, batch.Count);
+        Assert.Equal(3, batch.Length);
         Assert.Equal("A", batch[0].OperationName);
         Assert.Equal("B", batch[1].OperationName);
         Assert.Equal("C", batch[2].OperationName);
@@ -686,7 +673,7 @@ public class Utf8GraphQLRequestParserTests
         var batch = Utf8GraphQLRequestParser.Parse(source);
 
         // assert
-        Assert.Equal(20, batch.Count);
+        Assert.Equal(20, batch.Length);
         for (var i = 0; i < 20; i++)
         {
             Assert.Equal($"Op{i}", batch[i].OperationName);

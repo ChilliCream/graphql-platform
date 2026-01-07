@@ -42,7 +42,7 @@ public sealed class FieldSetType : ScalarType<SelectionSetNode, StringValueNode>
         Description = FederationResources.FieldsetType_Description;
     }
 
-    public override object CoerceInputLiteral(StringValueNode valueLiteral)
+    protected override SelectionSetNode OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
         try
         {
@@ -54,7 +54,7 @@ public sealed class FieldSetType : ScalarType<SelectionSetNode, StringValueNode>
         }
     }
 
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    protected override SelectionSetNode OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (inputValue.ValueKind is JsonValueKind.String)
         {
@@ -71,11 +71,11 @@ public sealed class FieldSetType : ScalarType<SelectionSetNode, StringValueNode>
         throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
 
-    public override void CoerceOutputValue(SelectionSetNode runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(SelectionSetNode runtimeValue, ResultElement resultValue)
         => resultValue.SetStringValue(SerializeSelectionSet(runtimeValue));
 
-    public override IValueNode ValueToLiteral(SelectionSetNode runtimeValue)
-        => new StringValueNode(SerializeSelectionSet(runtimeValue));
+    protected override StringValueNode OnValueToLiteral(SelectionSetNode runtimeValue)
+        => new(SerializeSelectionSet(runtimeValue));
 
     internal static SelectionSetNode ParseSelectionSet(string s)
         => Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{s}}}");

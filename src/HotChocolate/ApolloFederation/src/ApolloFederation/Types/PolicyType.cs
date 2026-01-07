@@ -34,22 +34,15 @@ public sealed class PolicyType : ScalarType<Policy, StringValueNode>
         Description = FederationResources.PolicyType_Description;
     }
 
-    public override object CoerceInputLiteral(StringValueNode valueLiteral)
-        => new Policy(valueLiteral.Value);
+    protected override Policy OnCoerceInputLiteral(StringValueNode valueLiteral)
+        => new(valueLiteral.Value);
 
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
-    {
-        if (inputValue.ValueKind is JsonValueKind.String)
-        {
-            return new Policy(inputValue.GetString()!);
-        }
+    protected override Policy OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        => new(inputValue.GetString()!);
 
-        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
-    }
-
-    public override void CoerceOutputValue(Policy runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(Policy runtimeValue, ResultElement resultValue)
         => resultValue.SetStringValue(runtimeValue.Value);
 
-    public override IValueNode ValueToLiteral(Policy runtimeValue)
-        => new StringValueNode(runtimeValue.Value);
+    protected override StringValueNode OnValueToLiteral(Policy runtimeValue)
+        => new(runtimeValue.Value);
 }

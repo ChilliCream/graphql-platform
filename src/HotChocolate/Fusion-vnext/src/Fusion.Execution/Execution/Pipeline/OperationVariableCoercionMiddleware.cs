@@ -9,7 +9,6 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 
 internal sealed class OperationVariableCoercionMiddleware
 {
-    private static readonly Dictionary<string, object?> s_empty = [];
     private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
     private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
 

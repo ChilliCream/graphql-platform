@@ -6,7 +6,6 @@ using HotChocolate.Text.Json;
 using HotChocolate.Utilities;
 using static HotChocolate.ApolloFederation.FederationTypeNames;
 using static HotChocolate.ApolloFederation.ThrowHelper;
-using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation.Types;
 
@@ -49,7 +48,7 @@ public sealed class _AnyType : ScalarType<Representation, ObjectValueNode>
     /// <param name="valueLiteral">The GraphQL object value node to parse.</param>
     /// <returns>A <see cref="Representation"/> containing the typename and object data.</returns>
     /// <exception cref="GraphQLException">Thrown when the object is missing the <c>__typename</c> field.</exception>
-    public override object CoerceInputLiteral(ObjectValueNode valueLiteral)
+    protected override Representation OnCoerceInputLiteral(ObjectValueNode valueLiteral)
     {
         if (valueLiteral.Fields.FirstOrDefault(
             field => field.Name.Value.EqualsOrdinal(TypeNameField)) is { Value: StringValueNode s })
@@ -70,7 +69,7 @@ public sealed class _AnyType : ScalarType<Representation, ObjectValueNode>
     /// <exception cref="GraphQLException">
     /// Thrown when the input is not an object or is missing the <c>__typename</c> field.
     /// </exception>
-    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    protected override Representation OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
         if (inputValue.ValueKind is JsonValueKind.Object
             && inputValue.TryGetProperty(TypeNameField, out var typeNameElement)
@@ -92,7 +91,7 @@ public sealed class _AnyType : ScalarType<Representation, ObjectValueNode>
     /// <param name="runtimeValue">The runtime value (not used).</param>
     /// <param name="resultValue">The result element (not used).</param>
     /// <exception cref="NotSupportedException">Always thrown as output coercion is not supported.</exception>
-    public override void CoerceOutputValue(Representation runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(Representation runtimeValue, ResultElement resultValue)
         => throw new NotSupportedException(
             "The _Any scalar is an input-only type and does not support output coercion.");
 
@@ -101,6 +100,6 @@ public sealed class _AnyType : ScalarType<Representation, ObjectValueNode>
     /// </summary>
     /// <param name="runtimeValue">The representation to convert.</param>
     /// <returns>An <see cref="ObjectValueNode"/> containing the representation data.</returns>
-    public override IValueNode ValueToLiteral(Representation runtimeValue)
-        => new ObjectValueNode(runtimeValue.Data.Fields);
+    protected override ObjectValueNode OnValueToLiteral(Representation runtimeValue)
+        => new(runtimeValue.Data.Fields);
 }

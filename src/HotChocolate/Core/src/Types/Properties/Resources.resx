@@ -304,6 +304,6 @@
     <value>The provided response name must be the same as on the selection.</value>
   </data>
   <data name="VariableCoercionHelper_CoerceVariableValues_VariablesMustBeObject" xml:space="preserve">
-    <value>variables must be a JSON Object</value>
+    <value>Variable values must be a JSON Object.</value>
   </data>
 </root>
