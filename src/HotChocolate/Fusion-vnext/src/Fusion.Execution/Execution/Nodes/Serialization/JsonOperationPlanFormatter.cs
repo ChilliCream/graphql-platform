@@ -341,7 +341,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         foreach (var field in node.Fields)
         {
-            if (field.Value is FileValueNode or FileReferenceNode)
+            if (field.Value is FileReferenceNode)
             {
                 continue;
             }

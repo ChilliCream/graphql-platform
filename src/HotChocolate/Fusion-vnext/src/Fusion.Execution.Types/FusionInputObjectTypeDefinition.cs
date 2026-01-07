@@ -116,7 +116,7 @@ public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition
 
         if (context.Directives is null || context.Features is null)
         {
-            InvalidCompletionContext();
+            throw InvalidCompletionContext();
         }
 
         Directives = context.Directives;

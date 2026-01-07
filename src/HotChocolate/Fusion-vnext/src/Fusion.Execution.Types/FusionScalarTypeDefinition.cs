@@ -120,7 +120,7 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
 
         if (context.Directives is null)
         {
-            ThrowHelper.InvalidCompletionContext();
+            throw ThrowHelper.InvalidCompletionContext();
         }
 
         Directives = context.Directives;

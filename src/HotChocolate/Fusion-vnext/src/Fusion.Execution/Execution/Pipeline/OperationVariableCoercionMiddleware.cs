@@ -61,7 +61,7 @@ internal sealed class OperationVariableCoercionMiddleware
                 if (VariableCoercionHelper.TryCoerceVariableValues(
                     context.Schema,
                     variableDefinitions,
-                    operationRequest.VariableValues ?? s_empty,
+                    operationRequest.VariableValues?.Document.RootElement ?? default,
                     out var coercedValues,
                     out var error))
                 {
@@ -78,20 +78,20 @@ internal sealed class OperationVariableCoercionMiddleware
         {
             using (diagnosticEvents.CoerceVariables(context))
             {
-                var variableSetCount = variableBatchRequest.VariableValues?.Count ?? 0;
-                var variableSetInput = variableBatchRequest.VariableValues!;
-                var variableSet = new IVariableValueCollection[variableSetCount];
+                var variableValuesSetInput = variableBatchRequest.VariableValues.Document.RootElement;
+                var variableValuesSet = new IVariableValueCollection[variableValuesSetInput.GetArrayLength()];
+                var i = 0;
 
-                for (var i = 0; i < variableSetCount; i++)
+                foreach (var variableValuesInput in variableValuesSetInput.EnumerateArray())
                 {
                     if (VariableCoercionHelper.TryCoerceVariableValues(
                         context.Schema,
                         variableDefinitions,
-                        variableSetInput[i],
+                        variableValuesInput,
                         out var coercedValues,
                         out var error))
                     {
-                        variableSet[i] = new VariableValueCollection(coercedValues);
+                        variableValuesSet[i++] = new VariableValueCollection(coercedValues);
                     }
                     else
                     {
@@ -100,7 +100,7 @@ internal sealed class OperationVariableCoercionMiddleware
                     }
                 }
 
-                context.VariableValues = ImmutableCollectionsMarshal.AsImmutableArray(variableSet);
+                context.VariableValues = ImmutableCollectionsMarshal.AsImmutableArray(variableValuesSet);
                 return true;
             }
         }

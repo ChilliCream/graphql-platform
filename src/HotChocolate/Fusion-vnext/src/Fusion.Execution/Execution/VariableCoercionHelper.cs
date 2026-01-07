@@ -8,6 +8,12 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
+// TODO : File Upload Rewrite
+// return new FileReferenceNode(
+//     fileValueNode.Value.OpenReadStream,
+//     fileValueNode.Value.Name,
+//     fileValueNode.Value.ContentType);
+
 internal static class VariableCoercionHelper
 {
     public static bool TryCoerceVariableValues(

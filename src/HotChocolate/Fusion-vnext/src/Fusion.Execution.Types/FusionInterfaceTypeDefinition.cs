@@ -34,7 +34,7 @@ public sealed class FusionInterfaceTypeDefinition(
         if (context.Directives is null || context.Interfaces is null
             || context.Sources is null || context.Features is null)
         {
-            ThrowHelper.InvalidCompletionContext();
+            throw ThrowHelper.InvalidCompletionContext();
         }
 
         Directives = context.Directives;

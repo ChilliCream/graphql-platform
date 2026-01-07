@@ -112,7 +112,7 @@ public sealed class FusionEnumTypeDefinition : IEnumTypeDefinition, IFusionTypeD
 
         if (context.Directives is null || context.Features is null)
         {
-            InvalidCompletionContext();
+            throw InvalidCompletionContext();
         }
 
         Directives = context.Directives;

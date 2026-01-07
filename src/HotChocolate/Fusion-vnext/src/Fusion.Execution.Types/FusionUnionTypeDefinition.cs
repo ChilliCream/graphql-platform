@@ -137,7 +137,7 @@ public sealed class FusionUnionTypeDefinition : IUnionTypeDefinition, IFusionTyp
         if (context.Directives is null || context.Types is null
             || context.Sources is null || context.Features is null)
         {
-            InvalidCompletionContext();
+            throw InvalidCompletionContext();
         }
 
         Directives = context.Directives;

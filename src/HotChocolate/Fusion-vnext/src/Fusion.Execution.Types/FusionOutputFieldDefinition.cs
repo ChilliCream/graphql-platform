@@ -187,7 +187,7 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
             || context.DeclaringType is null
             || context.Features is null)
         {
-            InvalidCompletionContext();
+            throw InvalidCompletionContext();
         }
 
         Directives = context.Directives;

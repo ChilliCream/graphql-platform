@@ -36,7 +36,7 @@ public sealed class FusionObjectTypeDefinition(
             || context.Sources is null
             || context.Features is null)
         {
-            ThrowHelper.InvalidCompletionContext();
+            throw ThrowHelper.InvalidCompletionContext();
         }
 
         Directives = context.Directives;
