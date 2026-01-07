@@ -24,4 +24,7 @@ public static class SnapshotValueFormatters
 
     public static ISnapshotValueFormatter SchemaError { get; } =
         new SchemaErrorSnapshotValueFormatter();
+
+    public static ISnapshotValueFormatter ResultElement { get; } =
+        new ResultElementSnapshotValueFormatter();
 }

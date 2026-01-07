@@ -13,5 +13,6 @@ public sealed class CookieCrumbleHotChocolate : SnapshotModule
         yield return SnapshotValueFormatters.OperationResult;
         yield return SnapshotValueFormatters.Schema;
         yield return SnapshotValueFormatters.SchemaError;
+        yield return SnapshotValueFormatters.ResultElement;
     }
 }

@@ -5,7 +5,9 @@ using System.Security.Claims;
 using System.Text.Json;
 using HotChocolate.Adapters.Mcp.Directives;
 using HotChocolate.Authorization;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 
 namespace HotChocolate.Adapters.Mcp;
@@ -425,14 +427,17 @@ public sealed class TestSchema
 
     private sealed class UnknownType() : ScalarType<string, StringValueNode>("Unknown")
     {
-        public override IValueNode ParseResult(object? resultValue)
-            => throw new NotImplementedException();
+        protected override string OnCoerceInputLiteral(StringValueNode valueLiteral)
+            => valueLiteral.Value;
 
-        protected override string ParseLiteral(StringValueNode valueSyntax)
-            => valueSyntax.Value;
+        protected override string OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+            => inputValue.GetString()!;
 
-        protected override StringValueNode ParseValue(string runtimeValue)
-            => throw new NotImplementedException();
+        protected override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
+            => resultValue.SetStringValue(runtimeValue);
+
+        protected override StringValueNode OnValueToLiteral(string runtimeValue)
+            => new StringValueNode(runtimeValue);
     }
 
     public sealed class ExplicitOpenWorld

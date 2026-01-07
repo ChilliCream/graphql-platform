@@ -25,8 +25,10 @@ public sealed partial class ResultDocument : IDisposable
 #endif
     private bool _disposed;
 
-    internal ResultDocument(Operation operation, ulong includeFlags)
+    public ResultDocument(Operation operation, ulong includeFlags)
     {
+        ArgumentNullException.ThrowIfNull(operation);
+
         _metaDb = MetaDb.CreateForEstimatedRows(Cursor.RowsPerChunk);
         _operation = operation;
         _includeFlags = includeFlags;
