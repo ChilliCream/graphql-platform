@@ -80,13 +80,13 @@ It is **not** automatically inferred and the `IdType` needs to be [explicitly sp
 ```csharp
 public class Product
 {
-    [GraphQLType(typeof(IdType))]
+    [GraphQLType<IdType>]
     public int Id { get; set; }
 }
 
 public class Query
 {
-    public Product GetProduct([GraphQLType(typeof(IdType))] int id)
+    public Product GetProduct([GraphQLType<IdType>] int id)
     {
         // Omitted code for brevity
     }
