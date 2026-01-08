@@ -104,11 +104,11 @@ public class IntegrationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequest
-                .FromId(documentHash)
-                .WithDocument(new OperationDocument(Utf8GraphQLParser.Parse("{ __typename }")))
-                .WithDocumentHash(new OperationDocumentHash(documentHash, "MD5", HashFormat.Base64))
-                .WithExtensions(new Dictionary<string, object?>
+            OperationRequestBuilder.New()
+                .SetDocumentId(documentHash)
+                .SetDocument(Utf8GraphQLParser.Parse("{ __typename }"))
+                .SetDocumentHash(new OperationDocumentHash(documentHash, "MD5", HashFormat.Base64))
+                .SetExtensions(new Dictionary<string, object?>
                 {
                     {
                         "persistedQuery",
@@ -118,7 +118,8 @@ public class IntegrationTests
                             { "md5Hash", documentHash }
                         }
                     }
-                }));
+                })
+                .Build());
 
         File.Delete(IO.Path.Combine(cacheDirectory, documentHash + ".graphql"));
 

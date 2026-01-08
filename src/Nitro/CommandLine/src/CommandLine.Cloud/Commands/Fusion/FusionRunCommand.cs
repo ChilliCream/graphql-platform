@@ -52,6 +52,8 @@ public class FusionRunCommand : Command
 
         port ??= GetRandomUnusedPort();
 
+        // Type or member is obsolete
+#pragma warning disable ASPDEPR008
         var host = new WebHostBuilder()
             .UseKestrel()
             .UseUrls(new UriBuilder("http", "localhost", port.Value).ToString())
@@ -86,6 +88,7 @@ public class FusionRunCommand : Command
                     }));
             })
             .Build();
+#pragma warning restore ASPDEPR008
 
         var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
 

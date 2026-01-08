@@ -100,7 +100,7 @@ internal sealed class VariableCoercionHelper
         try
         {
             var runtimeValue = _inputParser.ParseInputValue(inputValue, variableType, context, path: root);
-            var valueLiteral = _inputFormatter.FormatValue(inputValue, variableType, root);
+            var valueLiteral = _inputFormatter.FormatValue(runtimeValue, variableType, root);
 
             return new VariableValue(
                 variableDefinition.Variable.Name.Value,

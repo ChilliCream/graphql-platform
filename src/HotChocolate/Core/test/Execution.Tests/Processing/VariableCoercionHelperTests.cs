@@ -1,9 +1,12 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.StarWars.Models;
 using HotChocolate.StarWars.Types;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Moq;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -23,14 +26,13 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>();
         var coercedValues = new Dictionary<string, VariableValue>();
-
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
         void Action() => helper.CoerceVariableValues(
-            null!, variableDefinitions, variableValues, coercedValues);
+            null!, variableDefinitions, default, coercedValues, featureProvider.Object);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -41,41 +43,13 @@ public class VariableCoercionHelperTests
     {
         // arrange
         var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
-        var variableValues = new Dictionary<string, object?>();
         var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
         void Action()
-            => helper.CoerceVariableValues(schema, null!, variableValues, coercedValues);
-
-        // assert
-        Assert.Throws<ArgumentNullException>(Action);
-    }
-
-    [Fact]
-    public void VariableCoercionHelper_VariableValues_Is_Null()
-    {
-        // arrange
-        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
-
-        var variableDefinitions = new List<VariableDefinitionNode>
-        {
-            new VariableDefinitionNode(
-                null,
-                new VariableNode("abc"),
-                description: null,
-                new NamedTypeNode("String"),
-                new StringValueNode("def"),
-                Array.Empty<DirectiveNode>())
-        };
-
-        var coercedValues = new Dictionary<string, VariableValue>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
-
-        // act
-        void Action() => helper.CoerceVariableValues(
-            schema, variableDefinitions, null!, coercedValues);
+            => helper.CoerceVariableValues(schema, null!, default, coercedValues, featureProvider.Object);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -98,13 +72,12 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>();
-
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
         void Action() => helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues, null!);
+            schema, variableDefinitions, default, null!, featureProvider.Object);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -127,13 +100,13 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>();
         var coercedValues = new Dictionary<string, VariableValue>();
-
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
-        helper.CoerceVariableValues(schema, variableDefinitions, variableValues, coercedValues);
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, default, coercedValues, featureProvider.Object);
 
         // assert
         Assert.Collection(coercedValues,
@@ -163,13 +136,13 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>();
         var coercedValues = new Dictionary<string, VariableValue>();
-
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
-        helper.CoerceVariableValues(schema, variableDefinitions, variableValues, coercedValues);
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, default, coercedValues, featureProvider.Object);
 
         // assert
         Assert.Empty(coercedValues);
@@ -192,17 +165,14 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>
-        {
-            {"abc", new StringValueNode("xyz")}
-        };
-
+        var variableValues = JsonDocument.Parse("""{"abc": "xyz"}""");
         var coercedValues = new Dictionary<string, VariableValue>();
-
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
-        helper.CoerceVariableValues(schema, variableDefinitions, variableValues, coercedValues);
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
 
         // assert
         Assert.Collection(coercedValues,
@@ -232,17 +202,14 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>
-        {
-            {"abc", "xyz"}
-        };
-
+        var variableValues = JsonDocument.Parse("""{"abc": "xyz"}""");
         var coercedValues = new Dictionary<string, VariableValue>();
-
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
-        helper.CoerceVariableValues(schema, variableDefinitions, variableValues, coercedValues);
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
 
         // assert
         Assert.Collection(coercedValues,
@@ -251,7 +218,7 @@ public class VariableCoercionHelperTests
                 Assert.Equal("abc", t.Key);
                 Assert.Equal("String", Assert.IsType<StringType>(t.Value.Type).Name);
                 Assert.Equal("xyz", t.Value.RuntimeValue);
-                t.Value.ValueLiteral.ToString().MatchSnapshot();
+                t.Value.ValueLiteral.MatchInlineSnapshot("\"xyz\"");
             });
     }
 
@@ -272,16 +239,14 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>
-        {
-            {"abc", NullValueNode.Default}
-        };
-
+        var variableValues = JsonDocument.Parse("""{"abc": null}""");
         var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
-        helper.CoerceVariableValues(schema, variableDefinitions, variableValues, coercedValues);
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
 
         // assert
         Assert.Collection(coercedValues,
@@ -295,46 +260,7 @@ public class VariableCoercionHelperTests
     }
 
     [Fact]
-    public void Coerce_Nullable_String_Variable_With_Default_Where_Plain_Null_Is_Provided()
-    {
-        // arrange
-        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
-
-        var variableDefinitions = new List<VariableDefinitionNode>
-        {
-            new VariableDefinitionNode(
-                null,
-                new VariableNode("abc"),
-                description: null,
-                new NamedTypeNode("String"),
-                new StringValueNode("def"),
-                Array.Empty<DirectiveNode>())
-        };
-
-        var variableValues = new Dictionary<string, object?>
-        {
-            {"abc", null}
-        };
-
-        var coercedValues = new Dictionary<string, VariableValue>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
-
-        // act
-        helper.CoerceVariableValues(schema, variableDefinitions, variableValues, coercedValues);
-
-        // assert
-        Assert.Collection(coercedValues,
-            t =>
-            {
-                Assert.Equal("abc", t.Key);
-                Assert.Equal("String", Assert.IsType<StringType>(t.Value.Type).Name);
-                Assert.Null(t.Value.RuntimeValue);
-                Assert.IsType<NullValueNode>(t.Value.ValueLiteral);
-            });
-    }
-
-    [Fact]
-    public void Coerce_Nullable_ReviewInput_Variable_With_Object_Literal()
+    public void Coerce_Nullable_ReviewInput_Variable_With_Object()
     {
         // arrange
         var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
@@ -350,16 +276,14 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>
-        {
-            {"abc", new ObjectValueNode(new ObjectFieldNode("stars", 5))}
-        };
-
+        var variableValues = JsonDocument.Parse("""{"abc": {"stars": 5}}""");
         var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
-        helper.CoerceVariableValues(schema, variableDefinitions, variableValues, coercedValues);
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
 
         // assert
         Assert.Collection(coercedValues,
@@ -369,84 +293,6 @@ public class VariableCoercionHelperTests
                 Assert.Equal("ReviewInput", Assert.IsType<ReviewInputType>(t.Value.Type).Name);
                 Assert.Equal(5, Assert.IsType<Review>(t.Value.RuntimeValue).Stars);
                 Assert.IsType<ObjectValueNode>(t.Value.ValueLiteral);
-            });
-    }
-
-    [Fact]
-    public void Coerce_Nullable_ReviewInput_Variable_With_Dictionary()
-    {
-        // arrange
-        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
-
-        var variableDefinitions = new List<VariableDefinitionNode>
-        {
-            new VariableDefinitionNode(
-                null,
-                new VariableNode("abc"),
-                description: null,
-                new NamedTypeNode("ReviewInput"),
-                new StringValueNode("def"),
-                Array.Empty<DirectiveNode>())
-        };
-
-        var variableValues = new Dictionary<string, object?>
-        {
-            {"abc", new Dictionary<string, object> { {"stars", 5} }}
-        };
-
-        var coercedValues = new Dictionary<string, VariableValue>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
-
-        // act
-        helper.CoerceVariableValues(schema, variableDefinitions, variableValues, coercedValues);
-
-        // assert
-        Assert.Collection(coercedValues,
-            t =>
-            {
-                Assert.Equal("abc", t.Key);
-                Assert.Equal("ReviewInput", Assert.IsType<ReviewInputType>(t.Value.Type).Name);
-                Assert.Equal(5, Assert.IsType<Review>(t.Value.RuntimeValue).Stars);
-                t.Value.ValueLiteral.ToString().MatchSnapshot();
-            });
-    }
-
-    [Fact]
-    public void Coerce_Nullable_ReviewInput_Variable_With_Review_Object()
-    {
-        // arrange
-        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
-
-        var variableDefinitions = new List<VariableDefinitionNode>
-        {
-            new VariableDefinitionNode(
-                null,
-                new VariableNode("abc"),
-                description: null,
-                new NamedTypeNode("ReviewInput"),
-                new StringValueNode("def"),
-                Array.Empty<DirectiveNode>())
-        };
-
-        var variableValues = new Dictionary<string, object?>
-        {
-            { "abc", new Review(stars: 5) }
-        };
-
-        var coercedValues = new Dictionary<string, VariableValue>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
-
-        // act
-        helper.CoerceVariableValues(schema, variableDefinitions, variableValues, coercedValues);
-
-        // assert
-        Assert.Collection(coercedValues,
-            t =>
-            {
-                Assert.Equal("abc", t.Key);
-                Assert.Equal("ReviewInput", Assert.IsType<ReviewInputType>(t.Value.Type).Name);
-                Assert.Equal(5, Assert.IsType<Review>(t.Value.RuntimeValue).Stars);
-                t.Value.ValueLiteral.ToString().MatchSnapshot();
             });
     }
 
@@ -467,53 +313,31 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>
-        {
-            {"abc", NullValueNode.Default}
-        };
-
+        var variableValues = JsonDocument.Parse("""{"abc": null}""");
         var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
         void Action() => helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues, coercedValues);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
 
         // assert
-        Assert.Throws<GraphQLException>(Action).Errors.MatchSnapshot();
-    }
-
-    [Fact]
-    public void Error_When_PlainValue_Is_Null_On_Non_Null_Variable()
-    {
-        // arrange
-        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
-
-        var variableDefinitions = new List<VariableDefinitionNode>
-        {
-            new VariableDefinitionNode(
-                null,
-                new VariableNode("abc"),
-                description: null,
-                new NonNullTypeNode(new NamedTypeNode("String")),
-                new StringValueNode("def"),
-                Array.Empty<DirectiveNode>())
-        };
-
-        var variableValues = new Dictionary<string, object?>
-        {
-            {"abc", null}
-        };
-
-        var coercedValues = new Dictionary<string, VariableValue>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
-
-        // act
-        void Action() => helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues, coercedValues);
-
-        // assert
-        Assert.Throws<GraphQLException>(Action).Errors.MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action)
+            .Errors.Select(t => t.WithException(null))
+            .ToList()
+            .MatchInlineSnapshot(
+                """
+                [
+                  {
+                    "Message": "Cannot accept null for non-nullable input.",
+                    "Code": null,
+                    "Path": null,
+                    "Locations": null,
+                    "Extensions": null
+                  }
+                ]
+                """);
     }
 
     [Fact]
@@ -533,55 +357,33 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>
-        {
-            {"abc", new IntValueNode(1)}
-        };
-
+        var variableValues = JsonDocument.Parse("""{"abc": 1}""");
         var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
         void Action() => helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues, coercedValues);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
 
         // assert
         Assert.Throws<LeafCoercionException>(Action)
             .Errors.Select(t => t.WithException(null))
             .ToList()
-            .MatchSnapshot();
-    }
-
-    [Fact]
-    public void Error_When_PlainValue_Type_Does_Not_Match_Variable_Type()
-    {
-        // arrange
-        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
-
-        var variableDefinitions = new List<VariableDefinitionNode>
-        {
-            new(null,
-                new VariableNode("abc"),
-                description: null,
-                new NamedTypeNode("String"),
-                new StringValueNode("def"),
-                Array.Empty<DirectiveNode>())
-        };
-
-        var variableValues = new Dictionary<string, object?>
-        {
-            { "abc", 1 }
-        };
-
-        var coercedValues = new Dictionary<string, VariableValue>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
-
-        // act
-        void Action() => helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues, coercedValues);
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action).Errors.MatchSnapshot();
+            .MatchInlineSnapshot(
+                """
+                [
+                  {
+                    "Message": "The value `1` is not compatible with the type `String`.",
+                    "Code": null,
+                    "Path": null,
+                    "Locations": null,
+                    "Extensions": {
+                      "variable": "abc"
+                    }
+                  }
+                ]
+                """);
     }
 
     [Fact]
@@ -600,20 +402,28 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>
-        {
-            { "abc", 1 }
-        };
-
+        var variableValues = JsonDocument.Parse("""{"abc": 1}""");
         var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
         void Action() => helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues, coercedValues);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
 
         // assert
-        Assert.Throws<GraphQLException>(Action).Errors.MatchSnapshot();
+        Assert.Throws<GraphQLException>(Action).Errors.MatchInlineSnapshot(
+            """
+            [
+              {
+                "Message": "Variable `abc` has an invalid type `Human`.",
+                "Code": null,
+                "Path": null,
+                "Locations": null,
+                "Extensions": null
+              }
+            ]
+            """);
     }
 
     [Fact]
@@ -632,23 +442,35 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>
-        {
-            { "abc", new ObjectValueNode(new ObjectFieldNode("abc", "def")) }
-        };
-
+        var variableValues = JsonDocument.Parse("""{"abc": {"abc": "def"}}""");
         var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
         void Action() => helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues, coercedValues);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
 
         // assert
         Assert.Throws<LeafCoercionException>(Action)
             .Errors.Select(t => t.WithException(null))
             .ToList()
-            .MatchSnapshot();
+            .MatchInlineSnapshot(
+                """
+                [
+                  {
+                    "Message": "`stars` is a required field of `ReviewInput`.",
+                    "Code": null,
+                    "Path": null,
+                    "Locations": null,
+                    "Extensions": {
+                      "field": "stars",
+                      "type": "ReviewInput",
+                      "variable": "abc"
+                    }
+                  }
+                ]
+                """);
     }
 
     [Fact]
@@ -683,34 +505,38 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>
-        {
+        var variableValues = JsonDocument.Parse(
+            """
             {
-                "abc",
-                new ListValueNode(
-                    new ObjectValueNode(
-                        new ObjectFieldNode("enum", "Foo")),
-                    new ObjectValueNode(
-                        new ObjectFieldNode("enum", "Bar")))
+              "abc": [
+                { "enum": "Foo" },
+                { "enum": "Bar" }
+              ]
             }
-        };
+            """);
 
         var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues, coercedValues);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
 
         // assert
-        Assert.Collection(coercedValues,
-            t =>
-            {
-                Assert.Equal("abc", t.Key);
-                Assert.Equal(
-                    "[ { enum: Foo }, { enum: Bar } ]",
-                    t.Value.ValueLiteral.ToString());
-            });
+        var entry = Assert.Single(coercedValues);
+        Assert.Equal("abc", entry.Key);
+        entry.Value.ValueLiteral.MatchInlineSnapshot(
+            """
+            [
+              {
+                enum: Foo
+              },
+              {
+                enum: Bar
+              }
+            ]
+            """);
     }
 
     [Fact]
@@ -745,34 +571,38 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>
-        {
+        var variableValues = JsonDocument.Parse(
+            """
             {
-                "abc",
-                new ListValueNode(
-                    new ObjectValueNode(
-                        new ObjectFieldNode("enum", "Foo")),
-                    new ObjectValueNode(
-                        new ObjectFieldNode("enum", "Bar")))
+              "abc": [
+                { "enum": "Foo" },
+                { "enum": "Bar" }
+              ]
             }
-        };
+            """);
 
         var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues, coercedValues);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
 
         // assert
-        Assert.Collection(coercedValues,
-            t =>
-            {
-                Assert.Equal("abc", t.Key);
-                Assert.Equal(
-                    "[ { enum: Foo }, { enum: Bar } ]",
-                    t.Value.ValueLiteral.ToString());
-            });
+        var entry = Assert.Single(coercedValues);
+        Assert.Equal("abc", entry.Key);
+        entry.Value.ValueLiteral.MatchInlineSnapshot(
+            """
+            [
+              {
+                enum: Foo
+              },
+              {
+                enum: Bar
+              }
+            ]
+            """);
     }
 
     [Fact]
@@ -808,30 +638,31 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>
-        {
+        var variableValues = JsonDocument.Parse(
+            """
             {
-                "abc",
-                new ObjectValueNode(
-                    new ObjectFieldNode("enum", "Foo"),
-                    new ObjectFieldNode("enum2", "Bar"))
+              "abc": { "enum": "Foo", "enum2": "Bar" }
             }
-        };
+            """);
 
         var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues, coercedValues);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
 
         // assert
-        Assert.Collection(coercedValues,
-            t =>
+        var entry = Assert.Single(coercedValues);
+        Assert.Equal("abc", entry.Key);
+        entry.Value.ValueLiteral.MatchInlineSnapshot(
+            """
             {
-                Assert.Equal("abc", t.Key);
-                Assert.Equal("{ enum: Foo, enum2: Bar }", t.Value.ValueLiteral.ToString());
-            });
+              enum: Foo,
+              enum2: Bar
+            }
+            """);
     }
 
     [Fact]
@@ -867,30 +698,31 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>
-        {
+        var variableValues = JsonDocument.Parse(
+            """
             {
-                "abc",
-                new ObjectValueNode(
-                    new ObjectFieldNode("enum", "Foo"),
-                    new ObjectFieldNode("enum2", "Bar"))
+              "abc": { "enum": "Foo", "enum2": "Bar" }
             }
-        };
+            """);
 
         var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues, coercedValues);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
 
         // assert
-        Assert.Collection(coercedValues,
-            t =>
+        var entry = Assert.Single(coercedValues);
+        Assert.Equal("abc", entry.Key);
+        entry.Value.ValueLiteral.MatchInlineSnapshot(
+            """
             {
-                Assert.Equal("abc", t.Key);
-                Assert.Equal("{ enum: Foo, enum2: Bar }", t.Value.ValueLiteral.ToString());
-            });
+              enum: Foo,
+              enum2: Bar
+            }
+            """);
     }
 
     [Fact]
@@ -926,39 +758,31 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var expectToBeUnchanged = new ObjectFieldNode("value_a", "Foo");
-        var expectToBeRewritten = new ObjectFieldNode("value_b", "Bar");
-
-        var variableValues = new Dictionary<string, object?>
-        {
+        var variableValues = JsonDocument.Parse(
+            """
             {
-                "abc",
-                new ObjectValueNode(
-                    expectToBeUnchanged,
-                    expectToBeRewritten)
+              "abc": { "value_a": "Foo", "value_b": "Bar" }
             }
-        };
+            """);
 
         var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new Mock<IFeatureProvider>();
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues, coercedValues);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
 
         // assert
-        Assert.Collection(coercedValues,
-            t =>
+        var entry = Assert.Single(coercedValues);
+        Assert.Equal("abc", entry.Key);
+        entry.Value.ValueLiteral.MatchInlineSnapshot(
+            """
             {
-                Assert.Equal("abc", t.Key);
-                Assert.Equal(
-                    @"{ value_a: ""Foo"", value_b: Bar }",
-                    t.Value.ValueLiteral.ToString());
-
-                var obj = Assert.IsType<ObjectValueNode>(t.Value.ValueLiteral);
-                Assert.Same(expectToBeUnchanged, obj.Fields[0]);
-                Assert.NotSame(expectToBeRewritten, obj.Fields[1]);
-            });
+              value_a: "Foo",
+              value_b: Bar
+            }
+            """);
     }
 
     [Fact]
@@ -994,37 +818,47 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var expectToBeUnchanged = new ObjectValueNode(new ObjectFieldNode("value_a", "Foo"));
-        var expectToBeRewritten = new ObjectValueNode(new ObjectFieldNode("value_b", "Bar"));
-
-        var variableValues = new Dictionary<string, object?>
-        {
+        var variableValues = JsonDocument.Parse(
+            """
             {
-                "abc",
-                new ListValueNode(expectToBeUnchanged, expectToBeRewritten)
+              "abc": [
+                {
+                  "value_a": "Foo"
+                },
+                {
+                  "value_b": "Bar"
+                }
+              ]
             }
-        };
+            """);
 
         var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new Mock<IFeatureProvider>();
+
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues, coercedValues);
+            schema,
+            variableDefinitions,
+            variableValues.RootElement,
+            coercedValues,
+            featureProvider.Object);
 
         // assert
-        Assert.Collection(coercedValues,
-            t =>
-            {
-                Assert.Equal("abc", t.Key);
-                Assert.Equal(
-                    @"[ { value_a: ""Foo"" }, { value_b: Bar } ]",
-                    t.Value.ValueLiteral.ToString());
-
-                var list = Assert.IsType<ListValueNode>(t.Value.ValueLiteral);
-                Assert.Same(expectToBeUnchanged, list.Items[0]);
-                Assert.NotSame(expectToBeRewritten, list.Items[1]);
-            });
+        var entry = Assert.Single(coercedValues);
+        Assert.Equal("abc", entry.Key);
+        entry.Value.ValueLiteral.MatchInlineSnapshot(
+            """
+            [
+              {
+                value_a: "Foo"
+              },
+              {
+                value_b: Bar
+              }
+            ]
+            """);
     }
 
     [Fact]
@@ -1043,13 +877,18 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var variableValues = new Dictionary<string, object?>();
         var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new Mock<IFeatureProvider>();
 
         var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
 
         // act
-        helper.CoerceVariableValues(schema, variableDefinitions, variableValues, coercedValues);
+        helper.CoerceVariableValues(
+            schema,
+            variableDefinitions,
+            default,
+            coercedValues,
+            featureProvider.Object);
 
         // assert
         Assert.Empty(coercedValues);

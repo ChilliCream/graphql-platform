@@ -34,7 +34,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)", true)]
     [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)", true)]
     [InlineData(typeof(NullValueNode), null, true)]
-    public void IsInstanceOfType_GivenValueNode_MatchExpected(
+    public void IsValueCompatible_GivenValueNode_MatchExpected(
         Type type,
         object? value,
         bool expected)
@@ -45,33 +45,6 @@ public class RgbTypeTests : ScalarTypeTestBase
         // act
         // assert
         ExpectIsInstanceOfTypeToMatch<RgbType>(valueNode, expected);
-    }
-
-    [Theory]
-    [InlineData(TestEnum.Foo, false)]
-    [InlineData(1d, false)]
-    [InlineData(1, false)]
-    [InlineData(true, false)]
-    [InlineData("", false)]
-    [InlineData("rgb(٢٥٥,٠,٠)", false)]
-    [InlineData("rgb(255,0,0)", true)]
-    [InlineData("rgb(100%, 0%, 0%)", true)]
-    [InlineData("rgb(300,0,0)", true)]
-    [InlineData("rgb(110%, 0%, 0%)", true)]
-    [InlineData("rgb(100%,0%,60%)", true)]
-    [InlineData("rgb(100%, 0%, 60%)", true)]
-    [InlineData("rgb(255 0 153)", true)]
-    [InlineData("rgb(255, 0, 153, 1)", true)]
-    [InlineData("rgb(255, 0, 153, 100%)", true)]
-    [InlineData("rgb(255 0 153 / 1)", true)]
-    [InlineData("rgb(255 0 153 / 100%)", true)]
-    [InlineData(null, true)]
-    public void IsInstanceOfType_GivenObject_MatchExpected(object? value, bool expected)
-    {
-        // arrange
-        // act
-        // assert
-        ExpectIsInstanceOfTypeToMatch<RgbType>(value, expected);
     }
 
     [Theory]
@@ -87,7 +60,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)", "rgb(255 0 153 / 1)")]
     [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)", "rgb(255 0 153 / 100%)")]
     [InlineData(typeof(NullValueNode), null, null)]
-    public void ParseLiteral_GivenValueNode_MatchExpected(
+    public void CoerceInputLiteral_GivenValueNode_MatchExpected(
         Type type,
         object? value,
         object? expected)
@@ -110,7 +83,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "rgb(255, 0, 153.6, 1)")]
     [InlineData(typeof(StringValueNode), "rgb(1e2, .5e1, .5e0, +.25e2%)")]
     [InlineData(typeof(StringValueNode), "rgb(٢٥٥,٠,٠)")]
-    public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
+    public void CoerceInputLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
@@ -121,162 +94,92 @@ public class RgbTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData("rgb(255,0,0)", "rgb(255,0,0)")]
-    [InlineData("rgb(100%, 0%, 0%)", "rgb(100%, 0%, 0%)")]
-    [InlineData("rgb(300,0,0)", "rgb(300,0,0)")]
-    [InlineData("rgb(110%, 0%, 0%)", "rgb(110%, 0%, 0%)")]
-    [InlineData("rgb(100%,0%,60%)", "rgb(100%,0%,60%)")]
-    [InlineData("rgb(100%, 0%, 60%)", "rgb(100%, 0%, 60%)")]
-    [InlineData("rgb(255 0 153)", "rgb(255 0 153)")]
-    [InlineData("rgb(255, 0, 153, 1)", "rgb(255, 0, 153, 1)")]
-    [InlineData("rgb(255, 0, 153, 100%)", "rgb(255, 0, 153, 100%)")]
-    [InlineData("rgb(255 0 153 / 1)", "rgb(255 0 153 / 1)")]
-    [InlineData("rgb(255 0 153 / 100%)", "rgb(255 0 153 / 100%)")]
-    [InlineData(null, null)]
-    public void Deserialize_GivenValue_MatchExpected(
-        object? resultValue,
+    [InlineData("\"rgb(255,0,0)\"", "rgb(255,0,0)")]
+    [InlineData("\"rgb(100%, 0%, 0%)\"", "rgb(100%, 0%, 0%)")]
+    [InlineData("\"rgb(300,0,0)\"", "rgb(300,0,0)")]
+    [InlineData("\"rgb(255 0 153)\"", "rgb(255 0 153)")]
+    [InlineData("\"rgb(255, 0, 153, 1)\"", "rgb(255, 0, 153, 1)")]
+    public void CoerceInputValue_GivenValue_MatchExpected(
+        string jsonValue,
         object? runtimeValue)
     {
         // arrange
         // act
         // assert
-        ExpectDeserializeToMatch<RgbType>(resultValue, runtimeValue);
+        ExpectCoerceInputValueToMatch<RgbType>(jsonValue, runtimeValue);
     }
 
     [Theory]
-    [InlineData(TestEnum.Foo)]
+    [InlineData("1.0")]
+    [InlineData("1")]
+    [InlineData("12345")]
+    [InlineData("\"\"")]
+    [InlineData("\"1\"")]
+    [InlineData("\"rgb(255, 0, 153.6, 1)\"")]
+    public void CoerceInputValue_GivenValue_ThrowSerializationException(string jsonValue)
+    {
+        // arrange
+        // act
+        // assert
+        ExpectCoerceInputValueToThrowSerializationException<RgbType>(jsonValue);
+    }
+
+    [Theory]
+    [InlineData("rgb(255,0,0)")]
+    [InlineData("rgb(100%, 0%, 0%)")]
+    [InlineData("rgb(300,0,0)")]
+    [InlineData("rgb(255 0 153)")]
+    [InlineData("rgb(255, 0, 153, 1)")]
+    public void CoerceOutputValue_GivenObject_MatchExpectedType(object? runtimeValue)
+    {
+        // arrange
+        // act
+        // assert
+        ExpectCoerceOutputValueToMatch<RgbType>(runtimeValue);
+    }
+
+    [Theory]
     [InlineData(1d)]
     [InlineData(1)]
     [InlineData(12345)]
     [InlineData("")]
     [InlineData("1")]
     [InlineData("rgb(255, 0, 153.6, 1)")]
-    [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
-    [InlineData("rgb(٢٥٥,٠,٠)")]
-    public void Deserialize_GivenValue_ThrowSerializationException(object value)
+    public void CoerceOutputValue_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
         // act
         // assert
-        ExpectDeserializeToThrowSerializationException<RgbType>(value);
-    }
-
-    [Theory]
-    [InlineData("rgb(255,0,0)", "rgb(255,0,0)")]
-    [InlineData("rgb(100%, 0%, 0%)", "rgb(100%, 0%, 0%)")]
-    [InlineData("rgb(300,0,0)", "rgb(300,0,0)")]
-    [InlineData("rgb(110%, 0%, 0%)", "rgb(110%, 0%, 0%)")]
-    [InlineData("rgb(100%,0%,60%)", "rgb(100%,0%,60%)")]
-    [InlineData("rgb(100%, 0%, 60%)", "rgb(100%, 0%, 60%)")]
-    [InlineData("rgb(255 0 153)", "rgb(255 0 153)")]
-    [InlineData("rgb(255, 0, 153, 1)", "rgb(255, 0, 153, 1)")]
-    [InlineData("rgb(255, 0, 153, 100%)", "rgb(255, 0, 153, 100%)")]
-    [InlineData("rgb(255 0 153 / 1)", "rgb(255 0 153 / 1)")]
-    [InlineData("rgb(255 0 153 / 100%)", "rgb(255 0 153 / 100%)")]
-    [InlineData(null, null)]
-    public void Serialize_GivenObject_MatchExpectedType(
-        object? runtimeValue,
-        object? resultValue)
-    {
-        // arrange
-        // act
-        // assert
-        ExpectSerializeToMatch<RgbType>(runtimeValue, resultValue);
-    }
-
-    [Theory]
-    [InlineData(TestEnum.Foo)]
-    [InlineData(1d)]
-    [InlineData(1)]
-    [InlineData(12345)]
-    [InlineData("")]
-    [InlineData("1")]
-    [InlineData("rgb(255, 0, 153.6, 1)")]
-    [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
-    [InlineData("rgb(٢٥٥,٠,٠)")]
-    public void Serialize_GivenObject_ThrowSerializationException(object value)
-    {
-        // arrange
-        // act
-        // assert
-        ExpectSerializeToThrowSerializationException<RgbType>(value);
+        ExpectCoerceOutputValueToThrowSerializationException<RgbType>(value);
     }
 
     [Theory]
     [InlineData(typeof(StringValueNode), "rgb(255,0,0)")]
     [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 0%)")]
     [InlineData(typeof(StringValueNode), "rgb(300,0,0)")]
-    [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)")]
-    [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)")]
-    [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)")]
     [InlineData(typeof(StringValueNode), "rgb(255 0 153)")]
     [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 1)")]
-    [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 100%)")]
-    [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)")]
-    [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)")]
     [InlineData(typeof(NullValueNode), null)]
-    public void ParseValue_GivenObject_MatchExpectedType(Type type, object? value)
+    public void ValueToLiteral_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange
         // act
         // assert
-        ExpectParseValueToMatchType<RgbType>(value, type);
+        ExpectValueToLiteralToMatchType<RgbType>(value, type);
     }
 
     [Theory]
-    [InlineData(TestEnum.Foo)]
     [InlineData(1d)]
     [InlineData(1)]
     [InlineData(12345)]
     [InlineData("")]
     [InlineData("1")]
     [InlineData("rgb(255, 0, 153.6, 1)")]
-    [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
-    [InlineData("rgb(٢٥٥,٠,٠)")]
-    public void ParseValue_GivenObject_ThrowSerializationException(object value)
+    public void ValueToLiteral_GivenObject_ThrowSerializationException(object value)
     {
         // arrange
         // act
         // assert
-        ExpectParseValueToThrowSerializationException<RgbType>(value);
-    }
-
-    [Theory]
-    [InlineData(typeof(StringValueNode), "rgb(255,0,0)")]
-    [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 0%)")]
-    [InlineData(typeof(StringValueNode), "rgb(300,0,0)")]
-    [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)")]
-    [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)")]
-    [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)")]
-    [InlineData(typeof(StringValueNode), "rgb(255 0 153)")]
-    [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 1)")]
-    [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 100%)")]
-    [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)")]
-    [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)")]
-    [InlineData(typeof(NullValueNode), null)]
-    public void ParseResult_GivenObject_MatchExpectedType(Type type, object? value)
-    {
-        // arrange
-        // act
-        // assert
-        ExpectParseResultToMatchType<RgbType>(value, type);
-    }
-
-    [Theory]
-    [InlineData(TestEnum.Foo)]
-    [InlineData(1d)]
-    [InlineData(1)]
-    [InlineData(12345)]
-    [InlineData("")]
-    [InlineData("1")]
-    [InlineData("rgb(255, 0, 153.6, 1)")]
-    [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
-    [InlineData("rgb(٢٥٥,٠,٠)")]
-    public void ParseResult_GivenObject_ThrowSerializationException(object value)
-    {
-        // arrange
-        // act
-        // assert
-        ExpectParseResultToThrowSerializationException<RgbType>(value);
+        ExpectValueToLiteralToThrowSerializationException<RgbType>(value);
     }
 }

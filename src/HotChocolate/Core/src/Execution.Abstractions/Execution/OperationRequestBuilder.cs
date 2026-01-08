@@ -250,8 +250,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// </returns>
     [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
     [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
-    public OperationRequestBuilder SetVariableValues(
-        IReadOnlyDictionary<string, object?>? variableValues)
+    public OperationRequestBuilder SetVariableValues(IReadOnlyDictionary<string, object?>? variableValues)
     {
         _variableValues?.Dispose();
         _variableValues = null;
@@ -313,8 +312,8 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     public OperationRequestBuilder SetExtensions(
         JsonDocument? extensions)
     {
-        _variableValues?.Dispose();
-        _variableValues = null;
+        _extensions?.Dispose();
+        _extensions = null;
 
         if (extensions is null)
         {
@@ -322,6 +321,35 @@ public sealed class OperationRequestBuilder : IFeatureProvider
         }
 
         _extensions = new(extensions);
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the GraphQL request extension data.
+    /// </summary>
+    /// <param name="extensions">
+    /// The GraphQL request extension data.
+    /// </param>
+    /// <returns>
+    /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
+    /// </returns>
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+    public OperationRequestBuilder SetExtensions(IReadOnlyDictionary<string, object?>? extensions)
+    {
+        _extensions?.Dispose();
+        _extensions = null;
+
+        if (extensions is null)
+        {
+            return this;
+        }
+
+#if NET9_0_OR_GREATER
+        _extensions = new(JsonSerializer.SerializeToDocument(extensions, JsonSerializerOptions.Web));
+#else
+        _extensions = new(JsonSerializer.SerializeToDocument(extensions, s_serializerOptions));
+#endif
         return this;
     }
 
