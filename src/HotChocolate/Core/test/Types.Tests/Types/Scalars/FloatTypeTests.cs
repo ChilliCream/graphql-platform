@@ -144,7 +144,7 @@ public class FloatTypeTests
         type.CoerceOutputValue(runtimeValue, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("42.5");
     }
 
     [Fact]

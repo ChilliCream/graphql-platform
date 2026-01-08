@@ -101,7 +101,7 @@ public class StringTypeTests
         type.CoerceOutputValue(runtimeValue, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("\"hello world\"");
     }
 
     [Fact]

@@ -148,7 +148,7 @@ public class LocalDateTypeTests
         type.CoerceOutputValue(dateOnly, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("\"2018-06-11\"");
     }
 
     [Fact]

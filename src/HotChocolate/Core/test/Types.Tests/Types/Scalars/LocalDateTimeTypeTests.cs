@@ -130,7 +130,7 @@ public class LocalDateTimeTypeTests
         type.CoerceOutputValue(dateTime, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("\"2018-06-11T08:46:14\"");
     }
 
     [Fact]

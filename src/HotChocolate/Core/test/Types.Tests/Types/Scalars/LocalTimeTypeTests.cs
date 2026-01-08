@@ -130,7 +130,7 @@ public class LocalTimeTypeTests
         type.CoerceOutputValue(timeOnly, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("\"08:46:14\"");
     }
 
     [Fact]

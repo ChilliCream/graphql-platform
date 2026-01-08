@@ -215,7 +215,7 @@ public class UuidTypeTests
     {
         // arrange
         var type = new UuidType();
-        var guid = Guid.NewGuid();
+        var guid = Guid.Parse("c8c483be-4319-4903-a064-8a6ba66da99e");
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
@@ -224,7 +224,7 @@ public class UuidTypeTests
         type.CoerceOutputValue(guid, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("\"c8c483be-4319-4903-a064-8a6ba66da99e\"");
     }
 
     [Fact]

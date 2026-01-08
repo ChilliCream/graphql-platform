@@ -210,7 +210,7 @@ public class DecimalTypeTests
         type.CoerceOutputValue(runtimeValue, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("123.456");
     }
 
     [Fact]

@@ -171,7 +171,7 @@ public class ByteArrayTypeTests
         type.CoerceOutputValue(value, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("\"dmFsdWU=\"");
     }
 
     [Fact]

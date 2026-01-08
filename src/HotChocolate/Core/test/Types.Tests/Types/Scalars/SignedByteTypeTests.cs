@@ -157,7 +157,7 @@ public class SignedByteTypeTests
         type.CoerceOutputValue(runtimeValue, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("42");
     }
 
     [Fact]

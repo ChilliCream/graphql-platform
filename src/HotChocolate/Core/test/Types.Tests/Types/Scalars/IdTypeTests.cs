@@ -271,7 +271,7 @@ public class IdTypeTests
         type.CoerceOutputValue(runtimeValue, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("\"123456\"");
     }
 
     [Fact]

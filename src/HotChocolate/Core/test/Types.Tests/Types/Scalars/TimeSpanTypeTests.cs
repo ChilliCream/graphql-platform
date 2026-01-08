@@ -201,16 +201,14 @@ public class TimeSpanTypeTests
         type.CoerceOutputValue(runtimeValue, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("\"PT5M\"");
     }
 
-    [Theory]
-    [InlineData(TimeSpanFormat.Iso8601)]
-    [InlineData(TimeSpanFormat.DotNet)]
-    public void CoerceOutputValue_WithFormat(TimeSpanFormat format)
+    [Fact]
+    public void CoerceOutputValue_WithFormat_Iso8601()
     {
         // arrange
-        var type = new TimeSpanType(format);
+        var type = new TimeSpanType(TimeSpanFormat.Iso8601);
         var runtimeValue = TimeSpan.FromMinutes(5);
 
         // act
@@ -220,7 +218,24 @@ public class TimeSpanTypeTests
         type.CoerceOutputValue(runtimeValue, resultValue);
 
         // assert
-        resultValue.MatchSnapshot(postFix: format.ToString());
+        resultValue.MatchInlineSnapshot("\"PT5M\"");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_WithFormat_DotNet()
+    {
+        // arrange
+        var type = new TimeSpanType(TimeSpanFormat.DotNet);
+        var runtimeValue = TimeSpan.FromMinutes(5);
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(runtimeValue, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"00:05:00\"");
     }
 
     [Fact]

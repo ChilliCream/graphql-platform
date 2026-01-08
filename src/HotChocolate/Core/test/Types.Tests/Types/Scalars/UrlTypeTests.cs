@@ -144,7 +144,7 @@ public class UrlTypeTests
         type.CoerceOutputValue(uri, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("\"http://domain.test/url\"");
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public class UrlTypeTests
         type.CoerceOutputValue(uri, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("\"/relative/path\"");
     }
 
     [Fact]

@@ -102,7 +102,7 @@ public class BooleanTypeTests
         type.CoerceOutputValue(runtimeValue, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("true");
     }
 
     [Fact]

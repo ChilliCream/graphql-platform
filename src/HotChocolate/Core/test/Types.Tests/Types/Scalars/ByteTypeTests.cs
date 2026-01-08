@@ -167,7 +167,7 @@ public class ByteTypeTests
         type.CoerceOutputValue(runtimeValue, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("123");
     }
 
     [Fact]

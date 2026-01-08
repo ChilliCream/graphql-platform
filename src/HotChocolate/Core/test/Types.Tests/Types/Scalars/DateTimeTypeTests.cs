@@ -172,7 +172,7 @@ public class DateTimeTypeTests
         type.CoerceOutputValue(dateTime, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("\"2018-06-11T08:46:14.000Z\"");
     }
 
     [Fact]
@@ -191,7 +191,7 @@ public class DateTimeTypeTests
         type.CoerceOutputValue(dateTime, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
+        resultValue.MatchInlineSnapshot("\"2018-06-11T08:46:14.000+04:00\"");
     }
 
     [Fact]
