@@ -171,113 +171,17 @@
   <data name="LatitudeType_InvalidFormat" xml:space="preserve">
     <value>LatitudeType cannot parse the provided value. The provided value was not a valid decimal degrees latitude number.</value>
   </data>
-  <data name="LocalCurrencyType_Description" xml:space="preserve">
-    <value>The LocalCurrency scalar type is a currency string.</value>
-  </data>
-  <data name="LocalCurrencyType_InvalidFormat" xml:space="preserve">
-    <value>LocalCurrencyType cannot parse the provided value. The provided value is not a valid local currency.</value>
-  </data>
   <data name="LongitudeType_Description" xml:space="preserve">
     <value>The Longitude scalar type is a valid decimal degrees longitude number.</value>
   </data>
   <data name="LongitudeType_InvalidFormat" xml:space="preserve">
     <value>LongitudeType cannot parse the provided value. The provided value is not a valid longitude number.</value>
   </data>
-  <data name="NegativeFloatType_Description" xml:space="preserve">
-    <value>The NegativeFloat scalar type represents a double‐precision fractional value less than 0.</value>
-  </data>
-  <data name="NegativeFloatType_IsNotNegative_ParseLiteral" xml:space="preserve">
-    <value>NegativeFloatType cannot parse the provided literal. The provided value was not negative.</value>
-  </data>
-  <data name="NegativeFloatType_IsNotNegative_ParseValue" xml:space="preserve">
-    <value>NegativeFloatType cannot parse the provided value. The provided value was not negative.</value>
-  </data>
-  <data name="NegativeIntType_Description" xml:space="preserve">
-    <value>The NegativeInt scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.</value>
-  </data>
-  <data name="NegativeIntType_IsNotNegative_ParseLiteral" xml:space="preserve">
-    <value>NegativeIntType cannot parse the provided literal. The provided value was not negative.</value>
-  </data>
-  <data name="NegativeIntType_IsNotNegative_ParseValue" xml:space="preserve">
-    <value>NegativeIntType cannot parse the provided value. The provided value was not negative.</value>
-  </data>
-  <data name="NonEmptyStringType_Description" xml:space="preserve">
-    <value>The NonEmptyString scalar type represents non empty textual data, represented as UTF‐8 character sequences with at least one character</value>
-  </data>
-  <data name="NonEmptyStringType_IsEmpty_ParseLiteral" xml:space="preserve">
-    <value>NonEmptyStringType cannot parse the provided literal. The provided string was empty.</value>
-  </data>
-  <data name="NonEmptyStringType_IsEmpty_ParseValue" xml:space="preserve">
-    <value>NonEmptyStringType cannot parse the provided value. The provided string was empty.</value>
-  </data>
-  <data name="NonNegativeIntType_Description" xml:space="preserve">
-    <value>The NonNegativeInt scalar type represents a unsigned 32-bit numeric non-fractional value equal to or greater than 0.</value>
-  </data>
-  <data name="NonNegativeIntType_IsNotNonNegative_ParseLiteral" xml:space="preserve">
-    <value>NonNegativeIntType cannot parse the provided literal. The provided value was not greater than or equal to 0.</value>
-  </data>
-  <data name="NonNegativeIntType_IsNotNonNegative_ParseValue" xml:space="preserve">
-    <value>NonNegativeIntType cannot parse the provided value. The provided value was not greater than or equal to 0.</value>
-  </data>
-  <data name="NonPositiveFloatType_Description" xml:space="preserve">
-    <value>The NonPositiveFloat scalar type represents a double‐precision fractional value less than or equal to 0.</value>
-  </data>
-  <data name="NonPositiveFloatType_IsNotNonPositive_ParseLiteral" xml:space="preserve">
-    <value>NonPositiveFloatType cannot parse the provided literal. The provided value was not less than or equal to 0.</value>
-  </data>
-  <data name="NonPositiveFloatType_IsNotNonPositive_ParseValue" xml:space="preserve">
-    <value>NonPositiveFloatType cannot parse the provided value. The provided value was not less than or equal to 0.</value>
-  </data>
-  <data name="NonPositiveIntType_Description" xml:space="preserve">
-    <value>The NonPositiveInt scalar type represents a signed 32-bit numeric non-fractional value less than or equal to 0.</value>
-  </data>
-  <data name="NonPositiveIntType_IsNotNonPositive_ParseLiteral" xml:space="preserve">
-    <value>NonPositiveIntType cannot parse the provided literal. The provided value was not less than or equal to 0.</value>
-  </data>
-  <data name="NonPositiveIntType_IsNotNonPositive_ParseValue" xml:space="preserve">
-    <value>NonPositiveIntType cannot parse the provided value. The provided value was not less than or equal to 0.</value>
-  </data>
-  <data name="NonNegativeFloatType_Description" xml:space="preserve">
-    <value>The NonNegativeFloat scalar type represents a double‐precision fractional value greater than or equal to 0.</value>
-  </data>
-  <data name="NonNegativeFloatType_IsNotNonNegative_ParseLiteral" xml:space="preserve">
-    <value>NonNegativeFloatType cannot parse the provided literal. The provided value was not greater than or equal to 0.</value>
-  </data>
-  <data name="NonNegativeFloatType_IsNotNonNegative_ParseValue" xml:space="preserve">
-    <value>NonNegativeFloatType cannot parse the provided value. The provided value was not greater than or equal to 0.</value>
-  </data>
   <data name="PhoneNumberType_Description" xml:space="preserve">
     <value>The PhoneNumber scalar type represents a value that conforms to the standard E.164 format.</value>
   </data>
   <data name="PhoneNumberType_InvalidFormat" xml:space="preserve">
     <value>PhoneNumberType cannot parse the provided value. The provided value does not meet the standard E.164 format.</value>
-  </data>
-  <data name="PortType_Description" xml:space="preserve">
-    <value>The Port scalar type represents a field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports.</value>
-  </data>
-  <data name="PortType_OutOfRange_ParseLiteral" xml:space="preserve">
-    <value>Port cannot parse the provided literal. The provided value was not within the valid range.</value>
-  </data>
-  <data name="PortType_OutOfRange_ParseValue" xml:space="preserve">
-    <value>Port cannot parse the provided value. The provided value was not within the valid range.</value>
-  </data>
-  <data name="PositiveIntType_Description" xml:space="preserve">
-    <value>The PositiveInt scalar type represents a signed 32-bit numeric non-fractional value of at least the value 1.</value>
-  </data>
-  <data name="PositiveIntType_ZeroOrLess_ParseLiteral" xml:space="preserve">
-    <value>PositiveIntType cannot parse the provided literal. The provided value is 0 or less.</value>
-  </data>
-  <data name="PositiveIntType_ZeroOrLess_ParseValue" xml:space="preserve">
-    <value>PositiveIntType cannot parse the provided value. The provided value is 0 or less.</value>
-  </data>
-  <data name="PostalCodeType_Description" xml:space="preserve">
-    <value>The PostalCode scalar type represents a valid postal code.</value>
-  </data>
-  <data name="PostalCodeType_IsInvalid_ParseLiteral" xml:space="preserve">
-    <value>PostalCodeType cannot parse the provided literal. The provided value is an invalid postal code.</value>
-  </data>
-  <data name="PostalCodeType_IsInvalid_ParseValue" xml:space="preserve">
-    <value>PostalCodeType cannot parse the provided value. The provided value is an invalid postal code.</value>
   </data>
   <data name="RgbType_Description" xml:space="preserve">
     <value>The Rgb scalar type represents a valid CSS RGB color as defined in https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba().</value>

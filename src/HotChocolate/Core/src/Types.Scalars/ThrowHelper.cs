@@ -90,17 +90,6 @@ internal static class ThrowHelper
             type);
     }
 
-    public static LeafCoercionException LocalCurrencyType_InvalidFormat(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.LocalCurrencyType_InvalidFormat)
-                .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                .SetExtension("actualType", WellKnownScalarTypes.LocalCurrency)
-                .Build(),
-            type);
-    }
-
     public static LeafCoercionException LongitudeType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
@@ -133,73 +122,7 @@ internal static class ThrowHelper
                 .Build(),
             type);
     }
-
-    public static LeafCoercionException PortType_ParseLiteral_OutOfRange(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.PortType_OutOfRange_ParseLiteral)
-                .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                .SetExtension("actualType", WellKnownScalarTypes.Port)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException PortType_ParseValue_OutOfRange(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.PortType_OutOfRange_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.Port)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException PositiveIntType_ParseLiteral_ZeroOrLess(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.PositiveIntType_ZeroOrLess_ParseLiteral)
-                .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                .SetExtension("actualType", WellKnownScalarTypes.PositiveInt)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException PositiveIntType_ParseValue_ZeroOrLess(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.PositiveIntType_ZeroOrLess_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.PositiveInt)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException PostalCodeType_ParseLiteral_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.PostalCodeType_IsInvalid_ParseLiteral)
-                .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                .SetExtension("actualType", WellKnownScalarTypes.PostalCode)
-                .Build(),
-            type);
-    }
-
-    public static LeafCoercionException PostalCodeType_ParseValue_IsInvalid(IType type)
-    {
-        return new LeafCoercionException(
-            ErrorBuilder.New()
-                .SetMessage(ScalarResources.PostalCodeType_IsInvalid_ParseValue)
-                .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                .SetExtension("actualType", WellKnownScalarTypes.PostalCode)
-                .Build(),
-            type);
-    }
-
+    
     public static LeafCoercionException RgbType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(
