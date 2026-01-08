@@ -126,7 +126,7 @@ internal static class ResolverTaskFactory
         object parent)
     {
         Debug.Assert(selectionSet.Type == selectionSetType);
-        Debug.Assert(resultValue.Type == selectionSetType);
+        Debug.Assert(resultValue.Type?.NamedType() == selectionSetType);
 
         var operationContext = context.OperationContext;
 

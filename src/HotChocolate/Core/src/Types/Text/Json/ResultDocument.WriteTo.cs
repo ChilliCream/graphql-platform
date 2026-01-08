@@ -31,7 +31,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                 _indentation++;
             }
 
-            if (result.Errors?.Count > 0)
+            if (!result.Errors.IsEmpty)
             {
                 if (indented)
                 {
@@ -66,6 +66,11 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 
             if (indented)
             {
+                if (!result.Errors.IsEmpty)
+                {
+                    WriteNewLine();
+                }
+
                 WriteIndent();
             }
 
@@ -95,6 +100,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 
                 if (indented)
                 {
+                    WriteNewLine();
                     WriteIndent();
                 }
 
