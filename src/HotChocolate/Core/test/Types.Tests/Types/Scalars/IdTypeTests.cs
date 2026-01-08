@@ -1,11 +1,13 @@
+using System.Text.Json;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
 public class IdTypeTests
 {
     [Fact]
-    public void Create_With_Default_Name()
+    public void Ensure_Type_Name_Is_Correct()
     {
         // arrange
         // act
@@ -39,7 +41,7 @@ public class IdTypeTests
     }
 
     [Fact]
-    public void EnsureStringTypeKindIsCorret()
+    public void Ensure_TypeKind_Is_Scalar()
     {
         // arrange
         var type = new IdType();
@@ -52,7 +54,7 @@ public class IdTypeTests
     }
 
     [Fact]
-    public void IsInstanceOfType_StringValueNode()
+    public void IsValueCompatible_StringValueNode_True()
     {
         // arrange
         var type = new IdType();
@@ -66,7 +68,7 @@ public class IdTypeTests
     }
 
     [Fact]
-    public void IsInstanceOfType_IntValueNode()
+    public void IsValueCompatible_IntValueNode_True()
     {
         // arrange
         var type = new IdType();
@@ -80,7 +82,7 @@ public class IdTypeTests
     }
 
     [Fact]
-    public void IsInstanceOfType_NullValueNode()
+    public void IsValueCompatible_NullValueNode_True()
     {
         // arrange
         var type = new IdType();
@@ -94,7 +96,7 @@ public class IdTypeTests
     }
 
     [Fact]
-    public void IsInstanceOfType_Wrong_ValueNode()
+    public void IsValueCompatible_FloatValueNode_False()
     {
         // arrange
         var type = new IdType();
@@ -108,126 +110,20 @@ public class IdTypeTests
     }
 
     [Fact]
-    public void IsInstanceOfType_Null_Throws()
+    public void IsValueCompatible_Null_Throws()
     {
         // arrange
         var type = new IdType();
 
         // act
+        void Action() => type.IsValueCompatible(null!);
+
         // assert
-        Assert.Throws<ArgumentNullException>(
-            () => type.IsValueCompatible(null!));
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
-    public void Serialize_String()
-    {
-        // arrange
-        var type = new IdType();
-        const string input = "123456";
-
-        // act
-        var serializedValue = type.Serialize(input);
-
-        // assert
-        Assert.IsType<string>(serializedValue);
-        Assert.Equal("123456", serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Null()
-    {
-        // arrange
-        var type = new IdType();
-
-        // act
-        var serializedValue = type.Serialize(null);
-
-        // assert
-        Assert.Null(serializedValue);
-    }
-
-    [Fact]
-    public void Deserialize_String()
-    {
-        // arrange
-        var type = new IdType();
-        const string serialized = "123456";
-
-        // act
-        var success = type.TryDeserialize(serialized, out var value);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal("123456", Assert.IsType<string>(value));
-    }
-
-    [Fact]
-    public void Deserialize_Int()
-    {
-        // arrange
-        var type = SchemaBuilder.New()
-            .AddQueryType(c => c
-                .Name("QueryRoot")
-                .Field("abc")
-                .Type<IdType>()
-                .Resolve("abc"))
-            .Create()
-            .Types
-            .GetType<IdType>("ID");
-        const int serialized = 123456;
-
-        // act
-        var success = type.TryDeserialize(serialized, out var value);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal("123456", Assert.IsType<string>(value));
-    }
-
-    [Fact]
-    public void Deserialize_Null()
-    {
-        // arrange
-        var type = new IdType();
-        object serialized = null!;
-
-        // act
-        type.TryDeserialize(serialized, out var value);
-
-        // assert
-        Assert.Null(value);
-    }
-
-    [Fact]
-    public void Deserialize_Float()
-    {
-        // arrange
-        var type = new IdType();
-        const float serialized = 1.1f;
-
-        // act
-        var success = type.TryDeserialize(serialized, out _);
-
-        // assert
-        Assert.False(success);
-    }
-
-    [Fact]
-    public void Serialize_Wrong_Type_Throws()
-    {
-        // arrange
-        var type = new IdType();
-        object input = Guid.NewGuid();
-
-        // act
-        // assert
-        Assert.Throws<LeafCoercionException>(
-            () => type.Serialize(input));
-    }
-
-    [Fact]
-    public void ParseLiteral_StringValueNode()
+    public void CoerceInputLiteral_StringValueNode()
     {
         // arrange
         var type = new IdType();
@@ -242,7 +138,7 @@ public class IdTypeTests
     }
 
     [Fact]
-    public void ParseLiteral_IntValueNode()
+    public void CoerceInputLiteral_IntValueNode()
     {
         // arrange
         var type = new IdType();
@@ -257,7 +153,7 @@ public class IdTypeTests
     }
 
     [Fact]
-    public void ParseLiteral_NullValueNode()
+    public void CoerceInputLiteral_NullValueNode()
     {
         // arrange
         var type = new IdType();
@@ -271,68 +167,195 @@ public class IdTypeTests
     }
 
     [Fact]
-    public void ParseLiteral_Wrong_ValueNode_Throws()
+    public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
         var type = new IdType();
         var input = new FloatValueNode(123456.0);
 
         // act
+        void Action() => type.CoerceInputLiteral(input);
+
         // assert
-        Assert.Throws<LeafCoercionException>(
-            () => type.CoerceInputLiteral(input));
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseLiteral_Null_Throws()
+    public void CoerceInputLiteral_Null_Throws()
     {
         // arrange
         var type = new IdType();
 
         // act
+        void Action() => type.CoerceInputLiteral(null!);
+
         // assert
-        Assert.Throws<ArgumentNullException>(() =>
-            type.CoerceInputLiteral(null!));
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]
-    public void ParseValue_Wrong_Value_Throws()
+    public void CoerceInputValue_String()
     {
         // arrange
         var type = new IdType();
-        object input = 123.456;
+        var inputValue = JsonDocument.Parse("\"123456\"").RootElement;
 
         // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
         // assert
-        Assert.Throws<LeafCoercionException>(
-            () => type.CoerceInputValue(input));
+        Assert.Equal("123456", runtimeValue);
     }
 
     [Fact]
-    public void ParseValue_Null()
+    public void CoerceInputValue_Int()
     {
         // arrange
-        var type = new IdType();
-        object input = null!;
+        var type = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("QueryRoot")
+                .Field("abc")
+                .Type<IdType>()
+                .Resolve("abc"))
+            .Create()
+            .Types
+            .GetType<IdType>("ID");
+        var inputValue = JsonDocument.Parse("123456").RootElement;
 
         // act
-        object output = type.CoerceInputValue(input);
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.IsType<NullValueNode>(output);
+        Assert.Equal("123456", runtimeValue);
     }
 
     [Fact]
-    public void ParseValue_String()
+    public void CoerceInputValue_Null()
     {
         // arrange
         var type = new IdType();
-        object input = "hello";
+        var inputValue = JsonDocument.Parse("null").RootElement;
 
         // act
-        object output = type.CoerceInputValue(input);
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.IsType<StringValueNode>(output);
+        Assert.Null(runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new IdType();
+        var inputValue = JsonDocument.Parse("1.1").RootElement;
+
+        // act
+        void Action() => type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void CoerceOutputValue()
+    {
+        // arrange
+        var type = new IdType();
+        const string runtimeValue = "123456";
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(runtimeValue, resultValue);
+
+        // assert
+        resultValue.MatchSnapshot();
+    }
+
+    [Fact]
+    public void CoerceOutputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new IdType();
+        var input = Guid.NewGuid();
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue(input, resultValue);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        // arrange
+        var type = new IdType();
+        const string runtimeValue = "hello";
+
+        // act
+        var literal = type.ValueToLiteral(runtimeValue);
+
+        // assert
+        Assert.Equal("hello", Assert.IsType<StringValueNode>(literal).Value);
+    }
+
+    [Fact]
+    public void ValueToLiteral_Null()
+    {
+        // arrange
+        var type = new IdType();
+
+        // act
+        var literal = type.ValueToLiteral(null!);
+
+        // assert
+        Assert.IsType<NullValueNode>(literal);
+    }
+
+    [Fact]
+    public void ValueToLiteral_Invalid_Format()
+    {
+        // arrange
+        var type = new IdType();
+        const double input = 123.456;
+
+        // act
+        void Action() => type.ValueToLiteral(input);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void ParseLiteral()
+    {
+        // arrange
+        var type = new IdType();
+        var literal = new StringValueNode("123456");
+
+        // act
+        var runtimeValue = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal("123456", Assert.IsType<string>(runtimeValue));
+    }
+
+    [Fact]
+    public void ParseLiteral_InvalidValue()
+    {
+        // arrange
+        var type = new IdType();
+
+        // act
+        void Action() => type.CoerceInputLiteral(new FloatValueNode(123.456));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
     }
 }

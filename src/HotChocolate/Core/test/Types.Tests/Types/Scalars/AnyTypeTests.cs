@@ -760,7 +760,7 @@ public class AnyTypeTests
     }
 
     [Fact]
-    public void IsInstanceOfType_EnumValue_False()
+    public void IsValueCompatible_EnumValue_False()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -783,7 +783,7 @@ public class AnyTypeTests
     }
 
     [Fact]
-    public void IsInstanceOfType_ObjectValue_True()
+    public void IsValueCompatible_ObjectValue_True()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -806,7 +806,7 @@ public class AnyTypeTests
     }
 
     [Fact]
-    public void IsInstanceOfType_ListValue_False()
+    public void IsValueCompatible_ListValue_True()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -829,7 +829,7 @@ public class AnyTypeTests
     }
 
     [Fact]
-    public void IsInstanceOfType_StringValue_False()
+    public void IsValueCompatible_StringValue_True()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -852,7 +852,7 @@ public class AnyTypeTests
     }
 
     [Fact]
-    public void IsInstanceOfType_IntValue_False()
+    public void IsValueCompatible_IntValue_True()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -875,7 +875,7 @@ public class AnyTypeTests
     }
 
     [Fact]
-    public void IsInstanceOfType_FloatValue_False()
+    public void IsValueCompatible_FloatValue_True()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -898,7 +898,7 @@ public class AnyTypeTests
     }
 
     [Fact]
-    public void IsInstanceOfType_BooleanValue_False()
+    public void IsValueCompatible_BooleanValue_True()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -921,7 +921,7 @@ public class AnyTypeTests
     }
 
     [Fact]
-    public void IsInstanceOfType_NullValue_True()
+    public void IsValueCompatible_NullValue_True()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -944,7 +944,7 @@ public class AnyTypeTests
     }
 
     [Fact]
-    public void IsInstanceOfType_Null_ArgumentNullException()
+    public void IsValueCompatible_Null_ArgumentNullException()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -975,7 +975,7 @@ public class AnyTypeTests
     [InlineData(true, typeof(BooleanValueNode))]
     [InlineData(false, typeof(BooleanValueNode))]
     [Theory]
-    public void ParseValue_ScalarValues(object value, Type expectedType)
+    public void ValueToLiteral_ScalarValues(object value, Type expectedType)
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -991,14 +991,14 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var literal = type.CoerceInputValue(value);
+        var literal = type.ValueToLiteral(value);
 
         // assert
         Assert.IsType(expectedType, literal);
     }
 
     [Fact]
-    public void ParseValue_Decimal()
+    public void ValueToLiteral_Decimal()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1014,14 +1014,14 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var literal = type.CoerceInputValue((decimal)1);
+        var literal = type.ValueToLiteral((decimal)1);
 
         // assert
         Assert.IsType<FloatValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_List_Of_Object()
+    public void ValueToLiteral_List_Of_Object()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1037,14 +1037,14 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var literal = type.CoerceInputValue(new List<object>());
+        var literal = type.ValueToLiteral(new List<object>());
 
         // assert
         Assert.IsType<ListValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_List_Of_String()
+    public void ValueToLiteral_List_Of_String()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1060,14 +1060,14 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var literal = type.CoerceInputValue(new List<string>());
+        var literal = type.ValueToLiteral(new List<string>());
 
         // assert
         Assert.IsType<ListValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_List_Of_Foo()
+    public void ValueToLiteral_List_Of_Foo()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1087,14 +1087,14 @@ public class AnyTypeTests
         foo.Bar2 = bar;
 
         // act
-        var literal = type.CoerceInputValue(new List<Foo> { foo, foo });
+        var literal = type.ValueToLiteral(new List<Foo> { foo, foo });
 
         // assert
         Assert.IsType<ListValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_List_Of_FooCyclic()
+    public void ValueToLiteral_List_Of_FooCyclic()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1114,7 +1114,7 @@ public class AnyTypeTests
         barCyclic.FooCyclic = fooCyclic;
 
         // act
-        void Act() => type.CoerceInputValue(new List<FooCyclic> { fooCyclic, fooCyclic });
+        void Act() => type.ValueToLiteral(new List<FooCyclic> { fooCyclic, fooCyclic });
 
         // assert
         Assert.Equal(
@@ -1123,7 +1123,7 @@ public class AnyTypeTests
     }
 
     [Fact]
-    public void ParseValue_List_Of_FooRecord()
+    public void ValueToLiteral_List_Of_FooRecord()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1139,14 +1139,14 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var literal = type.CoerceInputValue(new List<FooRecord> { new(), new() });
+        var literal = type.ValueToLiteral(new List<FooRecord> { new(), new() });
 
         // assert
         Assert.IsType<ListValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_Foo()
+    public void ValueToLiteral_Foo()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1162,14 +1162,14 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var literal = type.CoerceInputValue(new Foo());
+        var literal = type.ValueToLiteral(new Foo());
 
         // assert
         Assert.IsType<ObjectValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_FooCyclic()
+    public void ValueToLiteral_FooCyclic()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1189,7 +1189,7 @@ public class AnyTypeTests
         barCyclic.FooCyclic = fooCyclic;
 
         // act
-        void Act() => type.CoerceInputValue(fooCyclic);
+        void Act() => type.ValueToLiteral(fooCyclic);
 
         // assert
         Assert.Equal(
@@ -1198,7 +1198,7 @@ public class AnyTypeTests
     }
 
     [Fact]
-    public void ParseValue_Dictionary()
+    public void ValueToLiteral_Dictionary()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1214,7 +1214,7 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var literal = type.CoerceInputValue(
+        var literal = type.ValueToLiteral(
             new Dictionary<string, object>());
 
         // assert
@@ -1222,7 +1222,7 @@ public class AnyTypeTests
     }
 
     [Fact]
-    public void Deserialize_ValueNode()
+    public void CoerceInputLiteral_StringValueNode()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -1238,95 +1238,10 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var value = type.Deserialize(new StringValueNode("Foo"));
+        var value = type.CoerceInputLiteral(new StringValueNode("Foo"));
 
         // assert
         Assert.Equal("Foo", value);
-    }
-
-    [Fact]
-    public void Deserialize_Dictionary()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var type = schema.Types.GetType<AnyType>("Any");
-
-        var toDeserialize = new Dictionary<string, object>
-        {
-            { "Foo", new StringValueNode("Bar") }
-        };
-
-        // act
-        var value = type.Deserialize(toDeserialize);
-
-        // assert
-        Assert.Equal("Bar", Assert.IsType<Dictionary<string, object>>(value)["Foo"]);
-    }
-
-    [Fact]
-    public void Deserialize_NestedDictionary()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var type = schema.Types.GetType<AnyType>("Any");
-
-        var toDeserialize = new Dictionary<string, object>
-        {
-            { "Foo", new Dictionary<string, object> { { "Bar", new StringValueNode("Baz") } } }
-        };
-
-        // act
-        var value = type.Deserialize(toDeserialize);
-
-        // assert
-        var innerDictionary = Assert.IsType<Dictionary<string, object>>(value)["Foo"];
-        Assert.Equal("Baz", Assert.IsType<Dictionary<string, object>>(innerDictionary)["Bar"]);
-    }
-
-    [Fact]
-    public void Deserialize_List()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var type = schema.Types.GetType<AnyType>("Any");
-        var toDeserialize =
-            new List<object> { new StringValueNode("Foo"), new StringValueNode("Bar") };
-
-        // act
-        var value = type.Deserialize(toDeserialize);
-
-        // assert
-        Assert.Collection(
-            Assert.IsType<object[]>(value)!,
-            x => Assert.Equal("Foo", x),
-            x => Assert.Equal("Bar", x));
     }
 
     [Fact]

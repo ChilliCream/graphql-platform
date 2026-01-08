@@ -41,7 +41,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.Select(r => r.ToString()).ToList()
@@ -84,7 +84,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.Select(r => r.ToString()).ToList()
@@ -128,7 +128,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.ConvertAll(r => r.ToString())
@@ -173,7 +173,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.Select(r => r.ToString()).ToList()

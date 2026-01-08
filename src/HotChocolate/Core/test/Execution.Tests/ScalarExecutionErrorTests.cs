@@ -1,4 +1,7 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution;
@@ -123,37 +126,10 @@ public class ScalarExecutionErrorTests
 
         public override Type RuntimeType => typeof(string);
 
-        public override bool IsValueCompatible(IValueNode valueLiteral)
+        public override ScalarSerializationType SerializationType => ScalarSerializationType.String;
+
+        public override object CoerceInputLiteral(IValueNode literal)
         {
-            ArgumentNullException.ThrowIfNull(valueLiteral);
-
-            if (valueLiteral is NullValueNode)
-            {
-                return true;
-            }
-
-            return valueLiteral is StringValueNode { Value: "a" };
-        }
-
-        public override bool IsInstanceOfType(object? value)
-        {
-            if (value is null)
-            {
-                return true;
-            }
-
-            return value is "a";
-        }
-
-        public override object? CoerceInputLiteral(IValueNode literal)
-        {
-            ArgumentNullException.ThrowIfNull(literal);
-
-            if (literal is NullValueNode)
-            {
-                return null;
-            }
-
             if (literal is StringValueNode { Value: "a" })
             {
                 return "a";
@@ -162,62 +138,38 @@ public class ScalarExecutionErrorTests
             throw new LeafCoercionException("StringValue is not a.", this);
         }
 
-        public override IValueNode CoerceInputValue(object? value)
+        public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
         {
-            if (value is null)
+            if (inputValue.ValueKind is JsonValueKind.String)
             {
-                return NullValueNode.Default;
+                var value = inputValue.GetString()!;
+                if (value is "a")
+                {
+                    return value;
+                }
             }
 
-            if (value is "a")
-            {
-                return new StringValueNode("a");
-            }
-
-            throw new LeafCoercionException("String is not a.", this);
+            throw new LeafCoercionException("StringValue is not a.", this);
         }
 
-        public override IValueNode ParseResult(object? resultValue)
-            => CoerceInputValue(resultValue);
-
-        public override bool TrySerialize(
-            object? runtimeValue,
-            out object? resultValue)
+        public override void CoerceOutputValue(object runtimeValue, ResultElement resultValue)
         {
-            if (runtimeValue is null)
+            if (runtimeValue is string s && s is "a")
             {
-                resultValue = null;
-                return true;
+                resultValue.SetStringValue(s);
             }
 
-            if (runtimeValue is "a")
-            {
-                resultValue = new StringValueNode("a");
-                return true;
-            }
-
-            resultValue = null;
-            return false;
+            throw new LeafCoercionException("StringValue is not a.", this);
         }
 
-        public override bool TryDeserialize(
-            object? resultValue,
-            out object? runtimeValue)
+        public override IValueNode ValueToLiteral(object runtimeValue)
         {
-            if (resultValue is null)
+            if (runtimeValue is string s && s is "a")
             {
-                runtimeValue = null;
-                return true;
+                return new StringValueNode(s);
             }
 
-            if (resultValue is "a")
-            {
-                runtimeValue = "a";
-                return true;
-            }
-
-            runtimeValue = null;
-            return false;
+            throw new LeafCoercionException("StringValue is not a.", this);
         }
     }
 }
@@ -228,39 +180,31 @@ public sealed class NameType : ScalarType<string, StringValueNode>
     {
     }
 
-    protected override bool IsInstanceOfType(StringValueNode valueSyntax)
+    protected override string OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        if (string.IsNullOrWhiteSpace(valueSyntax.Value))
-        {
-            return false;
-        }
-
-        return base.IsInstanceOfType(valueSyntax);
-    }
-
-    protected override string ParseLiteral(StringValueNode valueSyntax)
-    {
-        if (string.IsNullOrWhiteSpace(valueSyntax.Value))
+        if (string.IsNullOrWhiteSpace(valueLiteral.Value))
         {
             throw new LeafCoercionException("Not a valid name.", this);
         }
 
-        return valueSyntax.Value;
+        return valueLiteral.Value;
     }
 
-    protected override StringValueNode ParseValue(string runtimeValue)
-        => new(runtimeValue);
-
-    public override IValueNode ParseResult(object? resultValue)
-        => CoerceInputValue(resultValue);
-
-    public override object? CoerceOutputValue(object? runtimeValue)
+    protected override string OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (runtimeValue is not string s || string.IsNullOrWhiteSpace(s))
+        var s = inputValue.GetString();
+
+        if (string.IsNullOrWhiteSpace(s))
         {
-            throw new LeafCoercionException("Name cannot serialize the given value.", this);
+            throw new LeafCoercionException("Not a valid name.", this);
         }
 
-        return base.Serialize(runtimeValue);
+        return s;
     }
+
+    protected override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(runtimeValue);
+
+    protected override StringValueNode OnValueToLiteral(string runtimeValue)
+        => new(runtimeValue);
 }

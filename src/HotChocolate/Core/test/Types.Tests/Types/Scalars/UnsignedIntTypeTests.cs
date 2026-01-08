@@ -4,66 +4,66 @@ using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
-public class ShortTypeTests
+public class UnsignedIntTypeTests
 {
     [Fact]
     public void Ensure_Type_Name_Is_Correct()
     {
         // arrange
         // act
-        var type = new ShortType();
+        var type = new UnsignedIntType();
 
         // assert
-        Assert.Equal("Short", type.Name);
+        Assert.Equal("UnsignedInt", type.Name);
     }
 
     [Fact]
     public void CoerceInputLiteral()
     {
         // arrange
-        var type = new ShortType();
+        var type = new UnsignedIntType();
         var literal = new IntValueNode(42);
 
         // act
         var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Equal((short)42, runtimeValue);
+        Assert.Equal((uint)42, runtimeValue);
     }
 
     [Fact]
     public void CoerceInputLiteral_MaxValue()
     {
         // arrange
-        var type = new ShortType();
-        var literal = new IntValueNode(short.MaxValue);
+        var type = new UnsignedIntType();
+        var literal = new IntValueNode(uint.MaxValue);
 
         // act
         var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Equal(short.MaxValue, runtimeValue);
+        Assert.Equal(uint.MaxValue, runtimeValue);
     }
 
     [Fact]
     public void CoerceInputLiteral_MinValue()
     {
         // arrange
-        var type = new ShortType();
-        var literal = new IntValueNode(short.MinValue);
+        var type = new UnsignedIntType();
+        var literal = new IntValueNode(uint.MinValue);
 
         // act
         var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Equal(short.MinValue, runtimeValue);
+        Assert.Equal(uint.MinValue, runtimeValue);
     }
 
     [Fact]
     public void CoerceInputLiteral_Null()
     {
         // arrange
-        var type = new ShortType();
+        var type = new UnsignedIntType();
         var literal = NullValueNode.Default;
 
         // act
@@ -77,7 +77,7 @@ public class ShortTypeTests
     public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
-        var type = new ShortType();
+        var type = new UnsignedIntType();
         var literal = new StringValueNode("foo");
 
         // act
@@ -91,49 +91,49 @@ public class ShortTypeTests
     public void CoerceInputValue()
     {
         // arrange
-        var type = new ShortType();
+        var type = new UnsignedIntType();
         var inputValue = JsonDocument.Parse("42").RootElement;
 
         // act
         var runtimeValue = type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.Equal((short)42, runtimeValue);
+        Assert.Equal((uint)42, runtimeValue);
     }
 
     [Fact]
     public void CoerceInputValue_MaxValue()
     {
         // arrange
-        var type = new ShortType();
-        var inputValue = JsonDocument.Parse($"{short.MaxValue}").RootElement;
+        var type = new UnsignedIntType();
+        var inputValue = JsonDocument.Parse($"{uint.MaxValue}").RootElement;
 
         // act
         var runtimeValue = type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.Equal(short.MaxValue, runtimeValue);
+        Assert.Equal(uint.MaxValue, runtimeValue);
     }
 
     [Fact]
     public void CoerceInputValue_MinValue()
     {
         // arrange
-        var type = new ShortType();
-        var inputValue = JsonDocument.Parse($"{short.MinValue}").RootElement;
+        var type = new UnsignedIntType();
+        var inputValue = JsonDocument.Parse($"{uint.MinValue}").RootElement;
 
         // act
         var runtimeValue = type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.Equal(short.MinValue, runtimeValue);
+        Assert.Equal(uint.MinValue, runtimeValue);
     }
 
     [Fact]
     public void CoerceInputValue_Invalid_Format()
     {
         // arrange
-        var type = new ShortType();
+        var type = new UnsignedIntType();
         var inputValue = JsonDocument.Parse("\"foo\"").RootElement;
 
         // act
@@ -147,8 +147,8 @@ public class ShortTypeTests
     public void CoerceOutputValue()
     {
         // arrange
-        var type = new ShortType();
-        const short runtimeValue = 42;
+        var type = new UnsignedIntType();
+        const uint runtimeValue = 42;
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
@@ -164,7 +164,7 @@ public class ShortTypeTests
     public void CoerceOutputValue_Invalid_Format()
     {
         // arrange
-        var type = new ShortType();
+        var type = new UnsignedIntType();
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
@@ -180,8 +180,8 @@ public class ShortTypeTests
     public void ValueToLiteral()
     {
         // arrange
-        var type = new ShortType();
-        const short runtimeValue = 42;
+        var type = new UnsignedIntType();
+        const uint runtimeValue = 42;
 
         // act
         var literal = type.ValueToLiteral(runtimeValue);
@@ -194,7 +194,7 @@ public class ShortTypeTests
     public void ValueToLiteral_Null()
     {
         // arrange
-        var type = new ShortType();
+        var type = new UnsignedIntType();
 
         // act
         var literal = type.ValueToLiteral(null!);
@@ -207,7 +207,7 @@ public class ShortTypeTests
     public void ValueToLiteral_Invalid_Format()
     {
         // arrange
-        var type = new ShortType();
+        var type = new UnsignedIntType();
 
         // act
         void Action() => type.ValueToLiteral("foo");
@@ -220,21 +220,21 @@ public class ShortTypeTests
     public void ParseLiteral()
     {
         // arrange
-        var type = new ShortType();
+        var type = new UnsignedIntType();
         var literal = new IntValueNode(42);
 
         // act
         var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Equal((short)42, Assert.IsType<short>(runtimeValue));
+        Assert.Equal((uint)42, Assert.IsType<uint>(runtimeValue));
     }
 
     [Fact]
     public void ParseLiteral_InvalidValue()
     {
         // arrange
-        var type = new ShortType();
+        var type = new UnsignedIntType();
 
         // act
         void Action() => type.CoerceInputLiteral(new FloatValueNode(1.5));

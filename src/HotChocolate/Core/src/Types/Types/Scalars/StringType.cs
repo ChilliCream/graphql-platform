@@ -3,7 +3,6 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Text.Json;
-using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 

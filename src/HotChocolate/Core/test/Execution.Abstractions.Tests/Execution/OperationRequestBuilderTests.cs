@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -121,7 +122,7 @@ public class OperationRequestBuilderTests
                       foo
                     }
                     """)
-                .SetVariableValuesSetJson(
+                .SetVariableValues(
                     """
                     [
                       {
@@ -148,7 +149,7 @@ public class OperationRequestBuilderTests
             OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .SetVariableValues(new Dictionary<string, object?> { ["one"] = "bar" })
-                .SetVariableValues(null)
+                .SetVariableValues(default(JsonDocument))
                 .Build();
 
         // assert

@@ -1,193 +1,189 @@
+using System.Text.Json;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
 public class StringTypeTests
 {
     [Fact]
-    public void EnsureStringTypeKindIsCorret()
+    public void Ensure_Type_Name_Is_Correct()
     {
         // arrange
+        // act
         var type = new StringType();
 
-        // act
-        var kind = type.Kind;
-
         // assert
-        Assert.Equal(TypeKind.Scalar, kind);
+        Assert.Equal("String", type.Name);
     }
 
     [Fact]
-    public void IsInstanceOfType_ValueNode()
+    public void CoerceInputLiteral()
     {
         // arrange
         var type = new StringType();
-        var input = new StringValueNode("123456");
+        var literal = new StringValueNode("hello world");
 
         // act
-        var result = type.IsValueCompatible(input);
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.True(result);
+        Assert.Equal("hello world", runtimeValue);
     }
 
     [Fact]
-    public void IsInstanceOfType_NullValueNode()
+    public void CoerceInputLiteral_Null()
     {
         // arrange
         var type = new StringType();
-        var input = NullValueNode.Default;
+        var literal = NullValueNode.Default;
 
         // act
-        var result = type.IsValueCompatible(input);
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.True(result);
+        Assert.Null(runtimeValue);
     }
 
     [Fact]
-    public void IsInstanceOfType_Wrong_ValueNode()
+    public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
         var type = new StringType();
-        var input = new IntValueNode(123456);
+        var literal = new IntValueNode(123);
 
         // act
-        var result = type.IsValueCompatible(input);
+        void Action() => type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.False(result);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void IsInstanceOfType_Null_Throws()
+    public void CoerceInputValue()
     {
         // arrange
         var type = new StringType();
+        var inputValue = JsonDocument.Parse("\"hello world\"").RootElement;
 
         // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
         // assert
-        Assert.Throws<ArgumentNullException>(() => type.IsValueCompatible(null!));
+        Assert.Equal("hello world", runtimeValue);
     }
 
     [Fact]
-    public void Serialize_Type()
+    public void CoerceInputValue_Invalid_Format()
     {
         // arrange
         var type = new StringType();
-        const string input = "123456";
+        var inputValue = JsonDocument.Parse("123").RootElement;
 
         // act
-        var serializedValue = type.Serialize(input);
+        void Action() => type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.IsType<string>(serializedValue);
-        Assert.Equal("123456", serializedValue);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void Serialize_Null()
+    public void CoerceOutputValue()
     {
         // arrange
         var type = new StringType();
+        const string runtimeValue = "hello world";
 
         // act
-        var serializedValue = type.Serialize(null);
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(runtimeValue, resultValue);
 
         // assert
-        Assert.Null(serializedValue);
+        resultValue.MatchSnapshot();
     }
 
     [Fact]
-    public void Serialize_Wrong_Type_Throws()
+    public void CoerceOutputValue_Invalid_Format()
     {
         // arrange
         var type = new StringType();
-        object input = 123456;
 
         // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue(123, resultValue);
+
         // assert
-        Assert.Throws<LeafCoercionException>(
-            () => type.Serialize(input));
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseLiteral_ValueNode()
+    public void ValueToLiteral()
     {
         // arrange
         var type = new StringType();
-        var input = new StringValueNode("123456");
+        const string runtimeValue = "hello world";
 
         // act
-        var output = type.CoerceInputLiteral(input);
+        var literal = type.ValueToLiteral(runtimeValue);
 
         // assert
-        Assert.IsType<string>(output);
-        Assert.Equal("123456", output);
+        Assert.Equal("hello world", Assert.IsType<StringValueNode>(literal).Value);
     }
 
     [Fact]
-    public void ParseLiteral_NullValueNode()
+    public void ValueToLiteral_Null()
     {
         // arrange
         var type = new StringType();
-        var input = NullValueNode.Default;
 
         // act
-        var output = type.CoerceInputLiteral(input);
+        var literal = type.ValueToLiteral(null!);
 
         // assert
-        Assert.Null(output);
+        Assert.IsType<NullValueNode>(literal);
     }
 
     [Fact]
-    public void ParseLiteral_Wrong_ValueNode_Throws()
+    public void ValueToLiteral_Invalid_Format()
     {
         // arrange
         var type = new StringType();
-        var input = new IntValueNode(123456);
 
         // act
+        void Action() => type.ValueToLiteral(123);
+
         // assert
-        Assert.Throws<LeafCoercionException>(
-            () => type.CoerceInputLiteral(input));
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseLiteral_Null_Throws()
+    public void ParseLiteral()
     {
         // arrange
         var type = new StringType();
+        var literal = new StringValueNode("hello world");
 
         // act
+        var runtimeValue = type.CoerceInputLiteral(literal);
+
         // assert
-        Assert.Throws<ArgumentNullException>(() => type.CoerceInputLiteral(null!));
+        Assert.Equal("hello world", Assert.IsType<string>(runtimeValue));
     }
 
     [Fact]
-    public void ParseValue_Wrong_Value_Throws()
+    public void ParseLiteral_InvalidValue()
     {
         // arrange
         var type = new StringType();
-        object input = 123456;
 
         // act
-        // assert
-        Assert.Throws<LeafCoercionException>(
-            () => type.CoerceInputValue(input));
-    }
-
-    [Fact]
-    public void ParseValue_Null()
-    {
-        // arrange
-        var type = new StringType();
-        object input = null!;
-
-        // act
-        object output = type.CoerceInputValue(input);
+        void Action() => type.CoerceInputLiteral(new IntValueNode(123));
 
         // assert
-        Assert.IsType<NullValueNode>(output);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 }
