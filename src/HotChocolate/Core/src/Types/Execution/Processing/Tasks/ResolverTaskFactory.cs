@@ -16,17 +16,14 @@ internal static class ResolverTaskFactory
     public static void EnqueueResolverTasks(
         OperationContext operationContext,
         object? parent,
-        ResultElement parentResult,
+        ResultElement resultValue,
         IImmutableDictionary<string, object?> scopedContext,
         Path path)
     {
-        var selectionSet = parentResult.AssertSelectionSet();
+        var selectionSet = resultValue.AssertSelectionSet();
         var selections = selectionSet.Selections;
 
         var scheduler = operationContext.Scheduler;
-        var includeFlags = operationContext.IncludeFlags;
-        var final = !selectionSet.IsConditional;
-
         var bufferedTasks = Interlocked.Exchange(ref s_pooled, null) ?? [];
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
@@ -38,19 +35,17 @@ internal static class ResolverTaskFactory
             // the scheduler tries to schedule new work first.
             // coincidentally we can use that to schedule a mutation so that we honor the spec
             // guarantees while executing efficient.
-            for (var i = selections.Length - 1; i >= 0; i--)
+            var fieldValues = selections.Length == 1
+                ? resultValue.EnumerateObject()
+                : resultValue.EnumerateObject().Reverse();
+            foreach (var field in fieldValues)
             {
-                var selection = selections[i];
-
-                if (final || selection.IsIncluded(includeFlags))
-                {
-                    bufferedTasks.Add(
-                        operationContext.CreateResolverTask(
-                            parent,
-                            selection,
-                            parentResult,
-                            scopedContext));
-                }
+                bufferedTasks.Add(
+                    operationContext.CreateResolverTask(
+                        parent,
+                        field.AssertSelection(),
+                        field.Value,
+                        scopedContext));
             }
 
             if (bufferedTasks.Count == 0)
@@ -71,7 +66,7 @@ internal static class ResolverTaskFactory
         }
     }
 
-    // TODO : remove ?
+    // TODO : remove ? defer?
     /*
     public static ResolverTask EnqueueElementTasks(
         OperationContext operationContext,

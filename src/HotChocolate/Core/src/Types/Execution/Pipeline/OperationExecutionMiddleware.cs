@@ -130,7 +130,7 @@ internal sealed class OperationExecutionMiddleware
         }
 
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-        context.Result = new OperationResultBatch([..results]);
+        context.Result = new OperationResultBatch([.. results]);
     }
 
     private async Task ExecuteVariableBatchRequestOptimizedAsync(
@@ -162,7 +162,7 @@ internal sealed class OperationExecutionMiddleware
                 operationContextBuffer.AsMemory(0, variableSets.Length),
                 resultBuffer.AsMemory(0, variableSets.Length));
 
-            context.Result = new OperationResultBatch([..resultBuffer.AsSpan(0, variableSets.Length)]);
+            context.Result = new OperationResultBatch([.. resultBuffer.AsSpan(0, variableSets.Length)]);
         }
         catch (OperationCanceledException)
         {

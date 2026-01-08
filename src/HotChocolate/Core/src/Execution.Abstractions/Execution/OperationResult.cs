@@ -30,7 +30,7 @@ public sealed class OperationResult : ExecutionResult
         ImmutableList<IError>? errors = null,
         ImmutableOrderedDictionary<string, object?>? extensions = null)
     {
-        if (data.Value is not null && data.Formatter is not null)
+        if (data.Value is not null && data.Formatter is null)
         {
             throw new ArgumentException("The result data structure is not supported.");
         }
