@@ -1,12 +1,13 @@
-#if FUSION
-namespace HotChocolate.Fusion.Text.Json;
-#else
 namespace HotChocolate.Text.Json;
-#endif
 
 internal static class JsonConstants
 {
     public const int StackallocByteThreshold = 256;
+    public const int StackallocCharThreshold = StackallocByteThreshold / 2;
+
+    public const int MaxEscapedTokenSize = 1_000_000_000;   // Max size for already escaped value.
+    public const int MaxUnescapedTokenSize = MaxEscapedTokenSize / MaxExpansionFactorWhileEscaping;  // 166_666_666 bytes
+    public const int MaxCharacterTokenSize = MaxEscapedTokenSize / MaxExpansionFactorWhileTranscoding;  // 333_333_333 chars
 
     public const byte OpenBrace = (byte)'{';
     public const byte CloseBrace = (byte)'}';
@@ -50,4 +51,6 @@ internal static class JsonConstants
     public const int LowSurrogateStartValue = 0xDC00;
     public const int LowSurrogateEndValue = 0xDFFF;
     public const int BitShiftBy10 = 0x400;
+
+    public const int RemoveFlagsBitMask = 0x7FFFFFFF;
 }

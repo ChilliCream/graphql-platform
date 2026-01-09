@@ -62,6 +62,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Formatters\HotChocolate.Transport.Formatters.csproj" />
     <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\Json\src\Json\HotChocolate.Text.Json.csproj" />
     <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Abstractions\HotChocolate.PersistedOperations.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Pipeline\HotChocolate.PersistedOperations.Pipeline.csproj" />
     <ProjectReference Include="..\Execution.Pipeline\HotChocolate.Execution.Pipeline.csproj" />
@@ -80,10 +81,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonConstants.cs">
-      <Link>Text\Json\JsonConstants.cs</Link>
-    </Compile>
-
     <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonHelpers.cs">
       <Link>Text\Json\JsonHelpers.cs</Link>
     </Compile>

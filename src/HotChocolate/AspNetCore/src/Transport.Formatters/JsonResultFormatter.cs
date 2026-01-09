@@ -2,6 +2,7 @@ using System.Buffers;
 using System.IO.Pipelines;
 using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Text.Json;
 using static HotChocolate.Execution.JsonValueFormatter;
 using static HotChocolate.Execution.ResultFieldNames;
 
@@ -15,7 +16,6 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     private readonly JsonWriterOptions _options;
     private readonly JsonSerializerOptions _serializerOptions;
     private readonly JsonNullIgnoreCondition _nullIgnoreCondition;
-    private readonly ThreadLocal<Utf8JsonWriter?> _writer = new(valueFactory: () => null, trackAllValues: false);
 
     /// <summary>
     /// Initializes a new instance of <see cref="JsonResultFormatter"/> with default options.
@@ -67,6 +67,27 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
             IResponseStream responseStream => FormatInternalAsync(responseStream, writer, cancellationToken),
             _ => throw new NotSupportedException($"The result type '{result.GetType().FullName}' is not supported.")
         };
+    }
+
+    /// <summary>
+    /// Formats a query result as JSON string.
+    /// </summary>
+    /// <param name="result">
+    /// The query result.
+    /// </param>
+    /// <param name="writer">
+    /// The JSON writer.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="result"/> is <c>null</c>.
+    /// <paramref name="writer"/> is <c>null</c>.
+    /// </exception>
+    public void Format(OperationResult result, IBufferWriter<byte> writer)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(writer);
+
+        FormatInternal(result, writer);
     }
 
     /// <summary>
@@ -147,27 +168,6 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         WriteDictionary(writer, dictionary, _serializerOptions, _nullIgnoreCondition);
     }
 
-    public void Format(OperationResult result, IBufferWriter<byte> writer)
-    {
-        ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(writer);
-
-        FormatInternal(result, writer);
-    }
-
-    private void FormatInternal(OperationResult result, IBufferWriter<byte> writer)
-    {
-        if (result.JsonFormatter is { } formatter)
-        {
-            formatter.WriteTo(result, writer, _options);
-            return;
-        }
-
-        var jsonWriter = CreateWriter(writer);
-        WriteResult(jsonWriter, result);
-        jsonWriter.Flush();
-    }
-
     public ValueTask FormatAsync(
         OperationResult result,
         PipeWriter writer,
@@ -177,6 +177,18 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         ArgumentNullException.ThrowIfNull(writer);
 
         return FormatInternalAsync(result, writer, cancellationToken);
+    }
+
+    private void FormatInternal(OperationResult result, IBufferWriter<byte> bufferWriter)
+    {
+        if (result.JsonFormatter is { } formatter)
+        {
+            formatter.WriteTo(result, bufferWriter, _options);
+            return;
+        }
+
+        var writer = new JsonWriter(bufferWriter, _options);
+        WriteResult(writer, result);
     }
 
     private async ValueTask FormatInternalAsync(
@@ -244,18 +256,20 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         }
     }
 
-    private void WriteResult(Utf8JsonWriter writer, OperationResult result)
+    private void WriteResult(JsonWriter writer, OperationResult result)
     {
         writer.WriteStartObject();
 
         if (result.RequestIndex.HasValue)
         {
-            writer.WriteNumber(RequestIndex, result.RequestIndex.Value);
+            writer.WritePropertyName(RequestIndex);
+            writer.WriteNumberValue(result.RequestIndex.Value);
         }
 
         if (result.VariableIndex.HasValue)
         {
-            writer.WriteNumber(VariableIndex, result.VariableIndex.Value);
+            writer.WritePropertyName(VariableIndex);
+            writer.WriteNumberValue(result.VariableIndex.Value);
         }
 
         WriteErrors(writer, result.Errors);
@@ -267,17 +281,18 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     }
 
     private static void WriteHasNext(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         OperationResult result)
     {
         if (result.HasNext.HasValue)
         {
-            writer.WriteBoolean("hasNext", result.HasNext.Value);
+            writer.WritePropertyName("hasNext"u8);
+            writer.WriteBooleanValue(result.HasNext.Value);
         }
     }
 
     private void WriteData(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         OperationResult result)
     {
         if (!result.IsDataSet)
@@ -287,7 +302,8 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
         if (result.Data is null)
         {
-            writer.WriteNull(Data);
+            writer.WritePropertyName(Data);
+            writer.WriteNullValue();
             return;
         }
 
@@ -296,7 +312,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         WriteValue(writer, result.Data, _serializerOptions, _nullIgnoreCondition);
     }
 
-    private void WriteErrors(Utf8JsonWriter writer, IReadOnlyList<IError>? errors)
+    private void WriteErrors(JsonWriter writer, IReadOnlyList<IError>? errors)
     {
         if (errors is { Count: > 0 })
         {
@@ -311,18 +327,5 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
             writer.WriteEndArray();
         }
-    }
-
-    private Utf8JsonWriter CreateWriter(IBufferWriter<byte> buffer)
-    {
-        if (_writer.Value is not { } writer)
-        {
-            writer = new Utf8JsonWriter(buffer, _options);
-            _writer.Value = writer;
-            return writer;
-        }
-
-        writer.Reset(buffer);
-        return writer;
     }
 }

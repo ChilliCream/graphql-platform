@@ -33,7 +33,10 @@ public readonly partial struct CompositeResultElement
     /// </param>
     public void WriteTo(IBufferWriter<byte> writer, bool indented = false)
     {
-        var formatter = new CompositeResultDocument.RawJsonFormatter(_parent, writer, indented);
+        var formatter = new CompositeResultDocument.RawJsonFormatter(
+            _parent,
+            writer,
+            new JsonWriterOptions {  Indented = indented });
 
         var row = _parent._metaDb.Get(_cursor);
         formatter.WriteValue(_cursor, row);

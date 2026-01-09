@@ -78,13 +78,11 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 
             switch (tokenType)
             {
-                case ElementTokenType.StartObject
-                    when (ElementFlags.IsObject & row.Flags) != ElementFlags.IsObject:
+                case ElementTokenType.StartObject:
                     WriteObject(cursor, row);
                     break;
 
-                case ElementTokenType.StartArray
-                    when (ElementFlags.IsList & row.Flags) != ElementFlags.IsList:
+                case ElementTokenType.StartArray:
                     WriteArray(cursor, row);
                     break;
 
@@ -102,7 +100,8 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                     break;
 
                 default:
-                    document.WriteRawValueTo(writer, row);
+                    var rawValue = document.ReadRawValue(row);
+                    writer.WriteRawValue(rawValue, skipInputValidation: true);
                     break;
             }
         }
@@ -130,7 +129,8 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                 }
 
                 // property name
-                writer.WritePropertyName(document.ReadRawValue(row));
+                var propertyName = document.ReadRawValue(row);
+                writer.WritePropertyName(propertyName);
 
                 // property value
                 current++;

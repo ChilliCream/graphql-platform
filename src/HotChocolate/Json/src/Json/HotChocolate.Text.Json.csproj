@@ -3,7 +3,23 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Text.Json</AssemblyName>
     <RootNamespace>HotChocolate.Text.Json</RootNamespace>
-    <LangVersion>preview</LangVersion>
+    <Description>This package provides helpers for JSON parsing and formatting in HotChocolate.</Description>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <LangVersion>preview</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Types" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Bcl.HashCode" />
+    <PackageReference Include="System.Memory" />
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
 
 </Project>

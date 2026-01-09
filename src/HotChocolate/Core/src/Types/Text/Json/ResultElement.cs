@@ -973,7 +973,7 @@ public readonly partial struct ResultElement
 
         ArgumentOutOfRangeException.ThrowIfNegative(length);
 
-        if (Type is { } type && !type.IsListType())
+        if (Type is { } type && !type.IsListType() && !type.IsScalarType())
         {
             throw new InvalidOperationException(
                 string.Format(ResultElement_SetArrayValue_NotListType, type));

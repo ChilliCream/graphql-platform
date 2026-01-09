@@ -4,7 +4,7 @@ using static HotChocolate.Execution.ResultFieldNames;
 
 namespace HotChocolate.Execution;
 
-public static class JsonValueFormatter
+public static partial class JsonValueFormatter
 {
     public static void WriteValue(
         Utf8JsonWriter writer,
@@ -307,30 +307,16 @@ public static class JsonValueFormatter
 
         writer.WriteStartArray();
 
-        var list = path.ToList();
-
-        for (var i = 0; i < list.Count; i++)
+        foreach (var segment in path.EnumerateSegments())
         {
-            switch (list[i])
+            switch (segment)
             {
-                case string s:
-                    writer.WriteStringValue(s);
+                case NamePathSegment n:
+                    writer.WriteStringValue(n.Name);
                     break;
 
-                case int n:
-                    writer.WriteNumberValue(n);
-                    break;
-
-                case short n:
-                    writer.WriteNumberValue(n);
-                    break;
-
-                case long n:
-                    writer.WriteNumberValue(n);
-                    break;
-
-                default:
-                    writer.WriteStringValue(list[i].ToString());
+                case IndexerPathSegment n:
+                    writer.WriteNumberValue(n.Index);
                     break;
             }
         }

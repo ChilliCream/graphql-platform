@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Text.Json;
 
 #if FUSION
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
@@ -105,7 +106,9 @@ internal static class JsonReaderHelper
 
     public static bool UnescapeAndCompare(ReadOnlySpan<byte> utf8Source, ReadOnlySpan<byte> other)
     {
-        Debug.Assert(utf8Source.Length >= other.Length && utf8Source.Length / JsonConstants.MaxExpansionFactorWhileEscaping <= other.Length);
+        Debug.Assert(
+            utf8Source.Length >= other.Length
+                && utf8Source.Length / JsonConstants.MaxExpansionFactorWhileEscaping <= other.Length);
 
         byte[]? unescapedArray = null;
 

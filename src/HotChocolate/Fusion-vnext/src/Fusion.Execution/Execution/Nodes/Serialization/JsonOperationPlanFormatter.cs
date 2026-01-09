@@ -6,7 +6,6 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Transport.Http;
-using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 

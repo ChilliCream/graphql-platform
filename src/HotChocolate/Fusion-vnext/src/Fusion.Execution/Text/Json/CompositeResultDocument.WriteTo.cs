@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -16,7 +17,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
         jsonWriter.Flush();
     }
 
-    internal ref struct RawJsonFormatter(CompositeResultDocument document, Utf8JsonWriter writer)
+    internal ref struct RawJsonFormatter(CompositeResultDocument document, JsonWriter writer)
     {
         public void Write()
         {
