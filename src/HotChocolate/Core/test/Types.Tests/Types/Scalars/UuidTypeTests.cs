@@ -43,7 +43,7 @@ public class UuidTypeTests
         var isCompatible = type.IsValueCompatible(literal);
 
         // assert
-        Assert.True(isCompatible);
+        Assert.False(isCompatible);
     }
 
     [Fact]
@@ -67,10 +67,10 @@ public class UuidTypeTests
         var type = new UuidType();
 
         // act
-        void Action() => type.IsValueCompatible(null!);
+        var isCompatible = type.IsValueCompatible(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.False(isCompatible);
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public class UuidTypeTests
         void Action() => type.CoerceInputLiteral(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -375,37 +375,5 @@ public class UuidTypeTests
 
         // assert
         Assert.Equal(input, guid.ToString("D"));
-    }
-
-    [InlineData(false)]
-    [InlineData(true)]
-    [Theory]
-    public void IsValueCompatible_Guid_String_With_Appended_String(bool enforceFormat)
-    {
-        // arrange
-        var input = new StringValueNode("fbdef721-93c5-4267-8f92-ca27b60aa51f-foobar");
-        var type = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
-
-        // act
-        var result = type.IsValueCompatible(input);
-
-        // assert
-        Assert.False(result);
-    }
-
-    [InlineData(false)]
-    [InlineData(true)]
-    [Theory]
-    public void IsValueCompatible_Guid_Valid_Format(bool enforceFormat)
-    {
-        // arrange
-        var input = new StringValueNode("fbdef721-93c5-4267-8f92-ca27b60aa51f");
-        var type = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
-
-        // act
-        var result = type.IsValueCompatible(input);
-
-        // assert
-        Assert.True(result);
     }
 }

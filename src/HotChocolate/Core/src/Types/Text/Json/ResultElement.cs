@@ -935,7 +935,8 @@ public readonly partial struct ResultElement
             throw new ArgumentNullException(nameof(propertyName));
         }
 
-        var requiredBytes = Encoding.UTF8.GetByteCount(propertyName);
+        var encoding = Encoding.UTF8;
+        var requiredBytes = encoding.GetByteCount(propertyName);
         byte[]? rented = null;
         var buffer = JsonConstants.StackallocByteThreshold <= requiredBytes
             ? stackalloc byte[propertyName.Length]
@@ -943,7 +944,7 @@ public readonly partial struct ResultElement
 
         try
         {
-            var usedBytes = Encoding.UTF8.GetBytes(propertyName, buffer);
+            var usedBytes = encoding.GetBytes(propertyName, buffer);
             _parent.AssignPropertyName(this, buffer[..usedBytes]);
         }
         finally

@@ -254,7 +254,7 @@ public class UrlTypeTests
     }
 
     [Fact]
-    public void IsValueCompatible_NullValueNode_ReturnsTrue()
+    public void IsValueCompatible_NullValueNode_ReturnsFalse()
     {
         // arrange
         var type = new UrlType();
@@ -276,7 +276,7 @@ public class UrlTypeTests
         var compatible = type.IsValueCompatible(null!);
 
         // assert
-        Assert.True(compatible);
+        Assert.False(compatible);
     }
 
     [Fact]

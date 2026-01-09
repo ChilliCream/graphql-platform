@@ -96,16 +96,16 @@ public class IdTypeTests
     }
 
     [Fact]
-    public void IsValueCompatible_Null_Throws()
+    public void IsValueCompatible_Null_ReturnsFalse()
     {
         // arrange
         var type = new IdType();
 
         // act
-        void Action() => type.IsValueCompatible(null!);
+        var result = type.IsValueCompatible(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.False(result);
     }
 
     [Fact]
@@ -162,7 +162,7 @@ public class IdTypeTests
         void Action() => type.CoerceInputLiteral(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -209,10 +209,10 @@ public class IdTypeTests
         var inputValue = JsonDocument.Parse("null").RootElement;
 
         // act
-        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+        void Action() => type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.Null(runtimeValue);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

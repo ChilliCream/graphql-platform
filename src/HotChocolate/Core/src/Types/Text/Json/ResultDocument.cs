@@ -529,7 +529,7 @@ public sealed partial class ResultDocument : IDisposable
         Debug.Assert(row.TokenType is ElementTokenType.PropertyName);
         Debug.Assert(row.OperationReferenceType is OperationReferenceType.None);
 
-        var totalSize = propertyName.Length + 2;
+        var totalSize = propertyName.Length;
         var position = ClaimDataSpace(totalSize);
         WriteData(position, propertyName, withQuotes: false);
 

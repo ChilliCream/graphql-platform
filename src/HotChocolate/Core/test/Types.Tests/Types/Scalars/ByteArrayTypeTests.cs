@@ -46,16 +46,16 @@ public class ByteArrayTypeTests
     }
 
     [Fact]
-    public void IsValueCompatible_Null_Throws()
+    public void IsValueCompatible_Null_ReturnsFalse()
     {
         // arrange
         var type = new ByteArrayType();
 
         // act
-        void Action() => type.IsValueCompatible(null!);
+        var result = type.IsValueCompatible(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.False(result);
     }
 
     [Fact]

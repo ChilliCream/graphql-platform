@@ -73,12 +73,18 @@ public sealed class JsonType : ScalarType<JsonElement>
         switch (runtimeValue.ValueKind)
         {
             case JsonValueKind.String:
-                resultValue.SetStringValue(JsonMarshal.GetRawUtf8Value(runtimeValue));
+            {
+                var value = JsonMarshal.GetRawUtf8Value(runtimeValue);
+                resultValue.SetStringValue(value[1..^1]);
                 break;
+            }
 
             case JsonValueKind.Number:
-                resultValue.SetNumberValue(JsonMarshal.GetRawUtf8Value(runtimeValue));
+            {
+                var value = JsonMarshal.GetRawUtf8Value(runtimeValue);
+                resultValue.SetNumberValue(value);
                 break;
+            }
 
             case JsonValueKind.True:
                 resultValue.SetBooleanValue(true);
@@ -121,6 +127,7 @@ public sealed class JsonType : ScalarType<JsonElement>
                 foreach (var property in resultValue.EnumerateObject())
                 {
                     enumerator.MoveNext();
+                    property.Value.SetPropertyName(enumerator.Current.Name);
                     OnCoerceOutputValue(enumerator.Current.Value, property.Value);
                 }
                 break;

@@ -944,7 +944,7 @@ public class AnyTypeTests
     }
 
     [Fact]
-    public void IsValueCompatible_Null_ArgumentNullException()
+    public void IsValueCompatible_Null_ReturnsFalse()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -960,10 +960,10 @@ public class AnyTypeTests
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        void Action() => type.IsValueCompatible(null!);
+        var result = type.IsValueCompatible(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.False(result);
     }
 
     [InlineData("abc", typeof(StringValueNode))]

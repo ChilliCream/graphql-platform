@@ -87,7 +87,7 @@ public class LocalDateTypeTests
 
         // assert
         Assert.Equal(
-            "LocalDate cannot parse the given literal of type `StringValueNode`.",
+            "LocalDate cannot coerce the given literal of type `StringValue` to a runtime value.",
             Assert.Throws<LeafCoercionException>(Action).Message);
     }
 
