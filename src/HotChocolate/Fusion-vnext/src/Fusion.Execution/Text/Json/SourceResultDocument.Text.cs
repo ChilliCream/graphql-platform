@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Unicode;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 

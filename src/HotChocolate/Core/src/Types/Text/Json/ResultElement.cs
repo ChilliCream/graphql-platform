@@ -1155,11 +1155,10 @@ public readonly partial struct ResultElement
             Indented = indented,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
-        using var jsonWriter = new Utf8JsonWriter(writer, options);
+        var jsonWriter = new JsonWriter(writer, options);
         var formatter = new ResultDocument.RawJsonFormatter(_parent, jsonWriter);
         var row = _parent._metaDb.Get(_cursor);
         formatter.WriteValue(_cursor, row);
-        jsonWriter.Flush();
     }
 
     /// <inheritdoc />

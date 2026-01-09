@@ -38,6 +38,8 @@ internal static partial class ValueCompletion
                     return;
                 }
             }
+
+            return;
         }
 
         if (runtimeValue is IList list)
@@ -61,6 +63,8 @@ internal static partial class ValueCompletion
                     return;
                 }
             }
+
+            return;
         }
 
         if (runtimeValue is JsonElement { ValueKind: JsonValueKind.Array } node)
@@ -86,6 +90,8 @@ internal static partial class ValueCompletion
                     return;
                 }
             }
+
+            return;
         }
 
         if (runtimeValue is IEnumerable enumerable)
@@ -115,6 +121,8 @@ internal static partial class ValueCompletion
                     return;
                 }
             }
+
+            return;
         }
 
         var operationContext = context.OperationContext;

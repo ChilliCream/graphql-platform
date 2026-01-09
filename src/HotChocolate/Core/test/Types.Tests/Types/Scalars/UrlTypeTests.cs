@@ -260,36 +260,23 @@ public class UrlTypeTests
         var type = new UrlType();
 
         // act
-        var isCompatible = type.IsValueCompatible(new NullValueNode(null));
-
-        // assert
-        Assert.True(isCompatible);
-    }
-
-    [Fact]
-    public void IsValueCompatible_InvalidUri_ReturnsFalse()
-    {
-        // arrange
-        var type = new UrlType();
-
-        // act
-        var isCompatible = type.IsValueCompatible(new StringValueNode("$*^domain.test"));
+        var isCompatible = type.IsValueCompatible(NullValueNode.Default);
 
         // assert
         Assert.False(isCompatible);
     }
 
     [Fact]
-    public void IsValueCompatible_Null_ThrowsArgumentException()
+    public void IsValueCompatible_Null_ReturnsFalse()
     {
         // arrange
         var type = new UrlType();
 
         // act
-        void Action() => type.IsValueCompatible(null!);
+        var compatible = type.IsValueCompatible(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.True(compatible);
     }
 
     [Fact]

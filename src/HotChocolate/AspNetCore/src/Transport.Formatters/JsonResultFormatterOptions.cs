@@ -30,14 +30,14 @@ public struct JsonResultFormatterOptions
     /// </summary>
     public JavaScriptEncoder? Encoder { get; set; }
 
-    internal JsonWriterOptions CreateWriterOptions()
+    public JsonWriterOptions CreateWriterOptions()
         => new()
         {
             Indented = Indented,
             Encoder = Encoder ?? JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
-    internal readonly JsonSerializerOptions CreateSerializerOptions()
+    public readonly JsonSerializerOptions CreateSerializerOptions()
         => new(Web)
         {
             WriteIndented = Indented,

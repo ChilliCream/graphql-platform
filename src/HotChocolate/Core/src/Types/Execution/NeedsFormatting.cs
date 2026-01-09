@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Execution;
 
@@ -28,12 +29,12 @@ internal abstract class NeedsFormatting : IResultDataJsonFormatter
     /// The null ignore condition.
     /// </param>
     public abstract void FormatValue(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         JsonSerializerOptions options,
         JsonNullIgnoreCondition nullIgnoreCondition);
 
     void IResultDataJsonFormatter.WriteTo(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         JsonSerializerOptions? options,
         JsonNullIgnoreCondition nullIgnoreCondition)
 #if NET9_0_OR_GREATER
@@ -42,8 +43,12 @@ internal abstract class NeedsFormatting : IResultDataJsonFormatter
         => FormatValue(writer, options ?? JsonSerializerOptions.Default, nullIgnoreCondition);
 #endif
 
-    public static NeedsFormatting<TValue> Create<TValue>(TValue value)
-        => new(value);
+    public static JsonNeedsFormatting Create<TValue>(TValue value)
+    {
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        var documents = JsonSerializer.SerializeToDocument(value, options);
+        return new JsonNeedsFormatting(documents);
+    }
 }
 
 /// <summary>
@@ -60,20 +65,15 @@ internal abstract class NeedsFormatting : IResultDataJsonFormatter
 /// This is also the reason for keeping this internal.
 /// </para>
 /// </remarks>
-/// <remarks>
-/// Initializes a new instance of <see cref="NeedsFormatting{TValue}"/>.
-/// </remarks>
 /// <param name="value">
 /// The value that needs formatting.
 /// </param>
-internal sealed class NeedsFormatting<TValue>(TValue value) : NeedsFormatting
+internal sealed class JsonNeedsFormatting(JsonDocument value) : NeedsFormatting
 {
-    private readonly TValue _value = value;
-
     /// <summary>
     /// The inner value.
     /// </summary>
-    public TValue Value => _value;
+    public JsonDocument Value { get; } = value;
 
     /// <summary>
     /// Formats the value as JSON
@@ -88,10 +88,10 @@ internal sealed class NeedsFormatting<TValue>(TValue value) : NeedsFormatting
     /// The null ignore condition.
     /// </param>
     public override void FormatValue(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         JsonSerializerOptions options,
         JsonNullIgnoreCondition nullIgnoreCondition)
-        => JsonSerializer.Serialize(writer, _value, options);
+        => JsonValueFormatter.WriteValue(writer, Value, options, nullIgnoreCondition);
 
     /// <summary>
     /// Returns the string representation of the inner value.
@@ -99,5 +99,5 @@ internal sealed class NeedsFormatting<TValue>(TValue value) : NeedsFormatting
     /// <returns>
     /// The string representation of the inner value.
     /// </returns>
-    public override string? ToString() => _value?.ToString();
+    public override string? ToString() => Value.ToString();
 }

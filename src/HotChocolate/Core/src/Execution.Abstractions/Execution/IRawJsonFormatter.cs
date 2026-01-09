@@ -25,5 +25,5 @@ public interface IRawJsonFormatter
     void WriteTo(
         OperationResult result,
         IBufferWriter<byte> writer,
-        JsonWriterOptions options);
+        JsonWriterOptions options = default);
 }

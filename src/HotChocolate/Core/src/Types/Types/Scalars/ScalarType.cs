@@ -116,40 +116,38 @@ public abstract partial class ScalarType
     /// <inheritdoc cref="IScalarTypeDefinition.IsValueCompatible" />
     public virtual bool IsValueCompatible(IValueNode valueLiteral)
     {
-        ArgumentNullException.ThrowIfNull(valueLiteral);
-
         if ((SerializationType & ScalarSerializationType.String) == ScalarSerializationType.String
-            && valueLiteral.Kind == SyntaxKind.StringValue)
+            && valueLiteral is { Kind: SyntaxKind.StringValue })
         {
             return true;
         }
 
         if ((SerializationType & ScalarSerializationType.Int) == ScalarSerializationType.Int
-            && valueLiteral.Kind == SyntaxKind.IntValue)
+            && valueLiteral is { Kind: SyntaxKind.IntValue })
         {
             return true;
         }
 
         if ((SerializationType & ScalarSerializationType.Float) == ScalarSerializationType.Float
-            && valueLiteral.Kind == SyntaxKind.FloatValue)
+            && valueLiteral is { Kind: SyntaxKind.FloatValue })
         {
             return true;
         }
 
         if ((SerializationType & ScalarSerializationType.Boolean) == ScalarSerializationType.Boolean
-            && valueLiteral.Kind == SyntaxKind.BooleanValue)
+            && valueLiteral is { Kind: SyntaxKind.BooleanValue })
         {
             return true;
         }
 
         if ((SerializationType & ScalarSerializationType.List) == ScalarSerializationType.List
-            && valueLiteral.Kind == SyntaxKind.ListValue)
+            && valueLiteral is { Kind: SyntaxKind.ListValue })
         {
             return true;
         }
 
         if ((SerializationType & ScalarSerializationType.Object) == ScalarSerializationType.Object
-            && valueLiteral.Kind == SyntaxKind.ObjectValue)
+            && valueLiteral is { Kind: SyntaxKind.ObjectValue })
         {
             return true;
         }

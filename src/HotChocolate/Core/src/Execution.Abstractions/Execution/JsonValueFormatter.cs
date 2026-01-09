@@ -1,13 +1,15 @@
 using System.Collections;
+using System.Runtime.InteropServices;
 using System.Text.Json;
+using HotChocolate.Text.Json;
 using static HotChocolate.Execution.ResultFieldNames;
 
 namespace HotChocolate.Execution;
 
-public static partial class JsonValueFormatter
+public static class JsonValueFormatter
 {
     public static void WriteValue(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         object? value,
         JsonSerializerOptions options,
         JsonNullIgnoreCondition nullIgnoreCondition)
@@ -29,11 +31,7 @@ public static partial class JsonValueFormatter
                 break;
 
             case RawJsonValue rawJsonValue:
-                writer.WriteRawValue(rawJsonValue.Value.Span, true);
-                break;
-
-            case IResultDataJsonFormatter formatter:
-                formatter.WriteTo(writer, options, nullIgnoreCondition);
+                writer.WriteRawValue(rawJsonValue.Value.Span);
                 break;
 
             case Dictionary<string, object?> dict:
@@ -108,6 +106,10 @@ public static partial class JsonValueFormatter
                 WritePathValue(writer, p);
                 break;
 
+            case IResultDataJsonFormatter formatter:
+                formatter.WriteTo(writer, options, nullIgnoreCondition);
+                break;
+
             default:
                 writer.WriteStringValue(value.ToString());
                 break;
@@ -116,7 +118,7 @@ public static partial class JsonValueFormatter
 
     private static void WriteJsonElement(
         JsonElement element,
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         JsonSerializerOptions options,
         JsonNullIgnoreCondition nullIgnoreCondition)
     {
@@ -153,14 +155,39 @@ public static partial class JsonValueFormatter
                 writer.WriteEndArray();
                 break;
 
-            default:
-                element.WriteTo(writer);
+            case JsonValueKind.String:
+            {
+                var value = JsonMarshal.GetRawUtf8Value(element);
+                writer.WriteStringValue(value, skipEscaping: true);
                 break;
+            }
+
+            case JsonValueKind.Number:
+            {
+                var value = JsonMarshal.GetRawUtf8Value(element);
+                writer.WriteNumberValue(value);
+                break;
+            }
+
+            case JsonValueKind.True:
+                writer.WriteBooleanValue(true);
+                break;
+
+            case JsonValueKind.False:
+                writer.WriteBooleanValue(false);
+                break;
+
+            case JsonValueKind.Null:
+                writer.WriteNullValue();
+                break;
+
+            default:
+                throw new NotSupportedException();
         }
     }
 
     public static void WriteDictionary(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         IReadOnlyDictionary<string, object?> dict,
         JsonSerializerOptions options,
         JsonNullIgnoreCondition nullIgnoreCondition)
@@ -183,7 +210,7 @@ public static partial class JsonValueFormatter
     }
 
     private static void WriteList(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         IList list,
         JsonSerializerOptions options,
         JsonNullIgnoreCondition nullIgnoreCondition)
@@ -207,7 +234,7 @@ public static partial class JsonValueFormatter
     }
 
     private static void WriteDictionary(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         Dictionary<string, object?> dict,
         JsonSerializerOptions options,
         JsonNullIgnoreCondition nullIgnoreCondition)
@@ -229,7 +256,7 @@ public static partial class JsonValueFormatter
         writer.WriteEndObject();
     }
 
-    private static void WriteLocations(Utf8JsonWriter writer, IReadOnlyList<Location>? locations)
+    private static void WriteLocations(JsonWriter writer, IReadOnlyList<Location>? locations)
     {
         if (locations is { Count: > 0 })
         {
@@ -247,7 +274,7 @@ public static partial class JsonValueFormatter
     }
 
     public static void WriteErrors(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         IReadOnlyList<IError> error,
         JsonSerializerOptions options,
         JsonNullIgnoreCondition nullIgnoreCondition)
@@ -263,14 +290,15 @@ public static partial class JsonValueFormatter
     }
 
     public static void WriteError(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         IError error,
         JsonSerializerOptions options,
         JsonNullIgnoreCondition nullIgnoreCondition)
     {
         writer.WriteStartObject();
 
-        writer.WriteString(Message, error.Message);
+        writer.WritePropertyName(Message);
+        writer.WriteStringValue(error.Message);
 
         WriteLocations(writer, error.Locations);
         WritePath(writer, error.Path);
@@ -279,15 +307,17 @@ public static partial class JsonValueFormatter
         writer.WriteEndObject();
     }
 
-    private static void WriteLocation(Utf8JsonWriter writer, Location location)
+    private static void WriteLocation(JsonWriter writer, Location location)
     {
         writer.WriteStartObject();
-        writer.WriteNumber(Line, location.Line);
-        writer.WriteNumber(Column, location.Column);
+        writer.WritePropertyName(Line);
+        writer.WriteNumberValue(location.Line);
+        writer.WritePropertyName(Column);
+        writer.WriteNumberValue(location.Column);
         writer.WriteEndObject();
     }
 
-    public static void WritePath(Utf8JsonWriter writer, Path? path)
+    public static void WritePath(JsonWriter writer, Path? path)
     {
         if (path is not null)
         {
@@ -296,7 +326,7 @@ public static partial class JsonValueFormatter
         }
     }
 
-    private static void WritePathValue(Utf8JsonWriter writer, Path path)
+    private static void WritePathValue(JsonWriter writer, Path path)
     {
         if (path.IsRoot)
         {
@@ -325,7 +355,7 @@ public static partial class JsonValueFormatter
     }
 
     public static void WriteExtensions(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         IReadOnlyDictionary<string, object?>? dict,
         JsonSerializerOptions options,
         JsonNullIgnoreCondition nullIgnoreCondition)

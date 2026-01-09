@@ -58,7 +58,7 @@ public abstract class FloatTypeBase<TRuntimeType>
 
     /// <inheritdoc />
     public override bool IsValueCompatible(IValueNode valueLiteral)
-        => valueLiteral.Kind is SyntaxKind.FloatValue or SyntaxKind.IntValue;
+        => valueLiteral is { Kind: SyntaxKind.FloatValue or SyntaxKind.IntValue };
 
     /// <inheritdoc />
     public override bool IsValueCompatible(JsonElement inputValue)

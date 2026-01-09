@@ -1,8 +1,8 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.Text.Json;
-using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
@@ -33,11 +33,11 @@ public readonly partial struct CompositeResultElement
     /// </param>
     public void WriteTo(IBufferWriter<byte> writer, bool indented = false)
     {
+        var options = new JsonWriterOptions { Indented = indented };
+        var jsonWriter = new JsonWriter(writer, options);
         var formatter = new CompositeResultDocument.RawJsonFormatter(
             _parent,
-            writer,
-            new JsonWriterOptions {  Indented = indented });
-
+            jsonWriter);
         var row = _parent._metaDb.Get(_cursor);
         formatter.WriteValue(_cursor, row);
     }

@@ -45,16 +45,16 @@ public class ByteTypeTests
     }
 
     [Fact]
-    public void IsValueCompatible_Null_Throws()
+    public void IsValueCompatible_Null_False()
     {
         // arrange
         var type = new ByteType();
 
         // act
-        void Action() => type.IsValueCompatible(null!);
+        var result = type.IsValueCompatible(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.False(result);
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class ByteTypeTests
         void Action() => type.CoerceInputLiteral(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

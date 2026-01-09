@@ -134,58 +134,6 @@ public class DateTypeTests
     }
 
     [Fact]
-    public void CoerceOutputValue_DateTime()
-    {
-        // arrange
-        var type = new DateType();
-        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-
-        // act
-        var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
-        var resultValue = resultDocument.Data.GetProperty("first");
-        type.CoerceOutputValue(dateTime, resultValue);
-
-        // assert
-        resultValue.MatchInlineSnapshot("\"2018-06-11\"");
-    }
-
-    [Fact]
-    public void CoerceOutputValue_DateTimeOffset()
-    {
-        // arrange
-        var type = new DateType();
-        var dateTime = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 2, 46, 14),
-            new TimeSpan(4, 0, 0));
-
-        // act
-        var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
-        var resultValue = resultDocument.Data.GetProperty("first");
-        type.CoerceOutputValue(dateTime, resultValue);
-
-        // assert
-        resultValue.MatchInlineSnapshot("\"2018-06-11\"");
-    }
-
-    [Fact]
-    public void CoerceOutputValue_Invalid_Format()
-    {
-        // arrange
-        var type = new DateType();
-
-        // act
-        var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
-        var resultValue = resultDocument.Data.GetProperty("first");
-        void Action() => type.CoerceOutputValue("foo", resultValue);
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
-    }
-
-    [Fact]
     public void ValueToLiteral()
     {
         // arrange

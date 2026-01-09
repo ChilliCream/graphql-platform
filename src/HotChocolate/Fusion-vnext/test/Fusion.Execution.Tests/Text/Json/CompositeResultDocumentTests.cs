@@ -475,7 +475,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             compositeResult);
         var operationResult = new OperationResult(
             operationResultData);
-        compositeResult.WriteTo(operationResult, buffer, indented: true);
+        compositeResult.WriteTo(operationResult, buffer);
 
         // assert
         var json = Encoding.UTF8.GetString(buffer.WrittenSpan);
@@ -542,7 +542,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             compositeResult);
         var operationResult = new OperationResult(
             operationResultData);
-        compositeResult.WriteTo(operationResult, writer, indented: true);
+        compositeResult.WriteTo(operationResult, writer, new JsonWriterOptions { Indented = true});
         await writer.FlushAsync();
         await writer.CompleteAsync();
 

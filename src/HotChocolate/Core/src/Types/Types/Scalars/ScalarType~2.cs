@@ -177,7 +177,7 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
     /// <returns>
     /// Returns the exception to throw.
     /// </returns>
-    protected virtual LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueLiteral)
+    protected virtual LeafCoercionException CreateCoerceInputLiteralError(IValueNode? valueLiteral)
         => Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
 
     /// <summary>

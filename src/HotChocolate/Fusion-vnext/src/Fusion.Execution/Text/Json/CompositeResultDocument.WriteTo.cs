@@ -8,13 +8,12 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument : IRawJsonFormatter
 {
-    public void WriteTo(OperationResult result, IBufferWriter<byte> writer, JsonWriterOptions options)
+    public void WriteTo(OperationResult result, IBufferWriter<byte> writer, JsonWriterOptions options = default)
     {
         options = options with { SkipValidation = true };
-        using var jsonWriter = new Utf8JsonWriter(writer, options);
+        var jsonWriter = new JsonWriter(writer, options);
         var formatter = new RawJsonFormatter(this, jsonWriter);
         formatter.Write();
-        jsonWriter.Flush();
     }
 
     internal ref struct RawJsonFormatter(CompositeResultDocument document, JsonWriter writer)
@@ -102,9 +101,22 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                     writer.WriteBooleanValue(false);
                     break;
 
-                default:
-                    document.WriteRawValueTo(writer, row);
+                case ElementTokenType.String:
+                {
+                    var value = document.ReadRawValue(row);
+                    writer.WriteStringValue(value, skipEscaping: true);
                     break;
+                }
+
+                case ElementTokenType.Number:
+                {
+                    var value = document.ReadRawValue(row);
+                    writer.WriteNumberValue(value);
+                    break;
+                }
+
+                default:
+                    throw new NotSupportedException();
             }
         }
 

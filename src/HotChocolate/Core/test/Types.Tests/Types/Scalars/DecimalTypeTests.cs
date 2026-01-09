@@ -58,19 +58,6 @@ public class DecimalTypeTests
     }
 
     [Fact]
-    public void IsValueCompatible_Null_Throws()
-    {
-        // arrange
-        var type = new DecimalType();
-
-        // act
-        void Action() => type.IsValueCompatible(null!);
-
-        // assert
-        Assert.Throws<ArgumentNullException>(Action);
-    }
-
-    [Fact]
     public void CoerceInputLiteral()
     {
         // arrange
@@ -139,7 +126,7 @@ public class DecimalTypeTests
         void Action() => type.CoerceInputLiteral(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

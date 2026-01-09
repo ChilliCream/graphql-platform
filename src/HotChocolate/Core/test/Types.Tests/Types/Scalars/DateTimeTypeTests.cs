@@ -66,7 +66,7 @@ public class DateTimeTypeTests
 
         // assert
         Assert.Equal(
-            "DateTime cannot parse the given literal of type `StringValueNode`.",
+            "DateTime cannot coerce the given literal of type `StringValue` to a runtime value.",
             Assert.Throws<LeafCoercionException>(Action).Message);
     }
 

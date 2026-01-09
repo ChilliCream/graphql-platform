@@ -1,5 +1,7 @@
+using System.Buffers;
 using System.Text.Json;
-using HotChocolate.Transport.Formatters;
+using HotChocolate.Text.Json;
+using static HotChocolate.Execution.JsonValueFormatter;
 
 namespace HotChocolate.AspNetCore.Formatters;
 
@@ -9,29 +11,35 @@ namespace HotChocolate.AspNetCore.Formatters;
 public class DefaultWebSocketPayloadFormatter(WebSocketPayloadFormatterOptions options = default)
     : IWebSocketPayloadFormatter
 {
-    private readonly JsonResultFormatter _jsonFormatter = new(options.Json);
+    private readonly JsonWriterOptions _writerOptions = options.Json.CreateWriterOptions();
+    private readonly JsonSerializerOptions _serializerOptions = options.Json.CreateSerializerOptions();
+    private readonly JsonNullIgnoreCondition _nullIgnoreCondition = options.Json.NullIgnoreCondition;
 
     /// <inheritdoc />
-    public void Format(OperationResult result, Utf8JsonWriter jsonWriter)
+    public void Format(OperationResult result, IBufferWriter<byte> bufferWriter)
     {
-        _jsonFormatter.Format(result, jsonWriter);
+        var writer = new JsonWriter(bufferWriter, _writerOptions);
+        WriteValue(writer, result, _serializerOptions, _nullIgnoreCondition);
     }
 
     /// <inheritdoc />
-    public void Format(IError error, Utf8JsonWriter jsonWriter)
+    public void Format(IError error, IBufferWriter<byte> bufferWriter)
     {
-        _jsonFormatter.FormatError(error, jsonWriter);
+        var writer = new JsonWriter(bufferWriter, _writerOptions);
+        WriteError(writer, error, _serializerOptions, _nullIgnoreCondition);
     }
 
     /// <inheritdoc />
-    public void Format(IReadOnlyList<IError> errors, Utf8JsonWriter jsonWriter)
+    public void Format(IReadOnlyList<IError> errors, IBufferWriter<byte> bufferWriter)
     {
-        _jsonFormatter.FormatErrors(errors, jsonWriter);
+        var writer = new JsonWriter(bufferWriter, _writerOptions);
+        WriteErrors(writer, errors, _serializerOptions, _nullIgnoreCondition);
     }
 
     /// <inheritdoc />
-    public void Format(IReadOnlyDictionary<string, object?> extensions, Utf8JsonWriter jsonWriter)
+    public void Format(IReadOnlyDictionary<string, object?> extensions, IBufferWriter<byte> bufferWriter)
     {
-        _jsonFormatter.FormatDictionary(extensions, jsonWriter);
+        var writer = new JsonWriter(bufferWriter, _writerOptions);
+        WriteDictionary(writer, extensions, _serializerOptions, _nullIgnoreCondition);
     }
 }

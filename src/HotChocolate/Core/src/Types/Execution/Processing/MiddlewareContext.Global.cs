@@ -260,20 +260,6 @@ internal partial class MiddlewareContext : IMiddlewareContext
             => Context.Result.SetResultState(key, state, value);
 
         public void SetExtension<TValue>(string key, TValue value)
-            => Context.Result.SetExtension(key, new NeedsFormatting<TValue>(value));
-
-        public void SetExtension<TValue>(string key, UpdateState<TValue> value)
-            => Context.Result.SetExtension<NeedsFormatting<TValue>?>(
-                key,
-                (k, c) => NeedsFormatting.Create(value(k, c is null ? default! : c.Value)));
-
-        public void SetExtension<TValue, TState>(
-            string key,
-            TState state,
-            UpdateState<TValue, TState> value)
-            => Context.Result.SetExtension<NeedsFormatting<TValue>?, TState>(
-                key,
-                state,
-                (k, c, s) => NeedsFormatting.Create(value(k, c is null ? default! : c.Value, s)));
+            => Context.Result.SetExtension(key, NeedsFormatting.Create(value));
     }
 }

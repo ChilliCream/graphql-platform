@@ -10,13 +10,12 @@ public sealed partial class ResultDocument : IRawJsonFormatter
     public void WriteTo(OperationResult result, IBufferWriter<byte> writer, JsonWriterOptions options)
     {
         options = options with { SkipValidation = true };
-        using var jsonWriter = new Utf8JsonWriter(writer, options);
+        var jsonWriter = new JsonWriter(writer, options);
         var formatter = new RawJsonFormatter(this, jsonWriter);
         formatter.Write(result);
-        jsonWriter.Flush();
     }
 
-    internal ref struct RawJsonFormatter(ResultDocument document, Utf8JsonWriter writer)
+    internal ref struct RawJsonFormatter(ResultDocument document, JsonWriter writer)
     {
         public void Write(OperationResult result)
         {
@@ -99,10 +98,22 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                     writer.WriteBooleanValue(false);
                     break;
 
-                default:
-                    var rawValue = document.ReadRawValue(row);
-                    writer.WriteRawValue(rawValue, skipInputValidation: true);
+                case ElementTokenType.String:
+                {
+                    var value = document.ReadRawValue(row);
+                    writer.WriteStringValue(value, skipEscaping: true);
                     break;
+                }
+
+                case ElementTokenType.Number:
+                {
+                    var value = document.ReadRawValue(row);
+                    writer.WriteNumberValue(value);
+                    break;
+                }
+
+                default:
+                    throw new NotSupportedException();
             }
         }
 

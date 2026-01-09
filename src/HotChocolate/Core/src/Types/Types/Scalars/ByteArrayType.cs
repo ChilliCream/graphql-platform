@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Buffers.Text;
 using System.Runtime.InteropServices;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Features;
@@ -59,25 +60,7 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
     }
 
     protected override byte[] OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
-    {
-        byte[]? rented = null;
-        var valueSpan = JsonMarshal.GetRawUtf8Value(inputValue);
-        var length = Base64.GetMaxDecodedFromUtf8Length(valueSpan.Length);
-        var buffer = length <= 256 ? stackalloc byte[length] : rented = ArrayPool<byte>.Shared.Rent(length);
-
-        try
-        {
-            Base64.DecodeFromUtf8(valueSpan, buffer, out _, out var bytesWritten);
-            return buffer[..bytesWritten].ToArray();
-        }
-        finally
-        {
-            if (rented is not null)
-            {
-                ArrayPool<byte>.Shared.Return(rented);
-            }
-        }
-    }
+        => inputValue.GetBytesFromBase64();
 
     protected override void OnCoerceOutputValue(byte[] runtimeValue, ResultElement resultValue)
     {

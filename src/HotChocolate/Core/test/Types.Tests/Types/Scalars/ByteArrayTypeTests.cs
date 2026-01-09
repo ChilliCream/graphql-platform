@@ -97,7 +97,7 @@ public class ByteArrayTypeTests
         void Action() => type.CoerceInputLiteral(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

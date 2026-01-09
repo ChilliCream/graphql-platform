@@ -57,7 +57,7 @@ public abstract class IntegerTypeBase<TRuntimeType>
 
     /// <inheritdoc />
     public override bool IsValueCompatible(IValueNode valueLiteral)
-        => valueLiteral.Kind is SyntaxKind.IntValue;
+        => valueLiteral is { Kind: SyntaxKind.IntValue };
 
     /// <inheritdoc />
     public override bool IsValueCompatible(JsonElement inputValue)
@@ -186,7 +186,7 @@ public abstract class IntegerTypeBase<TRuntimeType>
     /// </exception>
     private void AssertFormat(TRuntimeType runtimeValue)
     {
-        if (runtimeValue.CompareTo(MinValue) == -1 || runtimeValue.CompareTo(MaxValue) == 1)
+        if (runtimeValue.CompareTo(MinValue) < 0 || runtimeValue.CompareTo(MaxValue) > 0)
         {
             throw FormatError(runtimeValue);
         }

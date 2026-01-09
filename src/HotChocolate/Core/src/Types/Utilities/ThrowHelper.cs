@@ -600,8 +600,10 @@ internal static class ThrowHelper
 
     public static LeafCoercionException Scalar_Cannot_CoerceInputLiteral(
         ITypeDefinition scalarType,
-        IValueNode valueLiteral)
+        IValueNode? valueLiteral)
     {
+        valueLiteral ??= NullValueNode.Default;
+
         return new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(

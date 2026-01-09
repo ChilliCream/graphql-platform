@@ -69,103 +69,12 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         };
     }
 
-    /// <summary>
-    /// Formats a query result as JSON string.
-    /// </summary>
-    /// <param name="result">
-    /// The query result.
-    /// </param>
-    /// <param name="writer">
-    /// The JSON writer.
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="result"/> is <c>null</c>.
-    /// <paramref name="writer"/> is <c>null</c>.
-    /// </exception>
     public void Format(OperationResult result, IBufferWriter<byte> writer)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(writer);
 
         FormatInternal(result, writer);
-    }
-
-    /// <summary>
-    /// Formats a query result as JSON string.
-    /// </summary>
-    /// <param name="result">
-    /// The query result.
-    /// </param>
-    /// <param name="writer">
-    /// The JSON writer.
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="result"/> is <c>null</c>.
-    /// <paramref name="writer"/> is <c>null</c>.
-    /// </exception>
-    public void Format(OperationResult result, Utf8JsonWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(writer);
-
-        WriteResult(writer, result);
-    }
-
-    /// <summary>
-    /// Formats a <see cref="IError"/> as JSON string.
-    /// </summary>
-    /// <param name="error">
-    /// The error object.
-    /// </param>
-    /// <param name="writer">
-    /// The JSON writer.
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="error"/> is <c>null</c>.
-    /// <paramref name="writer"/> is <c>null</c>.
-    /// </exception>
-    public void FormatError(IError error, Utf8JsonWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(error);
-        ArgumentNullException.ThrowIfNull(writer);
-
-        WriteError(writer, error, _serializerOptions, _nullIgnoreCondition);
-    }
-
-    /// <summary>
-    /// Formats a list of <see cref="IError"/>s as JSON array string.
-    /// </summary>
-    /// <param name="errors">
-    /// The list of error objects.
-    /// </param>
-    /// <param name="writer">
-    /// The JSON writer.
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="errors"/> is <c>null</c>.
-    /// <paramref name="writer"/> is <c>null</c>.
-    /// </exception>
-    public void FormatErrors(IReadOnlyList<IError> errors, Utf8JsonWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(errors);
-        ArgumentNullException.ThrowIfNull(writer);
-
-        writer.WriteStartArray();
-
-        for (var i = 0; i < errors.Count; i++)
-        {
-            WriteError(writer, errors[i], _serializerOptions, _nullIgnoreCondition);
-        }
-
-        writer.WriteEndArray();
-    }
-
-    public void FormatDictionary(IReadOnlyDictionary<string, object?> dictionary, Utf8JsonWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(dictionary);
-        ArgumentNullException.ThrowIfNull(writer);
-
-        WriteDictionary(writer, dictionary, _serializerOptions, _nullIgnoreCondition);
     }
 
     public ValueTask FormatAsync(
@@ -280,9 +189,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         writer.WriteEndObject();
     }
 
-    private static void WriteHasNext(
-        JsonWriter writer,
-        OperationResult result)
+    private static void WriteHasNext(JsonWriter writer, OperationResult result)
     {
         if (result.HasNext.HasValue)
         {
@@ -291,9 +198,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         }
     }
 
-    private void WriteData(
-        JsonWriter writer,
-        OperationResult result)
+    private void WriteData(JsonWriter writer, OperationResult result)
     {
         if (!result.IsDataSet)
         {
@@ -308,7 +213,6 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         }
 
         writer.WritePropertyName(Data);
-
         WriteValue(writer, result.Data, _serializerOptions, _nullIgnoreCondition);
     }
 
@@ -317,7 +221,6 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         if (errors is { Count: > 0 })
         {
             writer.WritePropertyName(Errors);
-
             writer.WriteStartArray();
 
             for (var i = 0; i < errors.Count; i++)
