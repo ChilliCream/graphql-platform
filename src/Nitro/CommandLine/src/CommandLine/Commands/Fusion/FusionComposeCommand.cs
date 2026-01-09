@@ -135,6 +135,8 @@ internal sealed class FusionComposeCommand : Command
 
         if (sourceSchemaFiles.Count == 0)
         {
+            // TODO: In this case there can only ever be one source schema file, since
+            //       the name schema-settings.json can only be used once in the directory.
             sourceSchemaFiles.AddRange(
                 new DirectoryInfo(workingDirectory)
                     .GetFiles("*.graphql*", SearchOption.AllDirectories)
@@ -682,7 +684,7 @@ internal sealed class FusionComposeCommand : Command
         }
     }
 
-    private static async Task<Dictionary<string, (SourceSchemaText, JsonDocument)>> ReadSourceSchemasAsync(
+    internal static async Task<Dictionary<string, (SourceSchemaText, JsonDocument)>> ReadSourceSchemasAsync(
         List<string> sourceSchemaFiles,
         CancellationToken cancellationToken)
     {

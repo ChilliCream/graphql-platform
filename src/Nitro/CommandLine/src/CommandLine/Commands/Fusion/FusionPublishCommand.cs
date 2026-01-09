@@ -290,6 +290,8 @@ internal sealed class FusionPublishCommand : Command
             {
                 if (sourceSchemaFiles.Count == 0)
                 {
+                    // TODO: In this case there can only ever be one source schema file, since
+                    //       the name schema-settings.json can only be used once in the directory.
                     sourceSchemaFiles.AddRange(
                         new DirectoryInfo(workingDirectory)
                             .GetFiles("*.graphql*", SearchOption.AllDirectories)
