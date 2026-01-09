@@ -111,4 +111,46 @@ public static partial class CoreFusionGatewayBuilderExtensions
 
         return builder;
     }
+
+    /// <summary>
+    /// Adds a warmup task that will be executed on each newly created request executor.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IFusionGatewayBuilder"/>.
+    /// </param>
+    /// <param name="factory">
+    /// The factory to create the warmup task.
+    /// </param>
+    /// <param name="skipIf">
+    /// If <c>true</c>, the warmup task will not be registered.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IFusionGatewayBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="factory"/> is <c>null</c>.
+    /// </exception>
+    public static IFusionGatewayBuilder AddWarmupTask<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IFusionGatewayBuilder builder,
+        Func<IServiceProvider, T> factory,
+        bool skipIf = false)
+        where T : class, IRequestExecutorWarmupTask
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
+
+        if (skipIf)
+        {
+            return builder;
+        }
+
+        builder.ConfigureSchemaServices(
+            (_, sc) => sc.AddSingleton<IRequestExecutorWarmupTask, T>(factory));
+
+        return builder;
+    }
 }

@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Xunit2.Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <PropertyGroup>
+    <RootNamespace>HotChocolate.Adapters.Mcp.Packaging</RootNamespace>
+    <PackageId>HotChocolate.Adapters.Mcp.Packaging.Tests</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Adapters.Mcp.Core\HotChocolate.Adapters.Mcp.Core.csproj" />
+    <ProjectReference Include="..\..\src\Adapters.Mcp.Packaging\HotChocolate.Adapters.Mcp.Packaging.csproj" />
+  </ItemGroup>
+
+</Project>

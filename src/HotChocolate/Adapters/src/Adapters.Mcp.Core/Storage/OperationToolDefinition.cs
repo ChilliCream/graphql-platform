@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using CaseConverter;
+using HotChocolate.Adapters.Mcp.Serialization;
 using HotChocolate.Language;
 using static HotChocolate.Adapters.Mcp.Properties.McpAdapterResources;
 
@@ -115,6 +116,42 @@ public sealed partial class OperationToolDefinition
     }
 
     public string? OpenAiComponentOutputTemplate { get; private set; }
+
+    public static OperationToolDefinition From(
+        DocumentNode document,
+        string name,
+        McpToolSettingsDto? settings,
+        string? openAiComponentHtml)
+    {
+        return new OperationToolDefinition(document)
+        {
+            Name = name,
+            Title = settings?.Title,
+            Icons =
+                settings?.Icons?.Select(
+                    i => new IconDefinition(i.Source)
+                    {
+                        MimeType = i.MimeType,
+                        Sizes = i.Sizes,
+                        Theme = i.Theme
+                    }).ToImmutableArray(),
+            DestructiveHint = settings?.Annotations?.DestructiveHint,
+            IdempotentHint = settings?.Annotations?.IdempotentHint,
+            OpenWorldHint = settings?.Annotations?.OpenWorldHint,
+            OpenAiComponent = openAiComponentHtml is null ? null : new OpenAiComponent(openAiComponentHtml)
+            {
+                Csp = settings?.OpenAiComponent?.Csp is { } csp
+                    ? new OpenAiComponentCsp(csp.ConnectDomains, csp.ResourceDomains)
+                    : null,
+                Description = settings?.OpenAiComponent?.Description,
+                Domain = settings?.OpenAiComponent?.Domain,
+                PrefersBorder = settings?.OpenAiComponent?.PrefersBorder,
+                ToolInvokingStatusText = settings?.OpenAiComponent?.ToolInvokingStatusText,
+                ToolInvokedStatusText = settings?.OpenAiComponent?.ToolInvokedStatusText,
+                AllowToolCalls = settings?.OpenAiComponent?.AllowToolCalls ?? false
+            }
+        };
+    }
 
     /// <summary>Regex that validates tool names.</summary>
     [GeneratedRegex(@"^[A-Za-z0-9_.-]{1,128}\z")]
