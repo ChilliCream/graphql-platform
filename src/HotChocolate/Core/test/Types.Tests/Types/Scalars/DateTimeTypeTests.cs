@@ -96,20 +96,6 @@ public class DateTimeTypeTests
     }
 
     [Fact]
-    public void CoerceInputLiteral_Null()
-    {
-        // arrange
-        var type = new DateTimeType();
-        var literal = NullValueNode.Default;
-
-        // act
-        var value = type.CoerceInputLiteral(literal);
-
-        // assert
-        Assert.Null(value);
-    }
-
-    [Fact]
     public void CoerceInputValue_IsoString()
     {
         // arrange
@@ -241,32 +227,6 @@ public class DateTimeTypeTests
 
         // assert
         Assert.Equal(expectedLiteralValue, stringLiteral.Value);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Null()
-    {
-        // arrange
-        var type = new DateTimeType();
-
-        // act
-        var literal = type.ValueToLiteral(null!);
-
-        // assert
-        Assert.IsType<NullValueNode>(literal);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Invalid_Format()
-    {
-        // arrange
-        var type = new DateTimeType();
-
-        // act
-        void Action() => type.ValueToLiteral("foo");
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

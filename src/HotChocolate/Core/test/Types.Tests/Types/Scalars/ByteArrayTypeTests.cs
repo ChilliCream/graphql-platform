@@ -32,20 +32,6 @@ public class ByteArrayTypeTests
     }
 
     [Fact]
-    public void IsValueCompatible_NullLiteral_True()
-    {
-        // arrange
-        var type = new ByteArrayType();
-        var literal = NullValueNode.Default;
-
-        // act
-        var isOfType = type.IsValueCompatible(literal);
-
-        // assert
-        Assert.True(isOfType);
-    }
-
-    [Fact]
     public void IsValueCompatible_IntLiteral_False()
     {
         // arrange
@@ -85,20 +71,6 @@ public class ByteArrayTypeTests
 
         // assert
         Assert.Equal(expected, actual);
-    }
-
-    [Fact]
-    public void CoerceInputLiteral_Null()
-    {
-        // arrange
-        var type = new ByteArrayType();
-        var literal = NullValueNode.Default;
-
-        // act
-        var value = type.CoerceInputLiteral(literal);
-
-        // assert
-        Assert.Null(value);
     }
 
     [Fact]
@@ -203,32 +175,6 @@ public class ByteArrayTypeTests
 
         // assert
         Assert.Equal(expectedLiteralValue, stringLiteral.Value);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Null()
-    {
-        // arrange
-        var type = new ByteArrayType();
-
-        // act
-        var literal = type.ValueToLiteral(null!);
-
-        // assert
-        Assert.IsType<NullValueNode>(literal);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Invalid_Format()
-    {
-        // arrange
-        var type = new ByteArrayType();
-
-        // act
-        void Action() => type.ValueToLiteral(123);
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

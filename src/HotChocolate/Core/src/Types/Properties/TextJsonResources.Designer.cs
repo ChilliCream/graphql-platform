@@ -9,21 +9,21 @@
 
 namespace HotChocolate.Properties {
     using System;
-    
-    
+
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TextJsonResources {
-        
+
         private static System.Resources.ResourceManager resourceMan;
-        
+
         private static System.Globalization.CultureInfo resourceCulture;
-        
+
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal TextJsonResources() {
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
@@ -34,7 +34,7 @@ namespace HotChocolate.Properties {
                 return resourceMan;
             }
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,43 +44,43 @@ namespace HotChocolate.Properties {
                 resourceCulture = value;
             }
         }
-        
+
         internal static string ResultElement_GetBoolean_JsonElementHasWrongType {
             get {
                 return ResourceManager.GetString("ResultElement_GetBoolean_JsonElementHasWrongType", resourceCulture);
             }
         }
-        
+
         internal static string Rethrowable {
             get {
                 return ResourceManager.GetString("Rethrowable", resourceCulture);
             }
         }
-        
-        internal static string ResultElement_SetObjectValue_NotObjectType {
+
+        internal static string ResultElement_SetObjectValue_NotCompositeType {
             get {
-                return ResourceManager.GetString("ResultElement_SetObjectValue_NotObjectType", resourceCulture);
+                return ResourceManager.GetString("ResultElement_SetObjectValue_NotCompositeType", resourceCulture);
             }
         }
-        
+
         internal static string JsonReaderHelper_TranscodeHelper_CannotTranscodeInvalidUtf8 {
             get {
                 return ResourceManager.GetString("JsonReaderHelper_TranscodeHelper_CannotTranscodeInvalidUtf8", resourceCulture);
             }
         }
-        
+
         internal static string ThrowHelper_ReadInvalidUTF16 {
             get {
                 return ResourceManager.GetString("ThrowHelper_ReadInvalidUTF16", resourceCulture);
             }
         }
-        
+
         internal static string ThrowHelper_ReadIncompleteUTF16 {
             get {
                 return ResourceManager.GetString("ThrowHelper_ReadIncompleteUTF16", resourceCulture);
             }
         }
-        
+
         internal static string ResultElement_SetArrayValue_NotListType {
             get {
                 return ResourceManager.GetString("ResultElement_SetArrayValue_NotListType", resourceCulture);

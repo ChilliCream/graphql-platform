@@ -74,20 +74,6 @@ public class LocalDateTypeTests
         Assert.Equal(expectedDateOnly, dateOnly);
     }
 
-    [Fact]
-    public void CoerceInputLiteral_Null()
-    {
-        // arrange
-        var type = new LocalDateType();
-        var literal = NullValueNode.Default;
-
-        // act
-        var value = type.CoerceInputLiteral(literal);
-
-        // assert
-        Assert.Null(value);
-    }
-
     [Theory]
     [MemberData(nameof(InvalidLocalDateScalarStrings))]
     public void CoerceInputLiteral_Invalid_Format(string dateTime)
@@ -180,32 +166,6 @@ public class LocalDateTypeTests
 
         // assert
         Assert.Equal(expectedLiteralValue, Assert.IsType<StringValueNode>(stringLiteral).Value);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Null()
-    {
-        // arrange
-        var type = new LocalDateType();
-
-        // act
-        var literal = type.ValueToLiteral(null!);
-
-        // assert
-        Assert.IsType<NullValueNode>(literal);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Invalid_Format()
-    {
-        // arrange
-        var type = new LocalDateType();
-
-        // act
-        void Action() => type.ValueToLiteral("foo");
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

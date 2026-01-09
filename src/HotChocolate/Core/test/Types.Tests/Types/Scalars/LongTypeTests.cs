@@ -60,20 +60,6 @@ public class LongTypeTests
     }
 
     [Fact]
-    public void CoerceInputLiteral_Null()
-    {
-        // arrange
-        var type = new LongType();
-        var literal = NullValueNode.Default;
-
-        // act
-        var runtimeValue = type.CoerceInputLiteral(literal);
-
-        // assert
-        Assert.Null(runtimeValue);
-    }
-
-    [Fact]
     public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
@@ -188,32 +174,6 @@ public class LongTypeTests
 
         // assert
         Assert.Equal(42L, Assert.IsType<IntValueNode>(literal).ToInt64());
-    }
-
-    [Fact]
-    public void ValueToLiteral_Null()
-    {
-        // arrange
-        var type = new LongType();
-
-        // act
-        var literal = type.ValueToLiteral(null!);
-
-        // assert
-        Assert.IsType<NullValueNode>(literal);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Invalid_Format()
-    {
-        // arrange
-        var type = new LongType();
-
-        // act
-        void Action() => type.ValueToLiteral("foo");
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

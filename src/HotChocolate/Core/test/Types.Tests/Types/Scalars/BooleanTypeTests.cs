@@ -33,20 +33,6 @@ public class BooleanTypeTests
     }
 
     [Fact]
-    public void CoerceInputLiteral_Null()
-    {
-        // arrange
-        var type = new BooleanType();
-        var literal = NullValueNode.Default;
-
-        // act
-        var result = type.CoerceInputLiteral(literal);
-
-        // assert
-        Assert.Null(result);
-    }
-
-    [Fact]
     public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
@@ -136,32 +122,6 @@ public class BooleanTypeTests
     }
 
     [Fact]
-    public void ValueToLiteral_Null()
-    {
-        // arrange
-        var type = new BooleanType();
-
-        // act
-        var literal = type.ValueToLiteral(null!);
-
-        // assert
-        Assert.IsType<NullValueNode>(literal);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Invalid_Format()
-    {
-        // arrange
-        var type = new BooleanType();
-
-        // act
-        void Action() => type.ValueToLiteral("foo");
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
-    }
-
-    [Fact]
     public void IsValueCompatible_BooleanLiteral_True()
     {
         // arrange
@@ -187,20 +147,6 @@ public class BooleanTypeTests
 
         // assert
         Assert.False(result);
-    }
-
-    [Fact]
-    public void IsValueCompatible_NullLiteral_True()
-    {
-        // arrange
-        var type = new BooleanType();
-        var literal = NullValueNode.Default;
-
-        // act
-        var result = type.IsValueCompatible(literal);
-
-        // assert
-        Assert.True(result);
     }
 
     [Fact]

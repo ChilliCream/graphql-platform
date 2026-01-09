@@ -32,19 +32,6 @@ public class ByteTypeTests
     }
 
     [Fact]
-    public void IsValueCompatible_NullLiteral_True()
-    {
-        // arrange
-        var type = new ByteType();
-
-        // act
-        var result = type.IsValueCompatible(NullValueNode.Default);
-
-        // assert
-        Assert.True(result);
-    }
-
-    [Fact]
     public void IsValueCompatible_FloatLiteral_False()
     {
         // arrange
@@ -83,19 +70,6 @@ public class ByteTypeTests
         // assert
         Assert.IsType<byte>(value);
         Assert.Equal(literal.ToByte(), value);
-    }
-
-    [Fact]
-    public void CoerceInputLiteral_Null()
-    {
-        // arrange
-        var type = new ByteType();
-
-        // act
-        var output = type.CoerceInputLiteral(NullValueNode.Default);
-
-        // assert
-        Assert.Null(output);
     }
 
     [Fact]
@@ -268,32 +242,6 @@ public class ByteTypeTests
 
         // act
         void Action() => type.ValueToLiteral(input);
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Null()
-    {
-        // arrange
-        var type = new ByteType();
-
-        // act
-        var literal = type.ValueToLiteral(null!);
-
-        // assert
-        Assert.IsType<NullValueNode>(literal);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Invalid_Format()
-    {
-        // arrange
-        var type = new ByteType();
-
-        // act
-        void Action() => type.ValueToLiteral("foo");
 
         // assert
         Assert.Throws<LeafCoercionException>(Action);

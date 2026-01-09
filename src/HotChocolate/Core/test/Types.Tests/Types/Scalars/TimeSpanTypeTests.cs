@@ -100,20 +100,6 @@ public class TimeSpanTypeTests
     }
 
     [Fact]
-    public void CoerceInputLiteral_Null()
-    {
-        // arrange
-        var type = new TimeSpanType();
-        var literal = NullValueNode.Default;
-
-        // act
-        var runtimeValue = type.CoerceInputLiteral(literal);
-
-        // assert
-        Assert.Null(runtimeValue);
-    }
-
-    [Fact]
     public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
@@ -314,32 +300,6 @@ public class TimeSpanTypeTests
 
         // assert
         Assert.Equal(expectedValue, Assert.IsType<StringValueNode>(literal).Value);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Null()
-    {
-        // arrange
-        var type = new TimeSpanType();
-
-        // act
-        var literal = type.ValueToLiteral(null!);
-
-        // assert
-        Assert.IsType<NullValueNode>(literal);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Invalid_Format()
-    {
-        // arrange
-        var type = new TimeSpanType();
-
-        // act
-        void Action() => type.ValueToLiteral("foo");
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

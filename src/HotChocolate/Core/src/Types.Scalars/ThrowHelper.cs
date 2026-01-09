@@ -122,7 +122,7 @@ internal static class ThrowHelper
                 .Build(),
             type);
     }
-    
+
     public static LeafCoercionException RgbType_InvalidFormat(IType type)
     {
         return new LeafCoercionException(

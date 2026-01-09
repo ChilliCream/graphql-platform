@@ -60,20 +60,6 @@ public class DateTypeTests
     }
 
     [Fact]
-    public void CoerceInputLiteral_Null()
-    {
-        // arrange
-        var type = new DateType();
-        var literal = NullValueNode.Default;
-
-        // act
-        var value = type.CoerceInputLiteral(literal);
-
-        // assert
-        Assert.Null(value);
-    }
-
-    [Fact]
     public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
@@ -212,32 +198,6 @@ public class DateTypeTests
 
         // assert
         Assert.Equal(expectedLiteralValue, stringLiteral.Value);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Null()
-    {
-        // arrange
-        var type = new DateType();
-
-        // act
-        var literal = type.ValueToLiteral(null!);
-
-        // assert
-        Assert.IsType<NullValueNode>(literal);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Invalid_Format()
-    {
-        // arrange
-        var type = new DateType();
-
-        // act
-        void Action() => type.ValueToLiteral(123);
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

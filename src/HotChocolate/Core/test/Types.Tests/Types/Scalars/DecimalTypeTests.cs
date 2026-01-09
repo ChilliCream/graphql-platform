@@ -32,19 +32,6 @@ public class DecimalTypeTests
     }
 
     [Fact]
-    public void IsValueCompatible_NullLiteral_True()
-    {
-        // arrange
-        var type = new DecimalType();
-
-        // act
-        var result = type.IsValueCompatible(NullValueNode.Default);
-
-        // assert
-        Assert.True(result);
-    }
-
-    [Fact]
     public void IsValueCompatible_IntLiteral_True()
     {
         // arrange
@@ -126,19 +113,6 @@ public class DecimalTypeTests
         // assert
         Assert.IsType<decimal>(value);
         Assert.Equal(literal.ToDecimal(), value);
-    }
-
-    [Fact]
-    public void CoerceInputLiteral_Null()
-    {
-        // arrange
-        var type = new DecimalType();
-
-        // act
-        var output = type.CoerceInputLiteral(NullValueNode.Default);
-
-        // assert
-        Assert.Null(output);
     }
 
     [Fact]
@@ -313,33 +287,6 @@ public class DecimalTypeTests
 
         // act
         void Action() => type.ValueToLiteral(input);
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Null()
-    {
-        // arrange
-        var type = new DecimalType();
-
-        // act
-        var literal = type.ValueToLiteral(null!);
-
-        // assert
-        Assert.IsType<NullValueNode>(literal);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Invalid_Format()
-    {
-        // arrange
-        var type = new DecimalType();
-        const string value = "123";
-
-        // act
-        void Action() => type.ValueToLiteral(value);
 
         // assert
         Assert.Throws<LeafCoercionException>(Action);

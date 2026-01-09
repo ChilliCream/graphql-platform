@@ -1,7 +1,7 @@
-using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Types;
 
@@ -340,7 +340,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteRawValueTo(IBufferWriter<byte> writer, DbRow row, int indentLevel, bool indented)
+    private void WriteRawValueTo(Utf8JsonWriter writer, DbRow row)
     {
         if ((row.Flags & ElementFlags.SourceResult) == ElementFlags.SourceResult)
         {
@@ -350,7 +350,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             {
                 // Reconstruct the source cursor from stored Location (Chunk) and SizeOrLength (Row)
                 var sourceCursor = SourceResultDocument.Cursor.From(row.Location, row.SizeOrLength);
-                var formatter = new SourceResultDocument.RawJsonFormatter(document, writer, indentLevel, indented);
+                var formatter = new SourceResultDocument.RawJsonFormatter(document, writer);
                 formatter.WriteValue(sourceCursor);
                 return;
             }

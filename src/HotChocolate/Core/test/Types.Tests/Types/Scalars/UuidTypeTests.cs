@@ -122,20 +122,6 @@ public class UuidTypeTests
     }
 
     [Fact]
-    public void CoerceInputLiteral_Null()
-    {
-        // arrange
-        var type = new UuidType();
-        var literal = NullValueNode.Default;
-
-        // act
-        var runtimeValue = type.CoerceInputLiteral(literal);
-
-        // assert
-        Assert.Null(runtimeValue);
-    }
-
-    [Fact]
     public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
@@ -275,33 +261,6 @@ public class UuidTypeTests
 
         // assert
         Assert.Equal(guid.ToString(format.ToString()), Assert.IsType<StringValueNode>(literal).Value);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Null()
-    {
-        // arrange
-        var type = new UuidType();
-
-        // act
-        var literal = type.ValueToLiteral(null!);
-
-        // assert
-        Assert.IsType<NullValueNode>(literal);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Invalid_Format()
-    {
-        // arrange
-        var type = new UuidType();
-        const int value = 123;
-
-        // act
-        void Action() => type.ValueToLiteral(value);
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

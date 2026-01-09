@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Text.Json;
 
 namespace HotChocolate.Execution;
 
@@ -16,10 +17,13 @@ public interface IRawJsonFormatter
     /// The result that shall be serialized.
     /// </param>
     /// <param name="writer">
-    /// The pipe writer of the transport layer.
+    /// The buffer writer of the transport layer.
     /// </param>
-    /// <param name="indented">
-    /// Specifies if the JSON shall be indented.
+    /// <param name="options">
+    /// The JSON writer options.
     /// </param>
-    void WriteTo(OperationResult result, IBufferWriter<byte> writer, bool indented = false);
+    void WriteTo(
+        OperationResult result,
+        IBufferWriter<byte> writer,
+        JsonWriterOptions options);
 }

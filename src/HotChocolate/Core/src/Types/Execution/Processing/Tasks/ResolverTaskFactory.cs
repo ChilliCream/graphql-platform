@@ -126,7 +126,7 @@ internal static class ResolverTaskFactory
         object parent)
     {
         Debug.Assert(selectionSet.Type == selectionSetType);
-        Debug.Assert(resultValue.Type?.NamedType() == selectionSetType);
+        Debug.Assert(resultValue.Type?.NamedType()?.IsAssignableFrom(selectionSetType) ?? false);
 
         var operationContext = context.OperationContext;
 
@@ -151,7 +151,7 @@ internal static class ResolverTaskFactory
                     operationContext.CreateResolverTask(
                         parent,
                         selection,
-                        resultValue,
+                        field.Value,
                         context.ResolverContext.ScopedContextData));
             }
         }

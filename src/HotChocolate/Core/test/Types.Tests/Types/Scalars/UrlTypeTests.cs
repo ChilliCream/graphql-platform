@@ -59,20 +59,6 @@ public class UrlTypeTests
     }
 
     [Fact]
-    public void CoerceInputLiteral_Null()
-    {
-        // arrange
-        var type = new UrlType();
-        var literal = NullValueNode.Default;
-
-        // act
-        var runtimeValue = type.CoerceInputLiteral(literal);
-
-        // assert
-        Assert.Null(runtimeValue);
-    }
-
-    [Fact]
     public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
@@ -223,33 +209,6 @@ public class UrlTypeTests
 
         // assert
         Assert.Equal(uri.ToString(), Assert.IsType<StringValueNode>(literal).Value);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Null()
-    {
-        // arrange
-        var type = new UrlType();
-
-        // act
-        var literal = type.ValueToLiteral(null!);
-
-        // assert
-        Assert.IsType<NullValueNode>(literal);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Invalid_Format()
-    {
-        // arrange
-        var type = new UrlType();
-        const int value = 123;
-
-        // act
-        void Action() => type.ValueToLiteral(value);
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

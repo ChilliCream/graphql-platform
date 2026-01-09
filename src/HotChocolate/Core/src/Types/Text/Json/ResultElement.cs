@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Buffers.Text;
 using System.Diagnostics;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
@@ -905,10 +906,10 @@ public readonly partial struct ResultElement
 
         ArgumentNullException.ThrowIfNull(selectionSet);
 
-        if (Type is { } type && !type.IsObjectType())
+        if (Type is { } type && !type.NamedType().IsCompositeType())
         {
             throw new InvalidOperationException(
-                string.Format(ResultElement_SetObjectValue_NotObjectType, type));
+                string.Format(ResultElement_SetObjectValue_NotCompositeType, type));
         }
 
         var obj = _parent.CreateObject(_cursor, selectionSet: selectionSet);
@@ -1149,9 +1150,16 @@ public readonly partial struct ResultElement
     /// </param>
     public void WriteTo(IBufferWriter<byte> writer, bool indented = false)
     {
-        var formatter = new ResultDocument.RawJsonFormatter(_parent, writer, indented);
+        var options = new JsonWriterOptions
+        {
+            Indented = indented,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+        using var jsonWriter = new Utf8JsonWriter(writer, options);
+        var formatter = new ResultDocument.RawJsonFormatter(_parent, jsonWriter);
         var row = _parent._metaDb.Get(_cursor);
         formatter.WriteValue(_cursor, row);
+        jsonWriter.Flush();
     }
 
     /// <inheritdoc />

@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
@@ -331,29 +332,25 @@ public sealed partial class ResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteRawValueTo(IBufferWriter<byte> writer, DbRow row, int indentation, bool indented)
+    private void WriteRawValueTo(Utf8JsonWriter writer, DbRow row)
     {
         switch (row.TokenType)
         {
             case ElementTokenType.Null:
-                WriteToBuffer(writer, JsonConstants.NullValue);
+                writer.WriteNullValue();
                 return;
 
             case ElementTokenType.True:
-                WriteToBuffer(writer, JsonConstants.TrueValue);
+                writer.WriteBooleanValue(true);
                 return;
 
             case ElementTokenType.False:
-                WriteToBuffer(writer, JsonConstants.FalseValue);
-                return;
-
-            case ElementTokenType.PropertyName:
-                WriteToBuffer(writer, _operation.GetSelectionById(row.OperationReferenceId).Utf8ResponseName);
+                writer.WriteBooleanValue(false);
                 return;
 
             case ElementTokenType.String:
             case ElementTokenType.Number:
-                WriteLocalDataTo(writer, row.Location, row.SizeOrLength);
+                writer.WriteRawValue(ReadRawValue(row), skipInputValidation: true);
                 return;
 
             // TODO : We need to handle any types.

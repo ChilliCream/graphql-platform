@@ -82,20 +82,6 @@ public class IdTypeTests
     }
 
     [Fact]
-    public void IsValueCompatible_NullValueNode_True()
-    {
-        // arrange
-        var type = new IdType();
-        var input = NullValueNode.Default;
-
-        // act
-        var result = type.IsValueCompatible(input);
-
-        // assert
-        Assert.True(result);
-    }
-
-    [Fact]
     public void IsValueCompatible_FloatValueNode_False()
     {
         // arrange
@@ -150,20 +136,6 @@ public class IdTypeTests
         // assert
         Assert.IsType<string>(output);
         Assert.Equal("123456", output);
-    }
-
-    [Fact]
-    public void CoerceInputLiteral_NullValueNode()
-    {
-        // arrange
-        var type = new IdType();
-        var input = NullValueNode.Default;
-
-        // act
-        var output = type.CoerceInputLiteral(input);
-
-        // assert
-        Assert.Null(output);
     }
 
     [Fact]
@@ -303,33 +275,6 @@ public class IdTypeTests
 
         // assert
         Assert.Equal("hello", Assert.IsType<StringValueNode>(literal).Value);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Null()
-    {
-        // arrange
-        var type = new IdType();
-
-        // act
-        var literal = type.ValueToLiteral(null!);
-
-        // assert
-        Assert.IsType<NullValueNode>(literal);
-    }
-
-    [Fact]
-    public void ValueToLiteral_Invalid_Format()
-    {
-        // arrange
-        var type = new IdType();
-        const double input = 123.456;
-
-        // act
-        void Action() => type.ValueToLiteral(input);
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

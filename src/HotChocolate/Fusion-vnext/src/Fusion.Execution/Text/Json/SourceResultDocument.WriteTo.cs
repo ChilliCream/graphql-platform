@@ -1,20 +1,12 @@
-using System.Buffers;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class SourceResultDocument
 {
-    internal ref struct RawJsonFormatter(
-        SourceResultDocument document,
-        IBufferWriter<byte> writer,
-        int indentLevel,
-        bool indented)
+    internal ref struct RawJsonFormatter(SourceResultDocument document, Utf8JsonWriter writer)
     {
-        private int _indentLevel = indentLevel;
-
         public void WriteValue(Cursor cursor)
         {
             var row = document._parsedData.Get(cursor);
@@ -40,15 +32,15 @@ public sealed partial class SourceResultDocument
 
                 case JsonTokenType.None:
                 case JsonTokenType.Null:
-                    writer.Write(JsonConstants.NullValue);
+                    writer.WriteNullValue();
                     break;
 
                 case JsonTokenType.True:
-                    writer.Write(JsonConstants.TrueValue);
+                    writer.WriteBooleanValue(true);
                     break;
 
                 case JsonTokenType.False:
-                    writer.Write(JsonConstants.FalseValue);
+                    writer.WriteBooleanValue(false);
                     break;
 
                 default:
@@ -64,41 +56,15 @@ public sealed partial class SourceResultDocument
             var current = start + 1;
             var end = start + startRow.NumberOfRows - 1;
 
-            WriteByte(JsonConstants.OpenBrace);
+            writer.WriteStartObject();
 
-            if (indented && current < end)
-            {
-                _indentLevel++;
-            }
-
-            var first = true;
             while (current < end)
             {
                 var row = document._parsedData.Get(current);
                 Debug.Assert(row.TokenType is JsonTokenType.PropertyName);
 
-                if (!first)
-                {
-                    WriteByte(JsonConstants.Comma);
-                }
-                first = false;
-
-                if (indented)
-                {
-                    WriteNewLine();
-                    WriteIndent();
-                }
-
-                // property name (quoted)
-                WriteByte(JsonConstants.Quote);
-                writer.Write(document.ReadRawValue(row));
-                WriteByte(JsonConstants.Quote);
-                WriteByte(JsonConstants.Colon);
-
-                if (indented)
-                {
-                    WriteByte(JsonConstants.Space);
-                }
+                // property name
+                writer.WritePropertyName(document.ReadRawValue(row));
 
                 // property value
                 current++;
@@ -116,14 +82,7 @@ public sealed partial class SourceResultDocument
                 }
             }
 
-            if (indented && !first)
-            {
-                _indentLevel--;
-                WriteNewLine();
-                WriteIndent();
-            }
-
-            WriteByte(JsonConstants.CloseBrace);
+            writer.WriteEndObject();
         }
 
         private void WriteArray(Cursor start, DbRow startRow)
@@ -133,28 +92,10 @@ public sealed partial class SourceResultDocument
             var current = start + 1;
             var end = start + startRow.NumberOfRows - 1;
 
-            WriteByte(JsonConstants.OpenBracket);
+            writer.WriteStartArray();
 
-            if (indented && current < end)
-            {
-                _indentLevel++;
-            }
-
-            var first = true;
             while (current < end)
             {
-                if (!first)
-                {
-                    WriteByte(JsonConstants.Comma);
-                }
-                first = false;
-
-                if (indented)
-                {
-                    WriteNewLine();
-                    WriteIndent();
-                }
-
                 var row = document._parsedData.Get(current);
                 WriteValue(current, row);
 
@@ -168,37 +109,7 @@ public sealed partial class SourceResultDocument
                 }
             }
 
-            if (indented && end > start + 1)
-            {
-                _indentLevel--;
-                WriteNewLine();
-                WriteIndent();
-            }
-
-            WriteByte(JsonConstants.CloseBracket);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly void WriteNewLine() => WriteByte(JsonConstants.NewLineLineFeed);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly void WriteIndent()
-        {
-            var indentSize = _indentLevel * 2;
-            if (indentSize > 0)
-            {
-                var span = writer.GetSpan(indentSize);
-                span[..indentSize].Fill(JsonConstants.Space);
-                writer.Advance(indentSize);
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly void WriteByte(byte value)
-        {
-            var span = writer.GetSpan(1);
-            span[0] = value;
-            writer.Advance(1);
+            writer.WriteEndArray();
         }
     }
 }

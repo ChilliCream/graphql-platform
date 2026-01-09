@@ -104,15 +104,20 @@ public sealed partial class SourceResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteRawValueTo(IBufferWriter<byte> writer, DbRow row)
+    private void WriteRawValueTo(Utf8JsonWriter writer, DbRow row)
     {
         if (row.TokenType is JsonTokenType.String)
         {
-            WriteRawValueTo(writer, row.Location - 1, row.SizeOrLength + 2);
+            writer.WriteRawValue(ReadRawValue(row.Location - 1, row.SizeOrLength + 2), skipInputValidation: true);
             return;
         }
 
-        WriteRawValueTo(writer, row.Location, row.SizeOrLength);
+        writer.WriteRawValue(ReadRawValue(row.Location, row.SizeOrLength), skipInputValidation: true);
+    }
+
+    internal void WriteRawValueTo(Utf8JsonWriter writer, int location, int size)
+    {
+        writer.WriteRawValue(ReadRawValue(location, size), skipInputValidation: true);
     }
 
     internal void WriteRawValueTo(IBufferWriter<byte> writer, int location, int size)

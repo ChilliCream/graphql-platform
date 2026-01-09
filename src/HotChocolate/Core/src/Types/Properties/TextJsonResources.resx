@@ -24,7 +24,7 @@
   <data name="Rethrowable" xml:space="preserve">
     <value>HotChocolate.Text.Json.Rethrowable</value>
   </data>
-  <data name="ResultElement_SetObjectValue_NotObjectType" xml:space="preserve">
+  <data name="ResultElement_SetObjectValue_NotCompositeType" xml:space="preserve">
     <value>The element is not a composite type.</value>
   </data>
   <data name="JsonReaderHelper_TranscodeHelper_CannotTranscodeInvalidUtf8" xml:space="preserve">
