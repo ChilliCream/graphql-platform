@@ -15,6 +15,7 @@ namespace HotChocolate.Text.Json;
 
 public readonly partial struct ResultElement
 {
+    private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
     private readonly ResultDocument _parent;
     private readonly ResultDocument.Cursor _cursor;
 
@@ -998,25 +999,25 @@ public readonly partial struct ResultElement
         _parent.AssignBooleanValue(this, value);
     }
 
-    public void SetStringValue(ReadOnlySpan<byte> value)
+    public void SetStringValue(ReadOnlySpan<byte> value, bool isEncoded = false)
     {
         CheckValidInstance();
 
-        _parent.AssignStringValue(this, value);
+        _parent.AssignStringValue(this, value, isEncoded);
     }
 
-    public void SetStringValue(ReadOnlySpan<char> value)
+    public void SetStringValue(ReadOnlySpan<char> value, bool isEncoded = false)
     {
         CheckValidInstance();
 
         // If we have an empty string, we can directly assign it.
         if (value.Length == 0)
         {
-            _parent.AssignStringValue(this, []);
+            _parent.AssignStringValue(this, [], isEncoded: isEncoded);
             return;
         }
 
-        var requiredBytes = Encoding.UTF8.GetByteCount(value);
+        var requiredBytes = s_utf8Encoding.GetByteCount(value);
         byte[]? rented = null;
         var buffer = JsonConstants.StackallocByteThreshold <= requiredBytes
             ? stackalloc byte[value.Length]
@@ -1024,8 +1025,8 @@ public readonly partial struct ResultElement
 
         try
         {
-            var usedBytes = Encoding.UTF8.GetBytes(value, buffer);
-            _parent.AssignStringValue(this, buffer[..usedBytes]);
+            var usedBytes = s_utf8Encoding.GetBytes(value, buffer);
+            _parent.AssignStringValue(this, buffer[..usedBytes], isEncoded);
         }
         finally
         {

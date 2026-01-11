@@ -152,6 +152,7 @@ public sealed partial class ResultDocument
         IsInternal = 8,
         IsExcluded = 16,
         IsNullable = 32,
-        IsInvalidated = 64
+        IsInvalidated = 64,
+        IsEncoded = 128
     }
 }

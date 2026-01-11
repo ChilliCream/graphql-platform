@@ -100,8 +100,19 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 
                 case ElementTokenType.String:
                 {
+                    var isEncoded = false;
                     var value = document.ReadRawValue(row);
-                    writer.WriteStringValue(value, skipEscaping: true);
+
+                    if ((ElementFlags.IsEncoded & row.Flags) == ElementFlags.IsEncoded)
+                    {
+                        isEncoded = true;
+                    }
+                    else
+                    {
+                        value = value[1..^1];
+                    }
+
+                    writer.WriteStringValue(value, skipEscaping: isEncoded);
                     break;
                 }
 

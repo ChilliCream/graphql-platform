@@ -507,7 +507,7 @@ public sealed partial class ResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void AssignStringValue(ResultElement target, ReadOnlySpan<byte> value)
+    internal void AssignStringValue(ResultElement target, ReadOnlySpan<byte> value, bool isEncoded)
     {
         var totalSize = value.Length + 2;
         var position = ClaimDataSpace(totalSize);
@@ -518,7 +518,8 @@ public sealed partial class ResultDocument : IDisposable
             tokenType: ElementTokenType.String,
             location: position,
             sizeOrLength: totalSize,
-            parentRow: _metaDb.GetParent(target.Cursor));
+            parentRow: _metaDb.GetParent(target.Cursor),
+            flags: isEncoded ? ElementFlags.IsEncoded : ElementFlags.None);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
