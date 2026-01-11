@@ -47,7 +47,7 @@ public partial class EnumType
     /// <summary>
     /// Gets a dictionary that allows to look up the enum value by its runtime value.
     /// </summary>
-    protected IReadOnlyDictionary<object, EnumValue> ValueLookup => _valueLookup;
+    protected internal IReadOnlyDictionary<object, EnumValue> ValueLookup => _valueLookup;
 
     /// <summary>
     /// Tries to get an enum value by its name.
@@ -95,26 +95,12 @@ public partial class EnumType
     }
 
     /// <inheritdoc />
-    public bool IsValueCompatible(IValueNode valueSyntax)
-    {
-        if (valueSyntax is EnumValueNode ev)
-        {
-            return Values.ContainsName(ev.Value);
-        }
-
-        return false;
-    }
+    public bool IsValueCompatible(IValueNode valueLiteral)
+        => valueLiteral is { Kind: SyntaxKind.EnumValue };
 
     /// <inheritdoc />
     public bool IsValueCompatible(JsonElement inputValue)
-    {
-        if (inputValue.ValueKind is JsonValueKind.String)
-        {
-            return Values.ContainsName(inputValue.GetString()!);
-        }
-
-        return false;
-    }
+        => inputValue.ValueKind is JsonValueKind.String;
 
     /// <inheritdoc />
     public object CoerceInputLiteral(IValueNode valueLiteral)

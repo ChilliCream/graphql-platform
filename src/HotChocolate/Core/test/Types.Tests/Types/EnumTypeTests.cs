@@ -646,7 +646,7 @@ public class EnumTypeTests : TypeTestBase
 
         // assert
         var type = schema.Types.GetType<EnumType>("Foo");
-        Assert.True(type.IsValueCompatible(new EnumValueNode("baz")));
+        Assert.True(type.TryGetValue("baz", out _));
     }
 
     [Fact]
@@ -668,7 +668,7 @@ public class EnumTypeTests : TypeTestBase
 
         // assert
         var type = schema.Types.GetType<EnumType>("Foo");
-        Assert.True(type.IsValueCompatible(new EnumValueNode("ANYTHING_WILL_DO")));
+        Assert.True(type.ValueLookup.ContainsKey("ANYTHING_WILL_DO"));
     }
 
     [Fact]
