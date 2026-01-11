@@ -6,8 +6,10 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Packaging;
+using HotChocolate.Fusion.SourceSchema.Packaging;
 using StrawberryShake;
 using static ChilliCream.Nitro.CommandLine.CommandLineResources;
+using ArchiveMetadata = HotChocolate.Fusion.SourceSchema.Packaging.ArchiveMetadata;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
@@ -37,7 +39,7 @@ public sealed class FusionUploadCommand : Command
         workingDirectoryOption.SetDefaultValueFactory(Directory.GetCurrentDirectory);
         workingDirectoryOption.LegalFilePathsOnly();
 
-        var sourceSchemaFileOption = new Option<List<string>>("--source-schema-file")
+        var sourceSchemaFileOption = new Option<FileInfo>("--source-schema-file")
         {
             Description = ComposeCommand_SourceSchemaFile_Description
         };
@@ -52,7 +54,7 @@ public sealed class FusionUploadCommand : Command
         this.SetHandler(async context =>
         {
             var workingDirectory = context.ParseResult.GetValueForOption(workingDirectoryOption)!;
-            var sourceSchemaFiles = context.ParseResult.GetValueForOption(sourceSchemaFileOption)!;
+            var sourceSchemaFile = context.ParseResult.GetValueForOption(sourceSchemaFileOption)!;
             var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
 
@@ -63,7 +65,7 @@ public sealed class FusionUploadCommand : Command
                 console,
                 apiClient,
                 workingDirectory,
-                sourceSchemaFiles,
+                sourceSchemaFile,
                 tag,
                 apiId,
                 context.GetCancellationToken());
@@ -74,7 +76,7 @@ public sealed class FusionUploadCommand : Command
         IAnsiConsole console,
         IApiClient client,
         string workingDirectory,
-        List<string> sourceSchemaFiles,
+        FileInfo sourceSchemaFile,
         string tag,
         string apiId,
         CancellationToken cancellationToken)
@@ -84,7 +86,7 @@ public sealed class FusionUploadCommand : Command
             throw new ExitException("Expected a non-empty value for the '--working-directory'.");
         }
 
-        console.Title("Upload source schemas");
+        console.Title("Upload source schema");
 
         if (console.IsHumanReadable())
         {
@@ -92,94 +94,63 @@ public sealed class FusionUploadCommand : Command
                 .Status()
                 .Spinner(Spinner.Known.BouncingBar)
                 .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Uploading source schemas...", UploadSourceSchemaFiles);
+                .StartAsync("Uploading source schema...", UploadSourceSchemaFile);
         }
         else
         {
-            await UploadSourceSchemaFiles(null);
+            await UploadSourceSchemaFile(null);
         }
 
         return ExitCodes.Success;
 
-        async Task UploadSourceSchemaFiles(StatusContext? ctx)
+        async Task UploadSourceSchemaFile(StatusContext? ctx)
         {
-            if (sourceSchemaFiles.Count == 0)
+            var sourceSchemaFilePath = sourceSchemaFile.FullName;
+
+            if (!Path.IsPathRooted(sourceSchemaFilePath))
             {
-                // TODO: In this case there can only ever be one source schema file, since
-                //       the name schema-settings.json can only be used once in the directory.
-                sourceSchemaFiles.AddRange(
-                    new DirectoryInfo(workingDirectory)
-                        .GetFiles("*.graphql*", SearchOption.AllDirectories)
-                        .Where(f => FusionComposeCommand.IsSchemaFile(f.Name))
-                        .Select(i => i.FullName));
-            }
-            else
-            {
-                for (var i = 0; i < sourceSchemaFiles.Count; i++)
-                {
-                    var sourceSchemaFile = sourceSchemaFiles[i];
-                    if (!Path.IsPathRooted(sourceSchemaFile))
-                    {
-                        sourceSchemaFiles[i] = Path.Combine(workingDirectory, sourceSchemaFile);
-                    }
-                }
+                sourceSchemaFilePath = Path.Combine(workingDirectory, sourceSchemaFilePath);
             }
 
             var sourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
-                sourceSchemaFiles,
+                [sourceSchemaFilePath],
                 cancellationToken);
+            var sourceSchema = sourceSchemas.First().Value;
 
-            await using var archiveStream =  new MemoryStream();
-            var archive = FusionArchive.Create(archiveStream, leaveOpen: true);
+            await using var archiveStream = new MemoryStream();
+            var archive = FusionSourceSchemaArchive.Create(archiveStream, leaveOpen: true);
 
-            await archive.SetArchiveMetadataAsync(
-                new ArchiveMetadata
-                {
-                    // TODO: This is just here to satisfy the initializer
-                    SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
-                    SourceSchemas = [..sourceSchemas.Keys]
-                },
+            await archive.SetArchiveMetadataAsync(new ArchiveMetadata(), cancellationToken);
+            await archive.SetSchemaAsync(
+                Encoding.UTF8.GetBytes(sourceSchema.Item1.SourceText),
                 cancellationToken);
-
-            foreach (var (schemaName, (sourceSchema, schemaSettings)) in sourceSchemas)
-            {
-                await archive.SetSourceSchemaConfigurationAsync(
-                    schemaName,
-                    Encoding.UTF8.GetBytes(sourceSchema.SourceText),
-                    schemaSettings,
-                    cancellationToken);
-            }
+            await archive.SetSettingsAsync(sourceSchema.Item2, cancellationToken);
 
             await archive.CommitAsync(cancellationToken);
             archive.Dispose();
 
-            archiveStream.Seek(0, SeekOrigin.Begin);
+            archiveStream.Position = 0;
 
-            await File.WriteAllBytesAsync(
-                "/Users/tobiastengler/src/graphql-platform/account/test.far",
-                archiveStream.ToArray(),
-                cancellationToken);
+            // TODO: Use new mutation once available
+            var input = new UploadClientInput
+            {
+                Operations = new Upload(archiveStream, "source-schema.zip"),
+                ClientId = apiId,
+                Tag = tag
+            };
 
-            // var input = new UploadClientInput
-            // {
-            //     Operations = new Upload(stream, "archive.far"),
-            //     ClientId = apiId,
-            //     Tag = tag
-            // };
-            //
-            // // TODO: Use new mutation once available
-            // var result = await client.UploadClient.ExecuteAsync(input, cancellationToken);
-            //
-            // console.EnsureNoErrors(result);
-            // var data = console.EnsureData(result);
-            // console.PrintErrorsAndExit(data.UploadClient.Errors);
-            //
-            // if (data.UploadClient.ClientVersion?.Id is null)
-            // {
-            //     throw new ExitException("Upload operations failed!");
-            // }
+            var result = await client.UploadClient.ExecuteAsync(input, cancellationToken);
 
-            console.Success("Successfully uploaded source schemas!");
+            console.EnsureNoErrors(result);
+            var data = console.EnsureData(result);
+            console.PrintErrorsAndExit(data.UploadClient.Errors);
+
+            if (data.UploadClient.ClientVersion?.Id is null)
+            {
+                throw new ExitException("Upload of source schema failed!");
+            }
+
+            console.Success("Successfully uploaded source schema!");
         }
     }
 }
