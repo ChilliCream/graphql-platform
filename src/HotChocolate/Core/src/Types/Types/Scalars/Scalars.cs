@@ -31,7 +31,7 @@ public static class Scalars
 
         { typeof(DateOnly), typeof(LocalDateType) },
         { typeof(TimeOnly), typeof(LocalTimeType) },
-        { typeof(JsonElement), typeof(JsonType) }
+        { typeof(JsonElement), typeof(AnyType) }
     };
 
     private static readonly Dictionary<string, Type> s_nameLookup = new()
@@ -57,8 +57,7 @@ public static class Scalars
         { ScalarNames.LocalDateTime, typeof(LocalDateTimeType) },
         { ScalarNames.LocalTime, typeof(LocalTimeType) },
 
-        { ScalarNames.ByteArray, typeof(ByteArrayType) },
-        { ScalarNames.JSON, typeof(JsonType) }
+        { ScalarNames.ByteArray, typeof(ByteArrayType) }
     };
 
     private static readonly Dictionary<Type, ValueKind> s_scalarKinds = new()

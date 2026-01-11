@@ -5,6 +5,7 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Text.Json;
+using HotChocolate.Types.Composite;
 using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
@@ -16,22 +17,22 @@ namespace HotChocolate.Types;
 /// </para>
 /// <para>The runtime representation of the JSON scalar is an <see cref="JsonElement"/>.</para>
 /// </summary>
-public sealed class JsonType : ScalarType<JsonElement>
+public sealed class AnyType : ScalarType<JsonElement>
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="JsonType"/>.
+    /// Initializes a new instance of <see cref="AnyType"/>.
     /// </summary>
-    public JsonType(string name, BindingBehavior bind = BindingBehavior.Explicit)
+    public AnyType(string name, BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="JsonType"/>.
+    /// Initializes a new instance of <see cref="AnyType"/>.
     /// </summary>
     [ActivatorUtilitiesConstructor]
-    public JsonType()
-        : this(ScalarNames.JSON, BindingBehavior.Implicit)
+    public AnyType()
+        : this(ScalarNames.Any, BindingBehavior.Implicit)
     {
     }
 
@@ -41,13 +42,15 @@ public sealed class JsonType : ScalarType<JsonElement>
 
     /// <inheritdoc />
     public override bool IsValueCompatible(IValueNode valueLiteral)
-        => valueLiteral.Kind is
-            SyntaxKind.ObjectValue or
-            SyntaxKind.ListValue or
-            SyntaxKind.StringValue or
-            SyntaxKind.IntValue or
-            SyntaxKind.FloatValue or
-            SyntaxKind.BooleanValue;
+        => valueLiteral is
+        {
+            Kind: SyntaxKind.ObjectValue or
+                SyntaxKind.ListValue or
+                SyntaxKind.StringValue or
+                SyntaxKind.IntValue or
+                SyntaxKind.FloatValue or
+                SyntaxKind.BooleanValue
+        };
 
     /// <inheritdoc />
     public override bool IsValueCompatible(JsonElement inputValue)

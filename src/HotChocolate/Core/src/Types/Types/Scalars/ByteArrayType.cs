@@ -1,7 +1,5 @@
 using System.Buffers;
 using System.Buffers.Text;
-using System.Runtime.InteropServices;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Features;

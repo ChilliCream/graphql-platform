@@ -51,7 +51,7 @@ public static class TestHelper
         var result = await executor.ExecuteAsync(request, cancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         return result;
     }
 
@@ -105,11 +105,11 @@ public static class TestHelper
 
         // assert
         var operationResult = Assert.IsType<OperationResult>(result);
-        Assert.NotNull(operationResult.Errors);
+        Assert.NotEmpty(operationResult.Errors);
 
         if (elementInspectors.Length > 0)
         {
-            Assert.Collection(operationResult.Errors!, elementInspectors);
+            Assert.Collection(operationResult.Errors, elementInspectors);
         }
 
         operationResult.MatchSnapshot();

@@ -73,7 +73,7 @@ public static class SchemaHelper
                     }
                     else if (scalar.Name.Value == ScalarNames.JSON)
                     {
-                        builder.AddType(new JsonType());
+                        builder.AddType(new AnyType());
                     }
                 }
 
