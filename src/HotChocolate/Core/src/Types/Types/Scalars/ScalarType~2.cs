@@ -42,7 +42,18 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
     {
         if (valueLiteral is TLiteral literal)
         {
-            return OnCoerceInputLiteral(literal);
+            TRuntimeType runtimeValue;
+
+            try
+            {
+                runtimeValue = OnCoerceInputLiteral(literal);
+            }
+            catch (Exception ex)
+            {
+                throw CreateCoerceInputLiteralError(valueLiteral, ex);
+            }
+
+            return runtimeValue;
         }
 
         throw CreateCoerceInputLiteralError(valueLiteral);
@@ -82,7 +93,18 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
                 throw CreateCoerceInputValueError(inputValue);
 
             default:
-                return OnCoerceInputValue(inputValue, context);
+                TRuntimeType runtimeValue;
+
+                try
+                {
+                    runtimeValue = OnCoerceInputValue(inputValue, context);
+                }
+                catch (Exception ex)
+                {
+                    throw CreateCoerceInputValueError(inputValue, ex);
+                }
+
+                return runtimeValue;
         }
     }
 
@@ -174,11 +196,16 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
     /// <param name="valueLiteral">
     /// The value syntax that could not be coerced.
     /// </param>
+    /// <param name="error">
+    /// An optional exception that was thrown during coercion.
+    /// </param>
     /// <returns>
     /// Returns the exception to throw.
     /// </returns>
-    protected virtual LeafCoercionException CreateCoerceInputLiteralError(IValueNode? valueLiteral)
-        => Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
+    protected virtual LeafCoercionException CreateCoerceInputLiteralError(
+        IValueNode? valueLiteral,
+        Exception? error = null)
+        => Scalar_Cannot_CoerceInputLiteral(this, valueLiteral, error);
 
     /// <summary>
     /// Creates the exception to throw when <see cref="CoerceInputValue(JsonElement, IFeatureProvider)"/>
@@ -187,11 +214,16 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
     /// <param name="inputValue">
     /// The JSON value that could not be coerced.
     /// </param>
+    /// <param name="error">
+    /// An optional exception that was thrown during coercion.
+    /// </param>
     /// <returns>
     /// Returns the exception to throw.
     /// </returns>
-    protected virtual LeafCoercionException CreateCoerceInputValueError(JsonElement inputValue)
-        => Scalar_Cannot_CoerceInputValue(this, inputValue);
+    protected virtual LeafCoercionException CreateCoerceInputValueError(
+        JsonElement inputValue,
+        Exception? error = null)
+        => Scalar_Cannot_CoerceInputValue(this, inputValue, error);
 
     /// <summary>
     /// Creates the exception to throw when <see cref="CoerceOutputValue(object, ResultElement)"/>

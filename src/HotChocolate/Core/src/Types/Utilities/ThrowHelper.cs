@@ -600,31 +600,47 @@ internal static class ThrowHelper
 
     public static LeafCoercionException Scalar_Cannot_CoerceInputLiteral(
         ITypeDefinition scalarType,
-        IValueNode? valueLiteral)
+        IValueNode? valueLiteral,
+        Exception? error = null)
     {
         valueLiteral ??= NullValueNode.Default;
 
-        return new LeafCoercionException(
+        var errorBuilder =
             ErrorBuilder.New()
                 .SetMessage(
                     TypeResources.Scalar_Cannot_CoerceInputLiteral,
                     scalarType.Name,
-                    valueLiteral.Kind)
-                .Build(),
+                    valueLiteral.Kind);
+
+        if (error is not null)
+        {
+            errorBuilder.SetException(error);
+        }
+
+        return new LeafCoercionException(
+            errorBuilder.Build(),
             scalarType);
     }
 
     public static LeafCoercionException Scalar_Cannot_CoerceInputValue(
         ITypeDefinition scalarType,
-        JsonElement inputValue)
+        JsonElement inputValue,
+        Exception? error = null)
     {
-        return new LeafCoercionException(
+        var errorBuilder =
             ErrorBuilder.New()
                 .SetMessage(
                     TypeResources.Scalar_Cannot_CoerceInputValue,
                     scalarType.Name,
-                    inputValue.ValueKind)
-                .Build(),
+                    inputValue.ValueKind);
+
+        if (error is not null)
+        {
+            errorBuilder.SetException(error);
+        }
+
+        return new LeafCoercionException(
+            errorBuilder.Build(),
             scalarType);
     }
 

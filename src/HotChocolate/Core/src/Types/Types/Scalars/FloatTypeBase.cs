@@ -69,7 +69,17 @@ public abstract class FloatTypeBase<TRuntimeType>
     {
         if (valueLiteral is FloatValueNode floatLiteral)
         {
-            var runtimeValue = OnCoerceInputLiteral(floatLiteral);
+            TRuntimeType runtimeValue;
+
+            try
+            {
+                runtimeValue = OnCoerceInputLiteral(floatLiteral);
+            }
+            catch (Exception ex)
+            {
+                throw CreateCoerceInputLiteralError(valueLiteral, ex);
+            }
+
             AssertFormat(runtimeValue);
             return runtimeValue;
         }
@@ -79,7 +89,17 @@ public abstract class FloatTypeBase<TRuntimeType>
         // http://facebook.github.io/graphql/June2018/#sec-Float
         if (valueLiteral is IntValueNode intLiteral)
         {
-            var runtimeValue = OnCoerceInputLiteral(intLiteral);
+            TRuntimeType runtimeValue;
+
+            try
+            {
+                runtimeValue = OnCoerceInputLiteral(intLiteral);
+            }
+            catch (Exception ex)
+            {
+                throw CreateCoerceInputLiteralError(valueLiteral, ex);
+            }
+
             AssertFormat(runtimeValue);
             return runtimeValue;
         }
@@ -103,7 +123,17 @@ public abstract class FloatTypeBase<TRuntimeType>
     {
         if (inputValue.ValueKind is JsonValueKind.Number)
         {
-            var runtimeValue = OnCoerceInputValue(inputValue);
+            TRuntimeType runtimeValue;
+
+            try
+            {
+                runtimeValue = OnCoerceInputValue(inputValue);
+            }
+            catch (Exception ex)
+            {
+                throw CreateCoerceInputValueError(inputValue, ex);
+            }
+
             AssertFormat(runtimeValue);
             return runtimeValue;
         }
@@ -154,11 +184,16 @@ public abstract class FloatTypeBase<TRuntimeType>
     /// <param name="valueLiteral">
     /// The value syntax that could not be coerced.
     /// </param>
+    /// <param name="error">
+    /// An optional exception that was thrown during coercion.
+    /// </param>
     /// <returns>
     /// Returns the exception to throw.
     /// </returns>
-    protected virtual LeafCoercionException CreateCoerceInputLiteralError(IValueNode valueLiteral)
-        => Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
+    protected virtual LeafCoercionException CreateCoerceInputLiteralError(
+        IValueNode valueLiteral,
+        Exception? error = null)
+        => Scalar_Cannot_CoerceInputLiteral(this, valueLiteral, error);
 
     /// <summary>
     /// Creates the exception to throw when <see cref="CoerceInputValue(JsonElement, IFeatureProvider)"/>
@@ -167,11 +202,16 @@ public abstract class FloatTypeBase<TRuntimeType>
     /// <param name="inputValue">
     /// The JSON value that could not be coerced.
     /// </param>
+    /// <param name="error">
+    /// An optional exception that was thrown during coercion.
+    /// </param>
     /// <returns>
     /// Returns the exception to throw.
     /// </returns>
-    protected virtual LeafCoercionException CreateCoerceInputValueError(JsonElement inputValue)
-        => Scalar_Cannot_CoerceInputValue(this, inputValue);
+    protected virtual LeafCoercionException CreateCoerceInputValueError(
+        JsonElement inputValue,
+        Exception? error = null)
+        => Scalar_Cannot_CoerceInputValue(this, inputValue, error);
 
     /// <summary>
     /// Creates the exception to throw when a runtime value is outside
