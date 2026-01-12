@@ -67,7 +67,7 @@ public sealed class VariableBatchRequest : IOperationRequest
     {
         if (document is null && OperationDocumentId.IsNullOrEmpty(documentId))
         {
-            throw new InvalidOperationException(OperationRequest_DocumentOrIdMustBeSet);
+            throw new ArgumentException(OperationRequest_DocumentOrIdMustBeSet);
         }
 
         if (variableValues.Document.RootElement.ValueKind is not JsonValueKind.Array)

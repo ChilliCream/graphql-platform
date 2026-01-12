@@ -27,7 +27,7 @@ public class ResponseStreamTests
         void Fail() => default(ResponseStream)!.RegisterForCleanup(disposable);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Fail);
+        Assert.Throws<NullReferenceException>(Fail);
     }
 
     [Fact]

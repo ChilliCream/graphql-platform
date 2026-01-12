@@ -545,6 +545,11 @@ public sealed class OperationRequestBuilder : IFeatureProvider
     /// </returns>
     public IOperationRequest Build()
     {
+        if (_document is null && OperationDocumentId.IsNullOrEmpty(_documentId))
+        {
+            throw new InvalidOperationException(OperationRequest_DocumentOrIdMustBeSet);
+        }
+
         IOperationRequest? request;
 
         var features = _features;
