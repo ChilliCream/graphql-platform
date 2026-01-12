@@ -1,4 +1,7 @@
+using System.Buffers;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using CookieCrumble.Formatters;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,7 +20,7 @@ public class OperationRequestBuilderTests
                 .Build();
 
         // assert
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -33,7 +36,7 @@ public class OperationRequestBuilderTests
                 .Build();
 
         // assert
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -80,7 +83,262 @@ public class OperationRequestBuilderTests
 
         // assert
         // one should be bar
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndResetVariables_RequestIsCreated()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .SetVariableValues(new Dictionary<string, object?> { ["one"] = "bar" })
+                .SetVariableValues(default(JsonDocument))
+                .Build();
+
+        // assert
+        // no variable should be in the request
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndAddProperties_RequestIsCreated()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .AddGlobalState("one", "foo")
+                .AddGlobalState("two", "bar")
+                .Build();
+
+        // assert
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndSetProperties_RequestIsCreated()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .AddGlobalState("one", "foo")
+                .AddGlobalState("two", "bar")
+                .SetGlobalState(
+                    new Dictionary<string, object?>
+                    {
+                        { "three", "baz" }
+                    })
+                .Build();
+
+        // assert
+        // only three should exist
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndSetProperty_RequestIsCreated()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .AddGlobalState("one", "foo")
+                .SetGlobalState("one", "bar")
+                .Build();
+
+        // assert
+        // one should be bar
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndSetNewProperty_RequestIsCreated()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .SetGlobalState("one", "bar")
+                .Build();
+
+        // assert
+        // one should be bar
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndResetProperties_RequestIsCreated()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .AddGlobalState("one", "foo")
+                .AddGlobalState("two", "bar")
+                .SetGlobalState(null)
+                .Build();
+
+        // assert
+        // no property should be in the request
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndInitialValue_RequestIsCreated()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .SetGlobalState(WellKnownContextData.InitialValue, new { a = "123" })
+                .Build();
+
+        // assert
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndOperation_RequestIsCreated()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .SetOperationName("bar")
+                .Build();
+
+        // assert
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndResetOperation_RequestIsCreated()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .SetOperationName("bar")
+                .SetOperationName(null)
+                .Build();
+
+        // assert
+        // the operation should be null
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndServices_RequestIsCreated()
+    {
+        // arrange
+        var service = new { a = "123" };
+
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .SetServices(
+                    new ServiceCollection()
+                        .AddSingleton(service.GetType(), service)
+                        .BuildServiceProvider())
+                .Build();
+
+        // assert
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_SetAll_RequestIsCreated()
+    {
+        // arrange
+        var service = new { a = "123" };
+
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .SetOperationName("bar")
+                .AddGlobalState("one", "foo")
+                .SetVariableValues(new Dictionary<string, object?> { { "two", "bar" } })
+                .SetServices(new ServiceCollection().AddSingleton(service.GetType(), service).BuildServiceProvider())
+                .Build();
+
+        // assert
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndTryAddProperties_PropertyIsSet()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .TryAddGlobalState("one", "bar")
+                .Build();
+
+        // assert
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_QueryAndTryAddProperties_PropertyIsNotSet()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .AddGlobalState("one", "foo")
+                .TryAddGlobalState("one", "bar")
+                .Build();
+
+        // assert
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_SetErrorHandlingMode()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .SetErrorHandlingMode(ErrorHandlingMode.Halt)
+                .Build();
+
+        // assert
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
+    }
+
+    [Fact]
+    public void BuildRequest_SetErrorHandlingMode_VariableBatchRequest()
+    {
+        // arrange
+        // act
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument("{ foo }")
+                .SetErrorHandlingMode(ErrorHandlingMode.Halt)
+                .SetVariableValues([new Dictionary<string, object?> { ["one"] = "foo" }])
+                .Build();
+
+        // assert
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -92,21 +350,21 @@ public class OperationRequestBuilderTests
             OperationRequestBuilder.New()
                 .SetDocument(
                     """
-                    {
-                      foo
-                    }
-                    """)
+                {
+                    foo
+                }
+                """)
                 .SetVariableValues(
                     """
-                    {
-                      "one": "bar"
-                    }
-                    """)
+                {
+                    "one": "bar"
+                }
+                """)
                 .Build();
 
         // assert
         // one should be bar
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 
     [Fact]
@@ -137,227 +395,6 @@ public class OperationRequestBuilderTests
 
         // assert
         // one should be bar
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndResetVariables_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.New()
-                .SetDocument("{ foo }")
-                .SetVariableValues(new Dictionary<string, object?> { ["one"] = "bar" })
-                .SetVariableValues(default(JsonDocument))
-                .Build();
-
-        // assert
-        // no variable should be in the request
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndAddProperties_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.New()
-                .SetDocument("{ foo }")
-                .AddGlobalState("one", "foo")
-                .AddGlobalState("two", "bar")
-                .Build();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetProperties_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.New()
-                .SetDocument("{ foo }")
-                .AddGlobalState("one", "foo")
-                .AddGlobalState("two", "bar")
-                .SetGlobalState(
-                    new Dictionary<string, object?>
-                    {
-                        { "three", "baz" }
-                    })
-                .Build();
-
-        // assert
-        // only three should exist
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetProperty_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.New()
-                .SetDocument("{ foo }")
-                .AddGlobalState("one", "foo")
-                .SetGlobalState("one", "bar")
-                .Build();
-
-        // assert
-        // one should be bar
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetNewProperty_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.New()
-                .SetDocument("{ foo }")
-                .SetGlobalState("one", "bar")
-                .Build();
-
-        // assert
-        // one should be bar
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndResetProperties_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.New()
-                .SetDocument("{ foo }")
-                .AddGlobalState("one", "foo")
-                .AddGlobalState("two", "bar")
-                .SetGlobalState(null)
-                .Build();
-
-        // assert
-        // no property should be in the request
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndInitialValue_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.New()
-                .SetDocument("{ foo }")
-                .SetGlobalState(WellKnownContextData.InitialValue, new { a = "123" })
-                .Build();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndOperation_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.New()
-                .SetDocument("{ foo }")
-                .SetOperationName("bar")
-                .Build();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndResetOperation_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.New()
-                .SetDocument("{ foo }")
-                .SetOperationName("bar")
-                .SetOperationName(null)
-                .Build();
-
-        // assert
-        // the operation should be null
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndServices_RequestIsCreated()
-    {
-        // arrange
-        var service = new { a = "123" };
-
-        // act
-        var request =
-            OperationRequestBuilder.New()
-                .SetDocument("{ foo }")
-                .SetServices(new ServiceCollection().AddSingleton(service.GetType(), service).BuildServiceProvider())
-                .Build();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_SetAll_RequestIsCreated()
-    {
-        // arrange
-        var service = new { a = "123" };
-
-        // act
-        var request =
-            OperationRequestBuilder.New()
-                .SetDocument("{ foo }")
-                .SetOperationName("bar")
-                .AddGlobalState("one", "foo")
-                .SetVariableValues(new Dictionary<string, object?> { { "two", "bar" } })
-                .SetServices(new ServiceCollection().AddSingleton(service.GetType(), service).BuildServiceProvider())
-                .Build();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndTryAddProperties_PropertyIsSet()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.New()
-                .SetDocument("{ foo }")
-                .TryAddGlobalState("one", "bar")
-                .Build();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndTryAddProperties_PropertyIsNotSet()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.New()
-                .SetDocument("{ foo }")
-                .AddGlobalState("one", "foo")
-                .TryAddGlobalState("one", "bar")
-                .Build();
-
-        // assert
-        request.MatchSnapshot();
+        request.MatchSnapshot(formatter: OperationRequestSnapshotFormatter.Instance);
     }
 }

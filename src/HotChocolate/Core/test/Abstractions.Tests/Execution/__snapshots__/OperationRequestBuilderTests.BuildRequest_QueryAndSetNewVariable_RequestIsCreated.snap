@@ -1,9 +1,0 @@
-{
-  "document": "{ foo }",
-  "extensions": {
-    "one": "bar"
-  },
-  "variableValues": {
-    "one": "bar"
-  }
-}
