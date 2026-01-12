@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using HotChocolate.Language;
@@ -20,7 +19,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
 
     private readonly TestServerSession _testServerSession = new();
 
-    protected static TestOpenApiDefinitionStorage CreateBasicTestDocumentStorage()
+    protected static TestOpenApiDefinitionStorage CreateBasicTestDefinitionStorage()
     {
         return new TestOpenApiDefinitionStorage(
             """
@@ -271,13 +270,22 @@ public abstract class OpenApiTestBase : IAsyncLifetime
         return await response.Content.ReadAsStringAsync();
     }
 
+    protected static async Task SpinWaitAsync(Func<Task<bool>> condition, CancellationToken cancellationToken)
+    {
+        while (!await condition())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await Task.Delay(10, cancellationToken);
+        }
+    }
+
     protected sealed class TestOpenApiDiagnosticEventListener : OpenApiDiagnosticEventListener
     {
-        public List<IOpenApiError> Errors { get; } = [];
+        public List<OpenApiDefinitionValidationError> Errors { get; } = [];
 
         public ManualResetEventSlim HasReportedErrors { get; } = new(false);
 
-        public override void ValidationErrors(IReadOnlyList<IOpenApiError> errors)
+        public override void ValidationErrors(IReadOnlyList<OpenApiDefinitionValidationError> errors)
         {
             Errors.AddRange(errors);
             HasReportedErrors.Set();
@@ -303,64 +311,55 @@ public abstract class OpenApiTestBase : IAsyncLifetime
         }
     }
 
-    protected sealed class TestOpenApiDefinitionStorage : IOpenApiDefinitionStorage, IDisposable
+    protected sealed class TestOpenApiDefinitionStorage : IOpenApiDefinitionStorage
     {
+#if NET9_0_OR_GREATER
         private readonly Lock _lock = new();
-        private readonly Dictionary<string, OpenApiDocumentDefinition> _documentsById = [];
-        private ImmutableList<ObserverSession> _sessions = [];
-        private bool _disposed;
-        private readonly object _sync = new();
+#else
+        private readonly object _lock = new();
+#endif
+        private readonly Dictionary<string, IOpenApiDefinition> _definitionsById = [];
+
+        public event EventHandler? Changed;
 
         public TestOpenApiDefinitionStorage(params IEnumerable<string>? documents)
         {
             if (documents is not null)
             {
-                var i = 0;
+                var index = 0;
                 foreach (var document in documents)
                 {
-                    var id = i++.ToString();
-                    var parsed = Utf8GraphQLParser.Parse(document);
+                    var documentNode = Utf8GraphQLParser.Parse(document);
+                    var definition = OpenApiDefinitionParser.Parse(documentNode);
 
-                    _documentsById.Add(id, new OpenApiDocumentDefinition(id, parsed));
+                    _definitionsById.Add(index.ToString(), definition);
+                    index++;
                 }
             }
         }
 
-        public ValueTask<IEnumerable<OpenApiDocumentDefinition>> GetDocumentsAsync(
-            CancellationToken cancellationToken)
+        public ValueTask<IEnumerable<IOpenApiDefinition>> GetDefinitionsAsync(CancellationToken cancellationToken = default)
         {
             lock (_lock)
             {
-                var documents = _documentsById.Values.ToList();
-
-                return ValueTask.FromResult<IEnumerable<OpenApiDocumentDefinition>>(documents);
+                return ValueTask.FromResult<IEnumerable<IOpenApiDefinition>>(_definitionsById.Values.ToList());
             }
-        }
-
-        public IDisposable Subscribe(IObserver<OpenApiDefinitionStorageEventArgs> observer)
-        {
-            return new ObserverSession(this, observer);
         }
 
         public void AddOrUpdateDocument(string id, string document)
         {
+            var documentNode = Utf8GraphQLParser.Parse(document);
+            var definition = OpenApiDefinitionParser.Parse(documentNode);
+
+            AddOrUpdateDefinition(id, definition);
+        }
+
+        public void AddOrUpdateDefinition(string id, IOpenApiDefinition definition)
+        {
             lock (_lock)
             {
-                var parsedDocument = Utf8GraphQLParser.Parse(document);
-
-                var documentDefinition = new OpenApiDocumentDefinition(id, parsedDocument);
-                OpenApiDefinitionStorageEventType type;
-                if (_documentsById.TryAdd(id, documentDefinition))
-                {
-                    type = OpenApiDefinitionStorageEventType.Added;
-                }
-                else
-                {
-                    _documentsById[id] = documentDefinition;
-                    type = OpenApiDefinitionStorageEventType.Modified;
-                }
-
-                NotifySubscribers(id, documentDefinition, type);
+                _definitionsById[id] = definition;
+                OnChanged();
             }
         }
 
@@ -368,102 +367,18 @@ public abstract class OpenApiTestBase : IAsyncLifetime
         {
             lock (_lock)
             {
-                var removed = _documentsById.Remove(id);
+                var removed = _definitionsById.Remove(id);
 
                 if (removed)
                 {
-                    NotifySubscribers(id, null, OpenApiDefinitionStorageEventType.Removed);
+                    OnChanged();
                 }
             }
         }
 
-        private void NotifySubscribers(
-            string id,
-            OpenApiDocumentDefinition? toolDefinition,
-            OpenApiDefinitionStorageEventType type)
+        private void OnChanged()
         {
-            if (type is OpenApiDefinitionStorageEventType.Added or OpenApiDefinitionStorageEventType.Modified)
-            {
-                ArgumentNullException.ThrowIfNull(toolDefinition);
-            }
-
-            if (_disposed)
-            {
-                return;
-            }
-
-            var sessions = _sessions;
-            var eventArgs = new OpenApiDefinitionStorageEventArgs(id, type, toolDefinition);
-
-            foreach (var session in sessions)
-            {
-                session.Notify(eventArgs);
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (!_disposed && disposing)
-            {
-                lock (_sync)
-                {
-                    foreach (var session in _sessions)
-                    {
-                        session.Dispose();
-                    }
-
-                    _sessions = [];
-                    _disposed = true;
-                }
-            }
-        }
-
-        private sealed class ObserverSession : IDisposable
-        {
-            private bool _disposed;
-            private readonly TestOpenApiDefinitionStorage _storage;
-            private readonly IObserver<OpenApiDefinitionStorageEventArgs> _observer;
-
-            public ObserverSession(
-                TestOpenApiDefinitionStorage storage,
-                IObserver<OpenApiDefinitionStorageEventArgs> observer)
-            {
-                _storage = storage;
-                _observer = observer;
-
-                lock (storage._sync)
-                {
-                    _storage._sessions = _storage._sessions.Add(this);
-                }
-            }
-
-            public void Notify(OpenApiDefinitionStorageEventArgs eventArgs)
-            {
-                if (!_disposed && !_storage._disposed)
-                {
-                    _observer.OnNext(eventArgs);
-                }
-            }
-
-            public void Dispose()
-            {
-                if (_disposed)
-                {
-                    return;
-                }
-
-                lock (_storage._sync)
-                {
-                    _storage._sessions = _storage._sessions.Remove(this);
-                }
-
-                _disposed = true;
-            }
+            Changed?.Invoke(this, EventArgs.Empty);
         }
     }
 }

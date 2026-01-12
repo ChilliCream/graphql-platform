@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Xunit2.Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.SourceSchema.Packaging.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.SourceSchema.Packaging</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Pipelines" Condition="'$(TargetFramework)' == 'net8.0'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Fusion.SourceSchema.Packaging\HotChocolate.Fusion.SourceSchema.Packaging.csproj" />
+  </ItemGroup>
+
+</Project>

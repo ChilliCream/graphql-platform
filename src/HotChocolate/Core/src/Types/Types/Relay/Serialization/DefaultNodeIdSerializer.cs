@@ -216,6 +216,8 @@ public sealed class DefaultNodeIdSerializer : INodeIdSerializer
                         span[i] = (byte)'_';
                     }
                 }
+
+                span = span.TrimEnd((byte)'=');
             }
 
             return ToString(span);

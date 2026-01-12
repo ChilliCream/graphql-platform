@@ -6,6 +6,7 @@ namespace HotChocolate.Adapters.OpenApi;
 
 internal sealed record OpenApiEndpointDescriptor(
     DocumentNode Document,
+    bool HasValidDocument,
     string HttpMethod,
     RoutePattern Route,
     VariableValueInsertionTrie ParameterTrie,

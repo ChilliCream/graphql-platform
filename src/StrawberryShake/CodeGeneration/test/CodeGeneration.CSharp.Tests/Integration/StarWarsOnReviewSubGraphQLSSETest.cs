@@ -39,7 +39,7 @@ public class StarWarsOnReviewSubGraphQLSSETest : ServerTestBase
 
         var connectCompletionSource = new TaskCompletionSource();
         var subscribeCompletionSource = new TaskCompletionSource();
-        var session = client.OnReviewSub.Watch()
+        client.OnReviewSub.Watch()
             .Subscribe(
                 _ => connectCompletionSource.TrySetResult(),
                 () => subscribeCompletionSource.TrySetResult());

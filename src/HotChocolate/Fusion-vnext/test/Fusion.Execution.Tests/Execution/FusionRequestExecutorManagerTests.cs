@@ -34,7 +34,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         // assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
-        Assert.Equal($"The requested schema 'unknown-name' does not exist.", exception.Message);
+        Assert.Equal("The requested schema 'unknown-name' does not exist.", exception.Message);
     }
 
     [Fact]

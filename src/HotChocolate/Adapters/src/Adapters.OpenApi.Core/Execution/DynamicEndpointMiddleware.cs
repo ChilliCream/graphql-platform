@@ -16,13 +16,23 @@ internal sealed class DynamicEndpointMiddleware(
     string schemaName,
     OpenApiEndpointDescriptor endpointDescriptor)
 {
-    // TODO: This needs to raise diagnostic events (httprequest, startsingle and httprequesterror
     public async Task InvokeAsync(HttpContext context)
     {
         var cancellationToken = context.RequestAborted;
 
         try
         {
+            // If the document is invalid, we always return a HTTP 500, since a HTTP 400 would be confusing.
+            if (!endpointDescriptor.HasValidDocument)
+            {
+#if NET9_0_OR_GREATER
+                await Results.InternalServerError().ExecuteAsync(context);
+#else
+                await Results.StatusCode(500).ExecuteAsync(context);
+#endif
+                return;
+            }
+
             if (endpointDescriptor.VariableFilledThroughBody is not null)
             {
                 if (context.Request.ContentType?.StartsWith("application/json", StringComparison.OrdinalIgnoreCase) != true)
@@ -73,7 +83,11 @@ internal sealed class DynamicEndpointMiddleware(
             // If we do not have an operation result, something went wrong, and we return HTTP 500.
             if (executionResult is not OperationResult operationResult)
             {
+#if NET9_0_OR_GREATER
                 await Results.InternalServerError().ExecuteAsync(context);
+#else
+                await Results.StatusCode(500).ExecuteAsync(context);
+#endif
                 return;
             }
 
@@ -119,7 +133,11 @@ internal sealed class DynamicEndpointMiddleware(
         }
         catch
         {
+#if NET9_0_OR_GREATER
             await Results.InternalServerError().ExecuteAsync(context);
+#else
+            await Results.StatusCode(500).ExecuteAsync(context);
+#endif
         }
     }
 
@@ -457,7 +475,11 @@ internal sealed class DynamicEndpointMiddleware(
             }
         }
 
+#if NET9_0_OR_GREATER
         return Results.InternalServerError();
+#else
+        return Results.StatusCode(500);
+#endif
     }
 
     private class BadRequestException(string message) : Exception(message);

@@ -9,10 +9,7 @@ public class SchemaBuilderExtensionsResolversTests
     [Fact]
     public void AddResolverContextObject_BuilderIsNull_ArgNullExcept()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
                 null!,
@@ -65,10 +62,7 @@ public class SchemaBuilderExtensionsResolversTests
     [Fact]
     public void AddResolverContextTaskObject_BuilderIsNull_ArgNullExcept()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
                 null!,
@@ -124,10 +118,7 @@ public class SchemaBuilderExtensionsResolversTests
     [Fact]
     public void AddResolverContextTResult_BuilderIsNull_ArgNullExcept()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
                 null!,
@@ -184,10 +175,7 @@ public class SchemaBuilderExtensionsResolversTests
     [Fact]
     public void AddResolverContextTaskTResult_BuilderIsNull_ArgNullExcept()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
                 null!,
@@ -244,10 +232,7 @@ public class SchemaBuilderExtensionsResolversTests
     [Fact]
     public void AddResolverObject_BuilderIsNull_ArgNullExcept()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
                 null!,

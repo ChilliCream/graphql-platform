@@ -9,6 +9,166 @@ namespace HotChocolate.Fusion;
 public sealed class SourceSchemaPreprocessorTests
 {
     [Fact]
+    public void Preprocess_ExcludeByTag_RemovesTaggedMembers()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                type Object1 @tag(name: "remove") {
+                    field1: ID!
+                }
+
+                type Object2 {
+                    field1: ID!
+                    field2: Int @tag(name: "remove")
+                }
+
+                type Object3 {
+                    field1: ID!
+                    field2(argument1: Int, argument2: Int @tag(name: "remove")): Int
+                }
+
+                interface Interface1 @tag(name: "remove") {
+                    field1: ID!
+                }
+
+                interface Interface2 {
+                    field1: ID!
+                    field2: Int @tag(name: "remove")
+                }
+
+                union Union1 @tag(name: "remove") = Object1 | Object2
+
+                input Input1 @tag(name: "remove") {
+                    field1: ID!
+                }
+
+                input Input2 {
+                    field1: ID!
+                    field2: Int @tag(name: "remove")
+                }
+
+                enum Enum1 @tag(name: "remove") {
+                    VALUE1
+                }
+
+                enum Enum2 {
+                    VALUE1
+                    VALUE2 @tag(name: "remove")
+                }
+
+                scalar Scalar1 @tag(name: "remove")
+
+                directive @tag(name: String!) repeatable on
+                    | SCHEMA
+                    | SCALAR
+                    | OBJECT
+                    | FIELD_DEFINITION
+                    | ARGUMENT_DEFINITION
+                    | INTERFACE
+                    | UNION
+                    | ENUM
+                    | ENUM_VALUE
+                    | INPUT_OBJECT
+                    | INPUT_FIELD_DEFINITION
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                [],
+                compositionLog,
+                options: new SourceSchemaPreprocessorOptions { ExcludeByTag = ["remove"] });
+
+        // act
+        preprocessor.Preprocess();
+        schema.Types.Remove("FieldSelectionMap");
+        schema.Types.Remove("FieldSelectionSet");
+        schema.DirectiveDefinitions.Clear();
+
+        // assert
+        schema.ToString().MatchSnapshot(extension: ".graphql");
+    }
+
+    [Fact]
+    public void Preprocess_ExcludeByTagInvalidSchema_ReturnsError()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                type Query {
+                    field1: Object
+                    field2(argument: Input): Int
+                }
+
+                type Object @tag(name: "remove") {
+                    field: ID!
+                }
+
+                input Input @tag(name: "remove") {
+                    field: ID!
+                }
+
+                directive @tag(name: String!) repeatable on
+                    | SCHEMA
+                    | SCALAR
+                    | OBJECT
+                    | FIELD_DEFINITION
+                    | ARGUMENT_DEFINITION
+                    | INTERFACE
+                    | UNION
+                    | ENUM
+                    | ENUM_VALUE
+                    | INPUT_OBJECT
+                    | INPUT_FIELD_DEFINITION
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                [],
+                compositionLog,
+                options: new SourceSchemaPreprocessorOptions { ExcludeByTag = ["remove"] });
+
+        // act
+        var result = preprocessor.Preprocess();
+
+        // assert
+        Assert.True(result.IsFailure);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("Source schema preprocessing failed.", error.Message);
+        Assert.Collection(
+            compositionLog,
+            logEntry =>
+            {
+                Assert.Equal("HCV0021", logEntry.Code);
+                Assert.Equal(
+                    "The type 'Object' of field 'Query.field1' is not defined in the schema. (Schema: 'A')",
+                    logEntry.Message);
+                Assert.Equal(LogSeverity.Error, logEntry.Severity);
+            },
+            logEntry =>
+            {
+                Assert.Equal("HCV0022", logEntry.Code);
+                Assert.Equal(
+                    "The type 'Input' of argument 'Query.field2(argument:)' is not defined in the schema. "
+                    + "(Schema: 'A')",
+                    logEntry.Message);
+                Assert.Equal(LogSeverity.Error, logEntry.Severity);
+            });
+    }
+
+    [Fact]
     public void Preprocess_InferKeysFromLookupsEnabled_AppliesInferredKeyDirectives()
     {
         // arrange
@@ -70,9 +230,10 @@ public sealed class SourceSchemaPreprocessorTests
                     id: ID!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
         var schema = sourceSchemaParser.Parse().Value;
-        var preprocessor = new SourceSchemaPreprocessor(schema, []);
+        var preprocessor = new SourceSchemaPreprocessor(schema, [], compositionLog);
 
         // act
         preprocessor.Preprocess();
@@ -100,12 +261,14 @@ public sealed class SourceSchemaPreprocessorTests
                     id: ID!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
         var schema = sourceSchemaParser.Parse().Value;
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
                 [],
+                compositionLog,
                 options: new SourceSchemaPreprocessorOptions { InferKeysFromLookups = false });
 
         // act
@@ -146,9 +309,10 @@ public sealed class SourceSchemaPreprocessorTests
                     name: String
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
         var schema = sourceSchemaParser.Parse().Value;
-        var preprocessor = new SourceSchemaPreprocessor(schema, []);
+        var preprocessor = new SourceSchemaPreprocessor(schema, [], compositionLog);
 
         // act
         preprocessor.Preprocess();
@@ -212,12 +376,14 @@ public sealed class SourceSchemaPreprocessorTests
                     id: ID!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
         var schema = sourceSchemaParser.Parse().Value;
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
                 [],
+                compositionLog,
                 options: new SourceSchemaPreprocessorOptions { InheritInterfaceKeys = false });
 
         // act
@@ -255,12 +421,14 @@ public sealed class SourceSchemaPreprocessorTests
                   title: String!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
         var schema = sourceSchemaParser.Parse().Value;
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
                 [],
+                compositionLog,
                 new Version(1, 0, 0));
 
         // act
@@ -333,12 +501,14 @@ public sealed class SourceSchemaPreprocessorTests
                   name: String!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
         var schema = sourceSchemaParser.Parse().Value;
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
                 [],
+                compositionLog,
                 new Version(1, 0, 0));
 
         // act
@@ -393,12 +563,14 @@ public sealed class SourceSchemaPreprocessorTests
                   name: String!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
         var schema = sourceSchemaParser.Parse().Value;
         var preprocessor =
             new SourceSchemaPreprocessor(
                 schema,
                 [],
+                compositionLog,
                 new Version(1, 0, 0));
 
         // act
@@ -476,6 +648,7 @@ public sealed class SourceSchemaPreprocessorTests
             new SourceSchemaPreprocessor(
                 schema,
                 schemas,
+                compositionLog,
                 new Version(1, 0, 0));
 
         // act

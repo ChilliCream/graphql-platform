@@ -16,9 +16,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Benchmarks" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Pipeline" />
+    <InternalsVisibleTo Include="HotChocolate.Language.Web" />
     <InternalsVisibleTo Include="HotChocolate.Types" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Benchmarks" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">

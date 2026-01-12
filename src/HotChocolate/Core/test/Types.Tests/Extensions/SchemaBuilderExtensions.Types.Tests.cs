@@ -493,10 +493,7 @@ public class SchemaBuilderExtensionsTypeTests
     [Fact]
     public void SetSchema_BuilderIsNull_ArgumentException()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () =>
             SchemaBuilderExtensions.SetSchema<MySchema>(null!);
 

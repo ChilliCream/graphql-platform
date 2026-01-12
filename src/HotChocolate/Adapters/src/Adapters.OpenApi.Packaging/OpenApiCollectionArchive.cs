@@ -99,7 +99,7 @@ public sealed class OpenApiCollectionArchive : IDisposable
     {
         ArgumentNullException.ThrowIfNull(stream);
         var readOptions = new OpenApiCollectionArchiveReadOptions(
-            options.MaxAllowedOperationSize ?? OpenApiCollectionArchiveReadOptions.Default.MaxAllowedOperationSize,
+            options.MaxAllowedDocumentSize ?? OpenApiCollectionArchiveReadOptions.Default.MaxAllowedDocumentSize,
             options.MaxAllowedSettingsSize ?? OpenApiCollectionArchiveReadOptions.Default.MaxAllowedSettingsSize);
         return new OpenApiCollectionArchive(stream, mode, leaveOpen, readOptions);
     }
@@ -187,27 +187,21 @@ public sealed class OpenApiCollectionArchive : IDisposable
     /// <summary>
     /// Adds an OpenAPI endpoint to the archive.
     /// </summary>
-    /// <param name="name">The unique name for this endpoint.</param>
-    /// <param name="operation">The operation data to store.</param>
+    /// <param name="key">The unique key of this endpoint.</param>
+    /// <param name="document">The GraphQL document to store.</param>
     /// <param name="settings">The settings document for this endpoint.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <exception cref="ArgumentException">Thrown when name is invalid.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when operation is empty.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the GraphQL document is empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when settings is null.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the archive is read-only, metadata is not set, or endpoint already exists.</exception>
     public async Task AddOpenApiEndpointAsync(
-        string name,
-        ReadOnlyMemory<byte> operation,
+        OpenApiEndpointKey key,
+        ReadOnlyMemory<byte> document,
         JsonDocument settings,
         CancellationToken cancellationToken = default)
     {
-        if (!NameValidator.IsValidName(name))
-        {
-            throw new ArgumentException($"The endpoint name '{name}' is invalid.", nameof(name));
-        }
-
-        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(operation.Length, 0);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(document.Length, 0);
         ArgumentNullException.ThrowIfNull(settings);
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -221,58 +215,52 @@ public sealed class OpenApiCollectionArchive : IDisposable
                 "You need to first define the archive metadata.");
         }
 
-        if (metadata.Endpoints.Contains(name))
+        if (metadata.Endpoints.Contains(key))
         {
             throw new InvalidOperationException(
-                $"An endpoint with the name '{name}' already exists in the archive.");
+                $"An endpoint with HTTP method '{key.HttpMethod}' and route '{key.Route}' already exists in the archive.");
         }
 
-        await using (var stream = _session.OpenWrite(FileNames.GetEndpointOperationPath(name)))
+        await using (var stream = _session.OpenWrite(FileNames.GetEndpointDocumentPath(key)))
         {
-            await stream.WriteAsync(operation, cancellationToken);
+            await stream.WriteAsync(document, cancellationToken);
         }
 
-        await using (var stream = _session.OpenWrite(FileNames.GetEndpointSettingsPath(name)))
+        await using (var stream = _session.OpenWrite(FileNames.GetEndpointSettingsPath(key)))
         {
             await using var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
             settings.WriteTo(jsonWriter);
             await jsonWriter.FlushAsync(cancellationToken);
         }
 
-        _metadata = metadata with { Endpoints = metadata.Endpoints.Add(name) };
+        _metadata = metadata with { Endpoints = metadata.Endpoints.Add(key) };
         await SetArchiveMetadataAsync(_metadata, cancellationToken);
     }
 
     /// <summary>
     /// Tries to get an OpenAPI endpoint by name.
     /// </summary>
-    /// <param name="name">The name of the endpoint to retrieve.</param>
+    /// <param name="key">The key of the endpoint to retrieve.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>The OpenAPI endpoint if found, or null if not found.</returns>
-    /// <exception cref="ArgumentException">Thrown when name is invalid.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     public async Task<OpenApiEndpoint?> TryGetOpenApiEndpointAsync(
-        string name,
+        OpenApiEndpointKey key,
         CancellationToken cancellationToken = default)
     {
-        if (!NameValidator.IsValidName(name))
-        {
-            throw new ArgumentException($"The endpoint name '{name}' is invalid.", nameof(name));
-        }
-
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         var metadata = await GetArchiveMetadataAsync(cancellationToken);
 
-        if (metadata?.Endpoints.Contains(name) != true)
+        if (metadata?.Endpoints.Contains(key) != true)
         {
             return null;
         }
 
-        var operationPath = FileNames.GetEndpointOperationPath(name);
-        var settingsPath = FileNames.GetEndpointSettingsPath(name);
+        var documentPath = FileNames.GetEndpointDocumentPath(key);
+        var settingsPath = FileNames.GetEndpointSettingsPath(key);
 
-        if (!_session.Exists(operationPath) || !_session.Exists(settingsPath))
+        if (!_session.Exists(documentPath) || !_session.Exists(settingsPath))
         {
             return null;
         }
@@ -281,12 +269,12 @@ public sealed class OpenApiCollectionArchive : IDisposable
 
         try
         {
-            await using var operationStream = await _session.OpenReadAsync(
-                operationPath,
-                FileKind.Operation,
+            await using var documentStream = await _session.OpenReadAsync(
+                documentPath,
+                FileKind.Document,
                 cancellationToken);
-            await operationStream.CopyToAsync(buffer, cancellationToken);
-            var operation = buffer.WrittenMemory.ToArray();
+            await documentStream.CopyToAsync(buffer, cancellationToken);
+            var document = buffer.WrittenMemory.ToArray();
             buffer.Clear();
 
             await using var settingsStream = await _session.OpenReadAsync(
@@ -295,7 +283,7 @@ public sealed class OpenApiCollectionArchive : IDisposable
                 cancellationToken);
             var settings = await JsonDocument.ParseAsync(settingsStream, cancellationToken: cancellationToken);
 
-            return new OpenApiEndpoint(operation, settings);
+            return new OpenApiEndpoint(document, settings);
         }
         finally
         {
@@ -307,15 +295,18 @@ public sealed class OpenApiCollectionArchive : IDisposable
     /// Adds an OpenAPI model to the archive.
     /// </summary>
     /// <param name="name">The unique name for this model.</param>
-    /// <param name="fragment">The GraphQL fragment data to store.</param>
+    /// <param name="document">The GraphQL document to store.</param>
+    /// <param name="settings">The settings document for this model.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <exception cref="ArgumentException">Thrown when name is invalid.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when fragment is empty.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the GraphQL document is empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when settings is null.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the archive is read-only, metadata is not set, or model already exists.</exception>
     public async Task AddOpenApiModelAsync(
         string name,
-        ReadOnlyMemory<byte> fragment,
+        ReadOnlyMemory<byte> document,
+        JsonDocument settings,
         CancellationToken cancellationToken = default)
     {
         if (!NameValidator.IsValidName(name))
@@ -323,7 +314,8 @@ public sealed class OpenApiCollectionArchive : IDisposable
             throw new ArgumentException($"The model name '{name}' is invalid.", nameof(name));
         }
 
-        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(fragment.Length, 0);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(document.Length, 0);
+        ArgumentNullException.ThrowIfNull(settings);
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         EnsureMutable();
@@ -342,8 +334,17 @@ public sealed class OpenApiCollectionArchive : IDisposable
                 $"A model with the name '{name}' already exists in the archive.");
         }
 
-        await using var stream = _session.OpenWrite(FileNames.GetModelFragmentPath(name));
-        await stream.WriteAsync(fragment, cancellationToken);
+        await using (var stream = _session.OpenWrite(FileNames.GetModelDocumentPath(name)))
+        {
+            await stream.WriteAsync(document, cancellationToken);
+        }
+
+        await using (var stream = _session.OpenWrite(FileNames.GetModelSettingsPath(name)))
+        {
+            await using var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
+            settings.WriteTo(jsonWriter);
+            await jsonWriter.FlushAsync(cancellationToken);
+        }
 
         _metadata = metadata with { Models = metadata.Models.Add(name) };
         await SetArchiveMetadataAsync(_metadata, cancellationToken);
@@ -375,9 +376,10 @@ public sealed class OpenApiCollectionArchive : IDisposable
             return null;
         }
 
-        var fragmentPath = FileNames.GetModelFragmentPath(name);
+        var documentPath = FileNames.GetModelDocumentPath(name);
+        var settingsPath = FileNames.GetModelSettingsPath(name);
 
-        if (!_session.Exists(fragmentPath))
+        if (!_session.Exists(documentPath) || !_session.Exists(settingsPath))
         {
             return null;
         }
@@ -386,14 +388,21 @@ public sealed class OpenApiCollectionArchive : IDisposable
 
         try
         {
-            await using var fragmentStream = await _session.OpenReadAsync(
-                fragmentPath,
-                FileKind.Fragment,
+            await using var documentStream = await _session.OpenReadAsync(
+                documentPath,
+                FileKind.Document,
                 cancellationToken);
-            await fragmentStream.CopyToAsync(buffer, cancellationToken);
-            var fragment = buffer.WrittenMemory.ToArray();
+            await documentStream.CopyToAsync(buffer, cancellationToken);
+            var document = buffer.WrittenMemory.ToArray();
+            buffer.Clear();
 
-            return new OpenApiModel(fragment);
+            await using var settingsStream = await _session.OpenReadAsync(
+                settingsPath,
+                FileKind.Settings,
+                cancellationToken);
+            var settings = await JsonDocument.ParseAsync(settingsStream, cancellationToken: cancellationToken);
+
+            return new OpenApiModel(document, settings);
         }
         finally
         {

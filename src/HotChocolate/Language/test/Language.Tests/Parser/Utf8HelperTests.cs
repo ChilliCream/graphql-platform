@@ -427,9 +427,6 @@ public class Utf8HelperTests
         var inputData = "hello\\qworld"u8.ToArray();
         var outputBuffer = new byte[inputData.Length];
 
-        var input = new ReadOnlySpan<byte>(inputData);
-        var output = new Span<byte>(outputBuffer);
-
         // act & assert
         Assert.Throws<Utf8EncodingException>(() =>
         {

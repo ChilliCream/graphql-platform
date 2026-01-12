@@ -119,6 +119,7 @@ resharper_enforce_if_statement_braces_highlighting = error
 resharper_enforce_lock_statement_braces_highlighting = error
 resharper_enforce_using_statement_braces_highlighting = error
 resharper_enforce_while_statement_braces_highlighting = error
+resharper_unused_variable_highlighting = warning
 resharper_use_utf8_string_literal_highlighting = error
 resharper_use_verbatim_string_highlighting = error
 
@@ -182,6 +183,8 @@ dotnet_diagnostic.CA1513.severity = warning
 # Do not initialize unnecessarily.
 dotnet_diagnostic.CA1805.severity = warning
 dotnet_diagnostic.RCS1129.severity = none
+# Use StringBuilder.Append(char) for single character strings.
+dotnet_diagnostic.CA1834.severity = warning
 # Simplify name.
 dotnet_diagnostic.IDE0001.severity = warning
 # Simplify member access.
@@ -227,6 +230,8 @@ dotnet_diagnostic.IDE0074.severity = warning
 dotnet_diagnostic.IDE0079.severity = none # see https://github.com/dotnet/roslyn/issues/75887
 # Use pattern matching (not operator).
 dotnet_diagnostic.IDE0083.severity = warning
+# Remove unnecessary discard.
+dotnet_diagnostic.IDE0110.severity = warning
 # Remove unnecessary lambda expression.
 dotnet_diagnostic.IDE0200.severity = warning
 # Struct can be made 'readonly'.
@@ -261,6 +266,9 @@ dotnet_diagnostic.IDE0053.severity = none # see https://github.com/dotnet/roslyn
 dotnet_diagnostic.RCS1031.severity = warning
 # Simplify boolean comparison.
 dotnet_diagnostic.RCS1049.severity = warning
+# Include/omit parentheses when creating new object.
+dotnet_diagnostic.RCS1050.severity = warning
+roslynator_object_creation_parentheses_style = omit
 # Remove redundant 'ToString' call.
 dotnet_diagnostic.RCS1097.severity = warning
 # Mark local variable as const.
@@ -277,6 +285,8 @@ dotnet_diagnostic.RCS1187.severity = warning
 dotnet_diagnostic.RCS1192.severity = warning
 # Order named arguments according to the order of parameters.
 dotnet_diagnostic.RCS1205.severity = warning
+# Unnecessary interpolated string.
+dotnet_diagnostic.RCS1214.severity = warning
 # Convert interpolated string to concatenation.
 dotnet_diagnostic.RCS1217.severity = warning
 # Unnecessary null-forgiving operator.

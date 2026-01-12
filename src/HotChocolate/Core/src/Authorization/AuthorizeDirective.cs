@@ -99,7 +99,7 @@ public sealed class AuthorizeDirective
             sb.Append(policy);
         }
 
-        sb.Append(";");
+        sb.Append(';');
 
         if (roles is not null)
         {
@@ -109,7 +109,7 @@ public sealed class AuthorizeDirective
 
                 if (i < roles.Count - 1)
                 {
-                    sb.Append(",");
+                    sb.Append(',');
                 }
             }
         }

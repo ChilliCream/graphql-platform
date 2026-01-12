@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
-    <ProjectReference Include="..\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />
+    <ProjectReference Include="..\Adapters.OpenApi.AspNetCore\HotChocolate.Adapters.OpenApi.AspNetCore.csproj" />
   </ItemGroup>
 
 </Project>

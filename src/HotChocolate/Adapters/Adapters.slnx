@@ -1,22 +1,25 @@
 <Solution>
   <Folder Name="/src/" />
   <Folder Name="/src/Adapters.Mcp/">
-    <Project Path="src\Adapters.Mcp.Core\HotChocolate.Adapters.Mcp.Core.csproj" />
     <Project Path="src\Adapters.Mcp\HotChocolate.Adapters.Mcp.csproj" />
+    <Project Path="src\Adapters.Mcp.Core\HotChocolate.Adapters.Mcp.Core.csproj" />
+    <Project Path="src\Adapters.Mcp.Packaging\HotChocolate.Adapters.Mcp.Packaging.csproj" />
     <Project Path="src\Fusion.Adapters.Mcp\HotChocolate.Fusion.Adapters.Mcp.csproj" />
   </Folder>
   <Folder Name="/src/Adapters.OpenApi/">
-    <Project Path="src\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />
     <Project Path="src\Adapters.OpenApi\HotChocolate.Adapters.OpenApi.csproj" />
+    <Project Path="src\Adapters.OpenApi.AspNetCore\HotChocolate.Adapters.OpenApi.AspNetCore.csproj" />
+    <Project Path="src\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />
     <Project Path="src\Adapters.OpenApi.Packaging\HotChocolate.Adapters.OpenApi.Packaging.csproj" />
     <Project Path="src\Fusion.Adapters.OpenApi\HotChocolate.Fusion.Adapters.OpenApi.csproj" />
   </Folder>
   <Folder Name="/test/" />
   <Folder Name="/test/Adapters.Mcp.Tests/">
+    <Project Path="test\Adapters.Mcp.Packaging.Tests\HotChocolate.Adapters.Mcp.Packaging.Tests.csproj" />
     <Project Path="test\Adapters.Mcp.Tests\HotChocolate.Adapters.Mcp.Tests.csproj" />
   </Folder>
   <Folder Name="/test/Adapters.OpenApi.Tests/">
-    <Project Path="test\Adapters.OpenApi.Tests\HotChocolate.Adapters.OpenApi.Tests.csproj" />
     <Project Path="test\Adapters.OpenApi.Packaging.Tests\HotChocolate.Adapters.OpenApi.Packaging.Tests.csproj" />
+    <Project Path="test\Adapters.OpenApi.Tests\HotChocolate.Adapters.OpenApi.Tests.csproj" />
   </Folder>
 </Solution>

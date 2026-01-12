@@ -163,13 +163,7 @@ public class SchemaSerializerTests
     [Fact]
     public async Task SerializeTypes_Types_Is_Null()
     {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddDocumentFromString(FileResource.Open("serialize_schema_with_mutation.graphql"))
-            .Use(next => next)
-            .Create();
-
-        // act
+        // arrange & act
         await using var stream = new MemoryStream();
         async Task Fail() => await SchemaPrinter.PrintAsync(
             default(IEnumerable<ITypeDefinition>),

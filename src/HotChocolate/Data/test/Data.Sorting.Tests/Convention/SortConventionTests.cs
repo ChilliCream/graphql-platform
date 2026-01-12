@@ -158,13 +158,6 @@ public class SortConventionTests
     public void SortConvention_Should_Fail_When_NoProviderWasRegistered()
     {
         // arrange
-        var provider = new QueryableSortProvider(
-            descriptor =>
-            {
-                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
-                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
-            });
-
         var convention = new SortConvention(
             descriptor =>
             {
