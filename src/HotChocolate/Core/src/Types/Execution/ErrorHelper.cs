@@ -181,12 +181,8 @@ internal static class ErrorHelper
                 Extensions = ImmutableDictionary<string, object?>.Empty.Add("code", ErrorCodes.Execution.Timeout)
             });
 
-    // TODO : Remove?
-    public static IError NonNullOutputFieldViolation(Path? path, FieldNode selection)
+    public static ErrorBuilder NonNullOutputFieldViolation()
         => ErrorBuilder.New()
             .SetMessage("Cannot return null for non-nullable field.")
-            .SetCode(ErrorCodes.Execution.NonNullViolation)
-            .SetPath(path)
-            .AddLocation(selection)
-            .Build();
+            .SetCode(ErrorCodes.Execution.NonNullViolation);
 }

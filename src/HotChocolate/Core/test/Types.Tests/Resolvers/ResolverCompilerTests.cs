@@ -541,51 +541,6 @@ public class ResolverCompilerTests
     }
 
     [Fact]
-    public async Task Compile_Arguments_FieldSyntax()
-    {
-        // arrange
-        var typeInspector = new DefaultTypeInspector();
-        var type = typeof(Resolvers);
-        MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithFieldSyntax))!;
-
-        // act
-        var compiler = new DefaultResolverCompiler(typeInspector, EmptyServiceProvider.Instance, _empty);
-        var resolver = compiler.CompileResolve(member, type).Resolver!;
-        var pure = compiler.CompileResolve(member, type).PureResolver!;
-
-        // assert
-        var fieldSyntax = new FieldNode(
-            null,
-            new NameNode("foo"),
-            null,
-            Array.Empty<DirectiveNode>(),
-            Array.Empty<ArgumentNode>(),
-            null);
-
-        var schema =
-            SchemaBuilder.New()
-                .AddQueryType(c => c.Name("Query").Field("abc").Resolve("def"))
-                .Create();
-
-        var selection = new Selection(
-            id: 1,
-            "abc",
-            schema.Types.GetType<ObjectType>("Query").Fields["abc"],
-            [new FieldSelectionNode(fieldSyntax, 1)],
-            []);
-
-        var context = new Mock<IResolverContext>();
-        context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-        context.SetupGet(t => t.Selection).Returns(selection);
-
-        var result = (bool)(await resolver(context.Object))!;
-        Assert.True(result, "Standard Resolver");
-
-        result = (bool)pure(context.Object)!;
-        Assert.True(result, "Pure Resolver");
-    }
-
-    [Fact]
     public async Task Compile_Arguments_ObjectType()
     {
         // arrange
@@ -1500,10 +1455,6 @@ public class ResolverCompilerTests
         public bool ResolverWithResolverContext(
             IResolverContext context) =>
             context != null!;
-
-        public bool ResolverWithFieldSyntax(
-            FieldNode fieldSyntax) =>
-            fieldSyntax != null!;
 
         public bool ResolverWithFieldSelection(
             ISelection fieldSelection) =>

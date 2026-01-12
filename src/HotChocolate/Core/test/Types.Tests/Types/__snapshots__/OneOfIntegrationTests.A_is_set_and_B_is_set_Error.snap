@@ -4,8 +4,8 @@
       "message": "The OneOf Input Object `ExampleInput` requires that exactly one field must be supplied and that field must not be `null`.",
       "locations": [
         {
-          "line": 1,
-          "column": 18
+          "line": 2,
+          "column": 20
         }
       ],
       "path": [

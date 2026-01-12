@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "Int cannot parse the given literal of type `StringValueNode`.",
+      "message": "Int cannot coerce the given value JSON element of type `String` to a runtime value.",
       "path": [
         "var",
         "b"

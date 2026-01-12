@@ -255,7 +255,7 @@ public sealed partial class ResultDocument : IDisposable
 
         var tokenType = _metaDb.GetElementTokenType(current);
 
-        if (tokenType is ElementTokenType.Null)
+        if (tokenType is ElementTokenType.Null or ElementTokenType.None)
         {
             return true;
         }

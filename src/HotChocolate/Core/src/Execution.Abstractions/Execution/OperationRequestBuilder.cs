@@ -157,9 +157,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
         [StringSyntax("json")] string variableValues)
     {
         ArgumentException.ThrowIfNullOrEmpty(variableValues);
-
-        using var document = JsonDocument.Parse(variableValues);
-        return SetVariableValues(document);
+        return SetVariableValues(JsonDocument.Parse(variableValues));
     }
 
     /// <summary>

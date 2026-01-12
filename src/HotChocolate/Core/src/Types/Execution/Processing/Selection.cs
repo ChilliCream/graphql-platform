@@ -220,7 +220,7 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// <c>true</c> if this selection should be included; otherwise, <c>false</c>.
     /// </returns>
     public bool IsSkipped(ulong includeFlags)
-        => IsIncluded(includeFlags);
+        => !IsIncluded(includeFlags);
 
     /// <inheritdoc />
     public bool IsIncluded(ulong includeFlags)

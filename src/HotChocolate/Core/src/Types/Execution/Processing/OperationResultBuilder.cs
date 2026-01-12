@@ -31,7 +31,6 @@ internal sealed class OperationResultBuilder : IOperationResultBuilder
 
     public ImmutableList<Func<ValueTask>> CleanupTasks { get; set; } = [];
 
-    // TODO : Is this still needed?
     public ImmutableHashSet<Path> NonNullViolations { get; set; } = [];
 
     public bool? HasNext { get; set; }
@@ -65,40 +64,6 @@ internal sealed class OperationResultBuilder : IOperationResultBuilder
         lock (_sync)
         {
             Extensions = Extensions.SetItem(key, value);
-        }
-    }
-
-    public void SetExtension<TValue>(string key, UpdateState<TValue> value)
-    {
-        lock (_sync)
-        {
-            if (Extensions.TryGetValue(key, out var currentValue))
-            {
-                var newValue = value(key, (TValue)currentValue!);
-                Extensions = Extensions.SetItem(key, newValue);
-            }
-            else
-            {
-                var initialValue = value(key, default!);
-                Extensions = Extensions.Add(key, initialValue);
-            }
-        }
-    }
-
-    public void SetExtension<TValue, TState>(string key, TState state, UpdateState<TValue, TState> value)
-    {
-        lock (_sync)
-        {
-            if (Extensions.TryGetValue(key, out var currentValue))
-            {
-                var newValue = value(key, (TValue)currentValue!, state);
-                Extensions = Extensions.SetItem(key, newValue);
-            }
-            else
-            {
-                var initialValue = value(key, default!, state);
-                Extensions = Extensions.Add(key, initialValue);
-            }
         }
     }
 

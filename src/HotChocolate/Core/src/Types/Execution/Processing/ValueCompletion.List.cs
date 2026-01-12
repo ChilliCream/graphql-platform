@@ -133,7 +133,7 @@ internal static partial class ValueCompletion
 
     internal static void PropagateNullValues(ResultElement result)
     {
-        result.Invalidate();
+        result.SetNullValue();
 
         do
         {
