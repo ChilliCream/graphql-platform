@@ -368,9 +368,8 @@ public static class SymbolExtensions
 
     private static string? GetXmlDocumentationFromSyntax(ISymbol symbol)
     {
-        // Note: One currently can't use GetDocumentationCommentXml in source generators for any other assembly than the SG-assembly itself.
-        // See https://github.com/dotnet/roslyn/issues/23673 and https://github.com/dotnet/roslyn/issues/23673#issuecomment-2108664480
-        // "Syntax is not available for symbols defined outside the current project (including cases where the symbol is defined in a different project in the same solution)"
+        // Note: One currently can't use GetDocumentationCommentXml in source generators.
+        // See https://github.com/dotnet/roslyn/issues/23673
         var syntax = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
         while (syntax is VariableDeclaratorSyntax vds)
         {
@@ -379,8 +378,8 @@ public static class SymbolExtensions
 
         if (syntax == null || syntax.SyntaxTree.Options.DocumentationMode == DocumentationMode.None)
         {
-            // See https://github.com/dotnet/roslyn/issues/58210, for DocumentationMode.None we can`t reliably extract the xml doc
-            // It is possible with heuristics, tough (inspecting Mulit-/SingleLineCommentTrivia)
+            // See https://github.com/dotnet/roslyn/issues/58210,
+            // for DocumentationMode.None we can't reliably extract the XML doc header.
             return null;
         }
 
