@@ -1764,7 +1764,7 @@ type McpFeatureCollectionValidationEntityValidationError implements McpFeatureCo
   message: String!
 }
 
-type McpFeatureCollectionValidationProcessingError implements McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationValidationError & ProcessingError {
+type McpFeatureCollectionValidationError implements McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationValidationError & ProcessingError {
   collections: [McpFeatureCollectionValidationCollection!]!
   message: String!
 }
@@ -3726,7 +3726,7 @@ union EnumValueChange = DeprecatedChange | DescriptionChanged
 
 union FieldChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DeprecatedChange | DescriptionChanged | TypeChanged
 
-union FusionConfigurationDeploymentError = PersistedQueryValidationError | SchemaChangeViolationError | InvalidGraphQLSchemaError | McpFeatureCollectionValidationProcessingError
+union FusionConfigurationDeploymentError = PersistedQueryValidationError | SchemaChangeViolationError | InvalidGraphQLSchemaError | McpFeatureCollectionValidationError
 
 union InputFieldChange = DeprecatedChange | DescriptionChanged | TypeChanged
 
@@ -3734,7 +3734,7 @@ union InputObjectChange = DescriptionChanged | FieldAddedChange | FieldRemovedCh
 
 union InterfaceChange = DescriptionChanged | FieldAddedChange | FieldRemovedChange | InterfaceImplementationAdded | InterfaceImplementationRemoved | OutputFieldChanged | PossibleTypeAdded | PossibleTypeRemoved
 
-union McpFeatureCollectionDeploymentError = McpFeatureCollectionValidationProcessingError
+union McpFeatureCollectionDeploymentError = McpFeatureCollectionValidationError
 
 union ObjectChange = DescriptionChanged | FieldAddedChange | FieldRemovedChange | InterfaceImplementationAdded | InterfaceImplementationRemoved | OutputFieldChanged
 
@@ -3774,7 +3774,7 @@ union ScalarChange = DescriptionChanged
 
 union SchemaChangeLogEntry = DirectiveModifiedChange | EnumModifiedChange | InputObjectModifiedChange | InterfaceModifiedChange | ObjectModifiedChange | ScalarModifiedChange | TypeSystemMemberAddedChange | TypeSystemMemberModifiedChange | TypeSystemMemberRemovedChange | UnionModifiedChange
 
-union SchemaDeploymentError = PersistedQueryValidationError | SchemaChangeViolationError | OperationsAreNotAllowedError | SchemaVersionSyntaxError | InvalidGraphQLSchemaError | McpFeatureCollectionValidationProcessingError
+union SchemaDeploymentError = PersistedQueryValidationError | SchemaChangeViolationError | OperationsAreNotAllowedError | SchemaVersionSyntaxError | InvalidGraphQLSchemaError | McpFeatureCollectionValidationError
 
 union SchemaMemberChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DescriptionChanged | DirectiveLocationAdded | DirectiveLocationRemoved | EnumValueAdded | EnumValueChanged | EnumValueRemoved | FieldAddedChange | FieldRemovedChange | InputFieldChanged | InterfaceImplementationAdded | InterfaceImplementationRemoved | OutputFieldChanged | PossibleTypeAdded | PossibleTypeRemoved | UnionMemberAdded | UnionMemberRemoved
 
