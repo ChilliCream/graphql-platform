@@ -5,7 +5,6 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Text.Json;
-using HotChocolate.Types.Composite;
 using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
