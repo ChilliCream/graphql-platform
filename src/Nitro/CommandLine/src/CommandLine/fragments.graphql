@@ -675,3 +675,7 @@ fragment SchemaChangeViolationError on SchemaChangeViolationError {
     ...SchemaChangeLogEntry
   }
 }
+
+fragment InvalidFusionSourceSchemaArchiveError on InvalidFusionSourceSchemaArchiveError {
+  message
+}

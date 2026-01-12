@@ -1,11 +1,7 @@
-using System.Collections.Immutable;
 using System.Text;
 using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
-using HotChocolate.Fusion;
-using HotChocolate.Fusion.Packaging;
 using HotChocolate.Fusion.SourceSchema.Packaging;
 using StrawberryShake;
 using static ChilliCream.Nitro.CommandLine.CommandLineResources;
@@ -17,7 +13,7 @@ public sealed class FusionUploadCommand : Command
 {
     public FusionUploadCommand() : base("upload")
     {
-        Description = "Upload source schemas for a new Fusion configuration version";
+        Description = "Upload a source schema for a later composition.";
 
         var workingDirectoryOption = new Option<string>("--working-directory")
         {
@@ -83,7 +79,17 @@ public sealed class FusionUploadCommand : Command
     {
         if (string.IsNullOrEmpty(workingDirectory))
         {
-            throw new ExitException("Expected a non-empty value for the '--working-directory'.");
+            throw new ExitException("Expected a non-empty value for '--working-directory'.");
+        }
+
+        if (string.IsNullOrEmpty(apiId))
+        {
+            throw new ExitException("Expected a non-empty value for '--api-id'.");
+        }
+
+        if (string.IsNullOrEmpty(tag))
+        {
+            throw new ExitException("Expected a non-empty value for '--tag'.");
         }
 
         console.Title("Upload source schema");
@@ -115,7 +121,15 @@ public sealed class FusionUploadCommand : Command
             var sourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
                 [sourceSchemaFilePath],
                 cancellationToken);
-            var sourceSchema = sourceSchemas.First().Value;
+
+            if (sourceSchemas.Count < 1)
+            {
+                throw new ExitException($"Could not find a source schema at '{sourceSchemaFilePath}'.");
+            }
+
+            console.Log($"Uploading source schema at '{sourceSchemaFilePath}'...");
+
+            var sourceSchema = sourceSchemas.Values.First();
 
             await using var archiveStream = new MemoryStream();
             var archive = FusionSourceSchemaArchive.Create(archiveStream, leaveOpen: true);
@@ -131,21 +145,20 @@ public sealed class FusionUploadCommand : Command
 
             archiveStream.Position = 0;
 
-            // TODO: Use new mutation once available
-            var input = new UploadClientInput
+            var input = new UploadFusionSubgraphInput
             {
-                Operations = new Upload(archiveStream, "source-schema.zip"),
-                ClientId = apiId,
+                Archive = new Upload(archiveStream, "source-schema.zip"),
+                ApiId = apiId,
                 Tag = tag
             };
 
-            var result = await client.UploadClient.ExecuteAsync(input, cancellationToken);
+            var result = await client.UploadFusionSubgraph.ExecuteAsync(input, cancellationToken);
 
             console.EnsureNoErrors(result);
             var data = console.EnsureData(result);
-            console.PrintErrorsAndExit(data.UploadClient.Errors);
+            console.PrintErrorsAndExit(data.UploadFusionSubgraph.Errors);
 
-            if (data.UploadClient.ClientVersion?.Id is null)
+            if (data.UploadFusionSubgraph.FusionSubgraphVersion?.Id is null)
             {
                 throw new ExitException("Upload of source schema failed!");
             }
