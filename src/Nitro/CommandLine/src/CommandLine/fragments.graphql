@@ -410,6 +410,7 @@ fragment PersistedQueryValidationError on PersistedQueryValidationError {
     }
   }
 }
+
 fragment ClientVersionValidationFailed on ClientVersionValidationFailed {
   state
   errors {
@@ -464,6 +465,10 @@ fragment WaitForApproval on WaitForApproval {
         ...InvalidGraphQLSchemaError
         ...PersistedQueryValidationError
       }
+    }
+    ... on McpFeatureCollectionDeployment {
+      # TODO: We need to query for errors here
+      __typename
     }
   }
 }
@@ -673,5 +678,42 @@ fragment SchemaChangeViolationError on SchemaChangeViolationError {
   message
   changes {
     ...SchemaChangeLogEntry
+  }
+}
+
+fragment McpFeatureCollectionNotFoundError on McpFeatureCollectionNotFoundError {
+  mcpFeatureCollectionId
+  ...Error
+}
+
+fragment McpFeatureCollectionVersionNotFoundError on McpFeatureCollectionVersionNotFoundError {
+  tag
+  message
+  mcpFeatureCollectionId
+  ...Error
+}
+
+fragment McpFeatureCollectionVersionValidationFailed on McpFeatureCollectionVersionValidationFailed {
+  state
+  errors {
+    ...ProcessingTimeoutError
+    ...UnexpectedProcessingError
+  }
+}
+
+fragment McpFeatureCollectionVersionValidationSuccess on McpFeatureCollectionVersionValidationSuccess {
+  state
+}
+
+fragment McpFeatureCollectionVersionPublishSuccess on McpFeatureCollectionVersionPublishSuccess {
+  state
+}
+
+fragment McpFeatureCollectionVersionPublishFailed on McpFeatureCollectionVersionPublishFailed {
+  state
+  errors {
+    ...UnexpectedProcessingError
+    ...ProcessingTimeoutError
+    ...ConcurrentOperationError
   }
 }

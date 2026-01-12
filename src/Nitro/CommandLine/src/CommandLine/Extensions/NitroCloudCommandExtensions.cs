@@ -7,6 +7,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Fusion;
 using ChilliCream.Nitro.CommandLine.Commands.Launch;
 using ChilliCream.Nitro.CommandLine.Commands.Login;
 using ChilliCream.Nitro.CommandLine.Commands.Logout;
+using ChilliCream.Nitro.CommandLine.Commands.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Mocks;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.Schemas;
@@ -51,6 +52,7 @@ public static class NitroCloudCommandExtensions
         command.AddCommand(new SchemaCommand());
         command.AddCommand(new StageCommand());
         command.AddCommand(new WorkspaceCommand());
+        command.AddCommand(new McpCommand());
     }
 
     internal static void AddNitroCloudDefaultOptions(this Command command)

@@ -1,0 +1,27 @@
+query ListMcpFeatureCollectionCommandQuery($apiId: ID!, $after: String, $first: Int) {
+  node(id: $apiId) {
+    ... on Api {
+      mcpFeatureCollections(first: $first, after: $after) {
+        edges {
+          ...ListMcpFeatureCollectionCommandQuery_McpFeatureCollectionEdge
+        }
+        pageInfo {
+          ...PageInfo
+        }
+      }
+    }
+  }
+}
+
+fragment ListMcpFeatureCollectionCommandQuery_McpFeatureCollectionEdge on ApiMcpFeatureCollectionsEdge {
+  cursor
+  node {
+    ...ListMcpFeatureCollectionCommandQuery_McpFeatureCollection
+  }
+}
+
+fragment ListMcpFeatureCollectionCommandQuery_McpFeatureCollection on McpFeatureCollection {
+  id
+  name
+  ...McpFeatureCollectionDetailPrompt_McpFeatureCollection
+}

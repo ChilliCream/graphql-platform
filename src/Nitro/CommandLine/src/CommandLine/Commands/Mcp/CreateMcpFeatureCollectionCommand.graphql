@@ -1,0 +1,18 @@
+mutation CreateMcpFeatureCollectionCommandMutation($input: CreateMcpFeatureCollectionInput!) {
+  createMcpFeatureCollection(input: $input) {
+    mcpFeatureCollection {
+      ...CreateMcpFeatureCollectionCommandMutation_McpFeatureCollection
+    }
+    errors {
+      ...Error
+      ...ApiNotFoundError
+      ...UnauthorizedOperation
+    }
+  }
+}
+
+fragment CreateMcpFeatureCollectionCommandMutation_McpFeatureCollection on McpFeatureCollection {
+  name
+  id
+  ...McpFeatureCollectionDetailPrompt_McpFeatureCollection
+}
