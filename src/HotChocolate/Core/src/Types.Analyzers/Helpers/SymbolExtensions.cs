@@ -5,6 +5,7 @@ using System.Xml.Linq;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.SymbolDisplayFormat;
 using static Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions;
 
@@ -225,7 +226,7 @@ public static class SymbolExtensions
             return null;
         }
 
-        var xml = symbol.GetDocumentationCommentXml();
+        var xml = GetXmlDocumentationFromSyntax(symbol);
         if (string.IsNullOrEmpty(xml))
         {
             return null;
@@ -365,6 +366,47 @@ public static class SymbolExtensions
         }
     }
 
+    private static string? GetXmlDocumentationFromSyntax(ISymbol symbol)
+    {
+        // Note: One currently can't use GetDocumentationCommentXml in source generators for any other assembly than the SG-assembly itself.
+        // See https://github.com/dotnet/roslyn/issues/23673 and https://github.com/dotnet/roslyn/issues/23673#issuecomment-2108664480
+        // "Syntax is not available for symbols defined outside the current project (including cases where the symbol is defined in a different project in the same solution)"
+        var syntax = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+        while (syntax is VariableDeclaratorSyntax vds)
+        {
+            syntax = vds.Parent?.Parent;
+        }
+
+        if (syntax == null || syntax.SyntaxTree.Options.DocumentationMode == DocumentationMode.None)
+        {
+            // See https://github.com/dotnet/roslyn/issues/58210, for DocumentationMode.None we can`t reliably extract the xml doc
+            // It is possible with heuristics, tough (inspecting Mulit-/SingleLineCommentTrivia)
+            return null;
+        }
+
+        var trivia = syntax.GetLeadingTrivia();
+        StringBuilder? builder = null;
+        foreach (var comment in trivia)
+        {
+            if (comment.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                || comment.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+            {
+                var stringComment = comment.ToString();
+                foreach (var s in stringComment.Split('\n'))
+                {
+                    builder ??= new StringBuilder();
+                    builder.Append(s.TrimStart().Replace("///", string.Empty));
+                    builder.Append('\n');
+                }
+            }
+        }
+
+        return builder?
+            .Insert(0, "<member>")
+            .Append("</member>")
+            .ToString();
+    }
+
     /// <summary>
     /// Resolves an inheritdoc element by finding the referenced member.
     /// </summary>
@@ -378,7 +420,7 @@ public static class SymbolExtensions
         var crefAttr = inheritdocElement.Attribute("cref");
         if (crefAttr != null)
         {
-            var referencedSymbol = ResolveDocumentationId(crefAttr.Value, compilation);
+            var referencedSymbol = ResolveDocumentationId(crefAttr.Value, compilation, symbol);
             if (referencedSymbol != null)
             {
                 return GetSummaryDocumentationWithInheritanceCore(referencedSymbol, compilation, visited);
@@ -494,16 +536,108 @@ public static class SymbolExtensions
     /// Resolves a documentation ID (cref value) to a symbol.
     /// Handles format like "T:Namespace.Type", "M:Namespace.Type.Method", "T:Namespace.Type`1", etc.
     /// </summary>
-    private static ISymbol? ResolveDocumentationId(string documentationId, Compilation compilation)
+    private static ISymbol? ResolveDocumentationId(string documentationId, Compilation compilation, ISymbol contextSymbol)
     {
         if (string.IsNullOrEmpty(documentationId))
         {
             return null;
         }
 
-        // Documentation ID format: Prefix:FullyQualifiedName
-        // Prefixes: T: (type), M: (method), P: (property), F: (field), E: (event)#
-        return DocumentationCommentId.GetSymbolsForDeclarationId(documentationId, compilation).FirstOrDefault();
+        if (documentationId.Length > 1 && documentationId[1] == ':')
+        {
+            documentationId = documentationId.Substring(2);
+        }
+
+        var result = compilation.GetTypeByMetadataName(documentationId) ??
+            ResolveMemberSymbol(documentationId, compilation) ??
+            ResolveMethodSymbol(documentationId, compilation);
+
+        var @namespace = contextSymbol.ContainingNamespace?.ToString();
+        if (result == null && !string.IsNullOrEmpty(@namespace) && !documentationId.StartsWith(@namespace))
+        {
+            documentationId = @namespace + "." + documentationId;
+            result = compilation.GetTypeByMetadataName(documentationId) ??
+                ResolveMemberSymbol(documentationId, compilation) ??
+                ResolveMethodSymbol(documentationId, compilation);
+        }
+
+        return result;
+    }
+
+    private static ISymbol? ResolveMethodSymbol(string documentationId, Compilation compilation)
+    {
+        if (string.IsNullOrEmpty(documentationId))
+        {
+            return null;
+        }
+
+        var openParenthesisIndex = documentationId.LastIndexOf('(');
+        var qualifiedName = openParenthesisIndex >= 0
+            ? documentationId.Substring(0, openParenthesisIndex)
+            : documentationId;
+
+        var lastDotIndex = qualifiedName.LastIndexOf('.');
+        if (lastDotIndex < 0)
+        {
+            return null;
+        }
+
+        var typeName = qualifiedName.Substring(0, lastDotIndex);
+        var methodName = qualifiedName.Substring(lastDotIndex + 1);
+
+        var typeSymbol = ResolveTypeSymbol(typeName, compilation);
+        if (typeSymbol == null)
+        {
+            return null;
+        }
+
+        return typeSymbol
+            .GetMembers(methodName)
+            .OfType<IMethodSymbol>()
+            .FirstOrDefault(m => m.ToString() == documentationId);
+    }
+
+    private static ISymbol? ResolveMemberSymbol(string documentationId, Compilation compilation)
+    {
+        var lastDotIndex = documentationId.LastIndexOf('.');
+        if (lastDotIndex < 0)
+        {
+            return null;
+        }
+
+        var typeName = documentationId.Substring(0, lastDotIndex);
+        var memberName = documentationId.Substring(lastDotIndex + 1);
+
+        var typeSymbol = ResolveTypeSymbol(typeName, compilation);
+        return typeSymbol?.GetMembers(memberName).FirstOrDefault();
+    }
+
+    private static INamedTypeSymbol? ResolveTypeSymbol(string typeName, Compilation compilation)
+    {
+        // Non-nested type
+        var symbol = compilation.GetTypeByMetadataName(typeName);
+        if (symbol != null)
+        {
+            return symbol;
+        }
+
+        // Nested type
+        var nestedName = typeName;
+        while (true)
+        {
+            var lastDot = nestedName.LastIndexOf('.');
+            if (lastDot < 0)
+            {
+                return null;
+            }
+
+            nestedName = nestedName.Remove(lastDot, 1).Insert(lastDot, "+");
+            symbol = compilation.GetTypeByMetadataName(nestedName);
+            if (symbol != null)
+            {
+                return symbol;
+            }
+        }
     }
 
     public static bool IsNullableType(this ITypeSymbol typeSymbol)
