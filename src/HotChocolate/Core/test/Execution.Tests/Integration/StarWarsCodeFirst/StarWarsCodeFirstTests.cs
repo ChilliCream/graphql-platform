@@ -1039,7 +1039,7 @@ public class StarWarsCodeFirstTests
         var resultB = await executor.ExecuteAsync(requestB);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(resultA).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(resultA).Errors);
         Assert.NotNull(Assert.IsType<OperationResult>(resultB).Errors);
     }
 
