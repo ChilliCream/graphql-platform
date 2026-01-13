@@ -2,10 +2,10 @@
   "errors": [
     {
       "message": "The fields ``field3`, `field4`` do not exist on the type `TestInput`.",
-      "path": [
-        "root"
-      ],
       "extensions": {
+        "inputPath": [
+          "root"
+        ],
         "type": "TestInput"
       }
     }

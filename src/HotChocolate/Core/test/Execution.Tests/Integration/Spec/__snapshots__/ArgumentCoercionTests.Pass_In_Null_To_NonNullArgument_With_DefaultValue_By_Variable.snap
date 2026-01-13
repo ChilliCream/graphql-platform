@@ -1,16 +1,12 @@
 {
   "errors": [
     {
-      "message": "Variable `a` is required.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 8
-        }
-      ],
+      "message": "Cannot accept null for non-nullable input.",
       "extensions": {
         "code": "HC0018",
-        "variable": "a"
+        "inputPath": [
+          "a"
+        ]
       }
     }
   ]

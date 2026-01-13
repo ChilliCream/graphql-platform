@@ -2,11 +2,11 @@
   "errors": [
     {
       "message": "Cannot accept null for non-nullable input.",
-      "path": [
-        "user"
-      ],
       "extensions": {
-        "code": "HC0018"
+        "code": "HC0018",
+        "inputPath": [
+          "user"
+        ]
       }
     }
   ]
