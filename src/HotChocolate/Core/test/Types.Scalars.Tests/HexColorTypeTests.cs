@@ -16,33 +16,6 @@ public class HexColorTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
-    [InlineData(typeof(FloatValueNode), 1d, false)]
-    [InlineData(typeof(IntValueNode), 1, false)]
-    [InlineData(typeof(BooleanValueNode), true, false)]
-    [InlineData(typeof(StringValueNode), "", false)]
-    [InlineData(typeof(StringValueNode), "#000", true)]
-    [InlineData(typeof(StringValueNode), "#FFFFFF", true)]
-    [InlineData(typeof(StringValueNode), "#A52A2A", true)]
-    [InlineData(typeof(StringValueNode), "#800080", true)]
-    [InlineData(typeof(StringValueNode), "#09C", true)]
-    [InlineData(typeof(StringValueNode), "#0099CC", true)]
-    [InlineData(typeof(StringValueNode), "#FFA500", true)]
-    [InlineData(typeof(NullValueNode), null, true)]
-    public void IsValueCompatible_GivenValueNode_MatchExpected(
-        Type type,
-        object? value,
-        bool expected)
-    {
-        // arrange
-        var valueNode = CreateValueNode(type, value);
-
-        // act
-        // assert
-        ExpectIsInstanceOfTypeToMatch<HexColorType>(valueNode, expected);
-    }
-
-    [Theory]
     [InlineData(typeof(StringValueNode), "#000", "#000")]
     [InlineData(typeof(StringValueNode), "#FFFFFF", "#FFFFFF")]
     [InlineData(typeof(StringValueNode), "#A52A2A", "#A52A2A")]
@@ -51,7 +24,6 @@ public class HexColorTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "#0099CC", "#0099CC")]
     [InlineData(typeof(StringValueNode), "#FFA500", "#FFA500")]
     [InlineData(typeof(StringValueNode), "#CcC", "#CcC")]
-    [InlineData(typeof(NullValueNode), null, null)]
     public void CoerceInputLiteral_GivenValueNode_MatchExpected(
         Type type,
         object? value,
@@ -62,7 +34,7 @@ public class HexColorTypeTests : ScalarTypeTestBase
 
         // act
         // assert
-        ExpectParseLiteralToMatch<HexColorType>(valueNode, expected);
+        ExpectCoerceInputLiteralToMatch<HexColorType>(valueNode, expected);
     }
 
     [Theory]
@@ -77,14 +49,14 @@ public class HexColorTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "#009CC")]
     [InlineData(typeof(StringValueNode), "#80 00 80")]
     [InlineData(typeof(StringValueNode), "#0000")]
-    public void CoerceInputLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
+    public void CoerceInputLiteral_GivenValueNode_Throw(Type type, object value)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
-        ExpectParseLiteralToThrowSerializationException<HexColorType>(valueNode);
+        ExpectCoerceInputLiteralToThrow<HexColorType>(valueNode);
     }
 
     [Theory]
@@ -115,12 +87,12 @@ public class HexColorTypeTests : ScalarTypeTestBase
     [InlineData("\"#009CC\"")]
     [InlineData("\"80 00 80\"")]
     [InlineData("\"0000\"")]
-    public void CoerceInputValue_GivenValue_ThrowSerializationException(string jsonValue)
+    public void CoerceInputValue_GivenValue_Throw(string jsonValue)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceInputValueToThrowSerializationException<HexColorType>(jsonValue);
+        ExpectCoerceInputValueToThrow<HexColorType>(jsonValue);
     }
 
     [Theory]
@@ -131,7 +103,7 @@ public class HexColorTypeTests : ScalarTypeTestBase
     [InlineData("#09C")]
     [InlineData("#0099CC")]
     [InlineData("#FFA500")]
-    public void CoerceOutputValue_GivenObject_MatchExpectedType(object? runtimeValue)
+    public void CoerceOutputValue_GivenObject_MatchExpectedType(object runtimeValue)
     {
         // arrange
         // act
@@ -149,12 +121,12 @@ public class HexColorTypeTests : ScalarTypeTestBase
     [InlineData("#009CC")]
     [InlineData("80 00 80")]
     [InlineData("0000")]
-    public void CoerceOutputValue_GivenObject_ThrowSerializationException(object value)
+    public void CoerceOutputValue_GivenObject_Throw(object value)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceOutputValueToThrowSerializationException<HexColorType>(value);
+        ExpectCoerceOutputValueToThrow<HexColorType>(value);
     }
 
     [Theory]
@@ -166,7 +138,6 @@ public class HexColorTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "#0099CC")]
     [InlineData(typeof(StringValueNode), "#FFA500")]
     [InlineData(typeof(StringValueNode), "#CcC")]
-    [InlineData(typeof(NullValueNode), null)]
     public void ValueToLiteral_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange

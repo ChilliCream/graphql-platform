@@ -16,38 +16,6 @@ public class RgbTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
-    [InlineData(typeof(FloatValueNode), 1d, false)]
-    [InlineData(typeof(IntValueNode), 1, false)]
-    [InlineData(typeof(BooleanValueNode), true, false)]
-    [InlineData(typeof(StringValueNode), "", false)]
-    [InlineData(typeof(StringValueNode), "rgb(٢٥٥,٠,٠)", false)]
-    [InlineData(typeof(StringValueNode), "rgb(255,0,0)", true)]
-    [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 0%)", true)]
-    [InlineData(typeof(StringValueNode), "rgb(300,0,0)", true)]
-    [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)", true)]
-    [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)", true)]
-    [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)", true)]
-    [InlineData(typeof(StringValueNode), "rgb(255 0 153)", true)]
-    [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 1)", true)]
-    [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 100%)", true)]
-    [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)", true)]
-    [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)", true)]
-    [InlineData(typeof(NullValueNode), null, true)]
-    public void IsValueCompatible_GivenValueNode_MatchExpected(
-        Type type,
-        object? value,
-        bool expected)
-    {
-        // arrange
-        var valueNode = CreateValueNode(type, value);
-
-        // act
-        // assert
-        ExpectIsInstanceOfTypeToMatch<RgbType>(valueNode, expected);
-    }
-
-    [Theory]
     [InlineData(typeof(StringValueNode), "rgb(255,0,0)", "rgb(255,0,0)")]
     [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 0%)", "rgb(100%, 0%, 0%)")]
     [InlineData(typeof(StringValueNode), "rgb(300,0,0)", "rgb(300,0,0)")]
@@ -59,7 +27,6 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 100%)", "rgb(255, 0, 153, 100%)")]
     [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)", "rgb(255 0 153 / 1)")]
     [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)", "rgb(255 0 153 / 100%)")]
-    [InlineData(typeof(NullValueNode), null, null)]
     public void CoerceInputLiteral_GivenValueNode_MatchExpected(
         Type type,
         object? value,
@@ -70,7 +37,7 @@ public class RgbTypeTests : ScalarTypeTestBase
 
         // act
         // assert
-        ExpectParseLiteralToMatch<RgbType>(valueNode, expected);
+        ExpectCoerceInputLiteralToMatch<RgbType>(valueNode, expected);
     }
 
     [Theory]
@@ -83,14 +50,14 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "rgb(255, 0, 153.6, 1)")]
     [InlineData(typeof(StringValueNode), "rgb(1e2, .5e1, .5e0, +.25e2%)")]
     [InlineData(typeof(StringValueNode), "rgb(٢٥٥,٠,٠)")]
-    public void CoerceInputLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
+    public void CoerceInputLiteral_GivenValueNode_Throw(Type type, object value)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
-        ExpectParseLiteralToThrowSerializationException<RgbType>(valueNode);
+        ExpectCoerceInputLiteralToThrow<RgbType>(valueNode);
     }
 
     [Theory]
@@ -116,12 +83,12 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("\"\"")]
     [InlineData("\"1\"")]
     [InlineData("\"rgb(255, 0, 153.6, 1)\"")]
-    public void CoerceInputValue_GivenValue_ThrowSerializationException(string jsonValue)
+    public void CoerceInputValue_GivenValue_Throw(string jsonValue)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceInputValueToThrowSerializationException<RgbType>(jsonValue);
+        ExpectCoerceInputValueToThrow<RgbType>(jsonValue);
     }
 
     [Theory]
@@ -130,7 +97,7 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("rgb(300,0,0)")]
     [InlineData("rgb(255 0 153)")]
     [InlineData("rgb(255, 0, 153, 1)")]
-    public void CoerceOutputValue_GivenObject_MatchExpectedType(object? runtimeValue)
+    public void CoerceOutputValue_GivenObject_MatchExpectedType(object runtimeValue)
     {
         // arrange
         // act
@@ -145,12 +112,12 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("")]
     [InlineData("1")]
     [InlineData("rgb(255, 0, 153.6, 1)")]
-    public void CoerceOutputValue_GivenObject_ThrowSerializationException(object value)
+    public void CoerceOutputValue_GivenObject_Throw(object value)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceOutputValueToThrowSerializationException<RgbType>(value);
+        ExpectCoerceOutputValueToThrow<RgbType>(value);
     }
 
     [Theory]
@@ -159,7 +126,6 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "rgb(300,0,0)")]
     [InlineData(typeof(StringValueNode), "rgb(255 0 153)")]
     [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 1)")]
-    [InlineData(typeof(NullValueNode), null)]
     public void ValueToLiteral_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange

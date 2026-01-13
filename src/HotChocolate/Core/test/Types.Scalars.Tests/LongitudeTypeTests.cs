@@ -49,20 +49,6 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
-    protected void Longitude_ExpectValueToLiteralToMatchNull()
-    {
-        // arrange
-        ScalarType scalar = new LongitudeType();
-        object valueSyntax = null!;
-
-        // act
-        var result = scalar.ValueToLiteral(valueSyntax);
-
-        // assert
-        Assert.Equal(typeof(NullValueNode), result.GetType());
-    }
-
-    [Fact]
     protected void Longitude_ExpectValueToLiteralToThrowOnInvalidString()
     {
         // arrange
@@ -81,7 +67,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LongitudeType();
-        const int valueSyntax = 179;
+        const double valueSyntax = 179;
 
         // act
         var result = scalar.ValueToLiteral(valueSyntax);
@@ -95,7 +81,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LongitudeType();
-        const int valueSyntax = 181;
+        const double valueSyntax = 181;
 
         // act
         var result = Record.Exception(() => scalar.ValueToLiteral(valueSyntax));
@@ -192,20 +178,6 @@ public class LongitudeTypeTests : ScalarTypeTestBase
 
         // assert
         Assert.IsType<LeafCoercionException>(result);
-    }
-
-    [Fact]
-    public void Longitude_ParseLiteral_NullValueNode()
-    {
-        // arrange
-        var scalar = CreateType<LongitudeType>();
-        var literal = NullValueNode.Default;
-
-        // act
-        var value = scalar.CoerceInputLiteral(literal);
-
-        // assert
-        Assert.Null(value);
     }
 
     [Fact]
@@ -340,7 +312,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LongitudeType();
-        const int runtimeValue = 179;
+        const double runtimeValue = 179;
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
@@ -357,7 +329,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LongitudeType();
-        const int runtimeValue = -181;
+        const double runtimeValue = -181;
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
@@ -374,7 +346,7 @@ public class LongitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LongitudeType();
-        const int runtimeValue = 181;
+        const double runtimeValue = 181;
 
         // act
         var operation = CommonTestExtensions.CreateOperation();

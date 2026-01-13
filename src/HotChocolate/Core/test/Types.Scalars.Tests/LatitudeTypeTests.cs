@@ -48,20 +48,6 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
-    protected void Latitude_ExpectValueToLiteralToMatchNull()
-    {
-        // arrange
-        ScalarType scalar = new LatitudeType();
-        object valueSyntax = null!;
-
-        // act
-        var result = scalar.ValueToLiteral(valueSyntax);
-
-        // assert
-        Assert.Equal(typeof(NullValueNode), result.GetType());
-    }
-
-    [Fact]
     protected void Latitude_ExpectValueToLiteralToThrowOnInvalidString()
     {
         // arrange
@@ -80,7 +66,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const int valueSyntax = 89;
+        const double valueSyntax = 89;
 
         // act
         var result = scalar.ValueToLiteral(valueSyntax);
@@ -94,7 +80,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const int valueSyntax = 92;
+        const double valueSyntax = 92;
 
         // act
         var result = Record.Exception(() => scalar.ValueToLiteral(valueSyntax));
@@ -173,7 +159,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         StringValueNode valueSyntax = new(literal);
 
         // act
-        object result = ToPrecision(scalar, valueSyntax, precision);
+        var result = ToPrecision(scalar, valueSyntax, precision);
 
         // assert
         Assert.Equal(runtime, result);
@@ -191,20 +177,6 @@ public class LatitudeTypeTests : ScalarTypeTestBase
 
         // assert
         Assert.IsType<LeafCoercionException>(result);
-    }
-
-    [Fact]
-    public void Latitude_ParseLiteral_NullValueNode()
-    {
-        // arrange
-        var scalar = CreateType<LatitudeType>();
-        var literal = NullValueNode.Default;
-
-        // act
-        var value = scalar.CoerceInputLiteral(literal)!;
-
-        // assert
-        Assert.Null(value);
     }
 
     [Fact]
@@ -336,7 +308,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const int runtimeValue = 89;
+        const double runtimeValue = 89;
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
@@ -353,7 +325,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const int runtimeValue = -91;
+        const double runtimeValue = -91;
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
@@ -370,7 +342,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const int runtimeValue = 91;
+        const double runtimeValue = 91;
 
         // act
         var operation = CommonTestExtensions.CreateOperation();

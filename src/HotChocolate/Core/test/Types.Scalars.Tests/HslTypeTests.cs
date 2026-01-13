@@ -16,36 +16,6 @@ public class HslTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
-    [InlineData(typeof(FloatValueNode), 1d, false)]
-    [InlineData(typeof(IntValueNode), 1, false)]
-    [InlineData(typeof(BooleanValueNode), true, false)]
-    [InlineData(typeof(StringValueNode), "", false)]
-    [InlineData(typeof(StringValueNode), "hsl(٢٧٠,٦٠%,٧٠%)", false)]
-    [InlineData(typeof(StringValueNode), "hsl(270,60%,70%)", true)]
-    [InlineData(typeof(StringValueNode), "hsl(270, 60%, 70%)", true)]
-    [InlineData(typeof(StringValueNode), "hsl(270 60% 70%)", true)]
-    [InlineData(typeof(StringValueNode), "hsl(270deg, 60%, 70%)", true)]
-    [InlineData(typeof(StringValueNode), "hsl(270, 60%, 50%, .15)", true)]
-    [InlineData(typeof(StringValueNode), "hsl(270, 60%, 50%, 15%)", true)]
-    [InlineData(typeof(StringValueNode), "hsl(270 60% 50% / .15)", true)]
-    [InlineData(typeof(StringValueNode), "hsl(270 60% 50% / 15%)", true)]
-    [InlineData(typeof(StringValueNode), "hsl(270, 100%, 50%)", true)]
-    [InlineData(typeof(NullValueNode), null, true)]
-    public void IsValueCompatible_GivenValueNode_MatchExpected(
-        Type type,
-        object? value,
-        bool expected)
-    {
-        // arrange
-        var valueNode = CreateValueNode(type, value);
-
-        // act
-        // assert
-        ExpectIsInstanceOfTypeToMatch<HslType>(valueNode, expected);
-    }
-
-    [Theory]
     [InlineData(typeof(StringValueNode), "hsl(270,60%,70%)", "hsl(270,60%,70%)")]
     [InlineData(typeof(StringValueNode), "hsl(270, 60%, 70%)", "hsl(270, 60%, 70%)")]
     [InlineData(typeof(StringValueNode), "hsl(270 60% 70%)", "hsl(270 60% 70%)")]
@@ -55,7 +25,6 @@ public class HslTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "hsl(270 60% 50% / .15)", "hsl(270 60% 50% / .15)")]
     [InlineData(typeof(StringValueNode), "hsl(270 60% 50% / 15%)", "hsl(270 60% 50% / 15%)")]
     [InlineData(typeof(StringValueNode), "hsl(270, 100%, 50%)", "hsl(270, 100%, 50%)")]
-    [InlineData(typeof(NullValueNode), null, null)]
     public void CoerceInputLiteral_GivenValueNode_MatchExpected(
         Type type,
         object? value,
@@ -66,7 +35,7 @@ public class HslTypeTests : ScalarTypeTestBase
 
         // act
         // assert
-        ExpectParseLiteralToMatch<HslType>(valueNode, expected);
+        ExpectCoerceInputLiteralToMatch<HslType>(valueNode, expected);
     }
 
     [Theory]
@@ -81,14 +50,14 @@ public class HslTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "hsl(270, FF, 50)")]
     [InlineData(typeof(StringValueNode), "hsl(270%, A0, 5F)")]
     [InlineData(typeof(StringValueNode), "hsl(٢٧٠, ٦٠%, ٧٠%)")]
-    public void CoerceInputLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
+    public void CoerceInputLiteral_GivenValueNode_Throw(Type type, object value)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
-        ExpectParseLiteralToThrowSerializationException<HslType>(valueNode);
+        ExpectCoerceInputLiteralToThrow<HslType>(valueNode);
     }
 
     [Theory]
@@ -115,12 +84,12 @@ public class HslTypeTests : ScalarTypeTestBase
     [InlineData("\"hsl(#FFFFFF)\"")]
     [InlineData("\"hsl(FF, A5, 00)\"")]
     [InlineData("\"hsl(270, FF, 50)\"")]
-    public void CoerceInputValue_GivenValue_ThrowSerializationException(string jsonValue)
+    public void CoerceInputValue_GivenValue_Throw(string jsonValue)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceInputValueToThrowSerializationException<HslType>(jsonValue);
+        ExpectCoerceInputValueToThrow<HslType>(jsonValue);
     }
 
     [Theory]
@@ -129,7 +98,7 @@ public class HslTypeTests : ScalarTypeTestBase
     [InlineData("hsl(270 60% 70%)")]
     [InlineData("hsl(270deg, 60%, 70%)")]
     [InlineData("hsl(270, 100%, 50%)")]
-    public void CoerceOutputValue_GivenObject_MatchExpectedType(object? runtimeValue)
+    public void CoerceOutputValue_GivenObject_MatchExpectedType(object runtimeValue)
     {
         // arrange
         // act
@@ -145,12 +114,12 @@ public class HslTypeTests : ScalarTypeTestBase
     [InlineData("hsl(#FFFFFF)")]
     [InlineData("hsl(FF, A5, 00)")]
     [InlineData("hsl(270, FF, 50)")]
-    public void CoerceOutputValue_GivenObject_ThrowSerializationException(object value)
+    public void CoerceOutputValue_GivenObject_Throw(object value)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceOutputValueToThrowSerializationException<HslType>(value);
+        ExpectCoerceOutputValueToThrow<HslType>(value);
     }
 
     [Theory]
@@ -159,7 +128,6 @@ public class HslTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "hsl(270 60% 70%)")]
     [InlineData(typeof(StringValueNode), "hsl(270deg, 60%, 70%)")]
     [InlineData(typeof(StringValueNode), "hsl(270, 100%, 50%)")]
-    [InlineData(typeof(NullValueNode), null)]
     public void ValueToLiteral_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange

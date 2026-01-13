@@ -16,48 +16,6 @@ public class IPv4TypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
-    [InlineData(typeof(FloatValueNode), 1d, false)]
-    [InlineData(typeof(IntValueNode), 1, false)]
-    [InlineData(typeof(BooleanValueNode), true, false)]
-    [InlineData(typeof(StringValueNode), "", false)]
-    [InlineData(typeof(StringValueNode), "1", false)]
-    [InlineData(typeof(StringValueNode), "1.2", false)]
-    [InlineData(typeof(StringValueNode), "1.2.3", false)]
-    [InlineData(typeof(StringValueNode), "1.2.3.4", true)]
-    [InlineData(typeof(StringValueNode), "255.255.255.255", true)]
-    [InlineData(typeof(StringValueNode), "255.256.256.256", false)]
-    [InlineData(typeof(StringValueNode), "300.256.256.256", false)]
-    [InlineData(typeof(StringValueNode), "255.300.256.256", false)]
-    [InlineData(typeof(StringValueNode), "255.256.300.256", false)]
-    [InlineData(typeof(StringValueNode), "255.256.256.300", false)]
-    [InlineData(typeof(StringValueNode), "127.0.0.1", true)]
-    [InlineData(typeof(StringValueNode), "192.168.0.1", true)]
-    [InlineData(typeof(StringValueNode), "000.000.000.000", true)]
-    [InlineData(typeof(StringValueNode), "00.00.00.00", true)]
-    [InlineData(typeof(StringValueNode), "0.0.0.0/32", true)]
-    [InlineData(typeof(StringValueNode), "000.000.000.000/32", true)]
-    [InlineData(typeof(StringValueNode), "255.255.255.255/0", true)]
-    [InlineData(typeof(StringValueNode), "255.255.255.255/33", false)]
-    [InlineData(typeof(StringValueNode), "127.0.0.1/0", true)]
-    [InlineData(typeof(StringValueNode), "192.168.2.1/0", true)]
-    [InlineData(typeof(StringValueNode), "0.0.0.3/2", true)]
-    [InlineData(typeof(StringValueNode), "0.0.0.127/7", true)]
-    [InlineData(typeof(NullValueNode), null, true)]
-    public void IsValueCompatible_GivenValueNode_MatchExpected(
-        Type type,
-        object? value,
-        bool expected)
-    {
-        // arrange
-        var valueNode = CreateValueNode(type, value);
-
-        // act
-        // assert
-        ExpectIsInstanceOfTypeToMatch<IPv4Type>(valueNode, expected);
-    }
-
-    [Theory]
     [InlineData(typeof(StringValueNode), "1.2.3.4", "1.2.3.4")]
     [InlineData(typeof(StringValueNode), "255.255.255.255", "255.255.255.255")]
     [InlineData(typeof(StringValueNode), "127.0.0.1", "127.0.0.1")]
@@ -71,7 +29,6 @@ public class IPv4TypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "192.168.2.1/0", "192.168.2.1/0")]
     [InlineData(typeof(StringValueNode), "0.0.0.3/2", "0.0.0.3/2")]
     [InlineData(typeof(StringValueNode), "0.0.0.127/7", "0.0.0.127/7")]
-    [InlineData(typeof(NullValueNode), null, null)]
     public void CoerceInputLiteral_GivenValueNode_MatchExpected(
         Type type,
         object? value,
@@ -82,7 +39,7 @@ public class IPv4TypeTests : ScalarTypeTestBase
 
         // act
         // assert
-        ExpectParseLiteralToMatch<IPv4Type>(valueNode, expected);
+        ExpectCoerceInputLiteralToMatch<IPv4Type>(valueNode, expected);
     }
 
     [Theory]
@@ -99,14 +56,14 @@ public class IPv4TypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "255.256.300.256")]
     [InlineData(typeof(StringValueNode), "255.256.256.300")]
     [InlineData(typeof(StringValueNode), "255.255.255.255/33")]
-    public void CoerceInputLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
+    public void CoerceInputLiteral_GivenValueNode_Throw(Type type, object value)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
-        ExpectParseLiteralToThrowSerializationException<IPv4Type>(valueNode);
+        ExpectCoerceInputLiteralToThrow<IPv4Type>(valueNode);
     }
 
     [Theory]
@@ -146,12 +103,12 @@ public class IPv4TypeTests : ScalarTypeTestBase
     [InlineData("\"255.256.300.256\"")]
     [InlineData("\"255.256.256.300\"")]
     [InlineData("\"255.255.255.255/33\"")]
-    public void CoerceInputValue_GivenValue_ThrowSerializationException(string jsonValue)
+    public void CoerceInputValue_GivenValue_Throw(string jsonValue)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceInputValueToThrowSerializationException<IPv4Type>(jsonValue);
+        ExpectCoerceInputValueToThrow<IPv4Type>(jsonValue);
     }
 
     [Theory]
@@ -168,7 +125,7 @@ public class IPv4TypeTests : ScalarTypeTestBase
     [InlineData("192.168.2.1/0")]
     [InlineData("0.0.0.3/2")]
     [InlineData("0.0.0.127/7")]
-    public void CoerceOutputValue_GivenObject_MatchExpectedType(object? runtimeValue)
+    public void CoerceOutputValue_GivenObject_MatchExpectedType(object runtimeValue)
     {
         // arrange
         // act
@@ -189,12 +146,12 @@ public class IPv4TypeTests : ScalarTypeTestBase
     [InlineData("255.256.300.256")]
     [InlineData("255.256.256.300")]
     [InlineData("255.255.255.255/33")]
-    public void CoerceOutputValue_GivenObject_ThrowSerializationException(object value)
+    public void CoerceOutputValue_GivenObject_Throw(object value)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceOutputValueToThrowSerializationException<IPv4Type>(value);
+        ExpectCoerceOutputValueToThrow<IPv4Type>(value);
     }
 
     [Theory]
@@ -211,7 +168,6 @@ public class IPv4TypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "192.168.2.1/0")]
     [InlineData(typeof(StringValueNode), "0.0.0.3/2")]
     [InlineData(typeof(StringValueNode), "0.0.0.127/7")]
-    [InlineData(typeof(NullValueNode), null)]
     public void ValueToLiteral_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange

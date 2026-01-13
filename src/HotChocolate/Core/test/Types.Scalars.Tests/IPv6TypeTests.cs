@@ -16,76 +16,6 @@ public class IPv6TypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
-    [InlineData(typeof(FloatValueNode), 1d, false)]
-    [InlineData(typeof(IntValueNode), 1, false)]
-    [InlineData(typeof(BooleanValueNode), true, false)]
-    [InlineData(typeof(StringValueNode), "", false)]
-    [InlineData(typeof(StringValueNode), "1", false)]
-    [InlineData(typeof(StringValueNode), "1.2", false)]
-    [InlineData(typeof(StringValueNode), "1.2.3", false)]
-    [InlineData(typeof(StringValueNode), "2001:db8::7/32", true)]
-    [InlineData(typeof(StringValueNode), "a:b:c:d:e::1.2.3.4/13", true)]
-    [InlineData(typeof(StringValueNode), "a:b:c:d:e::1.2.3.4/64", true)]
-    [InlineData(typeof(StringValueNode), "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210/0", true)]
-    [InlineData(typeof(StringValueNode), "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210/32", true)]
-    [InlineData(typeof(StringValueNode), "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210/128", true)]
-    [InlineData(typeof(StringValueNode), "1080:0:0:0:8:800:200C:417A/27", true)]
-    [InlineData(typeof(StringValueNode), "2001:db8::7", true)]
-    [InlineData(typeof(StringValueNode), "a:b:c:d:e::1.2.3.4", true)]
-    [InlineData(typeof(StringValueNode), "FEDC:BA98:7654:3210:FEDC:BA98:7654:3210", true)]
-    [InlineData(typeof(StringValueNode), "1080:0:0:0:8:800:200C:417A", true)]
-    [InlineData(typeof(StringValueNode), "::1:2:3:4:5:6:7", true)]
-    [InlineData(typeof(StringValueNode), "::1:2:3:4:5:6", true)]
-    [InlineData(typeof(StringValueNode), "1::1:2:3:4:5:6", true)]
-    [InlineData(typeof(StringValueNode), "::1:2:3:4:5", true)]
-    [InlineData(typeof(StringValueNode), "1::1:2:3:4:5", true)]
-    [InlineData(typeof(StringValueNode), "2:1::1:2:3:4:5", true)]
-    [InlineData(typeof(StringValueNode), "::1:2:3:4", true)]
-    [InlineData(typeof(StringValueNode), "1::1:2:3:4", true)]
-    [InlineData(typeof(StringValueNode), "2:1::1:2:3:4", true)]
-    [InlineData(typeof(StringValueNode), "3:2:1::1:2:3:4", true)]
-    [InlineData(typeof(StringValueNode), "::1:2:3", true)]
-    [InlineData(typeof(StringValueNode), "1::1:2:3", true)]
-    [InlineData(typeof(StringValueNode), "2:1::1:2:3", true)]
-    [InlineData(typeof(StringValueNode), "2:1::", true)]
-    [InlineData(typeof(StringValueNode), "3:2:1::1:2:3", true)]
-    [InlineData(typeof(StringValueNode), "4:3:2:1::1:2:3", true)]
-    [InlineData(typeof(StringValueNode), "::1:2", true)]
-    [InlineData(typeof(StringValueNode), "1::1:2", true)]
-    [InlineData(typeof(StringValueNode), "2:1::1:2", true)]
-    [InlineData(typeof(StringValueNode), "3:2:1::1:2", true)]
-    [InlineData(typeof(StringValueNode), "4:3:2:1::1:2", true)]
-    [InlineData(typeof(StringValueNode), "5:4:3:2:1::1:2", true)]
-    [InlineData(typeof(StringValueNode), "::1", true)]
-    [InlineData(typeof(StringValueNode), "1::1", true)]
-    [InlineData(typeof(StringValueNode), "2:1::1", true)]
-    [InlineData(typeof(StringValueNode), "3:2:1::1", true)]
-    [InlineData(typeof(StringValueNode), "4:3:2:1::1", true)]
-    [InlineData(typeof(StringValueNode), "5:4:3:2:1::1", true)]
-    [InlineData(typeof(StringValueNode), "6:5:4:3:2:1::1", true)]
-    [InlineData(typeof(StringValueNode), "::", true)]
-    [InlineData(typeof(StringValueNode), "1::", true)]
-    [InlineData(typeof(StringValueNode), "3:2:1::", true)]
-    [InlineData(typeof(StringValueNode), "4:3:2:1::", true)]
-    [InlineData(typeof(StringValueNode), "5:4:3:2:1::", true)]
-    [InlineData(typeof(StringValueNode), "6:5:4:3:2:1::", true)]
-    [InlineData(typeof(StringValueNode), "7:6:5:4:3:2:1::", true)]
-    [InlineData(typeof(NullValueNode), null, true)]
-    public void IsValueCompatible_GivenValueNode_MatchExpected(
-        Type type,
-        object? value,
-        bool expected)
-    {
-        // arrange
-        var valueNode = CreateValueNode(type, value);
-
-        // act
-        // assert
-        ExpectIsInstanceOfTypeToMatch<IPv6Type>(valueNode, expected);
-    }
-
-    [Theory]
     [InlineData(typeof(StringValueNode), "2001:db8::7/32", "2001:db8::7/32")]
     [InlineData(typeof(StringValueNode), "a:b:c:d:e::1.2.3.4/13", "a:b:c:d:e::1.2.3.4/13")]
     [InlineData(typeof(StringValueNode), "a:b:c:d:e::1.2.3.4/64", "a:b:c:d:e::1.2.3.4/64")]
@@ -145,7 +75,6 @@ public class IPv6TypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "5:4:3:2:1::", "5:4:3:2:1::")]
     [InlineData(typeof(StringValueNode), "6:5:4:3:2:1::", "6:5:4:3:2:1::")]
     [InlineData(typeof(StringValueNode), "7:6:5:4:3:2:1::", "7:6:5:4:3:2:1::")]
-    [InlineData(typeof(NullValueNode), null, null)]
     public void CoerceInputLiteral_GivenValueNode_MatchExpected(
         Type type,
         object? value,
@@ -156,7 +85,7 @@ public class IPv6TypeTests : ScalarTypeTestBase
 
         // act
         // assert
-        ExpectParseLiteralToMatch<IPv6Type>(valueNode, expected);
+        ExpectCoerceInputLiteralToMatch<IPv6Type>(valueNode, expected);
     }
 
     [Theory]
@@ -177,14 +106,14 @@ public class IPv6TypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "a:b:c:d:e::1.2.3.22:100")]
     [InlineData(typeof(StringValueNode), "a:b:c:d:e::1.2.3..4/13")]
     [InlineData(typeof(StringValueNode), "FEDC:BA98:7654:3210FEDC:BA98:7654:3210")]
-    public void CoerceInputLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
+    public void CoerceInputLiteral_GivenValueNode_Throw(Type type, object value)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
-        ExpectParseLiteralToThrowSerializationException<IPv6Type>(valueNode);
+        ExpectCoerceInputLiteralToThrow<IPv6Type>(valueNode);
     }
 
     [Theory]
@@ -225,12 +154,12 @@ public class IPv6TypeTests : ScalarTypeTestBase
     [InlineData("\"a:b:c:d:e::1.2.3.22:100\"")]
     [InlineData("\"a:b:c:d:e::1.2.3..4/13\"")]
     [InlineData("\"FEDC:BA98:7654:3210FEDC:BA98:7654:3210\"")]
-    public void CoerceInputValue_GivenValue_ThrowSerializationException(string jsonValue)
+    public void CoerceInputValue_GivenValue_Throw(string jsonValue)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceInputValueToThrowSerializationException<IPv6Type>(jsonValue);
+        ExpectCoerceInputValueToThrow<IPv6Type>(jsonValue);
     }
 
     [Theory]
@@ -244,7 +173,7 @@ public class IPv6TypeTests : ScalarTypeTestBase
     [InlineData("a:b:c:d:e::1.2.3.4")]
     [InlineData("::1")]
     [InlineData("::")]
-    public void CoerceOutputValue_GivenObject_MatchExpectedType(object? runtimeValue)
+    public void CoerceOutputValue_GivenObject_MatchExpectedType(object runtimeValue)
     {
         // arrange
         // act
@@ -265,12 +194,12 @@ public class IPv6TypeTests : ScalarTypeTestBase
     [InlineData("a:b:c:d:e::1.2.3.22:100")]
     [InlineData("a:b:c:d:e::1.2.3..4/13")]
     [InlineData("FEDC:BA98:7654:3210FEDC:BA98:7654:3210")]
-    public void CoerceOutputValue_GivenObject_ThrowSerializationException(object value)
+    public void CoerceOutputValue_GivenObject_Throw(object value)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceOutputValueToThrowSerializationException<IPv6Type>(value);
+        ExpectCoerceOutputValueToThrow<IPv6Type>(value);
     }
 
     [Theory]
@@ -283,7 +212,6 @@ public class IPv6TypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "a:b:c:d:e::1.2.3.4")]
     [InlineData(typeof(StringValueNode), "::1")]
     [InlineData(typeof(StringValueNode), "::")]
-    [InlineData(typeof(NullValueNode), null)]
     public void ValueToLiteral_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange

@@ -16,39 +16,6 @@ public class RgbaTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
-    [InlineData(typeof(FloatValueNode), 1d, false)]
-    [InlineData(typeof(IntValueNode), 1, false)]
-    [InlineData(typeof(BooleanValueNode), true, false)]
-    [InlineData(typeof(StringValueNode), "", false)]
-    [InlineData(typeof(StringValueNode), "rgba(٥١, ١٧٠, ٥١, .١)", false)]
-    [InlineData(typeof(StringValueNode), "rgb(255,0,0)", true)]
-    [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 0%)", true)]
-    [InlineData(typeof(StringValueNode), "rgb(300,0,0)", true)]
-    [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)", true)]
-    [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)", true)]
-    [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)", true)]
-    [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .1)", true)]
-    [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .4)", true)]
-    [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .7)", true)]
-    [InlineData(typeof(StringValueNode), "rgba(51, 170, 51,  1) ", true)]
-    [InlineData(typeof(StringValueNode), "rgba(51 170 51 / 0.4) ", true)]
-    [InlineData(typeof(StringValueNode), "rgba(51 170 51 / 40%)", true)]
-    [InlineData(typeof(NullValueNode), null, true)]
-    public void IsValueCompatible_GivenValueNode_MatchExpected(
-        Type type,
-        object? value,
-        bool expected)
-    {
-        // arrange
-        var valueNode = CreateValueNode(type, value);
-
-        // act
-        // assert
-        ExpectIsInstanceOfTypeToMatch<RgbaType>(valueNode, expected);
-    }
-
-    [Theory]
     [InlineData(typeof(StringValueNode), "rgb(255,0,0)", "rgb(255,0,0)")]
     [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 0%)", "rgb(100%, 0%, 0%)")]
     [InlineData(typeof(StringValueNode), "rgb(300,0,0)", "rgb(300,0,0)")]
@@ -61,7 +28,6 @@ public class RgbaTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "rgba(51, 170, 51,  1)", "rgba(51, 170, 51,  1)")]
     [InlineData(typeof(StringValueNode), "rgba(51 170 51 / 0.4)", "rgba(51 170 51 / 0.4)")]
     [InlineData(typeof(StringValueNode), "rgba(51 170 51 / 40%)", "rgba(51 170 51 / 40%)")]
-    [InlineData(typeof(NullValueNode), null, null)]
     public void CoerceInputLiteral_GivenValueNode_MatchExpected(
         Type type,
         object? value,
@@ -72,7 +38,7 @@ public class RgbaTypeTests : ScalarTypeTestBase
 
         // act
         // assert
-        ExpectParseLiteralToMatch<RgbaType>(valueNode, expected);
+        ExpectCoerceInputLiteralToMatch<RgbaType>(valueNode, expected);
     }
 
     [Theory]
@@ -86,14 +52,14 @@ public class RgbaTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "rgba(255, 0, 153.6, 1)")]
     [InlineData(typeof(StringValueNode), "rgba(1e2, .5e1, .5e0, +.25e2%)")]
     [InlineData(typeof(StringValueNode), "rgba(٥١, ١٧٠, ٥١, .١)")]
-    public void CoerceInputLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
+    public void CoerceInputLiteral_GivenValueNode_Throw(Type type, object value)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
-        ExpectParseLiteralToThrowSerializationException<RgbaType>(valueNode);
+        ExpectCoerceInputLiteralToThrow<RgbaType>(valueNode);
     }
 
     [Theory]
@@ -128,12 +94,12 @@ public class RgbaTypeTests : ScalarTypeTestBase
     [InlineData("\"rgba(255, 0, 153.6, 1)\"")]
     [InlineData("\"rgba(1e2, .5e1, .5e0, +.25e2%)\"")]
     [InlineData("\"rgba(٥١, ١٧٠, ٥١, .١)\"")]
-    public void CoerceInputValue_GivenValue_ThrowSerializationException(string jsonValue)
+    public void CoerceInputValue_GivenValue_Throw(string jsonValue)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceInputValueToThrowSerializationException<RgbaType>(jsonValue);
+        ExpectCoerceInputValueToThrow<RgbaType>(jsonValue);
     }
 
     [Theory]
@@ -149,7 +115,7 @@ public class RgbaTypeTests : ScalarTypeTestBase
     [InlineData("rgba(51, 170, 51,  1)")]
     [InlineData("rgba(51 170 51 / 0.4)")]
     [InlineData("rgba(51 170 51 / 40%)")]
-    public void CoerceOutputValue_GivenObject_MatchExpectedType(object? runtimeValue)
+    public void CoerceOutputValue_GivenObject_MatchExpectedType(object runtimeValue)
     {
         // arrange
         // act
@@ -167,12 +133,12 @@ public class RgbaTypeTests : ScalarTypeTestBase
     [InlineData("rgba(255, 0, 153.6, 1)")]
     [InlineData("rgba(1e2, .5e1, .5e0, +.25e2%)")]
     [InlineData("rgba(٥١, ١٧٠, ٥١, .١)")]
-    public void CoerceOutputValue_GivenObject_ThrowSerializationException(object value)
+    public void CoerceOutputValue_GivenObject_Throw(object value)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceOutputValueToThrowSerializationException<RgbaType>(value);
+        ExpectCoerceOutputValueToThrow<RgbaType>(value);
     }
 
     [Theory]
@@ -188,7 +154,6 @@ public class RgbaTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "rgba(51, 170, 51,  1)")]
     [InlineData(typeof(StringValueNode), "rgba(51 170 51 / 0.4)")]
     [InlineData(typeof(StringValueNode), "rgba(51 170 51 / 40%)")]
-    [InlineData(typeof(NullValueNode), null)]
     public void ValueToLiteral_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange

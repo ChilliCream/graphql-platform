@@ -16,51 +16,6 @@ public class IsbnTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
-    [InlineData(typeof(FloatValueNode), 1d, false)]
-    [InlineData(typeof(IntValueNode), 1, false)]
-    [InlineData(typeof(BooleanValueNode), true, false)]
-    [InlineData(typeof(StringValueNode), "", false)]
-    [InlineData(typeof(StringValueNode), "978 787 7878", false)]
-    [InlineData(typeof(StringValueNode), "978-0615-856", false)]
-    [InlineData(typeof(StringValueNode), "978-0615856735", false)]
-    [InlineData(typeof(StringValueNode), "ISBN 978 787 78 78788", false)]
-    [InlineData(typeof(StringValueNode), "ISBN 97907653359990", false)]
-    [InlineData(typeof(StringValueNode), "ISBN-13: 978-0615856735", false)]
-    [InlineData(typeof(StringValueNode), "ISBN: 978-0615-856", false)]
-    [InlineData(typeof(StringValueNode), "ISBN 978-0-596-52068-7", true)]
-    [InlineData(typeof(StringValueNode), "ISBN-13: 978-0-596-52068-7", true)]
-    [InlineData(typeof(StringValueNode), "978 0 596 52068 7", true)]
-    [InlineData(typeof(StringValueNode), "9780596520687", true)]
-    [InlineData(typeof(StringValueNode), "ISBN-10 0-596-52068-9", true)]
-    [InlineData(typeof(StringValueNode), "0-596-52068-9", true)]
-    [InlineData(typeof(StringValueNode), "ISBN: 9780615856", true)]
-    [InlineData(typeof(StringValueNode), "1577677171", true)]
-    [InlineData(typeof(StringValueNode), "978 787 78 78", true)]
-    [InlineData(typeof(StringValueNode), "9790765335", true)]
-    [InlineData(typeof(StringValueNode), "979076533X", true)]
-    [InlineData(typeof(StringValueNode), "9780615856", true)]
-    [InlineData(typeof(StringValueNode), "ISBN 978-0615-856-73-5", true)]
-    [InlineData(typeof(StringValueNode), "ISBN-13: 978-0615-856-73-5", true)]
-    [InlineData(typeof(StringValueNode), "ISBN-13: 9780765335999", true)]
-    [InlineData(typeof(StringValueNode), "ISBN: 9780615856735", true)]
-    [InlineData(typeof(StringValueNode), "978-0615-856-73-5", true)]
-    [InlineData(typeof(StringValueNode), "9780765335999", true)]
-    [InlineData(typeof(NullValueNode), null, true)]
-    public void IsValueCompatible_GivenValueNode_MatchExpected(
-        Type type,
-        object? value,
-        bool expected)
-    {
-        // arrange
-        var valueNode = CreateValueNode(type, value);
-
-        // act
-        // assert
-        ExpectIsInstanceOfTypeToMatch<IsbnType>(valueNode, expected);
-    }
-
-    [Theory]
     [InlineData(typeof(StringValueNode), "ISBN 978-0-596-52068-7", "ISBN 978-0-596-52068-7")]
     [InlineData(typeof(StringValueNode), "ISBN-13: 978-0-596-52068-7", "ISBN-13: 978-0-596-52068-7")]
     [InlineData(typeof(StringValueNode), "978 0 596 52068 7", "978 0 596 52068 7")]
@@ -79,7 +34,6 @@ public class IsbnTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "ISBN: 9780615856735", "ISBN: 9780615856735")]
     [InlineData(typeof(StringValueNode), "978-0615-856-73-5", "978-0615-856-73-5")]
     [InlineData(typeof(StringValueNode), "9780765335999", "9780765335999")]
-    [InlineData(typeof(NullValueNode), null, null)]
     public void CoerceInputLiteral_GivenValueNode_MatchExpected(
         Type type,
         object? value,
@@ -90,7 +44,7 @@ public class IsbnTypeTests : ScalarTypeTestBase
 
         // act
         // assert
-        ExpectParseLiteralToMatch<IsbnType>(valueNode, expected);
+        ExpectCoerceInputLiteralToMatch<IsbnType>(valueNode, expected);
     }
 
     [Theory]
@@ -114,14 +68,14 @@ public class IsbnTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "ISBN: X9780615856735")]
     [InlineData(typeof(StringValueNode), "ISBN-13: 978-0615-56-73-5")]
     [InlineData(typeof(StringValueNode), "ISBN-13: 9780X765335999")]
-    public void CoerceInputLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
+    public void CoerceInputLiteral_GivenValueNode_Throw(Type type, object value)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
-        ExpectParseLiteralToThrowSerializationException<IsbnType>(valueNode);
+        ExpectCoerceInputLiteralToThrow<IsbnType>(valueNode);
     }
 
     [Theory]
@@ -173,12 +127,12 @@ public class IsbnTypeTests : ScalarTypeTestBase
     [InlineData("\"ISBN: X9780615856735\"")]
     [InlineData("\"ISBN-13: 978-0615-56-73-5\"")]
     [InlineData("\"ISBN-13: 9780X765335999\"")]
-    public void CoerceInputValue_GivenValue_ThrowSerializationException(string jsonValue)
+    public void CoerceInputValue_GivenValue_Throw(string jsonValue)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceInputValueToThrowSerializationException<IsbnType>(jsonValue);
+        ExpectCoerceInputValueToThrow<IsbnType>(jsonValue);
     }
 
     [Theory]
@@ -200,7 +154,7 @@ public class IsbnTypeTests : ScalarTypeTestBase
     [InlineData("ISBN: 9780615856735")]
     [InlineData("978-0615-856-73-5")]
     [InlineData("9780765335999")]
-    public void CoerceOutputValue_GivenObject_MatchExpectedType(object? runtimeValue)
+    public void CoerceOutputValue_GivenObject_MatchExpectedType(object runtimeValue)
     {
         // arrange
         // act
@@ -228,12 +182,12 @@ public class IsbnTypeTests : ScalarTypeTestBase
     [InlineData("ISBN: X9780615856735")]
     [InlineData("ISBN-13: 978-0615-56-73-5")]
     [InlineData("ISBN-13: 9780X765335999")]
-    public void CoerceOutputValue_GivenObject_ThrowSerializationException(object value)
+    public void CoerceOutputValue_GivenObject_Throw(object value)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceOutputValueToThrowSerializationException<IsbnType>(value);
+        ExpectCoerceOutputValueToThrow<IsbnType>(value);
     }
 
     [Theory]
@@ -254,7 +208,6 @@ public class IsbnTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "ISBN: 9780615856735")]
     [InlineData(typeof(StringValueNode), "978-0615-856-73-5")]
     [InlineData(typeof(StringValueNode), "9780765335999")]
-    [InlineData(typeof(NullValueNode), null)]
     public void ValueToLiteral_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange

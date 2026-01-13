@@ -192,6 +192,6 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
         // arrange
         // act
         // assert
-        ExpectCoerceOutputValueToThrowSerializationException<UtcOffsetType>("foo");
+        ExpectCoerceOutputValueToThrow<UtcOffsetType>("foo");
     }
 }

@@ -16,33 +16,6 @@ public class HslaTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
-    [InlineData(typeof(FloatValueNode), 1d, false)]
-    [InlineData(typeof(IntValueNode), 1, false)]
-    [InlineData(typeof(BooleanValueNode), true, false)]
-    [InlineData(typeof(StringValueNode), "", false)]
-    [InlineData(typeof(StringValueNode), "hsla(٢٤٠, ١٠٠%, ٥٠%, .٠٥)", false)]
-    [InlineData(typeof(StringValueNode), "hsla(240, 100%, 50%, .05)", true)]
-    [InlineData(typeof(StringValueNode), "hsla(240, 100%, 50%, .4)", true)]
-    [InlineData(typeof(StringValueNode), "hsla(240, 100%, 50%, .7)", true)]
-    [InlineData(typeof(StringValueNode), "hsla(240, 100%, 50%, 1)", true)]
-    [InlineData(typeof(StringValueNode), "hsla(240 100% 50% / .05)", true)]
-    [InlineData(typeof(StringValueNode), "hsla(240 100% 50% / 5%)", true)]
-    [InlineData(typeof(NullValueNode), null, true)]
-    public void IsValueCompatible_GivenValueNode_MatchExpected(
-        Type type,
-        object? value,
-        bool expected)
-    {
-        // arrange
-        var valueNode = CreateValueNode(type, value);
-
-        // act
-        // assert
-        ExpectIsInstanceOfTypeToMatch<HslaType>(valueNode, expected);
-    }
-
-    [Theory]
     [InlineData(typeof(StringValueNode),
         "hsla(240, 100%, 50%, .05)",
         "hsla(240, 100%, 50%, .05)")]
@@ -57,7 +30,6 @@ public class HslaTypeTests : ScalarTypeTestBase
         "hsla(240 100% 50% / .05)",
         "hsla(240 100% 50% / .05)")]
     [InlineData(typeof(StringValueNode), "hsla(240 100% 50% / 5%)", "hsla(240 100% 50% / 5%)")]
-    [InlineData(typeof(NullValueNode), null, null)]
     public void CoerceInputLiteral_GivenValueNode_MatchExpected(
         Type type,
         object? value,
@@ -68,7 +40,7 @@ public class HslaTypeTests : ScalarTypeTestBase
 
         // act
         // assert
-        ExpectParseLiteralToMatch<HslaType>(valueNode, expected);
+        ExpectCoerceInputLiteralToMatch<HslaType>(valueNode, expected);
     }
 
     [Theory]
@@ -84,14 +56,14 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "hsla(270%, A0, 5F, 1.0)")]
     [InlineData(typeof(StringValueNode), "hsla(240, 75, .3, 25%)")]
     [InlineData(typeof(StringValueNode), "hsla(٢٤٠, ١٠٠%, ٥٠%, .٠٥)")]
-    public void CoerceInputLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
+    public void CoerceInputLiteral_GivenValueNode_Throw(Type type, object value)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
-        ExpectParseLiteralToThrowSerializationException<HslaType>(valueNode);
+        ExpectCoerceInputLiteralToThrow<HslaType>(valueNode);
     }
 
     [Theory]
@@ -122,12 +94,12 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData("\"hsla(270%, A0, 5F, 1.0)\"")]
     [InlineData("\"hsla(240, 75, .3, 25%)\"")]
     [InlineData("\"hsla(٢٤٠, ١٠٠%, ٥٠%, .٠٥)\"")]
-    public void CoerceInputValue_GivenValue_ThrowSerializationException(string jsonValue)
+    public void CoerceInputValue_GivenValue_Throw(string jsonValue)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceInputValueToThrowSerializationException<HslaType>(jsonValue);
+        ExpectCoerceInputValueToThrow<HslaType>(jsonValue);
     }
 
     [Theory]
@@ -137,7 +109,7 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData("hsla(240, 100%, 50%, 1)")]
     [InlineData("hsla(240 100% 50% / .05)")]
     [InlineData("hsla(240 100% 50% / 5%)")]
-    public void CoerceOutputValue_GivenObject_MatchExpectedType(object? runtimeValue)
+    public void CoerceOutputValue_GivenObject_MatchExpectedType(object runtimeValue)
     {
         // arrange
         // act
@@ -156,12 +128,12 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData("hsla(270%, A0, 5F, 1.0)")]
     [InlineData("hsla(240, 75, .3, 25%)")]
     [InlineData("hsla(٢٤٠, ١٠٠%, ٥٠%, .٠٥)")]
-    public void CoerceOutputValue_GivenObject_ThrowSerializationException(object value)
+    public void CoerceOutputValue_GivenObject_Throw(object value)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceOutputValueToThrowSerializationException<HslaType>(value);
+        ExpectCoerceOutputValueToThrow<HslaType>(value);
     }
 
     [Theory]
@@ -171,7 +143,6 @@ public class HslaTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "hsla(240, 100%, 50%, 1)")]
     [InlineData(typeof(StringValueNode), "hsla(240 100% 50% / .05)")]
     [InlineData(typeof(StringValueNode), "hsla(240 100% 50% / 5%)")]
-    [InlineData(typeof(NullValueNode), null)]
     public void ValueToLiteral_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange

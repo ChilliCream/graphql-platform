@@ -16,45 +16,16 @@ public class EmailAddressTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
-    [InlineData(typeof(FloatValueNode), 1d, false)]
-    [InlineData(typeof(IntValueNode), 1, false)]
-    [InlineData(typeof(BooleanValueNode), true, false)]
-    [InlineData(typeof(StringValueNode), "", false)]
-    [InlineData(typeof(StringValueNode), "K@chillicream.com", false)] // K = Kelvin Sign (U+212A)
-    [InlineData(typeof(StringValueNode), "test@chillicream.com", true)]
-    [InlineData(typeof(StringValueNode), "CapitalizeTest@chillicream.com", true)]
-    [InlineData(typeof(NullValueNode), null, true)]
-    public void IsValueCompatible_GivenValueNode_MatchExpected(
-        Type type,
-        object? value,
-        bool expected)
-    {
-        // arrange
-        var valueNode = CreateValueNode(type, value);
-
-        // act
-        // assert
-        ExpectIsInstanceOfTypeToMatch<EmailAddressType>(valueNode, expected);
-    }
-
-    [Theory]
     [InlineData(typeof(StringValueNode), "test@chillicream.com", "test@chillicream.com")]
-    [InlineData(typeof(StringValueNode),
-        "CapitalizeTest@chillicream.com",
-        "CapitalizeTest@chillicream.com")]
-    [InlineData(typeof(NullValueNode), null, null)]
-    public void CoerceInputLiteral_GivenValueNode_MatchExpected(
-        Type type,
-        object? value,
-        object? expected)
+    [InlineData(typeof(StringValueNode), "CapitalizeTest@chillicream.com", "CapitalizeTest@chillicream.com")]
+    public void CoerceInputLiteral_GivenValueNode_MatchExpected(Type type, object? value, object? expected)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
-        ExpectParseLiteralToMatch<EmailAddressType>(valueNode, expected);
+        ExpectCoerceInputLiteralToMatch<EmailAddressType>(valueNode, expected);
     }
 
     [Theory]
@@ -66,28 +37,26 @@ public class EmailAddressTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "invalid.email.com")]
     [InlineData(typeof(StringValueNode), "email@-example.com")]
     [InlineData(typeof(StringValueNode), "email@example..com")]
-    [InlineData(typeof(StringValueNode), "K@chillicream.com")] // K = Kelvin Sign (U+212A)
-    public void CoerceInputLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
+    [InlineData(typeof(StringValueNode), "\u212A@chillicream.com")] // U+212A = Kelvin Sign
+    public void CoerceInputLiteral_GivenValueNode_Throw(Type type, object value)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
-        ExpectParseLiteralToThrowSerializationException<EmailAddressType>(valueNode);
+        ExpectCoerceInputLiteralToThrow<EmailAddressType>(valueNode);
     }
 
     [Theory]
     [InlineData("\"test@chillicream.com\"", "test@chillicream.com")]
     [InlineData("\"CapitalizeTest@chillicream.com\"", "CapitalizeTest@chillicream.com")]
-    public void CoerceInputValue_GivenValue_MatchExpected(
-        string jsonValue,
-        object? runtimeValue)
+    public void CoerceInputValue_GivenValue_MatchExpected(string inputValue, object? runtimeValue)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceInputValueToMatch<EmailAddressType>(jsonValue, runtimeValue);
+        ExpectCoerceInputValueToMatch<EmailAddressType>(inputValue, runtimeValue);
     }
 
     [Theory]
@@ -97,18 +66,18 @@ public class EmailAddressTypeTests : ScalarTypeTestBase
     [InlineData("\"invalid.email.com\"")]
     [InlineData("\"email@-example.com\"")]
     [InlineData("\"email@example..com\"")]
-    public void CoerceInputValue_GivenValue_ThrowSerializationException(string jsonValue)
+    public void CoerceInputValue_GivenValue_Throw(string inputValue)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceInputValueToThrowSerializationException<EmailAddressType>(jsonValue);
+        ExpectCoerceInputValueToThrow<EmailAddressType>(inputValue);
     }
 
     [Theory]
     [InlineData("test@chillicream.com")]
     [InlineData("CapitalizeTest@chillicream.com")]
-    public void CoerceOutputValue_GivenObject_MatchExpectedType(object? runtimeValue)
+    public void CoerceOutputValue_GivenObject_MatchExpectedType(object runtimeValue)
     {
         // arrange
         // act
@@ -123,18 +92,17 @@ public class EmailAddressTypeTests : ScalarTypeTestBase
     [InlineData("invalid.email.com")]
     [InlineData("email@-example.com")]
     [InlineData("email@example..com")]
-    public void CoerceOutputValue_GivenObject_ThrowSerializationException(object value)
+    public void CoerceOutputValue_GivenObject_Throw(object value)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceOutputValueToThrowSerializationException<EmailAddressType>(value);
+        ExpectCoerceOutputValueToThrow<EmailAddressType>(value);
     }
 
     [Theory]
     [InlineData(typeof(StringValueNode), "test@chillicream.com")]
     [InlineData(typeof(StringValueNode), "CapitalizeTest@chillicream.com")]
-    [InlineData(typeof(NullValueNode), null)]
     public void ValueToLiteral_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange

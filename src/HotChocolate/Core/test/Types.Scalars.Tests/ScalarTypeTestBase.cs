@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Features;
@@ -57,53 +59,33 @@ public class ScalarTypeTestBase
         }
     }
 
-    protected void ExpectIsInstanceOfTypeToMatch<TType>(
-        IValueNode valueSyntax,
-        bool expectedResult)
+    protected void ExpectCoerceInputLiteralToMatch<TType>(IValueNode valueLiteral, object? expectedResult)
         where TType : ScalarType
     {
         // arrange
         var scalar = CreateType<TType>();
 
         // act
-        var result = scalar.IsValueCompatible(valueSyntax);
+        var result = scalar.CoerceInputLiteral(valueLiteral);
 
         // assert
         Assert.Equal(expectedResult, result);
     }
 
-    protected void ExpectParseLiteralToMatch<TType>(
-        IValueNode valueSyntax,
-        object? expectedResult)
+    protected void ExpectCoerceInputLiteralToThrow<TType>(IValueNode valueLiteral)
         where TType : ScalarType
     {
         // arrange
         var scalar = CreateType<TType>();
 
         // act
-        var result = scalar.CoerceInputLiteral(valueSyntax);
-
-        // assert
-        Assert.Equal(expectedResult, result);
-    }
-
-    protected void ExpectParseLiteralToThrowSerializationException<TType>(
-        IValueNode valueSyntax)
-        where TType : ScalarType
-    {
-        // arrange
-        var scalar = CreateType<TType>();
-
-        // act
-        var result = Record.Exception(() => scalar.CoerceInputLiteral(valueSyntax));
+        var result = Record.Exception(() => scalar.CoerceInputLiteral(valueLiteral));
 
         // assert
         Assert.IsType<LeafCoercionException>(result);
     }
 
-    protected void ExpectValueToLiteralToMatchType<TType>(
-        object? runtimeValue,
-        Type type)
+    protected void ExpectValueToLiteralToMatchType<TType>(object? runtimeValue, Type type)
         where TType : ScalarType
     {
         // arrange
@@ -129,8 +111,7 @@ public class ScalarTypeTestBase
         Assert.IsType<LeafCoercionException>(result);
     }
 
-    protected void ExpectCoerceOutputValueToMatch<TType>(
-        object? runtimeValue)
+    protected void ExpectCoerceOutputValueToMatch<TType>(object runtimeValue, object? label = null)
         where TType : ScalarType
     {
         // arrange
@@ -140,10 +121,12 @@ public class ScalarTypeTestBase
         var operation = CommonTestExtensions.CreateOperation();
         var resultDocument = new ResultDocument(operation, 0);
         var resultElement = resultDocument.Data.GetProperty("first");
-        scalar.CoerceOutputValue(runtimeValue!, resultElement);
+        scalar.CoerceOutputValue(runtimeValue, resultElement);
 
         // assert
-        resultElement.MatchSnapshot();
+        var labelBuffer = Encoding.UTF8.GetBytes((label ?? runtimeValue).ToString()!);
+        var hash = Convert.ToHexString(MD5.HashData(labelBuffer)).ToLowerInvariant();
+        resultElement.MatchSnapshot(postFix: hash);
     }
 
     protected void ExpectCoerceInputValueToMatch<TType>(
@@ -165,7 +148,7 @@ public class ScalarTypeTestBase
         Assert.Equal(result, runtimeValue);
     }
 
-    protected void ExpectCoerceOutputValueToThrowSerializationException<TType>(object runtimeValue)
+    protected void ExpectCoerceOutputValueToThrow<TType>(object runtimeValue)
         where TType : ScalarType
     {
         // arrange
@@ -181,7 +164,7 @@ public class ScalarTypeTestBase
         Assert.IsType<LeafCoercionException>(result);
     }
 
-    protected void ExpectCoerceInputValueToThrowSerializationException<TType>(string jsonValue)
+    protected void ExpectCoerceInputValueToThrow<TType>(string jsonValue)
         where TType : ScalarType
     {
         // arrange

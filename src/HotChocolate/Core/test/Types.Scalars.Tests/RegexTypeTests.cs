@@ -16,25 +16,7 @@ public class RegexTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData(typeof(BooleanValueNode), true, false)]
-    [InlineData(typeof(NullValueNode), null, true)]
-    [InlineData(typeof(StringValueNode), "+178955512343598", true)]
-    public void IsValueCompatible_GivenValueNode_MatchExpected(
-        Type type,
-        object? value,
-        bool expected)
-    {
-        // arrange
-        var valueNode = CreateValueNode(type, value);
-
-        // act
-        // assert
-        ExpectIsInstanceOfTypeToMatch<StubType>(valueNode, expected);
-    }
-
-    [Theory]
     [InlineData(typeof(StringValueNode), "+16873271234", "+16873271234")]
-    [InlineData(typeof(NullValueNode), null, null)]
     public void CoerceInputLiteral_GivenValueNode_MatchExpected(
         Type type,
         object? value,
@@ -45,7 +27,7 @@ public class RegexTypeTests : ScalarTypeTestBase
 
         // act
         // assert
-        ExpectParseLiteralToMatch<StubType>(valueNode, expected);
+        ExpectCoerceInputLiteralToMatch<StubType>(valueNode, expected);
     }
 
     [Theory]
@@ -55,14 +37,14 @@ public class RegexTypeTests : ScalarTypeTestBase
     [InlineData(typeof(BooleanValueNode), true)]
     [InlineData(typeof(StringValueNode), "")]
     [InlineData(typeof(StringValueNode), "123-456-7890")]
-    public void CoerceInputLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
+    public void CoerceInputLiteral_GivenValueNode_Throw(Type type, object value)
     {
         // arrange
         var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
-        ExpectParseLiteralToThrowSerializationException<StubType>(valueNode);
+        ExpectCoerceInputLiteralToThrow<StubType>(valueNode);
     }
 
     [Theory]
@@ -82,17 +64,17 @@ public class RegexTypeTests : ScalarTypeTestBase
     [InlineData("1")]
     [InlineData("true")]
     [InlineData("\"123-456-7890\"")]
-    public void CoerceInputValue_GivenValue_ThrowSerializationException(string jsonValue)
+    public void CoerceInputValue_GivenValue_Throw(string jsonValue)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceInputValueToThrowSerializationException<StubType>(jsonValue);
+        ExpectCoerceInputValueToThrow<StubType>(jsonValue);
     }
 
     [Theory]
     [InlineData("+16873271234")]
-    public void CoerceOutputValue_GivenObject_MatchExpectedType(object? runtimeValue)
+    public void CoerceOutputValue_GivenObject_MatchExpectedType(object runtimeValue)
     {
         // arrange
         // act
@@ -105,17 +87,16 @@ public class RegexTypeTests : ScalarTypeTestBase
     [InlineData(1)]
     [InlineData(true)]
     [InlineData("123-456-7890")]
-    public void CoerceOutputValue_GivenObject_ThrowSerializationException(object value)
+    public void CoerceOutputValue_GivenObject_Throw(object value)
     {
         // arrange
         // act
         // assert
-        ExpectCoerceOutputValueToThrowSerializationException<StubType>(value);
+        ExpectCoerceOutputValueToThrow<StubType>(value);
     }
 
     [Theory]
     [InlineData(typeof(StringValueNode), "+16873271234")]
-    [InlineData(typeof(NullValueNode), null)]
     public void ValueToLiteral_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange

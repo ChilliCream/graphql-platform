@@ -48,6 +48,10 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
             {
                 runtimeValue = OnCoerceInputLiteral(literal);
             }
+            catch (LeafCoercionException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 throw CreateCoerceInputLiteralError(valueLiteral, ex);
@@ -98,6 +102,10 @@ public abstract class ScalarType<TRuntimeType, TLiteral>
                 try
                 {
                     runtimeValue = OnCoerceInputValue(inputValue, context);
+                }
+                catch (LeafCoercionException)
+                {
+                    throw;
                 }
                 catch (Exception ex)
                 {
