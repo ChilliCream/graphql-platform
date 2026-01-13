@@ -59,10 +59,13 @@ internal sealed partial class SourceSchemaPreprocessor(
         }
 
         // Additional schema validation will catch issues introduced during preprocessing.
-        var validationLog = new ValidationLog();
-        if (!new SchemaValidator().Validate(schema, validationLog) && validationLog.HasErrors)
+        if (_options.EnableSchemaValidation)
         {
-            log.WriteValidationLog(validationLog, schema);
+            var validationLog = new ValidationLog();
+            if (!new SchemaValidator().Validate(schema, validationLog) && validationLog.HasErrors)
+            {
+                log.WriteValidationLog(validationLog, schema);
+            }
         }
 
         return log.HasErrors
