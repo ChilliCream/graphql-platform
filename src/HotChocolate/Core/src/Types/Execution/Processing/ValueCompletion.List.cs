@@ -146,6 +146,6 @@ internal static partial class ValueCompletion
             }
 
             result.Invalidate();
-        } while (result is { IsInvalidated: false });
+        } while (result.Parent is { IsInvalidated: false });
     }
 }

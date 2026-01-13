@@ -1,4 +1,3 @@
-using HotChocolate.Types;
 using static HotChocolate.Execution.Processing.ValueCompletion;
 
 namespace HotChocolate.Execution.Processing.Tasks;
