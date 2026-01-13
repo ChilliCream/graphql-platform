@@ -10,15 +10,11 @@ namespace HotChocolate.Execution.Processing;
 internal sealed class VariableCoercionHelper
 {
     private readonly InputParser _inputParser;
-    private readonly InputFormatter _inputFormatter;
 
-    public VariableCoercionHelper(InputParser inputParser, InputFormatter inputFormatter)
+    public VariableCoercionHelper(InputParser inputParser)
     {
         ArgumentNullException.ThrowIfNull(inputParser);
-        ArgumentNullException.ThrowIfNull(inputFormatter);
-
         _inputParser = inputParser;
-        _inputFormatter = inputFormatter;
     }
 
     public void CoerceVariableValues(

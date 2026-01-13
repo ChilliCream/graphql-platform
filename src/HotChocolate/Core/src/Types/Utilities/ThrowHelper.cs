@@ -15,8 +15,8 @@ internal static class ThrowHelper
 {
     public static GraphQLException EventMessage_InvalidCast(
         Type expectedType,
-        Type messageType) =>
-        new GraphQLException(
+        Type messageType)
+        => new GraphQLException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_EventMessage_InvalidCast,
@@ -24,14 +24,14 @@ internal static class ThrowHelper
                     expectedType.FullName)
                 .Build());
 
-    public static GraphQLException EventMessage_NotFound() =>
-        new GraphQLException(
+    public static GraphQLException EventMessage_NotFound()
+        => new GraphQLException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_EventMessage_NotFound)
                 .Build());
 
-    public static SchemaException SubscribeAttribute_MessageTypeUnspecified(MemberInfo member) =>
-        new SchemaException(
+    public static SchemaException SubscribeAttribute_MessageTypeUnspecified(MemberInfo member)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_MessageTypeUnspecified,
@@ -40,8 +40,8 @@ internal static class ThrowHelper
                 .SetExtension("member", member)
                 .Build());
 
-    public static SchemaException SubscribeAttribute_TopicTypeUnspecified(MemberInfo member) =>
-        new SchemaException(
+    public static SchemaException SubscribeAttribute_TopicTypeUnspecified(MemberInfo member)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_TopicTypeUnspecified,
@@ -52,8 +52,8 @@ internal static class ThrowHelper
 
     public static SchemaException SubscribeAttribute_SubscribeResolverNotFound(
         MemberInfo member,
-        string subscribeResolverName) =>
-        new SchemaException(
+        string subscribeResolverName)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound,
@@ -63,16 +63,16 @@ internal static class ThrowHelper
                 .SetExtension("member", member)
                 .Build());
 
-    public static SchemaException Convention_UnableToCreateConvention(Type convention) =>
-        new SchemaException(
+    public static SchemaException Convention_UnableToCreateConvention(Type convention)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_Convention_UnableToCreateConvention,
                     convention.FullName ?? convention.Name)
                 .Build());
 
-    public static SchemaException UsePagingAttribute_NodeTypeUnknown(MemberInfo member) =>
-        new SchemaException(
+    public static SchemaException UsePagingAttribute_NodeTypeUnknown(MemberInfo member)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(ThrowHelper_UsePagingAttribute_NodeTypeUnknown)
                 .SetCode(ErrorCodes.Paging.NodeTypeUnknown)
@@ -139,8 +139,8 @@ internal static class ThrowHelper
 
     public static SchemaException NodeAttribute_IdFieldNotFound(
         Type type,
-        string idField) =>
-        new SchemaException(
+        string idField)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_NodeAttribute_IdFieldNotFound,
@@ -153,8 +153,8 @@ internal static class ThrowHelper
         Type conventionType,
         IConvention first,
         IConvention other,
-        string? scope) =>
-        new SchemaException(
+        string? scope)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_Convention_TwoConventionsRegisteredForScope,
@@ -166,8 +166,8 @@ internal static class ThrowHelper
 
     public static SchemaException Convention_ConventionCouldNotBeCreated(
         Type conventionType,
-        string? scope) =>
-        new SchemaException(
+        string? scope)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_Convention_ConventionCouldNotBeCreated,
@@ -175,16 +175,16 @@ internal static class ThrowHelper
                     scope ?? "default")
                 .Build());
 
-    public static SchemaException DataLoader_InvalidType(Type dataLoaderType) =>
-        new SchemaException(
+    public static SchemaException DataLoader_InvalidType(Type dataLoaderType)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_DataLoader_InvalidType,
                     dataLoaderType.FullName ?? dataLoaderType.Name)
                 .Build());
 
-    public static SchemaException NonGenericExecutableNotAllowed() =>
-        new SchemaException(
+    public static SchemaException NonGenericExecutableNotAllowed()
+        => new SchemaException(
             SchemaErrorBuilder
                 .New()
                 .SetMessage(ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed)
@@ -198,7 +198,7 @@ internal static class ThrowHelper
                 .SetMessage(
                     ThrowHelper_RequiredInputFieldIsMissing,
                     field.Name)
-                .SetPath(fieldPath)
+                .SetInputPath(fieldPath)
                 .SetExtension("field", field.Coordinate.ToString())
                 .Build(),
             field.Type,
@@ -218,7 +218,7 @@ internal static class ThrowHelper
                         ThrowHelper_InvalidInputFieldNames_Single,
                         invalidFieldNames[0],
                         type.Name)
-                    .SetPath(path)
+                    .SetInputPath(path)
                     .SetExtension("type", type.Name)
                     .Build(),
                 type,
@@ -231,7 +231,7 @@ internal static class ThrowHelper
                     ThrowHelper_InvalidInputFieldNames,
                     string.Join(", ", invalidFieldNames.Select(t => $"`{t}`")),
                     type.Name)
-                .SetPath(path)
+                .SetInputPath(path)
                 .SetExtension("type", type.Name)
                 .Build(),
             type,
@@ -245,7 +245,7 @@ internal static class ThrowHelper
         var builder = ErrorBuilder.New()
             .SetMessage(ThrowHelper_OneOfNoFieldSet, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfNoFieldSet)
-            .SetPath(path);
+            .SetInputPath(path);
 
         return new(builder.Build(), type, path);
     }
@@ -257,7 +257,7 @@ internal static class ThrowHelper
         var builder = ErrorBuilder.New()
             .SetMessage(ThrowHelper_OneOfMoreThanOneFieldSet, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfMoreThanOneFieldSet)
-            .SetPath(path);
+            .SetInputPath(path);
 
         return new(builder.Build(), type, path);
     }
@@ -270,7 +270,7 @@ internal static class ThrowHelper
         var builder = ErrorBuilder.New()
             .SetMessage(ThrowHelper_OneOfFieldIsNull, field.Name, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfFieldIsNull)
-            .SetPath(path)
+            .SetInputPath(path)
             .SetCoordinate(field.Coordinate);
 
         return new(builder.Build(), type, path);
@@ -284,7 +284,7 @@ internal static class ThrowHelper
         var builder = ErrorBuilder.New()
             .SetMessage(ThrowHelper_NonNullInputViolation)
             .SetCode(ErrorCodes.Execution.NonNullViolation)
-            .SetPath(path);
+            .SetInputPath(path);
 
         if (field is not null)
         {
@@ -304,7 +304,7 @@ internal static class ThrowHelper
                     ThrowHelper_ParseInputObject_InvalidSyntaxKind,
                     kind,
                     type.Name)
-                .SetPath(path)
+                .SetInputPath(path)
                 .SetExtension(nameof(type), type.Name)
                 .Build(),
             type,
@@ -316,7 +316,7 @@ internal static class ThrowHelper
         => new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_ParseInputObject_InvalidValueKind)
-                .SetPath(path)
+                .SetInputPath(path)
                 .SetExtension(nameof(type), type.Name)
                 .Build(),
             type,
@@ -331,7 +331,7 @@ internal static class ThrowHelper
                 .SetMessage(
                     ThrowHelper_ParseNestedList_InvalidSyntaxKind,
                     kind)
-                .SetPath(path)
+                .SetInputPath(path)
                 .SetExtension(
                     "specifiedBy",
                     "https://spec.graphql.org/June2018/#sec-Type-System.List")
@@ -361,7 +361,7 @@ internal static class ThrowHelper
                     ThrowHelper_FormatValueList_InvalidObjectKind,
                     type.Print(),
                     listType.FullName ?? listType.Name)
-                .SetPath(path)
+                .SetInputPath(path)
                 .Build(),
             type,
             path);
@@ -377,7 +377,7 @@ internal static class ThrowHelper
                     objectType.FullName ?? objectType.Name,
                     type.Name,
                     type.RuntimeType.FullName ?? type.RuntimeType.Name)
-                .SetPath(path)
+                .SetInputPath(path)
                 .SetExtension(nameof(type), type.Name)
                 .Build(),
             type,
@@ -393,7 +393,7 @@ internal static class ThrowHelper
                     ThrowHelper_FormatResultList_InvalidObjectKind,
                     type.Print(),
                     listType.FullName ?? listType.Name)
-                .SetPath(path)
+                .SetInputPath(path)
                 .Build(),
             type,
             path);
@@ -408,7 +408,7 @@ internal static class ThrowHelper
                     ThrowHelper_FormatResultLeaf_InvalidSyntaxKind,
                     type.Print(),
                     kind)
-                .SetPath(path)
+                .SetInputPath(path)
                 .Build(),
             type,
             path);

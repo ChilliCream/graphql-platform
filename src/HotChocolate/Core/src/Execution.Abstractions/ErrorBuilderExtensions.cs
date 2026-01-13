@@ -28,11 +28,16 @@ public static class ErrorBuilderExtensions
         /// </summary>
         /// <param name="inputPath">The input path.</param>
         /// <returns>The error builder.</returns>
-        public ErrorBuilder SetInputPath(Path inputPath)
+        public ErrorBuilder SetInputPath(Path? inputPath)
         {
-            ArgumentNullException.ThrowIfNull(builder);
-
-            return builder.SetExtension(nameof(inputPath), inputPath);
+            if (inputPath is null)
+            {
+                return builder.RemoveExtension(nameof(inputPath));
+            }
+            else
+            {
+                return builder.SetExtension(nameof(inputPath), inputPath);
+            }
         }
 
         /// <summary>

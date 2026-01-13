@@ -5,7 +5,6 @@ using HotChocolate.StarWars;
 using HotChocolate.StarWars.Models;
 using HotChocolate.StarWars.Types;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 using Moq;
 
 namespace HotChocolate.Execution.Processing;
@@ -28,7 +27,7 @@ public class VariableCoercionHelperTests
 
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         void Action() => helper.CoerceVariableValues(
@@ -45,7 +44,7 @@ public class VariableCoercionHelperTests
         var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         void Action()
@@ -73,7 +72,7 @@ public class VariableCoercionHelperTests
         };
 
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         void Action() => helper.CoerceVariableValues(
@@ -102,7 +101,7 @@ public class VariableCoercionHelperTests
 
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
@@ -138,7 +137,7 @@ public class VariableCoercionHelperTests
 
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
@@ -168,7 +167,7 @@ public class VariableCoercionHelperTests
         var variableValues = JsonDocument.Parse("""{"abc": "xyz"}""");
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
@@ -205,7 +204,7 @@ public class VariableCoercionHelperTests
         var variableValues = JsonDocument.Parse("""{"abc": "xyz"}""");
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
@@ -242,7 +241,7 @@ public class VariableCoercionHelperTests
         var variableValues = JsonDocument.Parse("""{"abc": null}""");
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
@@ -279,7 +278,7 @@ public class VariableCoercionHelperTests
         var variableValues = JsonDocument.Parse("""{"abc": {"stars": 5}}""");
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
@@ -316,7 +315,7 @@ public class VariableCoercionHelperTests
         var variableValues = JsonDocument.Parse("""{"abc": null}""");
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         void Action() => helper.CoerceVariableValues(
@@ -360,7 +359,7 @@ public class VariableCoercionHelperTests
         var variableValues = JsonDocument.Parse("""{"abc": 1}""");
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         void Action() => helper.CoerceVariableValues(
@@ -405,7 +404,7 @@ public class VariableCoercionHelperTests
         var variableValues = JsonDocument.Parse("""{"abc": 1}""");
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         void Action() => helper.CoerceVariableValues(
@@ -445,7 +444,7 @@ public class VariableCoercionHelperTests
         var variableValues = JsonDocument.Parse("""{"abc": {"abc": "def"}}""");
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         void Action() => helper.CoerceVariableValues(
@@ -517,7 +516,7 @@ public class VariableCoercionHelperTests
 
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
@@ -583,7 +582,7 @@ public class VariableCoercionHelperTests
 
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
@@ -647,7 +646,7 @@ public class VariableCoercionHelperTests
 
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
@@ -707,7 +706,7 @@ public class VariableCoercionHelperTests
 
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
@@ -767,7 +766,7 @@ public class VariableCoercionHelperTests
 
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
@@ -835,7 +834,7 @@ public class VariableCoercionHelperTests
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
 
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
@@ -880,7 +879,7 @@ public class VariableCoercionHelperTests
         var coercedValues = new Dictionary<string, VariableValue>();
         var featureProvider = new Mock<IFeatureProvider>();
 
-        var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+        var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
