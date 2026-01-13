@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "Name cannot serialize the given value.",
+      "message": "Not a valid name.",
       "path": [
         "stringToName"
       ],

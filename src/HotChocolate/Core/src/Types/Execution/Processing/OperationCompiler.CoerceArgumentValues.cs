@@ -76,9 +76,7 @@ public sealed partial class OperationCompiler
             }
             catch (LeafCoercionException ex)
             {
-                return new ArgumentValue(
-                    argument,
-                    ErrorHelper.ArgumentValueIsInvalid(argumentValue, ex));
+                return new ArgumentValue(argument, ex.Errors[0]);
             }
         }
 

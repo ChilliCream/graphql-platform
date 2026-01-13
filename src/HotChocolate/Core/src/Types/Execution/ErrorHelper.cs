@@ -17,16 +17,7 @@ internal static class ErrorHelper
                 ErrorHelper_ArgumentNonNullError_Message,
                 argument.Name.Value)
             .AddLocation(argument)
-            .SetExtension("errorPath", validationResult.Path)
-            .Build();
-    }
-
-    public static IError ArgumentValueIsInvalid(
-        ArgumentNode? argument,
-        GraphQLException exception)
-    {
-        return ErrorBuilder.FromError(exception.Errors[0])
-            .TryAddLocation(argument)
+            .SetInputPath(validationResult.Path)
             .Build();
     }
 

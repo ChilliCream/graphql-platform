@@ -203,7 +203,14 @@ public sealed class NameType : ScalarType<string, StringValueNode>
     }
 
     protected override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
-        => resultValue.SetStringValue(runtimeValue);
+    {
+        if (string.IsNullOrWhiteSpace(runtimeValue))
+        {
+            throw new LeafCoercionException("Not a valid name.", this);
+        }
+
+        resultValue.SetStringValue(runtimeValue);
+    }
 
     protected override StringValueNode OnValueToLiteral(string runtimeValue)
         => new(runtimeValue);

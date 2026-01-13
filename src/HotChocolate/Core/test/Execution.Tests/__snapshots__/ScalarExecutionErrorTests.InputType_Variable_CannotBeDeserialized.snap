@@ -1,7 +1,7 @@
-﻿{
+{
   "errors": [
     {
-      "message": "Foo cannot deserialize the given value.",
+      "message": "StringValue is not a.",
       "path": [
         "a"
       ]
