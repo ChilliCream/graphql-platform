@@ -51,11 +51,18 @@ internal sealed class FusionPublishCommand : Command
         {
             Description = ComposeCommand_SourceSchemaFile_Description
         };
-        sourceSchemaFileOption.AddAlias("-s");
+        sourceSchemaFileOption.AddAlias("-f");
         sourceSchemaFileOption.LegalFilePathsOnly();
+
+        var sourceSchemaOption = new Option<List<string>>("--source-schema")
+        {
+            Description = PublishCommand_SourceSchemaOption_Description
+        };
+        sourceSchemaOption.AddAlias("-s");
 
         AddOption(workingDirectoryOption);
         AddOption(sourceSchemaFileOption);
+        AddOption(sourceSchemaOption);
         AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
@@ -64,7 +71,8 @@ internal sealed class FusionPublishCommand : Command
         this.SetHandler(async context =>
         {
             var workingDirectory = context.ParseResult.GetValueForOption(workingDirectoryOption)!;
-            var sourceSchemaFiles = context.ParseResult.GetValueForOption(sourceSchemaFileOption)!;
+            var sourceSchemaFiles = context.ParseResult.GetValueForOption(sourceSchemaFileOption) ?? [];
+            var sourceSchemaIdentifiers = context.ParseResult.GetValueForOption(sourceSchemaOption) ?? [];
             var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
             var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
@@ -76,6 +84,7 @@ internal sealed class FusionPublishCommand : Command
             context.ExitCode = await ExecuteAsync(
                 workingDirectory,
                 sourceSchemaFiles,
+                sourceSchemaIdentifiers,
                 apiId,
                 stageName,
                 tag,
@@ -92,6 +101,7 @@ internal sealed class FusionPublishCommand : Command
     public static async Task<int> ExecuteAsync(
         string? workingDirectory,
         List<string> sourceSchemaFiles,
+        List<string> sourceSchemaIdentifiers,
         string apiId,
         string stageName,
         string tag,
@@ -361,6 +371,38 @@ internal sealed class FusionPublishCommand : Command
             console.Success($"Uploaded new configuration '{tag}' to '{stageName}'.");
         }
     }
+
+    private static SourceSchemaVersion ParseSourceSchemaVersion(string input, string tag)
+    {
+        var atIndex = input.LastIndexOf('@');
+
+        if (atIndex > 0)
+        {
+            var name = input[..atIndex];
+            var version = input[(atIndex + 1)..];
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentException("The source schema name before the '@' cannot be empty.", nameof(input));
+            }
+
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentException("The source schema version after the '@' cannot be empty.", nameof(input));
+            }
+
+            return new SourceSchemaVersion(name, version);
+        }
+
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            throw new ArgumentException("The source schema name cannot be empty.", nameof(input));
+        }
+
+        return new SourceSchemaVersion(input, tag);
+    }
+
+    private sealed record SourceSchemaVersion(string Name, string Version);
 
     private sealed class AnsiStreamWriter(TextWriter textWriter) : IStandardStreamWriter
     {
