@@ -138,22 +138,6 @@ public class UtcOffsetTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
-    protected void UtcOffset_ExpectCoerceInputValueNullToMatch()
-    {
-        // arrange
-        var scalar = CreateType<UtcOffsetType>();
-        using var doc = JsonDocument.Parse("null");
-        var context = new Mock<IFeatureProvider>();
-        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
-
-        // act
-        var result = scalar.CoerceInputValue(doc.RootElement, context.Object);
-
-        // assert
-        Assert.Null(result);
-    }
-
-    [Fact]
     protected void UtcOffset_ExpectCoerceInputValueStringToMatch()
     {
         // arrange

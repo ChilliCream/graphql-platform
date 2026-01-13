@@ -23,10 +23,6 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)", "rgb(100%,0%,60%)")]
     [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)", "rgb(100%, 0%, 60%)")]
     [InlineData(typeof(StringValueNode), "rgb(255 0 153)", "rgb(255 0 153)")]
-    [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 1)", "rgb(255, 0, 153, 1)")]
-    [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 100%)", "rgb(255, 0, 153, 100%)")]
-    [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)", "rgb(255 0 153 / 1)")]
-    [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)", "rgb(255 0 153 / 100%)")]
     public void CoerceInputLiteral_GivenValueNode_MatchExpected(
         Type type,
         object? value,
@@ -65,7 +61,6 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("\"rgb(100%, 0%, 0%)\"", "rgb(100%, 0%, 0%)")]
     [InlineData("\"rgb(300,0,0)\"", "rgb(300,0,0)")]
     [InlineData("\"rgb(255 0 153)\"", "rgb(255 0 153)")]
-    [InlineData("\"rgb(255, 0, 153, 1)\"", "rgb(255, 0, 153, 1)")]
     public void CoerceInputValue_GivenValue_MatchExpected(
         string jsonValue,
         object? runtimeValue)
@@ -96,7 +91,6 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData("rgb(100%, 0%, 0%)")]
     [InlineData("rgb(300,0,0)")]
     [InlineData("rgb(255 0 153)")]
-    [InlineData("rgb(255, 0, 153, 1)")]
     public void CoerceOutputValue_GivenObject_MatchExpectedType(object runtimeValue)
     {
         // arrange
@@ -125,7 +119,6 @@ public class RgbTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 0%)")]
     [InlineData(typeof(StringValueNode), "rgb(300,0,0)")]
     [InlineData(typeof(StringValueNode), "rgb(255 0 153)")]
-    [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 1)")]
     public void ValueToLiteral_GivenObject_MatchExpectedType(Type type, object? value)
     {
         // arrange

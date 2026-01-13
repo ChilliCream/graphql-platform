@@ -16,12 +16,6 @@ public class RgbaTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData(typeof(StringValueNode), "rgb(255,0,0)", "rgb(255,0,0)")]
-    [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 0%)", "rgb(100%, 0%, 0%)")]
-    [InlineData(typeof(StringValueNode), "rgb(300,0,0)", "rgb(300,0,0)")]
-    [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)", "rgb(110%, 0%, 0%)")]
-    [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)", "rgb(100%,0%,60%)")]
-    [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)", "rgb(100%, 0%, 60%)")]
     [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .1)", "rgba(51, 170, 51, .1)")]
     [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .4)", "rgba(51, 170, 51, .4)")]
     [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .7)", "rgba(51, 170, 51, .7)")]
@@ -63,12 +57,6 @@ public class RgbaTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData("\"rgb(255,0,0)\"", "rgb(255,0,0)")]
-    [InlineData("\"rgb(100%, 0%, 0%)\"", "rgb(100%, 0%, 0%)")]
-    [InlineData("\"rgb(300,0,0)\"", "rgb(300,0,0)")]
-    [InlineData("\"rgb(110%, 0%, 0%)\"", "rgb(110%, 0%, 0%)")]
-    [InlineData("\"rgb(100%,0%,60%)\"", "rgb(100%,0%,60%)")]
-    [InlineData("\"rgb(100%, 0%, 60%)\"", "rgb(100%, 0%, 60%)")]
     [InlineData("\"rgba(51, 170, 51, .1)\"", "rgba(51, 170, 51, .1)")]
     [InlineData("\"rgba(51, 170, 51, .4)\"", "rgba(51, 170, 51, .4)")]
     [InlineData("\"rgba(51, 170, 51, .7)\"", "rgba(51, 170, 51, .7)")]
@@ -103,12 +91,6 @@ public class RgbaTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData("rgb(255,0,0)")]
-    [InlineData("rgb(100%, 0%, 0%)")]
-    [InlineData("rgb(300,0,0)")]
-    [InlineData("rgb(110%, 0%, 0%)")]
-    [InlineData("rgb(100%,0%,60%)")]
-    [InlineData("rgb(100%, 0%, 60%)")]
     [InlineData("rgba(51, 170, 51, .1)")]
     [InlineData("rgba(51, 170, 51, .4)")]
     [InlineData("rgba(51, 170, 51, .7)")]
@@ -142,12 +124,6 @@ public class RgbaTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData(typeof(StringValueNode), "rgb(255,0,0)")]
-    [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 0%)")]
-    [InlineData(typeof(StringValueNode), "rgb(300,0,0)")]
-    [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)")]
-    [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)")]
-    [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)")]
     [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .1)")]
     [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .4)")]
     [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .7)")]

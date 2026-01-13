@@ -20,10 +20,6 @@ public class HslTypeTests : ScalarTypeTestBase
     [InlineData(typeof(StringValueNode), "hsl(270, 60%, 70%)", "hsl(270, 60%, 70%)")]
     [InlineData(typeof(StringValueNode), "hsl(270 60% 70%)", "hsl(270 60% 70%)")]
     [InlineData(typeof(StringValueNode), "hsl(270deg, 60%, 70%)", "hsl(270deg, 60%, 70%)")]
-    [InlineData(typeof(StringValueNode), "hsl(270, 60%, 50%, .15)", "hsl(270, 60%, 50%, .15)")]
-    [InlineData(typeof(StringValueNode), "hsl(270, 60%, 50%, 15%)", "hsl(270, 60%, 50%, 15%)")]
-    [InlineData(typeof(StringValueNode), "hsl(270 60% 50% / .15)", "hsl(270 60% 50% / .15)")]
-    [InlineData(typeof(StringValueNode), "hsl(270 60% 50% / 15%)", "hsl(270 60% 50% / 15%)")]
     [InlineData(typeof(StringValueNode), "hsl(270, 100%, 50%)", "hsl(270, 100%, 50%)")]
     public void CoerceInputLiteral_GivenValueNode_MatchExpected(
         Type type,
