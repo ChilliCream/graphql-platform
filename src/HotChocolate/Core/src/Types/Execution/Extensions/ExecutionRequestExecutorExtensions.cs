@@ -42,6 +42,8 @@ public static class ExecutionRequestExecutorExtensions
             cancellationToken);
     }
 
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
         [StringSyntax("graphql")] string query,
@@ -59,6 +61,8 @@ public static class ExecutionRequestExecutorExtensions
             CancellationToken.None);
     }
 
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
         [StringSyntax("graphql")] string query,
@@ -104,6 +108,8 @@ public static class ExecutionRequestExecutorExtensions
                 .Build());
     }
 
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
     public static IExecutionResult Execute(
         this IRequestExecutor executor,
         [StringSyntax("graphql")] string query,

@@ -21,7 +21,10 @@ public sealed class AnyType : ScalarType<JsonElement>
     /// <summary>
     /// Initializes a new instance of <see cref="AnyType"/>.
     /// </summary>
-    public AnyType(string name, BindingBehavior bind = BindingBehavior.Explicit)
+    public AnyType(
+        string name,
+        string? description = null,
+        BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
     }
@@ -31,7 +34,7 @@ public sealed class AnyType : ScalarType<JsonElement>
     /// </summary>
     [ActivatorUtilitiesConstructor]
     public AnyType()
-        : this(ScalarNames.Any, BindingBehavior.Implicit)
+        : this(ScalarNames.Any, bind: BindingBehavior.Implicit)
     {
     }
 

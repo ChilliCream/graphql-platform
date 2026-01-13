@@ -2,6 +2,7 @@ using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using static HotChocolate.Properties.Resources;
 
 namespace HotChocolate.Execution.Processing;
@@ -96,11 +97,12 @@ internal sealed class VariableCoercionHelper
         IFeatureProvider context)
     {
         var root = Path.Root.Append(variableDefinition.Variable.Name.Value);
+        var valueParser = new JsonValueParser();
 
         try
         {
             var runtimeValue = _inputParser.ParseInputValue(inputValue, variableType, context, path: root);
-            var valueLiteral = _inputFormatter.FormatValue(runtimeValue, variableType, root);
+            var valueLiteral = CoerceInputLiteral(inputValue, variableType, ref valueParser, depth: 0);
 
             return new VariableValue(
                 variableDefinition.Variable.Name.Value,
@@ -110,11 +112,18 @@ internal sealed class VariableCoercionHelper
         }
         catch (GraphQLException)
         {
+            valueParser._memory?.Abandon();
             throw;
         }
         catch (Exception ex)
         {
+            valueParser._memory?.Abandon();
             throw ThrowHelper.VariableValueInvalidType(variableDefinition, ex);
+        }
+        finally
+        {
+            valueParser._memory?.Seal();
+            valueParser._memory = null;
         }
     }
 
@@ -128,5 +137,113 @@ internal sealed class VariableCoercionHelper
         }
 
         throw ThrowHelper.VariableIsNotAnInputType(variableDefinition);
+    }
+
+    private IValueNode CoerceInputLiteral(
+        JsonElement inputValue,
+        IInputType type,
+        ref JsonValueParser valueParser,
+        int depth)
+    {
+        if (depth > 64)
+        {
+            throw new InvalidOperationException("The input value is to deep.");
+        }
+
+        if (inputValue.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+        {
+            return NullValueNode.Default;
+        }
+
+        switch (type.Kind)
+        {
+            case TypeKind.Scalar:
+                return valueParser.Parse(inputValue, depth);
+
+            case TypeKind.Enum:
+                if (inputValue.ValueKind is not JsonValueKind.String)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                return new EnumValueNode(inputValue.GetString()!);
+
+            case TypeKind.InputObject:
+                if (inputValue.ValueKind is not JsonValueKind.Object)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                var inputObjectType = (InputObjectType)type;
+                var fields = new List<ObjectFieldNode>();
+                var processedFields = StringSetPool.Shared.Rent();
+
+                try
+                {
+                    foreach (var property in inputValue.EnumerateObject())
+                    {
+                        if (!inputObjectType.Fields.TryGetField(property.Name, out var field))
+                        {
+                            continue;
+                        }
+
+                        processedFields.Add(property.Name);
+
+                        if (property.Value.ValueKind is JsonValueKind.Null)
+                        {
+                            if (field.DefaultValue is not (null or NullValueNode))
+                            {
+                                fields.Add(new ObjectFieldNode(field.Name, field.DefaultValue));
+                            }
+                            else
+                            {
+                                fields.Add(new ObjectFieldNode(field.Name, NullValueNode.Default));
+                            }
+                        }
+                        else
+                        {
+                            var value = CoerceInputLiteral(property.Value, field.Type, ref valueParser, depth + 1);
+                            fields.Add(new ObjectFieldNode(field.Name, value));
+                        }
+                    }
+
+                    foreach (var field in inputObjectType.Fields)
+                    {
+                        if (field.DefaultValue is not (null or NullValueNode) && !processedFields.Contains(field.Name))
+                        {
+                            fields.Add(new ObjectFieldNode(field.Name, field.DefaultValue));
+                        }
+                    }
+
+                    return new ObjectValueNode(fields);
+                }
+                finally
+                {
+                    StringSetPool.Shared.Return(processedFields);
+                }
+
+            case TypeKind.List:
+                if (inputValue.ValueKind is not JsonValueKind.Array)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                var items = new List<IValueNode>();
+                var elementType = type.ElementType().EnsureInputType();
+                var elementDepth = depth + 1;
+
+                foreach (var item in inputValue.EnumerateArray())
+                {
+                    items.Add(CoerceInputLiteral(item, elementType, ref valueParser, elementDepth));
+                }
+
+                return new ListValueNode(items);
+
+            case TypeKind.NonNull:
+                return CoerceInputLiteral(inputValue, type.InnerType().EnsureInputType(), ref valueParser, depth);
+
+            default:
+                throw new NotSupportedException();
+        }
     }
 }

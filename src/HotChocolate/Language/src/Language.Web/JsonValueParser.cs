@@ -12,7 +12,7 @@ public ref struct JsonValueParser
 {
     private const int DefaultMaxAllowedDepth = 64;
     private readonly int _maxAllowedDepth;
-    private Utf8MemoryBuilder? _memory;
+    internal Utf8MemoryBuilder? _memory;
     private readonly PooledArrayWriter? _externalBuffer;
 
     public JsonValueParser()
@@ -61,7 +61,7 @@ public ref struct JsonValueParser
         }
     }
 
-    private IValueNode Parse(JsonElement element, int depth)
+    internal IValueNode Parse(JsonElement element, int depth)
     {
         if (depth > _maxAllowedDepth)
         {

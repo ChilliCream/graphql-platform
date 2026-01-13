@@ -29,7 +29,6 @@ public static class BuiltInScalarNames
         ScalarNames.LocalTime,
         ScalarNames.ByteArray,
         ScalarNames.Any,
-        ScalarNames.JSON,
         ScalarNames.TimeSpan
     ];
 
