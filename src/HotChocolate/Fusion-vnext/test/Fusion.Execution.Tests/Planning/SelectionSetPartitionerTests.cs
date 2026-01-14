@@ -1,8 +1,7 @@
-using System.Collections.Immutable;
-using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
@@ -14,7 +13,7 @@ public class SelectionSetPartitionerTests
     {
         // arrange
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
-        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        var compositeSchema = FusionSchemaDefinition.Create(compositeSchemaDoc);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -43,8 +42,8 @@ public class SelectionSetPartitionerTests
             }
             """);
 
-        var fragmentRewriter = new InlineFragmentOperationRewriter(compositeSchema);
-        var operation = fragmentRewriter.RewriteDocument(doc).Definitions.OfType<OperationDefinitionNode>().Single();
+        var rewriter = new DocumentRewriter(compositeSchema);
+        var operation = rewriter.RewriteDocument(doc).Definitions.OfType<OperationDefinitionNode>().Single();
         var index = SelectionSetIndexer.Create(operation);
 
         // act
@@ -58,8 +57,8 @@ public class SelectionSetPartitionerTests
                 SelectionPath.Root),
             SelectionSetIndex = index
         };
-        var rewriter = new SelectionSetPartitioner(compositeSchema);
-        var (resolvable, unresolvable, fields, _) = rewriter.Partition(input);
+        var partitioner = new SelectionSetPartitioner(compositeSchema);
+        var (resolvable, unresolvable, _, _) = partitioner.Partition(input);
 
         // assert
         resolvable.MatchInlineSnapshot(
@@ -79,7 +78,7 @@ public class SelectionSetPartitionerTests
     {
         // arrange
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
-        var compositeSchema = CompositeSchemaBuilder.Create(compositeSchemaDoc);
+        var compositeSchema = FusionSchemaDefinition.Create(compositeSchemaDoc);
 
         var doc = Utf8GraphQLParser.Parse(
             """
@@ -115,8 +114,8 @@ public class SelectionSetPartitionerTests
             }
             """);
 
-        var fragmentRewriter = new InlineFragmentOperationRewriter(compositeSchema);
-        var operation = fragmentRewriter.RewriteDocument(doc).Definitions.OfType<OperationDefinitionNode>().Single();
+        var rewriter = new DocumentRewriter(compositeSchema);
+        var operation = rewriter.RewriteDocument(doc).Definitions.OfType<OperationDefinitionNode>().Single();
         var index = SelectionSetIndexer.Create(operation);
 
         // act
@@ -130,8 +129,8 @@ public class SelectionSetPartitionerTests
                 SelectionPath.Root),
             SelectionSetIndex = index
         };
-        var rewriter = new SelectionSetPartitioner(compositeSchema);
-        var (resolvable, unresolvable, fields, _) = rewriter.Partition(input);
+        var partitioner = new SelectionSetPartitioner(compositeSchema);
+        var (resolvable, unresolvable, _, _) = partitioner.Partition(input);
 
         // assert
         resolvable.MatchInlineSnapshot(

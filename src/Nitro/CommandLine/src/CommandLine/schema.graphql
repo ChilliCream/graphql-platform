@@ -1,0 +1,4252 @@
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+interface ApiChangeLog implements WorkspaceChangeLog {
+  apiId: ID!
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  id: ID!
+  name: String!
+  path: [String!]!
+  version: Version!
+  workspaceId: ID!
+}
+
+interface ApiDocumentChangeLog implements WorkspaceChangeLog {
+  apiId: ID!
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  documentId: ID!
+  id: ID!
+  name: String!
+  path: [String!]!
+  version: Version!
+  workspaceId: ID!
+}
+
+interface ClientVersionPublishError {
+  message: String!
+}
+
+interface ClientVersionPublishResult {
+  state: ProcessingState!
+}
+
+interface ClientVersionValidationError {
+  message: String!
+}
+
+interface ClientVersionValidationResult {
+  state: ProcessingState!
+}
+
+interface CoordinateMetrics {
+  clientUsages(from: DateTime! to: DateTime!): [CoordinateClientUsage!]!
+  requests(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateRequestGraph
+  usages(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateUsageGraph
+}
+
+interface Deployment {
+  approval: DeploymentApproval
+  createdAt: DateTime!
+  id: ID!
+  logs: [DeploymentLog!]!
+  status: DeploymentStatus!
+  tag: String!
+}
+
+interface DeploymentLog {
+  message: String!
+  timestamp: DateTime!
+}
+
+interface DocumentChangeLog implements WorkspaceChangeLog {
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  documentId: ID!
+  id: ID!
+  name: String!
+  path: [String!]!
+  version: Version!
+  workspaceId: ID!
+}
+
+interface EnvironmentChangeLog implements WorkspaceChangeLog {
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  environmentId: ID!
+  id: ID!
+  name: String!
+  version: Version!
+  workspaceId: ID!
+}
+
+interface Error {
+  message: String!
+}
+
+interface FusionConfigurationPublishingError {
+  message: String!
+}
+
+interface FusionConfigurationPublishingResult {
+  state: ProcessingState!
+}
+
+interface FusionConfigurationValidationError {
+  message: String!
+}
+
+interface GraphQLTypeSystemMember {
+  coordinate: String!
+  metrics: CoordinateMetrics
+  usage: CoordinateUsage!
+}
+
+interface GroupMember {
+  assignedAt: DateTime!
+  group: Group
+  id: ID!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+interface OpenTelemetryAttribute {
+  key: String!
+}
+
+interface OpenTelemetrySpan {
+  api: Api
+  clockSkew: Float
+  duration: Float!
+  epoch: Float!
+  events: [OpenTelemetryTraceEvent!]!
+  links: [OpenTelemetryTraceLink!]!
+  parentSpanId: String!
+  resourceAttributes: [Attribute!]!
+  spanAttributes: [Attribute!]!
+  spanId: String!
+  spanKind: String!
+  spanName: String!
+  stage: Stage
+  statusCode: String!
+  statusMessage: String!
+  traceId: String!
+  traceState: String!
+}
+
+interface PermissionScope {
+  id: ID!
+  type: String!
+}
+
+interface ProcessingError {
+  message: String!
+}
+
+interface SchemaChange {
+  severity: SchemaChangeSeverity!
+}
+
+interface SchemaVersionPublishError {
+  message: String!
+}
+
+interface SchemaVersionPublishResult {
+  state: ProcessingState!
+}
+
+interface SchemaVersionValidationError {
+  message: String!
+}
+
+interface SchemaVersionValidationResult {
+  state: ProcessingState!
+}
+
+interface StageChangeLog {
+  changedAt: DateTime!
+  id: ID!
+  kind: StageChangeLogKind!
+  tag: String!
+}
+
+interface Subgraph {
+  api: Api
+  id: ID!
+  name: String!
+}
+
+interface WorkspaceChangeLog {
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  id: ID!
+  version: Version!
+  workspaceId: ID!
+}
+
+type AfterStageCondition {
+  afterStage: Stage @cost(weight: "10")
+}
+
+type Api implements Node {
+  clients("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ClientsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  createdAt: DateTime!
+  createdBy: UserInfo!
+  documents("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApiDocumentConnection @authorize(policy: "DocumentsRead") @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  httpConnection: ApiHttpConnection
+  id: ID!
+  kind: ApiKind
+  mockSchemas("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): MockSchemasConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  modifiedAt: DateTime!
+  modifiedBy: UserInfo!
+  name: String!
+  operations("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OperationsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  path: [String!]!
+  schemaVersions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): SchemaVersionsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  settings: ApiSettings!
+  stages: [Stage!]! @cost(weight: "10")
+  version: Version!
+  workspace: Workspace @cost(weight: "10")
+}
+
+type ApiChanged implements ApiChangeLog & WorkspaceChangeLog {
+  api(onlyIfLatest: Boolean): Api @cost(weight: "10")
+  apiId: ID!
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  id: ID!
+  name: String!
+  path: [String!]!
+  version: Version!
+  workspaceId: ID!
+}
+
+type ApiCreated implements ApiChangeLog & WorkspaceChangeLog {
+  api(onlyIfLatest: Boolean): Api @cost(weight: "10")
+  apiId: ID!
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  id: ID!
+  name: String!
+  path: [String!]!
+  version: Version!
+  workspaceId: ID!
+}
+
+type ApiDeleted implements ApiChangeLog & WorkspaceChangeLog {
+  api(onlyIfLatest: Boolean): Api @cost(weight: "10")
+  apiId: ID!
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  id: ID!
+  name: String!
+  path: [String!]!
+  version: Version!
+  workspaceId: ID!
+}
+
+type ApiDeletionFailedError implements Error {
+  apiId: ID!
+  message: String!
+}
+
+type ApiDocument implements Node {
+  api: Api @cost(weight: "10")
+  body: String!
+  createdAt: DateTime!
+  createdBy: UserInfo!
+  id: ID!
+  modifiedAt: DateTime!
+  modifiedBy: UserInfo!
+  name: String!
+  path: [String!]!
+  variables: String
+  version: Version!
+}
+
+type ApiDocumentChanged implements ApiDocumentChangeLog & WorkspaceChangeLog {
+  apiDocument(onlyIfLatest: Boolean): ApiDocument @cost(weight: "10")
+  apiId: ID!
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  documentId: ID!
+  id: ID!
+  name: String!
+  path: [String!]!
+  version: Version!
+  workspaceId: ID!
+}
+
+"A connection to a list of items."
+type ApiDocumentConnection {
+  "A list of edges."
+  edges: [ApiDocumentEdge!]
+  "A flattened list of the nodes."
+  nodes: [ApiDocument!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+type ApiDocumentCreated implements ApiDocumentChangeLog & WorkspaceChangeLog {
+  apiDocument(onlyIfLatest: Boolean): ApiDocument @cost(weight: "10")
+  apiId: ID!
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  documentId: ID!
+  id: ID!
+  name: String!
+  path: [String!]!
+  version: Version!
+  workspaceId: ID!
+}
+
+type ApiDocumentDeleted implements ApiDocumentChangeLog & WorkspaceChangeLog {
+  apiDocument(onlyIfLatest: Boolean): ApiDocument @cost(weight: "10")
+  apiId: ID!
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  documentId: ID!
+  id: ID!
+  name: String!
+  path: [String!]!
+  version: Version!
+  workspaceId: ID!
+}
+
+"An edge in a connection."
+type ApiDocumentEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ApiDocument!
+}
+
+"A connection to a list of items."
+type ApiDocumentsConnection {
+  "A list of edges."
+  edges: [ApiDocumentsEdge!]
+  "A flattened list of the nodes."
+  nodes: [ApiDocument!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type ApiDocumentsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ApiDocument!
+}
+
+type ApiHeader {
+  enabled: Boolean!
+  name: String!
+  value: String!
+}
+
+type ApiHttpAuthentication {
+  activeAuthenticationKind: String!
+  basicOptions: BasicAuthenticationFlowOptions
+  bearerOptions: BearerAuthenticationFlowOptions
+  oAuth2Options: OAuth2AuthenticationFlowOptions
+}
+
+type ApiHttpConnection {
+  authentication: ApiHttpAuthentication
+  endpoint: String!
+  headers: [ApiHeader!]
+  includeCookies: Boolean!
+  sdlEndpoint: String
+  sseSubscriptionEndpoint: String
+  subscriptionEndpoint: String
+  subscriptionProtocol: String
+  useGet: Boolean!
+  useTunnel: Boolean!
+}
+
+type ApiKey implements Node {
+  createdBy: UserInfo!
+  id: ID!
+  name: String!
+  roleAssignments("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiKeyRoleAssignmentsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  scopes: [ApiKeyScope!]!
+  workspace: Workspace @cost(weight: "10")
+}
+
+type ApiKeyNotFoundError implements Error {
+  apiKeyId: ID!
+  message: String!
+}
+
+"A connection to a list of items."
+type ApiKeyRoleAssignmentsConnection {
+  "A list of edges."
+  edges: [ApiKeyRoleAssignmentsEdge!]
+  "A flattened list of the nodes."
+  nodes: [RoleAssignment!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type ApiKeyRoleAssignmentsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: RoleAssignment!
+}
+
+type ApiKeyScope {
+  kind: String!
+  reference: ApiKeyReference @cost(weight: "10")
+  referenceId: String!
+}
+
+type ApiKeyWithSecret {
+  key: ApiKey!
+  secret: String!
+}
+
+"A connection to a list of items."
+type ApiKeysConnection {
+  "A list of edges."
+  edges: [ApiKeysEdge!]
+  "A flattened list of the nodes."
+  nodes: [ApiKey!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type ApiKeysEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ApiKey!
+}
+
+type ApiNotFoundError implements Error {
+  apiId: ID!
+  message: String!
+}
+
+type ApiPermissionScope implements PermissionScope {
+  api: Api @cost(weight: "10")
+  id: ID!
+  type: String!
+}
+
+type ApiSettings {
+  schemaRegistry: SchemaRegistrySettings!
+}
+
+"A connection to a list of items."
+type ApisConnection {
+  "A list of edges."
+  edges: [ApisEdge!]
+  "A flattened list of the nodes."
+  nodes: [Api!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type ApisEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Api!
+}
+
+type ApproveDeploymentPayload {
+  deployment: Deployment
+  errors: [ApproveDeploymentError!]
+}
+
+type ArgumentAdded implements SchemaChange {
+  coordinate: String!
+  name: String!
+  severity: SchemaChangeSeverity!
+  typeName: String!
+}
+
+type ArgumentChanged implements SchemaChange {
+  changes: [ArgumentChange!]!
+  coordinate: String!
+  name: String!
+  severity: SchemaChangeSeverity!
+}
+
+type ArgumentRemoved implements SchemaChange {
+  coordinate: String!
+  name: String!
+  severity: SchemaChangeSeverity!
+  typeName: String!
+}
+
+type Attribute {
+  key: String!
+  value: String!
+}
+
+type AuthorizationEventLog {
+  effect: AuthorizationEventEffect!
+  eventId: UUID!
+  eventType: AuthorizationEventType!
+  isConditional: Boolean!
+  organization: Organization @cost(weight: "10")
+  permission: String!
+  principal: AuthorizationEventLogPrincipal @cost(weight: "10")
+  realm: AuthorizationEventLogRealm @cost(weight: "10")
+  resource: AuthorizationEventLogResource @cost(weight: "10")
+  subject: AuthorizationEventLogSubject @cost(weight: "10")
+  timestamp: DateTime!
+  traceId: String!
+  workspace: Workspace @cost(weight: "10")
+}
+
+type BasicAuthenticationFlowOptions {
+  password: String!
+  username: String!
+}
+
+type BearerAuthenticationFlowOptions {
+  prefix: String
+  token: String!
+}
+
+type BeginFusionConfigurationPublishPayload {
+  errors: [BeginFusionConfigurationPublishError!]
+  requestId: ID
+}
+
+type CancelDeploymentPayload {
+  deployment: Deployment
+  errors: [CancelDeploymentError!]
+}
+
+type CancelFusionConfigurationCompositionPayload {
+  errors: [CancelFusionConfigurationCompositionError!]
+  requestId: ID
+}
+
+type ChangeStructureInvalid implements Error {
+  message: String!
+}
+
+type ChangeValidationFailed implements Error {
+  errors: [ValidationErrorProperty!]!
+  message: String!
+  workspaceId: ID!
+}
+
+"A connection to a list of items."
+type ChangesConnection {
+  "A list of edges."
+  edges: [ChangesEdge!]
+  "A flattened list of the nodes."
+  nodes: [WorkspaceChangeLog]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type ChangesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: WorkspaceChangeLog
+}
+
+type Client implements Node {
+  api: Api @cost(weight: "10")
+  createdAt: DateTime!
+  createdBy: UserInfo!
+  id: ID!
+  name: String!
+  operations("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OperationsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  versions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ClientVersionConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+}
+
+type ClientChangeLog implements StageChangeLog & Node {
+  changedAt: DateTime!
+  id: ID!
+  kind: StageChangeLogKind!
+  tag: String!
+}
+
+type ClientDeployment implements Node & Deployment {
+  approval: DeploymentApproval
+  client: Client @cost(weight: "10")
+  createdAt: DateTime!
+  errors: [ClientDeploymentError!]!
+  id: ID!
+  logs: [DeploymentLog!]!
+  status: DeploymentStatus!
+  tag: String!
+}
+
+type ClientInsight {
+  averageLatency: Float
+  client: Client @cost(weight: "10")
+  errorRate: Float
+  id: ID! @cost(weight: "10")
+  impact: Float
+  name: String!
+  opm: Float
+  successRate: Float
+  totalCount: Long
+  totalCountWithErrors: Long
+}
+
+"A connection to a list of items."
+type ClientInsightsConnection {
+  "A list of edges."
+  edges: [ClientInsightsEdge!]
+  "A flattened list of the nodes."
+  nodes: [ClientInsight!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type ClientInsightsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ClientInsight!
+}
+
+type ClientNotFoundError implements Error {
+  clientId: ID!
+  message: String!
+}
+
+type ClientVersion implements Node {
+  client: Client @cost(weight: "10")
+  createdAt: DateTime!
+  id: ID!
+  persistedQueries("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): PersistedQueriesConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  publishedTo: [PublishedClientVersion!]!
+  tag: String!
+  tags: [String!]! @deprecated(reason: "Use `tag` instead.")
+}
+
+"A connection to a list of items."
+type ClientVersionConnection {
+  "A list of edges."
+  edges: [ClientVersionEdge!]
+  "A flattened list of the nodes."
+  nodes: [ClientVersion!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type ClientVersionEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ClientVersion!
+}
+
+type ClientVersionNotFoundError implements Error {
+  clientId: ID!
+  message: String!
+  tag: String!
+}
+
+type ClientVersionPublishFailed implements ClientVersionPublishResult {
+  errors: [ClientVersionPublishError!]!
+  state: ProcessingState!
+}
+
+type ClientVersionPublishSuccess implements ClientVersionPublishResult {
+  clientVersion: ClientVersion @cost(weight: "10")
+  state: ProcessingState!
+}
+
+type ClientVersionRequestNotFoundError implements Error {
+  message: String!
+  requestId: ID!
+}
+
+type ClientVersionValidationFailed implements ClientVersionValidationResult {
+  errors: [ClientVersionValidationError!]!
+  state: ProcessingState!
+}
+
+type ClientVersionValidationSuccess implements ClientVersionValidationResult {
+  state: ProcessingState!
+}
+
+"A connection to a list of items."
+type ClientsConnection {
+  "A list of edges."
+  edges: [ClientsEdge!]
+  "A flattened list of the nodes."
+  nodes: [Client!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type ClientsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Client!
+}
+
+type CommitFusionConfigurationPublishPayload {
+  errors: [CommitFusionConfigurationPublishError!]
+  requestId: ID
+}
+
+type ConcurrentOperationError implements Error & SchemaVersionPublishError & ClientVersionPublishError & FusionConfigurationPublishingError & ProcessingError {
+  message: String!
+}
+
+type CoordinateClientUsage {
+  client: Client @cost(weight: "10")
+  metrics: CoordinateClientUsageMetrics!
+  name: String!
+  totalOperations: Long!
+  totalRequests: Long!
+  totalVersions: Long!
+}
+
+type CoordinateClientUsageMetrics implements Node {
+  id: ID!
+  operations("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): CoordinateClientUsageOperationInsightsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+}
+
+type CoordinateClientUsageOperationInsight {
+  averageLatency: Float!
+  coordinate: String!
+  errorRate: Float!
+  hash: String!
+  impact: Float!
+  kind: OperationKind
+  operationName: String!
+  opm: Float!
+  successRate: Float!
+  totalCount: Long!
+  totalCountWithErrors: Long!
+  totalVersions: Long!
+}
+
+"A connection to a list of items."
+type CoordinateClientUsageOperationInsightsConnection {
+  "A list of edges."
+  edges: [CoordinateClientUsageOperationInsightsEdge!]
+  "A flattened list of the nodes."
+  nodes: [CoordinateClientUsageOperationInsight!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type CoordinateClientUsageOperationInsightsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: CoordinateClientUsageOperationInsight!
+}
+
+type CoordinateRequestGraph {
+  dataset: [CoordinateRequestGraphData!]!
+}
+
+type CoordinateRequestGraphData {
+  count: Long!
+  epoch: Long!
+}
+
+type CoordinateUsage {
+  clientCount: Long!
+  firstSeen: DateTime @cost(weight: "10")
+  lastSeen: DateTime @cost(weight: "10")
+  meanDuration: Float @cost(weight: "10")
+  operationCount: Long!
+  totalReference: Long! @deprecated(reason: "Use totalReferences instead")
+  totalReferences: Long!
+  totalRequests: Long @cost(weight: "10")
+  totalUsages: Long @cost(weight: "10")
+}
+
+type CoordinateUsageGraph {
+  dataset: [CoordinateUsageGraphData!]!
+}
+
+type CoordinateUsageGraphData {
+  count: Long!
+  epoch: Long!
+}
+
+"A connection to a list of items."
+type CoordinatesConnection {
+  "A list of edges."
+  edges: [CoordinatesEdge!]
+  "A flattened list of the nodes."
+  nodes: [GraphQLTypeSystemMember!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type CoordinatesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: GraphQLTypeSystemMember!
+}
+
+type CreateAccountPayload {
+  errors: [CreateAccountError!]
+  user: User
+}
+
+type CreateApiKeyForApiPayload {
+  errors: [CreateApiKeyForApiError!]
+  result: ApiKeyWithSecret
+}
+
+type CreateApiKeyPayload {
+  errors: [CreateApiKeyError!]
+  result: ApiKeyWithSecret
+}
+
+type CreateClientPayload {
+  client: Client
+  errors: [CreateClientError!]
+}
+
+type CreateMockSchemaPayload {
+  errors: [CreateMockSchemaError!]
+  mockSchema: MockSchema
+}
+
+type CreatePersonalAccessTokenPayload {
+  errors: [CreatePersonalAccessTokenError!]
+  result: PersonalAccessTokenWithSecret
+}
+
+type CreateWorkspacePayload {
+  errors: [CreateWorkspaceError!]
+  workspace: Workspace
+}
+
+type DeleteApiByIdPayload {
+  api: Api
+  errors: [DeleteApiByIdError!]
+}
+
+type DeleteApiKeyPayload {
+  apiKey: ApiKey
+  errors: [DeleteApiKeyError!]
+}
+
+type DeleteClientByIdPayload {
+  client: Client
+  errors: [DeleteClientByIdError!]
+}
+
+type DeleteMockSchemaByIdPayload {
+  errors: [DeleteMockSchemaByIdError!]
+  mockSchema: MockSchema
+}
+
+type DeploymentApproval {
+  approvedAt: DateTime!
+  approvedBy: UserInfo!
+}
+
+type DeploymentApprovedLog implements DeploymentLog {
+  message: String!
+  timestamp: DateTime!
+}
+
+type DeploymentCancelledLog implements DeploymentLog {
+  message: String!
+  timestamp: DateTime!
+}
+
+type DeploymentCannotBeCancelledError implements Error {
+  deploymentId: ID!
+  message: String!
+  status: DeploymentStatus!
+}
+
+type DeploymentCreatedEvent {
+  deployment: Deployment! @cost(weight: "10")
+}
+
+type DeploymentCreatedLog implements DeploymentLog {
+  message: String!
+  timestamp: DateTime!
+}
+
+type DeploymentFailedLog implements DeploymentLog {
+  errors: [ProcessingError!]!
+  message: String!
+  timestamp: DateTime!
+}
+
+type DeploymentIsNotWaitingForApprovalError implements Error {
+  deploymentId: ID!
+  message: String!
+}
+
+type DeploymentNotFoundError implements Error {
+  deploymentId: ID!
+  message: String!
+}
+
+type DeploymentQueuedLog implements DeploymentLog {
+  message: String!
+  timestamp: DateTime!
+}
+
+type DeploymentReadyLog implements DeploymentLog {
+  message: String!
+  timestamp: DateTime!
+}
+
+type DeploymentStartedProcessingLog implements DeploymentLog {
+  message: String!
+  timestamp: DateTime!
+}
+
+type DeploymentSuccessLog implements DeploymentLog {
+  message: String!
+  timestamp: DateTime!
+}
+
+type DeploymentUpdatedEvent {
+  deployment: Deployment! @cost(weight: "10")
+}
+
+type DeploymentWaitingForApprovalLog implements DeploymentLog {
+  message: String!
+  timestamp: DateTime!
+}
+
+"A connection to a list of items."
+type DeploymentsConnection {
+  "A list of edges."
+  edges: [DeploymentsEdge!]
+  "A flattened list of the nodes."
+  nodes: [Deployment!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type DeploymentsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Deployment!
+}
+
+type DeprecatedChange implements SchemaChange {
+  deprecationReason: String
+  severity: SchemaChangeSeverity!
+}
+
+type DescriptionChanged implements SchemaChange {
+  new: String
+  old: String
+  severity: SchemaChangeSeverity!
+}
+
+type DirectiveLocationAdded implements SchemaChange {
+  location: DirectiveLocation!
+  severity: SchemaChangeSeverity!
+}
+
+type DirectiveLocationRemoved implements SchemaChange {
+  location: DirectiveLocation!
+  severity: SchemaChangeSeverity!
+}
+
+type DirectiveModifiedChange implements SchemaChange {
+  changes: [DirectiveChange!]!
+  coordinate: String!
+  kind: TypeSystemMemberKind!
+  severity: SchemaChangeSeverity!
+}
+
+type DocumentChangeValidationFailed implements Error {
+  errors: [ValidationErrorProperty!]!
+  message: String!
+  workspaceId: ID!
+}
+
+type DocumentChanged implements DocumentChangeLog & WorkspaceChangeLog {
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  document(onlyIfLatest: Boolean): WorkspaceDocument @cost(weight: "10")
+  documentId: ID!
+  id: ID!
+  name: String!
+  path: [String!]!
+  version: Version!
+  workspaceId: ID!
+}
+
+type DocumentChangedConflict implements Error {
+  document: WorkspaceDocument!
+  message: String!
+}
+
+"A connection to a list of items."
+type DocumentChangesConnection {
+  "A list of edges."
+  edges: [DocumentChangesEdge!]
+  "A flattened list of the nodes."
+  nodes: [DocumentChangeLog]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type DocumentChangesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: DocumentChangeLog
+}
+
+type DocumentCreated implements DocumentChangeLog & WorkspaceChangeLog {
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  document(onlyIfLatest: Boolean): WorkspaceDocument @cost(weight: "10")
+  documentId: ID!
+  id: ID!
+  name: String!
+  path: [String!]!
+  version: Version!
+  workspaceId: ID!
+}
+
+type DocumentDeleted implements DocumentChangeLog & WorkspaceChangeLog {
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  document(onlyIfLatest: Boolean): WorkspaceDocument @cost(weight: "10")
+  documentId: ID!
+  id: ID!
+  name: String!
+  path: [String!]!
+  version: Version!
+  workspaceId: ID!
+}
+
+type DocumentDeletionConflict implements Error {
+  message: String!
+  workspaceId: ID!
+}
+
+type DocumentNameCollisionConflict implements Error {
+  document: WorkspaceDocument!
+  message: String!
+}
+
+"A connection to a list of items."
+type DocumentsConnection {
+  "A list of edges."
+  edges: [DocumentsEdge!]
+  "A flattened list of the nodes."
+  nodes: [WorkspaceDocument!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type DocumentsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: WorkspaceDocument!
+}
+
+type DuplicatedTagError implements Error {
+  message: String!
+  tag: String!
+}
+
+type EnsureTunnelSessionPayload {
+  errors: [EnsureTunnelSessionError!]
+  tunnelSession: TunnelSession
+}
+
+type EnumModifiedChange implements SchemaChange {
+  changes: [EnumChange!]!
+  coordinate: String!
+  kind: TypeSystemMemberKind!
+  severity: SchemaChangeSeverity!
+}
+
+type EnumValueAdded implements SchemaChange {
+  coordinate: String!
+  severity: SchemaChangeSeverity!
+  value: String!
+}
+
+type EnumValueChanged implements SchemaChange {
+  changes: [EnumValueChange!]!
+  coordinate: String!
+  severity: SchemaChangeSeverity!
+  value: String!
+}
+
+type EnumValueRemoved implements SchemaChange {
+  coordinate: String!
+  severity: SchemaChangeSeverity!
+  value: String!
+}
+
+type Environment implements Node {
+  createdAt: DateTime!
+  createdBy: UserInfo!
+  id: ID!
+  modifiedAt: DateTime!
+  modifiedBy: UserInfo!
+  name: String!
+  variables: [EnvironmentVariable!]!
+  version: Version!
+  workspace: Workspace @cost(weight: "10")
+}
+
+type EnvironmentChanged implements EnvironmentChangeLog & WorkspaceChangeLog {
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  environment(onlyIfLatest: Boolean): Environment @cost(weight: "10")
+  environmentId: ID!
+  id: ID!
+  name: String!
+  version: Version!
+  workspaceId: ID!
+}
+
+type EnvironmentCreated implements EnvironmentChangeLog & WorkspaceChangeLog {
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  environment(onlyIfLatest: Boolean): Environment @cost(weight: "10")
+  environmentId: ID!
+  id: ID!
+  name: String!
+  version: Version!
+  workspaceId: ID!
+}
+
+type EnvironmentDeleted implements EnvironmentChangeLog & WorkspaceChangeLog {
+  changedAt: DateTime!
+  changedBy: UserInfo!
+  environment(onlyIfLatest: Boolean): Environment @cost(weight: "10")
+  environmentId: ID!
+  id: ID!
+  name: String!
+  version: Version!
+  workspaceId: ID!
+}
+
+type EnvironmentVariable {
+  id: String!
+  isSecret: Boolean!
+  name: String!
+  value: String!
+}
+
+"A connection to a list of items."
+type EnvironmentsConnection {
+  "A list of edges."
+  edges: [EnvironmentsEdge!]
+  "A flattened list of the nodes."
+  nodes: [Environment!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type EnvironmentsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Environment!
+}
+
+type ErrorInsight {
+  epm: Float!
+  id: ID! @cost(weight: "10")
+  lastSeen: Float!
+  message: String!
+  totalCount: Long!
+  type: String!
+}
+
+"A connection to a list of items."
+type ErrorInsightsConnection {
+  "A list of edges."
+  edges: [ErrorInsightsEdge!]
+  "A flattened list of the nodes."
+  nodes: [ErrorInsight!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type ErrorInsightsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ErrorInsight!
+}
+
+type FieldAddedChange implements SchemaChange {
+  coordinate: String!
+  fieldName: String!
+  severity: SchemaChangeSeverity!
+  typeName: String!
+}
+
+type FieldCoordinateMetrics implements CoordinateMetrics {
+  clientUsages(from: DateTime! to: DateTime!): [CoordinateClientUsage!]! @cost(weight: "10")
+  duration(from: DateTime! resolution: Int! = 300 to: DateTime!): FieldDurationGraph @cost(weight: "10")
+  requests(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateRequestGraph @cost(weight: "10")
+  usages(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateUsageGraph @cost(weight: "10")
+}
+
+type FieldDurationGraph {
+  dataset: [FieldDurationGraphData!]!
+}
+
+type FieldDurationGraphData {
+  epoch: Long!
+  max: Float!
+  mean: Float
+  min: Float!
+  p50: Float!
+  p95: Float!
+  p99: Float!
+}
+
+type FieldRemovedChange implements SchemaChange {
+  coordinate: String!
+  fieldName: String!
+  severity: SchemaChangeSeverity!
+  typeName: String!
+}
+
+type FusionConfiguration {
+  downloadUrl: String! @cost(weight: "10")
+  format: FusionConfigurationFormat!
+  id: ID!
+  publishedAt: DateTime!
+  subgraph: Api @cost(weight: "10")
+  subgraphName: String @cost(weight: "10")
+  supportedVersions: [String!]!
+  tag: String!
+}
+
+type FusionConfigurationChangeLog implements StageChangeLog & Node {
+  changedAt: DateTime!
+  id: ID!
+  kind: StageChangeLogKind!
+  tag: String!
+}
+
+type FusionConfigurationDeployment implements Node & Deployment {
+  approval: DeploymentApproval
+  createdAt: DateTime!
+  errors: [FusionConfigurationDeploymentError!]!
+  id: ID!
+  logs: [DeploymentLog!]!
+  schemaChanges: FusionConfigurationDeploymentSchemaChanges
+  status: DeploymentStatus!
+  subgraph: Subgraph @cost(weight: "10")
+  tag: String!
+}
+
+type FusionConfigurationDeploymentSchemaChanges {
+  changes("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int severity: SchemaChangeSeverity): SchemaChangesConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false)
+  statistic: SchemaChangeLogStatistic!
+}
+
+type FusionConfigurationPublishingFailed implements FusionConfigurationPublishingResult {
+  errors: [FusionConfigurationPublishingError!]!
+  state: ProcessingState!
+}
+
+type FusionConfigurationPublishingSuccess implements FusionConfigurationPublishingResult {
+  state: ProcessingState!
+}
+
+type FusionConfigurationRequestNotFoundError implements Error {
+  message: String!
+  requestId: ID!
+}
+
+type FusionConfigurationValidationFailed implements FusionConfigurationPublishingResult {
+  errors: [FusionConfigurationValidationError!]!
+  state: ProcessingState!
+}
+
+type FusionConfigurationValidationSuccess implements FusionConfigurationPublishingResult {
+  changes: [SchemaChangeLogEntry!]!
+  state: ProcessingState!
+}
+
+type FusionSubgraph implements Subgraph {
+  api: Api @cost(weight: "10")
+  id: ID!
+  name: String!
+}
+
+type GraphQLDirectiveDefinition implements Node & GraphQLTypeSystemMember {
+  arguments: GraphQLDirectiveDefinitionArgumentsConnection! @cost(weight: "10")
+  coordinate: String!
+  id: ID!
+  kind: TypeSystemMemberKind!
+  metrics: CoordinateMetrics!
+  name: String!
+  usage: CoordinateUsage!
+}
+
+type GraphQLDirectiveDefinitionArgumentsConnection {
+  nodes: [GraphQLInputValueDefinition!]!
+}
+
+type GraphQLEnumTypeDefinition implements Node & GraphQLTypeSystemMember {
+  coordinate: String!
+  id: ID!
+  kind: TypeSystemMemberKind!
+  metrics: CoordinateMetrics!
+  name: String!
+  usage: CoordinateUsage!
+  values: GraphQLEnumTypeDefinitionValuesConnection! @cost(weight: "10")
+}
+
+type GraphQLEnumTypeDefinitionValuesConnection {
+  nodes: [GraphQLEnumValueDefinition!]!
+}
+
+type GraphQLEnumValueDefinition implements Node & GraphQLTypeSystemMember {
+  coordinate: String!
+  id: ID!
+  metrics: CoordinateMetrics!
+  name: String!
+  usage: CoordinateUsage!
+}
+
+type GraphQLInputObjectTypeDefinition implements Node & GraphQLTypeSystemMember {
+  coordinate: String!
+  fields: GraphQLInputObjectTypeDefinitionFieldsConnection! @cost(weight: "10")
+  id: ID!
+  kind: TypeSystemMemberKind!
+  metrics: CoordinateMetrics!
+  name: String!
+  usage: CoordinateUsage!
+}
+
+type GraphQLInputObjectTypeDefinitionFieldsConnection {
+  nodes: [GraphQLInputValueDefinition!]!
+}
+
+type GraphQLInputValueDefinition implements Node & GraphQLTypeSystemMember {
+  coordinate: String!
+  id: ID!
+  metrics: CoordinateMetrics!
+  name: String!
+  usage: CoordinateUsage!
+}
+
+type GraphQLInterfaceTypeDefinition implements Node & GraphQLTypeSystemMember {
+  coordinate: String!
+  fields: GraphQLInterfaceTypeDefinitionFieldsConnection! @cost(weight: "10")
+  id: ID!
+  kind: TypeSystemMemberKind!
+  metrics: CoordinateMetrics!
+  name: String!
+  usage: CoordinateUsage!
+}
+
+type GraphQLInterfaceTypeDefinitionFieldsConnection {
+  nodes: [GraphQLOutputFieldDefinition!]!
+}
+
+type GraphQLObjectTypeDefinition implements GraphQLTypeSystemMember {
+  coordinate: String!
+  fields: GraphQLObjectTypeDefinitionFieldsConnection! @cost(weight: "10")
+  kind: TypeSystemMemberKind!
+  metrics: CoordinateMetrics!
+  name: String!
+  usage: CoordinateUsage!
+}
+
+type GraphQLObjectTypeDefinitionFieldsConnection {
+  nodes: [GraphQLOutputFieldDefinition!]!
+}
+
+type GraphQLOutputFieldDefinition implements Node & GraphQLTypeSystemMember {
+  arguments: GraphQLOutputFieldDefinitionArgumentsConnection! @cost(weight: "10")
+  coordinate: String!
+  id: ID!
+  metrics: FieldCoordinateMetrics!
+  name: String!
+  usage: CoordinateUsage!
+}
+
+type GraphQLOutputFieldDefinitionArgumentsConnection {
+  nodes: [GraphQLInputValueDefinition!]!
+}
+
+type GraphQLScalarTypeDefinition implements Node & GraphQLTypeSystemMember {
+  coordinate: String!
+  id: ID!
+  kind: TypeSystemMemberKind!
+  metrics: CoordinateMetrics!
+  name: String!
+  usage: CoordinateUsage!
+}
+
+type GraphQLSchemaError {
+  code: String
+  message: String!
+}
+
+type GraphQLUnionTypeDefinition implements Node & GraphQLTypeSystemMember {
+  coordinate: String!
+  id: ID!
+  kind: TypeSystemMemberKind!
+  metrics: CoordinateMetrics!
+  name: String!
+  usage: CoordinateUsage!
+}
+
+type Group implements Node {
+  description: String!
+  groups("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): GroupGroupsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  id: ID!
+  isDefault: Boolean!
+  members("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): GroupMembersConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  name: String!
+  organization: Organization @cost(weight: "10")
+  roleAssignments("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): GroupRoleAssignmentsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+}
+
+type GroupGroupMember implements GroupMember {
+  assignedAt: DateTime!
+  group: Group @cost(weight: "10")
+  id: ID!
+  nestedGroup: Group @cost(weight: "10")
+  type: String!
+}
+
+"A connection to a list of groups via group members."
+type GroupGroupsConnection {
+  edges: [GroupGroupsEdge!]
+  nodes: [Group!]!
+  pageInfo: PageInfo!
+}
+
+type GroupGroupsEdge {
+  cursor: String!
+  node: Group!
+}
+
+"A connection to a list of items."
+type GroupMembersConnection {
+  "A list of edges."
+  edges: [GroupMembersEdge!]
+  "A flattened list of the nodes."
+  nodes: [GroupMember!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type GroupMembersEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: GroupMember!
+}
+
+"A connection to a list of items."
+type GroupRoleAssignmentsConnection {
+  "A list of edges."
+  edges: [GroupRoleAssignmentsEdge!]
+  "A flattened list of the nodes."
+  nodes: [RoleAssignment!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type GroupRoleAssignmentsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: RoleAssignment!
+}
+
+type HasBeenChangedConflict implements Error {
+  current: WorkspaceChangeResult!
+  message: String!
+}
+
+type HasBeenDeletedConflict implements Error {
+  message: String!
+  workspaceId: ID!
+}
+
+type IdentifierCollisionConflict implements Error {
+  collidesWith: WorkspaceChangeResult!
+  message: String!
+}
+
+type InputFieldChanged implements SchemaChange {
+  changes: [InputFieldChange!]!
+  coordinate: String!
+  fieldName: String!
+  severity: SchemaChangeSeverity!
+}
+
+type InputObjectModifiedChange implements SchemaChange {
+  changes: [InputObjectChange!]!
+  coordinate: String!
+  kind: TypeSystemMemberKind!
+  severity: SchemaChangeSeverity!
+}
+
+type InterfaceImplementationAdded implements SchemaChange {
+  interfaceName: String!
+  severity: SchemaChangeSeverity!
+}
+
+type InterfaceImplementationRemoved implements SchemaChange {
+  interfaceName: String!
+  severity: SchemaChangeSeverity!
+}
+
+type InterfaceModifiedChange implements SchemaChange {
+  changes: [InterfaceChange!]!
+  coordinate: String!
+  kind: TypeSystemMemberKind!
+  severity: SchemaChangeSeverity!
+}
+
+type InvalidGraphQLSchemaError implements SchemaVersionValidationError & SchemaVersionPublishError & FusionConfigurationPublishingError & FusionConfigurationValidationError & ProcessingError {
+  errors: [GraphQLSchemaError!]!
+  message: String!
+}
+
+type InvalidPersistedQueryError implements Error {
+  content: String!
+  hash: String!
+  message: String!
+}
+
+type InvalidProcessingStateTransitionError implements Error {
+  message: String!
+}
+
+type MockSchema {
+  baseSchemaDownloadUrl: String!
+  createdAt: DateTime!
+  createdBy: UserInfo!
+  downstreamUrl: URL!
+  extensionsSchemaDownloadUrl: String!
+  id: ID!
+  modifiedAt: DateTime!
+  modifiedBy: UserInfo!
+  name: String!
+  url: String!
+}
+
+type MockSchemaNonUniqueNameError implements Error {
+  message: String!
+  name: String!
+}
+
+type MockSchemaNotFoundError implements Error {
+  id: ID!
+  message: String!
+}
+
+"A connection to a list of items."
+type MockSchemasConnection {
+  "A list of edges."
+  edges: [MockSchemasEdge!]
+  "A flattened list of the nodes."
+  nodes: [MockSchema!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type MockSchemasEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: MockSchema!
+}
+
+type Mutation {
+  approveDeployment(input: ApproveDeploymentInput!): ApproveDeploymentPayload! @cost(weight: "10")
+  beginFusionConfigurationPublish(input: BeginFusionConfigurationPublishInput!): BeginFusionConfigurationPublishPayload! @cost(weight: "10")
+  cancelDeployment(input: CancelDeploymentInput!): CancelDeploymentPayload! @cost(weight: "10")
+  cancelFusionConfigurationComposition(input: CancelFusionConfigurationCompositionInput!): CancelFusionConfigurationCompositionPayload! @cost(weight: "10")
+  commitFusionConfigurationPublish(input: CommitFusionConfigurationPublishInput!): CommitFusionConfigurationPublishPayload! @cost(weight: "10")
+  createAccount: CreateAccountPayload! @cost(weight: "10")
+  createApiKey(input: CreateApiKeyInput!): CreateApiKeyPayload! @authorize @cost(weight: "10")
+  createApiKeyForApi(input: CreateApiKeyForApiInput!): CreateApiKeyForApiPayload! @authorize @cost(weight: "10")
+  createClient(input: CreateClientInput!): CreateClientPayload! @authorize @cost(weight: "10")
+  createMockSchema(input: CreateMockSchemaInput!): CreateMockSchemaPayload! @authorize @cost(weight: "10")
+  createPersonalAccessToken(input: CreatePersonalAccessTokenInput!): CreatePersonalAccessTokenPayload! @authorize @cost(weight: "10")
+  createWorkspace(input: CreateWorkspaceInput!): CreateWorkspacePayload! @authorize @cost(weight: "10")
+  deleteApiById(input: DeleteApiByIdInput!): DeleteApiByIdPayload! @authorize @cost(weight: "10")
+  deleteApiKey(input: DeleteApiKeyInput!): DeleteApiKeyPayload! @authorize @cost(weight: "10")
+  deleteClientById(input: DeleteClientByIdInput!): DeleteClientByIdPayload! @authorize @cost(weight: "10")
+  deleteMockSchemaById(input: DeleteMockSchemaByIdInput!): DeleteMockSchemaByIdPayload! @authorize @cost(weight: "10")
+  ensureTunnelSession: EnsureTunnelSessionPayload! @authorize @cost(weight: "10")
+  pollClientVersionPublishRequest(input: PollClientVersionPublishRequestInput!): PollClientVersionPublishRequestPayload! @authorize @cost(weight: "10")
+  pollClientVersionValidationRequest(input: PollClientVersionValidationRequestInput!): PollClientVersionValidationRequestPayload! @authorize @cost(weight: "10")
+  pollSchemaVersionPublishRequest(input: PollSchemaVersionPublishRequestInput!): PollSchemaVersionPublishRequestPayload! @authorize @cost(weight: "10")
+  pollSchemaVersionValidationRequest(input: PollSchemaVersionValidationRequestInput!): PollSchemaVersionValidationRequestPayload! @authorize @cost(weight: "10")
+  publishClient(input: PublishClientInput!): PublishClientPayload! @authorize @cost(weight: "10")
+  publishSchema(input: PublishSchemaInput!): PublishSchemaPayload! @authorize @cost(weight: "10")
+  pushDocumentChanges(input: PushDocumentChangeInput!): PushDocumentChangesPayload! @authorize(policy: "DocumentsWrite") @cost(weight: "10") @deprecated(reason: "Use pushWorkspaceChanges")
+  pushWorkspaceChanges(input: PushWorkspaceChangesInput!): PushWorkspaceChangesPayload! @authorize(policy: "DocumentsWrite") @cost(weight: "10")
+  removeWorkspace(input: RemoveWorkspaceInput!): RemoveWorkspacePayload! @authorize @cost(weight: "10")
+  renameWorkspace(input: RenameWorkspaceInput!): RenameWorkspacePayload! @authorize @cost(weight: "10")
+  revokePersonalAccessToken(input: RevokePersonalAccessTokenInput!): RevokePersonalAccessTokenPayload! @authorize @cost(weight: "10")
+  setActiveWorkspace(input: SetActiveWorkspaceInput!): SetActiveWorkspacePayload! @authorize(policy: "WorkspaceManage") @cost(weight: "10")
+  startFusionConfigurationComposition(input: StartFusionConfigurationCompositionInput!): StartFusionConfigurationCompositionPayload! @cost(weight: "10")
+  unpublishClient(input: UnpublishClientInput!): UnpublishClientPayload! @authorize @cost(weight: "10")
+  updateApiSettings(input: UpdateApiSettingsInput!): UpdateApiSettingsPayload! @authorize @cost(weight: "10")
+  updateFeatureFlags(input: UpdateFeatureFlagsInput!): UpdateFeatureFlagsPayload! @authorize @cost(weight: "10")
+  updateMockSchema(input: UpdateMockSchemaInput!): UpdateMockSchemaPayload! @authorize @cost(weight: "10")
+  updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload! @authorize @cost(weight: "10")
+  updateStages(input: UpdateStagesInput!): UpdateStagesPayload! @cost(weight: "10")
+  updateThemeSettings(input: UpdateThemeSettingsInput!): UpdateThemeSettingsPayload! @authorize @cost(weight: "10")
+  uploadClient(input: UploadClientInput!): UploadClientPayload! @authorize @cost(weight: "10")
+  uploadSchema(input: UploadSchemaInput!): UploadSchemaPayload! @authorize @cost(weight: "10")
+  validateClient(input: ValidateClientInput!): ValidateClientPayload! @authorize @cost(weight: "10")
+  validateFusionConfigurationComposition(input: ValidateFusionConfigurationCompositionInput!): ValidateFusionConfigurationCompositionPayload! @cost(weight: "10")
+  validateSchema(input: ValidateSchemaInput!): ValidateSchemaPayload! @authorize @cost(weight: "10")
+}
+
+type OAuth2AuthenticationFlowOptions {
+  accessTokenUrl: String!
+  activeFlowKind: String!
+  audience: String!
+  authorizationUrl: String!
+  clientId: String!
+  clientSecret: String!
+  credentialsInBody: Boolean!
+  grantType: String!
+  origin: String!
+  password: String!
+  pkceMethod: String!
+  prefix: String!
+  redirectUrl: String!
+  resource: String!
+  responseType: String!
+  scope: String!
+  state: String!
+  usePkce: Boolean!
+  username: String!
+}
+
+type ObjectModifiedChange implements SchemaChange {
+  changes: [ObjectChange!]!
+  coordinate: String!
+  kind: TypeSystemMemberKind!
+  severity: SchemaChangeSeverity!
+}
+
+type OpenTelemetryBoolAttribute implements OpenTelemetryAttribute {
+  key: String!
+  value: Boolean!
+}
+
+type OpenTelemetryDbSpan implements OpenTelemetrySpan {
+  api: Api @cost(weight: "10")
+  clockSkew: Float
+  db: OpenTelemetryDbSpanAttributes @cost(weight: "10")
+  duration: Float!
+  epoch: Float!
+  events: [OpenTelemetryTraceEvent!]!
+  links: [OpenTelemetryTraceLink!]!
+  parentSpanId: String!
+  resourceAttributes: [Attribute!]!
+  spanAttributes: [Attribute!]!
+  spanId: String!
+  spanKind: String!
+  spanName: String!
+  stage: Stage @cost(weight: "10")
+  statusCode: String!
+  statusMessage: String!
+  traceId: String!
+  traceState: String!
+}
+
+type OpenTelemetryDbSpanAttributes {
+  connectionString: String
+  instance: String
+  name: String
+  operation: String
+  statement: String
+  system: String
+  url: String
+  user: String
+}
+
+type OpenTelemetryDefaultSpan implements OpenTelemetrySpan {
+  api: Api @cost(weight: "10")
+  clockSkew: Float
+  duration: Float!
+  epoch: Float!
+  events: [OpenTelemetryTraceEvent!]!
+  links: [OpenTelemetryTraceLink!]!
+  parentSpanId: String!
+  resourceAttributes: [Attribute!]!
+  spanAttributes: [Attribute!]!
+  spanId: String!
+  spanKind: String!
+  spanName: String!
+  stage: Stage @cost(weight: "10")
+  statusCode: String!
+  statusMessage: String!
+  traceId: String!
+  traceState: String!
+}
+
+type OpenTelemetryError {
+  api: Api @cost(weight: "10")
+  epoch: Float!
+  escaped: Boolean!
+  message: String!
+  parentSpanId: String!
+  spanId: String!
+  stackTrace: String!
+  stage: Stage @cost(weight: "10")
+  traceId: String!
+  type: String!
+}
+
+type OpenTelemetryFloatAttribute implements OpenTelemetryAttribute {
+  key: String!
+  value: Float!
+}
+
+type OpenTelemetryGraphQLOperationSpan implements OpenTelemetrySpan {
+  api: Api @cost(weight: "10")
+  clockSkew: Float
+  document: OpenTelemetryGraphQLOperationSpanDocumentAttributes @cost(weight: "10")
+  duration: Float!
+  epoch: Float!
+  events: [OpenTelemetryTraceEvent!]!
+  links: [OpenTelemetryTraceLink!]!
+  operation: OpenTelemetryGraphQLOperationSpanOperationAttributes @cost(weight: "10")
+  parentSpanId: String!
+  resourceAttributes: [Attribute!]!
+  spanAttributes: [Attribute!]!
+  spanId: String!
+  spanKind: String!
+  spanName: String!
+  stage: Stage @cost(weight: "10")
+  statusCode: String!
+  statusMessage: String!
+  traceId: String!
+  traceState: String!
+}
+
+type OpenTelemetryGraphQLOperationSpanDocumentAttributes {
+  body: String @cost(weight: "10")
+  id: String
+}
+
+type OpenTelemetryGraphQLOperationSpanOperationAttributes {
+  kind: String
+  name: String
+}
+
+type OpenTelemetryGraphQLResolverSpan implements OpenTelemetrySpan {
+  api: Api @cost(weight: "10")
+  clockSkew: Float
+  duration: Float!
+  epoch: Float!
+  events: [OpenTelemetryTraceEvent!]!
+  links: [OpenTelemetryTraceLink!]!
+  parentSpanId: String!
+  resourceAttributes: [Attribute!]!
+  selection: OpenTelemetryGraphQLResolverSpanSelectionAttributes @cost(weight: "10")
+  spanAttributes: [Attribute!]!
+  spanId: String!
+  spanKind: String!
+  spanName: String!
+  stage: Stage @cost(weight: "10")
+  statusCode: String!
+  statusMessage: String!
+  traceId: String!
+  traceState: String!
+}
+
+type OpenTelemetryGraphQLResolverSpanFieldAttributes {
+  coordinate: String
+  declaringType: String
+  name: String
+}
+
+type OpenTelemetryGraphQLResolverSpanSelectionAttributes {
+  field: OpenTelemetryGraphQLResolverSpanFieldAttributes!
+  name: String
+  path: String
+  type: String
+}
+
+type OpenTelemetryHttpClientSpan implements OpenTelemetrySpan {
+  api: Api @cost(weight: "10")
+  clockSkew: Float
+  duration: Float!
+  epoch: Float!
+  events: [OpenTelemetryTraceEvent!]!
+  http: OpenTelemetryHttpClientSpanAttribute @cost(weight: "10")
+  links: [OpenTelemetryTraceLink!]!
+  parentSpanId: String!
+  resourceAttributes: [Attribute!]!
+  spanAttributes: [Attribute!]!
+  spanId: String!
+  spanKind: String!
+  spanName: String!
+  stage: Stage @cost(weight: "10")
+  statusCode: String!
+  statusMessage: String!
+  traceId: String!
+  traceState: String!
+}
+
+type OpenTelemetryHttpClientSpanAttribute {
+  flavor: String
+  method: String
+  scheme: String
+  statusCode: Int
+  url: String
+  userAgent: String
+}
+
+type OpenTelemetryHttpServerSpan implements OpenTelemetrySpan {
+  api: Api @cost(weight: "10")
+  clockSkew: Float
+  duration: Float!
+  epoch: Float!
+  events: [OpenTelemetryTraceEvent!]!
+  http: OpenTelemetryHttpServerSpanAttributes @cost(weight: "10")
+  links: [OpenTelemetryTraceLink!]!
+  parentSpanId: String!
+  resourceAttributes: [Attribute!]!
+  spanAttributes: [Attribute!]!
+  spanId: String!
+  spanKind: String!
+  spanName: String!
+  stage: Stage @cost(weight: "10")
+  statusCode: String!
+  statusMessage: String!
+  traceId: String!
+  traceState: String!
+}
+
+type OpenTelemetryHttpServerSpanAttributes {
+  flavor: String
+  method: String
+  scheme: String
+  statusCode: Int
+  url: String
+  userAgent: String
+}
+
+type OpenTelemetryLog {
+  api: Api @cost(weight: "10")
+  body: String!
+  epoch: Float!
+  logAttributes: [OpenTelemetryAttribute!]!
+  resourceAttributes: [Attribute!]!
+  severityNumber: Int!
+  severityText: String!
+  spanId: String!
+  stage: Stage @cost(weight: "10")
+  traceId: String!
+}
+
+"A connection to a list of items."
+type OpenTelemetryLogsConnection {
+  "A list of edges."
+  edges: [OpenTelemetryLogsEdge!]
+  "A flattened list of the nodes."
+  nodes: [OpenTelemetryLog!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type OpenTelemetryLogsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: OpenTelemetryLog!
+}
+
+type OpenTelemetryLogsSeverityGraph {
+  dataset: [OpenTelemetryLogsSeverityGraphData!]!
+}
+
+type OpenTelemetryLogsSeverityGraphCountData {
+  count: Long!
+  severity: Long!
+}
+
+type OpenTelemetryLogsSeverityGraphData {
+  counts: [OpenTelemetryLogsSeverityGraphCountData!]!
+  epoch: Long!
+}
+
+type OpenTelemetryLongAttribute implements OpenTelemetryAttribute {
+  key: String!
+  value: Long!
+}
+
+type OpenTelemetryStringAttribute implements OpenTelemetryAttribute {
+  key: String!
+  value: String!
+}
+
+type OpenTelemetryTrace {
+  epoch: Float! @cost(weight: "10")
+  errors: [OpenTelemetryError!]! @cost(weight: "10")
+  logs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OpenTelemetryLogsConnection @listSize(assumedSize: 200, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false)
+  spans: [OpenTelemetrySpan!]! @cost(weight: "10")
+  totalDuration: Float! @cost(weight: "10")
+}
+
+type OpenTelemetryTraceEvent {
+  attributes: [Attribute!]!
+  epoch: Float!
+  name: String!
+}
+
+type OpenTelemetryTraceLink {
+  attributes: [Attribute!]!
+  spanId: String!
+  traceId: String!
+  traceState: String!
+}
+
+type OpenTelemetryTransactionInsight {
+  averageLatency: Float!
+  errorRate: Float!
+  id: ID! @cost(weight: "10")
+  impact: Float!
+  latency: OpenTelemetryTransactionLatencyGraph @cost(weight: "10")
+  name: String!
+  opm: Float!
+  spanKind: OpenTelemetrySpanKind!
+  successRate: Float!
+  throughput: OpenTelemetryTransactionThroughputGraph @cost(weight: "10")
+  totalCount: Long!
+  totalCountWithErrors: Long!
+}
+
+"A connection to a list of items."
+type OpenTelemetryTransactionInsightsConnection {
+  "A list of edges."
+  edges: [OpenTelemetryTransactionInsightsEdge!]
+  "A flattened list of the nodes."
+  nodes: [OpenTelemetryTransactionInsight!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type OpenTelemetryTransactionInsightsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: OpenTelemetryTransactionInsight!
+}
+
+type OpenTelemetryTransactionLatencyDistributionGraph {
+  dataset: [OpenTelemetryTransactionLatencyDistributionGraphData!]!
+  p95: Float!
+  totalCount: Int!
+}
+
+type OpenTelemetryTransactionLatencyDistributionGraphData {
+  bin: Float!
+  errorFrequency: Int!
+  frequency: Int!
+  successFrequency: Int!
+}
+
+type OpenTelemetryTransactionLatencyGraph {
+  dataset: [OpenTelemetryTransactionLatencyGraphData!]!
+}
+
+type OpenTelemetryTransactionLatencyGraphData {
+  epoch: Long!
+  max: Float!
+  mean: Float!
+  min: Float!
+  p50: Float!
+  p95: Float!
+  p99: Float!
+}
+
+type OpenTelemetryTransactionThroughputGraph {
+  dataset: [OpenTelemetryTransactionThroughputGraphData!]!
+}
+
+type OpenTelemetryTransactionThroughputGraphData {
+  epoch: Long!
+  errorRate: Float!
+  opm: Float!
+  successRate: Float!
+  totalCount: Long!
+  totalCountWithError: Long!
+}
+
+type OpenTelemetryTransactionTraceSample {
+  seeker: String!
+  spanId: String!
+  traceId: String!
+}
+
+type OpenTelemetryTransactionsLatencyGraph {
+  dataset: [OpenTelemetryTransactionsLatencyGraphData!]!
+}
+
+type OpenTelemetryTransactionsLatencyGraphData {
+  epoch: Long!
+  max: Float!
+  mean: Float!
+  min: Float!
+  p50: Float!
+  p95: Float!
+  p99: Float!
+}
+
+type OpenTelemetryTransactionsThroughputGraph {
+  dataset: [OpenTelemetryTransactionsThroughputGraphData!]!
+}
+
+type OpenTelemetryTransactionsThroughputGraphData {
+  epoch: Long!
+  errorRate: Float!
+  opm: Float!
+  successRate: Float!
+  totalCount: Long!
+  totalCountWithError: Long!
+}
+
+type Operation {
+  document: RequestDocument @cost(weight: "10")
+  kind: OperationKind!
+  name: String
+}
+
+type OperationInProgress implements SchemaVersionValidationResult & SchemaVersionPublishResult & ClientVersionValidationResult & ClientVersionPublishResult & FusionConfigurationPublishingResult {
+  state: ProcessingState!
+}
+
+type OperationInsight {
+  averageLatency: Float!
+  documentId: String!
+  errorRate: Float!
+  hash: String!
+  id: ID! @cost(weight: "10")
+  impact: Float!
+  kind: OperationKind
+  latency: OperationLatencyGraph @cost(weight: "10")
+  operationName: String!
+  opm: Float!
+  successRate: Float!
+  throughput: OperationThroughputGraph @cost(weight: "10")
+  totalCount: Long!
+  totalCountWithErrors: Long!
+}
+
+"A connection to a list of items."
+type OperationInsightsConnection {
+  "A list of edges."
+  edges: [OperationInsightsEdge!]
+  "A flattened list of the nodes."
+  nodes: [OperationInsight!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type OperationInsightsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: OperationInsight!
+}
+
+type OperationLatencyDistributionGraph {
+  data: [OperationLatencyDistributionGraphData!]! @deprecated(reason: "Use `Dataset` instead")
+  dataset: [OperationLatencyDistributionGraphData!]!
+  p95: Float!
+  p95DurationInMS: Float! @deprecated(reason: "Use `P95` instead")
+  totalCount: Int!
+}
+
+type OperationLatencyDistributionGraphData {
+  bin: Float!
+  bucketInMs: Float! @deprecated(reason: "Use `Bin` instead")
+  count: Int! @deprecated(reason: "Use `Frequency` instead")
+  errorFrequency: Int!
+  frequency: Int!
+  successFrequency: Int!
+}
+
+type OperationLatencyGraph {
+  dataset: [OperationLatencyGraphData!]!
+}
+
+type OperationLatencyGraphData {
+  epoch: Long!
+  max: Float!
+  mean: Float!
+  min: Float!
+  p50: Float!
+  p95: Float!
+  p99: Float!
+}
+
+type OperationThroughputGraph {
+  dataset: [OperationThroughputGraphData!]!
+}
+
+type OperationThroughputGraphData {
+  epoch: Long!
+  errorRate: Float!
+  opm: Float!
+  successRate: Float!
+  totalCount: Long!
+  totalCountWithError: Long!
+}
+
+type OperationTraceSample {
+  seeker: String!
+  spanId: String!
+  traceId: String!
+}
+
+type OperationsAreNotAllowedError implements SchemaVersionValidationError & SchemaVersionPublishError & ProcessingError {
+  column: Int! @deprecated(reason: "Locations are no longer used")
+  end: Int! @deprecated(reason: "Locations are no longer used")
+  line: Int! @deprecated(reason: "Locations are no longer used")
+  message: String!
+  operationName: String
+  start: Int! @deprecated(reason: "Locations are no longer used")
+}
+
+"A connection to a list of items."
+type OperationsConnection {
+  "A list of edges."
+  edges: [OperationsEdge!]
+  "A flattened list of the nodes."
+  nodes: [Operation!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type OperationsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Operation!
+}
+
+type OperationsLatencyGraph {
+  dataset: [OperationsLatencyGraphData!]!
+}
+
+type OperationsLatencyGraphData {
+  epoch: Long!
+  max: Float!
+  mean: Float!
+  min: Float!
+  p50: Float!
+  p95: Float!
+  p99: Float!
+}
+
+type OperationsThroughputGraph {
+  dataset: [OperationsThroughputGraphData!]!
+}
+
+type OperationsThroughputGraphData {
+  epoch: Long!
+  errorRate: Float!
+  opm: Float!
+  successRate: Float!
+  totalCount: Long!
+  totalCountWithError: Long!
+}
+
+type Organization implements Node {
+  authorizationEventLogs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int from: DateTime "Returns the last _n_ elements from the list." last: Int to: DateTime): OrganizationAuthorizationEventLogsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  billingInfo: OrganizationBillingInfo @cost(weight: "10")
+  displayName: String!
+  groups("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OrganizationGroupsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  id: ID!
+  members("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OrganizationMembersConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  name: String!
+  plan: OrganizationPlan @cost(weight: "10")
+  usage(from: DateTime to: DateTime): OrganizationUsage @cost(weight: "10")
+}
+
+"A connection to a list of items."
+type OrganizationAuthorizationEventLogsConnection {
+  "A list of edges."
+  edges: [OrganizationAuthorizationEventLogsEdge!]
+  "A flattened list of the nodes."
+  nodes: [AuthorizationEventLog!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type OrganizationAuthorizationEventLogsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: AuthorizationEventLog!
+}
+
+type OrganizationBillingInfo {
+  nextPaymentDate: DateTime!
+  paymentIssue: OrganizationPaymentIssue
+  paymentMethod: OrganizationPaymentMethod!
+}
+
+"A connection to a list of items."
+type OrganizationGroupsConnection {
+  "A list of edges."
+  edges: [OrganizationGroupsEdge!]
+  "A flattened list of the nodes."
+  nodes: [Group!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type OrganizationGroupsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Group!
+}
+
+type OrganizationInfo {
+  displayName: String!
+  id: ID!
+  name: String!
+}
+
+type OrganizationMember implements Node {
+  groups("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OrganizationMemberGroupsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  id: ID!
+  isDisabled: Boolean!
+  userName: String @cost(weight: "10")
+}
+
+type OrganizationMemberGroupMember implements GroupMember {
+  assignedAt: DateTime!
+  group: Group @cost(weight: "10")
+  id: ID!
+  member: OrganizationMember @cost(weight: "10")
+  type: String!
+}
+
+"A connection to a list of groups via group members."
+type OrganizationMemberGroupsConnection {
+  edges: [OrganizationMemberGroupsEdge!]
+  nodes: [Group!]!
+  pageInfo: PageInfo!
+}
+
+type OrganizationMemberGroupsEdge {
+  cursor: String!
+  node: Group!
+}
+
+"A connection to a list of items."
+type OrganizationMembersConnection {
+  "A list of edges."
+  edges: [OrganizationMembersEdge!]
+  "A flattened list of the nodes."
+  nodes: [OrganizationMember!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type OrganizationMembersEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: OrganizationMember!
+}
+
+type OrganizationPaymentIssue {
+  message: String!
+}
+
+type OrganizationPermissionScope implements PermissionScope {
+  id: ID!
+  organization: Organization @cost(weight: "10")
+  type: String!
+}
+
+type OrganizationPlan {
+  type: OrganizationPlanType!
+}
+
+type OrganizationUsage {
+  cumulativeGigabyteHours: OrganizationUsageCumulativeGigabyteHoursGraph @cost(weight: "10")
+  gigabyteHours: OrganizationUsageGigabyteHoursGraph @cost(weight: "10")
+  period: OrganizationUsagePeriod!
+}
+
+type OrganizationUsageCumulativeGigabyteHoursGraph {
+  dataset: [OrganizationUsageCumulativeGigabyteHoursGraphData!]!
+}
+
+type OrganizationUsageCumulativeGigabyteHoursGraphCountData {
+  label: String!
+  predictedValue: Float
+  value: Float
+}
+
+type OrganizationUsageCumulativeGigabyteHoursGraphData {
+  epoch: Long!
+  values: [OrganizationUsageCumulativeGigabyteHoursGraphCountData!]!
+}
+
+type OrganizationUsageGigabyteHoursGraph {
+  dataset: [OrganizationUsageGigabyteHoursGraphData!]!
+}
+
+type OrganizationUsageGigabyteHoursGraphCountData {
+  label: String!
+  value: Float!
+}
+
+type OrganizationUsageGigabyteHoursGraphData {
+  epoch: Long!
+  values: [OrganizationUsageGigabyteHoursGraphCountData!]!
+}
+
+type OrganizationUsagePeriod {
+  endDate: DateTime!
+  startDate: DateTime!
+}
+
+type OutputFieldChanged implements SchemaChange {
+  changes: [OutputFieldChange!]!
+  coordinate: String!
+  fieldName: String!
+  severity: SchemaChangeSeverity!
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+}
+
+type PersistedQueriesChanged {
+  version: String!
+}
+
+"A connection to a list of items."
+type PersistedQueriesConnection {
+  "A list of edges."
+  edges: [PersistedQueriesEdge!]
+  "A flattened list of the nodes."
+  nodes: [RequestDocument!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type PersistedQueriesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: RequestDocument!
+}
+
+type PersistedQueryError {
+  code: String
+  locations: [PersistedQueryErrorLocation!]
+  message: String!
+  path: String
+}
+
+type PersistedQueryErrorLocation {
+  column: Int!
+  line: Int!
+}
+
+type PersistedQueryValidationError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationValidationError & ProcessingError {
+  client: Client @cost(weight: "10")
+  clientId: ID! @deprecated(reason: "Use `client` instead.")
+  hasMoreErrors: Boolean!
+  message: String!
+  queries: [PersistedQueryValidationFailed!]!
+}
+
+type PersistedQueryValidationFailed {
+  deployedTags: [String!]! @cost(weight: "10")
+  errors: [PersistedQueryError!]!
+  hash: String!
+  message: String!
+}
+
+type PersonalAccessToken {
+  createdAt: DateTime!
+  description: String!
+  expiresAt: DateTime!
+  id: ID!
+}
+
+type PersonalAccessTokenNotFoundError implements Error {
+  message: String!
+}
+
+type PersonalAccessTokenWithSecret {
+  secret: String!
+  token: PersonalAccessToken!
+}
+
+"A connection to a list of items."
+type PersonalAccessTokensConnection {
+  "A list of edges."
+  edges: [PersonalAccessTokensEdge!]
+  "A flattened list of the nodes."
+  nodes: [PersonalAccessToken!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type PersonalAccessTokensEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: PersonalAccessToken!
+}
+
+type PersonalWorkspaceNotSupportedError implements Error {
+  message: String!
+}
+
+type PollClientVersionPublishRequestPayload {
+  errors: [PollClientVersionPublishRequestError!]
+  result: ClientVersionPublishResult
+}
+
+type PollClientVersionValidationRequestPayload {
+  errors: [PollClientVersionValidationRequestError!]
+  result: ClientVersionValidationResult
+}
+
+type PollSchemaVersionPublishRequestPayload {
+  errors: [PollSchemaVersionPublishRequestError!]
+  result: SchemaVersionPublishResult
+}
+
+type PollSchemaVersionValidationRequestPayload {
+  errors: [PollSchemaVersionValidationRequestError!]
+  result: SchemaVersionValidationResult
+}
+
+type PossibleTypeAdded implements SchemaChange {
+  severity: SchemaChangeSeverity!
+  typeName: String!
+}
+
+type PossibleTypeRemoved implements SchemaChange {
+  severity: SchemaChangeSeverity!
+  typeName: String!
+}
+
+type ProcessingTaskApproved implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult {
+  state: ProcessingState!
+}
+
+type ProcessingTaskIsQueued implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult {
+  queuePosition: Int! @cost(weight: "10")
+  state: ProcessingState!
+}
+
+type ProcessingTaskIsReady implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult {
+  state: ProcessingState!
+}
+
+type ProcessingTimeoutError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & ProcessingError {
+  message: String!
+}
+
+type PublishClientPayload {
+  errors: [PublishClientError!]
+  id: ID
+}
+
+type PublishSchemaPayload {
+  errors: [PublishSchemaError!]
+  id: ID
+}
+
+type PublishedClient {
+  client: Client!
+  publishedVersions: [PublishedClientVersion!]!
+}
+
+type PublishedClientVersion {
+  publishedAt: DateTime!
+  stage: Stage @cost(weight: "10")
+  tags: [String!]! @cost(weight: "10") @deprecated(reason: "Use `version.tag` instead.")
+  version: ClientVersion @cost(weight: "10")
+}
+
+type PublishedSchemaVersion {
+  publishedAt: DateTime!
+  stage: Stage @cost(weight: "10")
+  tag: String! @cost(weight: "10") @deprecated(reason: "Use `version.tag` instead.")
+  version: SchemaVersion @cost(weight: "10")
+}
+
+type PushDocumentChangesPayload {
+  changes: [WorkspaceDocumentChangeResult!]
+  errors: [PushDocumentChangesError!]
+}
+
+type PushWorkspaceChangesPayload {
+  changes: [WorkspaceChangePayload!]
+  errors: [PushWorkspaceChangesError!]
+}
+
+type Query {
+  apiById(id: ID!): Api @cost(weight: "10")
+  fusionConfigurationByApiId(id: ID! stage: String!): FusionConfiguration @cost(weight: "10")
+  me: Viewer
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node @cost(weight: "10")
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]! @cost(weight: "10")
+  organizationById(id: ID!): Organization @cost(weight: "10")
+  stageById(id: ID!): Stage @cost(weight: "10")
+  workspaceById(workspaceId: ID!): Workspace @cost(weight: "10")
+}
+
+type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationPublishingError & ProcessingError {
+  message: String!
+}
+
+type RemoveWorkspacePayload {
+  errors: [RemoveWorkspaceError!]
+  workspace: Workspace
+}
+
+type RenameWorkspacePayload {
+  errors: [RenameWorkspaceError!]
+  workspace: Workspace
+}
+
+type RequestDocument {
+  content: String!
+  documentIds: [String!]!
+  id: ID!
+}
+
+type ResolverInsight {
+  averageLatency: Float!
+  coordinate: String!
+  errorRate: Float!
+  id: ID! @cost(weight: "10")
+  impact: Float!
+  latency: ResolverLatencyGraph @cost(weight: "10")
+  opm: Float!
+  successRate: Float!
+  throughput: ResolverThroughputGraph @cost(weight: "10")
+  totalCount: Long!
+  totalCountWithErrors: Long!
+}
+
+"A connection to a list of items."
+type ResolverInsightsConnection {
+  "A list of edges."
+  edges: [ResolverInsightsEdge!]
+  "A flattened list of the nodes."
+  nodes: [ResolverInsight!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type ResolverInsightsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ResolverInsight!
+}
+
+type ResolverLatencyGraph {
+  dataset: [ResolverLatencyGraphData!]!
+}
+
+type ResolverLatencyGraphData {
+  epoch: Long!
+  max: Float!
+  mean: Float!
+  min: Float!
+  p50: Float!
+  p95: Float!
+  p99: Float!
+}
+
+type ResolverThroughputGraph {
+  dataset: [ResolverThroughputGraphData!]!
+}
+
+type ResolverThroughputGraphData {
+  epoch: Long!
+  errorRate: Float!
+  opm: Float!
+  successRate: Float!
+  totalCount: Long!
+  totalCountWithError: Long!
+}
+
+type RevokePersonalAccessTokenPayload {
+  errors: [RevokePersonalAccessTokenError!]
+  personalAccessToken: PersonalAccessToken
+}
+
+type Role {
+  description: String!
+  id: ID!
+  name: String!
+}
+
+type RoleAssignment {
+  condition: RoleAssignmentCondition
+  effect: RoleEffect!
+  id: ID!
+  role: Role @cost(weight: "10")
+  scope: PermissionScope @cost(weight: "10")
+}
+
+type RoleAssignmentStageAuthorizationCondition {
+  name: String!
+}
+
+type RoleNotFoundError implements Error {
+  message: String!
+  roleId: ID!
+}
+
+type ScalarModifiedChange implements SchemaChange {
+  changes: [ScalarChange!]!
+  coordinate: String!
+  kind: TypeSystemMemberKind!
+  severity: SchemaChangeSeverity!
+}
+
+type SchemaChangeLog implements StageChangeLog & Node {
+  changedAt: DateTime!
+  changes("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int severity: SchemaChangeSeverity): SchemaChangesConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  id: ID!
+  kind: StageChangeLogKind!
+  previousSchema: SchemaVersion @cost(weight: "10")
+  schema: SchemaVersion @cost(weight: "10")
+  statistic: SchemaChangeLogStatistic!
+  tag: String!
+}
+
+type SchemaChangeLogStatistic {
+  breaking: Int!
+  dangerous: Int!
+  safe: Int!
+}
+
+type SchemaChangeViolationError {
+  changes: [SchemaChangeLogEntry!]!
+  message: String!
+}
+
+"A connection to a list of items."
+type SchemaChangesConnection {
+  "A list of edges."
+  edges: [SchemaChangesEdge!]
+  "A flattened list of the nodes."
+  nodes: [SchemaChangeLogEntry!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type SchemaChangesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: SchemaChangeLogEntry!
+}
+
+type SchemaCoordinateMetrics implements CoordinateMetrics {
+  clientUsages(from: DateTime! to: DateTime!): [CoordinateClientUsage!]! @cost(weight: "10")
+  requests(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateRequestGraph @cost(weight: "10")
+  usages(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateUsageGraph @cost(weight: "10")
+}
+
+type SchemaDeployment implements Node & Deployment {
+  approval: DeploymentApproval
+  createdAt: DateTime!
+  errors: [SchemaDeploymentError!]!
+  id: ID!
+  logs: [DeploymentLog!]!
+  schemaChanges: SchemaDeploymentSchemaChanges
+  status: DeploymentStatus!
+  tag: String!
+}
+
+type SchemaDeploymentSchemaChanges {
+  changes("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int severity: SchemaChangeSeverity): SchemaChangesConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false)
+  previousSchema: SchemaVersion @cost(weight: "10")
+  schema: SchemaVersion @cost(weight: "10")
+  statistic: SchemaChangeLogStatistic!
+}
+
+type SchemaNotFoundError implements Error {
+  apiId: ID!
+  message: String!
+  tag: String!
+}
+
+type SchemaRegistrySettings {
+  allowBreakingSchemaChanges: Boolean!
+  treatDangerousAsBreaking: Boolean!
+}
+
+type SchemaVersion {
+  createdAt: DateTime!
+  downloadUrl: String! @cost(weight: "1")
+  id: ID!
+  publishedTo: [PublishedSchemaVersion!]!
+  tag: String!
+  tags: [String!]! @deprecated(reason: "Use `tag` instead.")
+}
+
+type SchemaVersionChangeViolationError implements SchemaVersionValidationError & SchemaVersionPublishError & FusionConfigurationValidationError & ProcessingError {
+  changes: [SchemaChangeLogEntry!]!
+  message: String!
+}
+
+type SchemaVersionPublishFailed implements SchemaVersionPublishResult {
+  errors: [SchemaVersionPublishError!]!
+  state: ProcessingState!
+}
+
+type SchemaVersionPublishSuccess implements SchemaVersionPublishResult {
+  changeLog: SchemaChangeLog @cost(weight: "10")
+  state: ProcessingState!
+}
+
+type SchemaVersionRequestNotFoundError implements Error {
+  message: String!
+  requestId: ID!
+}
+
+type SchemaVersionSyntaxError implements SchemaVersionValidationError & SchemaVersionPublishError & ProcessingError {
+  column: Int!
+  line: Int!
+  message: String!
+  position: Int!
+}
+
+type SchemaVersionValidationFailed implements SchemaVersionValidationResult {
+  errors: [SchemaVersionValidationError!]!
+  state: ProcessingState!
+}
+
+type SchemaVersionValidationSuccess implements SchemaVersionValidationResult {
+  changes: [SchemaChangeLogEntry!]!
+  state: ProcessingState!
+}
+
+"A connection to a list of items."
+type SchemaVersionsConnection {
+  "A list of edges."
+  edges: [SchemaVersionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [SchemaVersion!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type SchemaVersionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: SchemaVersion!
+}
+
+type SetActiveWorkspacePayload {
+  errors: [SetActiveWorkspaceError!]
+  workspace: Workspace
+}
+
+type Stage implements Node {
+  api: Api @cost(weight: "10")
+  changeLog("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int kind: [StageChangeLogKind!] "Returns the last _n_ elements from the list." last: Int): StageChangeLogConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  conditions: [StageCondition!]!
+  coordinate(coordinate: String!): GraphQLTypeSystemMember @cost(weight: "10")
+  coordinates("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int kinds: [CoordinateKind!] orderBy: [GraphQLCoordinateOrderByInput!] search: String): CoordinatesConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  deployments("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): DeploymentsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  displayName: String!
+  essentials: StageEssentials @cost(weight: "10")
+  id: ID!
+  logDistribution(from: DateTime! to: DateTime!): OpenTelemetryLogsSeverityGraph @cost(weight: "10")
+  logs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int from: DateTime "Returns the last _n_ elements from the list." last: Int to: DateTime): OpenTelemetryLogsConnection @listSize(assumedSize: 200, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false)
+  metrics: StageMetrics!
+  name: String!
+  publishedClients: [PublishedClient!]! @cost(weight: "10")
+  publishedFusionConfiguration: FusionConfiguration @cost(weight: "10")
+  publishedSchema: PublishedSchemaVersion @cost(weight: "10")
+  subgraphs: [Subgraph!]!
+  traceById(seeker: String spanId: String traceId: String!): OpenTelemetryTrace @cost(weight: "10")
+}
+
+"A connection to a list of items."
+type StageChangeLogConnection {
+  "A list of edges."
+  edges: [StageChangeLogEdge!]
+  "A flattened list of the nodes."
+  nodes: [StageChangeLog!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type StageChangeLogEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: StageChangeLog!
+}
+
+type StageClientsMetrics {
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [ClientInsightsOrderByInput!] to: DateTime!): ClientInsightsConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+}
+
+type StageErrorsMetrics {
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! search: String to: DateTime!): ErrorInsightsConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+}
+
+type StageEssentials {
+  clientCount: Int!
+  lastPublishedAt: DateTime
+  subgraphCount: Int!
+  version: String
+}
+
+type StageLatencySummary {
+  max: Float
+  mean: Float
+  min: Float
+  p50: Float
+  p95: Float
+  p99: Float
+}
+
+type StageMetrics {
+  clients: StageClientsMetrics!
+  errors: StageErrorsMetrics!
+  operation(hash: String! operationName: String!): StageOperationMetrics!
+  operations: StageOperationsMetrics!
+  resolver(coordinate: String!): StageResolverMetrics!
+  resolvers: StageResolversMetrics!
+  subgraphs: StageSubgraphsMetrics!
+  transaction(name: String!): StageTransactionMetrics!
+  transactions: StageTransactionsMetrics!
+}
+
+type StageNotFoundError implements Error {
+  apiId: ID!
+  message: String!
+  name: String!
+}
+
+type StageOperationMetrics {
+  latency(from: DateTime! to: DateTime!): OperationLatencyGraph @cost(weight: "10")
+  latencyDistribution(from: DateTime! to: DateTime!): OperationLatencyDistributionGraph @cost(weight: "10")
+  samples(from: DateTime! maxLatency: Float minLatency: Float to: DateTime!): [OperationTraceSample!]! @cost(weight: "10")
+  throughput(from: DateTime! operationKinds: [OperationKind!] @deprecated(reason: "Not longer in use") to: DateTime!): OperationThroughputGraph @cost(weight: "10")
+}
+
+type StageOperationMetricsSummary {
+  latency: StageLatencySummary @cost(weight: "10")
+  throughput: StageThroughputSummary @cost(weight: "10")
+}
+
+type StageOperationsMetrics {
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! operationKinds: [OperationKind!] orderBy: [OperationInsightsOrderByInput!] search: String to: DateTime!): OperationInsightsConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  latency(from: DateTime! operationKinds: [OperationKind!] to: DateTime!): OperationsLatencyGraph @cost(weight: "10")
+  summary(from: DateTime! to: DateTime!): StageOperationMetricsSummary! @cost(weight: "10")
+  throughput(from: DateTime! operationKinds: [OperationKind!] to: DateTime!): OperationsThroughputGraph @cost(weight: "10")
+}
+
+type StageResolverMetrics {
+  latency(from: DateTime! to: DateTime!): ResolverLatencyGraph @cost(weight: "10")
+  throughput(from: DateTime! to: DateTime!): ResolverThroughputGraph @cost(weight: "10")
+}
+
+type StageResolversMetrics {
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [ResolverInsightsOrderByInput!] search: String to: DateTime!): ResolverInsightsConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+}
+
+type StageSubgraphsMetrics {
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [SubgraphInsightsOrderByInput!] to: DateTime!): SubgraphInsightsConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+}
+
+type StageThroughputSummary {
+  errorRate: Float
+  opm: Float
+  successRate: Float
+  totalCount: Long
+  totalCountWithError: Long
+}
+
+type StageTransactionMetrics {
+  latency(from: DateTime! to: DateTime!): OpenTelemetryTransactionLatencyGraph @cost(weight: "10")
+  latencyDistribution(from: DateTime! to: DateTime!): OpenTelemetryTransactionLatencyDistributionGraph @cost(weight: "10")
+  samples(from: DateTime! maxLatency: Float minLatency: Float to: DateTime!): [OpenTelemetryTransactionTraceSample!]! @cost(weight: "10")
+  throughput(from: DateTime! to: DateTime!): OpenTelemetryTransactionThroughputGraph @cost(weight: "10")
+}
+
+type StageTransactionMetricsSummary {
+  latency: StageLatencySummary @cost(weight: "10")
+  throughput: StageThroughputSummary @cost(weight: "10")
+}
+
+type StageTransactionsMetrics {
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [OpenTelemetryTransactionInsightsOrderByInput!] search: String spanKinds: [OpenTelemetrySpanKind!] to: DateTime!): OpenTelemetryTransactionInsightsConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  latency(from: DateTime! spanKinds: [OpenTelemetrySpanKind!] to: DateTime!): OpenTelemetryTransactionsLatencyGraph @cost(weight: "10")
+  summary(from: DateTime! to: DateTime!): StageTransactionMetricsSummary! @cost(weight: "10")
+  throughput(from: DateTime! spanKinds: [OpenTelemetrySpanKind!] to: DateTime!): OpenTelemetryTransactionsThroughputGraph @cost(weight: "10")
+}
+
+type StageValidationError implements Error {
+  message: String!
+}
+
+type StagesHavePublishedDependenciesError implements Error {
+  message: String!
+  stages: [Stage!]! @cost(weight: "10")
+}
+
+type StartFusionConfigurationCompositionPayload {
+  errors: [StartFusionConfigurationCompositionError!]
+  requestId: ID
+}
+
+type SubgraphInsight {
+  averageLatency: Float
+  errorRate: Float
+  id: ID!
+  impact: Float
+  latency: SubgraphLatencyGraph @cost(weight: "10")
+  name: String!
+  opm: Float
+  stage: Stage @cost(weight: "10")
+  subgraph: Subgraph @cost(weight: "10")
+  successRate: Float
+  throughput: SubgraphThroughputGraph @cost(weight: "10")
+  totalCount: Long
+  totalCountWithErrors: Long
+}
+
+"A connection to a list of items."
+type SubgraphInsightsConnection {
+  "A list of edges."
+  edges: [SubgraphInsightsEdge!]
+  "A flattened list of the nodes."
+  nodes: [SubgraphInsight!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type SubgraphInsightsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: SubgraphInsight!
+}
+
+type SubgraphInvalidError implements Error {
+  message: String!
+}
+
+type SubgraphLatencyGraph {
+  dataset: [SubgraphLatencyGraphData!]!
+}
+
+type SubgraphLatencyGraphData {
+  epoch: Long!
+  max: Float!
+  mean: Float!
+  min: Float!
+  p50: Float!
+  p95: Float!
+  p99: Float!
+}
+
+type SubgraphThroughputGraph {
+  dataset: [SubgraphThroughputGraphData!]!
+}
+
+type SubgraphThroughputGraphData {
+  epoch: Long!
+  errorRate: Float!
+  opm: Float!
+  successRate: Float!
+  totalCount: Long!
+  totalCountWithError: Long!
+}
+
+type Subscription {
+  onClientVersionPublishingUpdate(requestId: ID!): ClientVersionPublishResult!
+  onClientVersionValidationUpdate(requestId: ID!): ClientVersionValidationResult!
+  onFusionConfigurationPublishingTaskChanged(requestId: ID!): FusionConfigurationPublishingResult!
+  onPersistedQueriesChanged(apiId: ID! stageName: String!): PersistedQueriesChanged!
+  onSchemaVersionPublishingUpdate(requestId: ID!): SchemaVersionPublishResult!
+  onSchemaVersionValidationUpdate(requestId: ID!): SchemaVersionValidationResult!
+  onStageChangeLogAdded(apiId: ID! kind: [StageChangeLogKind!] stageName: String!): StageChangeLog!
+  onStageDeploymentsChanged(stageId: ID!): DeploymentEvent! @cost(weight: "10")
+}
+
+type ThemeSettings {
+  darkThemeName: String
+  lightThemeName: String
+  themeName: String
+  usePreferredOsAppearance: Boolean!
+}
+
+type TunnelSession {
+  expiresAt: DateTime!
+  expiresIn: Int!
+  sessionId: ID!
+}
+
+type TypeChanged implements SchemaChange {
+  newType: String!
+  oldType: String!
+  severity: SchemaChangeSeverity!
+}
+
+type TypeSystemMemberAddedChange implements SchemaChange {
+  coordinate: String!
+  kind: TypeSystemMemberKind!
+  severity: SchemaChangeSeverity!
+}
+
+type TypeSystemMemberModifiedChange implements SchemaChange {
+  changes: [SchemaChange!]!
+  coordinate: String!
+  kind: TypeSystemMemberKind!
+  severity: SchemaChangeSeverity!
+}
+
+type TypeSystemMemberRemovedChange implements SchemaChange {
+  coordinate: String!
+  kind: TypeSystemMemberKind!
+  severity: SchemaChangeSeverity!
+}
+
+type UnauthorizedOperation implements Error {
+  message: String!
+}
+
+type UnexpectedErrorOnChange implements Error {
+  message: String!
+  workspaceId: ID!
+}
+
+type UnexpectedErrorOnDocumentChange implements Error {
+  message: String!
+  workspaceId: ID!
+}
+
+type UnexpectedProcessingError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & FusionConfigurationValidationError & ProcessingError {
+  message: String!
+}
+
+type UnionMemberAdded implements SchemaChange {
+  severity: SchemaChangeSeverity!
+  typeName: String!
+}
+
+type UnionMemberRemoved implements SchemaChange {
+  severity: SchemaChangeSeverity!
+  typeName: String!
+}
+
+type UnionModifiedChange implements SchemaChange {
+  changes: [UnionChange!]!
+  coordinate: String!
+  kind: TypeSystemMemberKind!
+  severity: SchemaChangeSeverity!
+}
+
+type UnpublishClientPayload {
+  clientVersion: ClientVersion
+  errors: [UnpublishClientError!]
+}
+
+type UpdateApiSettingsPayload {
+  api: Api
+  errors: [UpdateApiSettingsError!]
+}
+
+type UpdateFeatureFlagsPayload {
+  errors: [UpdateFeatureFlagsError!]
+  settings: UserSettings
+}
+
+type UpdateMockSchemaPayload {
+  errors: [UpdateMockSchemaError!]
+  mockSchema: MockSchema
+}
+
+type UpdatePreferencesPayload {
+  errors: [UpdatePreferencesError!]
+  preferences: Any
+}
+
+type UpdateStagesPayload {
+  api: Api
+  errors: [UpdateStagesError!]
+}
+
+type UpdateThemeSettingsPayload {
+  errors: [UpdateThemeSettingsError!]
+  settings: UserSettings
+}
+
+type UploadClientPayload {
+  clientVersion: ClientVersion
+  errors: [UploadClientError!]
+}
+
+type UploadSchemaPayload {
+  errors: [UploadSchemaError!]
+  schemaVersion: SchemaVersion
+}
+
+type User implements Node {
+  id: ID!
+  username: String!
+}
+
+type UserInfo {
+  id: ID!
+  username: String!
+}
+
+type UserSettings {
+  featureFlags: [String!]!
+  theme: ThemeSettings!
+}
+
+type ValidateClientPayload {
+  errors: [ValidateClientError!]
+  id: ID
+}
+
+type ValidateFusionConfigurationCompositionPayload {
+  errors: [ValidateFusionConfigurationCompositionError!]
+  requestId: ID
+}
+
+type ValidateSchemaPayload {
+  errors: [ValidateSchemaError!]
+  id: ID
+}
+
+type ValidationError implements Error {
+  errors: [ValidationErrorProperty!]!
+  message: String!
+}
+
+type ValidationErrorProperty {
+  message: String!
+}
+
+type ValidationInProgress implements FusionConfigurationPublishingResult & ClientVersionValidationResult & SchemaVersionValidationResult {
+  state: ProcessingState!
+}
+
+type Viewer {
+  activeOrganization: Organization @cost(weight: "10")
+  activeWorkspace: Workspace @cost(weight: "10")
+  billingUrl: String
+  manageTenantUrl: String
+  organization: OrganizationInfo
+  personalAccessTokens("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): PersonalAccessTokensConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  preferences: Any! @cost(weight: "10")
+  sessionId: String!
+  settings: UserSettings! @cost(weight: "10")
+  user: User @cost(weight: "10")
+  workspaces("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): WorkspacesConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+}
+
+type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult {
+  deployment: Deployment @cost(weight: "10")
+  state: ProcessingState!
+}
+
+type Workspace implements Node {
+  apiDocuments("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApiDocumentsConnection @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  apiKeys("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiKeysConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  apis("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApisConnection @authorize(policy: "DocumentsRead") @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  changed(version: Version!): Boolean! @cost(weight: "10")
+  changes("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ChangesConnection @authorize(policy: "DocumentsRead") @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  documentChanges("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): DocumentChangesConnection @authorize(policy: "DocumentsRead") @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10") @deprecated(reason: "Use changes")
+  documents("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): DocumentsConnection @authorize(policy: "DocumentsRead") @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  documentsChanged(version: Version): Boolean! @cost(weight: "10") @deprecated(reason: "Use changed")
+  environments("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): EnvironmentsConnection @authorize(policy: "DocumentsRead") @listSize(assumedSize: 50, slicingArguments: [ "first" ], slicingArgumentDefaultValue: 10, sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  id: ID!
+  members: [WorkspaceMember!]!
+  name: String!
+  personal: Boolean!
+  version: Version!
+}
+
+type WorkspaceChangePayload {
+  error: WorkspaceChangeError
+  referenceId: String!
+  result: WorkspaceChangeResult
+}
+
+type WorkspaceDocument implements Node {
+  activeConnectionKind: String!
+  body: String!
+  createdAt: DateTime!
+  createdBy: UserInfo!
+  httpConnection: WorkspaceDocumentHttpConnection
+  id: ID!
+  modifiedAt: DateTime!
+  modifiedBy: UserInfo!
+  name: String!
+  path: [String!]!
+  variables: String
+  version: Version!
+  workspace: Workspace @cost(weight: "10")
+}
+
+type WorkspaceDocumentAuthentication {
+  activeAuthenticationKind: String!
+  basicOptions: BasicAuthenticationFlowOptions
+  bearerOptions: BearerAuthenticationFlowOptions
+  oAuth2Options: OAuth2AuthenticationFlowOptions
+}
+
+type WorkspaceDocumentChangeResult {
+  document: WorkspaceDocument
+  error: WorkspaceDocumentChangeError
+  referenceId: String!
+}
+
+type WorkspaceDocumentHeader {
+  enabled: Boolean!
+  name: String!
+  value: String!
+}
+
+type WorkspaceDocumentHttpConnection {
+  authentication: WorkspaceDocumentAuthentication
+  endpoint: String!
+  headers: [WorkspaceDocumentHeader!]
+  includeCookies: Boolean!
+  sdlEndpoint: String
+  sseSubscriptionEndpoint: String
+  subscriptionEndpoint: String
+  subscriptionProtocol: String
+  useGet: Boolean!
+  useTunnel: Boolean!
+}
+
+type WorkspaceMember {
+  role: WorkspaceUserRole!
+  user: UserInfo! @cost(weight: "10")
+}
+
+type WorkspaceNotFound implements Error {
+  message: String!
+  workspaceId: ID!
+}
+
+type WorkspaceNotFoundForChange implements Error {
+  message: String!
+  workspaceId: ID!
+}
+
+type WorkspaceNotFoundForDocument implements Error {
+  message: String!
+  workspaceId: ID!
+}
+
+type WorkspacePermissionScope implements PermissionScope {
+  id: ID!
+  type: String!
+  workspace: Workspace @cost(weight: "10")
+}
+
+"A connection to a list of items."
+type WorkspacesConnection {
+  "A list of edges."
+  edges: [WorkspacesEdge!]
+  "A flattened list of the nodes."
+  nodes: [Workspace!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type WorkspacesEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Workspace!
+}
+
+union ApiKeyReference = Api
+
+union ApproveDeploymentError = UnauthorizedOperation | DeploymentNotFoundError | DeploymentIsNotWaitingForApprovalError
+
+union ArgumentChange = DeprecatedChange | DescriptionChanged | TypeChanged
+
+union AuthorizationEventLogPrincipal = UserInfo | ApiKey | OrganizationMember | Group
+
+union AuthorizationEventLogRealm = Organization | Workspace | User
+
+union AuthorizationEventLogResource = Organization | Workspace | Api
+
+union AuthorizationEventLogSubject = User | ApiKey
+
+union BeginFusionConfigurationPublishError = UnauthorizedOperation | ApiNotFoundError | StageNotFoundError | SubgraphInvalidError | InvalidProcessingStateTransitionError
+
+union CancelDeploymentError = UnauthorizedOperation | DeploymentNotFoundError | DeploymentCannotBeCancelledError
+
+union CancelFusionConfigurationCompositionError = UnauthorizedOperation | FusionConfigurationRequestNotFoundError | InvalidProcessingStateTransitionError
+
+union ClientDeploymentError = PersistedQueryValidationError
+
+union CommitFusionConfigurationPublishError = UnauthorizedOperation | FusionConfigurationRequestNotFoundError | InvalidProcessingStateTransitionError
+
+union CreateAccountError = UnauthorizedOperation
+
+union CreateApiKeyError = ApiNotFoundError | WorkspaceNotFound | PersonalWorkspaceNotSupportedError | ValidationError | UnauthorizedOperation | RoleNotFoundError
+
+union CreateApiKeyForApiError = ApiNotFoundError | PersonalWorkspaceNotSupportedError | ValidationError | UnauthorizedOperation
+
+union CreateClientError = ApiNotFoundError | UnauthorizedOperation
+
+union CreateMockSchemaError = ApiNotFoundError | MockSchemaNonUniqueNameError | UnauthorizedOperation | ValidationError
+
+union CreatePersonalAccessTokenError = ValidationError | UnauthorizedOperation
+
+union CreateWorkspaceError = UnauthorizedOperation | ValidationError
+
+union DeleteApiByIdError = ApiNotFoundError | UnauthorizedOperation | ApiDeletionFailedError
+
+union DeleteApiKeyError = ApiKeyNotFoundError | UnauthorizedOperation
+
+union DeleteClientByIdError = ClientNotFoundError | UnauthorizedOperation
+
+union DeleteMockSchemaByIdError = MockSchemaNotFoundError | UnauthorizedOperation
+
+union DeploymentEvent = DeploymentCreatedEvent | DeploymentUpdatedEvent
+
+union DirectiveChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DescriptionChanged | DirectiveLocationAdded | DirectiveLocationRemoved
+
+union EnsureTunnelSessionError = UnauthorizedOperation
+
+union EnumChange = DescriptionChanged | EnumValueAdded | EnumValueChanged | EnumValueRemoved
+
+union EnumValueChange = DeprecatedChange | DescriptionChanged
+
+union FieldChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DeprecatedChange | DescriptionChanged | TypeChanged
+
+union FusionConfigurationDeploymentError = PersistedQueryValidationError | SchemaChangeViolationError | InvalidGraphQLSchemaError
+
+union InputFieldChange = DeprecatedChange | DescriptionChanged | TypeChanged
+
+union InputObjectChange = DescriptionChanged | FieldAddedChange | FieldRemovedChange | InputFieldChanged
+
+union InterfaceChange = DescriptionChanged | FieldAddedChange | FieldRemovedChange | InterfaceImplementationAdded | InterfaceImplementationRemoved | OutputFieldChanged | PossibleTypeAdded | PossibleTypeRemoved
+
+union ObjectChange = DescriptionChanged | FieldAddedChange | FieldRemovedChange | InterfaceImplementationAdded | InterfaceImplementationRemoved | OutputFieldChanged
+
+union OutputFieldChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DeprecatedChange | DescriptionChanged | TypeChanged
+
+union PollClientVersionPublishRequestError = ClientVersionRequestNotFoundError | UnauthorizedOperation
+
+union PollClientVersionValidationRequestError = ClientVersionRequestNotFoundError | UnauthorizedOperation
+
+union PollSchemaVersionPublishRequestError = SchemaVersionRequestNotFoundError | UnauthorizedOperation
+
+union PollSchemaVersionValidationRequestError = SchemaVersionRequestNotFoundError | UnauthorizedOperation
+
+union PublishClientError = StageNotFoundError | ClientNotFoundError | UnauthorizedOperation | ClientVersionNotFoundError
+
+union PublishSchemaError = StageNotFoundError | ApiNotFoundError | SchemaNotFoundError | UnauthorizedOperation
+
+union PushDocumentChangesError = UnauthorizedOperation | ChangeStructureInvalid
+
+union PushWorkspaceChangesError = UnauthorizedOperation | ChangeStructureInvalid
+
+union RemoveWorkspaceError = UnauthorizedOperation | WorkspaceNotFound | ValidationError
+
+union RenameWorkspaceError = UnauthorizedOperation | WorkspaceNotFound | ValidationError
+
+union RevokePersonalAccessTokenError = UnauthorizedOperation | PersonalAccessTokenNotFoundError
+
+union RoleAssignmentCondition = RoleAssignmentStageAuthorizationCondition
+
+union ScalarChange = DescriptionChanged
+
+union SchemaChangeLogEntry = DirectiveModifiedChange | EnumModifiedChange | InputObjectModifiedChange | InterfaceModifiedChange | ObjectModifiedChange | ScalarModifiedChange | TypeSystemMemberAddedChange | TypeSystemMemberModifiedChange | TypeSystemMemberRemovedChange | UnionModifiedChange
+
+union SchemaDeploymentError = PersistedQueryValidationError | SchemaChangeViolationError | OperationsAreNotAllowedError | SchemaVersionSyntaxError | InvalidGraphQLSchemaError
+
+union SchemaMemberChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DescriptionChanged | DirectiveLocationAdded | DirectiveLocationRemoved | EnumValueAdded | EnumValueChanged | EnumValueRemoved | FieldAddedChange | FieldRemovedChange | InputFieldChanged | InterfaceImplementationAdded | InterfaceImplementationRemoved | OutputFieldChanged | PossibleTypeAdded | PossibleTypeRemoved | UnionMemberAdded | UnionMemberRemoved
+
+union SetActiveWorkspaceError = UnauthorizedOperation | WorkspaceNotFound
+
+union StageCondition = AfterStageCondition
+
+union StartFusionConfigurationCompositionError = UnauthorizedOperation | FusionConfigurationRequestNotFoundError | InvalidProcessingStateTransitionError
+
+union UnionChange = DescriptionChanged | UnionMemberAdded | UnionMemberRemoved
+
+union UnpublishClientError = StageNotFoundError | ClientNotFoundError | UnauthorizedOperation | ClientVersionNotFoundError | ConcurrentOperationError
+
+union UpdateApiSettingsError = ApiNotFoundError | UnauthorizedOperation
+
+union UpdateFeatureFlagsError = UnauthorizedOperation | ValidationError
+
+union UpdateMockSchemaError = MockSchemaNonUniqueNameError | MockSchemaNotFoundError | UnauthorizedOperation | ValidationError
+
+union UpdatePreferencesError = UnauthorizedOperation | ValidationError
+
+union UpdateStagesError = ApiNotFoundError | StageNotFoundError | StagesHavePublishedDependenciesError | StageValidationError
+
+union UpdateThemeSettingsError = UnauthorizedOperation | ValidationError
+
+union UploadClientError = ClientNotFoundError | ConcurrentOperationError | InvalidPersistedQueryError | UnauthorizedOperation | DuplicatedTagError
+
+union UploadSchemaError = ApiNotFoundError | ConcurrentOperationError | DuplicatedTagError | UnauthorizedOperation
+
+union ValidateClientError = StageNotFoundError | ClientNotFoundError | UnauthorizedOperation
+
+union ValidateFusionConfigurationCompositionError = UnauthorizedOperation | FusionConfigurationRequestNotFoundError | InvalidProcessingStateTransitionError
+
+union ValidateSchemaError = StageNotFoundError | SchemaNotFoundError | ApiNotFoundError | UnauthorizedOperation
+
+union WorkspaceChangeError = ChangeValidationFailed | HasBeenChangedConflict | HasBeenDeletedConflict | IdentifierCollisionConflict | UnexpectedErrorOnChange | WorkspaceNotFoundForChange
+
+union WorkspaceChangeResult = ApiDocument | Api | WorkspaceDocument | Environment
+
+union WorkspaceDocumentChangeError = DocumentChangedConflict | DocumentNameCollisionConflict | DocumentDeletionConflict | UnexpectedErrorOnDocumentChange | DocumentChangeValidationFailed | WorkspaceNotFoundForDocument
+
+input ApiCreateChangeInput {
+  httpConnection: ApiHttpConnectionInput
+  kind: ApiKind
+  name: String!
+  path: [String!]!
+  referenceId: String!
+  workspaceId: ID!
+}
+
+input ApiDeleteChangeInput {
+  id: ID!
+  referenceId: String!
+  version: Version!
+  workspaceId: ID!
+}
+
+input ApiDocumentCreateChangeInput {
+  apiId: ID!
+  body: String!
+  name: String!
+  path: [String!]!
+  referenceId: String!
+  variables: String
+  workspaceId: ID!
+}
+
+input ApiDocumentDeleteChangeInput {
+  apiId: ID!
+  id: ID!
+  referenceId: String!
+  version: Version!
+  workspaceId: ID!
+}
+
+input ApiDocumentUpdateChangeInput {
+  apiId: ID!
+  body: String!
+  id: ID!
+  name: String!
+  path: [String!]!
+  referenceId: String!
+  variables: String
+  version: Version!
+  workspaceId: ID!
+}
+
+input ApiHeaderInput {
+  enabled: Boolean!
+  name: String!
+  value: String!
+}
+
+input ApiHttpAuthenticationInput {
+  activeAuthenticationKind: String!
+  basicOptions: BasicAuthenticationFlowOptionsInput
+  bearerOptions: BearerAuthenticationFlowOptionsInput
+  oAuth2Options: OAuth2AuthenticationFlowOptionsInput
+}
+
+input ApiHttpConnectionInput {
+  authentication: ApiHttpAuthenticationInput
+  endpoint: String!
+  headers: [ApiHeaderInput!]
+  includeCookies: Boolean!
+  sdlEndpoint: String
+  sseSubscriptionEndpoint: String
+  subscriptionEndpoint: String
+  subscriptionProtocol: String
+  useGet: Boolean!
+  useTunnel: Boolean!
+}
+
+input ApiKeyPermissionScopeInput @oneOf {
+  apiId: ID
+  workspaceId: ID
+}
+
+input ApiUpdateChangeInput {
+  httpConnection: ApiHttpConnectionInput
+  id: ID!
+  kind: ApiKind
+  name: String!
+  path: [String!]!
+  referenceId: String!
+  version: Version!
+  workspaceId: ID!
+}
+
+input ApproveDeploymentInput {
+  deploymentId: ID!
+}
+
+input BasicAuthenticationFlowOptionsInput {
+  password: String!
+  username: String!
+}
+
+input BearerAuthenticationFlowOptionsInput {
+  prefix: String
+  token: String!
+}
+
+input BeginFusionConfigurationPublishInput {
+  apiId: ID!
+  stageName: String!
+  subgraphApiId: ID
+  subgraphName: String
+  tag: String!
+  waitForApproval: Boolean! = false
+}
+
+input CancelDeploymentInput {
+  deploymentId: ID!
+}
+
+input CancelFusionConfigurationCompositionInput {
+  requestId: ID!
+}
+
+input ClientInsightsOrderByInput {
+  averageLatency: SortEnumType
+  errorRate: SortEnumType
+  impact: SortEnumType
+  opm: SortEnumType
+  totalCount: SortEnumType
+  totalCountWithError: SortEnumType
+}
+
+input CommitFusionConfigurationPublishInput {
+  configuration: Upload!
+  requestId: ID!
+}
+
+input CreateApiKeyForApiInput {
+  apiId: ID!
+  name: String
+}
+
+input CreateApiKeyInput {
+  name: String
+  permissionScope: ApiKeyPermissionScopeInput!
+  roleAssigmentCondition: RoleAssigmentConditionInput
+  workspaceId: ID!
+}
+
+input CreateClientInput {
+  apiId: ID!
+  name: String!
+}
+
+input CreateMockSchemaInput {
+  apiId: ID!
+  baseSchemaFile: Upload!
+  downstreamUrl: String!
+  extensionsSchemaFile: Upload!
+  name: String!
+}
+
+input CreatePersonalAccessTokenInput {
+  description: String!
+  expiresAt: DateTime!
+}
+
+input CreateWorkspaceInput {
+  name: String!
+}
+
+input DeleteApiByIdInput {
+  apiId: ID!
+}
+
+input DeleteApiKeyInput {
+  apiKeyId: ID!
+}
+
+input DeleteClientByIdInput {
+  clientId: ID!
+}
+
+input DeleteMockSchemaByIdInput {
+  mockSchemaId: ID!
+}
+
+input EnvironmentCreateChangeInput {
+  name: String!
+  referenceId: String!
+  variables: [EnvironmentVariableInput!]! = [  ]
+  workspaceId: ID!
+}
+
+input EnvironmentDeleteChangeInput {
+  id: ID!
+  referenceId: String!
+  version: Version!
+  workspaceId: ID!
+}
+
+input EnvironmentUpdateChangeInput {
+  id: ID!
+  name: String!
+  referenceId: String!
+  variables: [EnvironmentVariableInput!]! = [  ]
+  version: Version!
+  workspaceId: ID!
+}
+
+input EnvironmentVariableInput {
+  id: String!
+  isSecret: Boolean!
+  name: String!
+  value: String!
+}
+
+input GraphQLCoordinateOrderByInput {
+  clientCount: SortEnumType
+  name: SortEnumType
+  operationCount: SortEnumType
+  totalReferences: SortEnumType
+}
+
+input OAuth2AuthenticationFlowOptionsInput {
+  accessTokenUrl: String!
+  activeFlowKind: String!
+  audience: String!
+  authorizationUrl: String!
+  clientId: String!
+  clientSecret: String!
+  credentialsInBody: Boolean!
+  grantType: String!
+  origin: String!
+  password: String!
+  pkceMethod: String!
+  prefix: String!
+  redirectUrl: String!
+  resource: String!
+  responseType: String!
+  scope: String!
+  state: String!
+  usePkce: Boolean!
+  username: String!
+}
+
+input OpenTelemetryTransactionInsightsOrderByInput {
+  averageLatency: SortEnumType
+  errorRate: SortEnumType
+  impact: SortEnumType
+  opm: SortEnumType
+  totalCount: SortEnumType
+  totalCountWithError: SortEnumType
+}
+
+input OperationInsightsOrderByInput {
+  averageLatency: SortEnumType
+  errorRate: SortEnumType
+  impact: SortEnumType
+  opm: SortEnumType
+  totalCount: SortEnumType
+  totalCountWithError: SortEnumType
+}
+
+input PartialApiSettingsInput {
+  schemaRegistry: PartialSchemaRegistrySettingsInput
+}
+
+input PartialSchemaRegistrySettingsInput {
+  allowBreakingSchemaChanges: Boolean! = false
+  treatDangerousAsBreaking: Boolean! = false
+}
+
+input PollClientVersionPublishRequestInput {
+  id: ID!
+}
+
+input PollClientVersionValidationRequestInput {
+  id: ID!
+}
+
+input PollSchemaVersionPublishRequestInput {
+  id: ID!
+}
+
+input PollSchemaVersionValidationRequestInput {
+  id: ID!
+}
+
+input PublishClientInput {
+  clientId: ID!
+  force: Boolean! = false
+  stage: String!
+  tag: String!
+  waitForApproval: Boolean! = false
+}
+
+input PublishSchemaInput {
+  apiId: ID!
+  force: Boolean! = false
+  stage: String!
+  tag: String!
+  waitForApproval: Boolean! = false
+}
+
+input PushApiChangeInput {
+  create: ApiCreateChangeInput
+  delete: ApiDeleteChangeInput
+  update: ApiUpdateChangeInput
+}
+
+input PushApiDocumentChangeInput {
+  create: ApiDocumentCreateChangeInput
+  delete: ApiDocumentDeleteChangeInput
+  update: ApiDocumentUpdateChangeInput
+}
+
+input PushDocumentChangeInput {
+  changes: [WorkspaceDocumentInput!]!
+}
+
+input PushEnvironmentChangeInput {
+  create: EnvironmentCreateChangeInput
+  delete: EnvironmentDeleteChangeInput
+  update: EnvironmentUpdateChangeInput
+}
+
+input PushWorkspaceChangeInput {
+  api: PushApiChangeInput
+  apiDocument: PushApiDocumentChangeInput
+  document: PushWorkspaceDocumentChangeInput
+  environment: PushEnvironmentChangeInput
+}
+
+input PushWorkspaceChangesInput {
+  changes: [PushWorkspaceChangeInput!]!
+}
+
+input PushWorkspaceDocumentChangeInput {
+  create: WorkspaceDocumentCreateChangeInput
+  delete: WorkspaceDocumentDeleteChangeInput
+  update: WorkspaceDocumentUpdateChangeInput
+}
+
+input RemoveWorkspaceInput {
+  id: ID!
+}
+
+input RenameWorkspaceInput {
+  id: ID!
+  name: String!
+}
+
+input ResolverInsightsOrderByInput {
+  averageLatency: SortEnumType
+  errorRate: SortEnumType
+  impact: SortEnumType
+  opm: SortEnumType
+  totalCount: SortEnumType
+  totalCountWithError: SortEnumType
+}
+
+input RevokePersonalAccessTokenInput {
+  id: ID!
+}
+
+input RoleAssigmentConditionInput @oneOf {
+  stageAuthorizationCondition: RoleAssignmentStageAuthorizationConditionInput
+}
+
+input RoleAssignmentStageAuthorizationConditionInput {
+  name: String!
+}
+
+input SetActiveWorkspaceInput {
+  workspaceId: ID!
+}
+
+input StageConditionUpdateInput {
+  afterStage: String!
+}
+
+input StageUpdateInput {
+  conditions: [StageConditionUpdateInput!]! = [  ]
+  displayName: String!
+  name: String!
+}
+
+input StartFusionConfigurationCompositionInput {
+  requestId: ID!
+}
+
+input SubgraphInsightsOrderByInput {
+  averageLatency: SortEnumType
+  errorRate: SortEnumType
+  impact: SortEnumType
+  opm: SortEnumType
+  totalCount: SortEnumType
+  totalCountWithError: SortEnumType
+}
+
+input UnpublishClientInput {
+  clientId: ID!
+  stage: String!
+  tag: String!
+}
+
+input UpdateApiSettingsInput {
+  apiId: ID!
+  settings: PartialApiSettingsInput!
+}
+
+input UpdateFeatureFlagsInput {
+  featureFlags: [String!]!
+}
+
+input UpdateMockSchemaInput {
+  baseSchemaFile: Upload
+  downstreamUrl: String
+  extensionsSchemaFile: Upload
+  id: ID!
+  name: String
+}
+
+input UpdatePreferencesInput {
+  preferences: Any!
+}
+
+input UpdateStagesInput {
+  apiId: ID!
+  updatedStages: [StageUpdateInput!]!
+}
+
+input UpdateThemeSettingsInput {
+  darkThemeName: String
+  lightThemeName: String
+  themeName: String
+  usePreferredOsAppearance: Boolean!
+}
+
+input UploadClientInput {
+  clientId: ID!
+  operations: Upload!
+  tag: String!
+}
+
+input UploadSchemaInput {
+  apiId: ID!
+  schema: Upload!
+  tag: String!
+}
+
+input ValidateClientInput {
+  clientId: ID!
+  operations: Upload!
+  stage: String!
+}
+
+input ValidateFusionConfigurationCompositionInput {
+  configuration: Upload!
+  requestId: ID!
+}
+
+input ValidateSchemaInput {
+  apiId: ID!
+  schema: Upload!
+  stage: String!
+}
+
+input WorkspaceDocumentAuthenticationInput {
+  activeAuthenticationKind: String!
+  basicOptions: BasicAuthenticationFlowOptionsInput
+  bearerOptions: BearerAuthenticationFlowOptionsInput
+  oAuth2Options: OAuth2AuthenticationFlowOptionsInput
+}
+
+input WorkspaceDocumentChangeInput {
+  activeConnectionKind: String!
+  body: String!
+  httpConnection: WorkspaceDocumentHttpConnectionInput
+  id: ID
+  name: String!
+  path: [String!]!
+  referenceId: String!
+  variables: String
+  version: Version
+  workspaceId: ID!
+}
+
+input WorkspaceDocumentCreateChangeInput {
+  activeConnectionKind: String!
+  body: String!
+  httpConnection: WorkspaceDocumentHttpConnectionInput
+  name: String!
+  path: [String!]!
+  referenceId: String!
+  variables: String
+  workspaceId: ID!
+}
+
+input WorkspaceDocumentDeleteChangeInput {
+  id: ID!
+  referenceId: String!
+  version: Version!
+  workspaceId: ID!
+}
+
+input WorkspaceDocumentDeleteInput {
+  id: ID!
+  referenceId: String!
+  version: Version!
+  workspaceId: ID!
+}
+
+input WorkspaceDocumentHeaderInput {
+  enabled: Boolean!
+  name: String!
+  value: String!
+}
+
+input WorkspaceDocumentHttpConnectionInput {
+  authentication: WorkspaceDocumentAuthenticationInput
+  endpoint: String!
+  headers: [WorkspaceDocumentHeaderInput!]
+  includeCookies: Boolean!
+  sdlEndpoint: String
+  sseSubscriptionEndpoint: String
+  subscriptionEndpoint: String
+  subscriptionProtocol: String
+  useGet: Boolean!
+  useTunnel: Boolean!
+}
+
+input WorkspaceDocumentInput {
+  delete: WorkspaceDocumentDeleteInput
+  put: WorkspaceDocumentChangeInput
+}
+
+input WorkspaceDocumentUpdateChangeInput {
+  activeConnectionKind: String!
+  body: String!
+  httpConnection: WorkspaceDocumentHttpConnectionInput
+  id: ID!
+  name: String!
+  path: [String!]!
+  referenceId: String!
+  variables: String
+  version: Version!
+  workspaceId: ID!
+}
+
+enum ApiKind {
+  COLLECTION
+  SERVICE
+  GATEWAY
+}
+
+"Defines when a policy shall be executed."
+enum ApplyPolicy {
+  "Before the resolver was executed."
+  BEFORE_RESOLVER
+  "After the resolver was executed."
+  AFTER_RESOLVER
+  "The policy is applied in the validation step before the execution."
+  VALIDATION
+}
+
+enum AuthorizationEventEffect {
+  ALLOW
+  DENY
+  BYPASSED
+  UNSET
+  OTHER
+}
+
+enum AuthorizationEventType {
+  TENANT_ACCESS_BYPASSED
+  TENANT_ACCESS
+  PERMISSION_BYPASSED
+  PERMISSION_MATCH
+  PERMISSION_NO_MATCH
+  OTHER
+}
+
+enum CoordinateKind {
+  NONE
+  OBJECT_TYPE
+  OBJECT_FIELD
+  OBJECT_FIELD_ARGUMENT
+  INTERFACE_TYPE
+  INTERFACE_FIELD
+  INTERFACE_FIELD_ARGUMENT
+  UNION_TYPE
+  INPUT_OBJECT_TYPE
+  INPUT_OBJECT_FIELD
+  ENUM_TYPE
+  ENUM_VALUE
+  SCALAR_TYPE
+  DIRECTIVE
+  DIRECTIVE_ARGUMENT
+  SCHEMA
+}
+
+enum DeploymentStatus {
+  QUEUED
+  READY
+  PROCESSING
+  WAITING_FOR_APPROVAL
+  APPROVED
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum DirectiveLocation {
+  QUERY
+  MUTATION
+  SUBSCRIPTION
+  FIELD
+  FRAGMENT_DEFINITION
+  FRAGMENT_SPREAD
+  INLINE_FRAGMENT
+  VARIABLE_DEFINITION
+  SCHEMA
+  SCALAR
+  OBJECT
+  FIELD_DEFINITION
+  ARGUMENT_DEFINITION
+  INTERFACE
+  UNION
+  ENUM
+  ENUM_VALUE
+  INPUT_OBJECT
+  INPUT_FIELD_DEFINITION
+}
+
+enum FusionConfigurationFormat {
+  FGP
+  FAR
+}
+
+enum OpenTelemetrySpanKind {
+  UNSPECIFIED
+  SERVER
+  CLIENT
+  INTERNAL
+  PRODUCER
+  CONSUMER
+}
+
+enum OperationKind {
+  QUERY
+  SUBSCRIPTION
+  MUTATION
+}
+
+enum OrganizationPaymentMethod {
+  CREDIT_CARD
+  INVOICE
+}
+
+enum OrganizationPlanType {
+  FREE
+  SERVERLESS
+  DEDICATED
+  SELF_HOSTED
+}
+
+enum ProcessingState {
+  QUEUED
+  READY
+  PROCESSING
+  SUCCESS
+  FAILED
+  CANCELLED
+  WAITING_FOR_APPROVAL
+  APPROVED
+}
+
+enum RoleEffect {
+  "Allows the role assignment"
+  ALLOW
+  "Denies the role assignment"
+  DENY
+}
+
+enum SchemaChangeSeverity {
+  SAFE
+  DANGEROUS
+  BREAKING
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+
+enum StageChangeLogKind {
+  SCHEMA
+  CLIENT
+  FUSION_CONFIGURATION
+}
+
+enum TypeSystemMemberKind {
+  OBJECT
+  ENUM
+  INPUT_OBJECT
+  DIRECTIVE
+  INTERFACE
+  UNION
+  SCALAR
+}
+
+enum WorkspaceUserRole {
+  OWNER
+  ADMINISTRATOR
+  MEMBER
+}
+
+"The authorize directive."
+directive @authorize("Defines when when the authorize directive shall be applied.By default the authorize directives are applied during the validation phase." apply: ApplyPolicy! = BEFORE_RESOLVER "The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!]) on OBJECT | FIELD_DEFINITION
+
+"The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
+directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+
+"The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
+directive @defer("Deferred when true." if: Boolean "If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information."
+directive @listSize("The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field." assumedSize: Int "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error." requireOneSlicingArgument: Boolean! = true "The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields." sizedFields: [String!] "The `slicingArgumentDefaultValue` argument can be used to define a default value for a slicing argument, which is used if the argument is not present in a query." slicingArgumentDefaultValue: Int "The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments." slicingArguments: [String!]) on FIELD_DEFINITION
+
+"""
+The `@oneOf` directive is used within the type system definition language
+ to indicate:
+
+ - an Input Object is a Oneof Input Object, or
+ - an Object Type's Field is a Oneof Field.
+"""
+directive @oneOf on INPUT_OBJECT
+
+"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
+directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
+
+scalar Any
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime @specifiedBy(url: "https:\/\/www.graphql-scalars.com\/date-time")
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
+
+scalar URL @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc3986")
+
+scalar UUID @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc4122")
+
+"The `Upload` scalar type represents a file upload."
+scalar Upload
+
+scalar Version

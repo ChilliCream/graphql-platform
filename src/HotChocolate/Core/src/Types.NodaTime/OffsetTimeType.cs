@@ -31,6 +31,7 @@ public class OffsetTimeType : StringToStructBaseType<OffsetTime>
             allowedPatterns,
             NodaTimeResources.OffsetTimeType_Description,
             NodaTimeResources.OffsetTimeType_Description_Extended);
+        SerializationType = ScalarSerializationType.String;
     }
 
     /// <summary>

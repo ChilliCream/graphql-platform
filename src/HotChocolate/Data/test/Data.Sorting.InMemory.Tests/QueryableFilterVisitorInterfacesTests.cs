@@ -5,10 +5,10 @@ namespace HotChocolate.Data.Filters.Expressions;
 
 public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 {
-    private static readonly BarInterface[] _barEntities =
+    private static readonly BarInterface[] s_barEntities =
     [
-        new() { Test = new InterfaceImpl1 { Prop = "a", }, },
-        new() { Test = new InterfaceImpl1 { Prop = "b", }, },
+        new() { Test = new InterfaceImpl1 { Prop = "a" } },
+        new() { Test = new InterfaceImpl1 { Prop = "b" } }
     ];
 
     private readonly SchemaCache _cache;
@@ -24,22 +24,22 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
         // arrange
         var tester = _cache
             .CreateSchema<BarInterface, SortInputType<BarInterface>>(
-                _barEntities,
+                s_barEntities,
                 configure: Configure);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { test: { prop: ASC}}) " +
-                    "{ test{ prop }}}")
+                    "{ root(order: { test: { prop: ASC}}) "
+                    + "{ test{ prop }}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    "{ root(order: { test: { prop: DESC}}) " +
-                    "{ test{ prop }}}")
+                    "{ root(order: { test: { prop: DESC}}) "
+                    + "{ test{ prop }}}")
                 .Build());
 
         // assert
@@ -63,20 +63,20 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 
     public class InterfaceImpl1 : ITest
     {
-        public string Prop { get; set; } = default!;
+        public string Prop { get; set; } = null!;
 
-        public string Specific1 { get; set; } = default!;
+        public string Specific1 { get; set; } = null!;
     }
 
     public class InterfaceImpl2 : ITest
     {
-        public string Prop { get; set; } = default!;
+        public string Prop { get; set; } = null!;
 
-        public string Specific2 { get; set; } = default!;
+        public string Specific2 { get; set; } = null!;
     }
 
     public class BarInterface
     {
-        public ITest Test { get; set; } = default!;
+        public ITest Test { get; set; } = null!;
     }
 }

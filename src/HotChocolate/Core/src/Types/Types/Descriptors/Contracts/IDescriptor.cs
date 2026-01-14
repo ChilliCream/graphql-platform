@@ -5,6 +5,4 @@ namespace HotChocolate.Types;
 /// The output of a descriptor is a definition which represents the configuration for a
 /// type system member.
 /// </summary>
-public interface IDescriptor
-{
-}
+public interface IDescriptor;

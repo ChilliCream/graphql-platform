@@ -1,49 +1,39 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
-using static HotChocolate.Data.ErrorHelper;
 using static HotChocolate.Data.ThrowHelper;
-using static Microsoft.Extensions.DependencyInjection.ActivatorUtilities;
 
 namespace HotChocolate.Data.Projections;
 
 /// <summary>
-/// A <see cref="ProjectionProvider"/> translates a incoming query to another
+/// A <see cref="ProjectionProvider"/> translates an incoming query to another
 /// object structure at runtime
 /// </summary>
 public abstract class ProjectionProvider
-    : Convention<ProjectionProviderDefinition>
+    : Convention<ProjectionProviderConfiguration>
     , IProjectionProvider
     , IProjectionProviderConvention
 {
     private Action<IProjectionProviderDescriptor>? _configure;
-
-    private readonly IList<IProjectionFieldHandler> _fieldHandlers =
-        new List<IProjectionFieldHandler>();
-
-    private readonly IList<IProjectionFieldInterceptor> _fieldInterceptors =
-        new List<IProjectionFieldInterceptor>();
-
-    private readonly IList<IProjectionOptimizer> _optimizer = new List<IProjectionOptimizer>();
-
-    public const string ProjectionContextIdentifier = "ProjectionMiddleware";
+    private readonly IList<IProjectionFieldHandler> _fieldHandlers = [];
+    private readonly IList<IProjectionFieldInterceptor> _fieldInterceptors = [];
+    private readonly IList<IProjectionOptimizer> _optimizers = [];
 
     protected ProjectionProvider()
     {
         _configure = Configure;
     }
 
-    public ProjectionProvider(Action<IProjectionProviderDescriptor> configure)
+    protected ProjectionProvider(Action<IProjectionProviderDescriptor> configure)
     {
         _configure = configure ??
             throw new ArgumentNullException(nameof(configure));
     }
 
-    internal new ProjectionProviderDefinition? Definition => base.Definition;
+    internal new ProjectionProviderConfiguration? Configuration => base.Configuration;
 
     /// <inheritdoc />
-    protected override ProjectionProviderDefinition CreateDefinition(
+    protected override ProjectionProviderConfiguration CreateConfiguration(
         IConventionContext context)
     {
         if (_configure is null)
@@ -58,7 +48,7 @@ public abstract class ProjectionProvider
         _configure(descriptor);
         _configure = null;
 
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     /// <summary>
@@ -81,75 +71,59 @@ public abstract class ProjectionProvider
 
     protected internal override void Complete(IConventionContext context)
     {
-        if (Definition!.Handlers.Count == 0)
+        if (Configuration!.FieldHandlerConfigurations.Count == 0)
         {
             throw ProjectionProvider_NoHandlersConfigured(this);
         }
 
-        var services = new CombinedServiceProvider(
-            new DictionaryServiceProvider(
-                (typeof(IConventionContext), context),
-                (typeof(IDescriptorContext), context.DescriptorContext),
-                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
-            context.Services);
+        var providerContext = new ProjectionProviderContext(
+            context.Services,
+            context,
+            context.DescriptorContext,
+            context.DescriptorContext.TypeInspector);
 
-        foreach (var (type, instance) in Definition.Handlers)
+        foreach (var handlerConfiguration in Configuration.FieldHandlerConfigurations)
         {
-            if (instance is not null)
-            {
-                _fieldHandlers.Add(instance);
-                continue;
-            }
-
             try
             {
-                var field = (IProjectionFieldHandler)GetServiceOrCreateInstance(services, type);
-                _fieldHandlers.Add(field);
+                var handler = handlerConfiguration.Create(providerContext);
+
+                _fieldHandlers.Add(handler);
             }
-            catch
+            catch (Exception exception)
             {
                 throw new SchemaException(
-                    ProjectionConvention_UnableToCreateFieldHandler(this, type));
+                    ErrorHelper.ProjectionConvention_UnableToCreateFieldHandler(this, exception));
             }
         }
 
-        foreach (var (type, instance) in Definition.Interceptors)
+        foreach (var interceptorConfiguration in Configuration.FieldInterceptorConfigurations)
         {
-            if (instance is not null)
-            {
-                _fieldInterceptors.Add(instance);
-                continue;
-            }
-
             try
             {
-                var field = (IProjectionFieldInterceptor)GetServiceOrCreateInstance(services, type);
-                _fieldInterceptors.Add(field);
+                var interceptor = interceptorConfiguration.Create(providerContext);
+
+                _fieldInterceptors.Add(interceptor);
             }
-            catch
+            catch (Exception exception)
             {
                 throw new SchemaException(
-                    ProjectionConvention_UnableToCreateFieldHandler(this, type));
+                    ErrorHelper.ProjectionConvention_UnableToCreateFieldHandler(this, exception));
             }
         }
 
-        foreach (var (type, instance) in Definition.Optimizers)
+        foreach (var optimizerConfiguration in Configuration.OptimizerConfigurations)
         {
-            if (instance is not null)
-            {
-                _optimizer.Add(instance);
-                continue;
-            }
-
             try
             {
-                var optimizers = (IProjectionOptimizer)GetServiceOrCreateInstance(services, type);
-                _optimizer.Add(optimizers);
+                var optimizer = optimizerConfiguration.Create(providerContext);
+
+                _optimizers.Add(optimizer);
             }
-            catch
+            catch (Exception exception)
             {
                 throw new SchemaException(
-                    ProjectionConvention_UnableToCreateFieldHandler(this, type));
+                    ErrorHelper.ProjectionConvention_UnableToCreateFieldHandler(this, exception));
             }
         }
     }
@@ -158,11 +132,11 @@ public abstract class ProjectionProvider
         SelectionSetOptimizerContext context,
         Selection selection)
     {
-        for (var i = 0; i < _optimizer.Count; i++)
+        for (var i = 0; i < _optimizers.Count; i++)
         {
-            if (_optimizer[i].CanHandle(selection))
+            if (_optimizers[i].CanHandle(selection))
             {
-                selection = _optimizer[i].RewriteSelection(context, selection);
+                selection = _optimizers[i].RewriteSelection(context, selection);
             }
         }
 

@@ -20,7 +20,7 @@ public sealed class EntityIdDescriptor
     public EntityIdDescriptor(
         string name,
         string typeName,
-        IReadOnlyList<ScalarEntityIdDescriptor> fields )
+        IReadOnlyList<ScalarEntityIdDescriptor> fields)
     {
         Name = name;
         TypeName = typeName;

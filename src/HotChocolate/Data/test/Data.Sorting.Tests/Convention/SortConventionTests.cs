@@ -13,8 +13,8 @@ public class SortConventionTests
         var provider = new QueryableSortProvider(
             descriptor =>
             {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
             });
 
         var convention = new SortConvention(
@@ -35,14 +35,14 @@ public class SortConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new[] { new Foo { Bar = "a", }, new Foo { Bar = "b", }, new Foo { Bar = "c", }, };
+        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        var b = new[] { new Foo { Bar = "c", }, new Foo { Bar = "b", }, new Foo { Bar = "a", }, };
+        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),
@@ -55,10 +55,7 @@ public class SortConventionTests
     {
         // arrange
         var provider = new QueryableSortProvider(
-            descriptor =>
-            {
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
-            });
+            descriptor => descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create));
 
         var convention = new SortConvention(
             descriptor =>
@@ -71,8 +68,7 @@ public class SortConventionTests
         var type = new FooSortType();
 
         //act
-        var error =
-            Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+        var error = Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
         error.Errors.MatchSnapshot();
@@ -83,10 +79,7 @@ public class SortConventionTests
     {
         // arrange
         var provider = new QueryableSortProvider(
-            descriptor =>
-            {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-            });
+            descriptor => descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create));
 
         var convention = new SortConvention(
             descriptor =>
@@ -113,8 +106,8 @@ public class SortConventionTests
         var provider = new QueryableSortProvider(
             descriptor =>
             {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
             });
 
         var convention = new SortConvention(
@@ -141,8 +134,8 @@ public class SortConventionTests
         var provider = new QueryableSortProvider(
             descriptor =>
             {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
             });
 
         var convention = new SortConvention(
@@ -156,23 +149,15 @@ public class SortConventionTests
         var type = new FooSortType();
 
         //act
-        var error =
-            Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+        var error = Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
-        error.Message.MatchSnapshot();
+        error.Errors[0].Message.MatchSnapshot();
     }
 
     [Fact]
     public void SortConvention_Should_Fail_When_NoProviderWasRegistered()
     {
         // arrange
-        var provider = new QueryableSortProvider(
-            descriptor =>
-            {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
-            });
-
         var convention = new SortConvention(
             descriptor =>
             {
@@ -197,8 +182,8 @@ public class SortConventionTests
         var provider = new QueryableSortProvider(
             descriptor =>
             {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
             });
 
         var convention = new SortConvention(
@@ -225,8 +210,8 @@ public class SortConventionTests
         var provider = new QueryableSortProvider(
             descriptor =>
             {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
             });
 
         var convention = new SortConvention(
@@ -242,10 +227,7 @@ public class SortConventionTests
             });
 
         var extension2 = new SortConventionExtension(
-            descriptor =>
-            {
-                descriptor.BindRuntimeType<string, TestEnumType>();
-            });
+            descriptor => descriptor.BindRuntimeType<string, TestEnumType>());
 
         var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: ASC}");
         var type = new FooSortType();
@@ -257,14 +239,14 @@ public class SortConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new[] { new Foo { Bar = "a", }, new Foo { Bar = "b", }, new Foo { Bar = "c", }, };
+        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        var b = new[] { new Foo { Bar = "c", }, new Foo { Bar = "b", }, new Foo { Bar = "a", }, };
+        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),
@@ -279,8 +261,8 @@ public class SortConventionTests
         var provider = new QueryableSortProvider(
             descriptor =>
             {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
             });
 
         var convention = new SortConvention(
@@ -303,14 +285,14 @@ public class SortConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new[] { new Foo { Bar = "a", }, new Foo { Bar = "b", }, new Foo { Bar = "c", }, };
+        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        var b = new[] { new Foo { Bar = "c", }, new Foo { Bar = "b", }, new Foo { Bar = "a", }, };
+        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),
@@ -323,10 +305,7 @@ public class SortConventionTests
     {
         // arrange
         var provider = new QueryableSortProvider(
-            descriptor =>
-            {
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
-            });
+            descriptor => descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create));
 
         var convention = new SortConvention(
             descriptor =>
@@ -352,14 +331,14 @@ public class SortConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new[] { new Foo { Bar = "a", }, new Foo { Bar = "b", }, new Foo { Bar = "c", }, };
+        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        var b = new[] { new Foo { Bar = "c", }, new Foo { Bar = "b", }, new Foo { Bar = "a", }, };
+        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),
@@ -374,8 +353,8 @@ public class SortConventionTests
         var provider = new QueryableSortProvider(
             descriptor =>
             {
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
+                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
+                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
             });
         var convention = new SortConvention(descriptor =>
         {
@@ -385,7 +364,7 @@ public class SortConventionTests
         var sortInputType = new SortInputType(
             d => d.Field("x").Type<TestEnumType>()
                 .ExtendWith(
-                    x => x.Definition.Handler = new MatchAnyQueryableFieldHandler()));
+                    x => x.Configuration.Handler = new MatchAnyQueryableFieldHandler()));
 
         // act
         var schema = CreateSchemaWith(sortInputType, convention);
@@ -396,7 +375,7 @@ public class SortConventionTests
             schema.Types.First(t => t.IsInputType() && !t.IsIntrospectionType()).Name);
     }
 
-    protected ISchema CreateSchemaWithTypes(
+    protected Schema CreateSchemaWithTypes(
         ISortInputType type,
         SortConvention convention,
         params Type[] extensions)
@@ -420,7 +399,7 @@ public class SortConventionTests
         return builder.Create();
     }
 
-    protected ISchema CreateSchemaWith(
+    protected Schema CreateSchemaWith(
         ISortInputType type,
         SortConvention convention,
         params SortConventionExtension[] extensions)
@@ -449,7 +428,7 @@ public class SortConventionTests
         protected override void Configure(
             ISortProviderDescriptor<QueryableSortContext> descriptor)
         {
-            descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
+            descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
         }
     }
 
@@ -471,7 +450,7 @@ public class SortConventionTests
 
     public class Foo
     {
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     public class FooSortType

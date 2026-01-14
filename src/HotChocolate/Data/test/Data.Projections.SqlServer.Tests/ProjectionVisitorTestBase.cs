@@ -45,7 +45,7 @@ public class ProjectionVisitorTestBase
         Action<ModelBuilder>? onModelCreating = null,
         bool usePaging = false,
         bool useOffsetPaging = false,
-        INamedType? objectType = null,
+        ITypeDefinition? objectType = null,
         Action<ISchemaBuilder>? configure = null,
         Type? schemaType = null)
         where TEntity : class
@@ -92,10 +92,10 @@ public class ProjectionVisitorTestBase
         var schema = builder.Create();
 
         return new ServiceCollection()
-            .Configure<RequestExecutorSetup>(Schema.DefaultName, o => o.Schema = schema)
+            .Configure<RequestExecutorSetup>(ISchemaDefinition.DefaultName, o => o.Schema = schema)
             .AddGraphQL()
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("sql", out var queryString))
@@ -109,8 +109,8 @@ public class ProjectionVisitorTestBase
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .Result;
     }
 

@@ -14,7 +14,7 @@ public sealed class IsSelectedContext
     /// <param name="selections">
     /// The selection set that is used to determine if a field is selected.
     /// </param>
-    public IsSelectedContext(ISchema schema, ISelectionCollection selections)
+    public IsSelectedContext(ISchemaDefinition schema, ISelectionCollection selections)
     {
         Schema = schema;
         Selections.Push(selections);
@@ -23,7 +23,7 @@ public sealed class IsSelectedContext
     /// <summary>
     /// Gets the schema that is used to resolve the type of the selection set.
     /// </summary>
-    public ISchema Schema { get; }
+    public ISchemaDefinition Schema { get; }
 
     /// <summary>
     /// Gets the selections that is used to determine if a field is selected.

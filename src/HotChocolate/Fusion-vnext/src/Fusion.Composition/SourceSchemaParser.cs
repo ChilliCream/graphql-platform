@@ -1,50 +1,59 @@
-using System.Collections.Immutable;
-using HotChocolate.Fusion.Comparers;
 using HotChocolate.Fusion.Errors;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
-using HotChocolate.Language;
+using HotChocolate.Logging;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
-using static HotChocolate.Fusion.WellKnownArgumentNames;
-using static HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion;
 
-internal sealed class SourceSchemaParser(IEnumerable<string> sourceSchemas, ICompositionLog log)
+internal sealed class SourceSchemaParser(
+    SourceSchemaText sourceSchemaText,
+    ICompositionLog log,
+    SourceSchemaParserOptions? options = null)
 {
-    public CompositionResult<ImmutableSortedSet<MutableSchemaDefinition>> Parse()
+    private static readonly SchemaValidator s_schemaValidator = new();
+    private readonly SourceSchemaParserOptions _options = options ?? new SourceSchemaParserOptions();
+
+    public CompositionResult<MutableSchemaDefinition> Parse()
     {
-        var sortedSetBuilder = ImmutableSortedSet.CreateBuilder(
-            new SchemaByNameComparer<MutableSchemaDefinition>());
+        var schema = new MutableSchemaDefinition { Name = sourceSchemaText.Name };
+        schema.AddBuiltInFusionTypes();
+        schema.AddBuiltInFusionDirectives();
 
-        foreach (var sourceSchema in sourceSchemas)
+        try
         {
-            try
-            {
-                var schema = SchemaParser.Parse(sourceSchema);
-                var schemaNameDirective = schema.Directives.FirstOrDefault(SchemaName);
-
-                if (schema.Name == "default"
-                    && schemaNameDirective is not null
-                    && schemaNameDirective.Arguments.TryGetValue(Value, out var valueArg)
-                    && valueArg is StringValueNode valueStringValueNode)
+            SchemaParser.Parse(
+                schema,
+                sourceSchemaText.SourceText,
+                new SchemaParserOptions
                 {
-                    schema.Name = valueStringValueNode.Value;
-                }
+                    IgnoreExistingTypes = true,
+                    IgnoreExistingDirectives = true
+                });
 
-                sortedSetBuilder.Add(schema);
-            }
-            catch (Exception ex)
+            // Schema validation.
+            if (_options.EnableSchemaValidation)
             {
-                log.Write(LogEntryHelper.InvalidGraphQL(ex.Message));
-                break;
+                var validationLog = new ValidationLog();
+                s_schemaValidator.Validate(schema, validationLog);
+
+                if (validationLog.HasErrors)
+                {
+                    log.WriteValidationLog(validationLog, schema);
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            log.Write(LogEntryHelper.InvalidGraphQL(ex.Message, schema));
         }
 
         return log.HasErrors
             ? ErrorHelper.SourceSchemaParsingFailed()
-            : sortedSetBuilder.ToImmutable();
+            : schema;
     }
 }

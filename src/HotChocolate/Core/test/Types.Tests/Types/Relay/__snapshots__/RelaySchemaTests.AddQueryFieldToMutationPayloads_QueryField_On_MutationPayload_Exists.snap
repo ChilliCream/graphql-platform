@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: QueryType
   mutation: Mutation
 }
@@ -13,7 +13,7 @@ type FooPayload {
 }
 
 type Mutation {
-  foo: FooPayload
+  foo: FooPayload!
 }
 
 type QueryType {

@@ -1,12 +1,10 @@
-#nullable enable
-
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Types;
-using HotChocolate.Types.Attributes;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
@@ -24,6 +22,9 @@ internal sealed class IsSelectedParameterExpressionBuilder
     public bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(IsSelectedAttribute));
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Attributes.Any(t => t is IsSelectedAttribute);
+
     public Expression Build(ParameterExpressionBuilderContext context)
     {
         var parameter = context.Parameter;
@@ -32,8 +33,8 @@ internal sealed class IsSelectedParameterExpressionBuilder
         return Expression.Invoke(expr, context.ResolverContext);
     }
 
-    public IParameterBinding Create(ParameterBindingContext context)
-        => new IsSelectedBinding($"isSelected.{context.Parameter.Name}");
+    public IParameterBinding Create(ParameterDescriptor parameter)
+        => new IsSelectedBinding($"isSelected.{parameter.Name}");
 
     public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
     {
@@ -41,19 +42,12 @@ internal sealed class IsSelectedParameterExpressionBuilder
 
         if (attribute.Fields is not null)
         {
-            var definition = descriptor.Extend().Definition;
-            definition.Configurations.Add(
-                new CompleteConfiguration((ctx, def) =>
+            var definition = descriptor.Extend().Configuration;
+            definition.Tasks.Add(
+                new OnCompleteTypeSystemConfigurationTask((ctx, def) =>
                     {
-                        if (!ctx.DescriptorContext.ContextData.TryGetValue(WellKnownContextData.PatternValidationTasks,
-                            out var value))
-                        {
-                            value = new List<IsSelectedPattern>();
-                            ctx.DescriptorContext.ContextData[WellKnownContextData.PatternValidationTasks] = value;
-                        }
-
-                        var patterns = (List<IsSelectedPattern>)value!;
-                        patterns.Add(new IsSelectedPattern((ObjectType)ctx.Type, def.Name, attribute.Fields));
+                        var feature = ctx.DescriptorContext.Features.GetOrSet<IsSelectedFeature>();
+                        feature.Patterns.Add(new IsSelectedPattern((ObjectType)ctx.Type, def.Name, attribute.Fields));
                     },
                     definition,
                     ApplyConfigurationOn.AfterCompletion));
@@ -139,6 +133,6 @@ internal sealed class IsSelectedParameterExpressionBuilder
         public bool IsPure => false;
 
         public T Execute<T>(IResolverContext context)
-            => context.GetLocalState<T>(key)!;
+            => context.GetLocalState<T>(key);
     }
 }

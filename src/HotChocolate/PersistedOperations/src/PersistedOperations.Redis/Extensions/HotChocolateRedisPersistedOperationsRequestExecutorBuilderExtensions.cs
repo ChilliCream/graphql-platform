@@ -27,20 +27,11 @@ public static class HotChocolateRedisPersistedOperationsRequestExecutorBuilderEx
         Func<IServiceProvider, IDatabase> databaseFactory,
         TimeSpan? queryExpiration = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (databaseFactory is null)
-        {
-            throw new ArgumentNullException(nameof(databaseFactory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(databaseFactory);
 
         return builder.ConfigureSchemaServices(
-            s => s.AddRedisOperationDocumentStorage(
-                sp => databaseFactory(sp.GetCombinedServices()),
-                queryExpiration));
+            s => s.AddRedisOperationDocumentStorage(databaseFactory, queryExpiration));
     }
 
     /// <summary>
@@ -60,19 +51,12 @@ public static class HotChocolateRedisPersistedOperationsRequestExecutorBuilderEx
         Func<IServiceProvider, IConnectionMultiplexer> multiplexerFactory,
         TimeSpan? queryExpiration = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (multiplexerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(multiplexerFactory));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(multiplexerFactory);
 
         return builder.ConfigureSchemaServices(
             s => s.AddRedisOperationDocumentStorage(
-                sp => multiplexerFactory(sp.GetCombinedServices()).GetDatabase(),
+                sp => multiplexerFactory(sp).GetDatabase(),
                 queryExpiration));
     }
 
@@ -91,10 +75,9 @@ public static class HotChocolateRedisPersistedOperationsRequestExecutorBuilderEx
         this IRequestExecutorBuilder builder,
         TimeSpan? queryExpiration = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.AddApplicationService<IConnectionMultiplexer>();
 
         return builder.AddRedisOperationDocumentStorage(
             sp => sp.GetRequiredService<IConnectionMultiplexer>(),

@@ -1,0 +1,203 @@
+title: Hierarchy_Of_Shared_Root_Fields
+request:
+  document: |
+    {
+      viewer {
+        settings {
+          schema1
+          schema2
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "viewer": {
+          "settings": {
+            "schema1": "schema1",
+            "schema2": "schema2"
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface IInterface @key(fields: "id") {
+        id: Int!
+      }
+
+      type Product implements IInterface {
+        id: Int!
+        schema1: String!
+        shared: SharedProduct @shareable
+      }
+
+      type Query {
+        productById(id: Int!): Product @lookup
+        viewer: Viewer! @shareable
+        schema1: String!
+        interface: IInterface! @shareable
+        unsharedInterface: IInterface!
+        union: IUnion! @shareable
+        topReview: Review! @shareable
+      }
+
+      type Review implements IInterface {
+        id: Int!
+        schema1: String!
+      }
+
+      type SharedProduct {
+        schema1: String!
+        shared2: SharedProduct2 @shareable
+      }
+
+      type SharedProduct2 {
+        schema1: String!
+      }
+
+      type Viewer {
+        schema1: String!
+        settings: ViewerSettings! @shareable
+      }
+
+      type ViewerSettings {
+        schema1: String!
+      }
+
+      union IUnion = Product | Review
+    interactions:
+      - request:
+          document: |
+            query Op_58df2c1b_1 {
+              viewer {
+                settings {
+                  schema1
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "settings": {
+                      "schema1": "schema1"
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface IInterface @key(fields: "id") {
+        id: Int!
+      }
+
+      type Product implements IInterface {
+        id: Int!
+        schema2: String!
+        shared: SharedProduct @shareable
+      }
+
+      type Query {
+        product(id: Int!): Product @lookup
+        viewer: Viewer! @shareable
+        schema2: String!
+        interface: IInterface! @shareable
+        union: IUnion! @shareable
+        topReview: Review! @shareable
+      }
+
+      type Review implements IInterface {
+        id: Int!
+        schema2: String!
+      }
+
+      type SharedProduct {
+        schema2: String!
+        shared2: SharedProduct2 @shareable
+      }
+
+      type SharedProduct2 {
+        schema2: String!
+      }
+
+      type Viewer {
+        schema2: String!
+        settings: ViewerSettings! @shareable
+      }
+
+      type ViewerSettings {
+        schema2: String!
+      }
+
+      union IUnion = Product | Review
+    interactions:
+      - request:
+          document: |
+            query Op_58df2c1b_2 {
+              viewer {
+                settings {
+                  schema2
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "settings": {
+                      "schema2": "schema2"
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          viewer {
+            settings {
+              schema1
+              schema2
+            }
+          }
+        }
+      hash: 58df2c1b9e78bf9d35c918bda0af7f24
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_58df2c1b_1 {
+          viewer {
+            settings {
+              schema1
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_58df2c1b_2 {
+          viewer {
+            settings {
+              schema2
+            }
+          }
+        }

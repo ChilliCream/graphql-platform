@@ -1,13 +1,15 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
+// ReSharper disable UnusedVariable
 
 // StarWarsGetHeroWithFragmentIncludeAndSkipDirectiveClient
 
@@ -31,6 +33,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.StarWarsGetHeroWithFragmentIncludeAndSkipDirectiveClientStoreAccessor(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.GetHeroWithFragmentIncludeAndSkipDirectiveQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirectiveQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.StarWarsGetHeroWithFragmentIncludeAndSkipDirectiveClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IStarWarsGetHeroWithFragmentIncludeAndSkipDirectiveClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             return new global::StrawberryShake.ClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.State.StarWarsGetHeroWithFragmentIncludeAndSkipDirectiveClientStoreAccessor>("StarWarsGetHeroWithFragmentIncludeAndSkipDirectiveClient", services, serviceCollection);
@@ -650,7 +653,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     /// <summary>
     /// Represents the operation service of the GetHeroWithFragmentIncludeAndSkipDirective GraphQL operation
     /// <code>
-    /// query GetHeroWithFragmentIncludeAndSkipDirective($includePageInfo: Boolean = false, $skipPageInfo: Boolean = true) {
+    /// query GetHeroWithFragmentIncludeAndSkipDirective(
+    ///   $includePageInfo: Boolean = false
+    ///   $skipPageInfo: Boolean = true
+    /// ) {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
     ///     ... HeroFragment
@@ -696,593 +702,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
 
         public static GetHeroWithFragmentIncludeAndSkipDirectiveQueryDocument Instance { get; } = new GetHeroWithFragmentIncludeAndSkipDirectiveQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x71,
-            0x75,
-            0x65,
-            0x72,
-            0x79,
-            0x20,
-            0x47,
-            0x65,
-            0x74,
-            0x48,
-            0x65,
-            0x72,
-            0x6f,
-            0x57,
-            0x69,
-            0x74,
-            0x68,
-            0x46,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x49,
-            0x6e,
-            0x63,
-            0x6c,
-            0x75,
-            0x64,
-            0x65,
-            0x41,
-            0x6e,
-            0x64,
-            0x53,
-            0x6b,
-            0x69,
-            0x70,
-            0x44,
-            0x69,
-            0x72,
-            0x65,
-            0x63,
-            0x74,
-            0x69,
-            0x76,
-            0x65,
-            0x28,
-            0x24,
-            0x69,
-            0x6e,
-            0x63,
-            0x6c,
-            0x75,
-            0x64,
-            0x65,
-            0x50,
-            0x61,
-            0x67,
-            0x65,
-            0x49,
-            0x6e,
-            0x66,
-            0x6f,
-            0x3a,
-            0x20,
-            0x42,
-            0x6f,
-            0x6f,
-            0x6c,
-            0x65,
-            0x61,
-            0x6e,
-            0x20,
-            0x3d,
-            0x20,
-            0x66,
-            0x61,
-            0x6c,
-            0x73,
-            0x65,
-            0x2c,
-            0x20,
-            0x24,
-            0x73,
-            0x6b,
-            0x69,
-            0x70,
-            0x50,
-            0x61,
-            0x67,
-            0x65,
-            0x49,
-            0x6e,
-            0x66,
-            0x6f,
-            0x3a,
-            0x20,
-            0x42,
-            0x6f,
-            0x6f,
-            0x6c,
-            0x65,
-            0x61,
-            0x6e,
-            0x20,
-            0x3d,
-            0x20,
-            0x74,
-            0x72,
-            0x75,
-            0x65,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x68,
-            0x65,
-            0x72,
-            0x6f,
-            0x28,
-            0x65,
-            0x70,
-            0x69,
-            0x73,
-            0x6f,
-            0x64,
-            0x65,
-            0x3a,
-            0x20,
-            0x4e,
-            0x45,
-            0x57,
-            0x5f,
-            0x48,
-            0x4f,
-            0x50,
-            0x45,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x48,
-            0x65,
-            0x72,
-            0x6f,
-            0x46,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x44,
-            0x72,
-            0x6f,
-            0x69,
-            0x64,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x48,
-            0x75,
-            0x6d,
-            0x61,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x66,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x48,
-            0x65,
-            0x72,
-            0x6f,
-            0x46,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x43,
-            0x68,
-            0x61,
-            0x72,
-            0x61,
-            0x63,
-            0x74,
-            0x65,
-            0x72,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x66,
-            0x72,
-            0x69,
-            0x65,
-            0x6e,
-            0x64,
-            0x73,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x46,
-            0x72,
-            0x69,
-            0x65,
-            0x6e,
-            0x64,
-            0x73,
-            0x46,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x66,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x46,
-            0x72,
-            0x69,
-            0x65,
-            0x6e,
-            0x64,
-            0x73,
-            0x46,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x46,
-            0x72,
-            0x69,
-            0x65,
-            0x6e,
-            0x64,
-            0x73,
-            0x43,
-            0x6f,
-            0x6e,
-            0x6e,
-            0x65,
-            0x63,
-            0x74,
-            0x69,
-            0x6f,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x6e,
-            0x63,
-            0x6c,
-            0x75,
-            0x64,
-            0x65,
-            0x64,
-            0x50,
-            0x61,
-            0x67,
-            0x65,
-            0x49,
-            0x6e,
-            0x66,
-            0x6f,
-            0x3a,
-            0x20,
-            0x70,
-            0x61,
-            0x67,
-            0x65,
-            0x49,
-            0x6e,
-            0x66,
-            0x6f,
-            0x20,
-            0x40,
-            0x69,
-            0x6e,
-            0x63,
-            0x6c,
-            0x75,
-            0x64,
-            0x65,
-            0x28,
-            0x69,
-            0x66,
-            0x3a,
-            0x20,
-            0x24,
-            0x69,
-            0x6e,
-            0x63,
-            0x6c,
-            0x75,
-            0x64,
-            0x65,
-            0x50,
-            0x61,
-            0x67,
-            0x65,
-            0x49,
-            0x6e,
-            0x66,
-            0x6f,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x50,
-            0x61,
-            0x67,
-            0x65,
-            0x49,
-            0x6e,
-            0x66,
-            0x6f,
-            0x46,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x7d,
-            0x20,
-            0x73,
-            0x6b,
-            0x69,
-            0x70,
-            0x70,
-            0x65,
-            0x64,
-            0x50,
-            0x61,
-            0x67,
-            0x65,
-            0x49,
-            0x6e,
-            0x66,
-            0x6f,
-            0x3a,
-            0x20,
-            0x70,
-            0x61,
-            0x67,
-            0x65,
-            0x49,
-            0x6e,
-            0x66,
-            0x6f,
-            0x20,
-            0x40,
-            0x73,
-            0x6b,
-            0x69,
-            0x70,
-            0x28,
-            0x69,
-            0x66,
-            0x3a,
-            0x20,
-            0x24,
-            0x73,
-            0x6b,
-            0x69,
-            0x70,
-            0x50,
-            0x61,
-            0x67,
-            0x65,
-            0x49,
-            0x6e,
-            0x66,
-            0x6f,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x50,
-            0x61,
-            0x67,
-            0x65,
-            0x49,
-            0x6e,
-            0x66,
-            0x6f,
-            0x46,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x66,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x50,
-            0x61,
-            0x67,
-            0x65,
-            0x49,
-            0x6e,
-            0x66,
-            0x6f,
-            0x46,
-            0x72,
-            0x61,
-            0x67,
-            0x6d,
-            0x65,
-            0x6e,
-            0x74,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x50,
-            0x61,
-            0x67,
-            0x65,
-            0x49,
-            0x6e,
-            0x66,
-            0x6f,
-            0x20,
-            0x7b,
-            0x20,
-            0x68,
-            0x61,
-            0x73,
-            0x4e,
-            0x65,
-            0x78,
-            0x74,
-            0x50,
-            0x61,
-            0x67,
-            0x65,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetHeroWithFragmentIncludeAndSkipDirective($includePageInfo: Boolean = false, $skipPageInfo: Boolean = true) { hero(episode: NEW_HOPE) { __typename ... HeroFragment ... on Droid { id } ... on Human { id } } } fragment HeroFragment on Character { id friends { __typename ... FriendsFragment } } fragment FriendsFragment on FriendsConnection { includedPageInfo: pageInfo @include(if: $includePageInfo) { __typename ... PageInfoFragment } skippedPageInfo: pageInfo @skip(if: $skipPageInfo) { __typename ... PageInfoFragment } } fragment PageInfoFragment on PageInfo { hasNextPage }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "87f3c93b0135cfd1f7e0467b57ae1a6ef7d4e828");
 
         public override global::System.String ToString()
@@ -1299,7 +719,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     /// <summary>
     /// Represents the operation service of the GetHeroWithFragmentIncludeAndSkipDirective GraphQL operation
     /// <code>
-    /// query GetHeroWithFragmentIncludeAndSkipDirective($includePageInfo: Boolean = false, $skipPageInfo: Boolean = true) {
+    /// query GetHeroWithFragmentIncludeAndSkipDirective(
+    ///   $includePageInfo: Boolean = false
+    ///   $skipPageInfo: Boolean = true
+    /// ) {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
     ///     ... HeroFragment
@@ -1341,17 +764,45 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHeroWithFragmentIncludeAndSkipDirectiveResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _booleanFormatter;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetHeroWithFragmentIncludeAndSkipDirectiveQuery(global::StrawberryShake.IOperationExecutor<IGetHeroWithFragmentIncludeAndSkipDirectiveResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _booleanFormatter = serializerResolver.GetInputValueFormatter("Boolean");
         }
 
+        private GetHeroWithFragmentIncludeAndSkipDirectiveQuery(global::StrawberryShake.IOperationExecutor<IGetHeroWithFragmentIncludeAndSkipDirectiveResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure, global::StrawberryShake.Serialization.IInputValueFormatter booleanFormatter)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+            _booleanFormatter = booleanFormatter;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetHeroWithFragmentIncludeAndSkipDirectiveResult);
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirectiveQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.GetHeroWithFragmentIncludeAndSkipDirectiveQuery(_operationExecutor, _configure.Add(configure), _booleanFormatter);
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirectiveQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirectiveQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroWithFragmentIncludeAndSkipDirectiveResult>> ExecuteAsync(global::System.Boolean? includePageInfo, global::System.Boolean? skipPageInfo, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(includePageInfo, skipPageInfo);
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -1408,7 +859,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     /// <summary>
     /// Represents the operation service of the GetHeroWithFragmentIncludeAndSkipDirective GraphQL operation
     /// <code>
-    /// query GetHeroWithFragmentIncludeAndSkipDirective($includePageInfo: Boolean = false, $skipPageInfo: Boolean = true) {
+    /// query GetHeroWithFragmentIncludeAndSkipDirective(
+    ///   $includePageInfo: Boolean = false
+    ///   $skipPageInfo: Boolean = true
+    /// ) {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
     ///     ... HeroFragment
@@ -1448,6 +902,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHeroWithFragmentIncludeAndSkipDirectiveQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirectiveQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirectiveQuery WithRequestUri(global::System.Uri requestUri);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective.IGetHeroWithFragmentIncludeAndSkipDirectiveQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroWithFragmentIncludeAndSkipDirectiveResult>> ExecuteAsync(global::System.Boolean? includePageInfo, global::System.Boolean? skipPageInfo, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroWithFragmentIncludeAndSkipDirectiveResult>> Watch(global::System.Boolean? includePageInfo, global::System.Boolean? skipPageInfo, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -1824,7 +1281,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends returnValue = default !;
-            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection(MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(data.IncludedPageInfo, snapshot), MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(data.SkippedPageInfo, snapshot));
             }
@@ -1844,7 +1301,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo returnValue = default !;
-            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }
@@ -1864,7 +1321,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo returnValue = default !;
-            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }
@@ -1905,7 +1362,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends returnValue = default !;
-            if (data?.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("FriendsConnection", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_FriendsConnection(MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo(data.IncludedPageInfo, snapshot), MapIGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo(data.SkippedPageInfo, snapshot));
             }
@@ -1925,7 +1382,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo returnValue = default !;
-            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_IncludedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }
@@ -1945,7 +1402,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
             }
 
             IGetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo returnValue = default !;
-            if (data?.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal) ?? false)
+            if (data.__typename.Equals("PageInfo", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetHeroWithFragmentIncludeAndSkipDirective_Hero_Friends_SkippedPageInfo_PageInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException());
             }

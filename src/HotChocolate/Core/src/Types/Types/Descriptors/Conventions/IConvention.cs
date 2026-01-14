@@ -4,6 +4,4 @@ namespace HotChocolate.Types.Descriptors;
 /// This is a marker interface to collect registered type conventions from
 /// the dependency injection container.
 /// </summary>
-public interface IConvention : IHasScope
-{
-}
+public interface IConvention : IHasScope;

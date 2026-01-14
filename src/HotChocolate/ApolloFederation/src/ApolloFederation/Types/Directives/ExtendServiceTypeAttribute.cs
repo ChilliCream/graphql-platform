@@ -18,14 +18,14 @@ namespace HotChocolate.ApolloFederation.Types;
 /// </example>
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class |
-    AttributeTargets.Struct |
-    AttributeTargets.Interface)]
+    AttributeTargets.Class
+    | AttributeTargets.Struct
+    | AttributeTargets.Interface)]
 public sealed class ExtendServiceTypeAttribute : ObjectTypeDescriptorAttribute
 {
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
-        Type type)
+        Type? type)
         => descriptor.ExtendServiceType();
 }

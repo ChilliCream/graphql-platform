@@ -3,7 +3,7 @@
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
-      
+
     </xsd:element>
   </xsd:schema>
   <resheader name="resmimetype">
@@ -20,5 +20,11 @@
   </resheader>
   <data name="NonNullType_InnerTypeCannotBeNonNull" xml:space="preserve">
     <value>The inner type cannot be a non-null type.</value>
+  </data>
+  <data name="TypeExtensions_InvalidStructure" xml:space="preserve">
+    <value>The type structure is invalid.</value>
+  </data>
+  <data name="TypeExtensions_KindIsNotSupported" xml:space="preserve">
+    <value>The specified type kind is not supported.</value>
   </data>
 </root>

@@ -1,9 +1,9 @@
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
+using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public abstract partial class ScalarType
 {
-    private ITypeConverter _converter = default!;
+    private ITypeConverter _converter = null!;
 
     /// <summary>
     /// Initializes a new instance of the
@@ -30,36 +30,44 @@ public abstract partial class ScalarType
     protected ScalarType(string name, BindingBehavior bind = BindingBehavior.Explicit)
     {
         Name = name.EnsureGraphQLName();
+        Directives = null!;
         Bind = bind;
-
-        Directives = default!;
     }
 
-    protected override ScalarTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    protected override ScalarTypeConfiguration CreateConfiguration(ITypeDiscoveryContext context)
     {
         var descriptor = ScalarTypeDescriptor.New(context.DescriptorContext, Name, Description, GetType());
         Configure(descriptor);
-        return descriptor.CreateDefinition();
+        return descriptor.CreateConfiguration();
     }
 
     protected virtual void Configure(IScalarTypeDescriptor descriptor) { }
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
-        ScalarTypeDefinition definition)
+        ScalarTypeConfiguration configuration)
     {
-        base.OnRegisterDependencies(context, definition);
+        base.OnRegisterDependencies(context, configuration);
+
+        var inspector = context.TypeInspector;
+        var options = context.DescriptorContext.Options;
 
         if (SpecifiedBy is not null)
         {
-            var inspector = context.TypeInspector;
             var specifiedByTypeRef = inspector.GetTypeRef(typeof(SpecifiedByDirectiveType));
             context.Dependencies.Add(new TypeDependency(specifiedByTypeRef));
         }
 
-        if (definition.HasDirectives)
+        if (options.ApplySerializeAsToScalars && SerializationType is not ScalarSerializationType.Undefined)
         {
-            foreach (var directive in definition.Directives)
+            var serializedAsTypeRef = inspector.GetTypeRef(typeof(SerializeAs));
+            context.Dependencies.Add(new TypeDependency(serializedAsTypeRef));
+            configuration.AddDirective(new SerializeAs(SerializationType, Pattern), inspector);
+        }
+
+        if (configuration.HasDirectives)
+        {
+            foreach (var directive in configuration.Directives)
             {
                 context.Dependencies.Add(new TypeDependency(directive.Type, TypeDependencyFulfilled.Completed));
             }
@@ -68,15 +76,29 @@ public abstract partial class ScalarType
 
     protected override void OnCompleteType(
         ITypeCompletionContext context,
-        ScalarTypeDefinition definition)
+        ScalarTypeConfiguration configuration)
     {
         _converter = context.DescriptorContext.TypeConverter;
-        var directiveDefinitions = definition.GetDirectives();
-        Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
 
-        if(definition.SpecifiedBy is not null)
+        if (configuration.SpecifiedBy is not null)
         {
-            SpecifiedBy = definition.SpecifiedBy;
+            SpecifiedBy = configuration.SpecifiedBy;
         }
+    }
+
+    protected sealed override void OnBeforeCompleteMetadata(
+        ITypeCompletionContext context,
+        TypeSystemConfiguration configuration)
+    {
+        OnBeforeCompleteMetadata(context, (ScalarTypeConfiguration)configuration);
+        base.OnBeforeCompleteMetadata(context, configuration);
+    }
+
+    protected virtual void OnBeforeCompleteMetadata(
+        ITypeCompletionContext context,
+        ScalarTypeConfiguration configuration)
+    {
+        var directiveDefinitions = configuration.GetDirectives();
+        Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
     }
 }

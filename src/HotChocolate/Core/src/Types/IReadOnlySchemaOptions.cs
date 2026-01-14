@@ -3,8 +3,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate;
 
 /// <summary>
@@ -114,11 +112,6 @@ public interface IReadOnlySchemaOptions
     bool EnableOneOf { get; }
 
     /// <summary>
-    /// Defines if the schema building process shall validate that all nodes are resolvable through `node`.
-    /// </summary>
-    bool EnsureAllNodesCanBeResolved { get; }
-
-    /// <summary>
     /// Defines if flag enums should be inferred as object value nodes
     /// </summary>
     /// <example>
@@ -173,11 +166,6 @@ public interface IReadOnlySchemaOptions
     bool EnableSemanticNonNull { get; }
 
     /// <summary>
-    /// Specifies the maximum allowed nodes that can be fetched at once through the nodes field.
-    /// </summary>
-    int MaxAllowedNodeBatchSize { get; }
-
-    /// <summary>
     /// Specified if the leading I shall be stripped from the interface name.
     /// </summary>
     bool StripLeadingIFromInterface { get; }
@@ -190,16 +178,53 @@ public interface IReadOnlySchemaOptions
     /// <summary>
     /// Specifies the default dependency injection scope for query fields.
     /// </summary>
-    public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; }
+    DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; }
 
     /// <summary>
     /// Specifies the default dependency injection scope for mutation fields.
     /// </summary>
-    public DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; }
+    DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; }
 
     /// <summary>
     /// Specifies if the elements of paginated root fields should be published
     /// to the DataLoader promise cache.
     /// </summary>
     bool PublishRootFieldPagesToPromiseCache { get; }
+
+    /// <summary>
+    /// Specifies that the <see cref="IRequestExecutor"/> should be constructed
+    /// lazily.
+    /// </summary>
+    bool LazyInitialization { get; }
+
+    /// <summary>
+    /// Specifies the size of the prepared operation cache.
+    /// </summary>
+    int PreparedOperationCacheSize { get; }
+
+    /// <summary>
+    /// Specifies the size of the operation document cache.
+    /// </summary>
+    int OperationDocumentCacheSize { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to the PageInfo type.
+    /// </summary>
+    bool ApplyShareableToPageInfo { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to all connection and edge types.
+    /// </summary>
+    bool ApplyShareableToConnections { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to the `node(id)` and `nodes(id)`
+    /// field when Global Object Identification is turned on.
+    /// </summary>
+    bool ApplyShareableToNodeFields { get; }
+
+    /// <summary>
+    /// Applies the @serializeAs directive to scalar types that specify a serialization format.
+    /// </summary>
+    bool ApplySerializeAsToScalars { get; }
 }

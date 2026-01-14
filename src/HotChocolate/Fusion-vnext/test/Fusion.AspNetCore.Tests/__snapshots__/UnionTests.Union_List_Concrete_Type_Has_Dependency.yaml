@@ -1,0 +1,190 @@
+title: Union_List_Concrete_Type_Has_Dependency
+request:
+  document: |
+    query testQuery {
+      posts {
+        ... on Photo {
+          subgraph2
+        }
+        ... on Discussion {
+          subgraph1
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "posts": [
+          {
+            "subgraph2": "Photo: UGhvdG86MQ=="
+          },
+          {
+            "subgraph1": "Discussion: RGlzY3Vzc2lvbjoy"
+          },
+          {
+            "subgraph2": "Photo: UGhvdG86Mw=="
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Discussion {
+        id: ID!
+        subgraph1: String
+      }
+
+      type Photo @key(fields: "id") {
+        id: ID!
+      }
+
+      type Query {
+        posts: [Post]
+      }
+
+      union Post = Photo | Discussion
+    interactions:
+      - request:
+          document: |
+            query testQuery_7e81ce9e_1 {
+              posts {
+                __typename
+                ... on Photo {
+                  id
+                }
+                ... on Discussion {
+                  subgraph1
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "posts": [
+                    {
+                      "__typename": "Photo",
+                      "id": "UGhvdG86MQ=="
+                    },
+                    {
+                      "__typename": "Discussion",
+                      "subgraph1": "Discussion: RGlzY3Vzc2lvbjoy"
+                    },
+                    {
+                      "__typename": "Photo",
+                      "id": "UGhvdG86Mw=="
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Photo {
+        id: ID!
+        subgraph2: String!
+      }
+
+      type Query {
+        photoById(id: ID!): Photo @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_7e81ce9e_2(
+              $__fusion_1_id: ID!
+            ) {
+              photoById(id: $__fusion_1_id) {
+                subgraph2
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UGhvdG86MQ=="
+              },
+              {
+                "__fusion_1_id": "UGhvdG86Mw=="
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86MQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "photoById": {
+                    "subgraph2": "Photo: UGhvdG86Mw=="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          posts {
+            __typename @fusion__requirement
+            ... on Photo {
+              subgraph2
+              id @fusion__requirement
+            }
+            ... on Discussion {
+              subgraph1
+            }
+          }
+        }
+      name: testQuery
+      hash: 7e81ce9e643ab646415b814b9eb5ddbe
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_7e81ce9e_1 {
+          posts {
+            __typename
+            ... on Photo {
+              id
+            }
+            ... on Discussion {
+              subgraph1
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_7e81ce9e_2(
+          $__fusion_1_id: ID!
+        ) {
+          photoById(id: $__fusion_1_id) {
+            subgraph2
+          }
+        }
+      source: $.photoById
+      target: $.posts<Photo>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

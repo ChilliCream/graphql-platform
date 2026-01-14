@@ -10,7 +10,7 @@ public class DataLoaderOptionsTests
         {
             Cache = new PromiseCache(1),
             MaxBatchSize = 1,
-            DiagnosticEvents = new DataLoaderDiagnosticEventListener(),
+            DiagnosticEvents = new DataLoaderDiagnosticEventListener()
         };
 
         // assert
@@ -27,7 +27,7 @@ public class DataLoaderOptionsTests
         {
             Cache = null,
             MaxBatchSize = 10,
-            DiagnosticEvents = null,
+            DiagnosticEvents = null
         };
 
         // assert
@@ -56,7 +56,7 @@ public class DataLoaderOptionsTests
         {
             Cache = new PromiseCache(1),
             MaxBatchSize = 1,
-            DiagnosticEvents = new DataLoaderDiagnosticEventListener(),
+            DiagnosticEvents = new DataLoaderDiagnosticEventListener()
         };
 
         // act

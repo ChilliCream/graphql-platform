@@ -3,14 +3,26 @@
 ## Result 1
 
 ```text
-VariableIndex: 0
-Data: {"hero":{"name":"R2-D2"}}
+{
+  "variableIndex": 0,
+  "data": {
+    "hero": {
+      "name": "R2-D2"
+    }
+  }
+}
 ```
 
 ## Result 2
 
 ```text
-VariableIndex: 1
-Data: {"hero":{"name":"Luke Skywalker"}}
+{
+  "variableIndex": 1,
+  "data": {
+    "hero": {
+      "name": "Luke Skywalker"
+    }
+  }
+}
 ```
 

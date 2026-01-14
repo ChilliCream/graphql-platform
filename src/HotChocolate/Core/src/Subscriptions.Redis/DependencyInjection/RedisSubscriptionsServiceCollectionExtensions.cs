@@ -37,15 +37,8 @@ public static class RedisSubscriptionsServiceCollectionExtensions
         Func<IServiceProvider, IConnectionMultiplexer> connection,
         SubscriptionOptions? options = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (connection is null)
-        {
-            throw new ArgumentNullException(nameof(connection));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(connection);
 
         builder.AddSubscriptionDiagnostics();
         AddRedisSubscriptions(builder.Services, connection, options);
@@ -80,17 +73,10 @@ public static class RedisSubscriptionsServiceCollectionExtensions
         Func<IServiceProvider, IConnectionMultiplexer> connection,
         SubscriptionOptions? options = null)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(connection);
 
-        if (connection is null)
-        {
-            throw new ArgumentNullException(nameof(connection));
-        }
-
-        services.TryAddSingleton<SubscriptionOptions>(_ => options ?? new SubscriptionOptions());
+        services.TryAddSingleton(_ => options ?? new SubscriptionOptions());
         services.TryAddSingleton<IMessageSerializer, DefaultJsonMessageSerializer>();
         services.TryAddSingleton(sp => new RedisPubSub(
             connection(sp),

@@ -17,6 +17,9 @@ public class MongoDbStringNotEndsWithHandler
 
     protected override int Operation => DefaultFilterOperations.NotEndsWith;
 
+    public static MongoDbStringNotEndsWithHandler Create(FilterProviderContext context)
+        => new(context.InputParser);
+
     public override MongoDbFilterDefinition HandleOperation(
         MongoDbFilterVisitorContext context,
         IFilterOperationField field,

@@ -13,14 +13,14 @@ using static HotChocolate.Data.Sorting.Expressions.QueryableSortProvider;
 namespace HotChocolate.Data.Sorting;
 
 /// <summary>
-/// Encapsulated all sorting specific information
+/// Encapsulated all sorting-specific information
 /// </summary>
 public class SortingContext : ISortingContext
 {
-    private static readonly MethodInfo _createSortByMethod =
+    private static readonly MethodInfo s_createSortByMethod =
         typeof(SortingContext).GetMethod(nameof(CreateSortBy), BindingFlags.NonPublic | BindingFlags.Static)!;
-    private static readonly ConcurrentDictionary<(Type, Type), MethodInfo> _sortByFactoryCache = new();
-    private static readonly SortDefinitionFormatter _formatter = new();
+    private static readonly ConcurrentDictionary<(Type, Type), MethodInfo> s_sortByFactoryCache = new();
+    private static readonly SortDefinitionFormatter s_formatter = new();
     private readonly IReadOnlyList<SortingInfo> _value;
     private readonly IResolverContext _context;
     private readonly IType _type;
@@ -39,7 +39,7 @@ public class SortingContext : ISortingContext
             ? listValueNode.Items
                 .Select(x => new SortingInfo(type, x, inputParser))
                 .ToArray()
-            : [new SortingInfo(type, valueNode, inputParser),];
+            : [new SortingInfo(type, valueNode, inputParser)];
         _context = context;
         _type = type;
         _valueNode = valueNode;
@@ -48,18 +48,13 @@ public class SortingContext : ISortingContext
     /// <inheritdoc />
     public void Handled(bool isHandled)
     {
-        if (isHandled)
-        {
-            _context.LocalContextData = _context.LocalContextData.SetItem(SkipSortingKey, true);
-        }
-        else
-        {
-            _context.LocalContextData = _context.LocalContextData.Remove(SkipSortingKey);
-        }
+        _context.LocalContextData = isHandled
+            ? _context.LocalContextData.SetItem(SkipSortingKey, true)
+            : _context.LocalContextData.Remove(SkipSortingKey);
     }
 
     /// <inheritdoc />
-    public bool IsDefined => _value is not [{ ValueNode.Kind: SyntaxKind.NullValue, },];
+    public bool IsDefined => _value is not [{ ValueNode.Kind: SyntaxKind.NullValue }];
 
     /// <inheritdoc />
     public IReadOnlyList<IReadOnlyList<ISortingFieldInfo>> GetFields()
@@ -91,7 +86,7 @@ public class SortingContext : ISortingContext
                 return sortingValue.Value;
 
             case ISortingInfo info:
-                Dictionary<string, object?> data = new();
+                Dictionary<string, object?> data = [];
 
                 foreach (var field in info.GetFields())
                 {
@@ -119,9 +114,9 @@ public class SortingContext : ISortingContext
 
     public SortDefinition<T>? AsSortDefinition<T>()
     {
-        if(_valueNode.Kind == SyntaxKind.NullValue
-            || (_valueNode is ListValueNode listValue && listValue.Items.Count == 0)
-            || (_valueNode is ObjectValueNode objectValue && objectValue.Fields.Count == 0))
+        if (_valueNode.Kind == SyntaxKind.NullValue
+            || _valueNode is ListValueNode { Items.Count: 0 }
+            || _valueNode is ObjectValueNode { Fields.Count: 0 })
         {
             return null;
         }
@@ -129,11 +124,11 @@ public class SortingContext : ISortingContext
         var builder = ImmutableArray.CreateBuilder<ISortBy<T>>();
         var parameter = Expression.Parameter(typeof(T), "t");
 
-        foreach (var (selector, ascending, type) in _formatter.Rewrite<T>(_valueNode, _type, parameter))
+        foreach (var (selector, ascending, type) in s_formatter.Rewrite(_valueNode, _type, parameter))
         {
-            var factory = _sortByFactoryCache.GetOrAdd(
+            var factory = s_sortByFactoryCache.GetOrAdd(
                 (typeof(T), type),
-                static key => _createSortByMethod.MakeGenericMethod(key.Item1, key.Item2));
+                static key => s_createSortByMethod.MakeGenericMethod(key.Item1, key.Item2));
             var sortBy = (ISortBy<T>)factory.Invoke(null, [parameter, selector, ascending])!;
             builder.Add(sortBy);
         }
@@ -145,13 +140,11 @@ public class SortingContext : ISortingContext
         ParameterExpression parameter,
         Expression selector,
         bool ascending)
-        => new SortBy<TEntity, TValue>(
-            Expression.Lambda<Func<TEntity, TValue>>(selector, parameter),
-            ascending);
+        => new(Expression.Lambda<Func<TEntity, TValue>>(selector, parameter), ascending);
 
     private sealed class SortDefinitionFormatter : SyntaxWalker<SortDefinitionFormatter.Context>
     {
-        public IEnumerable<(Expression, bool, Type)> Rewrite<T>(IValueNode node, IType type, Expression parameter)
+        public IEnumerable<(Expression, bool, Type)> Rewrite(IValueNode node, IType type, Expression parameter)
         {
             var context = new Context();
             context.Types.Push((InputObjectType)type);
@@ -203,6 +196,7 @@ public class SortingContext : ISortingContext
             else
             {
                 context.Types.Pop();
+                context.Parents.Pop();
             }
 
             return base.Leave(node, context);
@@ -214,7 +208,7 @@ public class SortingContext : ISortingContext
 
             public Stack<Expression> Parents { get; } = new();
 
-            public List<(Expression, bool, Type)> Completed { get; } = new();
+            public List<(Expression, bool, Type)> Completed { get; } = [];
         }
     }
 }

@@ -34,6 +34,7 @@ public class DiagnosticListenerTests
         var services = new ServiceCollection()
             .AddSingleton<Touched>()
             .AddGraphQL()
+            .AddApplicationService<Touched>()
             .AddDiagnosticEventListener<TouchedListener>()
             .AddStarWars()
             .Services
@@ -70,7 +71,7 @@ public class DiagnosticListenerTests
 
     public class Touched
     {
-        public bool Signal = false;
+        public bool Signal;
     }
 
     private class TouchedListener : ExecutionDiagnosticEventListener
@@ -82,7 +83,7 @@ public class DiagnosticListenerTests
             _touched = touched;
         }
 
-        public override IDisposable ExecuteRequest(IRequestContext context)
+        public override IDisposable ExecuteRequest(RequestContext context)
         {
             _touched.Signal = true;
             return EmptyScope;

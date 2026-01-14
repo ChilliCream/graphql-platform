@@ -19,7 +19,7 @@ public class User
 
     [ID]
     [External]
-    public string Email { get; set; } = default!;
+    public string Email { get; set; } = null!;
 
     [External]
     public int? TotalProductsCreated { get; set; }

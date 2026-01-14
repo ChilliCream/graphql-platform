@@ -1,13 +1,15 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
-// ReSharper disable RedundantNameQualifier
-// ReSharper disable ArrangeObjectCreationWhenTypeEvident
-// ReSharper disable UnusedType.Global
-// ReSharper disable PartialTypeWithSinglePart
-// ReSharper disable UnusedMethodReturnValue.Local
+﻿// ReSharper disable ArrangeObjectCreationWhenTypeEvident
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable ConvertToAutoProperty
-// ReSharper disable UnusedMember.Global
-// ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable PreferConcreteValueOverDefault
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable SuggestVarOrType_SimpleTypes
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMethodReturnValue.Local
+// ReSharper disable UnusedType.Global
+// ReSharper disable UnusedVariable
 
 // StarWarsTypeNameOnInterfacesClient
 
@@ -31,6 +33,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.State.StarWarsTypeNameOnInterfacesClientStoreAccessor(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.GetHeroQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.IGetHeroQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.StarWarsTypeNameOnInterfacesClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.IStarWarsTypeNameOnInterfacesClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             return new global::StrawberryShake.ClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.State.StarWarsTypeNameOnInterfacesClientStoreAccessor>("StarWarsTypeNameOnInterfacesClient", services, serviceCollection);
@@ -355,105 +358,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
 
         public static GetHeroQueryDocument Instance { get; } = new GetHeroQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]
-        {
-            0x71,
-            0x75,
-            0x65,
-            0x72,
-            0x79,
-            0x20,
-            0x47,
-            0x65,
-            0x74,
-            0x48,
-            0x65,
-            0x72,
-            0x6f,
-            0x20,
-            0x7b,
-            0x20,
-            0x68,
-            0x65,
-            0x72,
-            0x6f,
-            0x28,
-            0x65,
-            0x70,
-            0x69,
-            0x73,
-            0x6f,
-            0x64,
-            0x65,
-            0x3a,
-            0x20,
-            0x4e,
-            0x45,
-            0x57,
-            0x5f,
-            0x48,
-            0x4f,
-            0x50,
-            0x45,
-            0x29,
-            0x20,
-            0x7b,
-            0x20,
-            0x5f,
-            0x5f,
-            0x74,
-            0x79,
-            0x70,
-            0x65,
-            0x6e,
-            0x61,
-            0x6d,
-            0x65,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x44,
-            0x72,
-            0x6f,
-            0x69,
-            0x64,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x2e,
-            0x2e,
-            0x2e,
-            0x20,
-            0x6f,
-            0x6e,
-            0x20,
-            0x48,
-            0x75,
-            0x6d,
-            0x61,
-            0x6e,
-            0x20,
-            0x7b,
-            0x20,
-            0x69,
-            0x64,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d,
-            0x20,
-            0x7d
-        };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => "query GetHero { hero(episode: NEW_HOPE) { __typename ... on Droid { id } ... on Human { id } } }"u8;
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "f8ce4e3a52ec254e48424fe573eb27a039aece1a");
 
         public override global::System.String ToString()
@@ -487,16 +392,43 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
     public partial class GetHeroQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.IGetHeroQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
+        private readonly global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> _configure = global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>>.Empty;
         public GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
+        private GetHeroQuery(global::StrawberryShake.IOperationExecutor<IGetHeroResult> operationExecutor, global::System.Collections.Immutable.ImmutableArray<global::System.Action<global::StrawberryShake.OperationRequest>> configure)
+        {
+            _operationExecutor = operationExecutor;
+            _configure = configure;
+        }
+
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetHeroResult);
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.IGetHeroQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure)
+        {
+            return new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.GetHeroQuery(_operationExecutor, _configure.Add(configure));
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.IGetHeroQuery WithRequestUri(global::System.Uri requestUri)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.RequestUri"] = requestUri);
+        }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.IGetHeroQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient)
+        {
+            return With(r => r.ContextData["StrawberryShake.Transport.Http.HttpConnection.HttpClient"] = httpClient);
+        }
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
+            foreach (var configure in _configure)
+            {
+                configure(request);
+            }
+
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
@@ -542,6 +474,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHeroQuery : global::StrawberryShake.IOperationRequestFactory
     {
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.IGetHeroQuery With(global::System.Action<global::StrawberryShake.OperationRequest> configure);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.IGetHeroQuery WithRequestUri(global::System.Uri requestUri);
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces.IGetHeroQuery WithHttpClient(global::System.Net.Http.HttpClient httpClient);
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }

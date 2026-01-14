@@ -6,5 +6,5 @@ Content-Type: application/graphql-response+json; charset=utf-8
 -------------------------->
 Status Code: BadRequest
 -------------------------->
-{"errors":[{"message":"Introspection is not allowed for the current request.","locations":[{"line":2,"column":5}],"extensions":{"field":"__type","code":"HC0046"}}]}
+{"errors":[{"message":"Introspection is not allowed for the current request.","locations":[{"line":2,"column":5}],"extensions":{"code":"HC0046","field":"__type"}}]}
 ```

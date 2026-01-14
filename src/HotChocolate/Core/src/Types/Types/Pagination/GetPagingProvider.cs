@@ -1,7 +1,5 @@
 using HotChocolate.Internal;
 
-#nullable enable
-
 namespace HotChocolate.Types.Pagination;
 
 /// <summary>

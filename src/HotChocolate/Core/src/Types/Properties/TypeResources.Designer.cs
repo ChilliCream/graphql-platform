@@ -105,6 +105,9 @@ namespace HotChocolate.Properties {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone..
+        /// </summary>
         internal static string DateTimeType_Description {
             get {
                 return ResourceManager.GetString("DateTimeType_Description", resourceCulture);
@@ -567,12 +570,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string SchemaBuilderExtensions_SchemaIsEmpty {
-            get {
-                return ResourceManager.GetString("SchemaBuilderExtensions_SchemaIsEmpty", resourceCulture);
-            }
-        }
-        
         internal static string SchemaBuilder_Binding_CannotBeHandled {
             get {
                 return ResourceManager.GetString("SchemaBuilder_Binding_CannotBeHandled", resourceCulture);
@@ -582,12 +579,6 @@ namespace HotChocolate.Properties {
         internal static string SchemaBuilder_Binding_Invalid {
             get {
                 return ResourceManager.GetString("SchemaBuilder_Binding_Invalid", resourceCulture);
-            }
-        }
-        
-        internal static string SchemaBuilder_ISchemaNotTso {
-            get {
-                return ResourceManager.GetString("SchemaBuilder_ISchemaNotTso", resourceCulture);
             }
         }
         
@@ -618,12 +609,6 @@ namespace HotChocolate.Properties {
         internal static string SchemaBuilder_SchemaTypeInvalid {
             get {
                 return ResourceManager.GetString("SchemaBuilder_SchemaTypeInvalid", resourceCulture);
-            }
-        }
-        
-        internal static string SchemaErrorBuilder_MessageIsNull {
-            get {
-                return ResourceManager.GetString("SchemaErrorBuilder_MessageIsNull", resourceCulture);
             }
         }
         
@@ -708,18 +693,6 @@ namespace HotChocolate.Properties {
         internal static string TypeDependency_MustBeSchemaType {
             get {
                 return ResourceManager.GetString("TypeDependency_MustBeSchemaType", resourceCulture);
-            }
-        }
-        
-        internal static string TypeExtensions_InvalidStructure {
-            get {
-                return ResourceManager.GetString("TypeExtensions_InvalidStructure", resourceCulture);
-            }
-        }
-        
-        internal static string TypeExtensions_KindIsNotSupported {
-            get {
-                return ResourceManager.GetString("TypeExtensions_KindIsNotSupported", resourceCulture);
             }
         }
         
@@ -831,12 +804,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string TypeResourceHelper_TypeNameEmptyOrNull {
-            get {
-                return ResourceManager.GetString("TypeResourceHelper_TypeNameEmptyOrNull", resourceCulture);
-            }
-        }
-        
         internal static string Type_Description {
             get {
                 return ResourceManager.GetString("Type_Description", resourceCulture);
@@ -930,6 +897,12 @@ namespace HotChocolate.Properties {
         internal static string TypeSystemObject_DescriptionImmutable {
             get {
                 return ResourceManager.GetString("TypeSystemObject_DescriptionImmutable", resourceCulture);
+            }
+        }
+        
+        internal static string TypeSystem_Immutable {
+            get {
+                return ResourceManager.GetString("TypeSystem_Immutable", resourceCulture);
             }
         }
         
@@ -1176,12 +1149,6 @@ namespace HotChocolate.Properties {
         internal static string ThrowHelper_UsePagingAttribute_NodeTypeUnknown {
             get {
                 return ResourceManager.GetString("ThrowHelper_UsePagingAttribute_NodeTypeUnknown", resourceCulture);
-            }
-        }
-        
-        internal static string Schema_GetDirectiveType_DoesNotExist {
-            get {
-                return ResourceManager.GetString("Schema_GetDirectiveType_DoesNotExist", resourceCulture);
             }
         }
         
@@ -1755,6 +1722,12 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string ErrorHelper_InvalidFieldDeprecation {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InvalidFieldDeprecation", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_InvalidFieldType {
             get {
                 return ResourceManager.GetString("ErrorHelper_InvalidFieldType", resourceCulture);
@@ -1785,9 +1758,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults {
+        internal static string ErrorHelper_OneOfInputObjectMustHaveNullableFieldsWithoutDefaults {
             get {
-                return ResourceManager.GetString("ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_OneOfInputObjectMustHaveNullableFieldsWithoutDefaults", resourceCulture);
             }
         }
         
@@ -2010,6 +1983,18 @@ namespace HotChocolate.Properties {
         internal static string SchemaBuilder_BindRuntimeType_ObjectNotAllowed {
             get {
                 return ResourceManager.GetString("SchemaBuilder_BindRuntimeType_ObjectNotAllowed", resourceCulture);
+            }
+        }
+        
+        internal static string TypeExtensions_KindIsNotSupported {
+            get {
+                return ResourceManager.GetString("TypeExtensions_KindIsNotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_InvalidTypeConversion {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidTypeConversion", resourceCulture);
             }
         }
     }

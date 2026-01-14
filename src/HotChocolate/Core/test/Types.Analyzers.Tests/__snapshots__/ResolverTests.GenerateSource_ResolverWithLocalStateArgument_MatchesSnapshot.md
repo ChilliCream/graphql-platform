@@ -53,18 +53,33 @@ namespace TestNamespace
     {
         internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor<global::TestNamespace.Test> descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.TestType);
-            var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
 
+            var naming = descriptor.Extend().Context.Naming;
+
             descriptor
-                .Field(thisType.GetMember("GetTest", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
+                .Field(naming.GetMemberName("Test", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = r.GetTest();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int")));
+                    configuration.ResultType = typeof(int);
+
+                    configuration.SetSourceGeneratorFlags();
+
+                    configuration.Resolvers = context.Resolvers.GetTest();
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
 
             Configure(descriptor);
         }

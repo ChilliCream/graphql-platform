@@ -1,6 +1,6 @@
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Features;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.ApolloFederation.FederationContextData;
 
 namespace HotChocolate.ApolloFederation.Types;
 
@@ -62,16 +62,7 @@ public static class ComposeDirectiveDescriptorExtensions
         builder.AddType<ComposeDirective>();
 
         builder.ConfigureSchema(
-            sb =>
-            {
-                if(!sb.ContextData.TryGetValue(ExportedDirectives, out var directiveTypes))
-                {
-                    directiveTypes = new List<Type>();
-                    sb.ContextData[ExportedDirectives] = directiveTypes;
-                }
-
-                ((List<Type>)directiveTypes!).Add(typeof(T));
-            });
+            sb => sb.Features.GetOrSet<ExportedDirectives>().Directives.Add(typeof(T)));
 
         return builder;
     }

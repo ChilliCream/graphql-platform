@@ -17,4 +17,7 @@ public class QueryableSpatialOverlapsOperationHandler
     protected override int Operation => SpatialFilterOperations.Overlaps;
 
     protected override bool IsTrue => true;
+
+    public static QueryableSpatialOverlapsOperationHandler Create(FilterProviderContext context) =>
+        new(context.FilterConvention, context.TypeInspector, context.InputParser);
 }

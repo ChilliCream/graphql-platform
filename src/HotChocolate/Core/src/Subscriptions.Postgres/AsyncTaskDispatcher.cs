@@ -19,10 +19,7 @@ internal sealed class AsyncTaskDispatcher : IAsyncDisposable
 
     public async Task Initialize(CancellationToken cancellationToken)
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(AsyncTaskDispatcher));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_initialized)
         {
@@ -31,10 +28,7 @@ internal sealed class AsyncTaskDispatcher : IAsyncDisposable
 
         await _sync.WaitAsync(cancellationToken);
 
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(AsyncTaskDispatcher));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_initialized)
         {
@@ -58,10 +52,7 @@ internal sealed class AsyncTaskDispatcher : IAsyncDisposable
 
     public void Dispatch()
     {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(AsyncTaskDispatcher));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
         _event.Set();
     }

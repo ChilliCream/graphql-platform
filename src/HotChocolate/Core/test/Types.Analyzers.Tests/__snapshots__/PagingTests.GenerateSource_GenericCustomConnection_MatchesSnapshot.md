@@ -22,55 +22,104 @@ namespace TestNamespace
     {
         protected override void Configure(global::HotChocolate.Types.IObjectTypeDescriptor<global::TestNamespace.CustomConnection<TestNamespace.Author>> descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.CustomConnection<TestNamespace.Author>);
-            var extend = descriptor.Extend();
-            var bindingResolver = extend.Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
 
-            var nodeTypeRef = extend.Context.TypeInspector.GetTypeRef(typeof(global::TestNamespace.Author));
+            if(extension.Context.Options.ApplyShareableToConnections)
+            {
+                descriptor.Directive(global::HotChocolate.Types.Composite.Shareable.Instance);
+            }
+
+            var nodeTypeRef = extension.Context.TypeInspector.GetTypeRef(typeof(global::TestNamespace.Author));
             descriptor
                 .Name(t => string.Format("{0}CustomConnection", t.Name))
                 .DependsOn(nodeTypeRef);
 
-            descriptor
-                .Field(thisType.GetMember("Edges", global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags)[0])
-                .Type<global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorCustomEdgeType>>>>()
-                .ExtendWith(static (c, r) =>
-                {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.SetConnectionEdgesFieldFlags();
-                    c.Definition.Resolvers = r.Edges();
-                },
-                resolvers);
+            var naming = descriptor.Extend().Context.Naming;
 
             descriptor
-                .Field(thisType.GetMember("Nodes", global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
+                .Field(naming.GetMemberName("Edges", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.SetConnectionNodesFieldFlags();
-                    c.Definition.Resolvers = r.Nodes();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorCustomEdgeType>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(global::System.Collections.Generic.IReadOnlyList<global::TestNamespace.CustomEdge<global::TestNamespace.Author>>);
+
+                    configuration.SetSourceGeneratorFlags();
+                    configuration.SetConnectionEdgesFieldFlags();
+
+                    configuration.Resolvers = context.Resolvers.Edges();
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
 
             descriptor
-                .Field(thisType.GetMember("PageInfo", global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
+                .Field(naming.GetMemberName("Nodes", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = r.PageInfo();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(global::TestNamespace.Author), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Author")))));
+                    configuration.ResultType = typeof(global::System.Collections.Generic.IReadOnlyList<global::TestNamespace.Author>);
+
+                    configuration.SetSourceGeneratorFlags();
+                    configuration.SetConnectionNodesFieldFlags();
+
+                    configuration.Resolvers = context.Resolvers.Nodes();
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
 
             descriptor
-                .Field(thisType.GetMember("TotalCount", global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
+                .Field(naming.GetMemberName("PageInfo", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.SetConnectionTotalCountFieldFlags();
-                    c.Definition.Resolvers = r.TotalCount();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.Pagination.ConnectionPageInfo), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__HotChocolate_Types_Pagination_ConnectionPageInfo")));
+                    configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.ConnectionPageInfo);
+
+                    configuration.SetSourceGeneratorFlags();
+
+                    configuration.Resolvers = context.Resolvers.PageInfo();
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
+
+            descriptor
+                .Field(naming.GetMemberName("TotalCount", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
+                {
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int")));
+                    configuration.ResultType = typeof(int);
+
+                    configuration.SetSourceGeneratorFlags();
+                    configuration.SetConnectionTotalCountFieldFlags();
+
+                    configuration.Resolvers = context.Resolvers.TotalCount();
+                },
+                (Resolvers: resolvers, ThisType: thisType));
         }
 
         private sealed class __Resolvers
@@ -139,33 +188,63 @@ namespace TestNamespace
     {
         protected override void Configure(global::HotChocolate.Types.IObjectTypeDescriptor<global::TestNamespace.CustomEdge<TestNamespace.Author>> descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.CustomEdge<TestNamespace.Author>);
-            var extend = descriptor.Extend();
-            var bindingResolver = extend.Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
 
-            var nodeTypeRef = extend.Context.TypeInspector.GetTypeRef(typeof(global::TestNamespace.Author));
+            if(extension.Context.Options.ApplyShareableToConnections)
+            {
+                descriptor.Directive(global::HotChocolate.Types.Composite.Shareable.Instance);
+            }
+
+            var nodeTypeRef = extension.Context.TypeInspector.GetTypeRef(typeof(global::TestNamespace.Author));
             descriptor
                 .Name(t => string.Format("{0}CustomEdge", t.Name))
                 .DependsOn(nodeTypeRef);
 
-            descriptor
-                .Field(thisType.GetMember("Node", global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
-                {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = r.Node();
-                },
-                resolvers);
+            var naming = descriptor.Extend().Context.Naming;
 
             descriptor
-                .Field(thisType.GetMember("Cursor", global::HotChocolate.Utilities.ReflectionUtils.InstanceMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
+                .Field(naming.GetMemberName("Node", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = r.Cursor();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(global::TestNamespace.Author), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Author")));
+                    configuration.ResultType = typeof(global::TestNamespace.Author);
+
+                    configuration.SetSourceGeneratorFlags();
+
+                    configuration.Resolvers = context.Resolvers.Node();
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
+
+            descriptor
+                .Field(naming.GetMemberName("Cursor", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
+                {
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
+                    configuration.ResultType = typeof(string);
+
+                    configuration.SetSourceGeneratorFlags();
+
+                    configuration.Resolvers = context.Resolvers.Cursor();
+                },
+                (Resolvers: resolvers, ThisType: thisType));
         }
 
         private sealed class __Resolvers
@@ -216,24 +295,36 @@ namespace TestNamespace.Types.Nodes
     {
         internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor<global::TestNamespace.Author> descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.Types.Nodes.AuthorNode);
-            var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
 
+            var naming = descriptor.Extend().Context.Naming;
+
             descriptor
-                .Field(thisType.GetMember("GetAuthorsAsync", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
+                .Field(naming.GetMemberName("Authors", global::HotChocolate.Types.MemberKind.ObjectField))
                 .AddPagingArguments()
-                .Type<global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorCustomConnectionType>>()
-                .ExtendWith(static (c, r) =>
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.SetConnectionFlags();
-                    var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(c.Context, null);
-                    c.Definition.State = c.Definition.State.SetItem(HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);
-                    c.Definition.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = pagingOptions;
-                    c.Definition.Resolvers = r.GetAuthorsAsync();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorCustomConnectionType>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(global::TestNamespace.CustomConnection<global::TestNamespace.Author>);
+
+                    configuration.SetSourceGeneratorFlags();
+                    configuration.SetConnectionFlags();
+                    var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(field.Context, null);
+                    configuration.Features.Set(pagingOptions);
+
+                    configuration.Resolvers = context.Resolvers.GetAuthorsAsync();
+                    configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Author>.Default;
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
 
             Configure(descriptor);
         }
@@ -314,39 +405,66 @@ namespace TestNamespace.Types.Root
     {
         internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.Types.Root.AuthorQueries);
-            var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers();
 
-            descriptor
-                .Field(thisType.GetMember("GetAuthorsAsync", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .AddPagingArguments()
-                .Type<global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorCustomConnectionType>>()
-                .ExtendWith(static (c, r) =>
-                {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.SetConnectionFlags();
-                    var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(c.Context, null);
-                    c.Definition.State = c.Definition.State.SetItem(HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);
-                    c.Definition.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = pagingOptions;
-                    c.Definition.Resolvers = r.GetAuthorsAsync();
-                },
-                resolvers);
+            HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                extension.Context,
+                descriptor,
+                null,
+                new global::HotChocolate.Types.QueryTypeAttribute());
+            configuration.ConfigurationsAreApplied = true;
+
+            var naming = descriptor.Extend().Context.Naming;
 
             descriptor
-                .Field(thisType.GetMember("GetAuthors2Async", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
+                .Field(naming.GetMemberName("Authors", global::HotChocolate.Types.MemberKind.ObjectField))
                 .AddPagingArguments()
-                .Type<global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorCustomConnectionType>>()
-                .ExtendWith(static (c, r) =>
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.SetConnectionFlags();
-                    var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(c.Context, null);
-                    c.Definition.State = c.Definition.State.SetItem(HotChocolate.WellKnownContextData.PagingOptions, pagingOptions);
-                    c.Definition.ContextData[HotChocolate.WellKnownContextData.PagingOptions] = pagingOptions;
-                    c.Definition.Resolvers = r.GetAuthors2Async();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorCustomConnectionType>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(global::TestNamespace.CustomConnection<global::TestNamespace.Author>);
+
+                    configuration.SetSourceGeneratorFlags();
+                    configuration.SetConnectionFlags();
+                    var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(field.Context, null);
+                    configuration.Features.Set(pagingOptions);
+
+                    configuration.Resolvers = context.Resolvers.GetAuthorsAsync();
+                    configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Author>.Default;
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
+
+            descriptor
+                .Field(naming.GetMemberName("Authors2", global::HotChocolate.Types.MemberKind.ObjectField))
+                .AddPagingArguments()
+                .ExtendWith(static (field, context) =>
+                {
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::TestNamespace.AuthorCustomConnectionType>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(global::TestNamespace.CustomConnection<global::TestNamespace.Author>);
+
+                    configuration.SetSourceGeneratorFlags();
+                    configuration.SetConnectionFlags();
+                    var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(field.Context, null);
+                    configuration.Features.Set(pagingOptions);
+
+                    configuration.Resolvers = context.Resolvers.GetAuthors2Async();
+                    configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Author>.Default;
+                },
+                (Resolvers: resolvers, ThisType: thisType));
 
             Configure(descriptor);
         }

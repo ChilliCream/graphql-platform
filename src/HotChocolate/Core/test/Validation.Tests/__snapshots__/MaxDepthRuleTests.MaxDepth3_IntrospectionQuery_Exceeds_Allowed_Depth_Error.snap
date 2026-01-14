@@ -1,12 +1,12 @@
-﻿[
+[
   {
     "Message": "The GraphQL document has an execution depth of 8 which exceeds the max allowed execution depth of 3.",
     "Code": null,
     "Path": null,
     "Locations": [
       {
-        "Line": 2,
-        "Column": 17
+        "Line": 1,
+        "Column": 1
       }
     ],
     "Extensions": {

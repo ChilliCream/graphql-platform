@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The argument `DogCommand` does not exist.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 8,
-        "Column": 37
+        "Line": 7,
+        "Column": 19
       }
     ],
     "Extensions": {
@@ -41,8 +41,8 @@
     },
     "Locations": [
       {
-        "Line": 8,
-        "Column": 21
+        "Line": 7,
+        "Column": 3
       }
     ],
     "Extensions": {

@@ -1,4 +1,3 @@
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Planning;
@@ -17,6 +16,8 @@ public interface ISelectionSetIndex
     uint GetId(SelectionSetNode selectionSet);
 
     bool TryGetId(SelectionSetNode selectionSet, out uint id);
+
+    bool TryGetOriginalIdFromCloned(uint clonedId, out uint originalId);
 
     bool IsRegistered(SelectionSetNode selectionSet);
 

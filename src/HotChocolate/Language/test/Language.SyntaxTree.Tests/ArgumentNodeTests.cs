@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public sealed class ArgumentNodeTests
@@ -43,7 +41,7 @@ public sealed class ArgumentNodeTests
     public void CreateArgumentWithConvenienceConstructor()
     {
         // arrange
-        var name = "foo";
+        const string name = "foo";
         var value = new StringValueNode("bar");
 
         // act
@@ -179,7 +177,7 @@ public sealed class ArgumentNodeTests
         var argument = new ArgumentNode(null, name, value);
 
         // act
-        ISyntaxNode[] nodes = argument.GetNodes().ToArray();
+        var nodes = argument.GetNodes().ToArray();
 
         // assert
         Assert.Collection(nodes,
@@ -199,7 +197,7 @@ public sealed class ArgumentNodeTests
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -220,7 +218,7 @@ public sealed class ArgumentNodeTests
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);

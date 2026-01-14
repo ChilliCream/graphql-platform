@@ -20,11 +20,11 @@ public class DroidType
         descriptor.Field(t => t.AppearsIn)
             .Type<ListType<EpisodeType>>();
 
-        descriptor.Field<SharedResolvers>(r => r.GetCharacter(default!, default!))
+        descriptor.Field<SharedResolvers>(r => r.GetCharacter(null!, null!))
             .UsePaging<CharacterType>()
             .Name("friends");
 
-        descriptor.Field<SharedResolvers>(t => t.GetHeight(default, default!))
+        descriptor.Field<SharedResolvers>(t => t.GetHeight(null, null!))
             .Type<FloatType>()
             .Argument("unit", a => a.Type<EnumType<Unit>>())
             .Name("height");

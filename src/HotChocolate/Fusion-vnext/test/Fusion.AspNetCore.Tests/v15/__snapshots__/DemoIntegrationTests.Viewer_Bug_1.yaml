@@ -1,0 +1,124 @@
+title: Viewer_Bug_1
+request:
+  document: |
+    query testQuery {
+      exclusiveSubgraphA {
+        __typename
+      }
+      viewer {
+        exclusiveSubgraphB
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "exclusiveSubgraphA": {
+          "__typename": "ExclusiveSubgraphA"
+        },
+        "viewer": {
+          "exclusiveSubgraphB": "Viewer"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type ExclusiveSubgraphA {
+        id: ID!
+      }
+
+      type Query {
+        exclusiveSubgraphA: ExclusiveSubgraphA
+        viewer: Viewer @shareable
+      }
+
+      type Viewer {
+        name: String
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_65ad0daf_2 {
+              exclusiveSubgraphA {
+                __typename
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "exclusiveSubgraphA": {
+                    "__typename": "ExclusiveSubgraphA"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        viewer: Viewer @shareable
+      }
+
+      type Viewer {
+        exclusiveSubgraphB: String
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_65ad0daf_1 {
+              viewer {
+                exclusiveSubgraphB
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "exclusiveSubgraphB": "Viewer"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          exclusiveSubgraphA {
+            __typename
+          }
+          viewer {
+            exclusiveSubgraphB
+          }
+        }
+      name: testQuery
+      hash: 65ad0daf293954c92e5d9329ad6f5bca
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_65ad0daf_1 {
+          viewer {
+            exclusiveSubgraphB
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_65ad0daf_2 {
+          exclusiveSubgraphA {
+            __typename
+          }
+        }

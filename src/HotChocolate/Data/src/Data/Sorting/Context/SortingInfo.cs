@@ -4,7 +4,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Sorting;
 
 /// <summary>
-/// Represents a collection of sorting fields and operations .
+/// Represents a collection of sorting fields and operations.
 /// </summary>
 public class SortingInfo : SortingValueNode, ISortingInfo
 {
@@ -38,11 +38,11 @@ public class SortingInfo : SortingValueNode, ISortingInfo
         var type = Type;
         if (Type is NonNullType nonNullType)
         {
-            type = nonNullType.Type;
+            type = nonNullType.NullableType;
         }
 
-        if (ValueNode is ObjectValueNode valueNode &&
-            type is SortInputType sortingInputType)
+        if (ValueNode is ObjectValueNode valueNode
+            && type is SortInputType sortingInputType)
         {
             List<ISortingFieldInfo>? fieldInfos = null;
             foreach (var fieldValue in valueNode.Fields)
@@ -69,12 +69,12 @@ public class SortingInfo : SortingValueNode, ISortingInfo
         var normalizedType = type;
         if (type is NonNullType nonNullType)
         {
-            normalizedType = nonNullType.Type;
+            normalizedType = nonNullType.NullableType;
         }
 
-        if (valueNode is ListValueNode listValueNode &&
-            normalizedType.IsListType() &&
-            normalizedType.NamedType() is ISortInputType)
+        if (valueNode is ListValueNode listValueNode
+            && normalizedType.IsListType()
+            && normalizedType.NamedType() is ISortInputType)
         {
             List<ISortingValueNode> values = new(listValueNode.Items.Count);
 

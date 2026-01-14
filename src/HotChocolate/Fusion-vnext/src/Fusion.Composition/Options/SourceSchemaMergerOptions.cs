@@ -1,6 +1,32 @@
 namespace HotChocolate.Fusion.Options;
 
-internal sealed class SourceSchemaMergerOptions
+/// <summary>
+/// Configuration options for merging source schemas.
+/// </summary>
+public sealed class SourceSchemaMergerOptions
 {
-    public bool AddFusionDefinitions { get; init; } = true;
+    /// <summary>
+    /// Adds Fusion-specific definitions to the merged schema.
+    /// </summary>
+    public bool AddFusionDefinitions { get; set; } = true;
+
+    /// <summary>
+    /// Defines how to handle <c>@cacheControl</c> directives when merging source schemas.
+    /// </summary>
+    public DirectiveMergeBehavior CacheControlMergeBehavior { get; set; } = DirectiveMergeBehavior.Include;
+
+    /// <summary>
+    /// Enables the inclusion of Global Object Identification fields.
+    /// </summary>
+    public bool EnableGlobalObjectIdentification { get; set; }
+
+    /// <summary>
+    /// Removes types and directives that are not referenced in the final merged schema.
+    /// </summary>
+    public bool RemoveUnreferencedDefinitions { get; set; } = true;
+
+    /// <summary>
+    /// Defines how to handle <c>@tag</c> directives when merging source schemas.
+    /// </summary>
+    public DirectiveMergeBehavior TagMergeBehavior { get; set; } = DirectiveMergeBehavior.IncludePrivate;
 }

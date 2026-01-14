@@ -15,14 +15,14 @@ public class HumanType : ObjectType<Human>
         descriptor.Field(t => t.AppearsIn).Type<ListType<EpisodeType>>();
 
         descriptor
-            .Field<SharedResolvers>(r => r.GetCharacter(default!, default!))
+            .Field<SharedResolvers>(r => r.GetCharacter(null!, null!))
             .UsePaging<CharacterType>()
             .Name("friends")
             .Parallel();
 
-        descriptor.Field<SharedResolvers>(r => r.GetOtherHuman(default!, default!));
+        descriptor.Field<SharedResolvers>(r => r.GetOtherHuman(null!, null!));
 
-        descriptor.Field<SharedResolvers>(t => t.GetHeight(default, default!))
+        descriptor.Field<SharedResolvers>(t => t.GetHeight(null, null!))
             .Type<FloatType>()
             .Argument("unit", a => a.Type<EnumType<Unit>>())
             .Name("height");

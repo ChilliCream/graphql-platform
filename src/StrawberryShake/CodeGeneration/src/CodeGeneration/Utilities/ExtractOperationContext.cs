@@ -21,7 +21,7 @@ internal sealed class ExtractOperationContext
             .ToDictionary(t => t.Name.Value);
     }
 
-    public OperationDefinitionNode Operation { get; private set; } = default!;
+    public OperationDefinitionNode Operation { get; private set; } = null!;
 
     public List<FragmentDefinitionNode> ExportedFragments { get; } = [];
 

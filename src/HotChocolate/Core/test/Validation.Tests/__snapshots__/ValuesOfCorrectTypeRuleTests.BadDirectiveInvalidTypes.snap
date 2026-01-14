@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The specified argument value does not match the argument type.",
     "Code": null,
@@ -14,8 +14,8 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 38
+        "Line": 2,
+        "Column": 22
       }
     ],
     "Extensions": {
@@ -46,8 +46,8 @@
     },
     "Locations": [
       {
-        "Line": 4,
-        "Column": 40
+        "Line": 3,
+        "Column": 24
       }
     ],
     "Extensions": {

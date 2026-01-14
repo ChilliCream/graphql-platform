@@ -22,10 +22,7 @@ internal sealed class DefaultGraphQLRequestExecutor : IGraphQLRequestExecutor
 
     public async Task<IActionResult> ExecuteAsync(HttpContext context)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         // First we need to populate the HttpContext with the current GraphQL server options ...
         context.Items.Add(nameof(GraphQLServerOptions), _options);

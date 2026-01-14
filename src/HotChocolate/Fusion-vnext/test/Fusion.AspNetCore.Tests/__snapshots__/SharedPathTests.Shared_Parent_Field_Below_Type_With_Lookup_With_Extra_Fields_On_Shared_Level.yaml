@@ -1,0 +1,274 @@
+title: Shared_Parent_Field_Below_Type_With_Lookup_With_Extra_Fields_On_Shared_Level
+request:
+  document: |
+    {
+      productById(id: 1) {
+        schema1
+        shared {
+          schema2
+          schema1
+        }
+        schema2
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "productById": {
+          "schema1": "schema1",
+          "shared": {
+            "schema2": "schema2",
+            "schema1": "schema1"
+          },
+          "schema2": "schema2"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface IInterface @key(fields: "id") {
+        id: Int!
+      }
+
+      type Product implements IInterface {
+        id: Int!
+        schema1: String!
+        shared: SharedProduct @shareable
+      }
+
+      type Query {
+        productById(id: Int!): Product @lookup
+        viewer: Viewer! @shareable
+        schema1: String!
+        interface: IInterface! @shareable
+        unsharedInterface: IInterface!
+        union: IUnion! @shareable
+        topReview: Review! @shareable
+      }
+
+      type Review implements IInterface {
+        id: Int!
+        schema1: String!
+      }
+
+      type SharedProduct {
+        schema1: String!
+        shared2: SharedProduct2 @shareable
+      }
+
+      type SharedProduct2 {
+        schema1: String!
+      }
+
+      type Viewer {
+        schema1: String!
+        settings: ViewerSettings! @shareable
+      }
+
+      type ViewerSettings {
+        schema1: String!
+      }
+
+      union IUnion = Product | Review
+    interactions:
+      - request:
+          document: |
+            query Op_49906eea_1 {
+              productById(id: 1) {
+                schema1
+                shared {
+                  schema1
+                }
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "schema1": "schema1",
+                    "shared": {
+                      "schema1": "schema1"
+                    },
+                    "id": 1
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface IInterface @key(fields: "id") {
+        id: Int!
+      }
+
+      type Product implements IInterface {
+        id: Int!
+        schema2: String!
+        shared: SharedProduct @shareable
+      }
+
+      type Query {
+        product(id: Int!): Product @lookup
+        viewer: Viewer! @shareable
+        schema2: String!
+        interface: IInterface! @shareable
+        union: IUnion! @shareable
+        topReview: Review! @shareable
+      }
+
+      type Review implements IInterface {
+        id: Int!
+        schema2: String!
+      }
+
+      type SharedProduct {
+        schema2: String!
+        shared2: SharedProduct2 @shareable
+      }
+
+      type SharedProduct2 {
+        schema2: String!
+      }
+
+      type Viewer {
+        schema2: String!
+        settings: ViewerSettings! @shareable
+      }
+
+      type ViewerSettings {
+        schema2: String!
+      }
+
+      union IUnion = Product | Review
+    interactions:
+      - request:
+          document: |
+            query Op_49906eea_2(
+              $__fusion_1_id: Int!
+            ) {
+              product(id: $__fusion_1_id) {
+                schema2
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 1
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "product": {
+                    "schema2": "schema2"
+                  }
+                }
+              }
+      - request:
+          document: |
+            query Op_49906eea_3(
+              $__fusion_2_id: Int!
+            ) {
+              product(id: $__fusion_2_id) {
+                shared {
+                  schema2
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": 1
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "product": {
+                    "shared": {
+                      "schema2": "schema2"
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          productById(id: 1) {
+            schema1
+            shared {
+              schema2
+              schema1
+            }
+            schema2
+            id @fusion__requirement
+          }
+        }
+      hash: 49906eeaddb0e14de3cf10cc5494b47a
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_49906eea_1 {
+          productById(id: 1) {
+            schema1
+            shared {
+              schema1
+            }
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_49906eea_2(
+          $__fusion_1_id: Int!
+        ) {
+          product(id: $__fusion_1_id) {
+            schema2
+          }
+        }
+      source: $.product
+      target: $.productById
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_49906eea_3(
+          $__fusion_2_id: Int!
+        ) {
+          product(id: $__fusion_2_id) {
+            shared {
+              schema2
+            }
+          }
+        }
+      source: $.product
+      target: $.productById
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

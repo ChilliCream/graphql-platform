@@ -1,15 +1,13 @@
 using System.Reflection;
 using System.Linq.Expressions;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
-
-#nullable enable
 
 namespace HotChocolate.Types.Relay.Descriptors;
 
 /// <summary>
-/// The node descriptor allows to configure a node type.
+/// The node descriptor allows configuring a node type.
 /// </summary>
 public class NodeDescriptor
     : NodeDescriptorBase
@@ -34,19 +32,19 @@ public class NodeDescriptor
         _typeDescriptor
             .Implements<NodeType>()
             .Extend()
-            .OnBeforeCompletion(OnCompleteDefinition);
+            .OnBeforeCompletion(OnCompleteConfiguration);
 
-        Definition.NodeType = nodeType;
+        Configuration.NodeType = nodeType;
     }
 
-    internal void OnCompleteDefinition(
+    internal void OnCompleteConfiguration(
         ITypeCompletionContext context,
-        ObjectTypeDefinition definition)
-        => CompleteResolver(context, definition);
+        ObjectTypeConfiguration configuration)
+        => CompleteResolver(context, configuration);
 
     internal void ConfigureNodeField(IObjectTypeDescriptor typeDescriptor)
     {
-        if (Definition.IdMember is null)
+        if (Configuration.IdMember is null)
         {
             var descriptor = typeDescriptor
                 .Field(NodeType.Names.Id)
@@ -57,7 +55,7 @@ public class NodeDescriptor
         else
         {
             var descriptor = typeDescriptor
-                .Field(Definition.IdMember)
+                .Field(Configuration.IdMember)
                 .Name(NodeType.Names.Id)
                 .Type<NonNullType<IdType>>();
 
@@ -67,7 +65,7 @@ public class NodeDescriptor
 
     protected override IObjectFieldDescriptor ConfigureNodeField()
     {
-        if (Definition.IdMember is null)
+        if (Configuration.IdMember is null)
         {
             var descriptor = _typeDescriptor
                 .Field(NodeType.Names.Id)
@@ -78,7 +76,7 @@ public class NodeDescriptor
         else
         {
             var descriptor = _typeDescriptor
-                .Field(Definition.IdMember)
+                .Field(Configuration.IdMember)
                 .Name(NodeType.Names.Id)
                 .Type<NonNullType<IdType>>();
 
@@ -89,14 +87,11 @@ public class NodeDescriptor
     /// <inheritdoc cref="INodeDescriptor.IdField(MemberInfo)"/>
     public INodeDescriptor IdField(MemberInfo propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         if (propertyOrMethod is PropertyInfo or MethodInfo)
         {
-            Definition.IdMember = propertyOrMethod;
+            Configuration.IdMember = propertyOrMethod;
             return this;
         }
 
@@ -107,11 +102,11 @@ public class NodeDescriptor
     public IObjectFieldDescriptor ResolveNode(Type type)
         => ResolveNodeWith(
             Context.TypeInspector.GetNodeResolverMethod(
-                Definition.NodeType ?? type)!);
+                Configuration.NodeType ?? type)!);
 
     internal void TryResolveNode(Type type)
     {
-        var resolver = Context.TypeInspector.GetNodeResolverMethod(Definition.NodeType ?? type);
+        var resolver = Context.TypeInspector.GetNodeResolverMethod(Configuration.NodeType ?? type);
 
         if (resolver is not null)
         {
@@ -123,7 +118,7 @@ public class NodeDescriptor
     public IObjectFieldDescriptor ResolveNodeWith<TResolver>()
         => ResolveNodeWith(
             Context.TypeInspector.GetNodeResolverMethod(
-                Definition.NodeType ?? typeof(TResolver),
+                Configuration.NodeType ?? typeof(TResolver),
                 typeof(TResolver))!);
 
     /// <inheritdoc
@@ -131,6 +126,6 @@ public class NodeDescriptor
     public IObjectFieldDescriptor ResolveNodeWith(Type type)
         => ResolveNodeWith(
             Context.TypeInspector.GetNodeResolverMethod(
-                Definition.NodeType ?? type,
+                Configuration.NodeType ?? type,
                 type)!);
 }

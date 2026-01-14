@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.WellKnownContextData;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Execution.Requirements;
 
@@ -11,9 +11,9 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is SchemaTypeDefinition schema)
+        if (configuration is SchemaTypeConfiguration schema)
         {
             schema.Features.Set(_metadata);
         }
@@ -21,9 +21,9 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if (definition is not ObjectTypeDefinition typeDef)
+        if (configuration is not ObjectTypeConfiguration typeDef)
         {
             return;
         }
@@ -32,22 +32,12 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
 
         foreach (var fieldDef in typeDef.Fields)
         {
-            if((fieldDef.Flags & FieldFlags.WithRequirements) == FieldFlags.WithRequirements)
+            if ((fieldDef.Flags & CoreFieldFlags.WithRequirements) == CoreFieldFlags.WithRequirements)
             {
-                var fieldCoordinate = new SchemaCoordinate(
-                    typeDef.Name,
-                    fieldDef.Name);
-
-                // if the source generator already compiled the
-                // requirements we will take it and skip compilation.
-                if (fieldDef.ContextData.TryGetValue(FieldRequirements, out var value))
-                {
-                    _metadata.TryAddRequirements(fieldCoordinate, (TypeNode)value!);
-                    continue;
-                }
-
-                var requirements = (string)fieldDef.ContextData[FieldRequirementsSyntax]!;
-                var entityType = runtimeType ?? (Type)fieldDef.ContextData[FieldRequirementsEntity]!;
+                var fieldCoordinate = new SchemaCoordinate(typeDef.Name, fieldDef.Name);
+                var feature = fieldDef.Features.GetRequired<FieldRequirementFeature>();
+                var requirements = feature.Requirements;
+                var entityType = runtimeType ?? feature.EntityType;
 
                 var propertyNodes = PropertyTreeBuilder.Build(
                     fieldCoordinate,
@@ -61,6 +51,6 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
 
     internal override void OnAfterCreateSchemaInternal(
         IDescriptorContext context,
-        ISchema schema)
+        Schema schema)
         => _metadata.Seal();
 }

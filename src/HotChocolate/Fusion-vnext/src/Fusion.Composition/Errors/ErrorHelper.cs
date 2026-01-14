@@ -4,8 +4,14 @@ namespace HotChocolate.Fusion.Errors;
 
 internal static class ErrorHelper
 {
+    public static CompositionError SatisfiabilityValidationFailed()
+        => new(ErrorHelper_SatisfiabilityValidationFailed);
+
     public static CompositionError SourceSchemaParsingFailed()
         => new(ErrorHelper_SourceSchemaParsingFailed);
+
+    public static CompositionError SourceSchemaPreprocessingFailed()
+        => new(ErrorHelper_SourceSchemaPreprocessingFailed);
 
     public static CompositionError SourceSchemaValidationFailed()
         => new(ErrorHelper_SourceSchemaValidationFailed);

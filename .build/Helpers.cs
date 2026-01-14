@@ -1,4 +1,3 @@
-using System.Net;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,6 +11,7 @@ static class Helpers
     static readonly string[] Directories =
     {
         "GreenDonut",
+        Path.Combine("HotChocolate", "Adapters"),
         Path.Combine("HotChocolate", "ApolloFederation"),
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "AzureFunctions"),
@@ -31,6 +31,7 @@ static class Helpers
         Path.Combine("HotChocolate", "Mutable"),
         Path.Combine("HotChocolate", "Fusion-vnext"),
         Path.Combine("HotChocolate", "Spatial"),
+        Path.Combine("Nitro", "CommandLine"),
         Path.Combine("StrawberryShake", "Client"),
         Path.Combine("StrawberryShake", "CodeGeneration"),
         Path.Combine("StrawberryShake", "MetaPackages"),

@@ -23,7 +23,7 @@ scalar Decimal
 
 scalar Long
 
-"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+"The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
 scalar DateTime
 
 "The `Date` scalar represents an ISO-8601 compliant date type."
@@ -130,10 +130,10 @@ type __Type {
   kind: __TypeKind!
   name: String
   description: String
-  fields(includeDeprecated: Boolean = false): [__Field!]
+  fields(includeDeprecated: Boolean! = false): [__Field!]
   interfaces: [__Type!]
   possibleTypes: [__Type!]
-  enumValues(includeDeprecated: Boolean = false): [__EnumValue!]
+  enumValues(includeDeprecated: Boolean! = false): [__EnumValue!]
   inputFields: [__InputValue!]
   ofType: __Type
 }

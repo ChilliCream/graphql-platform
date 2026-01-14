@@ -1,0 +1,63 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PackAsTool>true</PackAsTool>
+    <PublishAot>false</PublishAot>
+    <UseAppHost>false</UseAppHost>
+    <ToolCommandName>nitro</ToolCommandName>
+    <RootNamespace>ChilliCream.Nitro.CommandLine</RootNamespace>
+    <AssemblyName>nitro</AssemblyName>
+    <PackageId>ChilliCream.Nitro.CommandLine</PackageId>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <GraphQLPersistedOperationOutput>persisted</GraphQLPersistedOperationOutput>
+    <GraphQLPersistedOperationFormat>relay</GraphQLPersistedOperationFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="ChilliCream.Nitro.CommandLine" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="Spectre.Console" />
+    <Using Include="System.CommandLine" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
+    <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Core\StrawberryShake.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
+    <ProjectReference Include="..\CommandLine.Core\Nitro.CommandLine.Core.csproj" />
+    <ProjectReference Include="..\CommandLine.Fusion.Compatibility\Nitro.CommandLine.Fusion.Compatibility.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Duende.IdentityModel.OidcClient" VersionOverride="6.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" />
+    <PackageReference Include="Spectre.Console" />
+    <PackageReference Include="Spectre.Console.Json" />
+    <PackageReference Include="System.Commandline" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <PackageReference Include="System.Linq.Async" />
+    <PackageReference Include="System.Reactive" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\CommandLineResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandLineResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\CommandLineResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CommandLineResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

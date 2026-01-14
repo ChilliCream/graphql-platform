@@ -17,12 +17,12 @@ public class TypeInfoTests
     [InlineData(typeof(Task<List<List<string>>>), "[[String]]")]
     [InlineData(typeof(string[]), "[String]")]
     [InlineData(typeof(Task<string[]>), "[String]")]
-    [InlineData(typeof(NativeType<string>), "String")]
-    [InlineData(typeof(NativeType<Task<string>>), "String")]
-    [InlineData(typeof(NativeType<List<string>>), "[String]")]
-    [InlineData(typeof(NativeType<Task<List<string>>>), "[String]")]
-    [InlineData(typeof(NativeType<string[]>), "[String]")]
-    [InlineData(typeof(NativeType<Task<string[]>>), "[String]")]
+    [InlineData(typeof(NamedRuntimeType<string>), "String")]
+    [InlineData(typeof(NamedRuntimeType<Task<string>>), "String")]
+    [InlineData(typeof(NamedRuntimeType<List<string>>), "[String]")]
+    [InlineData(typeof(NamedRuntimeType<Task<List<string>>>), "[String]")]
+    [InlineData(typeof(NamedRuntimeType<string[]>), "[String]")]
+    [InlineData(typeof(NamedRuntimeType<Task<string[]>>), "[String]")]
     [InlineData(typeof(int), "String!")]
     [InlineData(typeof(Task<int>), "String!")]
     [InlineData(typeof(List<int>), "[String!]")]
@@ -30,12 +30,12 @@ public class TypeInfoTests
     [InlineData(typeof(Task<List<List<int>>>), "[[String!]]")]
     [InlineData(typeof(int[]), "[String!]")]
     [InlineData(typeof(Task<int[]>), "[String!]")]
-    [InlineData(typeof(NativeType<int>), "String!")]
-    [InlineData(typeof(NativeType<Task<int>>), "String!")]
-    [InlineData(typeof(NativeType<List<int>>), "[String!]")]
-    [InlineData(typeof(NativeType<Task<List<int>>>), "[String!]")]
-    [InlineData(typeof(NativeType<int[]>), "[String!]")]
-    [InlineData(typeof(NativeType<Task<int[]>>), "[String!]")]
+    [InlineData(typeof(NamedRuntimeType<int>), "String!")]
+    [InlineData(typeof(NamedRuntimeType<Task<int>>), "String!")]
+    [InlineData(typeof(NamedRuntimeType<List<int>>), "[String!]")]
+    [InlineData(typeof(NamedRuntimeType<Task<List<int>>>), "[String!]")]
+    [InlineData(typeof(NamedRuntimeType<int[]>), "[String!]")]
+    [InlineData(typeof(NamedRuntimeType<Task<int[]>>), "[String!]")]
     [InlineData(typeof(int?), "String")]
     [InlineData(typeof(Task<int?>), "String")]
     [InlineData(typeof(List<int?>), "[String]")]
@@ -43,12 +43,12 @@ public class TypeInfoTests
     [InlineData(typeof(Task<List<List<int?>>>), "[[String]]")]
     [InlineData(typeof(int?[]), "[String]")]
     [InlineData(typeof(Task<int?[]>), "[String]")]
-    [InlineData(typeof(NativeType<int?>), "String")]
-    [InlineData(typeof(NativeType<Task<int?>>), "String")]
-    [InlineData(typeof(NativeType<List<int?>>), "[String]")]
-    [InlineData(typeof(NativeType<Task<List<int?>>>), "[String]")]
-    [InlineData(typeof(NativeType<int?[]>), "[String]")]
-    [InlineData(typeof(NativeType<Task<int?[]>>), "[String]")]
+    [InlineData(typeof(NamedRuntimeType<int?>), "String")]
+    [InlineData(typeof(NamedRuntimeType<Task<int?>>), "String")]
+    [InlineData(typeof(NamedRuntimeType<List<int?>>), "[String]")]
+    [InlineData(typeof(NamedRuntimeType<Task<List<int?>>>), "[String]")]
+    [InlineData(typeof(NamedRuntimeType<int?[]>), "[String]")]
+    [InlineData(typeof(NamedRuntimeType<Task<int?[]>>), "[String]")]
     [InlineData(typeof(Optional<string[]>), "[String]")]
     [InlineData(typeof(ValueTask<string[]>), "[String]")]
     [InlineData(typeof(IAsyncEnumerable<string>), "[String]")]
@@ -359,8 +359,8 @@ public class TypeInfoTests
         Assert.Equal("String", typeInfo.CreateType(new StringType()).Print());
     }
 
-    [InlineData(typeof(NativeType<Task<string>>), typeof(string))]
-    [InlineData(typeof(NativeType<string>), typeof(string))]
+    [InlineData(typeof(NamedRuntimeType<Task<string>>), typeof(string))]
+    [InlineData(typeof(NamedRuntimeType<string>), typeof(string))]
     [InlineData(typeof(Task<string>), typeof(string))]
     [InlineData(typeof(ValueTask<string[]>), typeof(string[]))]
     [InlineData(typeof(ValueTask<List<string>>), typeof(List<string>))]
@@ -403,7 +403,7 @@ public class TypeInfoTests
 
         // assert
         Assert.True(success);
-
+        Assert.NotNull(typeInfo);
         Assert.Collection(typeInfo.Components.Select(t => t.Kind),
             t => Assert.Equal(TypeComponentKind.List, t),
             t => Assert.Equal(TypeComponentKind.NonNull, t),
@@ -413,7 +413,7 @@ public class TypeInfoTests
 
         Assert.IsType<StringType>(
             Assert.IsType<NonNullType>(
-                Assert.IsType<ListType>(schemaType).ElementType).Type);
+                Assert.IsType<ListType>(schemaType).ElementType).NullableType);
     }
 
     [Fact]
@@ -451,11 +451,11 @@ public class TypeInfoTests
         // assert
         Assert.True(success);
         Assert.IsType<NonNullType>(type);
-        type = ((NonNullType)type).Type as IOutputType;
+        type = ((NonNullType)type).NullableType as IOutputType;
         Assert.IsType<ListType>(type);
         type = ((ListType)type).ElementType as IOutputType;
         Assert.IsType<NonNullType>(type);
-        type = ((NonNullType)type).Type as IOutputType;
+        type = ((NonNullType)type).NullableType as IOutputType;
         Assert.IsType<StringType>(type);
     }
 
@@ -477,7 +477,7 @@ public class TypeInfoTests
         Assert.IsType<ListType>(type);
         type = ((ListType)type).ElementType as IOutputType;
         Assert.IsType<NonNullType>(type);
-        type = ((NonNullType)type).Type as IOutputType;
+        type = ((NonNullType)type).NullableType as IOutputType;
         Assert.IsType<StringType>(type);
     }
 
@@ -497,7 +497,7 @@ public class TypeInfoTests
         // assert
         Assert.True(success);
         Assert.IsType<NonNullType>(type);
-        type = ((NonNullType)type).Type as IOutputType;
+        type = ((NonNullType)type).NullableType as IOutputType;
         Assert.IsType<ListType>(type);
         type = ((ListType)type).ElementType as IOutputType;
         Assert.IsType<StringType>(type);
@@ -519,7 +519,7 @@ public class TypeInfoTests
         // assert
         Assert.True(success);
         Assert.IsType<NonNullType>(type);
-        type = ((NonNullType)type).Type as IOutputType;
+        type = ((NonNullType)type).NullableType as IOutputType;
         Assert.IsType<StringType>(type);
     }
 
@@ -561,55 +561,49 @@ public class TypeInfoTests
         Assert.IsType<StringType>(type);
     }
 
-    private sealed class CustomStringList : CustomStringListBase
-    {
-    }
+    private sealed class CustomStringList : CustomStringListBase;
 
-    private class CustomStringListBase : List<string>
-    {
-    }
-
-#nullable enable
+    private class CustomStringListBase : List<string>;
 
     public class Nullability
     {
-        public List<string> NonNullListNonNullElement() => default!;
+        public List<string> NonNullListNonNullElement() => null!;
 
-        public List<string?> NonNullListNullableElement() => default!;
+        public List<string?> NonNullListNullableElement() => null!;
 
-        public List<string?>? NullableListNullableElement() => default;
+        public List<string?>? NullableListNullableElement() => null;
 
-        public List<string>? NullableListNonNullElement() => default;
+        public List<string>? NullableListNonNullElement() => null;
 
-        public ICollection<string> NonNullCollectionNonNullElement() => default!;
+        public ICollection<string> NonNullCollectionNonNullElement() => null!;
 
-        public ICollection<string?> NonNullCollectionNullableElement() => default!;
+        public ICollection<string?> NonNullCollectionNullableElement() => null!;
 
-        public ICollection<string?>? NullableCollectionNullableElement() => default;
+        public ICollection<string?>? NullableCollectionNullableElement() => null;
 
-        public ICollection<string>? NullableCollectionNonNullElement() => default;
+        public ICollection<string>? NullableCollectionNonNullElement() => null;
 
-        public IExecutable<string> NonNullQueryNonNullElement() => default!;
+        public IExecutable<string> NonNullQueryNonNullElement() => null!;
 
-        public IExecutable<string?> NonNullQueryNullableElement() => default!;
+        public IExecutable<string?> NonNullQueryNullableElement() => null!;
 
-        public IExecutable<string?>? NullableQueryNullableElement() => default;
+        public IExecutable<string?>? NullableQueryNullableElement() => null;
 
-        public IExecutable<string>? NullableQueryNonNullElement() => default;
+        public IExecutable<string>? NullableQueryNonNullElement() => null;
 
-        public string[] NonNullArrayNonNullElement() => default!;
+        public string[] NonNullArrayNonNullElement() => null!;
 
-        public string?[] NonNullArrayNullableElement() => default!;
+        public string?[] NonNullArrayNullableElement() => null!;
 
-        public string?[]? NullableArrayNullableElement() => default;
+        public string?[]? NullableArrayNullableElement() => null;
 
-        public string[]? NullableArrayNonNullElement() => default;
+        public string[]? NullableArrayNonNullElement() => null;
 
-        public List<List<string?>?>? NestedList() => default;
+        public List<List<string?>?>? NestedList() => null;
 
         public Optional<string?> OptionalNullableString() => default;
 
-        public Nullable<Optional<string?>> NullableOptionalNullableString() => default;
+        public Optional<string?>? NullableOptionalNullableString() => null;
     }
 
     public class Foo;

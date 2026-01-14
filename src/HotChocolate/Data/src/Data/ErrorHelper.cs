@@ -2,7 +2,6 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 
@@ -67,14 +66,13 @@ internal static class ErrorHelper
 
     public static ISchemaError ProjectionConvention_UnableToCreateFieldHandler(
         IProjectionProvider convention,
-        Type fieldHandler) =>
+        Exception exception) =>
         SchemaErrorBuilder.New()
             .SetMessage(
-                DataResources.FilterProvider_UnableToCreateFieldHandler,
-                fieldHandler.FullName ?? fieldHandler.Name,
+                DataResources.ProjectionProvider_UnableToCreateFieldHandler,
                 convention.GetType().FullName ?? convention.GetType().Name)
             .SetExtension(nameof(convention), convention)
-            .SetExtension(nameof(fieldHandler), fieldHandler)
+            .SetException(exception)
             .Build();
 
     public static IError ProjectionProvider_CouldNotProjectFiltering(IValueNode node) =>

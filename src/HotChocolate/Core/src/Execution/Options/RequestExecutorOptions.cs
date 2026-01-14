@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using static HotChocolate.Execution.Options.PersistedOperationOptions;
+using HotChocolate.PersistedOperations;
 
 namespace HotChocolate.Execution.Options;
 
@@ -9,9 +9,8 @@ namespace HotChocolate.Execution.Options;
 /// </summary>
 public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 {
-    private static readonly TimeSpan _minExecutionTimeout = TimeSpan.FromMilliseconds(100);
+    private static readonly TimeSpan s_minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private TimeSpan _executionTimeout;
-    private PersistedOperationOptions _persistedOperations = new();
 
     /// <summary>
     /// <para>Initializes a new instance of <see cref="RequestExecutorOptions"/>.</para>
@@ -37,36 +36,35 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
         get => _executionTimeout;
         set
         {
-            _executionTimeout = value < _minExecutionTimeout
-                ? _minExecutionTimeout
+            _executionTimeout = value < s_minExecutionTimeout
+                ? s_minExecutionTimeout
                 : value;
         }
     }
 
     /// <summary>
-    /// <para>
-    /// Gets or sets a value indicating whether the <c>GraphQL</c> errors
-    /// should be extended with exception details.
-    /// </para>
-    /// <para>The default value is <see cref="Debugger.IsAttached"/>.</para>
+    /// Gets or sets whether exception details should be included for GraphQL
+    /// errors in the GraphQL response.
+    /// <see cref="Debugger.IsAttached"/> by default.
     /// </summary>
+    /// <remarks>
+    /// When set to <c>true</c> includes the message and stack trace of exceptions
+    /// in the user-facing GraphQL error.
+    /// Since this could leak security-critical information, this option should only
+    /// be set to <c>true</c> for development purposes and not in production environments.
+    /// </remarks>
     public bool IncludeExceptionDetails { get; set; } = Debugger.IsAttached;
-
-    /// <summary>
-    /// Specifies that the transport is allowed to provide the schema SDL document as a file.
-    /// </summary>
-    public bool EnableSchemaFileSupport { get; set; } = true;
 
     /// <summary>
     /// Specifies the behavior of the persisted operation pipeline.
     /// </summary>
     public PersistedOperationOptions PersistedOperations
     {
-        get => _persistedOperations;
+        get;
         set
         {
-            _persistedOperations = value
-                ?? throw new ArgumentNullException(nameof(PersistedOperations));
+            ArgumentNullException.ThrowIfNull(value, nameof(PersistedOperationOptions));
+            field = value;
         }
-    }
+    } = new();
 }

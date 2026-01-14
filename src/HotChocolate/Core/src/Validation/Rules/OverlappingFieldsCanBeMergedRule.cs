@@ -20,17 +20,10 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
     public bool IsCacheable => true;
 
-    public void Validate(IDocumentValidatorContext context, DocumentNode document)
+    public void Validate(DocumentValidatorContext context, DocumentNode document)
     {
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(document);
 
         ValidateInternal(new MergeContext(context), document);
     }
@@ -72,7 +65,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 context.ReportError(
                     ErrorBuilder.New()
                         .SetMessage(conflict.Reason)
-                        .SetLocations(fieldNodes)
+                        .AddLocations(fieldNodes)
                         .SetPath(conflict.Path)
                         .SpecifiedBy("sec-Field-Selection-Merging")
                         .Build());
@@ -97,7 +90,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 case InlineFragmentNode inlineFragment:
                     var type = inlineFragment.TypeCondition is null
                         ? parentType
-                        : context.Schema.GetType<INamedType>(inlineFragment.TypeCondition.Name.Value);
+                        // TODO: TryGet?
+                        : context.Schema.Types[inlineFragment.TypeCondition.Name.Value];
                     CollectFields(context, fieldMap, inlineFragment.SelectionSet, type, visitedFragmentSpreads);
                     break;
 
@@ -107,9 +101,10 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                         continue;
                     }
 
-                    if (context.Fragments.TryGetValue(spread.Name.Value, out var fragment))
+                    if (context.Fragments.TryGet(spread, out var fragment))
                     {
-                        var fragType = context.Schema.GetType<INamedType>(fragment.TypeCondition.Name.Value);
+                        // TODO: TryGet?
+                        var fragType = context.Schema.Types[fragment.TypeCondition.Name.Value];
                         CollectFields(context, fieldMap, fragment.SelectionSet, fragType, visitedFragmentSpreads);
                     }
 
@@ -132,7 +127,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
         var unwrappedParentType = parentType.NamedType();
 
-        if (unwrappedParentType is IComplexOutputType complexType
+        if (unwrappedParentType is IComplexTypeDefinition complexType
             && complexType.Fields.TryGetField(field.Name.Value, out var fieldDef))
         {
             fields.Add(new FieldAndType(field, fieldDef.Type, complexType));
@@ -241,7 +236,6 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                     break;
 
                 case TypeKind.Object:
-                {
                     if (!concreteGroups.TryGetValue(parent, out var list))
                     {
                         list = [];
@@ -250,7 +244,6 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
                     list.Add(field);
                     break;
-                }
             }
         }
 
@@ -454,8 +447,11 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         IType? typeB,
         HashSet<FieldAndType> fields)
     {
-        var typeNameA = typeA?.Print() ?? "null";
-        var typeNameB = typeB?.Print() ?? "null";
+        // TODO: What's the proper replacement?
+        // var typeNameA = typeA?.Print() ?? "null";
+        // var typeNameB = typeB?.Print() ?? "null";
+        var typeNameA = typeA?.ToString() ?? "null";
+        var typeNameB = typeB?.ToString() ?? "null";
 
         return new Conflict(
             string.Format(
@@ -511,7 +507,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
         var baseField = fields.FirstOrDefault(
             f => f.Field.Directives.Any(
-                d => d.Name.Value == WellKnownDirectives.Stream));
+                d => d.Name.Value == DirectiveNames.Stream.Name));
 
         // if there is no stream directive on any field in this group we can skip this check.
         if (baseField is null)
@@ -539,11 +535,10 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         return null;
     }
 
-
     private static IntValueNode? GetStreamInitialCount(FieldNode field)
     {
         var streamDirective = field.Directives.First(
-            d => d.Name.Value == WellKnownDirectives.Stream);
+            d => d.Name.Value == DirectiveNames.Stream.Name);
 
         return GetStreamInitialCount(streamDirective);
     }
@@ -551,14 +546,14 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
     private static bool TryGetStreamDirective(FieldNode field, [NotNullWhen(true)] out DirectiveNode? streamDirective)
     {
         streamDirective = field.Directives.FirstOrDefault(
-            d => d.Name.Value == WellKnownDirectives.Stream);
+            d => d.Name.Value == DirectiveNames.Stream.Name);
         return streamDirective is not null;
     }
 
     private static IntValueNode? GetStreamInitialCount(DirectiveNode streamDirective)
     {
         var initialCountArgument = streamDirective.Arguments.FirstOrDefault(
-            a => a.Name.Value == WellKnownDirectives.InitialCount);
+            a => a.Name.Value == DirectiveNames.Stream.Arguments.InitialCount);
         return initialCountArgument?.Value as IntValueNode;
     }
 
@@ -645,9 +640,9 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         }
     }
 
-    private sealed class MergeContext(IDocumentValidatorContext context)
+    private sealed class MergeContext(DocumentValidatorContext context)
     {
-        public ISchema Schema => context.Schema;
+        public ISchemaDefinition Schema => context.Schema;
 
         public HashSet<HashSet<FieldAndType>> SameResponseShapeChecked { get; }
             = new(HashSetComparer<FieldAndType>.Instance);
@@ -658,9 +653,9 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         public HashSet<HashSet<FieldNode>> ConflictsReported { get; }
             = new(HashSetComparer<FieldNode>.Instance);
 
-        public IDictionary<string, FragmentDefinitionNode> Fragments => context.Fragments;
+        public DocumentValidatorContext.FragmentContext Fragments => context.Fragments;
 
-        public bool IsStreamEnabled { get; } = context.Schema.TryGetDirectiveType(WellKnownDirectives.Stream, out _);
+        public bool IsStreamEnabled { get; } = context.Schema.DirectiveDefinitions.ContainsName(DirectiveNames.Stream.Name);
 
         public void ReportError(IError error)
         {

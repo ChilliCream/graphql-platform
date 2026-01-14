@@ -4,7 +4,7 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.OpenApi;
 
 /// <summary>
-/// Skimmed Field Metadata
+/// OpenAPI Field Metadata
 /// </summary>
 internal sealed class OpenApiFieldMetadata
 {

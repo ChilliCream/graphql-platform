@@ -1,4 +1,3 @@
-#nullable enable
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
@@ -34,7 +33,7 @@ public sealed class DefaultValueSyntaxAttribute : DescriptorAttribute
     /// <summary>
     /// Creates a new instance of <see cref="DefaultValueSyntaxAttribute"/>.
     /// </summary>
-    public DefaultValueSyntaxAttribute(string? syntax)
+    public DefaultValueSyntaxAttribute(string syntax)
     {
         Syntax = syntax;
     }
@@ -42,27 +41,27 @@ public sealed class DefaultValueSyntaxAttribute : DescriptorAttribute
     /// <summary>
     /// The GraphQL syntax of the default value.
     /// </summary>
-    public string? Syntax { get; }
+    public string Syntax { get; }
 
     /// <inheritdoc />
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (descriptor is IArgumentDescriptor arg)
+        switch (descriptor)
         {
-            arg.DefaultValueSyntax(Syntax);
-        }
+            case IArgumentDescriptor arg:
+                arg.DefaultValueSyntax(Syntax);
+                break;
 
-        if (descriptor is IDirectiveArgumentDescriptor darg)
-        {
-            darg.DefaultValueSyntax(Syntax);
-        }
+            case IDirectiveArgumentDescriptor arg:
+                arg.DefaultValueSyntax(Syntax);
+                break;
 
-        if (descriptor is IInputFieldDescriptor field)
-        {
-            field.DefaultValueSyntax(Syntax);
+            case IInputFieldDescriptor arg:
+                arg.DefaultValueSyntax(Syntax);
+                break;
         }
     }
 }

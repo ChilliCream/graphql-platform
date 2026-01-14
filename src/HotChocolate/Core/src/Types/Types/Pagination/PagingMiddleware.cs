@@ -1,8 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Resolvers;
 
-#nullable enable
-
 namespace HotChocolate.Types.Pagination;
 
 public class PagingMiddleware(FieldDelegate next, IPagingHandler pagingHandler)
@@ -48,7 +46,7 @@ public class PagingMiddleware(FieldDelegate next, IPagingHandler pagingHandler)
                 {
                     errors[i] = ErrorBuilder
                         .FromError(ex.Errors[i])
-                        .SetLocations(context.Selection.SyntaxNodes)
+                        .AddLocations(context.Selection.SyntaxNodes)
                         .SetPath(context.Path)
                         .Build();
                 }

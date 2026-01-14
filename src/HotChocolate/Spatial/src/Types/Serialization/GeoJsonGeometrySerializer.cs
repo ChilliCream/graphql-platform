@@ -10,10 +10,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 {
     public bool TrySerialize(IType type, object? runtimeValue, out object? resultValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         try
         {
@@ -29,15 +26,8 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
     public bool IsInstanceOfType(IType type, IValueNode valueSyntax)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (valueSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(valueSyntax));
-        }
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(valueSyntax);
 
         if (valueSyntax is NullValueNode)
         {
@@ -55,22 +45,16 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
     public bool IsInstanceOfType(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
-        return runtimeValue is Geometry &&
-            SerializersByType.TryGetValue(runtimeValue.GetType(), out var serializer) &&
-            serializer.IsInstanceOfType(type, runtimeValue);
+        return runtimeValue is Geometry
+            && SerializersByType.TryGetValue(runtimeValue.GetType(), out var serializer)
+            && serializer.IsInstanceOfType(type, runtimeValue);
     }
 
     public object? ParseLiteral(IType type, IValueNode valueSyntax)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (valueSyntax.Kind is SyntaxKind.NullValue)
         {
@@ -88,10 +72,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
     public IValueNode ParseResult(IType type, object? resultValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (resultValue is null)
         {
@@ -105,8 +86,8 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
         if (resultValue is IReadOnlyDictionary<string, object> dict)
         {
-            if (!dict.TryGetValue(TypeFieldName, out var typeObject) ||
-                typeObject is not string typeName)
+            if (!dict.TryGetValue(TypeFieldName, out var typeObject)
+                || typeObject is not string typeName)
             {
                 throw Serializer_TypeIsMissing(type);
             }
@@ -126,23 +107,20 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
     public IValueNode ParseValue(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is null)
         {
             return NullValueNode.Default;
         }
 
-        if (runtimeValue is IReadOnlyDictionary<string, object> ||
-            runtimeValue is IDictionary<string, object>)
+        if (runtimeValue is IReadOnlyDictionary<string, object>
+            || runtimeValue is IDictionary<string, object>)
         {
             return ParseResult(type, runtimeValue);
         }
 
-        if (!(runtimeValue is Geometry geometry))
+        if (runtimeValue is not Geometry geometry)
         {
             throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
         }
@@ -162,18 +140,15 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
     public object? Serialize(IType type, object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is null)
         {
             return null;
         }
 
-        if (runtimeValue is IReadOnlyDictionary<string, object> ||
-            runtimeValue is IDictionary<string, object>)
+        if (runtimeValue is IReadOnlyDictionary<string, object>
+            || runtimeValue is IDictionary<string, object>)
         {
             return runtimeValue;
         }
@@ -193,10 +168,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
     public object? Deserialize(IType type, object? resultValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (resultValue is null)
         {
@@ -215,8 +187,8 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
         if (resultValue is IReadOnlyDictionary<string, object> dict)
         {
-            if (!dict.TryGetValue(TypeFieldName, out var typeObject) ||
-                typeObject is not string typeName)
+            if (!dict.TryGetValue(TypeFieldName, out var typeObject)
+                || typeObject is not string typeName)
             {
                 throw Geometry_Deserialize_TypeIsMissing(type);
             }
@@ -236,10 +208,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
     public bool TryDeserialize(IType type, object? resultValue, out object? runtimeValue)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         try
         {
@@ -312,8 +281,8 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 
         for (var i = 0; i < fields.Count; i++)
         {
-            if (fields[i].Name.Value == TypeFieldName &&
-                GeoJsonTypeSerializer.Default.ParseLiteral(type, fields[i].Value) is
+            if (fields[i].Name.Value == TypeFieldName
+                && GeoJsonTypeSerializer.Default.ParseLiteral(type, fields[i].Value) is
                     GeoJsonGeometryType gt)
             {
                 geometryType = gt;

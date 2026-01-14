@@ -23,11 +23,11 @@ public class IntegrationTests
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddFileSystemOperationDocumentStorage(cacheDirectory)
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
                             .FromResult(r)
@@ -61,11 +61,11 @@ public class IntegrationTests
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddFileSystemOperationDocumentStorage(cacheDirectory)
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
                             .FromResult(r)
@@ -89,7 +89,6 @@ public class IntegrationTests
     {
         // arrange
         var cacheDirectory = IO.Path.GetTempPath();
-        var documentId = Guid.NewGuid().ToString("N");
         const string documentHash = "hash";
 
         var executor =
@@ -97,11 +96,11 @@ public class IntegrationTests
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddFileSystemOperationDocumentStorage(cacheDirectory)
-                .UseRequest(n => async c =>
+                .UseRequest((_, n) => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
+                    if (c.IsPersistedOperationDocument() && c.Result is IOperationResult r)
                     {
                         c.Result = OperationResultBuilder
                             .FromResult(r)
@@ -115,9 +114,9 @@ public class IntegrationTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequest
-                .FromId(documentId)
+                .FromId(documentHash)
                 .WithDocument(new OperationDocument(Utf8GraphQLParser.Parse("{ __typename }")))
-                .WithDocumentHash(documentHash)
+                .WithDocumentHash(new OperationDocumentHash(documentHash, "MD5", HashFormat.Base64))
                 .WithExtensions(new Dictionary<string, object?>
                 {
                     {

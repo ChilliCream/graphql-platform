@@ -8,10 +8,10 @@ public interface ITopic : IDisposable
     /// <summary>
     /// Gets the message type of this topic.
     /// </summary>
-    public Type MessageType { get; }
+    Type MessageType { get; }
 
     /// <summary>
-    /// Allows to complete a topic.
+    /// Allows completing a topic.
     /// </summary>
     void Complete();
 }

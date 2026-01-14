@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace GreenDonut;
 
 /// <summary>
@@ -82,7 +80,7 @@ public interface IPromiseCache
     bool TryRemove(PromiseCacheKey key);
 
     /// <summary>
-    /// Publishes a value to the cache subscribers without adding it to the cache  iself.
+    /// Publishes a value to the cache subscribers without adding it to the cache itself.
     /// This allows the subscribers to decide if they want to cache the value.
     /// </summary>
     /// <param name="value">

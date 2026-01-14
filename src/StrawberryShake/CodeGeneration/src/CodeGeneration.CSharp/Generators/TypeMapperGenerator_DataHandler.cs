@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public partial class TypeMapperGenerator
 {
-    private const string _dataParameterName = "data";
+    private const string DataParameterName = "data";
 
     private static void AddDataHandler(
         CSharpSyntaxGeneratorSettings settings,
@@ -18,7 +18,7 @@ public partial class TypeMapperGenerator
         bool isNonNullable)
     {
         method
-            .AddParameter(_dataParameterName)
+            .AddParameter(DataParameterName)
             .SetType(namedTypeDescriptor.ParentRuntimeType!
                 .ToString()
                 .MakeNullable(!isNonNullable));
@@ -26,13 +26,13 @@ public partial class TypeMapperGenerator
         if (settings.IsStoreEnabled())
         {
             method
-                .AddParameter(_snapshot)
+                .AddParameter(Snapshot)
                 .SetType(TypeNames.IEntityStoreSnapshot);
         }
 
         if (!isNonNullable)
         {
-            method.AddCode(EnsureProperNullability(_dataParameterName, isNonNullable));
+            method.AddCode(EnsureProperNullability(DataParameterName, isNonNullable));
         }
 
         const string returnValue = nameof(returnValue);
@@ -43,7 +43,7 @@ public partial class TypeMapperGenerator
         GenerateIfForEachImplementedBy(
             method,
             namedTypeDescriptor,
-            o => GenerateDataInterfaceIfClause(settings, o, isNonNullable, returnValue));
+            o => GenerateDataInterfaceIfClause(settings, o, returnValue));
 
         method.AddCode($"return {returnValue};");
 
@@ -58,27 +58,16 @@ public partial class TypeMapperGenerator
     private static IfBuilder GenerateDataInterfaceIfClause(
         CSharpSyntaxGeneratorSettings settings,
         ObjectTypeDescriptor objectTypeDescriptor,
-        bool isNonNullable,
         string variableName)
     {
         ICode ifCondition = MethodCallBuilder
             .Inline()
             .SetMethodName(
-                _dataParameterName.MakeNullable(!isNonNullable),
+                DataParameterName,
                 WellKnownNames.TypeName,
                 nameof(string.Equals))
             .AddArgument(objectTypeDescriptor.Name.AsStringToken())
             .AddArgument(TypeNames.OrdinalStringComparison);
-
-        if (!isNonNullable)
-        {
-            ifCondition = NullCheckBuilder
-                .New()
-                .SetCondition(ifCondition)
-                .SetSingleLine()
-                .SetDetermineStatement(false)
-                .SetCode("false");
-        }
 
         var constructorCall = MethodCallBuilder
             .Inline()
@@ -87,11 +76,11 @@ public partial class TypeMapperGenerator
 
         foreach (var prop in objectTypeDescriptor.Properties)
         {
-            var propAccess = $"{_dataParameterName}.{prop.Name}";
+            var propAccess = $"{DataParameterName}.{prop.Name}";
             if (prop.Type.IsEntity() || prop.Type.IsData())
             {
                 constructorCall.AddArgument(
-                    BuildMapMethodCall(settings, _dataParameterName, prop, true));
+                    BuildMapMethodCall(settings, DataParameterName, prop, true));
             }
             else if (prop.Type.IsNullable())
             {

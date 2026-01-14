@@ -1,7 +1,5 @@
 using HotChocolate.Resolvers;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed class RegisteredResolver
@@ -26,10 +24,7 @@ internal sealed class RegisteredResolver
 
     public RegisteredResolver WithField(IFieldReference field)
     {
-        if (field is null)
-        {
-            throw new ArgumentNullException(nameof(field));
-        }
+        ArgumentNullException.ThrowIfNull(field);
 
         return new RegisteredResolver(
             ResolverType, SourceType,
@@ -38,10 +33,7 @@ internal sealed class RegisteredResolver
 
     public RegisteredResolver WithSourceType(Type sourceType)
     {
-        if (sourceType is null)
-        {
-            throw new ArgumentNullException(nameof(sourceType));
-        }
+        ArgumentNullException.ThrowIfNull(sourceType);
 
         return new RegisteredResolver(
             ResolverType, sourceType,

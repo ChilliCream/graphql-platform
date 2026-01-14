@@ -12,7 +12,7 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// composite type it returns. If a field’s base type is not an object or interface type (e.g.,
 /// String, Int, Boolean, Enum, Union, or an Input type), it cannot hold nested fields for
 /// <c>@provides</c> to select. Consequently, attaching <c>@provides</c> to such a field is
-/// invalid and raises a PROVIDES_ON_NON_OBJECT_FIELD error.
+/// invalid and raises a PROVIDES_ON_NON_COMPOSITE_FIELD error.
 /// </summary>
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Provides-on-Non-Composite-Field">
 /// Specification
@@ -21,15 +21,15 @@ internal sealed class ProvidesOnNonCompositeFieldRule : IEventHandler<OutputFiel
 {
     public void Handle(OutputFieldEvent @event, CompositionContext context)
     {
-        var (field, type, schema) = @event;
+        var (field, _, schema) = @event;
 
-        if (field.HasProvidesDirective())
+        if (field.HasProvidesDirective)
         {
             var fieldType = field.Type.AsTypeDefinition();
 
             if (fieldType is not MutableComplexTypeDefinition)
             {
-                context.Log.Write(ProvidesOnNonCompositeField(field, type, schema));
+                context.Log.Write(ProvidesOnNonCompositeField(field, schema));
             }
         }
     }

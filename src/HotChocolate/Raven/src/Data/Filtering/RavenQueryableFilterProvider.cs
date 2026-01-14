@@ -22,14 +22,14 @@ internal sealed class RavenQueryableFilterProvider : QueryableFilterProvider
 
     protected override void Configure(IFilterProviderDescriptor<QueryableFilterContext> descriptor)
     {
-        descriptor.AddFieldHandler<RavenComparableInHandler>();
-        descriptor.AddFieldHandler<RavenComparableNotInHandler>();
-        descriptor.AddFieldHandler<RavenStringInHandler>();
-        descriptor.AddFieldHandler<RavenStringNotInHandler>();
-        descriptor.AddFieldHandler<RavenEnumInHandler>();
-        descriptor.AddFieldHandler<RavenEnumNotInHandler>();
-        descriptor.AddFieldHandler<RavenStringNotContainsHandler>();
-        descriptor.AddFieldHandler<RavenStringContainsHandler>();
+        descriptor.AddFieldHandler(RavenComparableInHandler.Create);
+        descriptor.AddFieldHandler(RavenComparableNotInHandler.Create);
+        descriptor.AddFieldHandler(RavenStringInHandler.Create);
+        descriptor.AddFieldHandler(RavenStringNotInHandler.Create);
+        descriptor.AddFieldHandler(RavenEnumInHandler.Create);
+        descriptor.AddFieldHandler(RavenEnumNotInHandler.Create);
+        descriptor.AddFieldHandler(RavenStringNotContainsHandler.Create);
+        descriptor.AddFieldHandler(RavenStringContainsHandler.Create);
         descriptor.AddDefaultFieldHandlers();
     }
 
@@ -48,6 +48,6 @@ internal sealed class RavenQueryableFilterProvider : QueryableFilterProvider
             RavenAsyncDocumentQueryExecutable<TEntityType> q =>
                 new RavenAsyncDocumentQueryExecutable<TEntityType>(
                     q.Query.ToQueryable().Where(where).ToAsyncDocumentQuery()),
-            _ => input,
+            _ => input
         };
 }

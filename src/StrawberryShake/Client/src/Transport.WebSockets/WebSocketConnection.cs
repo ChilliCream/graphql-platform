@@ -25,10 +25,7 @@ public class WebSocketConnection : IWebSocketConnection
     /// <inheritdoc />
     public IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(OperationRequest request)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         return new ResponseStream(_sessionFactory, request);
     }
@@ -61,8 +58,8 @@ public class WebSocketConnection : IWebSocketConnection
                         var hasNext = false;
                         var isPatch = payload.TryGetProperty(ResultFields.Path, out _);
 
-                        if (payload.TryGetProperty(HasNext, out var hasNextProp) &&
-                            hasNextProp.GetBoolean())
+                        if (payload.TryGetProperty(HasNext, out var hasNextProp)
+                            && hasNextProp.GetBoolean())
                         {
                             hasNext = true;
                         }

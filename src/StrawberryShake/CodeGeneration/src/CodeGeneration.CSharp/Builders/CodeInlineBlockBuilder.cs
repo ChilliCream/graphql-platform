@@ -8,10 +8,7 @@ public class CodeInlineBlockBuilder : ICode
 
     public CodeInlineBlockBuilder AddCode(ICode value)
     {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         _lineParts.Add(value);
         return this;
@@ -19,10 +16,7 @@ public class CodeInlineBlockBuilder : ICode
 
     public void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         foreach (var code in _lineParts)
         {

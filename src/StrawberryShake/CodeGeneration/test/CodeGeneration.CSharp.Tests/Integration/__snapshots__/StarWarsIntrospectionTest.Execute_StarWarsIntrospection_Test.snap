@@ -907,7 +907,7 @@
               "DeprecationReason": null
             },
             {
-              "Name": "oneOf",
+              "Name": "isOneOf",
               "Description": null,
               "Args": [],
               "Type": {
@@ -2526,13 +2526,9 @@
               "Name": "requireOneSlicingArgument",
               "Description": "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error.",
               "Type": {
-                "Kind": "NonNull",
-                "Name": null,
-                "OfType": {
-                  "Kind": "Scalar",
-                  "Name": "Boolean",
-                  "OfType": null
-                }
+                "Kind": "Scalar",
+                "Name": "Boolean",
+                "OfType": null
               },
               "DefaultValue": "true"
             }
@@ -4193,7 +4189,7 @@
             },
             {
               "__typename": "__Field",
-              "Name": "oneOf",
+              "Name": "isOneOf",
               "Description": null,
               "Args": [],
               "Type": {
@@ -7005,26 +7001,15 @@
               "Description": "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error.",
               "Type": {
                 "__typename": "__Type",
-                "Name": null,
-                "Kind": "NonNull",
+                "Name": "Boolean",
+                "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
                 "InputFields": null,
                 "Interfaces": null,
                 "EnumValues": null,
                 "PossibleTypes": null,
-                "OfType": {
-                  "__typename": "__Type",
-                  "Name": "Boolean",
-                  "Kind": "Scalar",
-                  "Description": null,
-                  "Fields": null,
-                  "InputFields": null,
-                  "Interfaces": null,
-                  "EnumValues": null,
-                  "PossibleTypes": null,
-                  "OfType": null
-                }
+                "OfType": null
               },
               "DefaultValue": "true"
             }

@@ -1,3 +1,5 @@
+using HotChocolate.Features;
+
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -7,7 +9,7 @@ internal static class ErrorSchemaBuilderExtensions
 {
     /// <summary>
     /// Defines the common interface that all errors implement.
-    /// To specify the interface you can either provide a interface runtime type or a HotChocolate
+    /// To specify the interface you can either provide an interface runtime type or a HotChocolate
     /// interface schema type.
     ///
     /// This has to be used together with <see cref="ErrorAttribute"/>  or
@@ -22,12 +24,17 @@ internal static class ErrorSchemaBuilderExtensions
     /// <returns>j
     /// The schema builder
     /// </returns>
-    public static ISchemaBuilder AddErrorInterfaceType<T>(this ISchemaBuilder schemaBuilder)
-        => schemaBuilder.AddErrorInterfaceType(typeof(T));
+    public static ISchemaBuilder AddErrorInterfaceType<T>(
+        this ISchemaBuilder schemaBuilder)
+    {
+        ArgumentNullException.ThrowIfNull(schemaBuilder);
+
+        return schemaBuilder.AddErrorInterfaceType(typeof(T));
+    }
 
     /// <summary>
     /// Defines the common interface that all errors implement.
-    /// To specify the interface you can either provide a interface runtime type or a HotChocolate
+    /// To specify the interface you can either provide an interface runtime type or a HotChocolate
     /// interface schema type.
     ///
     /// This has to be used together with <see cref="ErrorAttribute"/>  or
@@ -45,5 +52,11 @@ internal static class ErrorSchemaBuilderExtensions
     public static ISchemaBuilder AddErrorInterfaceType(
         this ISchemaBuilder schemaBuilder,
         Type type)
-        => schemaBuilder.SetContextData(ErrorContextDataKeys.ErrorType, type);
+    {
+        ArgumentNullException.ThrowIfNull(schemaBuilder);
+        ArgumentNullException.ThrowIfNull(type);
+
+        schemaBuilder.Features.GetOrSet<ErrorSchemaFeature>().ErrorInterface = type;
+        return schemaBuilder;
+    }
 }

@@ -36,9 +36,8 @@ internal sealed class EnumTypeDefaultValueInaccessibleRule
         {
             context.Log.Write(
                 EnumTypeDefaultValueInaccessible(
-                    new SchemaCoordinate(type.Name, field.Name, argument.Name),
-                    inaccessibleCoordinate!.Value,
                     argument,
+                    inaccessibleCoordinate!.Value,
                     schema));
         }
     }
@@ -58,9 +57,8 @@ internal sealed class EnumTypeDefaultValueInaccessibleRule
         {
             context.Log.Write(
                 EnumTypeDefaultValueInaccessible(
-                    new SchemaCoordinate(inputType.Name, inputField.Name),
-                    inaccessibleCoordinate!.Value,
                     inputField,
+                    inaccessibleCoordinate!.Value,
                     schema));
         }
     }
@@ -75,7 +73,7 @@ internal sealed class EnumTypeDefaultValueInaccessibleRule
         switch (defaultValue)
         {
             case EnumValueNode enumValue:
-                var enumType = (MutableEnumTypeDefinition)defaultType;
+                var enumType = (MutableEnumTypeDefinition)defaultType.NullableType();
 
                 if (!enumType.Values.TryGetValue(enumValue.Value, out var value)
                     || value.HasFusionInaccessibleDirective())
@@ -88,7 +86,7 @@ internal sealed class EnumTypeDefaultValueInaccessibleRule
                 return true;
 
             case ListValueNode listValue:
-                var listType = (ListType)defaultType;
+                var listType = (ListType)defaultType.NullableType();
 
                 foreach (var item in listValue.Items)
                 {
@@ -103,7 +101,7 @@ internal sealed class EnumTypeDefaultValueInaccessibleRule
                 return true;
 
             case ObjectValueNode objectValue:
-                var inputObjectType = (MutableInputObjectTypeDefinition)defaultType;
+                var inputObjectType = (MutableInputObjectTypeDefinition)defaultType.NullableType();
 
                 foreach (var field in objectValue.Fields)
                 {

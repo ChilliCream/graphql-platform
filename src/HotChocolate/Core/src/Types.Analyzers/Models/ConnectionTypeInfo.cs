@@ -16,7 +16,8 @@ public sealed class ConnectionTypeInfo
         string edgeTypeName,
         INamedTypeSymbol runtimeType,
         ClassDeclarationSyntax? classDeclaration,
-        ImmutableArray<Resolver> resolvers)
+        ImmutableArray<Resolver> resolvers,
+        ImmutableArray<AttributeData> attributes)
     {
         Name = name;
         NameFormat = nameFormat;
@@ -26,6 +27,10 @@ public sealed class ConnectionTypeInfo
         Namespace = runtimeType.ContainingNamespace.ToDisplayString();
         ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
+        Attributes = attributes;
+        Shareable = attributes.GetShareableScope();
+        Inaccessible = attributes.GetInaccessibleScope();
+        DescriptorAttributes = attributes.GetUserAttributes();
     }
 
     public string Name { get; }
@@ -35,6 +40,8 @@ public sealed class ConnectionTypeInfo
     public string EdgeTypeName { get; }
 
     public string Namespace { get; }
+
+    public string? Description => null;
 
     public bool IsPublic => RuntimeType.DeclaredAccessibility == Accessibility.Public;
 
@@ -56,6 +63,14 @@ public sealed class ConnectionTypeInfo
 
     public override string OrderByKey => RuntimeTypeFullName;
 
+    public DirectiveScope Shareable { get; }
+
+    public DirectiveScope Inaccessible { get; }
+
+    public ImmutableArray<AttributeData> Attributes { get; }
+
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
+
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);
 
@@ -65,8 +80,18 @@ public sealed class ConnectionTypeInfo
     public override bool Equals(SyntaxInfo? obj)
         => obj is ConnectionTypeInfo other && Equals(other);
 
-    private bool Equals(ConnectionTypeInfo other)
+    private bool Equals(ConnectionTypeInfo? other)
     {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
         if (!string.Equals(OrderByKey, other.OrderByKey, StringComparison.Ordinal))
         {
             return false;
@@ -82,8 +107,7 @@ public sealed class ConnectionTypeInfo
             return false;
         }
 
-        return ClassDeclaration.SyntaxTree.IsEquivalentTo(
-            other.ClassDeclaration.SyntaxTree);
+        return ClassDeclaration.SyntaxTree.IsEquivalentTo(other.ClassDeclaration.SyntaxTree);
     }
 
     public override int GetHashCode()
@@ -100,8 +124,9 @@ public sealed class ConnectionTypeInfo
             nameFormat,
             edgeTypeName,
             connectionClass.RuntimeType,
-            connectionClass.ClassDeclarations,
-            connectionClass.Resolvers);
+            connectionClass.ClassDeclaration,
+            connectionClass.Resolvers,
+            connectionClass.RuntimeType.GetAttributes());
     }
 
     public static ConnectionTypeInfo CreateConnection(
@@ -153,9 +178,12 @@ public sealed class ConnectionTypeInfo
                         new Resolver(
                             connectionName,
                             property,
+                            compilation.GetDescription(property, []),
+                            compilation.GetDeprecationReason(property),
                             ResolverResultKind.Pure,
-                            ImmutableArray<ResolverParameter>.Empty,
-                            GetMemberBindings(member),
+                            [],
+                            GetMemberBindings(property),
+                            compilation.CreateTypeReference(property),
                             flags: flags));
                     break;
             }
@@ -167,6 +195,7 @@ public sealed class ConnectionTypeInfo
             edgeTypeName,
             runtimeType,
             classDeclaration,
-            resolvers.ToImmutable());
+            resolvers.ToImmutable(),
+            runtimeType.GetAttributes());
     }
 }

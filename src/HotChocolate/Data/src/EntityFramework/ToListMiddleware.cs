@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data;
 
-#pragma warning disable CA1812
-
 internal sealed class ToListMiddleware<TEntity>(FieldDelegate next)
 {
     public async ValueTask InvokeAsync(IMiddlewareContext context)
@@ -17,7 +15,7 @@ internal sealed class ToListMiddleware<TEntity>(FieldDelegate next)
                 await queryable
                     .ToListAsync(context.RequestAborted)
                     .ConfigureAwait(false),
-            _ => context.Result,
+            _ => context.Result
         };
     }
 }

@@ -1,0 +1,169 @@
+title: Lookup_Multiple_Skip_Levels_Around_Fields_Fetched_Through_Lookup
+request:
+  document: |
+    query testQuery(
+      $skip1: Boolean!
+      $skip2: Boolean!
+    ) {
+      productBySlug(slug: "product") {
+        name
+        review {
+          ... @skip(if: $skip1) {
+            ... @skip(if: $skip2) {
+              title
+              rating
+            }
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "skip1": true,
+      "skip2": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "productBySlug": {
+          "name": "Product: UHJvZHVjdDox",
+          "review": {}
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Product {
+        id: ID!
+        name: String!
+        review: Review
+      }
+
+      type Query {
+        productBySlug(slug: String!): Product
+      }
+
+      type Review @key(fields: "id") {
+        id: ID!
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_321bae46_1(
+              $skip1: Boolean!
+              $skip2: Boolean!
+            ) {
+              productBySlug(slug: "product") {
+                name
+                review {
+                  ... @skip(if: $skip1) {
+                    ... @skip(if: $skip2) {
+                      id
+                    }
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "skip1": true,
+              "skip2": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productBySlug": {
+                    "name": "Product: UHJvZHVjdDox",
+                    "review": {}
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        reviewById(id: ID!): Review @lookup
+      }
+
+      type Review {
+        id: ID!
+        title: String!
+        rating: Int!
+      }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $skip1: Boolean!
+          $skip2: Boolean!
+        ) {
+          productBySlug(slug: "product") {
+            name
+            review {
+              ... @skip(if: $skip1) {
+                ... @skip(if: $skip2) {
+                  title
+                  rating
+                  id @fusion__requirement
+                }
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 321bae46d0a9b0a456ac4c6448190698
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_321bae46_1(
+          $skip1: Boolean!
+          $skip2: Boolean!
+        ) {
+          productBySlug(slug: "product") {
+            name
+            review {
+              ... @skip(if: $skip1) {
+                ... @skip(if: $skip2) {
+                  id
+                }
+              }
+            }
+          }
+        }
+      forwardedVariables:
+        - skip1
+        - skip2
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_321bae46_2(
+          $__fusion_1_id: ID!
+        ) {
+          reviewById(id: $__fusion_1_id) {
+            title
+            rating
+          }
+        }
+      source: $.reviewById
+      target: $.productBySlug.review
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

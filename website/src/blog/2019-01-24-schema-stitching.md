@@ -335,7 +335,7 @@ If you are using the example start the two remote schemas by switching to their 
 
 After both schemas are running start the stitching layer. The stitching layer has `Apollo Tracing` enabled. Start the stitching layer also with `dotnet run` since the debugger slows the performance significantly down.
 
-The first call on the stitched schema takes a little longer (maybe 300 ~ 500 ms) since we are compiling the resolvers into a in-memory assembly. All further calls are fast (4 ~ 8 ms) in our example. The real life performance depends on how fast your connection to the stitched remote schemas is and how many data you are fetching. With the new batching layer that is coming soon the performance of the schema stitching should further improve.
+The first call on the stitched schema takes a little longer (maybe 300 ~ 500 ms) since we are compiling the resolvers into an in-memory assembly. All further calls are fast (4 ~ 8 ms) in our example. The real life performance depends on how fast your connection to the stitched remote schemas is and how many data you are fetching. With the new batching layer that is coming soon the performance of the schema stitching should further improve.
 
 Open playground on <http://localhost:5000/playground> in order to fire up some requests against our stitched schema and checkout the tracing tab for performance insights.
 

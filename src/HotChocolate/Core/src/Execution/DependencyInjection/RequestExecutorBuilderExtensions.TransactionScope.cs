@@ -26,24 +26,17 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : class, ITransactionScopeHandler
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         // we host the transaction scope in the global DI.
         builder.Services.TryAddSingleton<T>();
 
         return ConfigureSchemaServices(
             builder,
-            services =>
+            static services =>
             {
-                // we remove all handlers from the schema DI
-                services.RemoveAll(typeof(ITransactionScopeHandler));
-
-                // and then reference the transaction scope handler from the global DI.
-                services.AddSingleton<ITransactionScopeHandler>(
-                s => s.GetApplicationServices().GetRequiredService<T>());
+                services.RemoveAll<ITransactionScopeHandler>();
+                services.AddSingleton<ITransactionScopeHandler, T>();
             });
     }
 
@@ -53,7 +46,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <param name="builder">
     /// The request executor builder.
     /// </param>
-    /// <param name="create">
+    /// <param name="factory">
     /// A factory to create the transaction scope.
     /// </param>
     /// <returns>
@@ -62,19 +55,17 @@ public static partial class RequestExecutorBuilderExtensions
     /// <exception cref="ArgumentNullException"></exception>
     public static IRequestExecutorBuilder AddTransactionScopeHandler(
         this IRequestExecutorBuilder builder,
-        Func<IServiceProvider, ITransactionScopeHandler> create)
+        Func<IServiceProvider, ITransactionScopeHandler> factory)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
 
         return ConfigureSchemaServices(
             builder,
             services =>
             {
-                services.RemoveAll(typeof(ITransactionScopeHandler));
-                services.AddSingleton(sp => create(sp.GetCombinedServices()));
+                services.RemoveAll<ITransactionScopeHandler>();
+                services.AddSingleton(factory);
             });
     }
 
@@ -94,10 +85,7 @@ public static partial class RequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddDefaultTransactionScopeHandler(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return AddTransactionScopeHandler<DefaultTransactionScopeHandler>(builder);
     }
@@ -105,14 +93,11 @@ public static partial class RequestExecutorBuilderExtensions
     internal static IRequestExecutorBuilder TryAddNoOpTransactionScopeHandler(
         this IRequestExecutorBuilder builder)
     {
-        builder.Services.AddSingleton<NoOpTransactionScopeHandler>();
+        builder.Services.TryAddSingleton<NoOpTransactionScopeHandler>();
 
         return ConfigureSchemaServices(
             builder,
-            services =>
-            {
-                services.TryAddSingleton<ITransactionScopeHandler>(
-                    sp => sp.GetApplicationService<NoOpTransactionScopeHandler>());
-            });
+            static services =>
+                services.TryAddSingleton<ITransactionScopeHandler, NoOpTransactionScopeHandler>());
     }
 }

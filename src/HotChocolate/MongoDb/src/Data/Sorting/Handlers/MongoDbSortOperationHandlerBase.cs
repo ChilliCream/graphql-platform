@@ -3,43 +3,34 @@ using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
 /// <summary>
 /// Represents a mongodb handler that can be bound to a <see cref="SortField"/>. The handler is
-/// executed during the visitation of a input object.
+/// executed during the visitation of an input object.
 /// </summary>
-public abstract class MongoDbSortOperationHandlerBase
+public abstract class MongoDbSortOperationHandlerBase(
+    int operation,
+    SortDirection sortDirection)
     : SortOperationHandler<MongoDbSortVisitorContext, MongoDbSortDefinition>
 {
-    private readonly SortDirection _sortDirection;
-    private readonly int _operation;
-
-    protected MongoDbSortOperationHandlerBase(
-        int operation,
-        SortDirection sortDirection)
-    {
-        _sortDirection = sortDirection;
-        _operation = operation;
-    }
-
     /// <inheritdoc/>
     public override bool CanHandle(
         ITypeCompletionContext context,
-        EnumTypeDefinition typeDefinition,
-        SortEnumValueDefinition valueDefinition)
+        EnumTypeConfiguration typeDefinition,
+        SortEnumValueConfiguration valueConfiguration)
     {
-        return valueDefinition.Operation == _operation;
+        return valueConfiguration.Operation == operation;
     }
 
     /// <inheritdoc/>
     public override bool TryHandleEnter(
         MongoDbSortVisitorContext context,
         ISortField field,
-        ISortEnumValue? sortValue,
+        SortEnumValue? sortValue,
         EnumValueNode node,
         [NotNullWhen(true)] out ISyntaxVisitorAction? action)
     {
@@ -53,7 +44,7 @@ public abstract class MongoDbSortOperationHandlerBase
         }
 
         context.Operations.Enqueue(
-            new MongoDbDirectionalSortOperation(context.GetPath(), _sortDirection));
+            new MongoDbDirectionalSortOperation(context.GetPath(), sortDirection));
 
         action = SyntaxVisitor.Continue;
         return true;

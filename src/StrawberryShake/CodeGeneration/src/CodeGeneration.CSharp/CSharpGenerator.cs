@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using HotChocolate;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.CodeAnalysis;
@@ -23,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp;
 
 public static class CSharpGenerator
 {
-    private static readonly ICSharpSyntaxGenerator[] _generators =
+    private static readonly ICSharpSyntaxGenerator[] s_generators =
     [
         new ClientGenerator(), new ClientInterfaceGenerator(), new EntityTypeGenerator(),
         new EntityIdFactoryGenerator(), new DependencyInjectionGenerator(),
@@ -35,19 +34,16 @@ public static class CSharpGenerator
         new ResultTypeGenerator(), new StoreAccessorGenerator(), new NoStoreAccessorGenerator(),
         new InputTypeGenerator(), new InputTypeStateInterfaceGenerator(),
         new ResultInterfaceGenerator(), new DataTypeGenerator(), new RazorQueryGenerator(),
-        new RazorSubscriptionGenerator(),
+        new RazorSubscriptionGenerator()
     ];
 
-    public static async Task<CSharpGeneratorResult> GenerateAsync(
+    public static CSharpGeneratorResult Generate(
         IEnumerable<string> fileNames,
         CSharpGeneratorSettings? settings = null)
     {
-        if (fileNames is null)
-        {
-            throw new ArgumentNullException(nameof(fileNames));
-        }
+        ArgumentNullException.ThrowIfNull(fileNames);
 
-        settings ??= new();
+        settings ??= new CSharpGeneratorSettings();
 
         if (string.IsNullOrEmpty(settings.ClientName))
         {
@@ -73,7 +69,7 @@ public static class CSharpGenerator
         // parse the GraphQL files ...
         if (!TryParseDocuments(fileNames, files, errors))
         {
-            return new(errors);
+            return new CSharpGeneratorResult(errors);
         }
 
         // divide documents into type system document for the schema
@@ -83,8 +79,8 @@ public static class CSharpGenerator
 
         if (typeSystemFiles.Count == 0 || executableFiles.Count == 0)
         {
-            // if we do not have any documents we will just return without any errors.
-            return new();
+            // if we do not have any documents, we will just return without any errors.
+            return new CSharpGeneratorResult();
         }
 
         // Since form this point on we will work on a merged executable document we need to
@@ -93,7 +89,7 @@ public static class CSharpGenerator
         IndexSyntaxNodes(files, fileLookup);
 
         // We try true create a schema from the type system documents.
-        // If we cannot create a schema we will return the schema validation errors.
+        // If we cannot create a schema, we will return the schema validation errors.
         if (!TryCreateSchema(
             typeSystemFiles,
             fileLookup,
@@ -106,15 +102,15 @@ public static class CSharpGenerator
         }
 
         // Next we will start validating the executable documents.
-        if (!await TryValidateRequestAsync(schema, executableFiles, fileLookup, errors))
+        if (!TryValidateRequestAsync(schema, executableFiles, fileLookup, errors))
         {
-            return new(errors);
+            return new CSharpGeneratorResult(errors);
         }
 
         // At this point we have a valid schema and know that our documents are executable
         // against the schema.
         //
-        // In order to generate the client code we will first need to create a client model
+        // To generate the client code, we will first need to create a client model
         // which represents the logical parts of the executable documents.
         var analyzer = new DocumentAnalyzer();
         analyzer.SetSchema(schema);
@@ -126,7 +122,7 @@ public static class CSharpGenerator
 
         try
         {
-            var clientModel = await analyzer.AnalyzeAsync();
+            var clientModel = analyzer.Analyze();
 
             // With the client model we finally can create CSharp code.
             return Generate(clientModel, settings);
@@ -141,10 +137,7 @@ public static class CSharpGenerator
         ClientModel clientModel,
         CSharpGeneratorSettings settings)
     {
-        if (clientModel is null)
-        {
-            throw new ArgumentNullException(nameof(clientModel));
-        }
+        ArgumentNullException.ThrowIfNull(clientModel);
 
         if (string.IsNullOrEmpty(settings.ClientName))
         {
@@ -319,7 +312,7 @@ public static class CSharpGenerator
 
         foreach (var descriptor in context.GetAllDescriptors())
         {
-            foreach (var generator in _generators)
+            foreach (var generator in s_generators)
             {
                 if (generator.CanHandle(descriptor, generatorSettings))
                 {
@@ -415,7 +408,7 @@ public static class CSharpGenerator
         ICollection<IError> errors,
         bool strictValidation,
         bool noStore,
-        [NotNullWhen(true)] out ISchema? schema)
+        [NotNullWhen(true)] out Schema? schema)
     {
         try
         {
@@ -434,8 +427,8 @@ public static class CSharpGenerator
         }
     }
 
-    private static async ValueTask<bool> TryValidateRequestAsync(
-        ISchema schema,
+    private static bool TryValidateRequestAsync(
+        Schema schema,
         IReadOnlyList<GraphQLFile> executableFiles,
         Dictionary<ISyntaxNode, string> fileLookup,
         List<IError> errors)
@@ -443,12 +436,7 @@ public static class CSharpGenerator
         var validator = CreateDocumentValidator();
 
         var document = MergeDocuments(executableFiles);
-        var validationResult = await validator.ValidateAsync(
-            schema,
-            document,
-            new OperationDocumentId("dummy"),
-            new Dictionary<string, object?>(),
-            false);
+        var validationResult = validator.Validate(schema, document);
 
         if (validationResult.HasErrors)
         {
@@ -461,27 +449,18 @@ public static class CSharpGenerator
         return true;
     }
 
-    private static IDocumentValidator CreateDocumentValidator() =>
-        new ServiceCollection()
-            .AddValidation()
-            .Services
-            .BuildServiceProvider()
-            .GetRequiredService<IDocumentValidatorFactory>()
-            .CreateValidator();
+    private static DocumentValidator CreateDocumentValidator()
+        => DocumentValidatorBuilder.New()
+            .AddDefaultRules()
+            .Build();
 
-    private static DocumentNode MergeDocuments(IReadOnlyList<GraphQLFile> executableFiles) =>
-        new(executableFiles.SelectMany(t => t.Document.Definitions).ToList());
+    private static DocumentNode MergeDocuments(IReadOnlyList<GraphQLFile> executableFiles)
+        => new(executableFiles.SelectMany(t => t.Document.Definitions).ToList());
 
-    private sealed class GeneratorResult
+    private sealed class GeneratorResult(Type generator, CSharpSyntaxGeneratorResult result)
     {
-        public GeneratorResult(Type generator, CSharpSyntaxGeneratorResult result)
-        {
-            Generator = generator;
-            Result = result;
-        }
+        public Type Generator { get; } = generator;
 
-        public Type Generator { get; }
-
-        public CSharpSyntaxGeneratorResult Result { get; }
+        public CSharpSyntaxGeneratorResult Result { get; } = result;
     }
 }

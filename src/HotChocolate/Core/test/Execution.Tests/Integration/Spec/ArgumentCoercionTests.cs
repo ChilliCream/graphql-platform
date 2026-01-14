@@ -66,7 +66,7 @@ public class ArgumentCoercionTests
                 .AddQueryType<Query>()
                 .BuildRequestExecutorAsync();
 
-        var variables = new Dictionary<string, object?> { { "a", null }, };
+        var variables = new Dictionary<string, object?> { { "a", null } };
 
         // act
         var result = await executor.ExecuteAsync(
@@ -87,7 +87,7 @@ public class ArgumentCoercionTests
                 .AddQueryType<Query>()
                 .BuildRequestExecutorAsync();
 
-        var variables = new Dictionary<string, object?> { { "a", "Sydney" }, };
+        var variables = new Dictionary<string, object?> { { "a", "Sydney" } };
 
         // act
         var result = await executor.ExecuteAsync(

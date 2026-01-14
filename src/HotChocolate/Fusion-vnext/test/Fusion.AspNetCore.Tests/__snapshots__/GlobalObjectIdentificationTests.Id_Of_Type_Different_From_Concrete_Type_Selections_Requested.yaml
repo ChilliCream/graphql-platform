@@ -1,0 +1,130 @@
+title: Id_Of_Type_Different_From_Concrete_Type_Selections_Requested
+request:
+  document: |
+    {
+      node(id: "UHJvZHVjdDox") {
+        id
+        ... on Discussion {
+          title
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "id": "UHJvZHVjdDox"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Discussion implements Node {
+        id: ID!
+        title: String!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Discussion implements Node {
+        id: ID!
+        commentCount: Int!
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        discussionById(id: ID!): Discussion @lookup @internal
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_83aee782_2 {
+              node(id: "UHJvZHVjdDox") {
+                __typename
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "id": "UHJvZHVjdDox"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          node(id: "UHJvZHVjdDox") {
+            __typename @fusion__requirement
+            id
+            ... on Discussion {
+              title
+            }
+          }
+        }
+      hash: 83aee782bd7072025c2beece59972fee
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "UHJvZHVjdDox"
+      responseName: node
+      branches:
+        - Discussion: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query Op_83aee782_2 {
+          node(id: "UHJvZHVjdDox") {
+            __typename
+            id
+          }
+        }
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query Op_83aee782_3 {
+          node: discussionById(discussionId: "UHJvZHVjdDox") {
+            __typename
+            id
+            title
+          }
+        }
+      dependencies:
+        - id: 1

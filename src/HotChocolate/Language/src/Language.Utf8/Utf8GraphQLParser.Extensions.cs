@@ -2,7 +2,7 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLParser
 {
-    private static readonly List<OperationTypeDefinitionNode> _emptyOpDefs = [];
+    private static readonly List<OperationTypeDefinitionNode> s_emptyOpDefs = [];
 
     private ITypeSystemExtensionNode ParseTypeExtension()
     {
@@ -104,7 +104,7 @@ public ref partial struct Utf8GraphQLParser
             return list;
         }
 
-        return _emptyOpDefs;
+        return s_emptyOpDefs;
     }
 
     private ScalarTypeExtensionNode ParseScalarTypeExtension(

@@ -1,0 +1,224 @@
+title: Interface_Field_Linked_Field_With_Dependency_Same_Selection_In_Concrete_Type
+request:
+  document: |
+    query testQuery {
+      authorable {
+        author {
+          id
+          displayName
+        }
+        ... on Discussion {
+          author {
+            id
+            displayName
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "authorable": {
+          "author": {
+            "id": "QXV0aG9yOjI=",
+            "displayName": "Author: QXV0aG9yOjI="
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Authorable {
+        author: Author
+      }
+
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+
+      type Comment implements Authorable {
+        author: Author
+      }
+
+      type Discussion implements Authorable {
+        author: Author
+      }
+
+      type Query {
+        authorable: Authorable
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_77a61d25_1 {
+              authorable {
+                __typename
+                author {
+                  id
+                }
+                ... on Discussion {
+                  author {
+                    id
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorable": {
+                    "__typename": "Discussion",
+                    "author": {
+                      "id": "QXV0aG9yOjI="
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: ID!
+        displayName: String!
+      }
+
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_77a61d25_2(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                displayName
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "QXV0aG9yOjI="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjI="
+                  }
+                }
+              }
+      - request:
+          document: |
+            query testQuery_77a61d25_3(
+              $__fusion_2_id: ID!
+            ) {
+              authorById(id: $__fusion_2_id) {
+                displayName
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "QXV0aG9yOjI="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjI="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          authorable {
+            __typename @fusion__requirement
+            author {
+              id
+              id @fusion__requirement
+              displayName
+            }
+            ... on Discussion {
+              author {
+                id
+                id @fusion__requirement
+                displayName
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 77a61d25bcbf9ac9675e65103f6dc4ed
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_77a61d25_1 {
+          authorable {
+            __typename
+            author {
+              id
+            }
+            ... on Discussion {
+              author {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_77a61d25_2(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            displayName
+          }
+        }
+      source: $.authorById
+      target: $.authorable<Discussion>.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_77a61d25_3(
+          $__fusion_2_id: ID!
+        ) {
+          authorById(id: $__fusion_2_id) {
+            displayName
+          }
+        }
+      source: $.authorById
+      target: $.authorable.author
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -22,12 +22,11 @@ public class DocumentAnalyzerTests
 
         schema =
             SchemaHelper.Load(
-                new GraphQLFile[]
-                {
-                    new(schema.ToDocument()),
+                [
+                    new(schema.ToSyntaxNode()),
                     new(Utf8GraphQLParser.Parse(
-                        @"extend scalar String @runtimeType(name: ""Abc"")")),
-                });
+                        @"extend scalar String @runtimeType(name: ""Abc"")"))
+                ]);
 
         var document =
             Utf8GraphQLParser.Parse(@"
@@ -39,11 +38,11 @@ public class DocumentAnalyzerTests
 
         // act
         var clientModel =
-            await DocumentAnalyzer
+            DocumentAnalyzer
                 .New()
                 .SetSchema(schema)
                 .AddDocument(document)
-                .AnalyzeAsync();
+                .Analyze();
 
         // assert
         Assert.Empty(clientModel.InputObjectTypes);
@@ -85,21 +84,21 @@ public class DocumentAnalyzerTests
 
         schema =
             SchemaHelper.Load(
-                new GraphQLFile[]
-                {
-                    new(schema.ToDocument()),
+                [
+                    new(schema.ToSyntaxNode()),
                     new(Utf8GraphQLParser.Parse(
                         @"extend scalar String @runtimeType(name: ""Abc"")")),
                     new(Utf8GraphQLParser.Parse(
-                        "extend schema @key(fields: \"id\")")),
-                });
+                        "extend schema @key(fields: \"id\")"))
+                ]);
 
         var document =
-            Utf8GraphQLParser.Parse(@"
+            Utf8GraphQLParser.Parse(
+                """
                 query GetHero {
                     hero(episode: NEW_HOPE) {
                         ... HeroName
-                        ... HeroAppearsIn @defer(label: ""HeroAppearsIn"")
+                        ... HeroAppearsIn @defer(label: "HeroAppearsIn")
                     }
                 }
 
@@ -109,15 +108,16 @@ public class DocumentAnalyzerTests
 
                 fragment HeroAppearsIn on Character {
                     appearsIn
-                }");
+                }
+                """);
 
         // act
         var clientModel =
-            await DocumentAnalyzer
+            DocumentAnalyzer
                 .New()
                 .SetSchema(schema)
                 .AddDocument(document)
-                .AnalyzeAsync();
+                .Analyze();
 
         // assert
         var human = clientModel.OutputTypes.First(t => t.Name.EqualsOrdinal("GetHero_Hero_Human"));

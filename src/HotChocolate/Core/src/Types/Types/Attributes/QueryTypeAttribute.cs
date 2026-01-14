@@ -27,11 +27,11 @@ public sealed class QueryTypeAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
         descriptor.Name(OperationTypeNames.Query);
 
-        var definition = descriptor.Extend().Definition;
+        var definition = descriptor.Extend().Configuration;
         definition.Fields.BindingBehavior = BindingBehavior.Implicit;
 
         if (IncludeStaticMembers)

@@ -21,7 +21,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         var connectionString = resource.GetConnectionString(db);
         await using var services = CreateServer(connectionString);
         await using var scope = services.CreateAsyncScope();
-        var executor = await services.GetRequiredService<IRequestExecutorResolver>().GetRequestExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
         executor.Schema.MatchSnapshot();
     }
 
@@ -225,7 +225,29 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
+            """);
 
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+    [Fact]
+    public async Task Project_Into_1to1_Relation()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                products(first: 2) {
+                    nodes {
+                        name
+                        brandName
+                    }
+                }
+            }
             """);
 
         // assert
@@ -445,7 +467,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         await seeder.SeedAsync(context);
 
         // act
-        var executor = await services.GetRequiredService<IRequestExecutorResolver>().GetRequestExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
         await executor.ExecuteAsync(
             """
             {
@@ -460,7 +482,10 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
 
         // assert
         var cache = services.GetRequiredService<IMemoryCache>();
-        var entry = cache.Get<Promise<Brand>>(new PromiseCacheKey("HotChocolate.Data.Services.BrandByIdDataLoader", 1));
+        var entry = cache.Get<Promise<Brand>>(
+            new PromiseCacheKey(
+                "HotChocolate.Data.Services.BrandByIdDataLoader:1a50fe619de69da54111d7525dc67ff9",
+                1));
         var brand = await entry.Task;
         Assert.Equal("Daybird", brand.Name);
     }
@@ -480,11 +505,11 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
 
         var cache = services.GetRequiredService<IMemoryCache>();
         cache.Set(
-            new PromiseCacheKey("HotChocolate.Data.Services.BrandByIdDataLoader", 1),
+            new PromiseCacheKey("HotChocolate.Data.Services.BrandByIdDataLoader:1a50fe619de69da54111d7525dc67ff9", 1),
             new Promise<Brand>(new Brand { Id = 1, Name = "Test" }));
 
         // act
-        var executor = await services.GetRequiredService<IRequestExecutorResolver>().GetRequestExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
         var result = await executor.ExecuteAsync(
             """
             {
@@ -552,7 +577,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         var seeder = scope.ServiceProvider.GetRequiredService<IDbSeeder<CatalogContext>>();
         await context.Database.EnsureCreatedAsync();
         await seeder.SeedAsync(context);
-        var executor = await services.GetRequiredService<IRequestExecutorResolver>().GetRequestExecutorAsync();
+        var executor = await services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
         return await executor.ExecuteAsync(sourceText);
     }
 
@@ -560,11 +585,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         IExecutionResult result,
         TestQueryInterceptor queryInterceptor)
     {
-#if NET9_0_OR_GREATER
-        var snapshot = Snapshot.Create();
-#else
-        var snapshot = Snapshot.Create(postFix: "_net_8_0");
-#endif
+        var snapshot = Snapshot.Create(postFix: TestEnvironment.TargetFramework);
 
         snapshot.Add(result.ToJson(), "Result", MarkdownLanguages.Json);
 

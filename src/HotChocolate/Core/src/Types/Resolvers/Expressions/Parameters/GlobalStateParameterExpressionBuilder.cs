@@ -4,28 +4,25 @@ using HotChocolate.Internal;
 using HotChocolate.Utilities;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class GlobalStateParameterExpressionBuilder
     : IParameterExpressionBuilder
     , IParameterBindingFactory
-    , IParameterBinding
 {
-    private static readonly PropertyInfo _contextData =
+    private static readonly PropertyInfo s_contextData =
         typeof(IHasContextData).GetProperty(
             nameof(IHasContextData.ContextData))!;
-    private static readonly MethodInfo _getGlobalState =
+    private static readonly MethodInfo s_getGlobalState =
         typeof(ExpressionHelper).GetMethod(
             nameof(ExpressionHelper.GetGlobalState))!;
-    private static readonly MethodInfo _getGlobalStateWithDefault =
+    private static readonly MethodInfo s_getGlobalStateWithDefault =
         typeof(ExpressionHelper).GetMethod(
             nameof(ExpressionHelper.GetGlobalStateWithDefault))!;
-    private static readonly MethodInfo _setGlobalState =
+    private static readonly MethodInfo s_setGlobalState =
         typeof(ExpressionHelper)
             .GetMethod(nameof(ExpressionHelper.SetGlobalState))!;
-    private static readonly MethodInfo _setGlobalStateGeneric =
+    private static readonly MethodInfo s_setGlobalStateGeneric =
         typeof(ExpressionHelper)
             .GetMethod(nameof(ExpressionHelper.SetGlobalStateGeneric))!;
 
@@ -38,6 +35,9 @@ internal sealed class GlobalStateParameterExpressionBuilder
     public bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(GlobalStateAttribute));
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Attributes.Any(t => t is GlobalStateAttribute);
+
     public Expression Build(ParameterExpressionBuilderContext context)
     {
         var parameter = context.Parameter;
@@ -48,7 +48,7 @@ internal sealed class GlobalStateParameterExpressionBuilder
                 ? Expression.Constant(parameter.Name, typeof(string))
                 : Expression.Constant(attribute.Key, typeof(string));
 
-        var contextData = Expression.Property(context.ResolverContext, _contextData);
+        var contextData = Expression.Property(context.ResolverContext, s_contextData);
 
         return IsStateSetter(parameter.ParameterType)
             ? BuildSetter(parameter, key, contextData)
@@ -62,9 +62,9 @@ internal sealed class GlobalStateParameterExpressionBuilder
     {
         var setGlobalState =
             parameter.ParameterType.IsGenericType
-                ? _setGlobalStateGeneric.MakeGenericMethod(
+                ? s_setGlobalStateGeneric.MakeGenericMethod(
                     parameter.ParameterType.GetGenericArguments()[0])
-                : _setGlobalState;
+                : s_setGlobalState;
 
         return Expression.Call(
             setGlobalState,
@@ -79,8 +79,8 @@ internal sealed class GlobalStateParameterExpressionBuilder
     {
         var getGlobalState =
             parameter.HasDefaultValue
-                ? _getGlobalStateWithDefault.MakeGenericMethod(parameter.ParameterType)
-                : _getGlobalState.MakeGenericMethod(parameter.ParameterType);
+                ? s_getGlobalStateWithDefault.MakeGenericMethod(parameter.ParameterType)
+                : s_getGlobalState.MakeGenericMethod(parameter.ParameterType);
 
         return parameter.HasDefaultValue
             ? Expression.Call(
@@ -98,10 +98,38 @@ internal sealed class GlobalStateParameterExpressionBuilder
                         .GetFlags(parameter).FirstOrDefault() ?? false,
                     typeof(bool)));
     }
+    public IParameterBinding Create(ParameterDescriptor parameter)
+        => new ParameterBinding(this, parameter);
 
-    public IParameterBinding Create(ParameterBindingContext context)
-        => this;
+    private sealed class ParameterBinding : IParameterBinding
+    {
+        private readonly GlobalStateParameterExpressionBuilder _parent;
+        private readonly string _key;
 
-    public T Execute<T>(IResolverContext context)
-        => throw new NotSupportedException();
+        public ParameterBinding(
+            GlobalStateParameterExpressionBuilder parent,
+            ParameterDescriptor parameter)
+        {
+            _parent = parent;
+
+            GlobalStateAttribute? globalState = null;
+            foreach (var attribute in parameter.Attributes)
+            {
+                if (attribute is GlobalStateAttribute casted)
+                {
+                    globalState = casted;
+                    break;
+                }
+            }
+
+            _key = globalState?.Key ?? parameter.Name;
+        }
+
+        public ArgumentKind Kind => _parent.Kind;
+
+        public bool IsPure => _parent.IsPure;
+
+        public T Execute<T>(IResolverContext context)
+            => context.GetGlobalStateOrDefault<T>(_key, default!);
+    }
 }

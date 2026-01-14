@@ -79,7 +79,7 @@ public class CursorFormatterTests
 
         // assert
         Assert.Equal("e310ZXN0XDozNDU6ZGVzY3JpcHRpb25cOjEyMw==", result);
-        Assert.Equal("{}test\\:345:description\\:123", Encoding.UTF8.GetString(Convert.FromBase64String(result)));
+        Assert.Equal(@"{}test\:345:description\:123", Encoding.UTF8.GetString(Convert.FromBase64String(result)));
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class CursorFormatterTests
 
     public class MyClass
     {
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
 
         public string? Description { get; set; }
     }

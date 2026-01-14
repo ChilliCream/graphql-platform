@@ -50,7 +50,7 @@ internal sealed class DefaultEnumerableExecutable(IEnumerable source) : IExecuta
         }
         finally
         {
-            if(enumerator is IDisposable disposable)
+            if (enumerator is IDisposable disposable)
             {
                 disposable.Dispose();
             }
@@ -67,7 +67,7 @@ internal sealed class DefaultEnumerableExecutable(IEnumerable source) : IExecuta
             {
                 var obj = enumerator.Current;
 
-                if(enumerator.MoveNext())
+                if (enumerator.MoveNext())
                 {
                     throw new InvalidOperationException("Sequence contains more than one element.");
                 }
@@ -79,7 +79,7 @@ internal sealed class DefaultEnumerableExecutable(IEnumerable source) : IExecuta
         }
         finally
         {
-            if(enumerator is IDisposable disposable)
+            if (enumerator is IDisposable disposable)
             {
                 disposable.Dispose();
             }
@@ -93,7 +93,7 @@ internal sealed class DefaultEnumerableExecutable(IEnumerable source) : IExecuta
             return new ValueTask<int>(array.Length);
         }
 
-        if(source is ICollection collection)
+        if (source is ICollection collection)
         {
             return new ValueTask<int>(collection.Count);
         }

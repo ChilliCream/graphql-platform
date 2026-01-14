@@ -45,4 +45,3 @@ public abstract class ConnectionBase<TNode, TEdge, TPageInfo>
         ArrayPool<TNode>.Shared.Return(buffer);
     }
 }
-

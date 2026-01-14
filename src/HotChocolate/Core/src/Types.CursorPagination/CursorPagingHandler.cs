@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination.Utilities;
 using HotChocolate.Utilities;
@@ -61,7 +60,14 @@ public abstract class CursorPagingHandler : IPagingHandler
 
         if (RequirePagingBoundaries && first is null && last is null)
         {
-            throw ThrowHelper.PagingHandler_NoBoundariesSet(
+            if (AllowBackwardPagination)
+            {
+                throw ThrowHelper.PagingHandler_NoBoundariesSet(
+                    context.Selection.Field,
+                    context.Path);
+            }
+
+            throw ThrowHelper.PagingHandler_FirstValueNotSet(
                 context.Selection.Field,
                 context.Path);
         }
@@ -192,7 +198,7 @@ public abstract class CursorPagingHandler<TQuery, TEntity>(PagingOptions options
 
         if (moreItemsReturnedThanRequested)
         {
-            edges = edges.Slice(0, length);
+            edges = edges[..length];
         }
 
         var pageInfo = CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, edges);

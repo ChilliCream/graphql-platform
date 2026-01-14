@@ -6,14 +6,14 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models;
 
 public sealed class OutputTypeModel : ITypeModel
 {
-    private static readonly IReadOnlyDictionary<string, DeferredFragmentModel> _empty =
+    private static readonly IReadOnlyDictionary<string, DeferredFragmentModel> s_empty =
         new Dictionary<string, DeferredFragmentModel>();
 
     public OutputTypeModel(
         string name,
         string? description,
         OutputModelKind kind,
-        INamedType type,
+        ITypeDefinition type,
         SelectionSetNode selectionSet,
         IReadOnlyList<OutputFieldModel> fields,
         IReadOnlyList<OutputTypeModel>? implements = null,
@@ -26,7 +26,7 @@ public sealed class OutputTypeModel : ITypeModel
         SelectionSet = selectionSet ?? throw new ArgumentNullException(nameof(selectionSet));
         Fields = fields ?? throw new ArgumentNullException(nameof(fields));
         Implements = implements ?? Array.Empty<OutputTypeModel>();
-        Deferred = deferred ?? _empty;
+        Deferred = deferred ?? s_empty;
     }
 
     public string Name { get; }
@@ -39,7 +39,7 @@ public sealed class OutputTypeModel : ITypeModel
 
     public bool IsFragment => (Kind & OutputModelKind.Fragment) == OutputModelKind.Fragment;
 
-    public INamedType Type { get; }
+    public ITypeDefinition Type { get; }
 
     public SelectionSetNode SelectionSet { get; }
 

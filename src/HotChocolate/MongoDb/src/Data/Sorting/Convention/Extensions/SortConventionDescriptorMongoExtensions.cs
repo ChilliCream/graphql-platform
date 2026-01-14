@@ -22,9 +22,9 @@ public static class SortConventionDescriptorMongoExtensions
     public static ISortProviderDescriptor<MongoDbSortVisitorContext> AddDefaultFieldHandlers(
         this ISortProviderDescriptor<MongoDbSortVisitorContext> descriptor)
     {
-        descriptor.AddOperationHandler<MongoDbAscendingSortOperationHandler>();
-        descriptor.AddOperationHandler<MongoDbDescendingSortOperationHandler>();
-        descriptor.AddFieldHandler<MongoDbDefaultSortFieldHandler>();
+        descriptor.AddOperationHandler(MongoDbAscendingSortOperationHandler.Create);
+        descriptor.AddOperationHandler(MongoDbDescendingSortOperationHandler.Create);
+        descriptor.AddFieldHandler(MongoDbDefaultSortFieldHandler.Create);
         return descriptor;
     }
 }

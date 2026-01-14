@@ -21,7 +21,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true,
+                        ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -35,16 +35,18 @@ public class SchemaFirstMutations
         var schema =
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddDocumentFromString(@"
+                .AddDocumentFromString(
+                    """
                     type Mutation {
-                        doSomething(something: String) : String
-                            @mutation(payloadFieldName: ""something"")
-                    }")
+                        doSomething(something: String): String
+                            @mutation(payloadFieldName: "something")
+                    }
+                    """)
                 .BindRuntimeType<Mutation>()
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true,
+                        ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -67,7 +69,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true,
+                        ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -91,7 +93,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true,
+                        ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -115,7 +117,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true,
+                        ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -138,7 +140,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true,
+                        ApplyToAllMutations = true
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -164,14 +166,16 @@ public class SchemaFirstMutations
                     ctx => ctx.ArgumentValue<string?>("something"))
                 .BindRuntimeType<Mutation>()
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true, })
+                    new MutationConventionOptions { ApplyToAllMutations = true })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
-                    @"mutation {
-                        doSomething(input: { something: ""abc"" }) {
+                    """
+                    mutation {
+                        doSomething(input: { something: "abc" }) {
                             string
                         }
-                    }");
+                    }
+                    """);
 
         result.MatchSnapshot();
     }

@@ -35,10 +35,7 @@ public static class GreenDonutQueryContextDataLoaderExtensions
         QueryContext<TValue>? context)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (context is null
             || (context.Selector is null
@@ -78,10 +75,7 @@ public static class GreenDonutQueryContextDataLoaderExtensions
         QueryContext<TValue>? context)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (context is null
             || (context.Selector is null
@@ -121,10 +115,7 @@ public static class GreenDonutQueryContextDataLoaderExtensions
         QueryContext<TValue>? context)
         where TKey : notnull
     {
-        if (dataLoader is null)
-        {
-            throw new ArgumentNullException(nameof(dataLoader));
-        }
+        ArgumentNullException.ThrowIfNull(dataLoader);
 
         if (context is null
             || (context.Selector is null

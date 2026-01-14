@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "The variable `intArg` is not compatible with the type of the current location.",
     "Code": null,
@@ -19,8 +19,8 @@
     },
     "Locations": [
       {
-        "Line": 3,
-        "Column": 48
+        "Line": 2,
+        "Column": 30
       }
     ],
     "Extensions": {

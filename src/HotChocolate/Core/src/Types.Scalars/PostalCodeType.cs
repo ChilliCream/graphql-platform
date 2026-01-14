@@ -17,7 +17,7 @@ public class PostalCodeType : StringType
     /// <summary>
     /// Different validation patterns for postal codes.
     /// </summary>
-    private static readonly Regex[] _validationPatterns =
+    private static readonly Regex[] s_validationPatterns =
     [
         CreateRegexUs(),
         CreateRegexUk(),
@@ -35,59 +35,59 @@ public class PostalCodeType : StringType
         CreateRegexAt(),
         CreateRegexPt(),
         CreateRegexCh(),
-        CreateRegexLu(),
+        CreateRegexLu()
     ];
 
 #if DISABLED_DUE_TO_COMPILER_ISSUE
-    [GeneratedRegex(PostalCodePatterns.US, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.US, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexUs();
 
-    [GeneratedRegex(PostalCodePatterns.UK, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.UK, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexUk();
 
-    [GeneratedRegex(PostalCodePatterns.DE, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.DE, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexDe();
 
-    [GeneratedRegex(PostalCodePatterns.CA, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.CA, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexCa();
 
-    [GeneratedRegex(PostalCodePatterns.FR, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.FR, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexFr();
 
-    [GeneratedRegex(PostalCodePatterns.IT, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.IT, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexIt();
 
-    [GeneratedRegex(PostalCodePatterns.AU, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.AU, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexAu();
 
-    [GeneratedRegex(PostalCodePatterns.NL, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.NL, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexNl();
 
-    [GeneratedRegex(PostalCodePatterns.ES, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.ES, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexEs();
 
-    [GeneratedRegex(PostalCodePatterns.DK, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.DK, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexDk();
 
-    [GeneratedRegex(PostalCodePatterns.SE, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.SE, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexSe();
 
-    [GeneratedRegex(PostalCodePatterns.BE, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.BE, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexBe();
 
-    [GeneratedRegex(PostalCodePatterns.IN, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.IN, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexIn();
 
-    [GeneratedRegex(PostalCodePatterns.AT, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.AT, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexAt();
 
-    [GeneratedRegex(PostalCodePatterns.PT, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.PT, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexPt();
 
-    [GeneratedRegex(PostalCodePatterns.CH, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.CH, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexCh();
 
-    [GeneratedRegex(PostalCodePatterns.LU, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(PostalCodePatterns.LU, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegexLu();
 #else
     private static Regex CreateRegexUs()
@@ -144,7 +144,7 @@ public class PostalCodeType : StringType
     private static Regex CreateRegex(string pattern)
         => new Regex(
             pattern,
-            RegexOptions.Compiled | RegexOptions.IgnoreCase,
+            RegexOptions.Compiled,
             TimeSpan.FromMilliseconds(DefaultRegexTimeoutInMs));
 #endif
 
@@ -191,8 +191,8 @@ public class PostalCodeType : StringType
             return true;
         }
 
-        if (runtimeValue is string s &&
-            ValidatePostCode(s))
+        if (runtimeValue is string s
+            && ValidatePostCode(s))
         {
             resultValue = s;
             return true;
@@ -211,8 +211,8 @@ public class PostalCodeType : StringType
             return true;
         }
 
-        if (resultValue is string s &&
-            ValidatePostCode(s))
+        if (resultValue is string s
+            && ValidatePostCode(s))
         {
             runtimeValue = s;
             return true;
@@ -236,9 +236,9 @@ public class PostalCodeType : StringType
 
     private static bool ValidatePostCode(string postCode)
     {
-        for (var i = 0; i < _validationPatterns.Length; i++)
+        for (var i = 0; i < s_validationPatterns.Length; i++)
         {
-            if (_validationPatterns[i].IsMatch(postCode))
+            if (s_validationPatterns[i].IsMatch(postCode))
             {
                 return true;
             }
@@ -251,41 +251,41 @@ public class PostalCodeType : StringType
     private static class PostalCodePatterns
     {
         public const string US =
-            "(^\\d{5}([-]?\\d{4})?$)";
+            "(^[0-9]{5}([-]?[0-9]{4})?$)";
         public const string UK =
-            "(^(GIR|[A-Z]\\d[A-Z\\d]??|[A-Z]{2}\\d[A-Z\\d]??)[ ]??(\\d[A-Z]{2})$)";
+            "(^(GIR|[A-Z][0-9][A-Z0-9]??|[A-Z]{2}[0-9][A-Z0-9]??)[ ]??([0-9][A-Z]{2})$)";
         public const string DE =
-            "(\\b((?:0[1-46-9]\\d{3})|(?:[1-357-9]\\d{4})|(?:[4][0-24-9]" +
-            "\\d{3})|(?:[6][013-9]\\d{3}))\\b)";
+            "(\\b((?:0[1-46-9][0-9]{3})|(?:[1-357-9][0-9]{4})|(?:[4][0-24-9]"
+            + "[0-9]{3})|(?:[6][013-9][0-9]{3}))\\b)";
         public const string CA =
-            "(^([ABCEGHJKLMNPRSTVXY]\\d[ABCEGHJKLMNPRSTVWXYZ]) {0,1}" +
-            "(\\d[ABCEGHJKLMNPRSTVWXYZ]\\d)$)";
+            "(^([ABCEGHJKLMNPRSTVXY][0-9][ABCEGHJKLMNPRSTVWXYZ]) {0,1}"
+            + "([0-9][ABCEGHJKLMNPRSTVWXYZ][0-9])$)";
         public const string FR =
-            "(^(F-)?((2[A|B])|[0-9]{2})[0-9]{3}$)";
+            "(^([Ff]-)?((2[ABab])|[0-9]{2})[0-9]{3}$)";
         public const string IT =
-            "(^(V-|I-)?[0-9]{5}$)";
+            "(^([VIvi]-)?[0-9]{5}$)";
         public const string AU =
-            "(^(0[289][0-9]{2})|([1345689][0-9]{3})|(2[0-8][0-9]{2})|(290[0-9])|" +
-            "(291[0-4])|(7[0-4][0-9]{2})|(7[8-9][0-9]{2})$)";
+            "(^(0[289][0-9]{2})|([1345689][0-9]{3})|(2[0-8][0-9]{2})|(290[0-9])|"
+            + "(291[0-4])|(7[0-4][0-9]{2})|(7[8-9][0-9]{2})$)";
         public const string NL =
             "(^[1-9][0-9]{3}\\s?([a-zA-Z]{2})?$)";
         public const string ES =
             "(^([1-9]{2}|[0-9][1-9]|[1-9][0-9])[0-9]{3}$)";
         public const string DK =
-            "(^([D|d][K|k]( |-))?[1-9]{1}[0-9]{3}$)";
+            "(^([Dd][Kk]( |-))?[1-9]{1}[0-9]{3}$)";
         public const string SE =
             "(^(s-|S-){0,1}[0-9]{3}\\s?[0-9]{2}$)";
         public const string BE =
             "(^[1-9]{1}[0-9]{3}$)";
         public const string IN =
-            "(^\\d{6}$)";
+            "(^[0-9]{6}$)";
         public const string AT =
-            "(^\\d{4}$)";
+            "(^[0-9]{4}$)";
         public const string PT =
-            "(^\\d{4}([\\-]\\d{3})?$)";
+            "(^[0-9]{4}([\\-][0-9]{3})?$)";
         public const string CH =
-            "(^\\d{4}$)";
+            "(^[0-9]{4}$)";
         public const string LU =
-            "(^\\d{4}$)";
+            "(^[0-9]{4}$)";
     }
 }

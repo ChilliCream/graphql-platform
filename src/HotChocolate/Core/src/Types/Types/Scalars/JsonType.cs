@@ -1,10 +1,9 @@
-#nullable enable
-using System.Buffers;
+using System.Runtime.InteropServices;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Properties;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
 
@@ -20,14 +19,19 @@ public sealed class JsonType : ScalarType<JsonElement>
     /// Initializes a new instance of <see cref="JsonType"/>.
     /// </summary>
     public JsonType(string name, BindingBehavior bind = BindingBehavior.Explicit)
-        : base(name, bind) { }
+        : base(name, bind)
+    {
+        SerializationType = ScalarSerializationType.Any;
+    }
 
     /// <summary>
     /// Initializes a new instance of <see cref="JsonType"/>.
     /// </summary>
     [ActivatorUtilitiesConstructor]
     public JsonType()
-        : base(ScalarNames.JSON, BindingBehavior.Implicit) { }
+        : this(ScalarNames.JSON, BindingBehavior.Implicit)
+    {
+    }
 
     /// <summary>
     /// Defines if the specified <paramref name="valueSyntax"/> can be handled by the JSON scalar.
@@ -150,38 +154,23 @@ public sealed class JsonType : ScalarType<JsonElement>
 
         private static IValueNode ParseNumber(JsonElement element)
         {
-            var text = element.GetRawText();
-            var length = checked(text.Length * 4);
-            byte[]? source = null;
-
-            var sourceSpan = length <= GraphQLConstants.StackallocThreshold
-                ? stackalloc byte[length]
-                : source = ArrayPool<byte>.Shared.Rent(length);
-            Utf8GraphQLParser.ConvertToBytes(text, ref sourceSpan);
-
-            var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(sourceSpan);
-
-            if (source is not null)
-            {
-                ArrayPool<byte>.Shared.Return(source);
-            }
-
-            return value;
+            var sourceText = JsonMarshal.GetRawUtf8Value(element);
+            return Utf8GraphQLParser.Syntax.ParseValueLiteral(sourceText);
         }
     }
 
     private static class JsonFormatter
     {
-        private static readonly JsonFormatterVisitor _visitor = new();
+        private static readonly JsonFormatterVisitor s_visitor = new();
 
         public static JsonElement Format(IValueNode node)
         {
-            using var bufferWriter = new ArrayWriter();
+            using var bufferWriter = new PooledArrayWriter();
             using var jsonWriter = new Utf8JsonWriter(bufferWriter);
-            _visitor.Visit(node, new JsonFormatterContext(jsonWriter));
+            s_visitor.Visit(node, new JsonFormatterContext(jsonWriter));
             jsonWriter.Flush();
 
-            var jsonReader = new Utf8JsonReader(bufferWriter.GetWrittenSpan());
+            var jsonReader = new Utf8JsonReader(bufferWriter.WrittenSpan);
             return JsonElement.ParseValue(ref jsonReader);
         }
 

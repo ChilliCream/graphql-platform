@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using Xunit;
 
 namespace GreenDonut.Data.Internal;
 
@@ -73,7 +72,7 @@ public static class ExpressionHasherTests
                 Entities = new List<IEntity>(
                     x.Entities
                         .OfType<Entity2>()
-                        .Select(t => new Entity2 { Name = t.Name } ))
+                        .Select(t => new Entity2 { Name = t.Name }))
             };
 
         // act
@@ -97,26 +96,134 @@ public static class ExpressionHasherTests
         Assert.Equal("76892c282824bfdfe59e135a298c926e", hash);
     }
 
+    [Fact]
+    public static void BufferResize_Add_Char()
+    {
+        // arrange
+        var hasher = new ExpressionHasher();
+        var initialBufferSize = hasher.InitialBufferSize;
+
+        // act
+        for (var i = 0; i < initialBufferSize / 2; i++)
+        {
+            hasher.Add('a');
+        }
+
+        Assert.Equal(initialBufferSize, hasher.BufferSize);
+        hasher.Add('b');
+
+        // assert
+        Assert.Equal(initialBufferSize * 2, hasher.BufferSize);
+    }
+
+    [Fact]
+    public static void BufferResize_Add_ReadOnlyCharSpan()
+    {
+        // arrange
+        var hasher = new ExpressionHasher();
+        var initialBufferSize = hasher.InitialBufferSize;
+
+        // act
+        hasher.Add(new string('a', initialBufferSize + 1));
+
+        // assert
+        Assert.Equal(initialBufferSize * 2, hasher.BufferSize);
+    }
+
+    [Fact]
+    public static void BufferResize_Add_ReadOnlyByteSpan()
+    {
+        // arrange
+        var hasher = new ExpressionHasher();
+        var initialBufferSize = hasher.InitialBufferSize;
+
+        // act
+        hasher.Add(Enumerable.Range(0, initialBufferSize + 1).Select(_ => (byte)1).ToArray());
+
+        // assert
+        Assert.Equal(initialBufferSize * 2, hasher.BufferSize);
+    }
+
+    [Fact]
+    public static void BufferResize_Add_Expression()
+    {
+        // arrange
+        var hasher = new ExpressionHasher();
+        var initialBufferSize = hasher.InitialBufferSize;
+        var expression = Expression.Lambda<Func<Entity1>>(Expression.Constant(new Entity1())); // translated to 8 bytes
+
+        // act
+        var length = 0;
+        while (length < initialBufferSize + 1)
+        {
+            hasher.Add(expression);
+            length += 8;
+        }
+
+        // assert
+        Assert.Equal(initialBufferSize * 2, hasher.BufferSize);
+    }
+
+    [Fact]
+    public static void BufferResize_Add_QueryContext()
+    {
+        // arrange
+        var hasher = new ExpressionHasher();
+        var initialBufferSize = hasher.InitialBufferSize;
+        var queryContext = new QueryContext<Entity1>(x => x); // translated to 32 bytes
+
+        // act
+        var length = 0;
+        while (length < initialBufferSize + 1)
+        {
+            hasher.Add(queryContext);
+            length += 32;
+        }
+
+        // assert
+        Assert.Equal(initialBufferSize * 2, hasher.BufferSize);
+    }
+
+    [Fact]
+    public static void BufferResize_Add_SortDefinition()
+    {
+        // arrange
+        var hasher = new ExpressionHasher();
+        var initialBufferSize = hasher.InitialBufferSize;
+        var sortDefinition = new SortDefinition<Entity1>().AddAscending(x => x.Name); // translated to 102 bytes
+
+        // act
+        var length = 0;
+        while (length < initialBufferSize + 1)
+        {
+            hasher.Add(sortDefinition);
+            length += 102;
+        }
+
+        // assert
+        Assert.Equal(initialBufferSize * 2, hasher.BufferSize);
+    }
+
     public class Entity1
     {
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
 
         public string? Description { get; set; }
 
-        public IEntity Entity { get; set; } = default!;
+        public IEntity Entity { get; set; } = null!;
 
-        public List<IEntity> Entities { get; set; } = default!;
+        public List<IEntity> Entities { get; set; } = null!;
     }
 
     public interface IEntity;
 
     public class Entity2 : IEntity
     {
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 
     public class Entity3 : IEntity
     {
-        public string Name { get; set; } = default!;
+        public string Name { get; set; } = null!;
     }
 }

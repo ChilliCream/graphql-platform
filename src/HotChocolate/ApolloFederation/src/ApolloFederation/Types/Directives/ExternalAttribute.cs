@@ -39,20 +39,17 @@ public sealed class ExternalAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {
             case IObjectTypeDescriptor objectTypeDescriptor:
-            {
                 objectTypeDescriptor.External();
                 break;
-            }
+
             case IObjectFieldDescriptor objectFieldDescriptor:
-            {
                 objectFieldDescriptor.External();
                 break;
-            }
         }
     }
 }

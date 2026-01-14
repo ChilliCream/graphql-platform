@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
@@ -28,8 +28,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         where T : class, ISocketSessionInterceptor =>
         builder.ConfigureSchemaServices(s => s
             .RemoveAll<ISocketSessionInterceptor>()
-            .AddSingleton<ISocketSessionInterceptor, T>(
-                sp => ActivatorUtilities.GetServiceOrCreateInstance<T>(sp.GetCombinedServices())));
+            .AddSingleton<ISocketSessionInterceptor, T>());
 
     /// <summary>
     /// Adds an interceptor for GraphQL socket sessions to the GraphQL configuration.
@@ -52,7 +51,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         where T : class, ISocketSessionInterceptor =>
         builder.ConfigureSchemaServices(s => s
             .RemoveAll<ISocketSessionInterceptor>()
-            .AddSingleton<ISocketSessionInterceptor, T>(sp => factory(sp.GetCombinedServices())));
+            .AddSingleton<ISocketSessionInterceptor, T>(factory));
 
     private static IRequestExecutorBuilder AddSubscriptionServices(
         this IRequestExecutorBuilder builder)
@@ -60,9 +59,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             .ConfigureSchemaServices(s =>
             {
                 s.TryAddSingleton<ISocketSessionInterceptor, DefaultSocketSessionInterceptor>();
-                s.TryAddSingleton<IWebSocketPayloadFormatter>(
-                    _ => new DefaultWebSocketPayloadFormatter(
-                            new WebSocketPayloadFormatterOptions()));
+                s.TryAddSingleton<IWebSocketPayloadFormatter>(_ => new DefaultWebSocketPayloadFormatter());
             })
             .AddApolloProtocol()
             .AddGraphQLOverWebSocketProtocol();

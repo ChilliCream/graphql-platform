@@ -31,8 +31,8 @@ public static class InitCommand
 
         var headersArg = init.Option(
             "-x|--headers",
-            "Custom headers used in request to Graph QL server. " +
-            "Can be used multiple times. Example: --headers key1=value1 --headers key2=value2",
+            "Custom headers used in request to Graph QL server. "
+            + "Can be used multiple times. Example: --headers key1=value1 --headers key2=value2",
             CommandOptionType.MultipleValue);
 
         var fromFileArg = init.Option(

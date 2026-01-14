@@ -8,7 +8,7 @@ public class BackgroundTaskTests
     public async Task DisposeAsync_Should_CancelAndDisposeCompletion_When_Invoked()
     {
         // Arrange
-        CancellationToken cancellationRequested = default;
+        var cancellationRequested = CancellationToken.None;
         var handler = new Func<CancellationToken, Task>((token) =>
         {
             cancellationRequested = token;

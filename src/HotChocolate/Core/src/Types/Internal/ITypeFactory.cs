@@ -8,11 +8,13 @@ namespace HotChocolate.Internal;
 public interface ITypeFactory
 {
     /// <summary>
-    /// Creates a type structure with the <paramref name="namedType"/>.
+    /// Creates a type structure with the <paramref name="typeDefinition"/>.
     /// </summary>
-    /// <param name="namedType">The named type component.</param>
+    /// <param name="typeDefinition">
+    /// The type definition.
+    /// </param>
     /// <returns>
     /// Returns a GraphQL type structure.
     /// </returns>
-    IType CreateType(INamedType namedType);
+    IType CreateType(ITypeDefinition typeDefinition);
 }

@@ -1,11 +1,16 @@
 using System.Collections.Immutable;
+#if NET8_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
+#endif
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public interface IOutputTypeInfo
+/// <summary>
+/// Represents a C# type that represents a GraphQL type.
+/// </summary>
+public interface IOutputTypeInfo : IDiagnosticsProvider
 {
     /// <summary>
     /// Gets the name that the generator shall use to generate the output type.
@@ -16,6 +21,11 @@ public interface IOutputTypeInfo
     /// Gets the namespace that the generator shall use to generate the output type.
     /// </summary>
     string Namespace { get; }
+
+    /// <summary>
+    /// Gets the description of the object type.
+    /// </summary>
+    string? Description { get; }
 
     /// <summary>
     /// Defines if the type is a public.
@@ -63,15 +73,30 @@ public interface IOutputTypeInfo
     /// </summary>
     ClassDeclarationSyntax? ClassDeclaration { get; }
 
+    /// <summary>
+    /// Gets the resolvers of this type.
+    /// </summary>
     ImmutableArray<Resolver> Resolvers { get; }
 
-    ImmutableArray<Diagnostic> Diagnostics { get; }
+    /// <summary>
+    /// Specifies if the @shareable directive is annotated to this type.
+    /// </summary>
+    DirectiveScope Shareable { get; }
 
-    void AddDiagnostic(Diagnostic diagnostic);
+    /// <summary>
+    /// Specifies if the @inaccessible directive is annotated to this type.
+    /// </summary>
+    DirectiveScope Inaccessible { get; }
 
-    void AddDiagnosticRange(ImmutableArray<Diagnostic> diagnostics);
+    /// <summary>
+    /// Gets all attributes on this type.
+    /// </summary>
+    ImmutableArray<AttributeData> Attributes { get; }
 
-     void ReplaceResolver(
-        Resolver current,
-        Resolver replacement);
+    /// <summary>
+    /// Gets descriptor attributes annotated to this type.
+    /// </summary>
+    ImmutableArray<AttributeData> DescriptorAttributes { get; }
+
+    void ReplaceResolver(Resolver current, Resolver replacement);
 }

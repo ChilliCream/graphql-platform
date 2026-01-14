@@ -43,10 +43,7 @@ internal class GeoJsonPointSerializer
         object? coordinates,
         int? crs)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (coordinates is not Coordinate coordinate)
         {
@@ -62,10 +59,7 @@ internal class GeoJsonPointSerializer
 
     public override object CreateInstance(IType type, object?[] fieldValues)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (fieldValues[0] is not GeoJsonGeometryType.Point)
         {
@@ -77,10 +71,7 @@ internal class GeoJsonPointSerializer
 
     public override void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is not Point geometry)
         {

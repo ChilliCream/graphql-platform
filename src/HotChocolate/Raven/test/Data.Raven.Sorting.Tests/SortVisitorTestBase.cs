@@ -71,7 +71,7 @@ public class SortVisitorTestBase : IAsyncLifetime
 
         return new ServiceCollection()
             .Configure<RequestExecutorSetup>(
-                Schema.DefaultName,
+                ISchemaDefinition.DefaultName,
                 o => o.Schema = schema)
             .AddGraphQL()
             .UseRequest(
@@ -91,8 +91,8 @@ public class SortVisitorTestBase : IAsyncLifetime
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync()
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync()
             .Result;
     }
 

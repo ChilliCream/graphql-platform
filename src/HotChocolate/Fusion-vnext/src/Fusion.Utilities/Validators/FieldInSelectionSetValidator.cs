@@ -1,7 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.Validators;
 
@@ -9,13 +8,13 @@ namespace HotChocolate.Fusion.Validators;
 /// This class validates whether a field is present in a selection set.
 /// </summary>
 /// <param name="schema">The schema from which to resolve types.</param>
-public sealed class FieldInSelectionSetValidator(MutableSchemaDefinition schema)
+public sealed class FieldInSelectionSetValidator(ISchemaDefinition schema)
     : SyntaxWalker<FieldInSelectionSetValidatorContext>
 {
     public bool Validate(
         SelectionSetNode selectionSet,
         ITypeDefinition type,
-        MutableOutputFieldDefinition field,
+        IOutputFieldDefinition field,
         ITypeDefinition declaringType)
     {
         var context = new FieldInSelectionSetValidatorContext(type, field, declaringType);
@@ -37,13 +36,13 @@ public sealed class FieldInSelectionSetValidator(MutableSchemaDefinition schema)
             return Break;
         }
 
-        if (type is MutableComplexTypeDefinition complexType)
+        if (type is IComplexTypeDefinition complexType)
         {
             if (complexType.Fields.TryGetField(node.Name.Value, out var field))
             {
                 var fieldType = field.Type.NullableType();
 
-                if (fieldType is MutableComplexTypeDefinition or MutableUnionTypeDefinition)
+                if (fieldType is IComplexTypeDefinition or IUnionTypeDefinition)
                 {
                     if (node.SelectionSet?.Selections.Any() != true)
                     {
@@ -51,7 +50,7 @@ public sealed class FieldInSelectionSetValidator(MutableSchemaDefinition schema)
                         return Break;
                     }
 
-                    if (fieldType is MutableUnionTypeDefinition
+                    if (fieldType is IUnionTypeDefinition
                         && node.SelectionSet.Selections.Any(s => s is not InlineFragmentNode))
                     {
                         // The field returns a union type and must only include inline fragments.
@@ -134,7 +133,7 @@ public sealed class FieldInSelectionSetValidatorContext
 {
     public FieldInSelectionSetValidatorContext(
         ITypeDefinition type,
-        MutableOutputFieldDefinition field,
+        IOutputFieldDefinition field,
         ITypeDefinition declaringType)
     {
         TypeContext.Push(type);
@@ -144,7 +143,7 @@ public sealed class FieldInSelectionSetValidatorContext
 
     public Stack<ITypeDefinition> TypeContext { get; } = [];
 
-    public MutableOutputFieldDefinition Field { get; }
+    public IOutputFieldDefinition Field { get; }
 
     public ITypeDefinition DeclaringType { get; }
 

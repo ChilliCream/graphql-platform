@@ -12,9 +12,9 @@ public class MongoDbDefaultSortFieldHandler
     /// <inheritdoc />
     public override bool CanHandle(
         ITypeCompletionContext context,
-        ISortInputTypeDefinition typeDefinition,
-        ISortFieldDefinition fieldDefinition) =>
-        fieldDefinition.Member is not null;
+        ISortInputTypeConfiguration typeConfiguration,
+        ISortFieldConfiguration fieldConfiguration) =>
+        fieldConfiguration.Member is not null;
 
     /// <inheritdoc />
     public override bool TryHandleEnter(
@@ -49,4 +49,6 @@ public class MongoDbDefaultSortFieldHandler
         action = SyntaxVisitor.Continue;
         return true;
     }
+
+    public static MongoDbDefaultSortFieldHandler Create(SortProviderContext context) => new();
 }

@@ -1,7 +1,6 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
-using Microsoft.CodeAnalysis.Text;
 using static HotChocolate.Types.Analyzers.WellKnownTypes;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
@@ -67,7 +66,7 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
         _writer.WriteIndentedLine("// {0}", middleware.TypeName);
         _writer.WriteIndentedLine(
             "private static global::{0} CreateMiddleware{1}()",
-            RequestCoreMiddleware,
+            RequestMiddleware,
             middlewareIndex);
 
         using (_writer.IncreaseIndent())
@@ -121,14 +120,14 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
 
                 case RequestMiddlewareParameterKind.SchemaService when !parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                        "var cp{0} = core.SchemaServices.GetRequiredService<global::{1}>();",
+                        "var cp{0} = core.SchemaServices.GetRequiredService<{1}>();",
                         i,
                         parameter.TypeName);
                     break;
 
                 case RequestMiddlewareParameterKind.SchemaService when parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                        "var cp{0} = core.SchemaServices.GetService<global::{1}>();",
+                        "var cp{0} = core.SchemaServices.GetService<{1}>();",
                         i,
                         parameter.TypeName);
                     break;
@@ -157,7 +156,7 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
         {
             var parameter = parameters[i];
 
-            if(i > 0)
+            if (i > 0)
             {
                 _writer.Write(", ");
             }
@@ -185,14 +184,14 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
             {
                 case RequestMiddlewareParameterKind.Service when !parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                        "var ip{0} = context.Services.GetRequiredService<{1}>();",
+                        "var ip{0} = context.RequestServices.GetRequiredService<{1}>();",
                         i,
                         parameter.TypeName);
                     break;
 
                 case RequestMiddlewareParameterKind.Service when parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                        "var ip{0} = context.Services.GetService<{1}>();",
+                        "var ip{0} = context.RequestServices.GetService<{1}>();",
                         i,
                         parameter.TypeName);
                     break;
@@ -224,7 +223,7 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
         {
             var parameter = parameters[i];
 
-            if(i > 0)
+            if (i > 0)
             {
                 _writer.Write(", ");
             }
@@ -264,13 +263,15 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
 
         using (_writer.IncreaseIndent())
         {
-            _writer.WriteIndentedLine("this {0} builder) where TMiddleware : class", RequestExecutorBuilder);
+            _writer.WriteIndentedLine("this {0} builder,", RequestExecutorBuilder);
+            _writer.WriteIndentedLine("string? key = null)");
+            _writer.WriteIndentedLine("where TMiddleware : class");
         }
 
         using (_writer.IncreaseIndent())
         {
             _writer.WriteIndentedLine(
-                "=> builder.UseRequest(CreateMiddleware{2}());",
+                "=> builder.UseRequest(CreateMiddleware{2}(), key);",
                 _moduleName,
                 "MiddlewareFactories",
                 middlewareIndex);
@@ -280,9 +281,6 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
     public override string ToString()
         => _sb.ToString();
 
-    public SourceText ToSourceText()
-        => SourceText.From(ToString(), Encoding.UTF8);
-
     public void Dispose()
     {
         if (_disposed)
@@ -291,8 +289,8 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
         }
 
         PooledObjects.Return(_sb);
-        _sb = default!;
-        _writer = default!;
+        _sb = null!;
+        _writer = null!;
         _disposed = true;
     }
 }

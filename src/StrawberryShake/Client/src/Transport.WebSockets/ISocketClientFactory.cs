@@ -19,7 +19,7 @@ public interface ISocketClientFactory
     /// Each call to <see cref="CreateClient(string)"/> is guaranteed to return
     /// a new <see cref="ISocketClient"/>
     /// instance. Callers may cache the returned <see cref="ISocketClient"/>
-    /// instance indefinitely or surround  its use in a <langword>using</langword>
+    /// instance indefinitely or surround its use in a <langword>using</langword>
     /// block to dispose it when desired.
     /// </para>
     /// <para>

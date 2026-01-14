@@ -1,0 +1,168 @@
+title: Viewer_Bug_3
+request:
+  document: |
+    {
+      viewer {
+        subgraphA
+        subgraphB
+      }
+      subgraphC {
+        someField
+        anotherField
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "viewer": {
+          "subgraphA": "Viewer",
+          "subgraphB": "Viewer"
+        },
+        "subgraphC": {
+          "someField": "SubgraphC: U3ViZ3JhcGhDOjE=",
+          "anotherField": "SubgraphC: U3ViZ3JhcGhDOjE="
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        viewer: Viewer! @shareable
+      }
+
+      type Viewer {
+        subgraphA: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_dc7df637_3 {
+              viewer {
+                subgraphA
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "subgraphA": "Viewer"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        viewer: Viewer! @shareable
+      }
+
+      type Viewer {
+        subgraphB: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_dc7df637_2 {
+              viewer {
+                subgraphB
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "subgraphB": "Viewer"
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        subgraphC: SubgraphC!
+      }
+
+      type SubgraphC {
+        someField: String!
+        anotherField: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_dc7df637_1 {
+              subgraphC {
+                someField
+                anotherField
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "subgraphC": {
+                    "someField": "SubgraphC: U3ViZ3JhcGhDOjE=",
+                    "anotherField": "SubgraphC: U3ViZ3JhcGhDOjE="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          viewer {
+            subgraphA
+            subgraphB
+          }
+          subgraphC {
+            someField
+            anotherField
+          }
+        }
+      hash: dc7df637dd1675fdd7b22d5092e80eaa
+      searchSpace: 3
+  nodes:
+    - id: 1
+      type: Operation
+      schema: C
+      operation: |
+        query Op_dc7df637_1 {
+          subgraphC {
+            someField
+            anotherField
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_dc7df637_2 {
+          viewer {
+            subgraphB
+          }
+        }
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query Op_dc7df637_3 {
+          viewer {
+            subgraphA
+          }
+        }

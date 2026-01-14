@@ -21,9 +21,9 @@ internal sealed class IsMutableDirectiveDefinition : MutableDirectiveDefinition
             new MutableInputFieldDefinition(
                 WellKnownArgumentNames.Field,
                 new NonNullType(fieldSelectionMapType))
-        {
-            Description = IsMutableDirectiveDefinition_Argument_Field_Description
-        });
+            {
+                Description = IsMutableDirectiveDefinition_Argument_Field_Description
+            });
 
         Locations = DirectiveLocation.ArgumentDefinition;
     }

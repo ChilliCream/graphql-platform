@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Data/HotChocolate.Data.Marten.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Data.Marten.Filters.Tests/Data.Marten.Filters.Tests.csproj" />
+    <Project Path="test/Data.Marten.Sorting.Tests/Data.Marten.Sorting.Tests.csproj" />
+  </Folder>
+</Solution>

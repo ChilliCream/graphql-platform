@@ -1,5 +1,8 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Comparers;
+using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Logging.Contracts;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.PostMergeValidationRules;
 using HotChocolate.Fusion.PreMergeValidationRules;
 using HotChocolate.Fusion.Results;
@@ -8,23 +11,71 @@ using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositionLog log)
+public sealed class SchemaComposer
 {
-    private readonly IEnumerable<string> _sourceSchemas = sourceSchemas
-        ?? throw new ArgumentNullException(nameof(sourceSchemas));
+    private readonly IEnumerable<SourceSchemaText> _sourceSchemas;
+    private readonly SchemaComposerOptions _schemaComposerOptions;
+    private readonly ICompositionLog _log;
 
-    private readonly ICompositionLog _log = log
-        ?? throw new ArgumentNullException(nameof(log));
+    public SchemaComposer(
+        IEnumerable<SourceSchemaText> sourceSchemas,
+        SchemaComposerOptions schemaComposerOptions,
+        ICompositionLog log)
+    {
+        ArgumentNullException.ThrowIfNull(sourceSchemas);
+        ArgumentNullException.ThrowIfNull(schemaComposerOptions);
+        ArgumentNullException.ThrowIfNull(log);
+
+        _sourceSchemas = sourceSchemas;
+        _schemaComposerOptions = schemaComposerOptions;
+        _log = log;
+    }
 
     public CompositionResult<MutableSchemaDefinition> Compose()
     {
         // Parse Source Schemas
-        var (_, isParseFailure, schemas, parseErrors) =
-            new SourceSchemaParser(_sourceSchemas, _log).Parse();
+        var parsingResult =
+            _sourceSchemas.Select(schema =>
+            {
+                var options = _schemaComposerOptions.SourceSchemas.GetValueOrDefault(schema.Name);
 
-        if (isParseFailure)
+                return new SourceSchemaParser(schema, _log, options?.Parser).Parse();
+            }).Combine();
+
+        if (parsingResult.IsFailure)
         {
-            return parseErrors;
+            return parsingResult.Errors;
+        }
+
+        var schemas =
+            parsingResult.Value.ToImmutableSortedSet(new SchemaByNameComparer<MutableSchemaDefinition>());
+
+        // Preprocess Source Schemas
+        var preprocessingResult =
+            schemas.Select(schema =>
+            {
+                var options = _schemaComposerOptions.SourceSchemas.GetValueOrDefault(schema.Name);
+
+                return new SourceSchemaPreprocessor(
+                    schema,
+                    schemas,
+                    _log,
+                    options?.Version,
+                    options?.Preprocessor).Preprocess();
+            }).Combine();
+
+        if (preprocessingResult.IsFailure)
+        {
+            return preprocessingResult.Errors;
+        }
+
+        // Enrich Source Schemas
+        var enrichmentResult =
+            schemas.Select(schema => new SourceSchemaEnricher(schema, schemas).Enrich()).Combine();
+
+        if (enrichmentResult.IsFailure)
+        {
+            return enrichmentResult.Errors;
         }
 
         // Validate Source Schemas
@@ -46,8 +97,9 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         }
 
         // Merge Source Schemas
+        var sourceSchemaMergerOptions = _schemaComposerOptions.Merger;
         var (_, isMergeFailure, mergedSchema, mergeErrors) =
-            new SourceSchemaMerger(schemas).Merge();
+            new SourceSchemaMerger(schemas, sourceSchemaMergerOptions).Merge();
 
         if (isMergeFailure)
         {
@@ -64,7 +116,9 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         }
 
         // Validate Satisfiability
-        var satisfiabilityResult = new SatisfiabilityValidator(mergedSchema).Validate();
+        var satisfiabilityOptions = _schemaComposerOptions.Satisfiability;
+        var satisfiabilityResult =
+            new SatisfiabilityValidator(mergedSchema, _log, satisfiabilityOptions).Validate();
 
         if (satisfiabilityResult.IsFailure)
         {
@@ -78,6 +132,9 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
     [
         new DisallowedInaccessibleElementsRule(),
         new ExternalOnInterfaceRule(),
+        new ExternalOverrideCollisionRule(),
+        new ExternalProvidesCollisionRule(),
+        new ExternalRequireCollisionRule(),
         new ExternalUnusedRule(),
         new InvalidShareableUsageRule(),
         new IsInvalidFieldTypeRule(),
@@ -86,7 +143,6 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new KeyDirectiveInFieldsArgumentRule(),
         new KeyFieldsHasArgumentsRule(),
         new KeyFieldsSelectInvalidTypeRule(),
-        new KeyInvalidFieldsRule(),
         new KeyInvalidFieldsTypeRule(),
         new KeyInvalidSyntaxRule(),
         new LookupReturnsListRule(),
@@ -105,20 +161,24 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new RequireInvalidSyntaxRule(),
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
-        new RootSubscriptionUsedRule(),
-        new TypeDefinitionInvalidRule()
+        new RootSubscriptionUsedRule()
     ];
 
     private static readonly ImmutableArray<object> s_preMergeRules =
     [
         new EnumValuesMismatchRule(),
         new ExternalArgumentDefaultMismatchRule(),
+        new ExternalArgumentMissingRule(),
+        new ExternalArgumentTypeMismatchRule(),
         new ExternalMissingOnBaseRule(),
+        new ExternalTypeMismatchRule(),
         new FieldArgumentTypesMergeableRule(),
         new FieldWithMissingRequiredArgumentRule(),
         new InputFieldDefaultMismatchRule(),
         new InputFieldTypesMergeableRule(),
         new InputWithMissingRequiredFieldsRule(),
+        new InputWithMissingOneOfRule(),
+        new InvalidFieldSharingRule(),
         new OutputFieldTypesMergeableRule(),
         new TypeKindMismatchRule()
     ];
@@ -133,9 +193,12 @@ public sealed class SchemaComposer(IEnumerable<string> sourceSchemas, ICompositi
         new EnumTypeDefaultValueInaccessibleRule(),
         new ImplementedByInaccessibleRule(),
         new InterfaceFieldNoImplementationRule(),
-        new IsInvalidFieldRule(),
+        new IsInvalidFieldsRule(),
+        new KeyInvalidFieldsRule(),
         new NonNullInputFieldIsInaccessibleRule(),
         new NoQueriesRule(),
+        new ReferenceToInaccessibleTypeRule(),
+        new ReferenceToInternalTypeRule(),
         new RequireInvalidFieldsRule()
     ];
 }

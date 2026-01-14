@@ -5,7 +5,9 @@ public class QueryableSingleOrDefaultInterceptor
     : QueryableTakeHandlerInterceptor
 {
     public QueryableSingleOrDefaultInterceptor()
-        : base(SelectionOptions.SingleOrDefault, 2)
+        : base(SelectionFlags.SingleOrDefault, 2)
     {
     }
+
+    public static QueryableSingleOrDefaultInterceptor Create(ProjectionProviderContext context) => new();
 }

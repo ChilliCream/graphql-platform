@@ -6,5 +6,5 @@ type Query {
   scalar: IPv6
 }
 
-"The IPv6 scalar type represents a valid a IPv6 address as defined in RFC8064"
+"The IPv6 scalar type represents a valid IPv6 address as defined in RFC8064"
 scalar IPv6

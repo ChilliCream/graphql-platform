@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Language;
 
 public static class ValueNodeExtensionsTests

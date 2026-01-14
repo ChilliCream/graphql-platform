@@ -58,18 +58,58 @@ namespace TestNamespace
     {
         internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor descriptor)
         {
+            var extension = descriptor.Extend();
+            var configuration = extension.Configuration;
             var thisType = typeof(global::TestNamespace.Query);
-            var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;
+            var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers(bindingResolver);
 
+            HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                extension.Context,
+                descriptor,
+                null,
+                new global::HotChocolate.Types.QueryTypeAttribute());
+            configuration.ConfigurationsAreApplied = true;
+
+            var naming = descriptor.Extend().Context.Naming;
+
             descriptor
-                .Field(thisType.GetMember("GetTest", global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags)[0])
-                .ExtendWith(static (c, r) =>
+                .Field(naming.GetMemberName("Test", global::HotChocolate.Types.MemberKind.ObjectField))
+                .ExtendWith(static (field, context) =>
                 {
-                    c.Definition.SetSourceGeneratorFlags();
-                    c.Definition.Resolvers = r.GetTest();
+                    var configuration = field.Configuration;
+                    var typeInspector = field.Context.TypeInspector;
+                    var bindingResolver = field.Context.ParameterBindingResolver;
+                    var naming = field.Context.Naming;
+
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int")));
+                    configuration.ResultType = typeof(int);
+
+                    configuration.SetSourceGeneratorFlags();
+
+                    var bindingInfo = field.Context.ParameterBindingResolver;
+                    var parameter = context.Resolvers.CreateParameterDescriptor_GetTest_arg();
+                    var parameterInfo = bindingInfo.GetBindingInfo(parameter);
+
+                    if(parameterInfo.Kind is global::HotChocolate.Internal.ArgumentKind.Argument)
+                    {
+                        var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
+                        {
+                            Name = naming.GetMemberName("arg", global::HotChocolate.Types.MemberKind.Argument),
+                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                                typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Input),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string"))),
+                            RuntimeType = typeof(string)
+                        };
+
+                        configuration.Arguments.Add(argumentConfiguration);
+                    }
+
+                    configuration.Resolvers = context.Resolvers.GetTest();
                 },
-                resolvers);
+                (Resolvers: resolvers, ThisType: thisType));
 
             Configure(descriptor);
         }
@@ -78,29 +118,23 @@ namespace TestNamespace
 
         private sealed class __Resolvers
         {
-            private readonly global::HotChocolate.Internal.IParameterBinding[] _args_GetTest = new global::HotChocolate.Internal.IParameterBinding[1];
+            private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetTest_arg;
 
-            public __Resolvers(global::HotChocolate.Internal.IParameterBindingResolver bindingResolver)
+            public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
             {
-                var type = typeof(global::TestNamespace.Query);
-                global::System.Reflection.MethodInfo resolver = default!;
-                global::System.Reflection.ParameterInfo[] parameters = default!;
-
-                resolver = type.GetMethod(
-                    "GetTest",
-                    global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
-                    new global::System.Type[]
-                    {
-                        typeof(string)
-                    })!;
-
-                parameters = resolver.GetParameters();
-                _args_GetTest[0] = bindingResolver.GetBinding(parameters[0]);
+                _binding_GetTest_arg = bindingResolver.GetBinding(CreateParameterDescriptor_GetTest_arg());
             }
+
+            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetTest_arg()
+                => new HotChocolate.Internal.ParameterDescriptor(
+                    "arg",
+                    typeof(string),
+                    isNullable: false,
+                    []);
 
             public HotChocolate.Resolvers.FieldResolverDelegates GetTest()
             {
-                var isPureResolver = _args_GetTest[0].IsPure;
+                var isPureResolver = _binding_GetTest_arg.IsPure;
 
                 return isPureResolver
                     ? new global::HotChocolate.Resolvers.FieldResolverDelegates(pureResolver: GetTest)
@@ -109,7 +143,7 @@ namespace TestNamespace
 
             private global::System.Object? GetTest(global::HotChocolate.Resolvers.IResolverContext context)
             {
-                var args0 = _args_GetTest[0].Execute<string>(context);
+                var args0 = _binding_GetTest_arg.Execute<string>(context);
                 var result = global::TestNamespace.Query.GetTest(args0);
                 return result;
             }

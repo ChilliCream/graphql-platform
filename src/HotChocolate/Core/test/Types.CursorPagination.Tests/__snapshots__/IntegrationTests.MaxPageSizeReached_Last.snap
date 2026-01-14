@@ -1,4 +1,4 @@
-﻿{
+{
   "errors": [
     {
       "message": "The maximum allowed items per page were exceeded.",
@@ -13,7 +13,7 @@
       ],
       "extensions": {
         "code": "HC0051",
-        "fieldCoordinate": "Query.letters",
+        "coordinate": "Query.letters",
         "requestedItems": 3,
         "maxAllowedItems": 2
       }

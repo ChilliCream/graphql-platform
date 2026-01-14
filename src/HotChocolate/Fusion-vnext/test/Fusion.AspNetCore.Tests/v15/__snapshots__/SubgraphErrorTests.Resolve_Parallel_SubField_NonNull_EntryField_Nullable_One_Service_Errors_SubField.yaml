@@ -1,0 +1,137 @@
+title: Resolve_Parallel_SubField_NonNull_EntryField_Nullable_One_Service_Errors_SubField
+request:
+  document: |
+    {
+      viewer {
+        name
+      }
+      other {
+        userId
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "viewer": {
+          "name": "Viewer"
+        },
+        "other": null
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "other"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        viewer: Viewer
+      }
+
+      type Viewer {
+        name: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_6b55933b_1 {
+              viewer {
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "name": "Viewer"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Other {
+        userId: ID! @error
+      }
+
+      type Query {
+        other: Other
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_6b55933b_2 {
+              other {
+                userId
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Unexpected Execution Error",
+                    "locations": [
+                      {
+                        "line": 3,
+                        "column": 5
+                      }
+                    ],
+                    "path": [
+                      "other",
+                      "userId"
+                    ]
+                  }
+                ],
+                "data": {
+                  "other": null
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          viewer {
+            name
+          }
+          other {
+            userId
+          }
+        }
+      hash: 6b55933be7e98bbac39be61645618631
+      searchSpace: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_6b55933b_1 {
+          viewer {
+            name
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_6b55933b_2 {
+          other {
+            userId
+          }
+        }

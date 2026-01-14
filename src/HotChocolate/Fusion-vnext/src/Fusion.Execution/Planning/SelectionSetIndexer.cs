@@ -6,21 +6,28 @@ namespace HotChocolate.Fusion.Planning;
 
 public sealed class SelectionSetIndexer : SyntaxWalker
 {
-    private static readonly SelectionSetVisitor _selectionSetVisitor = new();
+    private static readonly SelectionSetVisitor s_selectionSetVisitor = new();
+    private readonly Dictionary<SelectionSetNode, uint> _selectionSetIds = [];
     private uint _nextId = 1;
-    private readonly Dictionary<SelectionSetNode, uint> _selectionSetIds = new();
 
     public static ISelectionSetIndex Create(OperationDefinitionNode operation)
     {
         var indexer = new SelectionSetIndexer();
         indexer.Visit(operation);
-        return new SelectionSetIndex(indexer._selectionSetIds.ToImmutableDictionary(), indexer._nextId);
+        return new SelectionSetIndex(
+            indexer._selectionSetIds.ToImmutableDictionary(),
+#if NET10_0_OR_GREATER
+            [],
+#else
+            ImmutableDictionary<uint, uint>.Empty,
+#endif
+            indexer._nextId);
     }
 
     public static ImmutableHashSet<uint> CreateIdSet(SelectionSetNode selectionSet, ISelectionSetIndex index)
     {
         var context = new SelectionSetVisitor.Context(index);
-        _selectionSetVisitor.Visit(selectionSet, context);
+        s_selectionSetVisitor.Visit(selectionSet, context);
         return context.SelectionSets.ToImmutable();
     }
 

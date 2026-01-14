@@ -15,7 +15,8 @@ public class DataLoaderDiagnosticEventListener : IDataLoaderDiagnosticEventListe
     public virtual void ResolvedTaskFromCache(
         IDataLoader dataLoader,
         PromiseCacheKey cacheKey,
-        Task task) { }
+        Task task)
+    { }
 
     /// <inheritdoc />
     public virtual IDisposable ExecuteBatch<TKey>(
@@ -28,19 +29,38 @@ public class DataLoaderDiagnosticEventListener : IDataLoaderDiagnosticEventListe
     public virtual void BatchResults<TKey, TValue>(
         IReadOnlyList<TKey> keys,
         ReadOnlySpan<Result<TValue?>> values)
-        where TKey : notnull { }
+        where TKey : notnull
+    { }
 
     /// <inheritdoc />
     public virtual void BatchError<TKey>(
         IReadOnlyList<TKey> keys,
         Exception error)
-        where TKey : notnull { }
+        where TKey : notnull
+    { }
 
     /// <inheritdoc />
     public virtual void BatchItemError<TKey>(
         TKey key,
         Exception error)
-        where TKey : notnull { }
+        where TKey : notnull
+    { }
+
+    /// <inheritdoc />
+    public virtual IDisposable RunBatchDispatchCoordinator()
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual void BatchDispatchError(Exception error)
+    { }
+
+    /// <inheritdoc />
+    public virtual void BatchEvaluated(int openBatches)
+    { }
+
+    /// <inheritdoc />
+    public virtual void BatchDispatched(int dispatchedBatches, bool inParallel)
+    { }
 
     private sealed class EmptyActivityScope : IDisposable
     {

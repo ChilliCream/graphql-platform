@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -8,15 +9,19 @@ namespace HotChocolate.Types.Mutable;
 /// <summary>
 /// Represents a GraphQL scalar type definition.
 /// </summary>
-public class MutableScalarTypeDefinition(string name)
-    : INamedTypeSystemMemberDefinition<MutableScalarTypeDefinition>
+public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<MutableScalarTypeDefinition>
     , IScalarTypeDefinition
     , IMutableTypeDefinition
-    , IFeatureProvider
 {
-    private string _name = name.EnsureGraphQLName();
     private DirectiveCollection? _directives;
-    private IFeatureCollection? _features;
+
+    /// <summary>
+    /// Represents a GraphQL scalar type definition.
+    /// </summary>
+    public MutableScalarTypeDefinition(string name)
+    {
+        Name = name.EnsureGraphQLName();
+    }
 
     /// <inheritdoc />
     public TypeKind Kind => TypeKind.Scalar;
@@ -24,12 +29,18 @@ public class MutableScalarTypeDefinition(string name)
     /// <inheritdoc cref="IMutableTypeDefinition.Name" />
     public string Name
     {
-        get => _name;
-        set => _name = value.EnsureGraphQLName();
+        get;
+        set => field = value.EnsureGraphQLName();
     }
 
     /// <inheritdoc cref="IMutableTypeDefinition.Description" />
     public string? Description { get; set; }
+
+    /// <inheritdoc />
+    public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
+
+    /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
+    public bool IsIntrospectionType { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this scalar type is a spec scalar.
@@ -37,30 +48,15 @@ public class MutableScalarTypeDefinition(string name)
     public bool IsSpecScalar { get; set; }
 
     public DirectiveCollection Directives
-        => _directives ??= new DirectiveCollection();
+        => _directives ??= [];
 
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives
         => _directives ?? EmptyCollections.Directives;
 
     /// <inheritdoc />
+    [field: AllowNull, MaybeNull]
     public IFeatureCollection Features
-        => _features ??= new FeatureCollection();
-
-    /// <summary>
-    /// Gets the string representation of this instance.
-    /// </summary>
-    /// <returns>
-    /// The string representation of this instance.
-    /// </returns>
-    public override string ToString()
-        => Format(this).ToString(true);
-
-    /// <summary>
-    /// Creates a <see cref="ScalarTypeDefinitionNode"/> from a <see cref="MutableScalarTypeDefinition"/>.
-    /// </summary>
-    public ScalarTypeDefinitionNode ToSyntaxNode() => Format(this);
-
-    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => Format(this);
+        => field ??= new FeatureCollection();
 
     /// <inheritdoc />
     public bool Equals(IType? other)
@@ -81,10 +77,7 @@ public class MutableScalarTypeDefinition(string name)
     /// <inheritdoc />
     public bool IsAssignableFrom(ITypeDefinition type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         if (type.Kind == TypeKind.Scalar)
         {
@@ -93,6 +86,57 @@ public class MutableScalarTypeDefinition(string name)
 
         return false;
     }
+
+    public Uri? SpecifiedBy
+    {
+        get
+        {
+            var specifiedBy = Directives.FirstOrDefault("specifiedBy");
+
+            if (specifiedBy is null)
+            {
+                return null;
+            }
+
+            var url = specifiedBy.Arguments.First(t => t.Name.Equals("url", StringComparison.Ordinal));
+
+            if (url.Value is not StringValueNode urlValue)
+            {
+                throw new InvalidOperationException("The specified URL is not a valid URI.");
+            }
+
+            return new Uri(urlValue.Value);
+        }
+    }
+
+    /// <inheritdoc />
+    public ScalarSerializationType SerializationType { get; set; }
+
+    /// <inheritdoc />
+    public string? Pattern { get; set; }
+
+    /// <inheritdoc />
+    public bool IsInstanceOfType(IValueNode value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return true;
+    }
+
+    /// <summary>
+    /// Gets the string representation of this instance.
+    /// </summary>
+    /// <returns>
+    /// The string representation of this instance.
+    /// </returns>
+    public override string ToString()
+        => Format(this).ToString(true);
+
+    /// <summary>
+    /// Creates a <see cref="ScalarTypeDefinitionNode"/> from a <see cref="MutableScalarTypeDefinition"/>.
+    /// </summary>
+    public ScalarTypeDefinitionNode ToSyntaxNode() => Format(this);
+
+    ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => Format(this);
 
     /// <summary>
     /// Creates a new instance of <see cref="MutableScalarTypeDefinition"/>.

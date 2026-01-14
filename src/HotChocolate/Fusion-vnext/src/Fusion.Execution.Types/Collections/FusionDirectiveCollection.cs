@@ -12,6 +12,7 @@ public sealed class FusionDirectiveCollection
 
     public FusionDirectiveCollection(FusionDirective[] directives)
     {
+        ArgumentNullException.ThrowIfNull(directives);
         _directives = directives;
     }
 
@@ -53,6 +54,19 @@ public sealed class FusionDirectiveCollection
 
     IDirective? IReadOnlyDirectiveCollection.FirstOrDefault(string directiveName)
         => FirstOrDefault(directiveName);
+
+    IDirective? IReadOnlyDirectiveCollection.FirstOrDefault(Type runtimeType)
+    {
+        foreach (var directive in _directives)
+        {
+            if (directive.Definition.RuntimeType == runtimeType)
+            {
+                return directive;
+            }
+        }
+
+        return null;
+    }
 
     private static IEnumerable<FusionDirective> FindDirectives(
         FusionDirective[] directives,
@@ -100,7 +114,7 @@ public sealed class FusionDirectiveCollection
     {
         var nodes = new List<DirectiveNode>();
 
-        foreach (FusionDirective directive in _directives)
+        foreach (var directive in _directives)
         {
             nodes.Add(directive.ToSyntaxNode());
         }

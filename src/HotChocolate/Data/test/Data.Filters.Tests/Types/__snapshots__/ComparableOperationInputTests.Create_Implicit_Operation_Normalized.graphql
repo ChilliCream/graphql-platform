@@ -188,8 +188,8 @@ scalar Byte
 "The `Decimal` scalar type represents a decimal floating-point number."
 scalar Decimal
 
-"The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339"
-scalar LocalDate
+"The `LocalDate` scalar represents a date without a time-zone in the ISO-8601 calendar system."
+scalar LocalDate @specifiedBy(url: "https:\/\/scalars.graphql.org\/andimarek\/local-date.html")
 
 "The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss."
 scalar LocalTime

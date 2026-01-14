@@ -1,4 +1,4 @@
-﻿{
+{
   "activities": [
     {
       "OperationName": "ValidateDocument",
@@ -73,11 +73,43 @@
       "event": []
     },
     {
-      "OperationName": "ExecuteBatch",
-      "DisplayName": "Execute CustomDataLoader Batch",
+      "OperationName": "BatchCoordinator",
+      "DisplayName": "Coordinate DataLoader Batches",
       "Status": "Unset",
       "tags": [],
-      "event": []
+      "event": [
+        {
+          "Name": "BatchEvaluated",
+          "Tags": [
+            {
+              "Key": "openBatches",
+              "Value": 1
+            }
+          ]
+        },
+        {
+          "Name": "BatchDispatched",
+          "Tags": [
+            {
+              "Key": "dispatchedBatches",
+              "Value": 1
+            },
+            {
+              "Key": "inParallel",
+              "Value": false
+            }
+          ]
+        }
+      ],
+      "activities": [
+        {
+          "OperationName": "ExecuteBatch",
+          "DisplayName": "Execute CustomDataLoader Batch",
+          "Status": "Unset",
+          "tags": [],
+          "event": []
+        }
+      ]
     }
   ]
 }

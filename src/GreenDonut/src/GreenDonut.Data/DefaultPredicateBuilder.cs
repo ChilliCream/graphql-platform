@@ -9,7 +9,7 @@ namespace GreenDonut.Data;
 /// </summary>
 public sealed class DefaultPredicateBuilder : IPredicateBuilder
 {
-    private ImmutableArray<LambdaExpression> _predicates = ImmutableArray<LambdaExpression>.Empty;
+    private ImmutableArray<LambdaExpression> _predicates = [];
 
     /// <summary>
     /// Initializes a new instance of <see cref="DefaultPredicateBuilder"/>.
@@ -19,7 +19,7 @@ public sealed class DefaultPredicateBuilder : IPredicateBuilder
     /// </param>
     public DefaultPredicateBuilder(LambdaExpression? initialPredicate)
     {
-        if(initialPredicate is not null)
+        if (initialPredicate is not null)
         {
             _predicates = _predicates.Add(initialPredicate);
         }
@@ -82,5 +82,5 @@ public sealed class DefaultPredicateBuilder : IPredicateBuilder
     /// <summary>
     /// Gets an empty <see cref="DefaultPredicateBuilder"/>.
     /// </summary>
-    public static DefaultPredicateBuilder Empty { get; } = new(ImmutableArray<LambdaExpression>.Empty);
+    public static DefaultPredicateBuilder Empty { get; } = new([]);
 }

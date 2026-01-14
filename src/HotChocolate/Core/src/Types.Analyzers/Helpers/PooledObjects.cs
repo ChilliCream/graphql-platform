@@ -1,26 +1,31 @@
+using System.Collections.Concurrent;
 using System.Text;
 
 namespace HotChocolate.Types.Analyzers.Helpers;
 
 public static class PooledObjects
 {
-    private static readonly HashSet<string>?[] _stringSets = new HashSet<string>[8];
-    private static int _nextStringSetIndex = -1;
+    private static readonly HashSet<string>?[] s_stringSets = new HashSet<string>[8];
+    private static int s_nextStringSetIndex = -1;
 
-    private static readonly StringBuilder?[] _stringBuilders = new StringBuilder[8];
-    private static int _nextStringBuilderIndex = -1;
+    private static readonly StringBuilder?[] s_stringBuilders = new StringBuilder[8];
+    private static int s_nextStringBuilderIndex = -1;
 
-    private static readonly object _lock = new();
+    private static readonly ConcurrentDictionary<string, string>?[] s_stringDictionaries =
+        new ConcurrentDictionary<string, string>[8];
+    private static int s_nextStringDictionaryIndex = -1;
+
+    private static readonly object s_lock = new();
 
     public static StringBuilder GetStringBuilder()
     {
-        lock (_lock)
+        lock (s_lock)
         {
-            if (_nextStringBuilderIndex >= 0)
+            if (s_nextStringBuilderIndex >= 0)
             {
-                var sb = _stringBuilders[_nextStringBuilderIndex];
-                _stringBuilders[_nextStringBuilderIndex] = null;
-                _nextStringBuilderIndex--;
+                var sb = s_stringBuilders[s_nextStringBuilderIndex];
+                s_stringBuilders[s_nextStringBuilderIndex] = null;
+                s_nextStringBuilderIndex--;
                 return sb ?? new StringBuilder();
             }
         }
@@ -30,13 +35,13 @@ public static class PooledObjects
 
     public static HashSet<string> GetStringSet()
     {
-        lock (_lock)
+        lock (s_lock)
         {
-            if (_nextStringSetIndex >= 0)
+            if (s_nextStringSetIndex >= 0)
             {
-                var set = _stringSets[_nextStringSetIndex];
-                _stringSets[_nextStringSetIndex] = null;
-                _nextStringSetIndex--;
+                var set = s_stringSets[s_nextStringSetIndex];
+                s_stringSets[s_nextStringSetIndex] = null;
+                s_nextStringSetIndex--;
                 return set ?? [];
             }
         }
@@ -44,30 +49,82 @@ public static class PooledObjects
         return [];
     }
 
+    public static ConcurrentDictionary<string, string> GetStringDictionary()
+    {
+        lock (s_lock)
+        {
+            if (s_nextStringDictionaryIndex >= 0)
+            {
+                var dict = s_stringDictionaries[s_nextStringDictionaryIndex];
+                s_stringDictionaries[s_nextStringDictionaryIndex] = null;
+                s_nextStringDictionaryIndex--;
+                return dict ?? new ConcurrentDictionary<string, string>();
+            }
+        }
+
+        return new ConcurrentDictionary<string, string>();
+    }
+
     public static void Return(StringBuilder stringBuilder)
     {
-        stringBuilder.Clear();
-
-        lock (_lock)
+        // Don't pool oversized objects to avoid memory bloat
+        // 128KB should accommodate most generated files while protecting against truly massive outliers
+        const int maxCapacity = 128 * 1024;
+        if (stringBuilder.Capacity > maxCapacity)
         {
-            if (_nextStringBuilderIndex + 1 < _stringBuilders.Length)
+            return;
+        }
+
+        lock (s_lock)
+        {
+            stringBuilder.Clear();
+
+            if (s_nextStringBuilderIndex + 1 < s_stringBuilders.Length)
             {
-                _nextStringBuilderIndex++;
-                _stringBuilders[_nextStringBuilderIndex] = stringBuilder;
+                s_nextStringBuilderIndex++;
+                s_stringBuilders[s_nextStringBuilderIndex] = stringBuilder;
             }
         }
     }
 
     public static void Return(HashSet<string> stringSet)
     {
-        stringSet.Clear();
-
-        lock (_lock)
+        // Don't pool oversized objects to avoid memory bloat
+        const int maxCount = 256;
+        if (stringSet.Count > maxCount)
         {
-            if (_nextStringSetIndex + 1 < _stringSets.Length)
+            return;
+        }
+
+        lock (s_lock)
+        {
+            stringSet.Clear();
+
+            if (s_nextStringSetIndex + 1 < s_stringSets.Length)
             {
-                _nextStringSetIndex++;
-                _stringSets[_nextStringSetIndex] = stringSet;
+                s_nextStringSetIndex++;
+                s_stringSets[s_nextStringSetIndex] = stringSet;
+            }
+        }
+    }
+
+    public static void Return(ConcurrentDictionary<string, string> stringDictionary)
+    {
+        // Don't pool oversized objects to avoid memory bloat
+        const int maxCount = 256;
+        if (stringDictionary.Count > maxCount)
+        {
+            return;
+        }
+
+        lock (s_lock)
+        {
+            stringDictionary.Clear();
+
+            if (s_nextStringDictionaryIndex + 1 < s_stringDictionaries.Length)
+            {
+                s_nextStringDictionaryIndex++;
+                s_stringDictionaries[s_nextStringDictionaryIndex] = stringDictionary;
             }
         }
     }

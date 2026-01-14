@@ -9,6 +9,7 @@ public sealed class OperationDefinitionNode
     public OperationDefinitionNode(
         Location? location,
         NameNode? name,
+        StringValueNode? description,
         OperationType operation,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
         IReadOnlyList<DirectiveNode> directives,
@@ -16,6 +17,7 @@ public sealed class OperationDefinitionNode
     {
         Location = location;
         Name = name;
+        Description = description;
         Operation = operation;
         VariableDefinitions = variableDefinitions
             ?? throw new ArgumentNullException(nameof(variableDefinitions));
@@ -30,6 +32,8 @@ public sealed class OperationDefinitionNode
     public Location? Location { get; }
 
     public NameNode? Name { get; }
+
+    public StringValueNode? Description { get; }
 
     public OperationType Operation { get; }
 
@@ -82,40 +86,46 @@ public sealed class OperationDefinitionNode
 
     public OperationDefinitionNode WithLocation(Location? location)
         => new(
-            location, Name, Operation,
+            location, Name, Description, Operation,
             VariableDefinitions,
             Directives, SelectionSet);
 
     public OperationDefinitionNode WithName(NameNode? name)
         => new(
-            Location, name, Operation,
+            Location, name, Description, Operation,
+            VariableDefinitions,
+            Directives, SelectionSet);
+
+    public OperationDefinitionNode WithDescription(StringValueNode? description)
+        => new(
+            Location, Name, description, Operation,
             VariableDefinitions,
             Directives, SelectionSet);
 
     public OperationDefinitionNode WithOperation(OperationType operation)
         => new(
-            Location, Name, operation,
+            Location, Name, Description, operation,
             VariableDefinitions,
             Directives, SelectionSet);
 
     public OperationDefinitionNode WithVariableDefinitions(
         IReadOnlyList<VariableDefinitionNode> variableDefinitions)
         => new(
-            Location, Name, Operation,
+            Location, Name, Description, Operation,
             variableDefinitions,
             Directives, SelectionSet);
 
     public OperationDefinitionNode WithDirectives(
         IReadOnlyList<DirectiveNode> directives)
         => new(
-            Location, Name, Operation,
+            Location, Name, Description, Operation,
             VariableDefinitions,
             directives, SelectionSet);
 
     public OperationDefinitionNode WithSelectionSet(
         SelectionSetNode selectionSet)
         => new(
-            Location, Name, Operation,
+            Location, Name, Description, Operation,
             VariableDefinitions,
             Directives, selectionSet);
 }

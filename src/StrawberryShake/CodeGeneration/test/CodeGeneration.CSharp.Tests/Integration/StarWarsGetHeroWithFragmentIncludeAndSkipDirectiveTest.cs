@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets;
-using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithFragmentIncludeAndSkipDirective;
 
@@ -20,8 +14,8 @@ public class StarWarsGetHeroWithFragmentIncludeAndSkipDirectiveTest : ServerTest
     public async Task Execute_StarWarsGetHeroWithFragmentIncludeAndSkipDirective_Test()
     {
         // arrange
-        CancellationToken ct = new CancellationTokenSource(20_000).Token;
-        using IWebHost host = TestServerHelper.CreateServer(
+        var ct = new CancellationTokenSource(20_000).Token;
+        using var host = TestServerHelper.CreateServer(
             _ => { },
             out var port);
         var serviceCollection = new ServiceCollection();
@@ -33,7 +27,7 @@ public class StarWarsGetHeroWithFragmentIncludeAndSkipDirectiveTest : ServerTest
             c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
         serviceCollection.AddStarWarsGetHeroWithFragmentIncludeAndSkipDirectiveClient();
         IServiceProvider services = serviceCollection.BuildServiceProvider();
-        StarWarsGetHeroWithFragmentIncludeAndSkipDirectiveClient client = services.GetRequiredService<StarWarsGetHeroWithFragmentIncludeAndSkipDirectiveClient>();
+        var client = services.GetRequiredService<StarWarsGetHeroWithFragmentIncludeAndSkipDirectiveClient>();
 
         // act
         var result = await client.GetHeroWithFragmentIncludeAndSkipDirective.ExecuteAsync(false, true, ct);

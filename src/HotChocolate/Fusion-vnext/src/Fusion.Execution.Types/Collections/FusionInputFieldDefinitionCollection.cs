@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
 
@@ -15,6 +14,9 @@ public sealed class FusionInputFieldDefinitionCollection
 
     IInputValueDefinition IReadOnlyFieldDefinitionCollection<IInputValueDefinition>.this[string name]
         => this[name];
+
+    IInputValueDefinition IReadOnlyList<IInputValueDefinition>.this[int index]
+        => this[index];
 
     bool IReadOnlyFieldDefinitionCollection<IInputValueDefinition>.TryGetField(
         string name,

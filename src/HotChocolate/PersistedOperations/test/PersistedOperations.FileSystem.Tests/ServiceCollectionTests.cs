@@ -60,7 +60,7 @@ public class ServiceCollectionTests
                 .AddFileSystemOperationDocumentStorage(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>((Action) Action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 
     [Fact]

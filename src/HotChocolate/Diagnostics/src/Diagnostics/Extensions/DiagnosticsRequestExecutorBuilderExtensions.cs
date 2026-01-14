@@ -26,7 +26,7 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddInstrumentation(
         this IRequestExecutorBuilder builder,
-        Action<InstrumentationOptions>? options = default)
+        Action<InstrumentationOptions>? options = null)
         => AddInstrumentation(builder, (_, opt) => options?.Invoke(opt));
 
     /// <summary>
@@ -45,25 +45,19 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Action<IServiceProvider, InstrumentationOptions> options)
     {
-        if (builder is null)
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(options);
+
+        builder.Services.TryAddSingleton(sp =>
         {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
-
-        builder.Services.TryAddSingleton(
-            sp =>
-            {
-                var optionInst = new InstrumentationOptions();
-                options(sp, optionInst);
-                return optionInst;
-            });
-
+            var optionInst = new InstrumentationOptions();
+            options(sp, optionInst);
+            return optionInst;
+        });
         builder.Services.TryAddSingleton<InternalActivityEnricher>();
+
+        builder.AddApplicationService<InstrumentationOptions>();
+        builder.AddApplicationService<InternalActivityEnricher>();
 
         builder.AddDiagnosticEventListener(
             sp => new ActivityExecutionDiagnosticListener(
@@ -89,9 +83,9 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
     private sealed class InternalActivityEnricher : ActivityEnricher
     {
         public InternalActivityEnricher(
-            ObjectPool<StringBuilder> stringBuilderPoolPool,
+            ObjectPool<StringBuilder> stringBuilderPool,
             InstrumentationOptions options)
-            : base(stringBuilderPoolPool, options)
+            : base(stringBuilderPool, options)
         {
         }
     }

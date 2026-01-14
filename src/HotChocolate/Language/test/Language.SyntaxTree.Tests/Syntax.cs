@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public static class SyntaxEqualityComparerTests
@@ -12,14 +10,14 @@ public static class SyntaxEqualityComparerTests
             new List<ISelectionNode>
             {
                 new FieldNode("a"),
-                new FieldNode("b"),
+                new FieldNode("b")
             });
 
         var b = new SelectionSetNode(
             new List<ISelectionNode>
             {
                 new FieldNode("a"),
-                new FieldNode("b"),
+                new FieldNode("b")
             });
 
         // fact

@@ -10,12 +10,21 @@ public static partial class AuthorNode
         CancellationToken cancellationToken)
         => await repository.GetBooksByAuthorAsync(author.Id, cancellationToken);
 
+    [GraphQLDescription("This is some information.")]
     public static async Task<string?> GetSomeInfo(
         [Parent] Author author,
         ISomeInfoByIdDataLoader dataLoader,
         CancellationToken cancellationToken)
         => await dataLoader.LoadAsync(author.Id, cancellationToken);
 
+    /// <summary>
+    /// Gets the additional info.
+    /// </summary>
+    /// <param name="author">The author</param>
+    /// <param name="someArg">Some argument</param>
+    /// <returns>
+    /// Returns a string.
+    /// </returns>
     public static string GetAdditionalInfo(
         [Parent("Id")] Author author,
         string someArg)
@@ -43,4 +52,3 @@ public static partial class AuthorNode
     [Query]
     public static string QueryFieldCollocatedWithAuthor() => "hello";
 }
-

@@ -1,7 +1,6 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
-using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
@@ -109,14 +108,11 @@ public sealed class OperationFieldFileBuilder : IDisposable
             OperationType.Query => "global::HotChocolate.Types.OperationTypeNames.Query",
             OperationType.Mutation => "global::HotChocolate.Types.OperationTypeNames.Mutation",
             OperationType.Subscription => "global::HotChocolate.Types.OperationTypeNames.Subscription",
-            _ => throw new InvalidOperationException(),
+            _ => throw new InvalidOperationException()
         };
 
     public override string ToString()
         => _sb.ToString();
-
-    public SourceText ToSourceText()
-        => SourceText.From(ToString(), Encoding.UTF8);
 
     public void Dispose()
     {
@@ -126,8 +122,8 @@ public sealed class OperationFieldFileBuilder : IDisposable
         }
 
         PooledObjects.Return(_sb);
-        _sb = default!;
-        _writer = default!;
+        _sb = null!;
+        _writer = null!;
         _disposed = true;
     }
 }

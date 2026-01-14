@@ -11,7 +11,7 @@ public sealed class PetStoreController : ControllerBase
     [
         new Pet(1, "Chopper", "dog"),
         new Pet(2, "Rex", "dog"),
-        new Pet(3, "Polly", "bird"),
+        new Pet(3, "Polly", "bird")
     ];
 
     [HttpPost]
@@ -23,7 +23,7 @@ public sealed class PetStoreController : ControllerBase
             return new JsonResult(
                 new Error((int)HttpStatusCode.BadRequest, "Pet tag must not be empty."))
             {
-                StatusCode = (int)HttpStatusCode.BadRequest,
+                StatusCode = (int)HttpStatusCode.BadRequest
             };
         }
 
@@ -48,7 +48,7 @@ public sealed class PetStoreController : ControllerBase
             return new JsonResult(
                 new Error((int)HttpStatusCode.NotFound, $"Pet with ID '{id}' not found."))
             {
-                StatusCode = (int)HttpStatusCode.NotFound,
+                StatusCode = (int)HttpStatusCode.NotFound
             };
         }
 
@@ -64,7 +64,7 @@ public sealed class PetStoreController : ControllerBase
             return new JsonResult(
                 new Error((int)HttpStatusCode.BadRequest, "Limit must be 10 or less."))
             {
-                StatusCode = (int)HttpStatusCode.BadRequest,
+                StatusCode = (int)HttpStatusCode.BadRequest
             };
         }
 
@@ -86,7 +86,7 @@ public sealed class PetStoreController : ControllerBase
             return new JsonResult(
                 new Error((int)HttpStatusCode.NotFound, $"Pet with ID '{id}' not found."))
             {
-                StatusCode = (int)HttpStatusCode.NotFound,
+                StatusCode = (int)HttpStatusCode.NotFound
             };
         }
 

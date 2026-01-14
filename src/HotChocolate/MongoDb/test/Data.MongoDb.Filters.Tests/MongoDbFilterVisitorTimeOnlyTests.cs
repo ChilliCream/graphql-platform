@@ -1,9 +1,7 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson.Serialization.Serializers;
 using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Filters;
@@ -12,17 +10,17 @@ public class MongoDbFilterVisitorTimeOnlyTests
     : SchemaCache
     , IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = new TimeOnly(06, 30), },
-        new() { Bar = new TimeOnly(16, 00), },
+        new() { Bar = new TimeOnly(06, 30) },
+        new() { Bar = new TimeOnly(16, 00) }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
-        new() { Bar = new TimeOnly(06, 30), },
-        new() { Bar = null, },
-        new() { Bar = new TimeOnly(16, 00), },
+        new() { Bar = new TimeOnly(06, 30) },
+        new() { Bar = null },
+        new() { Bar = new TimeOnly(16, 00) }
     ];
 
     public MongoDbFilterVisitorTimeOnlyTests(MongoResource resource)
@@ -34,7 +32,7 @@ public class MongoDbFilterVisitorTimeOnlyTests
     public async Task Create_TimeOnlyEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -59,7 +57,7 @@ public class MongoDbFilterVisitorTimeOnlyTests
     public async Task Create_TimeOnlyNotEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -84,7 +82,7 @@ public class MongoDbFilterVisitorTimeOnlyTests
     public async Task Create_NullableTimeOnlyEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -115,7 +113,7 @@ public class MongoDbFilterVisitorTimeOnlyTests
     public async Task Create_NullableTimeOnlyNotEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -161,12 +159,8 @@ public class MongoDbFilterVisitorTimeOnlyTests
     }
 
     public class FooFilterType
-        : FilterInputType<Foo>
-    {
-    }
+        : FilterInputType<Foo>;
 
     public class FooNullableFilterType
-        : FilterInputType<FooNullable>
-    {
-    }
+        : FilterInputType<FooNullable>;
 }

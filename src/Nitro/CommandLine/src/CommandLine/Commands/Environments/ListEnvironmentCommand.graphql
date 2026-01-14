@@ -1,0 +1,29 @@
+query ListEnvironmentCommandQuery(
+  $workspaceId: ID!
+  $after: Version
+  $first: Int
+) {
+  workspaceById(workspaceId: $workspaceId) {
+    environments(after: $after, first: $first) {
+      edges {
+        ...ListEnvironmentCommand_EnvironmentEdge
+      }
+      pageInfo {
+        ...PageInfo
+      }
+    }
+  }
+}
+
+fragment ListEnvironmentCommand_EnvironmentEdge on EnvironmentsEdge {
+  cursor
+  node {
+    ...ListEnvironmentCommand_Environment
+  }
+}
+
+fragment ListEnvironmentCommand_Environment on Environment {
+  id
+  name
+  ...EnvironmentDetailPrompt_Environment
+}

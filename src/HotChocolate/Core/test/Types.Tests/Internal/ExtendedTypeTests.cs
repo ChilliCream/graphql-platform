@@ -1,8 +1,7 @@
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using HotChocolate.Types;
-
-#nullable enable
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Internal;
 
@@ -30,10 +29,10 @@ public class ExtendedTypeTests
         // arrange
         // act
         IExtendedType list = ExtendedType.FromType(
-            typeof(NativeType<List<byte?>>),
+            typeof(NamedRuntimeType<List<byte?>>),
             _cache);
         list = ExtendedType.Tools.ChangeNullability(
-            list, [false,], _cache);
+            list, [false], _cache);
 
         var nullableList = ExtendedType.FromType(
             typeof(List<byte?>),
@@ -134,7 +133,7 @@ public class ExtendedTypeTests
         // arrange
         // act
         var extendedType = ExtendedType.FromType(
-            typeof(NativeType<IntType>),
+            typeof(NamedRuntimeType<IntType>),
             _cache);
 
         // assert
@@ -232,7 +231,7 @@ public class ExtendedTypeTests
         var a = ExtendedType.FromType(typeof(byte), _cache);
 
         // act
-        var result = a.Equals(default(ExtendedType));
+        var result = a.Equals(null);
 
         // assert
         Assert.False(result);
@@ -333,7 +332,7 @@ public class ExtendedTypeTests
         // act
         IExtendedType list = ExtendedType.FromType(listType, _cache);
         list = ExtendedType.Tools.ChangeNullability(
-            list, [null, false,], _cache);
+            list, [null, false], _cache);
 
         // assert
         Assert.False(list.ElementType!.IsNullable);
@@ -396,16 +395,67 @@ public class ExtendedTypeTests
         Assert.True(extendedType.IsNullable);
     }
 
-    private sealed class CustomStringList1
-        : List<string>
+    [Fact]
+    public void SourceGenerated_NestedStringList()
     {
+        // arrange
+        var typeInspector = new DefaultTypeInspector();
+
+        // act
+        var typeRef = typeInspector.GetTypeRef(
+            typeof(SourceGeneratedType<ListType<NonNullType<ListType<NamedRuntimeType<string>>>>>));
+
+        // assert
+        Assert.NotNull(typeRef);
+        Assert.True(typeRef.Type.IsArrayOrList);
+        Assert.NotNull(typeRef.Type.ElementType);
+        Assert.False(typeRef.Type.ElementType.IsNullable);
+        Assert.True(typeRef.Type.ElementType.IsArrayOrList);
+        Assert.NotNull(typeRef.Type.ElementType.ElementType);
+        Assert.True(typeRef.Type.ElementType.ElementType.IsNullable);
+        Assert.Equal(typeof(string), typeRef.Type.ElementType.ElementType.Type);
     }
+
+    [Fact]
+    public void EnsureDirectiveTypes_Is_Detected_As_SchemaType()
+    {
+        // arrange
+        var typeInspector = new DefaultTypeInspector();
+
+        // act
+        var typeRef = typeInspector.GetTypeRef(typeof(TestDirective));
+
+        // assert
+        Assert.NotNull(typeRef);
+        Assert.True(typeRef.Type.IsSchemaType);
+    }
+
+    [Fact]
+    public void SourceGenerated_NonNullList_NonNullString()
+    {
+        // arrange
+        var typeInspector = new DefaultTypeInspector();
+
+        // act
+        var typeRef = typeInspector.GetTypeRef(
+            typeof(SourceGeneratedType<NonNullType<ListType<NonNullType<NamedRuntimeType<string>>>>>));
+
+        // assert
+        Assert.NotNull(typeRef);
+        Assert.False(typeRef.Type.IsNullable);
+        Assert.True(typeRef.Type.IsArrayOrList);
+        Assert.NotNull(typeRef.Type.ElementType);
+        Assert.False(typeRef.Type.ElementType.IsNullable);
+        Assert.Equal(typeof(string), typeRef.Type.ElementType.Type);
+    }
+
+    //, HotChocolate.Types.TypeContext.Output)
+    private sealed class CustomStringList1
+        : List<string>;
 
     private sealed class CustomStringList2<T>
         : List<T>
-        where T : notnull
-    {
-    }
+        where T : notnull;
 
     private sealed class CustomStringList3<T, TK>
         : List<T>
@@ -416,10 +466,10 @@ public class ExtendedTypeTests
 
     public class Nullability
     {
-        public Nullable<Optional<string?>> NullableOptionalNullableString() =>
+        public Optional<string?>? NullableOptionalNullableString() =>
             throw new NotImplementedException();
 
-        public Optional<Nullable<Optional<string?>>> OptionalNullableOptionalNullableString() =>
+        public Optional<Optional<string?>?> OptionalNullableOptionalNullableString() =>
             throw new NotImplementedException();
 
         public Nested? NestedProp { get; set; }
@@ -427,6 +477,15 @@ public class ExtendedTypeTests
         public class Nested
         {
             public string? Value { get; set; }
+        }
+    }
+
+    public class TestDirective : DirectiveType
+    {
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor.Name("testDirective");
+            descriptor.Location(DirectiveLocation.FieldDefinition);
         }
     }
 }

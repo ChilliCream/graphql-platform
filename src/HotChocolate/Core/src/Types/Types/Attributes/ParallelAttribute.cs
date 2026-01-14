@@ -1,8 +1,6 @@
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -15,7 +13,7 @@ public sealed class ParallelAttribute : ObjectFieldDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
     {
         descriptor.Parallel();
     }

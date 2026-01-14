@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);HotChocolate.Execution.Generated</InterceptorsPreviewNamespaces>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>.generated</CompilerGeneratedFilesOutputPath>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
@@ -19,13 +19,16 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Squadron.PostgreSql" />
-    <PackageReference Include="System.IO.Pipelines" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="__resources__\catalog.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
   </ItemGroup>
 
 </Project>

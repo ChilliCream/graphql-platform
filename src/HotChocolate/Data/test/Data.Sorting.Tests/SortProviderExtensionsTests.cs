@@ -30,9 +30,9 @@ public class SortProviderExtensionsTests
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
         Assert.Collection(
-            convention.DefinitionAccessor!.OperationHandlers,
-            x => Assert.Equal(extensionFieldHandler, x.HandlerInstance),
-            x => Assert.Equal(firstFieldHandler, x.HandlerInstance));
+            convention.DefinitionAccessor!.OperationHandlerConfigurations,
+            x => Assert.Equal(extensionFieldHandler, x.Instance),
+            x => Assert.Equal(firstFieldHandler, x.Instance));
     }
 
     [Fact]
@@ -58,9 +58,9 @@ public class SortProviderExtensionsTests
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
         Assert.Collection(
-            convention.DefinitionAccessor!.Handlers,
-            x => Assert.Equal(extensionFieldHandler, x.HandlerInstance),
-            x => Assert.Equal(firstFieldHandler, x.HandlerInstance));
+            convention.DefinitionAccessor!.FieldHandlerConfigurations,
+            x => Assert.Equal(extensionFieldHandler, x.Instance),
+            x => Assert.Equal(firstFieldHandler, x.Instance));
     }
 
     private sealed class MockFieldHandler : QueryableDefaultSortFieldHandler;
@@ -72,7 +72,7 @@ public class SortProviderExtensionsTests
         Action<ISortProviderDescriptor<QueryableSortContext>> configure)
         : SortProvider<QueryableSortContext>(configure)
     {
-        public SortProviderDefinition? DefinitionAccessor => Definition;
+        public SortProviderConfiguration? DefinitionAccessor => Configuration;
 
         public override IQueryBuilder CreateBuilder<TEntityType>(string argumentName)
             => throw new NotImplementedException();

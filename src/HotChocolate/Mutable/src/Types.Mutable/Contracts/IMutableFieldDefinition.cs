@@ -41,4 +41,7 @@ public interface IMutableFieldDefinition : IFieldDefinition
     /// Gets the deprecation reason of this <see cref="ITypeSystemMember"/>.
     /// </summary>
     new string? DeprecationReason { get; set; }
+
+    /// <inheritdoc cref="IFieldDefinition.IsIntrospectionField" />
+    new bool IsIntrospectionField { get; set; }
 }

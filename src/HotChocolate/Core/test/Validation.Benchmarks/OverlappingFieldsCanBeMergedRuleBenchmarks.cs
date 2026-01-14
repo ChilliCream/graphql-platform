@@ -7,11 +7,15 @@ namespace HotChocolate.Validation.Benchmarks;
 [RPlotExporter, CategoriesColumn, RankColumn, MeanColumn, MedianColumn, MemoryDiagnoser]
 public class OverlappingFieldsCanBeMergedRuleBenchmarks
 {
-    private readonly DocumentValidatorRule<FieldVisitor> _currentRule = new(new FieldVisitor());
-    private readonly OverlappingFieldsCanBeMergedRule _newRule = new();
+    private readonly DocumentValidator _currentRule = DocumentValidatorBuilder.New()
+        .AddVisitor<FieldVisitor>()
+        .Build();
+    private readonly DocumentValidator _newRule = DocumentValidatorBuilder.New()
+        .AddRule<OverlappingFieldsCanBeMergedRule>()
+        .Build();
     private readonly DocumentValidatorContext _context = new();
     private readonly Dictionary<string, object?> _contextData = new();
-    private readonly ISchema _schema;
+    private readonly ISchemaDefinition _schema;
     private readonly DocumentNode _document;
 
     public OverlappingFieldsCanBeMergedRuleBenchmarks()
@@ -24,36 +28,16 @@ public class OverlappingFieldsCanBeMergedRuleBenchmarks
     [Benchmark]
     public void Field_Merge_Current()
     {
-        // clear last run data
-        _context.Clear();
-        _contextData.Clear();
-
-        // prepare context for this run
-        _context.Schema = _schema;
-        _context.ContextData = _contextData;
-        _context.Prepare(_document);
-
-        // run the rule
-        _currentRule.Validate(_context, _document);
+        _currentRule.Validate(_schema, _document);
     }
 
     [Benchmark]
     public void Field_Merge_New()
     {
-        // clear last run data
-        _context.Clear();
-        _contextData.Clear();
-
-        // prepare context for this run
-        _context.Schema = _schema;
-        _context.ContextData = _contextData;
-        _context.Prepare(_document);
-
-        // run the rule
-        _newRule.Validate(_context, _document);
+        _newRule.Validate(_schema, _document);
     }
 
-    private static ISchema CreateTestSchema(string fileName) =>
+    private static ISchemaDefinition CreateTestSchema(string fileName) =>
         SchemaBuilder.New()
             .AddDocumentFromFile(fileName)
             .Use(next => next)

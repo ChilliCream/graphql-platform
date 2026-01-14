@@ -5,8 +5,6 @@ using HotChocolate.Types.Descriptors;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Utilities.ThrowHelper;
 
-#nullable enable
-
 namespace HotChocolate.Configuration;
 
 internal sealed partial class RegisteredType : ITypeCompletionContext
@@ -15,13 +13,10 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
 
     public TypeStatus Status { get; set; } = TypeStatus.Initialized;
 
-    /// <inheritdoc />
     public bool? IsQueryType { get; set; }
 
-    /// <inheritdoc />
     public bool? IsMutationType { get; set; }
 
-    /// <inheritdoc />
     public bool? IsSubscriptionType { get; set; }
 
     /// <summary>
@@ -59,8 +54,8 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
             throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
         }
 
-        if (_typeReferenceResolver.TryGetType(typeRef, out var t) &&
-            t is T casted)
+        if (_typeReferenceResolver.TryGetType(typeRef, out var t)
+            && t is T casted)
         {
             type = casted;
             return true;
@@ -73,10 +68,7 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
     /// <inheritdoc />
     public T GetType<T>(TypeReference typeRef) where T : IType
     {
-        if (typeRef is null)
-        {
-            throw new ArgumentNullException(nameof(typeRef));
-        }
+        ArgumentNullException.ThrowIfNull(typeRef);
 
         if (!TryGetType(typeRef, out T? type))
         {
@@ -84,33 +76,6 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
         }
 
         return type;
-    }
-
-    /// <inheritdoc />
-    public TypeReference GetNamedTypeReference(TypeReference typeRef)
-    {
-        if (_typeReferenceResolver is null)
-        {
-            throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
-        }
-
-        return _typeReferenceResolver.GetNamedTypeReference(typeRef);
-    }
-
-    /// <inheritdoc />
-    public IEnumerable<T> GetTypes<T>() where T : IType
-    {
-        if (_typeReferenceResolver is null)
-        {
-            throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
-        }
-
-        if (Status == TypeStatus.Initialized)
-        {
-            throw new NotSupportedException();
-        }
-
-        return _typeReferenceResolver.GetTypes<T>();
     }
 
     /// <inheritdoc />

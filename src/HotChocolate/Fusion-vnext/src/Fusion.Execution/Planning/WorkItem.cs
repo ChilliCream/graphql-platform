@@ -1,14 +1,10 @@
 using System.Collections.Immutable;
-using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
-public sealed record WorkItem(
-    WorkItemKind Kind,
-    SelectionSet SelectionSet,
-    Lookup? Lookup = null)
+internal abstract record WorkItem
 {
     public ImmutableHashSet<int> Dependents { get; init; } = [];
+
+    public virtual double Cost => 1;
 }
-
-

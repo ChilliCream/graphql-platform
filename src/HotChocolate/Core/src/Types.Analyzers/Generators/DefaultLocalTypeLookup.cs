@@ -8,6 +8,11 @@ namespace HotChocolate.Types.Analyzers.Generators;
 
 public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfos) : ILocalTypeLookup
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
+    private readonly object _lock = new();
+#endif
     private Dictionary<string, List<string>>? _typeNameLookup;
 
     public bool TryGetTypeName(
@@ -29,16 +34,17 @@ public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfo
             return true;
         }
 
-        foreach (var namespaceString in GetContainingNamespaces(resolverMethod))
+        foreach (var namespaceString in GetPotentialNamespaces(resolverMethod))
         {
-            if (typeNames.Contains($"global::{namespaceString}.{type.Name}"))
+            var candidateName = $"global::{namespaceString}.{type.Name}";
+            if (typeNames.Contains(candidateName))
             {
-                typeDisplayName = typeNames[0];
+                typeDisplayName = candidateName;
                 return true;
             }
         }
 
-        typeDisplayName = type.Name;
+        typeDisplayName = typeNames[0];
         return true;
     }
 
@@ -46,48 +52,64 @@ public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfo
     {
         if (_typeNameLookup is null)
         {
-            _typeNameLookup = new Dictionary<string, List<string>>();
-            foreach (var syntaxInfo in syntaxInfos)
+            lock (_lock)
             {
-                if(syntaxInfo is not DataLoaderInfo dataLoaderInfo)
+                if (_typeNameLookup is null)
                 {
-                    continue;
+                    var typeNameLookup = new Dictionary<string, List<string>>();
+
+                    foreach (var syntaxInfo in syntaxInfos)
+                    {
+                        if (syntaxInfo is not DataLoaderInfo dataLoaderInfo)
+                        {
+                            continue;
+                        }
+
+                        if (!typeNameLookup.TryGetValue(dataLoaderInfo.Name, out var typeNames))
+                        {
+                            typeNames = [];
+                            typeNameLookup[dataLoaderInfo.Name] = typeNames;
+                        }
+
+                        typeNames.Add("global::" + dataLoaderInfo.FullName);
+
+                        if (!typeNameLookup.TryGetValue(dataLoaderInfo.InterfaceName, out typeNames))
+                        {
+                            typeNames = [];
+                            typeNameLookup[dataLoaderInfo.InterfaceName] = typeNames;
+                        }
+
+                        typeNames.Add("global::" + dataLoaderInfo.InterfaceFullName);
+                    }
+
+                    _typeNameLookup = typeNameLookup;
                 }
-
-                if (!_typeNameLookup.TryGetValue(dataLoaderInfo.Name, out var typeNames))
-                {
-                    typeNames = [];
-                    _typeNameLookup[dataLoaderInfo.Name] = typeNames;
-                }
-
-                typeNames.Add("global::" + dataLoaderInfo.FullName);
-
-                if (!_typeNameLookup.TryGetValue(dataLoaderInfo.InterfaceName, out typeNames))
-                {
-                    typeNames = [];
-                    _typeNameLookup[dataLoaderInfo.InterfaceName] = typeNames;
-                }
-
-                typeNames.Add("global::" + dataLoaderInfo.InterfaceFullName);
             }
         }
 
         return _typeNameLookup;
     }
 
-    private static IEnumerable<string> GetContainingNamespaces(IMethodSymbol methodSymbol)
+    private static IEnumerable<string> GetPotentialNamespaces(IMethodSymbol methodSymbol)
     {
-        var namespaces = new HashSet<string>();
-        var syntaxTree = methodSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree;
+        var root = methodSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree.GetRoot();
 
-        if (syntaxTree != null)
+        if (root is not CompilationUnitSyntax compilationUnit)
         {
-            var root = syntaxTree.GetRoot();
-            var namespaceDeclarations = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>();
+            return [];
+        }
 
-            foreach (var namespaceDeclaration in namespaceDeclarations)
+        var namespaces = new HashSet<string>();
+
+        foreach (var member in compilationUnit.Members)
+        {
+            if (member is NamespaceDeclarationSyntax namespaceDeclaration)
             {
                 namespaces.Add(namespaceDeclaration.Name.ToString());
+            }
+            else if (member is FileScopedNamespaceDeclarationSyntax fileScopedNamespace)
+            {
+                namespaces.Add(fileScopedNamespace.Name.ToString());
             }
         }
 

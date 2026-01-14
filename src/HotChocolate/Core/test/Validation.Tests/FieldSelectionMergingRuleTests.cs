@@ -4,9 +4,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 
-public class FieldSelectionMergingRuleTests()
-    : DocumentValidatorVisitorTestBase(builder => builder.TryAddValidationRule<OverlappingFieldsCanBeMergedRule>())
+public class FieldSelectionMergingRuleTests
+    : DocumentValidatorVisitorTestBase
 {
+    public FieldSelectionMergingRuleTests()
+        : base(builder => builder.AddFieldRules())
+    {
+    }
+
     [Fact]
     public void MergeIdenticalFields()
     {
@@ -897,7 +902,7 @@ public class FieldSelectionMergingRuleTests()
     public void ConflictingReturnTypesWhichPotentiallyOverlap()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -916,7 +921,7 @@ public class FieldSelectionMergingRuleTests()
     public void CompatibleReturnShapesOnDifferentReturnTypes()
     {
         ExpectValid(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -939,7 +944,7 @@ public class FieldSelectionMergingRuleTests()
     public void DisallowsDifferingReturnTypesDespiteNoOverlap()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -958,7 +963,7 @@ public class FieldSelectionMergingRuleTests()
     public void DisallowsDifferingReturnTypeNullabilityDespiteNoOverlap()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -977,7 +982,7 @@ public class FieldSelectionMergingRuleTests()
     public void DisallowsDifferingReturnTypeListDespiteNoOverlap()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -1000,7 +1005,7 @@ public class FieldSelectionMergingRuleTests()
     public void DisallowsDifferingReturnTypeListDespiteNoOverlapReverse()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -1023,7 +1028,7 @@ public class FieldSelectionMergingRuleTests()
     public void DisallowsDifferingSubfields()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -1047,7 +1052,7 @@ public class FieldSelectionMergingRuleTests()
     public void DisallowsDifferingDeepReturnTypesDespiteNoOverlap()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -1070,7 +1075,7 @@ public class FieldSelectionMergingRuleTests()
     public void AllowsNonConflictingOverlappingTypes()
     {
         ExpectValid(
-            TestSchema,
+            s_testSchema,
             """
             {
                 someBox {
@@ -1107,7 +1112,7 @@ public class FieldSelectionMergingRuleTests()
     public void AllowsInlineFragmentsWithoutTypeCondition()
     {
         ExpectValid(
-            TestSchema,
+            s_testSchema,
             """
             {
                 a
@@ -1122,7 +1127,7 @@ public class FieldSelectionMergingRuleTests()
     public void ComparesDeepTypesIncludingList()
     {
         ExpectErrors(
-            TestSchema,
+            s_testSchema,
             """
             {
                 connection {
@@ -1164,7 +1169,7 @@ public class FieldSelectionMergingRuleTests()
             """);
     }
 
-    private static readonly ISchema TestSchema =
+    private static readonly ISchemaDefinition s_testSchema =
         SchemaBuilder.New()
             .AddDocumentFromString(
                 """

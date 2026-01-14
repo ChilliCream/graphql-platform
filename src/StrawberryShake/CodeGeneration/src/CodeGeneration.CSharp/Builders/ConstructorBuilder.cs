@@ -59,10 +59,7 @@ public class ConstructorBuilder : ICodeBuilder
 
     public void Build(CodeWriter writer)
     {
-        if (writer is null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         var modifier = _accessModifier.ToString().ToLowerInvariant();
 

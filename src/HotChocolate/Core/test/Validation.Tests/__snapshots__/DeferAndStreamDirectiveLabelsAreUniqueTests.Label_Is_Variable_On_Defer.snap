@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "Message": "If a label for @defer or @stream is passed, it must not be a variable.",
     "Code": null,
@@ -6,7 +6,7 @@
     "Locations": [
       {
         "Line": 2,
-        "Column": 17
+        "Column": 3
       }
     ],
     "Extensions": {

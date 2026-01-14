@@ -1,7 +1,7 @@
 namespace HotChocolate.Internal;
 
 /// <summary>
-/// Provides extension methods for checking if <see cref="System.Type" />
+/// Provides extension methods for checking if <see cref="Type" />
 /// represents a GraphQL type system member.
 /// </summary>
 public static class TypeExtensions

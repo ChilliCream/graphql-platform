@@ -3,13 +3,18 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion.Composition</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Utilities.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore.Tests" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types.Validation\HotChocolate.Types.Validation.csproj" />
     <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
     <ProjectReference Include="..\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
   </ItemGroup>

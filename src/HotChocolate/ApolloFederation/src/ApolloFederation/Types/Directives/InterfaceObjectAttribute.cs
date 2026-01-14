@@ -24,6 +24,6 @@ public sealed class InterfaceObjectAttribute : ObjectTypeDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
-        Type type)
+        Type? type)
         => descriptor.InterfaceObject();
 }

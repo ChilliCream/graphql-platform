@@ -3,13 +3,12 @@ using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class DateType : ScalarType<DateOnly, StringValueNode>
 {
-    private const string _dateFormat = "yyyy-MM-dd";
+    private const string DateFormat = "yyyy-MM-dd";
+    private readonly bool _enforceSpecFormat;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DateType"/> class.
@@ -17,10 +16,26 @@ public class DateType : ScalarType<DateOnly, StringValueNode>
     public DateType(
         string name,
         string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
+        BindingBehavior bind = BindingBehavior.Explicit,
+        bool disableFormatCheck = false)
         : base(name, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.String;
+        Pattern = @"^\d{4}-\d{2}-\d{2}$";
+        _enforceSpecFormat = !disableFormatCheck;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DateType"/> class.
+    /// </summary>
+    public DateType(bool disableFormatCheck)
+        : this(
+            ScalarNames.Date,
+            TypeResources.DateType_Description,
+            BindingBehavior.Implicit,
+            disableFormatCheck: disableFormatCheck)
+    {
     }
 
     /// <summary>
@@ -108,16 +123,29 @@ public class DateType : ScalarType<DateOnly, StringValueNode>
     }
 
     private static string Serialize(IFormattable value) =>
-        value.ToString(_dateFormat, CultureInfo.InvariantCulture);
+        value.ToString(DateFormat, CultureInfo.InvariantCulture);
 
-    private static bool TryDeserializeFromString(
+    private bool TryDeserializeFromString(
         string? serialized,
         [NotNullWhen(true)] out DateOnly? value)
     {
-        if (DateOnly.TryParseExact(
-           serialized,
-           _dateFormat,
-           out var date))
+        if (_enforceSpecFormat)
+        {
+            if (DateOnly.TryParseExact(
+                serialized,
+                DateFormat,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var date))
+            {
+                value = date;
+                return true;
+            }
+        }
+        else if (DateOnly.TryParse(
+            serialized,
+            CultureInfo.InvariantCulture,
+            out var date))
         {
             value = date;
             return true;

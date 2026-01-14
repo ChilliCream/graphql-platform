@@ -3,10 +3,8 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
-public class MongoDbAscendingSortOperationHandler : MongoDbSortOperationHandlerBase
+public class MongoDbAscendingSortOperationHandler()
+    : MongoDbSortOperationHandlerBase(DefaultSortOperations.Ascending, SortDirection.Ascending)
 {
-    public MongoDbAscendingSortOperationHandler()
-        : base(DefaultSortOperations.Ascending, SortDirection.Ascending)
-    {
-    }
+    public static MongoDbAscendingSortOperationHandler Create(SortProviderContext context) => new();
 }

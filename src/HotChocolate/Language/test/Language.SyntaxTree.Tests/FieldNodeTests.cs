@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public class FieldNodeTests
@@ -14,27 +12,27 @@ public class FieldNodeTests
             new("cc"),
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
-            default);
+            null);
         var b = new FieldNode(
             new Location(1, 1, 1, 1),
             new("aa"),
             new("cc"),
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
-            default);
+            null);
         var c = new FieldNode(
             new Location(1, 1, 1, 1),
             new("aa"),
             new("dd"),
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
-            default);
+            null);
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -53,27 +51,27 @@ public class FieldNodeTests
             new("cc"),
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
-            default);
+            null);
         var b = new FieldNode(
             new Location(2, 2, 2, 2),
             new("aa"),
             new("cc"),
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
-            default);
+            null);
         var c = new FieldNode(
             new Location(3, 3, 3, 3),
             new("aa"),
             new("dd"),
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
-            default);
+            null);
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -92,28 +90,28 @@ public class FieldNodeTests
             new("cc"),
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
-            default);
+            null);
         var b = new FieldNode(
             new Location(2, 2, 2, 2),
             new("aa"),
             new("cc"),
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
-            default);
+            null);
         var c = new FieldNode(
             new Location(1, 1, 1, 1),
             new("aa"),
             new("dd"),
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
-            default);
+            null);
         var d = new FieldNode(
             new Location(2, 2, 2, 2),
             new("aa"),
             new("dd"),
             new List<DirectiveNode>(0),
             new List<ArgumentNode>(0),
-            default);
+            null);
 
         // act
         var aHash = SyntaxComparer.BySyntax.GetHashCode(a);

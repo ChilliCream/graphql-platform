@@ -10,7 +10,7 @@ public class DateTimeSerializerTests
     public void Parse()
     {
         // arrange
-        var value = "2011-08-30T13:22:53.108Z";
+        const string value = "2011-08-30T13:22:53.108Z";
 
         // act
         var result = Serializer.Parse(value);
@@ -54,7 +54,7 @@ public class DateTimeSerializerTests
     public void Format_Exception()
     {
         // arrange
-        var value = 1;
+        const int value = 1;
 
         // act
         void Action() => Serializer.Format(value);

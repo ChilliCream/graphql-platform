@@ -4,17 +4,15 @@ using System.Reflection;
 using System.Xml.Linq;
 using IOPath = System.IO.Path;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
 {
-    private const string _bin = "bin";
+    private const string Bin = "bin";
 
     private readonly Func<Assembly, string>? _resolveXmlDocumentationFileName;
 
-    private readonly ConcurrentDictionary<string, XDocument> _cache =
+    private readonly ConcurrentDictionary<string, XDocument?> _cache =
         new(StringComparer.OrdinalIgnoreCase);
 
     public XmlDocumentationFileResolver()
@@ -40,8 +38,9 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
             if (xmlDocumentFileName is not null && File.Exists(xmlDocumentFileName))
             {
                 doc = XDocument.Load(xmlDocumentFileName, LoadOptions.PreserveWhitespace);
-                _cache[fullName] = doc;
             }
+
+            _cache[fullName] = doc;
         }
 
         document = doc;
@@ -108,7 +107,7 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
                     return path;
                 }
 
-                return IOPath.Combine(baseDirectory, _bin, expectedDocFile);
+                return IOPath.Combine(baseDirectory, Bin, expectedDocFile);
             }
 
             var currentDirectory = Directory.GetCurrentDirectory();
@@ -118,7 +117,7 @@ public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
                 return path;
             }
 
-            path = IOPath.Combine(currentDirectory, _bin, expectedDocFile);
+            path = IOPath.Combine(currentDirectory, Bin, expectedDocFile);
 
             if (File.Exists(path))
             {

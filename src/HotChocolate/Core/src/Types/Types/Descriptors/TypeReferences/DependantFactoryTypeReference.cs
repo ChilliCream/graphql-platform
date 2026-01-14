@@ -1,11 +1,9 @@
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types.Descriptors;
 
 /// <summary>
-/// A reference to a type that has not yet been create by name.
+/// A reference to a type that has not yet been created by name.
 /// This reference contains the type name plus a factory to create it.
 /// </summary>
 public sealed class DependantFactoryTypeReference
@@ -15,7 +13,7 @@ public sealed class DependantFactoryTypeReference
     internal DependantFactoryTypeReference(
         string name,
         TypeReference dependency,
-        Func<IDescriptorContext, TypeSystemObjectBase> factory,
+        Func<IDescriptorContext, TypeSystemObject> factory,
         TypeContext context,
         string? scope = null)
         : base(
@@ -23,7 +21,9 @@ public sealed class DependantFactoryTypeReference
             context,
             scope)
     {
-        Name = name.EnsureGraphQLName();
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
+        Name = name;
         Dependency = dependency ?? throw new ArgumentNullException(nameof(dependency));
         Factory = factory ?? throw new ArgumentNullException(nameof(factory));
     }
@@ -34,14 +34,14 @@ public sealed class DependantFactoryTypeReference
     public string Name { get; }
 
     /// <summary>
-    /// Gets the reference to the type this type is dependant on.
+    /// Gets the reference to the type this type is dependent on.
     /// </summary>
     public TypeReference Dependency { get; }
 
     /// <summary>
     /// Gets a factory to create this type.
     /// </summary>
-    public Func<IDescriptorContext, TypeSystemObjectBase> Factory { get; }
+    public Func<IDescriptorContext, TypeSystemObject> Factory { get; }
 
     /// <inheritdoc />
     public override bool Equals(TypeReference? other)
@@ -108,14 +108,7 @@ public sealed class DependantFactoryTypeReference
 
     /// <inheritdoc />
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            return base.GetHashCode() ^
-                Name.GetHashCode() * 397 ^
-                Dependency.GetHashCode() * 397;
-        }
-    }
+        => HashCode.Combine(Name, Dependency);
 
     /// <inheritdoc />
     public override string ToString()
@@ -124,7 +117,7 @@ public sealed class DependantFactoryTypeReference
     public DependantFactoryTypeReference With(
         Optional<string> name = default,
         Optional<TypeReference> dependency = default,
-        Optional<Func<IDescriptorContext, TypeSystemObjectBase>> factory = default,
+        Optional<Func<IDescriptorContext, TypeSystemObject>> factory = default,
         Optional<TypeContext> context = default,
         Optional<string?> scope = default)
     {

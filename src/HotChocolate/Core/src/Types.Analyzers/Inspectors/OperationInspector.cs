@@ -18,7 +18,7 @@ public sealed class OperationInspector : ISyntaxInspector
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
-        if (context.Node is MethodDeclarationSyntax { AttributeLists.Count: > 0, } methodSyntax)
+        if (context.Node is MethodDeclarationSyntax { AttributeLists.Count: > 0 } methodSyntax)
         {
             foreach (var attributeListSyntax in methodSyntax.AttributeLists)
             {
@@ -35,7 +35,7 @@ public sealed class OperationInspector : ISyntaxInspector
                     var fullName = attributeContainingTypeSymbol.ToDisplayString();
                     var operationType = ParseOperationType(fullName);
 
-                    if(operationType == OperationType.No)
+                    if (operationType == OperationType.No)
                     {
                         continue;
                     }

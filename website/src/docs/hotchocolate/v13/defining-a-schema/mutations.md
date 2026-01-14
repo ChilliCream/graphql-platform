@@ -467,7 +467,7 @@ There are three ways to map an exception to a user error.
 ### Map exceptions directly
 
 The quickest way to define a user error, is to map the exception directly into the graph. You can just annotate the exception directly on the resolver.
-If the exception is thrown and is caught in the error middleware, it will be rewritten into an user error that is exposed on the mutation payload.
+If the exception is thrown and is caught in the error middleware, it will be rewritten into a user error that is exposed on the mutation payload.
 
 > The name of the exception will be rewritten. `Exception` is replaced with `Error` to follow the common GraphQL naming conventions.
 

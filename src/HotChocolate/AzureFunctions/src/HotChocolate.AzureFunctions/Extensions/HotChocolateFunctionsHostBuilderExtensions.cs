@@ -34,10 +34,7 @@ public static class HotChocolateFunctionsHostBuilderExtensions
         int maxAllowedRequestSize = GraphQLAzureFunctionsConstants.DefaultMaxRequests,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute)
     {
-        if (hostBuilder is null)
-        {
-            throw new ArgumentNullException(nameof(hostBuilder));
-        }
+        ArgumentNullException.ThrowIfNull(hostBuilder);
 
         return hostBuilder.Services.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
     }
@@ -72,15 +69,8 @@ public static class HotChocolateFunctionsHostBuilderExtensions
         int maxAllowedRequestSize = GraphQLAzureFunctionsConstants.DefaultMaxRequests,
         string apiRoute = GraphQLAzureFunctionsConstants.DefaultGraphQLRoute)
     {
-        if (hostBuilder is null)
-        {
-            throw new ArgumentNullException(nameof(hostBuilder));
-        }
-
-        if (configure is null)
-        {
-            throw new ArgumentNullException(nameof(configure));
-        }
+        ArgumentNullException.ThrowIfNull(hostBuilder);
+        ArgumentNullException.ThrowIfNull(configure);
 
         var executorBuilder = hostBuilder.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
         configure.Invoke(executorBuilder);

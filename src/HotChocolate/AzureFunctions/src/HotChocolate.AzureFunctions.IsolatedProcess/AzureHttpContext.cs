@@ -15,10 +15,7 @@ internal sealed class AzureHttpContext : HttpContext
 
     public AzureHttpContext(HttpRequestData requestData)
     {
-        if (requestData is null)
-        {
-            throw new ArgumentNullException(nameof(requestData));
-        }
+        ArgumentNullException.ThrowIfNull(requestData);
 
         _innerContext = new DefaultHttpContext();
         _innerResponse = new AzureHttpResponse(_innerContext.Response, requestData);
@@ -44,7 +41,7 @@ internal sealed class AzureHttpContext : HttpContext
             request.Headers.TryAdd(key, new StringValues(value.ToArray()));
         }
 
-        foreach(var (key, value) in requestData.FunctionContext.Items)
+        foreach (var (key, value) in requestData.FunctionContext.Items)
         {
             Items.Add(key, value);
         }
@@ -99,6 +96,9 @@ internal sealed class AzureHttpContext : HttpContext
     public override void Abort()
         => _innerContext.Abort();
 
-    public HttpResponseData CreateResponseData()
-        => _innerResponse.ResponseData;
+    public async Task<HttpResponseData> CreateResponseDataAsync()
+    {
+        await _innerResponse.CompleteAsync();
+        return _innerResponse.ResponseData;
+    }
 }

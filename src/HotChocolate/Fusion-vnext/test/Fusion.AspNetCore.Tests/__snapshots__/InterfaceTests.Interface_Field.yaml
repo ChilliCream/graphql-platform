@@ -1,0 +1,85 @@
+title: Interface_Field
+request:
+  document: |
+    query testQuery {
+      votable {
+        viewerCanVote
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "votable": {
+          "viewerCanVote": true
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Votable {
+        viewerCanVote: Boolean!
+      }
+
+      type Comment implements Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+
+      type Discussion implements Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+        viewerRating: Float!
+      }
+
+      type Query {
+        votable: Votable
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_79461fa4_1 {
+              votable {
+                __typename
+                viewerCanVote
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "votable": {
+                    "__typename": "Discussion",
+                    "viewerCanVote": true
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          votable {
+            __typename @fusion__requirement
+            viewerCanVote
+          }
+        }
+      name: testQuery
+      hash: 79461fa435df77020b17d7e3f6c6e59f
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_79461fa4_1 {
+          votable {
+            __typename
+            viewerCanVote
+          }
+        }

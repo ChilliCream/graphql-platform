@@ -1,13 +1,16 @@
 using HotChocolate;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// Provides extension methods for the <see cref="IServiceCollection"/> type.
+/// </summary>
 public static class InternalSchemaServiceCollectionExtensions
 {
     internal static IServiceCollection TryAddOperationExecutors(
@@ -16,8 +19,9 @@ public static class InternalSchemaServiceCollectionExtensions
         services.TryAddSingleton<QueryExecutor>();
         services.TryAddSingleton(
             sp => new SubscriptionExecutor(
-                sp.GetApplicationService<ObjectPool<OperationContext>>(),
+                sp.GetRootServiceProvider().GetRequiredService<ObjectPool<OperationContext>>(),
                 sp.GetRequiredService<QueryExecutor>(),
+                sp.GetRequiredService<IErrorHandler>(),
                 sp.GetRequiredService<IExecutionDiagnosticEvents>()));
         return services;
     }
@@ -30,28 +34,41 @@ public static class InternalSchemaServiceCollectionExtensions
             var listeners = sp.GetServices<IExecutionDiagnosticEventListener>().ToArray();
             return listeners.Length switch
             {
-                0 => new NoopExecutionDiagnosticEvents(),
+                0 => NoopExecutionDiagnosticEvents.Instance,
                 1 => listeners[0],
-                _ => new AggregateExecutionDiagnosticEvents(listeners),
+                _ => new AggregateExecutionDiagnosticEvents(listeners)
             };
         });
+
+        services.TryAddSingleton<ICoreExecutionDiagnosticEvents>(
+            sp => sp.GetRequiredService<IExecutionDiagnosticEvents>());
+
         return services;
     }
 
-    public static T GetApplicationService<T>(this IServiceProvider services) where T : notnull
-        => services.GetApplicationServices().GetRequiredService<T>();
-
-    public static IServiceProvider GetApplicationServices(this IServiceProvider services) =>
-        services.GetRequiredService<IApplicationServiceProvider>();
+    /// <summary>
+    /// Gets the root service provider from the schema services. This allows
+    /// schema services to access application level services.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema.
+    /// </param>
+    /// <returns>
+    /// The root service provider.
+    /// </returns>
+    public static IServiceProvider GetRootServiceProvider(this Schema schema)
+        => schema.Services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
 
     /// <summary>
-    /// Gets a service provided that represents the combined services from the schema services
-    /// and application services.
+    /// Gets the root service provider from the schema services. This allows
+    /// schema services to access application level services.
     /// </summary>
-    public static IServiceProvider GetCombinedServices(this IServiceProvider services) =>
-        services is CombinedServiceProvider combined
-            ? combined
-            : new CombinedServiceProvider(
-                services.GetApplicationServices(),
-                services);
+    /// <param name="services">
+    /// The schema services.
+    /// </param>
+    /// <returns>
+    /// The root service provider.
+    /// </returns>
+    public static IServiceProvider GetRootServiceProvider(this IServiceProvider services)
+        => services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
 }

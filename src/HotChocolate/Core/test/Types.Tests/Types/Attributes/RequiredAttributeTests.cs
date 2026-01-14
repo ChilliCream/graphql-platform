@@ -1,8 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
-
-#nullable enable
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
@@ -14,7 +12,7 @@ public class RequiredAttributeTests
         SchemaBuilder.New()
             .AddQueryType<Foo>()
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 
@@ -23,14 +21,16 @@ public class RequiredAttributeTests
     {
         // arrange
         var inspector = new DefaultTypeInspector(ignoreRequiredAttribute: true);
-        var services = new DictionaryServiceProvider(typeof(ITypeInspector), inspector);
+        var services = new ServiceCollection()
+            .AddSingleton(typeof(ITypeInspector), inspector)
+            .BuildServiceProvider();
 
         // act & assert
         SchemaBuilder.New()
             .AddQueryType<Foo>()
             .AddServices(services)
             .Create()
-            .Print()
+            .ToString()
             .MatchSnapshot();
     }
 

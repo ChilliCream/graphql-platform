@@ -3,8 +3,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
-#nullable enable
-
 namespace HotChocolate;
 
 /// <summary>
@@ -99,9 +97,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableOneOf"/>
     public bool EnableOneOf { get; set; } = true;
 
-    /// <inheritdoc cref="IReadOnlySchemaOptions.EnsureAllNodesCanBeResolved"/>
-    public bool EnsureAllNodesCanBeResolved { get; set; } = true;
-
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableFlagEnums"/>
     public bool EnableFlagEnums { get; set; }
 
@@ -113,9 +108,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableSemanticNonNull"/>
     public bool EnableSemanticNonNull { get; set; }
-
-    /// <inheritdoc cref="IReadOnlySchemaOptions.MaxAllowedNodeBatchSize"/>
-    public int MaxAllowedNodeBatchSize { get; set; } = 50;
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.StripLeadingIFromInterface"/>
     public bool StripLeadingIFromInterface { get; set; }
@@ -135,13 +127,75 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool PublishRootFieldPagesToPromiseCache { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets whether the schema and request executor should be initialized lazily.
+    /// <c>false</c> by default.
+    /// </summary>
+    /// <remarks>
+    /// When set to <c>true</c> the creation of the schema and request executor, as well as
+    /// the load of the Fusion configuration, is deferred until the request executor
+    /// is first requested.
+    /// This can significantly slow down and block initial requests.
+    /// Therefore it is recommended to not use this option for production environments.
+    /// </remarks>
+    public bool LazyInitialization { get; set; }
+
+    /// <summary>
+    /// Gets or sets the size of the prepared operation cache.
+    /// <c>256</c> by default. <c>16</c> is the minimum.
+    /// </summary>
+    public int PreparedOperationCacheSize
+    {
+        get;
+        set
+        {
+            if (value < 16)
+            {
+                throw new ArgumentException(
+                    "The size of prepared operation cache must be at least 16.");
+            }
+
+            field = value;
+        }
+    } = 256;
+
+    /// <summary>
+    /// Gets or sets the size of the operation document cache.
+    /// <c>256</c> by default. <c>16</c> is the minimum.
+    /// </summary>
+    public int OperationDocumentCacheSize
+    {
+        get;
+        set
+        {
+            if (value < 16)
+            {
+                throw new ArgumentException(
+                    "The size of operation document cache must be at least 16.");
+            }
+
+            field = value;
+        }
+    } = 256;
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToPageInfo"/>
+    public bool ApplyShareableToPageInfo { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToConnections"/>
+    public bool ApplyShareableToConnections { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToNodeFields"/>
+    public bool ApplyShareableToNodeFields { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplySerializeAsToScalars"/>
+    public bool ApplySerializeAsToScalars { get; set; }
+
+    /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
     /// <param name="options">The read-only options object.</param>
     /// <returns>Returns a new mutable options object.</returns>
     public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
-    {
-        return new()
+        => new()
         {
             QueryTypeName = options.QueryTypeName,
             MutationTypeName = options.MutationTypeName,
@@ -161,17 +215,21 @@ public class SchemaOptions : IReadOnlySchemaOptions
             SortFieldsByName = options.SortFieldsByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
             EnableOneOf = options.EnableOneOf,
-            EnsureAllNodesCanBeResolved = options.EnsureAllNodesCanBeResolved,
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,
             EnableSemanticNonNull = options.EnableSemanticNonNull,
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
-            MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
             DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
+            LazyInitialization = options.LazyInitialization,
+            PreparedOperationCacheSize = options.PreparedOperationCacheSize,
+            OperationDocumentCacheSize = options.OperationDocumentCacheSize,
+            ApplyShareableToPageInfo = options.ApplyShareableToPageInfo,
+            ApplyShareableToConnections = options.ApplyShareableToConnections,
+            ApplyShareableToNodeFields = options.ApplyShareableToNodeFields,
+            ApplySerializeAsToScalars = options.ApplySerializeAsToScalars
         };
-    }
 }

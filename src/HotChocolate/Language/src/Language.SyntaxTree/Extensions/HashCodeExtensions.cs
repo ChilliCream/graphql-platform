@@ -1,14 +1,11 @@
 #if NETSTANDARD2_0
-using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-#endif
 
 namespace HotChocolate.Language;
 
 internal static class HashCodeExtensions
 {
-#if NETSTANDARD2_0
     public static void AddBytes(ref HashCode hashCode, ReadOnlySpan<byte> value)
     {
         ref var pos = ref MemoryMarshal.GetReference(value);
@@ -28,5 +25,5 @@ internal static class HashCodeExtensions
             pos = ref Unsafe.Add(ref pos, 1);
         }
     }
-#endif
 }
+#endif

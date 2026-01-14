@@ -1,14 +1,12 @@
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 [AttributeUsage(
-    AttributeTargets.Enum |
-    AttributeTargets.Class |
-    AttributeTargets.Struct)]
+    AttributeTargets.Enum
+    | AttributeTargets.Class
+    | AttributeTargets.Struct)]
 public sealed class EnumTypeAttribute
     : EnumTypeDescriptorAttribute
     , ITypeAttribute
@@ -35,7 +33,7 @@ public sealed class EnumTypeAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IEnumTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
         if (!string.IsNullOrEmpty(Name))
         {

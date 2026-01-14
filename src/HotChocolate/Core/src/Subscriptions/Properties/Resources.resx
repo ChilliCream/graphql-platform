@@ -113,4 +113,7 @@
   <data name="InvalidMessageTypeException_Message" xml:space="preserve">
     <value>The topic already exists with a different message type. Topic message type: {0}. Requested message type: {1}.</value>
   </data>
+  <data name="TopicBufferFullModeExtensions_ConvertFullMode_The_specified_topic_buffer_full_mode_is_not_supported_" xml:space="preserve">
+    <value>The specified topic buffer full mode is not supported.</value>
+  </data>
 </root>

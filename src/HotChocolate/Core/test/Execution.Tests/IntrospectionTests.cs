@@ -10,7 +10,7 @@ public class IntrospectionTests
     public async Task TypeNameIntrospectionOnQuery()
     {
         // arrange
-        var query = "{ __typename }";
+        const string query = "{ __typename }";
         var executor = CreateSchema().MakeExecutable();
 
         // act
@@ -24,7 +24,7 @@ public class IntrospectionTests
     public async Task TypeNameIntrospectionNotOnQuery()
     {
         // arrange
-        var query = "{ b { __typename } }";
+        const string query = "{ b { __typename } }";
         var executor = CreateSchema().MakeExecutable();
 
         // act
@@ -38,7 +38,7 @@ public class IntrospectionTests
     public async Task Query_Specified_By()
     {
         // arrange
-        var query = "{ __type (name: \"DateTime\") { specifiedByURL } }";
+        const string query = "{ __type (name: \"DateTime\") { specifiedByURL } }";
 
         var executor =
             SchemaBuilder.New()
@@ -61,7 +61,7 @@ public class IntrospectionTests
     public async Task TypeIntrospectionOnQuery()
     {
         // arrange
-        var query = "{ __type (name: \"Foo\") { name } }";
+        const string query = "{ __type (name: \"Foo\") { name } }";
         var executor = CreateSchema().MakeExecutable();
 
         // act
@@ -75,9 +75,9 @@ public class IntrospectionTests
     public async Task TypeIntrospectionOnQueryWithFields()
     {
         // arrange
-        var query =
-            "{ __type (name: \"Foo\") " +
-            "{ name fields { name type { name } } } }";
+        const string query =
+            "{ __type (name: \"Foo\") "
+            + "{ name fields { name type { name } } } }";
         var executor = CreateSchema().MakeExecutable();
 
         // act
@@ -145,7 +145,7 @@ public class IntrospectionTests
     public async Task FieldMiddlewareHasAnEffectOnIntrospectIfSwitchedOn()
     {
         // arrange
-        var query = "{ __typename a }";
+        const string query = "{ __typename a }";
 
         var schema = SchemaBuilder.New()
             .AddQueryType<Query>()
@@ -214,13 +214,14 @@ public class IntrospectionTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddDocumentFromString(
-                    @"type Query {
+                    """
+                    type Query {
                         foo: String
                             @foo
-                            @bar(baz: ""ABC"")
+                            @bar(baz: "ABC")
                             @bar(baz: null)
-                            @bar(quox: { a: ""ABC"" })
-                            @bar(quox: { a: ""DEF"" })
+                            @bar(quox: { a: "ABC" })
+                            @bar(quox: { a: "DEF" })
                             @bar
                     }
 
@@ -230,7 +231,8 @@ public class IntrospectionTests
 
                     directive @foo on FIELD_DEFINITION
 
-                    directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION")
+                    directive @bar(baz: String, quox: SomeInput) repeatable on FIELD_DEFINITION
+                    """)
                 .UseField(next => next)
                 .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
                 .ExecuteRequestAsync(
@@ -260,13 +262,14 @@ public class IntrospectionTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddDocumentFromString(
-                    @"type Query {
+                    """
+                    type Query {
                         foo: String
                             @foo
-                            @bar(baz: ""ABC"")
+                            @bar(baz: "ABC")
                             @bar(baz: null)
-                            @bar(quox: { a: ""ABC"" })
-                            @bar(quox: { a: ""DEF"" })
+                            @bar(quox: { a: "ABC" })
+                            @bar(quox: { a: "DEF" })
                             @bar
                     }
 
@@ -276,7 +279,8 @@ public class IntrospectionTests
 
                     directive @foo on FIELD_DEFINITION
 
-                    directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION")
+                    directive @bar(baz: String, quox: SomeInput) repeatable on FIELD_DEFINITION
+                    """)
                 .UseField(next => next)
                 .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
                 .ModifyOptions(o => o.DefaultDirectiveVisibility = DirectiveVisibility.Internal)
@@ -307,13 +311,14 @@ public class IntrospectionTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddDocumentFromString(
-                    @"type Query {
+                    """
+                    type Query {
                         foo: String
                             @foo
-                            @bar(baz: ""ABC"")
+                            @bar(baz: "ABC")
                             @bar(baz: null)
-                            @bar(quox: { a: ""ABC"" })
-                            @bar(quox: { a: ""DEF"" })
+                            @bar(quox: { a: "ABC" })
+                            @bar(quox: { a: "DEF" })
                             @bar
                     }
 
@@ -321,7 +326,8 @@ public class IntrospectionTests
                         a: String!
                     }
 
-                    directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION")
+                    directive @bar(baz: String, quox: SomeInput) repeatable on FIELD_DEFINITION
+                    """)
                 .UseField(next => next)
                 .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
                 .AddDirectiveType(new DirectiveType(d =>
@@ -347,10 +353,10 @@ public class IntrospectionTests
                         }
                     }");
 
-            result.MatchSnapshot();
+        result.MatchSnapshot();
     }
 
-    private static ISchema CreateSchema()
+    private static Schema CreateSchema()
     {
         return SchemaBuilder.New()
             .AddType<BarDirectiveType>()

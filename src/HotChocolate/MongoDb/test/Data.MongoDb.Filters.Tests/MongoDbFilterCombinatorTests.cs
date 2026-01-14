@@ -10,10 +10,10 @@ public class MongoDbFilterCombinatorTests
     : SchemaCache
     , IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
     public MongoDbFilterCombinatorTests(MongoResource resource)
@@ -25,7 +25,7 @@ public class MongoDbFilterCombinatorTests
     public async Task Create_Empty_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterInput>(s_fooEntities);
 
         // act
         // assert
@@ -50,7 +50,5 @@ public class MongoDbFilterCombinatorTests
     }
 
     public class FooFilterInput
-        : FilterInputType<Foo>
-    {
-    }
+        : FilterInputType<Foo>;
 }

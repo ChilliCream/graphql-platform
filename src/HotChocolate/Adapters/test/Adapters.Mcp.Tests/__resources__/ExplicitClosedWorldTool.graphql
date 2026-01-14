@@ -1,0 +1,4 @@
+query ExplicitClosedWorldTool {
+  explicitClosedWorldQuery
+  another: explicitClosedWorldQuery
+}

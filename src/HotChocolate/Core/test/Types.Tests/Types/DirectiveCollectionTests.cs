@@ -64,8 +64,8 @@ public class DirectiveCollectionTests : TypeTestBase
         Assert.Collection(
             Assert.Throws<SchemaException>(action).Errors,
                 t => Assert.Equal(
-                    "The specified directive `@foo` " +
-                    "is unique and cannot be added twice.",
+                    "The specified directive `@foo` "
+                    + "is unique and cannot be added twice.",
                     t.Message));
     }
 
@@ -124,9 +124,9 @@ public class DirectiveCollectionTests : TypeTestBase
         // assert
         Assert.Collection(Assert.Throws<SchemaException>(action).Errors,
             t => Assert.Equal(
-                "The specified directive `@foo` " +
-                "is not allowed on the current location " +
-                $"`{DirectiveLocation.FieldDefinition}`.",
+                "The specified directive `@foo` "
+                + "is not allowed on the current location "
+                + $"`{DirectiveLocation.FieldDefinition}`.",
                 t.Message));
     }
 }

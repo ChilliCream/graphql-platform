@@ -29,13 +29,10 @@ public class GraphQLClientException : Exception
     /// </exception>
     public GraphQLClientException(IClientError error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         Message = error.Message;
-        Errors = new[] { error, };
+        Errors = [error];
     }
 
     /// <summary>
@@ -49,10 +46,7 @@ public class GraphQLClientException : Exception
     /// </exception>
     public GraphQLClientException(params IClientError[] errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
         if (errors.Length == 0)
         {
@@ -88,10 +82,7 @@ public class GraphQLClientException : Exception
     /// <exception cref="ArgumentNullException">
     /// <paramref name="errors"/> is <c>null</c>.
     /// </exception>
-    public GraphQLClientException(IEnumerable<IClientError> errors)
-        // We pass this null safe to the constructor using arrays and let it throw there
-        // with a proper ArgumentNullException.
-        : this(errors?.ToArray()!)
+    public GraphQLClientException(IEnumerable<IClientError> errors) : this(errors.ToArray())
     {
     }
 

@@ -9,27 +9,21 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
     [Fact]
     public void InferNameFromType()
     {
-        // arrange
+        // arrange & act
         var descriptor = new ObjectTypeDescriptor<Foo>(Context);
 
-        // act
-        IObjectTypeDescriptor<Foo> desc = descriptor;
-
         // assert
-        Assert.Equal("Foo", descriptor.CreateDefinition().Name);
+        Assert.Equal("Foo", descriptor.CreateConfiguration().Name);
     }
 
     [Fact]
     public void GetNameFromAttribute()
     {
-        // arrange
+        // arrange & act
         var descriptor = new ObjectTypeDescriptor<Foo2>(Context);
 
-        // act
-        IObjectTypeDescriptor<Foo2> desc = descriptor;
-
         // assert
-        Assert.Equal("FooAttr", descriptor.CreateDefinition().Name);
+        Assert.Equal("FooAttr", descriptor.CreateConfiguration().Name);
     }
 
     [Fact]
@@ -42,7 +36,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
         descriptor.Name("FooBar");
 
         // assert
-        Assert.Equal("FooBar", descriptor.CreateDefinition().Name);
+        Assert.Equal("FooBar", descriptor.CreateConfiguration().Name);
     }
 
     [Fact]
@@ -56,21 +50,18 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
         desc.Name("FooBar");
 
         // assert
-        Assert.Equal("FooBar", descriptor.CreateDefinition().Name);
+        Assert.Equal("FooBar", descriptor.CreateConfiguration().Name);
     }
 
     [Fact]
     public void InferFieldsFromType()
     {
-        // arrange
+        // arrange & act
         var descriptor = new ObjectTypeDescriptor<Foo>(Context);
-
-        // act
-        IObjectTypeDescriptor<Foo> desc = descriptor;
 
         // assert
         Assert.Collection(
-            descriptor.CreateDefinition().Fields
+            descriptor.CreateConfiguration().Fields
                 .Select(t => t.Name)
                 .OrderBy(t => t),
             t => Assert.Equal("a", t),
@@ -89,7 +80,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
         // assert
         Assert.Collection(
-            descriptor.CreateDefinition().Fields
+            descriptor.CreateConfiguration().Fields
                 .Select(t => t.Name)
                 .OrderBy(t => t),
             t => Assert.Equal("a", t),
@@ -108,7 +99,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
         // assert
         Assert.Collection(
-            descriptor.CreateDefinition().Fields
+            descriptor.CreateConfiguration().Fields
                 .Select(t => t.Name)
                 .OrderBy(t => t),
             t => Assert.Equal("a", t),
@@ -124,11 +115,11 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
         // act
         IObjectTypeDescriptor<Foo> desc = descriptor;
-        desc.Field(t => t.Equals(default)).Ignore();
+        desc.Field(t => t.Equals(null)).Ignore();
 
         // assert
         Assert.Collection(
-            descriptor.CreateDefinition().Fields
+            descriptor.CreateConfiguration().Fields
                 .Select(t => t.Name)
                 .OrderBy(t => t),
             t => Assert.Equal("a", t),
@@ -144,12 +135,12 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
         // act
         IObjectTypeDescriptor<Foo> desc = descriptor;
-        desc.Field(t => t.Equals(default)).Ignore();
-        desc.Field(t => t.Equals(default)).Ignore(false);
+        desc.Field(t => t.Equals(null)).Ignore();
+        desc.Field(t => t.Equals(null)).Ignore(false);
 
         // assert
         Assert.Collection(
-            descriptor.CreateDefinition().Fields
+            descriptor.CreateConfiguration().Fields
                 .Select(t => t.Name)
                 .OrderBy(t => t),
             t => Assert.Equal("a", t),
@@ -171,7 +162,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
         // assert
         Assert.Collection(
-            descriptor.CreateDefinition().Fields.Select(t => t.Name),
+            descriptor.CreateConfiguration().Fields.Select(t => t.Name),
             t => Assert.Equal("a", t));
     }
 
@@ -191,23 +182,21 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
     public class Foo : FooBase
     {
-        public string A { get; set; }
-        public override string B { get; set; }
-        public string C { get; set; }
+        public required string A { get; set; }
+        public override required string B { get; set; }
+        public required string C { get; set; }
 
-        public override bool Equals(object obj) => true;
+        public override bool Equals(object? obj) => true;
 
         public override int GetHashCode() => 0;
     }
 
     [GraphQLName("FooAttr")]
-    public class Foo2 : FooBase
-    {
-    }
+    public class Foo2 : FooBase;
 
     public class FooBase
     {
-        public virtual string B { get; set; }
+        public virtual required string B { get; set; }
     }
 
     public class BarType : ObjectType
@@ -247,7 +236,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
     public class TestFieldMiddleware2
     {
-        private FieldDelegate _next;
+        private readonly FieldDelegate _next;
 
         public TestFieldMiddleware2(FieldDelegate next)
         {

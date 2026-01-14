@@ -17,5 +17,5 @@ public enum CacheControlScope
     /// that is not scoped to a particular user and can
     /// therefore be stored in a shared cache.
     /// </summary>
-    Public,
+    Public
 }

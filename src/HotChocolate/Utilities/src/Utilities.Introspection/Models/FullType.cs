@@ -1,4 +1,3 @@
-#pragma warning disable CA1812
 #nullable disable
 
 namespace HotChocolate.Utilities.Introspection;
@@ -14,4 +13,3 @@ internal class FullType
     public ICollection<EnumValue> EnumValues { get; set; }
     public ICollection<TypeRef> PossibleTypes { get; set; }
 }
-#pragma warning restore CA1812

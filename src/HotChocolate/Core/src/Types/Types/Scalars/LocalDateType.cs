@@ -3,18 +3,23 @@ using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The `LocalDate` scalar type represents an ISO date string, represented as UTF-8
-/// character sequences YYYY-MM-DD. The scalar follows the specification defined in
-/// <a href="https://tools.ietf.org/html/rfc3339">RFC3339</a>
+/// <para>
+/// This scalar represents a date without a time-zone in the
+/// <see href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</see> calendar system.
+/// </para>
+/// <para>
+/// The pattern is "YYYY-MM-DD" with "YYYY" representing the year, "MM" the month, and "DD" the day.
+/// </para>
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/andimarek/local-date.html">Specification</seealso>
 public class LocalDateType : ScalarType<DateOnly, StringValueNode>
 {
-    private const string _localFormat = "yyyy-MM-dd";
+    private const string LocalFormat = "yyyy-MM-dd";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/andimarek/local-date.html";
+    private readonly bool _enforceSpecFormat;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalDateType"/> class.
@@ -22,10 +27,27 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
     public LocalDateType(
         string name,
         string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
+        BindingBehavior bind = BindingBehavior.Explicit,
+        bool disableFormatCheck = false)
         : base(name, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.String;
+        Pattern = @"^\d{4}-\d{2}-\d{2}$";
+        SpecifiedBy = new Uri(SpecifiedByUri);
+        _enforceSpecFormat = !disableFormatCheck;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalDateType"/> class.
+    /// </summary>
+    public LocalDateType(bool disableFormatCheck)
+        : this(
+            ScalarNames.LocalDate,
+            TypeResources.LocalDateType_Description,
+            BindingBehavior.Implicit,
+            disableFormatCheck: disableFormatCheck)
+    {
     }
 
     /// <summary>
@@ -119,20 +141,30 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
 
     private static string Serialize(IFormattable value)
     {
-        return value.ToString(_localFormat, CultureInfo.InvariantCulture);
+        return value.ToString(LocalFormat, CultureInfo.InvariantCulture);
     }
 
-    private static bool TryDeserializeFromString(
+    private bool TryDeserializeFromString(
         string? serialized,
         [NotNullWhen(true)] out DateOnly? value)
     {
-        if (serialized is not null
-            && DateOnly.TryParseExact(
+        if (_enforceSpecFormat)
+        {
+            if (DateOnly.TryParseExact(
                 serialized,
-                _localFormat,
+                LocalFormat,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.None,
                 out var date))
+            {
+                value = date;
+                return true;
+            }
+        }
+        else if (DateOnly.TryParse(
+            serialized,
+            CultureInfo.InvariantCulture,
+            out var date))
         {
             value = date;
             return true;

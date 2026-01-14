@@ -4,7 +4,7 @@
 {
   "errors": [
     {
-      "message": "Invalid query id format."
+      "message": "The operation id has an invalid format."
     }
   ]
 }

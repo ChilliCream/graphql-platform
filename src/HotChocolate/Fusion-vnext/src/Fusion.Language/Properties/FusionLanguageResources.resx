@@ -30,9 +30,6 @@
   <data name="MaxAllowedTokensExceeded" xml:space="preserve">
     <value>Source text contains more than {0} tokens. Parsing aborted.</value>
   </data>
-  <data name="NewLineMustBeGreaterThanOrEqualToOne" xml:space="preserve">
-    <value>Must be greater than or equal to 1.</value>
-  </data>
   <data name="SourceTextCannotBeEmpty" xml:space="preserve">
     <value>The source text cannot be empty.</value>
   </data>

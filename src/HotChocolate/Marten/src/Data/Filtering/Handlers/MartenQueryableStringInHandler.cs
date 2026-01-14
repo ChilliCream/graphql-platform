@@ -24,6 +24,9 @@ public class MartenQueryableStringInHandler : QueryableStringOperationHandler
     /// </summary>
     protected override int Operation => DefaultFilterOperations.In;
 
+    public static MartenQueryableStringInHandler Create(FilterProviderContext context)
+        => new(context.InputParser);
+
     /// <inheritdoc cref="QueryableOperationHandlerBase"/>
     public override Expression HandleOperation(
         QueryableFilterContext context,

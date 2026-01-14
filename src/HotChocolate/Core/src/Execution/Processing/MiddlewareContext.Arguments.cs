@@ -9,29 +9,34 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class MiddlewareContext
 {
-    public IReadOnlyDictionary<string, ArgumentValue> Arguments { get; set; } = default!;
+    public IReadOnlyDictionary<string, ArgumentValue> Arguments { get; set; } = null!;
 
     public T ArgumentValue<T>(string name)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         if (!Arguments.TryGetValue(name, out var argument))
         {
             throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
         }
 
-        return CoerceArgumentValue<T>(argument);
+        try
+        {
+            return CoerceArgumentValue<T>(argument);
+        }
+        catch (SerializationException ex)
+        {
+            var syntaxNode = Selection.Arguments[argument.Name].ValueLiteral;
+            throw new SerializationException(
+                ErrorBuilder.FromError(ex.Errors[0]).SetPath(Path).TryAddLocation(syntaxNode).Build(),
+                ex.Type,
+                Path);
+        }
     }
 
     public Optional<T> ArgumentOptional<T>(string name)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         if (!Arguments.TryGetValue(name, out var argument))
         {
@@ -45,10 +50,7 @@ internal partial class MiddlewareContext
 
     public TValueNode ArgumentLiteral<TValueNode>(string name) where TValueNode : IValueNode
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         if (!Arguments.TryGetValue(name, out var argument))
         {
@@ -68,10 +70,7 @@ internal partial class MiddlewareContext
 
     public ValueKind ArgumentKind(string name)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         if (!Arguments.TryGetValue(name, out var argument))
         {
@@ -105,8 +104,8 @@ internal partial class MiddlewareContext
             return (T)optional.Value!;
         }
 
-        if (value is T castedValue ||
-            _operationContext.Converter.TryConvert(value, out castedValue))
+        if (value is T castedValue
+            || _operationContext.Converter.TryConvert(value, out castedValue, out var conversionException))
         {
             return castedValue;
         }
@@ -126,16 +125,14 @@ internal partial class MiddlewareContext
             _selection.SyntaxNode,
             Path,
             argument.Name,
-            typeof(T));
+            typeof(T),
+            conversionException);
     }
 
     public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
         IReadOnlyDictionary<string, ArgumentValue> argumentValues)
     {
-        if (argumentValues is null)
-        {
-            throw new ArgumentNullException(nameof(argumentValues));
-        }
+        ArgumentNullException.ThrowIfNull(argumentValues);
 
         var original = Arguments;
         Arguments = argumentValues;
@@ -145,10 +142,7 @@ internal partial class MiddlewareContext
     public IReadOnlyDictionary<string, ArgumentValue> ReplaceArguments(
         ReplaceArguments replace)
     {
-        if (replace is null)
-        {
-            throw new ArgumentNullException(nameof(replace));
-        }
+        ArgumentNullException.ThrowIfNull(replace);
 
         var original = Arguments;
         Arguments = replace(original) ??
@@ -159,15 +153,8 @@ internal partial class MiddlewareContext
 
     public ArgumentValue ReplaceArgument(string argumentName, ArgumentValue newArgumentValue)
     {
-        if (string.IsNullOrEmpty(argumentName))
-        {
-            throw new ArgumentNullException(nameof(argumentName));
-        }
-
-        if (newArgumentValue is null)
-        {
-            throw new ArgumentNullException(nameof(newArgumentValue));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(argumentName);
+        ArgumentNullException.ThrowIfNull(newArgumentValue);
 
         Dictionary<string, ArgumentValue> mutableArguments;
 

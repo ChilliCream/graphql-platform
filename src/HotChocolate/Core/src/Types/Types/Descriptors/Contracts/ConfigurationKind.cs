@@ -28,5 +28,5 @@ public enum ApplyConfigurationOn
     /// <summary>
     /// After the type is completed.
     /// </summary>
-    AfterCompletion,
+    AfterCompletion
 }

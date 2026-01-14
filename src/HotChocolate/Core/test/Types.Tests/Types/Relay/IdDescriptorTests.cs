@@ -29,11 +29,11 @@ public class IdDescriptorTests
                                     guidId(id: $guidId)
                                 }")
                         .SetVariableValues(
-                            new Dictionary<string, object>
+                            new Dictionary<string, object?>
                             {
                                 { "intId", intId },
                                 { "stringId", stringId },
-                                { "guidId", guidId },
+                                { "guidId", guidId }
                             })
                         .Build());
 
@@ -66,7 +66,7 @@ public class IdDescriptorTests
                                 }
                             }
                             """)
-                        .SetVariableValues(new Dictionary<string, object>
+                        .SetVariableValues(new Dictionary<string, object?>
                         {
                             { "someId", someId },
                             { "anotherId", anotherId }
@@ -93,6 +93,131 @@ public class IdDescriptorTests
             .MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Id_Honors_CustomTypeNaming_OutputFields()
+    {
+        // arrange
+        var services = new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithRenamedIds>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .AddGlobalObjectIdentification();
+
+        // act
+        var result = await services.ExecuteRequestAsync(
+            """
+            mutation {
+                out: doSomethingElse {
+                    renamedUser {
+                        userId
+                        explicitUserId
+                        fooId
+                        fluentFooId
+                        singleTypeFluentFooId
+                        userIdMethod
+                        explicitUserIdMethod
+                        fooIdMethod
+                        fluentFooIdMethod
+                        singleTypeFluentFooIdMethod
+                    }
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            $$"""
+            {
+              "data": {
+                "out": {
+                  "renamedUser": {
+                    "userId": "{{Convert.ToBase64String("RenamedUser:1"u8)}}",
+                    "explicitUserId": "{{Convert.ToBase64String("RenamedUser:1"u8)}}",
+                    "fooId": "{{Convert.ToBase64String("FooFoo:1"u8)}}",
+                    "fluentFooId": "{{Convert.ToBase64String("FooFooFluent:1"u8)}}",
+                    "singleTypeFluentFooId": "{{Convert.ToBase64String("FooFooFluentSingle:1"u8)}}",
+                    "userIdMethod": "{{Convert.ToBase64String("RenamedUser:1"u8)}}",
+                    "explicitUserIdMethod": "{{Convert.ToBase64String("RenamedUser:1"u8)}}",
+                    "fooIdMethod": "{{Convert.ToBase64String("FooFoo:1"u8)}}",
+                    "fluentFooIdMethod": "{{Convert.ToBase64String("FooFooFluent:1"u8)}}",
+                    "singleTypeFluentFooIdMethod": "{{Convert.ToBase64String("FooFooFluentSingle:1"u8)}}"
+                  }
+                }
+              }
+            }
+            """);
+    }
+    [Fact]
+    public async Task Id_Honors_CustomTypeNaming_ValidInputs()
+    {
+        // arrange
+        var services = new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithRenamedIds>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .AddGlobalObjectIdentification();
+
+        var userId = Convert.ToBase64String("RenamedUser:100"u8);
+        var fooId = Convert.ToBase64String("FooFoo:300"u8);
+        var fluentFooId = Convert.ToBase64String("FooFooFluent:500"u8);
+        var singleTypeFluentFooId = Convert.ToBase64String("FooFooFluentSingle:600"u8);
+
+        // act
+        var result =
+            await services.ExecuteRequestAsync(
+                $$"""
+                mutation {
+                    validAnyIdInput1: acceptsAnyId(input: { id: "{{userId}}" }) { int }
+                    validAnyIdInput2: acceptsAnyId(input: { id: "{{fooId}}" }) { int }
+                    validAnyIdInput3: acceptsAnyId(input: { id: "{{fluentFooId}}" }) { int }
+                    validAnyIdInput4: acceptsAnyId(input: { id: "{{singleTypeFluentFooId}}" }) { int }
+
+                    validUserIdInput: acceptsUserId(input: { id: "{{userId}}" }) { int }
+                    validFooIdInput: acceptsFooId(input: { id: "{{fooId}}" }) { int }
+                    validFluentFooIdInput: acceptsFluentFooId(input: { id: "{{fluentFooId}}" }) { int }
+                    validSingleTypeFluentFooIdInput: acceptsSingleTypeFluentFooId(input: { id: "{{singleTypeFluentFooId}}" }) { int }
+                }
+                """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Id_Honors_CustomTypeNaming_Throws_On_InvalidInputs()
+    {
+        // arrange
+        var services = new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithRenamedIds>()
+            .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .AddErrorFilter(x => new Error { Message = x.Message })
+            .AddGlobalObjectIdentification();
+
+        var userId = Convert.ToBase64String("RenamedUser:100"u8);
+        var fooId = Convert.ToBase64String("FooFoo:300"u8);
+        var fluentFooId = Convert.ToBase64String("FooFooFluent:500"u8);
+        var singleTypeFluentFooId = Convert.ToBase64String("FooFooFluentSingle:600"u8);
+
+        // act
+        var result = await services.ExecuteRequestAsync(
+            $$"""
+            mutation {
+                validUserIdInput: acceptsUserId(input: { id: "{{fooId}}" }) { int }
+                validFooIdInput: acceptsFooId(input: { id: "{{fluentFooId}}" }) { int }
+                validFluentFooIdInput: acceptsFluentFooId(input: { id: "{{singleTypeFluentFooId}}" }) { int }
+                validSingleTypeFluentFooIdInput: acceptsSingleTypeFluentFooId(input: { id: "{{userId}}" }) { int }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot(postFix: "InvalidArgs");
+    }
+
     private static byte[] Combine(ReadOnlySpan<byte> s1, ReadOnlySpan<byte> s2)
     {
         var buffer = new byte[s1.Length + s2.Length];
@@ -106,19 +231,19 @@ public class IdDescriptorTests
         protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
         {
             descriptor
-                .Field(t => t.IntId(default))
+                .Field(t => t.IntId(0))
                 .Argument("id", a => a.ID());
 
             descriptor
-                .Field(t => t.StringId(default))
+                .Field(t => t.StringId(null!))
                 .Argument("id", a => a.ID());
 
             descriptor
-                .Field(t => t.GuidId(default))
+                .Field(t => t.GuidId(Guid.Empty))
                 .Argument("id", a => a.ID<Another>());
 
             descriptor
-                .Field(t => t.Foo(default))
+                .Field(t => t.Foo(null!))
                 .Argument("input", a => a.Type<FooInputType>())
                 .Type<FooPayloadInterfaceType>();
         }
@@ -179,14 +304,14 @@ public class IdDescriptorTests
 
     public class FooInput
     {
-        public string SomeId { get; set; }
-        public string AnotherId { get; set; }
+        public required string SomeId { get; set; }
+        public required string AnotherId { get; set; }
     }
 
     public class FooPayload : IFooPayload
     {
-        public string SomeId { get; set; }
-        public string AnotherId { get; set; }
+        public required string SomeId { get; set; }
+        public required string AnotherId { get; set; }
     }
 
     public interface IFooPayload
@@ -195,5 +320,75 @@ public class IdDescriptorTests
         string AnotherId { get; set; }
     }
 
-    private class Another;
+    public class Another
+    {
+        public required string Id { get; set; }
+    }
+
+    public class MutationWithRenamedIds
+    {
+        [GraphQLName("doSomethingElse")]
+        public IdContainer DoSomething()
+        {
+            return new IdContainer();
+        }
+
+        public int? AcceptsAnyId([ID] int? id = 0) => id;
+        public int? AcceptsUserId([ID<IdContainer>] int? id = 0) => id;
+        public int? AcceptsFooId([ID<RenamedFoo>] int? id = 0) => id;
+        public int? AcceptsFluentFooId([ID<FluentRenamedFooType>] int? id = 0) => id;
+        public int? AcceptsSingleTypeFluentFooId([ID<SingleTypeFluentRenamedFooType>] int? id = 0) => id;
+    }
+
+    [GraphQLName("RenamedUser")]
+    public class IdContainer
+    {
+        [ID]
+        public int UserId { get; set; } = 1;
+
+        [ID<IdContainer>]
+        public int ExplicitUserId { get; set; } = 1;
+
+        [ID<RenamedFoo>]
+        public int FooId { get; set; } = 1;
+
+        [ID<FluentRenamedFooType>]
+        public int FluentFooId { get; set; } = 1;
+
+        [ID<SingleTypeFluentRenamedFooType>]
+        public int SingleTypeFluentFooId { get; set; } = 1;
+
+        [ID]
+        public int UserIdMethod() => 1;
+
+        [ID<IdContainer>]
+        public int ExplicitUserIdMethod() => 1;
+
+        [ID<RenamedFoo>]
+        public int FooIdMethod() => 1;
+
+        [ID<FluentRenamedFooType>]
+        public int FluentFooIdMethod() => 1;
+
+        [ID<SingleTypeFluentRenamedFooType>]
+        public int SingleTypeFluentFooIdMethod() => 1;
+    }
+
+    [GraphQLName("FooFoo")]
+    public class RenamedFoo;
+
+    public class FluentRenamedFoo;
+
+    public class FluentRenamedFooType : ObjectType<FluentRenamedFoo>
+    {
+        protected override void Configure(IObjectTypeDescriptor<FluentRenamedFoo> descriptor) =>
+            descriptor.Name("FooFooFluent");
+    }
+
+    public class SingleTypeFluentRenamedFooType : ObjectType<SingleTypeFluentRenamedFooType>
+    {
+        protected override void Configure(IObjectTypeDescriptor<SingleTypeFluentRenamedFooType> descriptor) =>
+            descriptor.Name("FooFooFluentSingle")
+                .BindFieldsExplicitly();
+    }
 }

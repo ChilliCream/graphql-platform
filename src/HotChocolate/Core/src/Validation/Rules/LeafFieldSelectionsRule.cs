@@ -9,7 +9,7 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
 
     public bool IsCacheable => true;
 
-    public void Validate(IDocumentValidatorContext context, DocumentNode document)
+    public void Validate(DocumentValidatorContext context, DocumentNode document)
     {
         foreach (var operation in document.Definitions)
         {
@@ -25,7 +25,7 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
         }
     }
 
-    private void ValidateSelectionSet(IDocumentValidatorContext context, SelectionSetNode selectionSet, IType type)
+    private void ValidateSelectionSet(DocumentValidatorContext context, SelectionSetNode selectionSet, IType type)
     {
         foreach (var selection in selectionSet.Selections)
         {
@@ -37,26 +37,25 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
             {
                 var typeCondition = inlineFrag.TypeCondition is null
                     ? type
-                    : context.Schema.GetType<INamedType>(inlineFrag.TypeCondition.Name.Value);
+                    // TODO: TryGet?
+                    : context.Schema.Types[inlineFrag.TypeCondition.Name.Value];
                 ValidateSelectionSet(context, inlineFrag.SelectionSet, typeCondition);
             }
             else if (selection is FragmentSpreadNode spread
-                && context.Fragments.TryGetValue(spread.Name.Value, out var frag))
+                && context.Fragments.TryEnter(spread, out var frag))
             {
-                if (context.VisitedFragments.Add(spread.Name.Value))
-                {
-                    var typeCondition = context.Schema.GetType<INamedType>(frag.TypeCondition.Name.Value);
-                    ValidateSelectionSet(context, frag.SelectionSet, typeCondition);
-                    context.VisitedFragments.Remove(spread.Name.Value);
-                }
+                // TODO: TryGet?
+                var typeCondition = context.Schema.Types[frag.TypeCondition.Name.Value];
+                ValidateSelectionSet(context, frag.SelectionSet, typeCondition);
+                context.Fragments.Leave(spread);
             }
         }
     }
 
-    private void ValidateField(IDocumentValidatorContext context, FieldNode field, IType parentType)
+    private void ValidateField(DocumentValidatorContext context, FieldNode field, IType parentType)
     {
-        if (parentType is not IComplexOutputType complex ||
-            !complex.Fields.TryGetField(field.Name.Value, out var fieldDef))
+        if (parentType is not IComplexTypeDefinition complex
+            || !complex.Fields.TryGetField(field.Name.Value, out var fieldDef))
         {
             // handled by other rules like KnownFieldNames
             return;

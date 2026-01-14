@@ -21,7 +21,7 @@ public class ComposeDirectiveTests
             .ExportDirective<Custom>()
             .BuildSchemaAsync();
 
-        var entityType = schema.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
+        var entityType = schema.Types.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
 
         // act
@@ -44,7 +44,7 @@ public class ComposeDirectiveTests
             .ExportDirective("@custom")
             .BuildSchemaAsync();
 
-        var entityType = schema.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
+        var entityType = schema.Types.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
 
         // act

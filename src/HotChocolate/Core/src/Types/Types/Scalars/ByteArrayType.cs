@@ -1,10 +1,12 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Represents a scalar type for byte arrays that are serialized as Base64-encoded strings in GraphQL.
+/// This type handles the conversion between byte arrays in .NET and string representations in GraphQL schemas.
+/// </summary>
 public class ByteArrayType : ScalarType<byte[], StringValueNode>
 {
     /// <summary>
@@ -17,6 +19,8 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
         : base(name, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.String;
+        Pattern = @"^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$";
     }
 
     /// <summary>

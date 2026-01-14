@@ -40,8 +40,8 @@ internal abstract class DeferredExecutionTask
         // retrieve the task on which this task depends upon. We do this to ensure that the result
         // of this task is not delivered before the parent result is delivered.
         uint parentResultId = 0;
-        if (ScopedContextData.TryGetValue(DeferredResultId, out var value) &&
-            value is uint id)
+        if (ScopedContextData.TryGetValue(DeferredResultId, out var value)
+            && value is uint id)
         {
             parentResultId = id;
         }

@@ -1,4 +1,4 @@
-﻿{
+{
   "activities": [
     {
       "OperationName": "ExecuteRequest",
@@ -30,16 +30,7 @@
           "Value": "ERROR"
         }
       ],
-      "event": [
-        {
-          "Name": "AddedOperationToCache",
-          "Tags": []
-        },
-        {
-          "Name": "AddedDocumentToCache",
-          "Tags": []
-        }
-      ],
+      "event": [],
       "activities": [
         {
           "OperationName": "ParseDocument",

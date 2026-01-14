@@ -14,10 +14,7 @@ internal class FuncErrorFilterWrapper
 
     public IError OnError(IError error)
     {
-        if (error is null)
-        {
-            throw new ArgumentNullException(nameof(error));
-        }
+        ArgumentNullException.ThrowIfNull(error);
 
         return _errorFilter(error);
     }

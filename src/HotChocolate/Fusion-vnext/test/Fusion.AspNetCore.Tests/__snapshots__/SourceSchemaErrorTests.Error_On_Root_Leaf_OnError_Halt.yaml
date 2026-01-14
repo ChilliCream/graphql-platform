@@ -1,0 +1,90 @@
+title: Error_On_Root_Leaf
+request:
+  onError: Halt
+  document: |
+    {
+      productById(id: 1) {
+        name
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Could not resolve Product.name",
+          "path": [
+            "productById",
+            "name"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Product {
+        name: String
+        id: Int!
+      }
+
+      type Query {
+        productById(id: Int!): Product @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_97fd38fc_1 {
+              productById(id: 1) {
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Could not resolve Product.name",
+                    "locations": [
+                      {
+                        "line": 3,
+                        "column": 5
+                      }
+                    ],
+                    "path": [
+                      "productById",
+                      "name"
+                    ]
+                  }
+                ],
+                "data": {
+                  "productById": {
+                    "name": null
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          productById(id: 1) {
+            name
+          }
+        }
+      hash: 97fd38fcea394bc6badd7ea22c6de660
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_97fd38fc_1 {
+          productById(id: 1) {
+            name
+          }
+        }

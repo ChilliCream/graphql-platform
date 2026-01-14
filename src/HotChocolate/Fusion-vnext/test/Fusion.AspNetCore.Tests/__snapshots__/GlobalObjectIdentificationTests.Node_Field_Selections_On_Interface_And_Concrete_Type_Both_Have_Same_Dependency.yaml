@@ -1,0 +1,279 @@
+title: Node_Field_Selections_On_Interface_And_Concrete_Type_Both_Have_Same_Dependency
+request:
+  document: |
+    query testQuery(
+      $id: ID!
+    ) {
+      node(id: $id) {
+        __typename
+        id
+        ... on Authorable {
+          author {
+            username
+          }
+        }
+        ... on Discussion {
+          author {
+            rating
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "id": "RGlzY3Vzc2lvbjox"
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "__typename": "Discussion",
+          "id": "RGlzY3Vzc2lvbjox",
+          "author": {
+            "username": "Author: QXV0aG9yOjE=",
+            "rating": 123
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Authorable {
+        author: Author
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Author implements Node {
+        id: ID!
+      }
+
+      type Discussion implements Node & Authorable {
+        id: ID!
+        author: Author
+        title: String
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_648537b2_3(
+              $id: ID!
+            ) {
+              node(id: $id) {
+                __typename
+                ... on Discussion {
+                  __typename
+                  id
+                  author {
+                    id
+                  }
+                  author {
+                    id
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "id": "RGlzY3Vzc2lvbjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Discussion",
+                    "id": "RGlzY3Vzc2lvbjox",
+                    "author": {
+                      "id": "QXV0aG9yOjE="
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: ID!
+        username: String
+        rating: Int
+      }
+
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query testQuery_648537b2_4(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                rating
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "QXV0aG9yOjE="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "rating": 123
+                  }
+                }
+              }
+      - request:
+          document: |
+            query testQuery_648537b2_5(
+              $__fusion_2_id: ID!
+            ) {
+              authorById(id: $__fusion_2_id) {
+                username
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "QXV0aG9yOjE="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "username": "Author: QXV0aG9yOjE="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            id
+            ... on Authorable {
+              author {
+                username
+                id @fusion__requirement
+              }
+            }
+            ... on Discussion {
+              author {
+                rating
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 648537b21567841743ca179b6f2e0c14
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: $id
+      responseName: node
+      branches:
+        - Discussion: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query testQuery_648537b2_2(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            id
+          }
+        }
+      forwardedVariables:
+        - id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_648537b2_3(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            ... on Discussion {
+              __typename
+              id
+              author {
+                id
+              }
+              author {
+                id
+              }
+            }
+          }
+        }
+      forwardedVariables:
+        - id
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_648537b2_4(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            rating
+          }
+        }
+      source: $.authorById
+      target: $.node<Discussion>.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+    - id: 5
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_648537b2_5(
+          $__fusion_2_id: ID!
+        ) {
+          authorById(id: $__fusion_2_id) {
+            username
+          }
+        }
+      source: $.authorById
+      target: $.node<Discussion>.author
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3

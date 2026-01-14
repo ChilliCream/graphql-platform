@@ -13,32 +13,40 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : class
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         if (typeof(IExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
-            builder.Services.TryAddSingleton<T>();
             builder.ConfigureSchemaServices(
-                s => s.AddSingleton(
-                    sp => (IExecutionDiagnosticEventListener)sp.GetApplicationService<T>()));
+                static s =>
+                {
+                    s.TryAddSingleton<T>();
+                    s.AddSingleton(static sp => (IExecutionDiagnosticEventListener)sp.GetRequiredService<T>());
+                });
         }
         else if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
             builder.Services.TryAddSingleton<T>();
-            builder.Services.AddSingleton(s => (IDataLoaderDiagnosticEventListener)s.GetRequiredService<T>());
+            builder.Services.AddSingleton(
+                static s => (IDataLoaderDiagnosticEventListener)s.GetRequiredService<T>());
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
-            builder.Services.TryAddSingleton<T>();
+            var attribute = (DiagnosticEventSourceAttribute)typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
+            var listener = attribute.Listener;
 
-            foreach (var attribute in
-                typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true))
+            if (attribute.IsSchemaService)
             {
-                var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
-                builder.Services.AddSingleton(listener, s => s.GetRequiredService<T>());
+                builder.ConfigureSchemaServices(s =>
+                {
+                    s.TryAddSingleton<T>();
+                    s.AddSingleton(listener, sp => sp.GetRequiredService<T>());
+                });
+            }
+            else
+            {
+                builder.Services.TryAddSingleton<T>();
+                builder.Services.AddSingleton(listener, sp => sp.GetRequiredService<T>());
             }
         }
         else
@@ -51,38 +59,34 @@ public static partial class RequestExecutorBuilderExtensions
 
     public static IRequestExecutorBuilder AddDiagnosticEventListener<T>(
         this IRequestExecutorBuilder builder,
-        Func<IServiceProvider, T> diagnosticEventListener)
+        Func<IServiceProvider, T> factory)
         where T : class
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (diagnosticEventListener is null)
-        {
-            throw new ArgumentNullException(nameof(diagnosticEventListener));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
 
         if (typeof(IExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
             builder.ConfigureSchemaServices(
-                s => s.AddSingleton(
-                    sp => (IExecutionDiagnosticEventListener)diagnosticEventListener(
-                        sp.GetCombinedServices())));
+                s => s.AddSingleton(sp => (IExecutionDiagnosticEventListener)factory(sp)));
         }
         else if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
             builder.Services.AddSingleton(
-                s => (IDataLoaderDiagnosticEventListener)diagnosticEventListener(s));
+                s => (IDataLoaderDiagnosticEventListener)factory(s));
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
-            foreach (var attribute in
-                typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true))
+            var attribute = (DiagnosticEventSourceAttribute)typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
+            var listener = attribute.Listener;
+
+            if (attribute.IsSchemaService)
             {
-                var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
-                builder.Services.AddSingleton(listener, diagnosticEventListener);
+                builder.ConfigureSchemaServices(s => s.AddSingleton(listener, factory));
+            }
+            else
+            {
+                builder.Services.AddSingleton(listener, factory);
             }
         }
         else

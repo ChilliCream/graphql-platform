@@ -53,10 +53,10 @@ type __Type {
   kind: __TypeKind!
   name: String
   description: String
-  fields(includeDeprecated: Boolean = false): [__Field!]
+  fields(includeDeprecated: Boolean! = false): [__Field!]
   interfaces: [__Type!]
   possibleTypes: [__Type!]
-  enumValues(includeDeprecated: Boolean = false): [__EnumValue!]
+  enumValues(includeDeprecated: Boolean! = false): [__EnumValue!]
   inputFields: [__InputValue!]
   ofType: __Type
 }
@@ -94,7 +94,7 @@ enum __DirectiveLocation {
   ARGUMENT_DEFINITION
   "Indicates the directive is valid on an interface SDL definition."
   INTERFACE
-  "Indicates the directive is valid on an union SDL definition."
+  "Indicates the directive is valid on a union SDL definition."
   UNION
   "Indicates the directive is valid on an enum SDL definition."
   ENUM

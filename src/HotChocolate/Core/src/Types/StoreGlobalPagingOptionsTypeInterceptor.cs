@@ -1,7 +1,5 @@
-#nullable enable
-
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Pagination;
 
 namespace HotChocolate;
@@ -10,9 +8,9 @@ internal sealed class StoreGlobalPagingOptionsTypeInterceptor : TypeInterceptor
 {
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition)
+        TypeSystemConfiguration configuration)
     {
-        if(definition is SchemaTypeDefinition schemaDef)
+        if (configuration is SchemaTypeConfiguration schemaDef)
         {
             var options = completionContext.DescriptorContext.GetPagingOptions(null);
             schemaDef.Features.Set(options);

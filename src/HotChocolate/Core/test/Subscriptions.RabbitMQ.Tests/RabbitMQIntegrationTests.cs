@@ -55,7 +55,7 @@ public class RabbitMQIntegrationTests : SubscriptionIntegrationTestBase, IClassF
         graphqlBuilder.AddRabbitMQSubscriptions(new()
         {
             HostName = _rabbitMQResource.Instance.Address,
-            Port = _rabbitMQResource.Instance.HostPort,
+            Port = _rabbitMQResource.Instance.HostPort
         });
     }
 }

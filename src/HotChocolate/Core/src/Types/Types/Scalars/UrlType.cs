@@ -2,13 +2,11 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 public class UrlType : ScalarType<Uri, StringValueNode>
 {
-    private const string _specifiedBy = "https://tools.ietf.org/html/rfc3986";
+    private const string SpecifiedByUri = "https://tools.ietf.org/html/rfc3986";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UrlType"/> class.
@@ -20,6 +18,8 @@ public class UrlType : ScalarType<Uri, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.String;
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>
@@ -29,7 +29,6 @@ public class UrlType : ScalarType<Uri, StringValueNode>
     public UrlType()
         : this(ScalarNames.URL, bind: BindingBehavior.Implicit)
     {
-        SpecifiedBy = new Uri(_specifiedBy);
     }
 
     protected override bool IsInstanceOfType(StringValueNode valueSyntax)
