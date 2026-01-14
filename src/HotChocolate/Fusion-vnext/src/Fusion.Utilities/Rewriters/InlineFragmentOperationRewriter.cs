@@ -9,7 +9,8 @@ namespace HotChocolate.Fusion.Rewriters;
 public sealed class InlineFragmentOperationRewriter(
     ISchemaDefinition schema,
     bool removeStaticallyExcludedSelections = false,
-    bool ignoreMissingTypeSystemMembers = false)
+    bool ignoreMissingTypeSystemMembers = false,
+    bool includeTypeNameToEmptySelectionSets = true)
 {
     private List<ISelectionNode>? _selections;
 
@@ -80,7 +81,7 @@ public sealed class InlineFragmentOperationRewriter(
 
     internal void RewriteSelections(Context context)
     {
-        if (context.Selections.Count == 0)
+        if (includeTypeNameToEmptySelectionSets && context.Selections.Count == 0)
         {
             context.Selections.Add(s_typeNameField);
             context.Fields.Add(IntrospectionFieldNames.TypeName, [s_typeNameField]);

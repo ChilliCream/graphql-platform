@@ -31,7 +31,10 @@ public sealed partial class OperationCompiler
         _schema = schema;
         _inputValueParser = inputValueParser;
         _fieldsPool = fieldsPool;
-        _documentRewriter = new InlineFragmentOperationRewriter(schema, removeStaticallyExcludedSelections: true);
+        _documentRewriter = new InlineFragmentOperationRewriter(
+            schema,
+            removeStaticallyExcludedSelections: true,
+            includeTypeNameToEmptySelectionSets: false);
         _optimizers = optimizers;
     }
 
@@ -225,8 +228,7 @@ public sealed partial class OperationCompiler
 
                 nodes.Add(new FieldSelectionNode(fieldNode, pathIncludeFlags));
             }
-
-            if (selection is InlineFragmentNode inlineFragmentNode
+            else if (selection is InlineFragmentNode inlineFragmentNode
                 && DoesTypeApply(inlineFragmentNode.TypeCondition, typeContext))
             {
                 var pathIncludeFlags = parentIncludeFlags;
@@ -260,6 +262,7 @@ public sealed partial class OperationCompiler
         var isConditional = false;
         var includeFlags = new List<ulong>();
         var selectionSetId = ++lastId;
+        var alwaysIncluded = false;
 
         foreach (var (responseName, nodes) in fieldMap)
         {
@@ -268,7 +271,11 @@ public sealed partial class OperationCompiler
             var first = nodes[0];
             var isInternal = IsInternal(first.Node);
 
-            if (first.PathIncludeFlags > 0)
+            if (first.PathIncludeFlags == 0)
+            {
+                alwaysIncluded = true;
+            }
+            else
             {
                 includeFlags.Add(first.PathIncludeFlags);
             }
@@ -285,7 +292,15 @@ public sealed partial class OperationCompiler
                             $"The syntax nodes for the response name {responseName} are not all the same.");
                     }
 
-                    if (next.PathIncludeFlags > 0)
+                    if (next.PathIncludeFlags == 0)
+                    {
+                        alwaysIncluded = true;
+                        if (includeFlags.Count > 0)
+                        {
+                            includeFlags.Clear();
+                        }
+                    }
+                    else if (!alwaysIncluded)
                     {
                         includeFlags.Add(next.PathIncludeFlags);
                     }
@@ -317,7 +332,7 @@ public sealed partial class OperationCompiler
                 responseName,
                 field,
                 nodes.ToArray(),
-                includeFlags.ToArray(),
+                includeFlags.Count > 0 ? includeFlags.ToArray() : [],
                 isInternal,
                 arguments,
                 fieldDelegate,

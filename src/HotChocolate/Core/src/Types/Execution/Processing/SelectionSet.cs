@@ -27,11 +27,6 @@ public sealed class SelectionSet : ISelectionSet
     {
         ArgumentNullException.ThrowIfNull(selections);
 
-        if (selections.Length == 0)
-        {
-            throw new ArgumentException("Selections cannot be empty.", nameof(selections));
-        }
-
         Id = id;
         Path = path;
         Type = type;
