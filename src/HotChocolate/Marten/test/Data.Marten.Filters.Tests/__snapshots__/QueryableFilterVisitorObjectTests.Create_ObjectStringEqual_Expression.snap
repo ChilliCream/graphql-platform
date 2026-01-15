@@ -38,7 +38,7 @@ testbtest SQL:
 select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.data -> 'Foo' ->> 'BarString' = :p0;
 ---------------
 
-null
+null Result:
 ---------------
 {
   "errors": [

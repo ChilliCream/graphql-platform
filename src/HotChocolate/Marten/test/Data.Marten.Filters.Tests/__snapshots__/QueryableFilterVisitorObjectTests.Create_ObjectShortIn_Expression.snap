@@ -48,7 +48,7 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as 
 select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where CAST(d.data -> 'Foo' ->> 'BarShort' as smallint) = ANY(:p0);
 ---------------
 
-nullAnd14
+nullAnd14 Result:
 ---------------
 {
   "errors": [

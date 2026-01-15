@@ -40,7 +40,7 @@ testb Query:
 find({ "Bar" : { "$not" : { "$regex" : { "$regularExpression" : { "pattern" : "^testb", "options" : "" } } } } })
 ---------------
 
-null
+null Result:
 ---------------
 {
   "errors": [

@@ -34,7 +34,7 @@ testbtest SQL:
 select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where d.data ->> 'Bar' != :p0;
 ---------------
 
-null
+null Result:
 ---------------
 {
   "errors": [

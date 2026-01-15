@@ -48,7 +48,7 @@ find({ "Foo.BarShort" : { "$in" : [12, 13] } })
 find({ "Foo.BarShort" : { "$in" : [13, 14] } })
 ---------------
 
-nullAnd14
+nullAnd14 Result:
 ---------------
 {
   "errors": [

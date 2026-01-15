@@ -50,7 +50,7 @@ b SQL:
 select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.data -> 'Foo' -> 'ObjectArray' @> :p0;
 ---------------
 
-null
+null Result:
 ---------------
 {
   "errors": [

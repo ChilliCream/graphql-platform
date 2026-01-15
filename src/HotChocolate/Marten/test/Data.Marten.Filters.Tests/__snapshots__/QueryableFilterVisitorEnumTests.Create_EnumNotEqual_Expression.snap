@@ -46,7 +46,7 @@ FOO SQL:
 select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foo as d where CAST(d.data ->> 'BarEnum' as integer) != :p0;
 ---------------
 
-null
+null Result:
 ---------------
 {
   "errors": [
