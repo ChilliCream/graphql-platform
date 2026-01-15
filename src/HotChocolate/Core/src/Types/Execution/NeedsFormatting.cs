@@ -38,16 +38,11 @@ internal abstract class NeedsFormatting : IResultDataJsonFormatter
         JsonWriter writer,
         JsonSerializerOptions? options,
         JsonNullIgnoreCondition nullIgnoreCondition)
-#if NET9_0_OR_GREATER
-        => FormatValue(writer, options ?? JsonSerializerOptions.Web, nullIgnoreCondition);
-#else
-        => FormatValue(writer, options ?? JsonSerializerOptions.Default, nullIgnoreCondition);
-#endif
+        => FormatValue(writer, options ?? JsonSerializerOptionDefaults.GraphQL, nullIgnoreCondition);
 
     public static JsonNeedsFormatting Create<TValue>(TValue value)
     {
-        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var documents = JsonSerializer.SerializeToDocument(value, options);
+        var documents = JsonSerializer.SerializeToDocument(value, JsonSerializerOptionDefaults.GraphQL);
         return new JsonNeedsFormatting(documents);
     }
 }

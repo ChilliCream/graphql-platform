@@ -1,11 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-#if !NET9_0_OR_GREATER
-using System.Text.Json.Serialization.Metadata;
-#endif
 using HotChocolate.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using static HotChocolate.ExecutionAbstractionsResources;
 
 namespace HotChocolate.Execution;
@@ -13,20 +11,8 @@ namespace HotChocolate.Execution;
 /// <summary>
 /// Represents a builder for creating GraphQL operation requests.
 /// </summary>
-#if !NET9_0_OR_GREATER
-[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
-#endif
 public sealed class OperationRequestBuilder : IFeatureProvider
 {
-#if !NET9_0_OR_GREATER
-    private static readonly JsonSerializerOptions s_serializerOptions =
-        new(JsonSerializerDefaults.Web)
-        {
-            TypeInfoResolver = new DefaultJsonTypeInfoResolver()
-        };
-#endif
-
     private IOperationDocument? _document;
     private OperationDocumentId? _documentId;
     private OperationDocumentHash? _documentHash;
@@ -258,11 +244,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             return this;
         }
 
-#if NET9_0_OR_GREATER
-        _variableValues = new(JsonSerializer.SerializeToDocument(variableValues, JsonSerializerOptions.Web));
-#else
-        _variableValues = new(JsonSerializer.SerializeToDocument(variableValues, s_serializerOptions));
-#endif
+        _variableValues = new(JsonSerializer.SerializeToDocument(variableValues, JsonSerializerOptionDefaults.GraphQL));
         return this;
     }
 
@@ -290,11 +272,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             return this;
         }
 
-#if NET9_0_OR_GREATER
-        _variableValues = new(JsonSerializer.SerializeToDocument(variableValueSets, JsonSerializerOptions.Web));
-#else
-        _variableValues = new(JsonSerializer.SerializeToDocument(variableValueSets, s_serializerOptions));
-#endif
+        _variableValues = new(JsonSerializer.SerializeToDocument(variableValueSets, JsonSerializerOptionDefaults.GraphQL));
         return this;
     }
 
@@ -343,11 +321,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             return this;
         }
 
-#if NET9_0_OR_GREATER
-        _extensions = new(JsonSerializer.SerializeToDocument(extensions, JsonSerializerOptions.Web));
-#else
-        _extensions = new(JsonSerializer.SerializeToDocument(extensions, s_serializerOptions));
-#endif
+        _extensions = new(JsonSerializer.SerializeToDocument(extensions, JsonSerializerOptionDefaults.GraphQL));
         return this;
     }
 

@@ -28,7 +28,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                 JsonValueFormatter.WriteErrors(
                     writer,
                     document._errors,
-                    new JsonSerializerOptions(JsonSerializerDefaults.Web),
+                    JsonSerializerOptionDefaults.GraphQL,
                     default);
             }
 
@@ -53,7 +53,7 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                 JsonValueFormatter.WriteDictionary(
                     writer,
                     document._extensions,
-                    new JsonSerializerOptions(JsonSerializerDefaults.Web),
+                    JsonSerializerOptionDefaults.GraphQL,
                     default);
             }
 

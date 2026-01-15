@@ -1,6 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Buffers;
@@ -17,7 +14,7 @@ internal static class DictionaryToJsonDocumentConverter
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
-    private static readonly JsonSerializerOptions s_jsonSerializerOptions = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions s_jsonSerializerOptions = JsonSerializerOptionDefaults.GraphQL;
 
     public static JsonElement FromDictionary(IReadOnlyDictionary<string, object?> dictionary)
     {
