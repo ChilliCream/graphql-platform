@@ -53,6 +53,9 @@ internal static class ThrowHelper
     public static InvalidOperationException NoResolverInContext()
         => new(ThrowHelper_NoResolverInContext);
 
+    public static InvalidOperationException PlanningFailed()
+        => new(ThrowHelper_PlanningFailed);
+
     public static NotSupportedException RequestFormatter_ArgumentVariableExpected()
         => new(ThrowHelper_RequestFormatter_ArgumentVariableExpected_Message);
 
