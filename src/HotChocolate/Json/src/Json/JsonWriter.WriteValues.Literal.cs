@@ -44,7 +44,7 @@ public sealed partial class JsonWriter
 
     private void WriteLiteralByOptions(ReadOnlySpan<byte> utf8Value)
     {
-        if (_options.Indented)
+        if (_indented)
         {
             WriteLiteralIndented(utf8Value);
         }

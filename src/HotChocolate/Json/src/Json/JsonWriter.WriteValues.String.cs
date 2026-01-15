@@ -75,7 +75,7 @@ public sealed partial class JsonWriter
 
     private void WriteStringByOptions(ReadOnlySpan<char> value)
     {
-        if (_options.Indented)
+        if (_indented)
         {
             WriteStringIndented(value);
         }
@@ -210,7 +210,7 @@ public sealed partial class JsonWriter
 
     private void WriteStringValueRaw(ReadOnlySpan<byte> utf8Value)
     {
-        if (_options.Indented)
+        if (_indented)
         {
             WriteStringValueRawIndented(utf8Value);
         }
@@ -288,7 +288,7 @@ public sealed partial class JsonWriter
 
     private void WriteStringByOptions(ReadOnlySpan<byte> utf8Value)
     {
-        if (_options.Indented)
+        if (_indented)
         {
             WriteStringIndented(utf8Value);
         }

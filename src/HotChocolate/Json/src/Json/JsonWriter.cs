@@ -23,7 +23,7 @@ public sealed partial class JsonWriter
 
     // A length of 1 will emit LF for indented writes, a length of 2 will emit CRLF. Other values are invalid.
     private readonly int _newLineLength;
-    private readonly bool _indentedOrNotSkipValidation;
+    private readonly bool _indented;
     private readonly int _maxDepth;
 
     public JsonWriter(IBufferWriter<byte> writer, JsonWriterOptions options)
@@ -41,7 +41,7 @@ public sealed partial class JsonWriter
         _indentByte = (byte)' ';
         _indentLength = 2;
 #endif
-        _indentedOrNotSkipValidation = options.Indented || !options.SkipValidation;
+        _indented = options.Indented;
         _maxDepth = options.MaxDepth == 0 ? 64 : options.MaxDepth;
     }
 
@@ -95,7 +95,7 @@ public sealed partial class JsonWriter
             throw new InvalidOperationException("The JSON depth is exceeds the max allowed depth.");
         }
 
-        if (_indentedOrNotSkipValidation)
+        if (_indented)
         {
             WriteStartSlow(token);
         }
@@ -127,7 +127,7 @@ public sealed partial class JsonWriter
 
     private void WriteStartSlow(byte token)
     {
-        Debug.Assert(_indentedOrNotSkipValidation);
+        Debug.Assert(_indented);
         WriteStartIndented(token);
     }
 
@@ -184,7 +184,7 @@ public sealed partial class JsonWriter
 
     private void WriteEnd(byte token)
     {
-        if (_indentedOrNotSkipValidation)
+        if (_indented)
         {
             WriteEndSlow(token);
         }
@@ -210,7 +210,7 @@ public sealed partial class JsonWriter
 
     private void WriteEndSlow(byte token)
     {
-        Debug.Assert(_indentedOrNotSkipValidation);
+        Debug.Assert(_indented);
         WriteEndIndented(token);
     }
 

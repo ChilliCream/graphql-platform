@@ -98,7 +98,7 @@ public sealed partial class JsonWriter
 
     private void WriteStringByOptionsPropertyName(ReadOnlySpan<char> propertyName)
     {
-        if (_options.Indented)
+        if (_indented)
         {
             WriteStringIndentedPropertyName(propertyName);
         }
@@ -252,7 +252,7 @@ public sealed partial class JsonWriter
 
     private void WriteStringByOptionsPropertyName(ReadOnlySpan<byte> utf8PropertyName)
     {
-        if (_options.Indented)
+        if (_indented)
         {
             WriteStringIndentedPropertyName(utf8PropertyName);
         }

@@ -83,10 +83,30 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
                     WriteObject(cursor, row);
                     break;
 
+                case ElementTokenType.StartObject:
+                {
+                    var sourceDocument = document._sources[row.SourceDocumentId];
+                    // Reconstruct the source cursor from stored Location (Chunk) and SizeOrLength (Row)
+                    var sourceCursor = SourceResultDocument.Cursor.From(row.Location, row.SizeOrLength);
+                    var formatter = new SourceResultDocument.RawJsonFormatter(sourceDocument, writer);
+                    formatter.WriteValue(sourceCursor);
+                    break;
+                }
+
                 case ElementTokenType.StartArray
                     when (ElementFlags.SourceResult & row.Flags) != ElementFlags.SourceResult:
                     WriteArray(cursor, row);
                     break;
+
+                case ElementTokenType.StartArray:
+                {
+                    var sourceDocument = document._sources[row.SourceDocumentId];
+                    // Reconstruct the source cursor from stored Location (Chunk) and SizeOrLength (Row)
+                    var sourceCursor = SourceResultDocument.Cursor.From(row.Location, row.SizeOrLength);
+                    var formatter = new SourceResultDocument.RawJsonFormatter(sourceDocument, writer);
+                    formatter.WriteValue(sourceCursor);
+                    break;
+                }
 
                 case ElementTokenType.None:
                 case ElementTokenType.Null:

@@ -9,6 +9,8 @@ namespace HotChocolate.Execution;
 public sealed class OperationResult : ExecutionResult
 {
     private readonly DataFlags _dataFlags;
+    private ImmutableList<IError> _errors;
+    private ImmutableOrderedDictionary<string, object?> _extensions;
 
     /// <summary>
     /// Initializes a new instance of <see cref="OperationResult"/> with structured data and an optional formatter.
@@ -44,8 +46,8 @@ public sealed class OperationResult : ExecutionResult
             ? DataFlags.DataIsSet | DataFlags.DataIsNull
             : DataFlags.DataIsSet;
         Data = data.Value;
-        Errors = errors ?? [];
-        Extensions = extensions ?? [];
+        _errors = errors ?? [];
+        _extensions = extensions ?? [];
 
         Features.Set(data.Formatter);
 
@@ -89,8 +91,8 @@ public sealed class OperationResult : ExecutionResult
             : DataFlags.DataIsSet;
 
         Data = data;
-        Errors = errors ?? [];
-        Extensions = extensions ?? [];
+        _errors = errors ?? [];
+        _extensions = extensions ?? [];
     }
 
     /// <summary>
@@ -118,8 +120,8 @@ public sealed class OperationResult : ExecutionResult
         }
 
         _dataFlags = DataFlags.DataIsNull;
-        Errors = errors;
-        Extensions = extensions ?? [];
+        _errors = errors;
+        _extensions = extensions ?? [];
     }
 
     /// <summary>
@@ -144,8 +146,8 @@ public sealed class OperationResult : ExecutionResult
         }
 
         _dataFlags = DataFlags.DataIsNull;
-        Errors = [];
-        Extensions = extensions;
+        _errors = [];
+        _extensions = extensions;
     }
 
     /// <summary>
@@ -200,8 +202,9 @@ public sealed class OperationResult : ExecutionResult
     /// <summary>
     /// Gets the GraphQL errors that occurred during execution.
     /// </summary>
-    public ImmutableList<IError> Errors {
-        get;
+    public ImmutableList<IError> Errors
+    {
+        get => _errors;
         set
         {
             if (IsDataNull && Errors is null or { Count: 0 } && Extensions is null or { Count: 0 })
@@ -209,7 +212,7 @@ public sealed class OperationResult : ExecutionResult
                 throw new ArgumentException("Either data, errors or extensions must be provided.");
             }
 
-            field = value;
+            _errors = value;
         }
     }
 
@@ -221,7 +224,7 @@ public sealed class OperationResult : ExecutionResult
     /// </exception>
     public ImmutableOrderedDictionary<string, object?> Extensions
     {
-        get;
+        get => _extensions;
         set
         {
             if (IsDataNull && Errors is null or { Count: 0 } && Extensions is null or { Count: 0 })
@@ -229,7 +232,7 @@ public sealed class OperationResult : ExecutionResult
                 throw new ArgumentException("Either data, errors or extensions must be provided.");
             }
 
-            field = value;
+            _extensions = value;
         }
     }
 

@@ -24,7 +24,7 @@ public sealed partial class JsonWriter
     {
         ValidateValue(utf8FormattedNumber);
 
-        if (_options.Indented)
+        if (_indented)
         {
             WriteNumberValueIndented(utf8FormattedNumber);
         }

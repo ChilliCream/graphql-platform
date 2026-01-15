@@ -1,11 +1,12 @@
 using System.Diagnostics;
 using System.Text.Json;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class SourceResultDocument
 {
-    internal ref struct RawJsonFormatter(SourceResultDocument document, Utf8JsonWriter writer)
+    internal ref struct RawJsonFormatter(SourceResultDocument document, JsonWriter writer)
     {
         public void WriteValue(Cursor cursor)
         {
@@ -43,9 +44,22 @@ public sealed partial class SourceResultDocument
                     writer.WriteBooleanValue(false);
                     break;
 
-                default:
-                    document.WriteRawValueTo(writer, row);
+                case JsonTokenType.String:
+                {
+                    var value = document.ReadRawValue(row, includeQuotes: true);
+                    writer.WriteStringValue(value, skipEscaping: true);
                     break;
+                }
+
+                case JsonTokenType.Number:
+                {
+                    var value = document.ReadRawValue(row, includeQuotes: false);
+                    writer.WriteNumberValue(value);
+                    break;
+                }
+
+                default:
+                    throw new NotSupportedException();
             }
         }
 
@@ -64,7 +78,7 @@ public sealed partial class SourceResultDocument
                 Debug.Assert(row.TokenType is JsonTokenType.PropertyName);
 
                 // property name
-                writer.WritePropertyName(document.ReadRawValue(row));
+                writer.WritePropertyName(document.ReadRawValue(row, includeQuotes: false));
 
                 // property value
                 current++;

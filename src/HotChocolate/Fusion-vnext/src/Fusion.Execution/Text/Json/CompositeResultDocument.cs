@@ -340,30 +340,6 @@ public sealed partial class CompositeResultDocument : IDisposable
         Debug.Fail("Only objects can be invalidated.");
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteRawValueTo(Utf8JsonWriter writer, DbRow row)
-    {
-        if ((row.Flags & ElementFlags.SourceResult) == ElementFlags.SourceResult)
-        {
-            var document = _sources[row.SourceDocumentId];
-
-            if (row.TokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
-            {
-                // Reconstruct the source cursor from stored Location (Chunk) and SizeOrLength (Row)
-                var sourceCursor = SourceResultDocument.Cursor.From(row.Location, row.SizeOrLength);
-                var formatter = new SourceResultDocument.RawJsonFormatter(document, writer);
-                formatter.WriteValue(sourceCursor);
-                return;
-            }
-
-            // For simple values, write directly using location and size
-            document.WriteRawValueTo(writer, row.Location, row.SizeOrLength);
-            return;
-        }
-
-        throw new NotSupportedException();
-    }
-
     private ReadOnlySpan<byte> ReadRawValue(DbRow row)
     {
         if (row.TokenType == ElementTokenType.Null)
