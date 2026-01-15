@@ -1,4 +1,4 @@
-true
+true Result:
 ---------------
 {
   "data": {
@@ -11,7 +11,7 @@ true
 }
 ---------------
 
-false
+false Result:
 ---------------
 {
   "data": {

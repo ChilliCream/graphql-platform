@@ -42,7 +42,7 @@ FROM "Data" AS "d"
 WHERE "d"."Bar" IS NOT NULL AND instr("d"."Bar", @__p_0) > 0
 ---------------
 
-null
+null Result:
 ---------------
 {
   "errors": [

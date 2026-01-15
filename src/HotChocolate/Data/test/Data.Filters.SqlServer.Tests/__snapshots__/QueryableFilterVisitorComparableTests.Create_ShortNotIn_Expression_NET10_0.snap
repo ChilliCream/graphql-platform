@@ -44,7 +44,7 @@ FROM "Data" AS "d"
 WHERE "d"."BarShort" NOT IN (@p1, @p2)
 ---------------
 
-nullAnd14
+nullAnd14 Result:
 ---------------
 {
   "errors": [

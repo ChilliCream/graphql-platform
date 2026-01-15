@@ -82,7 +82,7 @@ WHERE CASE
 END
 ---------------
 
-null
+null Result:
 ---------------
 {
   "errors": [

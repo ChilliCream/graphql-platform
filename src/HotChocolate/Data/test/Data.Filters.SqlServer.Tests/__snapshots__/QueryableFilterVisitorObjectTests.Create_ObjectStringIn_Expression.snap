@@ -41,7 +41,7 @@ WHERE "f"."BarString" IN (
 )
 ---------------
 
-testbtestAndNull
+testbtestAndNull Result:
 ---------------
 {
   "errors": [

@@ -102,7 +102,7 @@ WHERE EXISTS (
     WHERE "d"."Id" = "f"."FooId")
 ---------------
 
-null
+null Result:
 ---------------
 {
   "errors": [

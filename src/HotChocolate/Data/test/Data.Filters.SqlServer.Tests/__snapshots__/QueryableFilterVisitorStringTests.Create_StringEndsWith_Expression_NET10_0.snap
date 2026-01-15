@@ -42,7 +42,7 @@ FROM "Data" AS "d"
 WHERE "d"."Bar" LIKE @p_endswith ESCAPE '\'
 ---------------
 
-null
+null Result:
 ---------------
 {
   "errors": [
