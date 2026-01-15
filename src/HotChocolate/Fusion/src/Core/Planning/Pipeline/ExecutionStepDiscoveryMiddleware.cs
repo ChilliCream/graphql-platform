@@ -76,6 +76,11 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 item.PreferBatching);
         }
 
+        if (context.Steps.Count == 0)
+        {
+            throw ThrowHelper.PlanningFailed();
+        }
+
         next(context);
     }
 
@@ -236,6 +241,13 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 }
 
                 path.RemoveAt(pathIndex);
+            }
+
+            var couldNotResolveAnySelections = leftovers is not null && leftovers.Count == selections.Count;
+
+            if (couldNotResolveAnySelections)
+            {
+                break;
             }
 
             // if the current execution step has no way to resolve the data

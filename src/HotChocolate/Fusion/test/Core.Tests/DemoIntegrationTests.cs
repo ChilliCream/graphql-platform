@@ -16,6 +16,74 @@ public class DemoIntegrationTests(ITestOutputHelper output)
     private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 
     [Fact]
+    public async Task Single_SubSelection_That_Can_Not_Be_Resolved()
+    {
+        // arrange
+        var ordering = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              orders: [Order!]!
+            }
+
+            type LineItem {
+              product: Product!
+              id: Int!
+              quantity: Int!
+            }
+
+            type Order {
+              id: Int!
+              name: String!
+              description: String!
+              items: [LineItem!]!
+            }
+
+            type Product {
+              id: Int!
+              lineItemField: String!
+            }
+            """);
+
+        var products = await TestSubgraph.CreateAsync(
+            """
+            type Query {
+              productById(id: Int!): Product!
+              products: [Product!]!
+            }
+
+            type Product {
+              id: Int!
+              name: String!
+              sku: String!
+              description: String!
+              price: Float!
+            }
+            """);
+
+        using var subgraphs = new TestSubgraphCollection(output, [ordering, products]);
+        var executor = await subgraphs.GetExecutorAsync();
+        var request = Parse("""
+                            {
+                              products {
+                                lineItemField
+                              }
+                            }
+                            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task Same_Selection_On_Two_Object_Types_That_Require_Data_From_Another_Subgraph()
     {
         // arrange
@@ -2791,7 +2859,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Viewer_Bug_3() {
+    public async Task Viewer_Bug_3()
+    {
         // arrange
         var subgraphA = await TestSubgraph.CreateAsync(
             """

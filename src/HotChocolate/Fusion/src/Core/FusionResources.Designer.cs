@@ -212,5 +212,11 @@ namespace HotChocolate.Fusion {
                 return ResourceManager.GetString("DefaultIdParser_ParseTypeName_InvalidFormat", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_PlanningFailed {
+            get {
+                return ResourceManager.GetString("ThrowHelper_PlanningFailed", resourceCulture);
+            }
+        }
     }
 }

@@ -102,4 +102,7 @@
   <data name="DefaultIdParser_ParseTypeName_InvalidFormat" xml:space="preserve">
     <value>Unable to decode the node id value.</value>
   </data>
+  <data name="ThrowHelper_PlanningFailed" xml:space="preserve">
+    <value>Could not find a plan for the provided operation.</value>
+  </data>
 </root>
