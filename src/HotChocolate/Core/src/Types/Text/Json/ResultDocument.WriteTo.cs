@@ -11,11 +11,11 @@ public sealed partial class ResultDocument : IRawJsonFormatter
     {
         options = options with { SkipValidation = true };
         var jsonWriter = new JsonWriter(writer, options);
-        var formatter = new RawJsonFormatter(this, jsonWriter);
+        var formatter = new RawJsonFormatter(this, jsonWriter, options);
         formatter.Write(result);
     }
 
-    internal ref struct RawJsonFormatter(ResultDocument document, JsonWriter writer)
+    internal readonly ref struct RawJsonFormatter(ResultDocument document, JsonWriter writer, JsonWriterOptions options)
     {
         public void Write(OperationResult result)
         {
@@ -27,7 +27,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                 JsonValueFormatter.WriteErrors(
                     writer,
                     result.Errors,
-                    new JsonSerializerOptions(JsonSerializerDefaults.Web),
+                    CreateSerializerOptions(),
                     default);
             }
 
@@ -52,7 +52,7 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                 JsonValueFormatter.WriteDictionary(
                     writer,
                     result.Extensions,
-                    new JsonSerializerOptions(JsonSerializerDefaults.Web),
+                    CreateSerializerOptions(),
                     default);
             }
 
@@ -184,5 +184,12 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 
             writer.WriteEndArray();
         }
+
+        private JsonSerializerOptions CreateSerializerOptions()
+            => new(JsonSerializerDefaults.Web)
+            {
+                Encoder = options.Encoder,
+                WriteIndented = options.Indented
+            };
     }
 }

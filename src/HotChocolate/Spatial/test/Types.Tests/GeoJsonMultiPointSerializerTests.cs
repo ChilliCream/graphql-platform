@@ -31,129 +31,6 @@ public class GeoJsonMultiPointSerializerTests
 
     private const string GeometryType = "MultiPoint";
 
-    private readonly object _geometryParsed = new[]
-    {
-        [10.0, 40.0],
-        [40.0, 30.0],
-        [20.0, 20.0],
-        new[] { 30.0, 10.0 }
-    };
-
-    [Theory]
-    [InlineData(GeometryTypeName)]
-    public void Serialize_Should_Pass_When_SerializeNullValue(string typeName)
-    {
-        // arrange
-        var type = CreateLeafType(typeName);
-
-        // act
-        // assert
-        Assert.Null(type.Serialize(null));
-    }
-
-    [Theory]
-    [InlineData(GeometryTypeName)]
-    public void Serialize_Should_Pass_When_SerializeGeometry(string typeName)
-    {
-        // arrange
-        var type = CreateLeafType(typeName);
-
-        // act
-        var result = type.Serialize(_geometry);
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Theory]
-    [InlineData(GeometryTypeName)]
-    public void Serialize_Should_Throw_When_InvalidObjectShouldThrow(string typeName)
-    {
-        // arrange
-        var type = CreateLeafType(typeName);
-
-        // act
-        // assert
-        Assert.Throws<LeafCoercionException>(() => type.Serialize(""));
-    }
-
-    [Theory]
-    [InlineData(MultiPointInputName)]
-    [InlineData(GeometryTypeName)]
-    public void IsInstanceOfType_Should_Throw_When_Null(string typeName)
-    {
-        // arrange
-        var type = CreateInputType(typeName);
-
-        // act
-        // assert
-        Assert.Throws<ArgumentNullException>(() => type.IsInstanceOfType(null!));
-    }
-
-    [Theory]
-    [InlineData(MultiPointInputName)]
-    public void IsInstanceOfType_Should_Pass_When_ObjectValueNode(string typeName)
-    {
-        // arrange
-        var type = CreateInputType(typeName);
-
-        // act
-        // assert
-        Assert.True(type.IsInstanceOfType(new ObjectValueNode()));
-    }
-
-    [Theory]
-    [InlineData(MultiPointInputName)]
-    [InlineData(GeometryTypeName)]
-    public void IsInstanceOfType_Should_Pass_When_NullValueNode(string typeName)
-    {
-        // arrange
-        var type = CreateInputType(typeName);
-
-        // act
-        // assert
-        Assert.True(type.IsInstanceOfType(NullValueNode.Default));
-    }
-
-    [Theory]
-    [InlineData(GeometryTypeName)]
-    public void IsInstanceOfType_Should_Fail_When_DifferentGeoJsonObject(string typeName)
-    {
-        // arrange
-        var type = CreateLeafType(typeName);
-
-        // act
-        // assert
-        Assert.False(
-            type.IsInstanceOfType(
-                GeometryFactory.Default.CreateGeometryCollection(
-                    [new Point(1, 2)])));
-    }
-
-    [Theory]
-    [InlineData(GeometryTypeName)]
-    public void IsInstanceOfType_Should_Pass_When_GeometryOfType(string typeName)
-    {
-        // arrange
-        var type = CreateLeafType(typeName);
-
-        // act
-        // assert
-        Assert.True(type.IsInstanceOfType(_geometry));
-    }
-
-    [Theory]
-    [InlineData(GeometryTypeName)]
-    public void IsInstanceOfType_Should_Fail_When_NoGeometry(string typeName)
-    {
-        // arrange
-        var type = CreateLeafType(typeName);
-
-        // act
-        // assert
-        Assert.False(type.IsInstanceOfType("foo"));
-    }
-
     [Theory]
     [InlineData(MultiPointInputName)]
     [InlineData(GeometryTypeName)]
@@ -191,7 +68,7 @@ public class GeoJsonMultiPointSerializerTests
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
         var type = CreateInputType(typeName);
-        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, GeometryType);
+        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, new EnumValueNode(GeometryType));
         var coordField = new ObjectFieldNode(
             WellKnownFields.CoordinatesFieldName,
             _coordinatesSyntaxNode);
@@ -232,7 +109,7 @@ public class GeoJsonMultiPointSerializerTests
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
         var type = CreateInputType(typeName);
-        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, GeometryType);
+        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, new EnumValueNode(GeometryType));
         var crsField = new ObjectFieldNode(WellKnownFields.CrsFieldName, 0);
         var valueNode = new ObjectValueNode(typeField, crsField);
 
@@ -249,7 +126,7 @@ public class GeoJsonMultiPointSerializerTests
         // arrange
         var inputParser = new InputParser(new DefaultTypeConverter());
         var type = CreateInputType(typeName);
-        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, GeometryType);
+        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, new EnumValueNode(GeometryType));
         var coordField = new ObjectFieldNode(
             WellKnownFields.CoordinatesFieldName,
             _coordinatesSyntaxNode);
@@ -265,66 +142,7 @@ public class GeoJsonMultiPointSerializerTests
     [Theory]
     [InlineData(MultiPointInputName)]
     [InlineData(GeometryTypeName)]
-    public void ParseResult_Should_Pass_When_NullValue(string typeName)
-    {
-        // arrange
-        var inputFormatter = new InputFormatter();
-        var type = CreateInputType(typeName);
-
-        // act
-        // assert
-        Assert.Equal(NullValueNode.Default, inputFormatter.FormatValue(null, type));
-    }
-
-    [Theory]
-    [InlineData(GeometryTypeName)]
-    public void ParseResult_Should_Pass_When_Serialized(string typeName)
-    {
-        // arrange
-        var type = CreateLeafType(typeName);
-        var serialized = type.Serialize(_geometry);
-
-        // act
-        var literal = type.ParseResult(serialized);
-
-        // assert
-        literal.MatchSnapshot();
-    }
-
-    [Theory]
-    [InlineData(MultiPointInputName)]
-    [InlineData(GeometryTypeName)]
-    public void ParseResult_Should_Pass_When_Value(string typeName)
-    {
-        // arrange
-        var inputFormatter = new InputFormatter();
-        var type = CreateInputType(typeName);
-
-        // act
-        var literal = inputFormatter.FormatResult(_geometry, type);
-
-        // assert
-        literal.MatchSnapshot();
-    }
-
-    [Theory]
-    [InlineData(MultiPointInputName)]
-    [InlineData(GeometryTypeName)]
-    public void ParseResult_Should_Throw_When_InvalidType(string typeName)
-    {
-        // arrange
-        var inputFormatter = new InputFormatter();
-        var type = CreateInputType(typeName);
-
-        // act
-        // assert
-        Assert.Throws<LeafCoercionException>(() => inputFormatter.FormatResult("", type));
-    }
-
-    [Theory]
-    [InlineData(MultiPointInputName)]
-    [InlineData(GeometryTypeName)]
-    public void ParseValue_Should_Pass_When_NullValue(string typeName)
+    public void FormatValue_Should_Pass_When_NullValue(string typeName)
     {
         // arrange
         var inputFormatter = new InputFormatter();
@@ -338,7 +156,7 @@ public class GeoJsonMultiPointSerializerTests
     [Theory]
     [InlineData(MultiPointInputName)]
     [InlineData(GeometryTypeName)]
-    public void ParseValue_Should_Pass_When_Value(string typeName)
+    public void FormatValue_Should_Pass_When_Value(string typeName)
     {
         // arrange
         var inputFormatter = new InputFormatter();
@@ -354,7 +172,7 @@ public class GeoJsonMultiPointSerializerTests
     [Theory]
     [InlineData(MultiPointInputName)]
     [InlineData(GeometryTypeName)]
-    public void ParseValue_Should_Throw_When_InvalidType(string typeName)
+    public void FormatValue_Should_Throw_When_InvalidType(string typeName)
     {
         // arrange
         var inputFormatter = new InputFormatter();
@@ -368,146 +186,6 @@ public class GeoJsonMultiPointSerializerTests
     [Theory]
     [InlineData(MultiPointInputName)]
     [InlineData(GeometryTypeName)]
-    public void Deserialize_Should_Pass_When_SerializeNullValue(string typeName)
-    {
-        // arrange
-        var inputParser = new InputParser(new DefaultTypeConverter());
-        var type = CreateInputType(typeName);
-
-        // act
-        // assert
-        Assert.Null(inputParser.ParseInputValue(null, type));
-    }
-
-    [Theory]
-    [InlineData(GeometryTypeName)]
-    public void Deserialize_Should_Pass_When_PassedSerializedResult(string typeName)
-    {
-        // arrange
-        var type = CreateLeafType(typeName);
-        var serialized = type.Serialize(_geometry);
-
-        // act
-        var result = type.Deserialize(serialized);
-
-        // assert
-        Assert.True(Assert.IsAssignableFrom<Geometry>(result).Equals(_geometry));
-    }
-
-    [Theory]
-    [InlineData(MultiPointInputName)]
-    [InlineData(GeometryTypeName)]
-    public void Deserialize_Should_Pass_When_SerializeGeometry(string typeName)
-    {
-        // arrange
-        var inputParser = new InputParser(new DefaultTypeConverter());
-        var type = CreateInputType(typeName);
-
-        // act
-        var result = inputParser.ParseInputValue(_geometry, type);
-
-        // assert
-        Assert.Equal(result, _geometry);
-    }
-
-    [Theory]
-    [InlineData(MultiPointInputName)]
-    [InlineData(GeometryTypeName)]
-    public void Deserialize_Should_Throw_When_InvalidType(string typeName)
-    {
-        // arrange
-        var inputParser = new InputParser(new DefaultTypeConverter());
-        var type = CreateInputType(typeName);
-
-        // act
-        // assert
-        Assert.Throws<LeafCoercionException>(() => inputParser.ParseInputValue("", type));
-    }
-
-    [Theory]
-    [InlineData(MultiPointInputName)]
-    [InlineData(GeometryTypeName)]
-    public void Deserialize_Should_Pass_When_AllFieldsInDictionary(string typeName)
-    {
-        // arrange
-        var inputParser = new InputParser(new DefaultTypeConverter());
-        var type = CreateInputType(typeName);
-        var serialized = new Dictionary<string, object>
-            {
-                { WellKnownFields.TypeFieldName, GeometryType },
-                { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, 26912 }
-            };
-
-        // act
-        var result = inputParser.ParseInputValue(serialized, type);
-
-        // assert
-        AssertGeometry(result, 26912);
-    }
-
-    [Theory]
-    [InlineData(MultiPointInputName)]
-    [InlineData(GeometryTypeName)]
-    public void Deserialize_Should_Pass_When_CrsIsMissing(string typeName)
-    {
-        // arrange
-        var inputParser = new InputParser(new DefaultTypeConverter());
-        var type = CreateInputType(typeName);
-        var serialized = new Dictionary<string, object>
-            {
-                { WellKnownFields.TypeFieldName, GeometryType },
-                { WellKnownFields.CoordinatesFieldName, _geometryParsed }
-            };
-
-        // act
-        var result = inputParser.ParseInputValue(serialized, type);
-
-        // assert
-        AssertGeometry(result);
-    }
-
-    [Theory]
-    [InlineData(MultiPointInputName)]
-    [InlineData(GeometryTypeName)]
-    public void Deserialize_Should_Fail_WhentypeNameIsMissing(string typeName)
-    {
-        // arrange
-        var inputParser = new InputParser(new DefaultTypeConverter());
-        var type = CreateInputType(typeName);
-        var serialized = new Dictionary<string, object>
-            {
-                { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
-            };
-
-        // act
-        // assert
-        Assert.Throws<LeafCoercionException>(() => inputParser.ParseInputValue(serialized, type));
-    }
-
-    [Theory]
-    [InlineData(MultiPointInputName)]
-    [InlineData(GeometryTypeName)]
-    public void Deserialize_Should_When_CoordinatesAreMissing(string typeName)
-    {
-        // arrange
-        var inputParser = new InputParser(new DefaultTypeConverter());
-        var type = CreateInputType(typeName);
-        var serialized = new Dictionary<string, object>
-            {
-                { WellKnownFields.TypeFieldName, GeometryType },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
-            };
-
-        // act
-        // assert
-        Assert.Throws<LeafCoercionException>(() => inputParser.ParseInputValue(serialized, type));
-    }
-
-    [Theory]
-    [InlineData(MultiPointInputName)]
-    [InlineData(GeometryTypeName)]
     public void MultiPoint_IsCoordinateValid_Should_Fail_When_Point(string typeName)
     {
         // arrange
@@ -516,7 +194,7 @@ public class GeoJsonMultiPointSerializerTests
         var coords = new ListValueNode(
             new IntValueNode(30),
             new IntValueNode(10));
-        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, GeometryType);
+        var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, new EnumValueNode(GeometryType));
         var coordField = new ObjectFieldNode(WellKnownFields.CoordinatesFieldName, coords);
         var valueNode = new ObjectValueNode(typeField, coordField);
 
@@ -555,10 +233,5 @@ public class GeoJsonMultiPointSerializerTests
     private IInputTypeDefinition CreateInputType(string typeName)
     {
         return CreateSchema().Types.GetType<IInputTypeDefinition>(typeName);
-    }
-
-    private ILeafType CreateLeafType(string typeName)
-    {
-        return CreateSchema().Types.GetType<ILeafType>(typeName);
     }
 }

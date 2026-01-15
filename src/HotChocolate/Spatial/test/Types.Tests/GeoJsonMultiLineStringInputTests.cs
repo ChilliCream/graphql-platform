@@ -41,7 +41,7 @@ public class GeoJsonMultiLineStringInputTests
         var type = CreateInputType();
 
         // act
-        var result = inputParser.ParseInputValue(
+        var result = inputParser.ParseLiteral(
             new ObjectValueNode(
                 new ObjectFieldNode(
                     "type",

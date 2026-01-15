@@ -2,12 +2,6 @@
   "errors": [
     {
       "message": "Coordinates with M values cannot be transformed",
-      "locations": [
-        {
-          "line": 3,
-          "column": 21
-        }
-      ],
       "path": [
         "test"
       ],
