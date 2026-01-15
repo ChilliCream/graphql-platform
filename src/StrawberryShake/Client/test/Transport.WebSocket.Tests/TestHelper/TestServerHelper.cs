@@ -64,8 +64,8 @@ public static class TestServerHelper
 
                                             if (headers.ContainsKey("sendError"))
                                             {
-                                                var errors = result.Errors.Add(new Error { Message = "Some error!" });
-                                                context.Result = result.WithErrors(errors);
+                                                result.Errors = result.Errors.Add(
+                                                    new Error { Message = "Some error!" });
                                             }
                                         }
 

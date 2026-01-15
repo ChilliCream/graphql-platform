@@ -148,23 +148,6 @@ public sealed class OperationResult : ExecutionResult
         Extensions = extensions;
     }
 
-    private OperationResult(
-        object? data,
-        DataFlags dataFlags,
-        IRawJsonFormatter? dataFormatter,
-        ImmutableList<IError>? errors,
-        ImmutableOrderedDictionary<string, object?>? extensions,
-        IAsyncDisposable resourceOwner)
-    {
-        _dataFlags = dataFlags;
-        Data = data;
-        Errors = errors ?? [];
-        Extensions = extensions ?? [];
-        Features.Set(dataFormatter);
-
-        RegisterForCleanup(resourceOwner.DisposeAsync);
-    }
-
     /// <summary>
     /// Gets the kind of execution result.
     /// </summary>
@@ -217,7 +200,18 @@ public sealed class OperationResult : ExecutionResult
     /// <summary>
     /// Gets the GraphQL errors that occurred during execution.
     /// </summary>
-    public ImmutableList<IError> Errors { get; }
+    public ImmutableList<IError> Errors {
+        get;
+        set
+        {
+            if (IsDataNull && Errors is null or { Count: 0 } && Extensions is null or { Count: 0 })
+            {
+                throw new ArgumentException("Either data, errors or extensions must be provided.");
+            }
+
+            field = value;
+        }
+    }
 
     /// <summary>
     /// Gets or sets additional information passed along with the result.
@@ -305,27 +299,6 @@ public sealed class OperationResult : ExecutionResult
     /// Used for high-performance custom serialization.
     /// </summary>
     public IRawJsonFormatter? JsonFormatter => Features.Get<IRawJsonFormatter>();
-
-    /// <summary>
-    /// Creates a new operation result with the specified error added.
-    /// </summary>
-    /// <param name="errors">The errors to add to the result.</param>
-    /// <returns>A new operation result with the added errors.</returns>
-    public OperationResult WithErrors(ImmutableList<IError> errors)
-    {
-        ArgumentNullException.ThrowIfNull(errors);
-
-        return new OperationResult(Data, _dataFlags, JsonFormatter, errors, Extensions, this)
-        {
-            RequestIndex = RequestIndex,
-            VariableIndex = VariableIndex,
-            Path = Path,
-            Pending = Pending,
-            Incremental = Incremental,
-            Completed = Completed,
-            HasNext = HasNext
-        };
-    }
 
     /// <summary>
     /// Creates an operation result containing a single error.
