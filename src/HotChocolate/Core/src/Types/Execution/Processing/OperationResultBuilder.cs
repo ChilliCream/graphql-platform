@@ -79,15 +79,15 @@ internal sealed class OperationResultBuilder : IOperationResultBuilder
     {
         lock (_sync)
         {
-            if (Extensions.TryGetValue(key, out var currentValue))
+            if (ContextData.TryGetValue(key, out var currentValue))
             {
                 var newValue = value(key, currentValue);
-                Extensions = Extensions.SetItem(key, newValue);
+                ContextData = ContextData.SetItem(key, newValue);
             }
             else
             {
                 var initialValue = value(key, null);
-                Extensions = Extensions.Add(key, initialValue);
+                ContextData = ContextData.Add(key, initialValue);
             }
         }
     }
@@ -96,15 +96,15 @@ internal sealed class OperationResultBuilder : IOperationResultBuilder
     {
         lock (_sync)
         {
-            if (Extensions.TryGetValue(key, out var currentValue))
+            if (ContextData.TryGetValue(key, out var currentValue))
             {
                 var newValue = value(key, currentValue, state);
-                Extensions = Extensions.SetItem(key, newValue);
+                ContextData = ContextData.SetItem(key, newValue);
             }
             else
             {
                 var initialValue = value(key, null, state);
-                Extensions = Extensions.Add(key, initialValue);
+                ContextData = ContextData.Add(key, initialValue);
             }
         }
     }

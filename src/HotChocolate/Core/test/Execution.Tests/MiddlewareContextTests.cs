@@ -1,6 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
