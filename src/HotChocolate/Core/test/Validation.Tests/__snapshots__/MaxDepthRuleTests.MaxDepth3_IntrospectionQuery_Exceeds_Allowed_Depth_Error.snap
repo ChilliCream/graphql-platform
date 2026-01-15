@@ -1,18 +1,14 @@
-[
-  {
-    "Message": "The GraphQL document has an execution depth of 8 which exceeds the max allowed execution depth of 3.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "allowedExecutionDepth": 3,
-      "detectedExecutionDepth": 8
-    },
-    "Exception": null
+{
+  "Message": "The GraphQL document has an execution depth of 8 which exceeds the max allowed execution depth of 3.",
+  "Locations": [
+    {
+      "Line": 1,
+      "Column": 1
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "allowedExecutionDepth": 3,
+    "detectedExecutionDepth": 8
   }
-]
+}

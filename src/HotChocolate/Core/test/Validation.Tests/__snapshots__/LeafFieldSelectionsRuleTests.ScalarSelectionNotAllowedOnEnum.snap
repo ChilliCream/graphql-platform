@@ -1,30 +1,11 @@
-[
-  {
-    "Message": "Field \"furColor\" must not have a selection since type \"FurColor\" has no subfields.",
-    "Code": null,
-    "Path": {
-      "Name": "catOrDog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 4,
-        "Column": 7
-      }
-    ],
-    "Extensions": {
-      "declaringType": "Cat",
-      "field": "furColor",
-      "type": "FurColor",
-      "responseName": "furColor",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
-    },
-    "Exception": null
-  }
-]
+{
+  "Message": "Field \"furColor\" must not have a selection since type \"FurColor\" has no subfields.",
+  "Locations": [
+    {
+      "Line": 4,
+      "Column": 7
+    }
+  ],
+  "Path": null,
+  "Extensions": null
+}

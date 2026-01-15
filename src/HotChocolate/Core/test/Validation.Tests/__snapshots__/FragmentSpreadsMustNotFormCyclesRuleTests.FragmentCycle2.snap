@@ -1,27 +1,14 @@
-[
-  {
-    "Message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
-    "Code": null,
-    "Path": {
-      "Name": "dog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 24,
-        "Column": 3
-      }
-    ],
-    "Extensions": {
-      "fragment": "nameFragment",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
-    },
-    "Exception": null
+{
+  "Message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
+  "Locations": [
+    {
+      "Line": 24,
+      "Column": 3
+    }
+  ],
+  "Path": "/dog",
+  "Extensions": {
+    "fragment": "nameFragment",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
   }
-]
+}

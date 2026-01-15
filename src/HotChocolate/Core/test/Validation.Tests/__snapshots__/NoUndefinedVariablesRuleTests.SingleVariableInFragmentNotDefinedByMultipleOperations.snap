@@ -1,32 +1,31 @@
-[
-  {
-    "Message": "The following variables were not declared: b.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The following variables were not declared: b.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 5,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
-    },
-    "Exception": null
+---------------
+{
+  "Message": "The following variables were not declared: b.",
+  "Locations": [
+    {
+      "Line": 1,
+      "Column": 1
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
   }
-]
+}
+---------------
+
+---------------
+{
+  "Message": "The following variables were not declared: b.",
+  "Locations": [
+    {
+      "Line": 5,
+      "Column": 1
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
+  }
+}
+---------------

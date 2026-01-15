@@ -2,29 +2,14 @@
   {
     "Message": "Field \"barkVolume\" must not have a selection since type \"Int\" has no subfields.",
     "Code": null,
-    "Path": {
-      "Name": "dog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
+    "Path": null,
     "Locations": [
       {
         "Line": 3,
         "Column": 9
       }
     ],
-    "Extensions": {
-      "declaringType": "Dog",
-      "field": "barkVolume",
-      "type": "Int",
-      "responseName": "barkVolume",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
-    },
+    "Extensions": null,
     "Exception": null
   }
 ]

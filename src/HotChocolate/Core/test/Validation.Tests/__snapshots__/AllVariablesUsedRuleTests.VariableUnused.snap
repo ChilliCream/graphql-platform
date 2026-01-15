@@ -1,17 +1,13 @@
-[
-  {
-    "Message": "The following variables were not used: atOtherHomes.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
-    },
-    "Exception": null
+{
+  "Message": "The following variables were not used: atOtherHomes.",
+  "Locations": [
+    {
+      "Line": 1,
+      "Column": 1
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
   }
-]
+}

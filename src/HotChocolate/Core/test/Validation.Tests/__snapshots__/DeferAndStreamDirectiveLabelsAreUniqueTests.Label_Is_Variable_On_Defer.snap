@@ -1,18 +1,14 @@
-[
-  {
-    "Message": "If a label for @defer or @stream is passed, it must not be a variable.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 3
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Defer-And-Stream-Directive-Labels-Are-Unique",
-      "variable": "$a"
-    },
-    "Exception": null
+{
+  "Message": "If a label for @defer or @stream is passed, it must not be a variable.",
+  "Locations": [
+    {
+      "Line": 2,
+      "Column": 3
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Defer-And-Stream-Directive-Labels-Are-Unique",
+    "variable": "$a"
   }
-]
+}

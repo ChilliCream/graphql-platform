@@ -1,27 +1,14 @@
-[
-  {
-    "Message": "The variable `cat` is not compatible with the type of the current one-of location.",
-    "Code": null,
-    "Path": {
-      "Name": "addPet",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 22
-      }
-    ],
-    "Extensions": {
-      "variable": "cat",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Usages-are-Allowed"
-    },
-    "Exception": null
+{
+  "Message": "The variable `cat` is not compatible with the type of the current one-of location.",
+  "Locations": [
+    {
+      "Line": 2,
+      "Column": 22
+    }
+  ],
+  "Path": "/addPet",
+  "Extensions": {
+    "variable": "cat",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Usages-are-Allowed"
   }
-]
+}

@@ -1,21 +1,11 @@
-[
-  {
-    "Message": "Field \"catOrDog\" of type \"CatOrDog\" must have a selection of subfields. Did you mean \"catOrDog { ... }\"?",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 3
-      }
-    ],
-    "Extensions": {
-      "declaringType": "Query",
-      "field": "catOrDog",
-      "type": "CatOrDog",
-      "responseName": "catOrDog",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
-  }
-]
+{
+  "Message": "Field \"catOrDog\" of type \"CatOrDog\" must have a selection of subfields. Did you mean \"catOrDog { ... }\"?",
+  "Locations": [
+    {
+      "Line": 2,
+      "Column": 3
+    }
+  ],
+  "Path": null,
+  "Extensions": null
+}

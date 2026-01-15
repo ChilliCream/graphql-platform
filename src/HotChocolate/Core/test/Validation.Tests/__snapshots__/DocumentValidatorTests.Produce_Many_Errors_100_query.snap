@@ -1,91 +1,421 @@
 [
   {
-    "Message": "The field `e` does not exist on the type `Query`.",
+    "Message": "Fields `e` conflict because they return conflicting types `\"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.\"\nscalar String` and `null`. Use different aliases on the fields to fetch both if this was intentional.",
     "Code": null,
-    "Path": null,
+    "Path": {
+      "Name": "a",
+      "Parent": {
+        "Parent": null,
+        "Length": 0,
+        "IsRoot": true
+      },
+      "Length": 1,
+      "IsRoot": false
+    },
     "Locations": [
+      {
+        "Line": 1,
+        "Column": 2
+      },
+      {
+        "Line": 1,
+        "Column": 6
+      },
+      {
+        "Line": 1,
+        "Column": 10
+      },
+      {
+        "Line": 1,
+        "Column": 14
+      },
       {
         "Line": 1,
         "Column": 18
-      }
-    ],
-    "Extensions": {
-      "type": "Query",
-      "field": "e",
-      "responseName": "a",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The field `f` does not exist on the type `Query`.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
+      },
       {
         "Line": 1,
         "Column": 22
-      }
-    ],
-    "Extensions": {
-      "type": "Query",
-      "field": "f",
-      "responseName": "a",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The field `g` does not exist on the type `Query`.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
+      },
       {
         "Line": 1,
         "Column": 26
-      }
-    ],
-    "Extensions": {
-      "type": "Query",
-      "field": "g",
-      "responseName": "a",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The field `h` does not exist on the type `Query`.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
+      },
       {
         "Line": 1,
         "Column": 30
-      }
-    ],
-    "Extensions": {
-      "type": "Query",
-      "field": "h",
-      "responseName": "a",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The field `i` does not exist on the type `Query`.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
+      },
       {
         "Line": 1,
         "Column": 34
+      },
+      {
+        "Line": 1,
+        "Column": 38
+      },
+      {
+        "Line": 1,
+        "Column": 42
+      },
+      {
+        "Line": 1,
+        "Column": 46
+      },
+      {
+        "Line": 1,
+        "Column": 50
+      },
+      {
+        "Line": 1,
+        "Column": 54
+      },
+      {
+        "Line": 1,
+        "Column": 58
+      },
+      {
+        "Line": 1,
+        "Column": 62
+      },
+      {
+        "Line": 1,
+        "Column": 66
+      },
+      {
+        "Line": 1,
+        "Column": 70
+      },
+      {
+        "Line": 1,
+        "Column": 74
+      },
+      {
+        "Line": 1,
+        "Column": 78
+      },
+      {
+        "Line": 1,
+        "Column": 82
+      },
+      {
+        "Line": 1,
+        "Column": 86
+      },
+      {
+        "Line": 1,
+        "Column": 90
+      },
+      {
+        "Line": 1,
+        "Column": 94
+      },
+      {
+        "Line": 1,
+        "Column": 98
+      },
+      {
+        "Line": 1,
+        "Column": 102
+      },
+      {
+        "Line": 1,
+        "Column": 106
+      },
+      {
+        "Line": 1,
+        "Column": 110
+      },
+      {
+        "Line": 1,
+        "Column": 114
+      },
+      {
+        "Line": 1,
+        "Column": 118
+      },
+      {
+        "Line": 1,
+        "Column": 122
+      },
+      {
+        "Line": 1,
+        "Column": 126
+      },
+      {
+        "Line": 1,
+        "Column": 130
+      },
+      {
+        "Line": 1,
+        "Column": 134
+      },
+      {
+        "Line": 1,
+        "Column": 138
+      },
+      {
+        "Line": 1,
+        "Column": 142
+      },
+      {
+        "Line": 1,
+        "Column": 146
+      },
+      {
+        "Line": 1,
+        "Column": 150
+      },
+      {
+        "Line": 1,
+        "Column": 154
+      },
+      {
+        "Line": 1,
+        "Column": 158
+      },
+      {
+        "Line": 1,
+        "Column": 162
+      },
+      {
+        "Line": 1,
+        "Column": 166
+      },
+      {
+        "Line": 1,
+        "Column": 170
+      },
+      {
+        "Line": 1,
+        "Column": 174
+      },
+      {
+        "Line": 1,
+        "Column": 178
+      },
+      {
+        "Line": 1,
+        "Column": 182
+      },
+      {
+        "Line": 1,
+        "Column": 186
+      },
+      {
+        "Line": 1,
+        "Column": 190
+      },
+      {
+        "Line": 1,
+        "Column": 194
+      },
+      {
+        "Line": 1,
+        "Column": 198
+      },
+      {
+        "Line": 1,
+        "Column": 202
+      },
+      {
+        "Line": 1,
+        "Column": 206
+      },
+      {
+        "Line": 1,
+        "Column": 210
+      },
+      {
+        "Line": 1,
+        "Column": 214
+      },
+      {
+        "Line": 1,
+        "Column": 219
+      },
+      {
+        "Line": 1,
+        "Column": 224
+      },
+      {
+        "Line": 1,
+        "Column": 229
+      },
+      {
+        "Line": 1,
+        "Column": 234
+      },
+      {
+        "Line": 1,
+        "Column": 239
+      },
+      {
+        "Line": 1,
+        "Column": 244
+      },
+      {
+        "Line": 1,
+        "Column": 249
+      },
+      {
+        "Line": 1,
+        "Column": 254
+      },
+      {
+        "Line": 1,
+        "Column": 259
+      },
+      {
+        "Line": 1,
+        "Column": 264
+      },
+      {
+        "Line": 1,
+        "Column": 269
+      },
+      {
+        "Line": 1,
+        "Column": 274
+      },
+      {
+        "Line": 1,
+        "Column": 279
+      },
+      {
+        "Line": 1,
+        "Column": 284
+      },
+      {
+        "Line": 1,
+        "Column": 289
+      },
+      {
+        "Line": 1,
+        "Column": 294
+      },
+      {
+        "Line": 1,
+        "Column": 299
+      },
+      {
+        "Line": 1,
+        "Column": 304
+      },
+      {
+        "Line": 1,
+        "Column": 309
+      },
+      {
+        "Line": 1,
+        "Column": 314
+      },
+      {
+        "Line": 1,
+        "Column": 319
+      },
+      {
+        "Line": 1,
+        "Column": 324
+      },
+      {
+        "Line": 1,
+        "Column": 329
+      },
+      {
+        "Line": 1,
+        "Column": 334
+      },
+      {
+        "Line": 1,
+        "Column": 339
+      },
+      {
+        "Line": 1,
+        "Column": 344
+      },
+      {
+        "Line": 1,
+        "Column": 349
+      },
+      {
+        "Line": 1,
+        "Column": 354
+      },
+      {
+        "Line": 1,
+        "Column": 359
+      },
+      {
+        "Line": 1,
+        "Column": 364
+      },
+      {
+        "Line": 1,
+        "Column": 369
+      },
+      {
+        "Line": 1,
+        "Column": 374
+      },
+      {
+        "Line": 1,
+        "Column": 379
+      },
+      {
+        "Line": 1,
+        "Column": 384
+      },
+      {
+        "Line": 1,
+        "Column": 389
+      },
+      {
+        "Line": 1,
+        "Column": 394
+      },
+      {
+        "Line": 1,
+        "Column": 399
+      },
+      {
+        "Line": 1,
+        "Column": 404
+      },
+      {
+        "Line": 1,
+        "Column": 409
+      },
+      {
+        "Line": 1,
+        "Column": 414
+      },
+      {
+        "Line": 1,
+        "Column": 419
+      },
+      {
+        "Line": 1,
+        "Column": 424
+      },
+      {
+        "Line": 1,
+        "Column": 429
+      },
+      {
+        "Line": 1,
+        "Column": 434
+      },
+      {
+        "Line": 1,
+        "Column": 439
+      },
+      {
+        "Line": 1,
+        "Column": 444
       }
     ],
     "Extensions": {
-      "type": "Query",
-      "field": "i",
-      "responseName": "a",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
     },
     "Exception": null
   }

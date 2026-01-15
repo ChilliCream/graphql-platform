@@ -1,64 +1,35 @@
-[
-  {
-    "Message": "The argument `unless` does not exist.",
-    "Code": null,
-    "Path": {
-      "Name": "isHouseTrained",
-      "Parent": {
-        "Name": "dog",
-        "Parent": {
-          "Parent": null,
-          "Length": 0,
-          "IsRoot": true
-        },
-        "Length": 1,
-        "IsRoot": false
-      },
-      "Length": 2,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 8,
-        "Column": 47
-      }
-    ],
-    "Extensions": {
-      "directive": "include",
-      "argument": "unless",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The argument `if` is required.",
-    "Code": null,
-    "Path": {
-      "Name": "isHouseTrained",
-      "Parent": {
-        "Name": "dog",
-        "Parent": {
-          "Parent": null,
-          "Length": 0,
-          "IsRoot": true
-        },
-        "Length": 1,
-        "IsRoot": false
-      },
-      "Length": 2,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 8,
-        "Column": 38
-      }
-    ],
-    "Extensions": {
-      "directive": "include",
-      "argument": "if",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
-    },
-    "Exception": null
+---------------
+{
+  "Message": "The argument `unless` does not exist.",
+  "Locations": [
+    {
+      "Line": 8,
+      "Column": 47
+    }
+  ],
+  "Path": "/dog/isHouseTrained",
+  "Extensions": {
+    "directive": "include",
+    "argument": "unless",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
   }
-]
+}
+---------------
+
+---------------
+{
+  "Message": "The argument `if` is required.",
+  "Locations": [
+    {
+      "Line": 8,
+      "Column": 38
+    }
+  ],
+  "Path": "/dog/isHouseTrained",
+  "Extensions": {
+    "directive": "include",
+    "argument": "if",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
+  }
+}
+---------------

@@ -1,34 +1,16 @@
-[
-  {
-    "Message": "The specified value type of field `stringListField` does not match the field type.",
-    "Code": null,
-    "Path": {
-      "Name": "complexArgField",
-      "Parent": {
-        "Name": "arguments",
-        "Parent": {
-          "Parent": null,
-          "Length": 0,
-          "IsRoot": true
-        },
-        "Length": 1,
-        "IsRoot": false
-      },
-      "Length": 2,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 4,
-        "Column": 30
-      }
-    ],
-    "Extensions": {
-      "fieldName": "stringListField",
-      "fieldType": "[String]",
-      "locationType": "[String]",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
-    },
-    "Exception": null
+{
+  "Message": "The specified value type of field `stringListField` does not match the field type.",
+  "Locations": [
+    {
+      "Line": 4,
+      "Column": 30
+    }
+  ],
+  "Path": "/arguments/complexArgField",
+  "Extensions": {
+    "fieldName": "stringListField",
+    "fieldType": "[String]",
+    "locationType": "[String]",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
   }
-]
+}

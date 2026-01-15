@@ -1,17 +1,13 @@
-[
-  {
-    "Message": "Subscription must not select an introspection top level field.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Single-root-field"
-    },
-    "Exception": null
+{
+  "Message": "Subscription must not select an introspection top level field.",
+  "Locations": [
+    {
+      "Line": 1,
+      "Column": 1
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Single-root-field"
   }
-]
+}

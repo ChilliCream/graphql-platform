@@ -1,28 +1,15 @@
-[
-  {
-    "Message": "The argument `if` does not exist.",
-    "Code": null,
-    "Path": {
-      "Name": "dog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 16
-      }
-    ],
-    "Extensions": {
-      "directive": "complex",
-      "argument": "if",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
-    },
-    "Exception": null
+{
+  "Message": "The argument `if` does not exist.",
+  "Locations": [
+    {
+      "Line": 2,
+      "Column": 16
+    }
+  ],
+  "Path": "/dog",
+  "Extensions": {
+    "directive": "complex",
+    "argument": "if",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
   }
-]
+}

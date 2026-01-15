@@ -1,18 +1,14 @@
-[
-  {
-    "Message": "The operation name `dogOperation` is not unique.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 7,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "operation": "dogOperation",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Operation-Name-Uniqueness"
-    },
-    "Exception": null
+{
+  "Message": "The operation name `dogOperation` is not unique.",
+  "Locations": [
+    {
+      "Line": 7,
+      "Column": 1
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "operation": "dogOperation",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Operation-Name-Uniqueness"
   }
-]
+}

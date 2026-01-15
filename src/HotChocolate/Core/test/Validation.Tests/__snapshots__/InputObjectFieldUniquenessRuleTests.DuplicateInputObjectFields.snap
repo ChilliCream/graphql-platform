@@ -1,32 +1,14 @@
-[
-  {
-    "Message": "There can be only one input field named `f1`.",
-    "Code": null,
-    "Path": {
-      "Name": "complexArgField",
-      "Parent": {
-        "Name": "arguments",
-        "Parent": {
-          "Parent": null,
-          "Length": 0,
-          "IsRoot": true
-        },
-        "Length": 1,
-        "IsRoot": false
-      },
-      "Length": 2,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 6,
-        "Column": 7
-      }
-    ],
-    "Extensions": {
-      "field": "f1",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Uniqueness"
-    },
-    "Exception": null
+{
+  "Message": "There can be only one input field named `f1`.",
+  "Locations": [
+    {
+      "Line": 6,
+      "Column": 7
+    }
+  ],
+  "Path": "/arguments/complexArgField",
+  "Extensions": {
+    "field": "f1",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Uniqueness"
   }
-]
+}

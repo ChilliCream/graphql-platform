@@ -1,21 +1,5 @@
 [
   {
-    "Message": "GraphQL allows a short‐hand form for defining query operations when only that one operation exists in the document.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 49993
-      }
-    ],
-    "Extensions": {
-      "operations": 6250,
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Lone-Anonymous-Operation"
-    },
-    "Exception": null
-  },
-  {
     "Message": "Field \"__type\" of type \"__Type\" must have a selection of subfields. Did you mean \"__type { ... }\"?",
     "Code": null,
     "Path": null,
@@ -25,13 +9,7 @@
         "Column": 2
       }
     ],
-    "Extensions": {
-      "declaringType": "Query",
-      "field": "__type",
-      "type": "__Type",
-      "responseName": "__type",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
+    "Extensions": null,
     "Exception": null
   },
   {
@@ -44,13 +22,7 @@
         "Column": 10
       }
     ],
-    "Extensions": {
-      "declaringType": "Query",
-      "field": "__type",
-      "type": "__Type",
-      "responseName": "__type",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
+    "Extensions": null,
     "Exception": null
   },
   {
@@ -63,13 +35,7 @@
         "Column": 18
       }
     ],
-    "Extensions": {
-      "declaringType": "Query",
-      "field": "__type",
-      "type": "__Type",
-      "responseName": "__type",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
+    "Extensions": null,
     "Exception": null
   },
   {
@@ -82,13 +48,20 @@
         "Column": 26
       }
     ],
-    "Extensions": {
-      "declaringType": "Query",
-      "field": "__type",
-      "type": "__Type",
-      "responseName": "__type",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
+    "Extensions": null,
+    "Exception": null
+  },
+  {
+    "Message": "Field \"__type\" of type \"__Type\" must have a selection of subfields. Did you mean \"__type { ... }\"?",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 1,
+        "Column": 34
+      }
+    ],
+    "Extensions": null,
     "Exception": null
   }
 ]

@@ -1,130 +1,135 @@
-[
-  {
-    "Message": "The type of variable `cat` is not an input type.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 16
-      }
-    ],
-    "Extensions": {
-      "variable": "cat",
-      "variableType": "Cat",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The following variables were not used: cat.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The type of variable `dog` is not an input type.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 5,
-        "Column": 20
-      }
-    ],
-    "Extensions": {
-      "variable": "dog",
-      "variableType": "Dog!",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The following variables were not used: dog.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 5,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The type of variable `pets` is not an input type.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 9,
-        "Column": 22
-      }
-    ],
-    "Extensions": {
-      "variable": "pets",
-      "variableType": "[Pet]",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The following variables were not used: pets.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 9,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The type of variable `catOrDog` is not an input type.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 13,
-        "Column": 21
-      }
-    ],
-    "Extensions": {
-      "variable": "catOrDog",
-      "variableType": "CatOrDog",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The following variables were not used: catOrDog.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 13,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
-    },
-    "Exception": null
+---------------
+{
+  "Message": "The type of variable `cat` is not an input type.",
+  "Locations": [
+    {
+      "Line": 1,
+      "Column": 16
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "variable": "cat",
+    "variableType": "Cat",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
   }
-]
+}
+---------------
+
+---------------
+{
+  "Message": "The following variables were not used: cat.",
+  "Locations": [
+    {
+      "Line": 1,
+      "Column": 1
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
+  }
+}
+---------------
+
+---------------
+{
+  "Message": "The type of variable `dog` is not an input type.",
+  "Locations": [
+    {
+      "Line": 5,
+      "Column": 20
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "variable": "dog",
+    "variableType": "Dog!",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
+  }
+}
+---------------
+
+---------------
+{
+  "Message": "The following variables were not used: dog.",
+  "Locations": [
+    {
+      "Line": 5,
+      "Column": 1
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
+  }
+}
+---------------
+
+---------------
+{
+  "Message": "The type of variable `pets` is not an input type.",
+  "Locations": [
+    {
+      "Line": 9,
+      "Column": 22
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "variable": "pets",
+    "variableType": "[Pet]",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
+  }
+}
+---------------
+
+---------------
+{
+  "Message": "The following variables were not used: pets.",
+  "Locations": [
+    {
+      "Line": 9,
+      "Column": 1
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
+  }
+}
+---------------
+
+---------------
+{
+  "Message": "The type of variable `catOrDog` is not an input type.",
+  "Locations": [
+    {
+      "Line": 13,
+      "Column": 21
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "variable": "catOrDog",
+    "variableType": "CatOrDog",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
+  }
+}
+---------------
+
+---------------
+{
+  "Message": "The following variables were not used: catOrDog.",
+  "Locations": [
+    {
+      "Line": 13,
+      "Column": 1
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
+  }
+}
+---------------

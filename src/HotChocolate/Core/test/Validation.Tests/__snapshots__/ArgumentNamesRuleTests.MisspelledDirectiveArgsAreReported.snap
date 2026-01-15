@@ -1,54 +1,35 @@
-[
-  {
-    "Message": "The argument `iff` does not exist.",
-    "Code": null,
-    "Path": {
-      "Name": "dog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 13
-      }
-    ],
-    "Extensions": {
-      "directive": "skip",
-      "argument": "iff",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The argument `if` is required.",
-    "Code": null,
-    "Path": {
-      "Name": "dog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 7
-      }
-    ],
-    "Extensions": {
-      "directive": "skip",
-      "argument": "if",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
-    },
-    "Exception": null
+---------------
+{
+  "Message": "The argument `iff` does not exist.",
+  "Locations": [
+    {
+      "Line": 2,
+      "Column": 13
+    }
+  ],
+  "Path": "/dog",
+  "Extensions": {
+    "directive": "skip",
+    "argument": "iff",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
   }
-]
+}
+---------------
+
+---------------
+{
+  "Message": "The argument `if` is required.",
+  "Locations": [
+    {
+      "Line": 2,
+      "Column": 7
+    }
+  ],
+  "Path": "/dog",
+  "Extensions": {
+    "directive": "skip",
+    "argument": "if",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
+  }
+}
+---------------

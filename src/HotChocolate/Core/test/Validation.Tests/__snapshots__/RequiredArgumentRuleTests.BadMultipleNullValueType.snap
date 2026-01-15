@@ -1,29 +1,16 @@
-[
-  {
-    "Message": "The argument `y` is required.",
-    "Code": null,
-    "Path": {
-      "Name": "arguments",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 3,
-        "Column": 24
-      }
-    ],
-    "Extensions": {
-      "type": "Arguments",
-      "field": "multipleReqs",
-      "argument": "y",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
-    },
-    "Exception": null
+{
+  "Message": "The argument `y` is required.",
+  "Locations": [
+    {
+      "Line": 3,
+      "Column": 24
+    }
+  ],
+  "Path": "/arguments",
+  "Extensions": {
+    "type": "Arguments",
+    "field": "multipleReqs",
+    "argument": "y",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
   }
-]
+}

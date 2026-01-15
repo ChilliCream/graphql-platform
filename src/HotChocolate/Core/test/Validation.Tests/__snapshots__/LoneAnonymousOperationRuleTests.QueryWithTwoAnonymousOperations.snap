@@ -1,18 +1,14 @@
-[
-  {
-    "Message": "GraphQL allows a short‐hand form for defining query operations when only that one operation exists in the document.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 7,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "operations": 2,
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Lone-Anonymous-Operation"
-    },
-    "Exception": null
+{
+  "Message": "GraphQL allows a short‐hand form for defining query operations when only that one operation exists in the document.",
+  "Locations": [
+    {
+      "Line": 7,
+      "Column": 1
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "operations": 2,
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Lone-Anonymous-Operation"
   }
-]
+}

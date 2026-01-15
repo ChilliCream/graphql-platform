@@ -1,21 +1,11 @@
-[
-  {
-    "Message": "Field \"human\" of type \"Human\" must have a selection of subfields. Did you mean \"human { ... }\"?",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 3
-      }
-    ],
-    "Extensions": {
-      "declaringType": "Query",
-      "field": "human",
-      "type": "Human",
-      "responseName": "human",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
-  }
-]
+{
+  "Message": "Field \"human\" of type \"Human\" must have a selection of subfields. Did you mean \"human { ... }\"?",
+  "Locations": [
+    {
+      "Line": 2,
+      "Column": 3
+    }
+  ],
+  "Path": null,
+  "Extensions": null
+}

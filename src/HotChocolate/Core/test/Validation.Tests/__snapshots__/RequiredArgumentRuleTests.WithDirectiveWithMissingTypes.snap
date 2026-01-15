@@ -1,59 +1,35 @@
-[
-  {
-    "Message": "The argument `if` is required.",
-    "Code": null,
-    "Path": {
-      "Name": "dog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 7
-      }
-    ],
-    "Extensions": {
-      "directive": "include",
-      "argument": "if",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The argument `if` is required.",
-    "Code": null,
-    "Path": {
-      "Name": "name",
-      "Parent": {
-        "Name": "dog",
-        "Parent": {
-          "Parent": null,
-          "Length": 0,
-          "IsRoot": true
-        },
-        "Length": 1,
-        "IsRoot": false
-      },
-      "Length": 2,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 3,
-        "Column": 10
-      }
-    ],
-    "Extensions": {
-      "directive": "skip",
-      "argument": "if",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
-    },
-    "Exception": null
+---------------
+{
+  "Message": "The argument `if` is required.",
+  "Locations": [
+    {
+      "Line": 2,
+      "Column": 7
+    }
+  ],
+  "Path": "/dog",
+  "Extensions": {
+    "directive": "include",
+    "argument": "if",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
   }
-]
+}
+---------------
+
+---------------
+{
+  "Message": "The argument `if` is required.",
+  "Locations": [
+    {
+      "Line": 3,
+      "Column": 10
+    }
+  ],
+  "Path": "/dog/name",
+  "Extensions": {
+    "directive": "skip",
+    "argument": "if",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
+  }
+}
+---------------

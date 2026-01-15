@@ -1,34 +1,33 @@
-[
-  {
-    "Message": "The specified fragment `Unused1` is not used within the current document.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 21,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "fragment": "Unused1",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The specified fragment `Unused2` is not used within the current document.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 24,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "fragment": "Unused2",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
-    },
-    "Exception": null
+---------------
+{
+  "Message": "The specified fragment `Unused1` is not used within the current document.",
+  "Locations": [
+    {
+      "Line": 21,
+      "Column": 1
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "fragment": "Unused1",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
   }
-]
+}
+---------------
+
+---------------
+{
+  "Message": "The specified fragment `Unused2` is not used within the current document.",
+  "Locations": [
+    {
+      "Line": 24,
+      "Column": 1
+    }
+  ],
+  "Path": null,
+  "Extensions": {
+    "fragment": "Unused2",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
+  }
+}
+---------------
