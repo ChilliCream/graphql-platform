@@ -27,6 +27,7 @@ public sealed class AnyType : ScalarType<JsonElement>
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
+        Description = description;
     }
 
     /// <summary>
