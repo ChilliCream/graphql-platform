@@ -125,6 +125,11 @@ internal static class SettingsExtensions
         {
             var preprocessorOptions = new SourceSchemaPreprocessorOptions();
 
+            if (preprocessorSettings.EnableSchemaValidation is { } enableSchemaValidation)
+            {
+                preprocessorOptions.EnableSchemaValidation = enableSchemaValidation;
+            }
+
             if (preprocessorSettings.InferKeysFromLookups is { } inferKeys)
             {
                 preprocessorOptions.InferKeysFromLookups = inferKeys;
