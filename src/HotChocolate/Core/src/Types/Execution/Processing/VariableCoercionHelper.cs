@@ -187,14 +187,7 @@ internal sealed class VariableCoercionHelper
 
                         if (property.Value.ValueKind is JsonValueKind.Null)
                         {
-                            if (field.DefaultValue is not (null or NullValueNode))
-                            {
-                                fields.Add(new ObjectFieldNode(field.Name, field.DefaultValue));
-                            }
-                            else
-                            {
-                                fields.Add(new ObjectFieldNode(field.Name, NullValueNode.Default));
-                            }
+                            fields.Add(new ObjectFieldNode(field.Name, NullValueNode.Default));
                         }
                         else
                         {
