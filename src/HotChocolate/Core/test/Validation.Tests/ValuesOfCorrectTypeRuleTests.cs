@@ -289,9 +289,11 @@ public class ValuesOfCorrectTypeRuleTests
     }
 
     [Fact]
-    public void OverflowInt()
+    public void OverflowInt_Should_Be_Valid()
     {
-        ExpectErrors(
+        // The validation will only look if the literal used is correct.
+        // The overflow would fail on field execution when the input value is coerced from that literal.
+        ExpectValid(
             $$"""
             {
                 arguments {
