@@ -43,6 +43,10 @@ public static partial class TelevisionType
 [QueryType]
 public static partial class Query
 {
+    /// <summary>
+    /// Gets the product.
+    /// </summary>
+    /// <returns>The only product.</returns>
     public static Product GetProduct()
         => new Book { Id = "1", Title = "GraphQL in Action" };
 
