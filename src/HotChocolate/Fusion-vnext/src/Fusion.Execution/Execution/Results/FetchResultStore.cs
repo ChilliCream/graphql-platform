@@ -27,6 +27,7 @@ internal sealed class FetchResultStore : IDisposable
     private readonly ConcurrentStack<IDisposable> _memory = [];
     private CompositeResultDocument _result;
     private ValueCompletion _valueCompletion;
+    private List<IError>? _errors;
     private bool _disposed;
 
     public FetchResultStore(
@@ -48,8 +49,8 @@ internal sealed class FetchResultStore : IDisposable
         _result = new CompositeResultDocument(operation, includeFlags);
 
         _valueCompletion = new ValueCompletion(
+            this,
             _schema,
-            _result,
             _errorHandler,
             _errorHandlingMode,
             maxDepth: 32);
@@ -62,10 +63,11 @@ internal sealed class FetchResultStore : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         _result = new CompositeResultDocument(_operation, _includeFlags);
+        _errors?.Clear();
 
         _valueCompletion = new ValueCompletion(
+            this,
             _schema,
-            _result,
             _errorHandler,
             _errorHandlingMode,
             maxDepth: 32);
@@ -74,6 +76,8 @@ internal sealed class FetchResultStore : IDisposable
     }
 
     public CompositeResultDocument Result => _result;
+
+    public IReadOnlyList<IError>? Errors => _errors;
 
     public ConcurrentStack<IDisposable> MemoryOwners => _memory;
 
@@ -111,8 +115,8 @@ internal sealed class FetchResultStore : IDisposable
 
                 if (result.Errors?.RootErrors is { Length: > 0 } rootErrors)
                 {
-                    _result.Errors ??= [];
-                    _result.Errors.AddRange(rootErrors);
+                    _errors ??= [];
+                    _errors.AddRange(rootErrors);
                 }
 
                 dataElement = GetDataElement(sourcePath, result.Data);
@@ -167,6 +171,12 @@ internal sealed class FetchResultStore : IDisposable
         {
             _lock.ExitWriteLock();
         }
+    }
+
+    public void AddError(IError error)
+    {
+        _errors ??= [];
+        _errors.Add(error);
     }
 
     public bool AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)

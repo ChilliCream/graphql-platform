@@ -36,7 +36,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     /// </param>
     public JsonResultFormatter(JsonResultFormatterOptions options)
     {
-        _options = options.CreateWriterOptions();
+        _options = options.CreateWriterOptions() with { SkipValidation = true };
         _serializerOptions = options.CreateSerializerOptions();
         _nullIgnoreCondition = options.NullIgnoreCondition;
     }
@@ -90,14 +90,50 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
     private void FormatInternal(OperationResult result, IBufferWriter<byte> bufferWriter)
     {
-        if (result.JsonFormatter is { } formatter)
+        var jsonWriter = new JsonWriter(bufferWriter, _options);
+
+        jsonWriter.WriteStartObject();
+
+        if (result.RequestIndex.HasValue)
         {
-            formatter.WriteTo(result, bufferWriter, _options);
-            return;
+            jsonWriter.WritePropertyName(RequestIndex);
+            jsonWriter.WriteNumberValue(result.RequestIndex.Value);
         }
 
-        var writer = new JsonWriter(bufferWriter, _options);
-        WriteResult(writer, result);
+        if (result.VariableIndex.HasValue)
+        {
+            jsonWriter.WritePropertyName(VariableIndex);
+            jsonWriter.WriteNumberValue(result.VariableIndex.Value);
+        }
+
+        WriteErrors(
+            jsonWriter,
+            result.Errors,
+            _serializerOptions,
+            default);
+
+        if (result.Data.HasValue)
+        {
+            jsonWriter.WritePropertyName(Data);
+            result.Data.Value.Formatter.WriteDataTo(jsonWriter);
+        }
+
+        WriteExtensions(
+            jsonWriter,
+            result.Extensions,
+            _serializerOptions,
+            default);
+
+        if (result.IsIncremental)
+        {
+            WriteIncremental(
+                jsonWriter,
+                result,
+                _serializerOptions,
+                default);
+        }
+
+        jsonWriter.WriteEndObject();
     }
 
     private async ValueTask FormatInternalAsync(
@@ -162,73 +198,6 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
             {
                 await partialResult.DisposeAsync().ConfigureAwait(false);
             }
-        }
-    }
-
-    private void WriteResult(JsonWriter writer, OperationResult result)
-    {
-        writer.WriteStartObject();
-
-        if (result.RequestIndex.HasValue)
-        {
-            writer.WritePropertyName(RequestIndex);
-            writer.WriteNumberValue(result.RequestIndex.Value);
-        }
-
-        if (result.VariableIndex.HasValue)
-        {
-            writer.WritePropertyName(VariableIndex);
-            writer.WriteNumberValue(result.VariableIndex.Value);
-        }
-
-        WriteErrors(writer, result.Errors);
-        WriteData(writer, result);
-        WriteExtensions(writer, result.Extensions, _serializerOptions, _nullIgnoreCondition);
-        WriteHasNext(writer, result);
-
-        writer.WriteEndObject();
-    }
-
-    private static void WriteHasNext(JsonWriter writer, OperationResult result)
-    {
-        if (result.HasNext.HasValue)
-        {
-            writer.WritePropertyName("hasNext"u8);
-            writer.WriteBooleanValue(result.HasNext.Value);
-        }
-    }
-
-    private void WriteData(JsonWriter writer, OperationResult result)
-    {
-        if (!result.IsDataSet)
-        {
-            return;
-        }
-
-        if (result.Data is null)
-        {
-            writer.WritePropertyName(Data);
-            writer.WriteNullValue();
-            return;
-        }
-
-        writer.WritePropertyName(Data);
-        WriteValue(writer, result.Data, _serializerOptions, _nullIgnoreCondition);
-    }
-
-    private void WriteErrors(JsonWriter writer, IReadOnlyList<IError>? errors)
-    {
-        if (errors is { Count: > 0 })
-        {
-            writer.WritePropertyName(Errors);
-            writer.WriteStartArray();
-
-            for (var i = 0; i < errors.Count; i++)
-            {
-                WriteError(writer, errors[i], _serializerOptions, _nullIgnoreCondition);
-            }
-
-            writer.WriteEndArray();
         }
     }
 }

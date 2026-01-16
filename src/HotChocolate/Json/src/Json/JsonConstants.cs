@@ -26,10 +26,6 @@ internal static class JsonConstants
     public const byte Colon = (byte)':';
     public const byte NewLineLineFeed = (byte)'\n';
 
-    public static ReadOnlySpan<byte> Data => "data"u8;
-    public static ReadOnlySpan<byte> Errors => "errors"u8;
-    public static ReadOnlySpan<byte> Extensions => "extensions"u8;
-
     public static ReadOnlySpan<byte> TrueValue => "true"u8;
     public static ReadOnlySpan<byte> FalseValue => "false"u8;
     public static ReadOnlySpan<byte> NullValue => "null"u8;

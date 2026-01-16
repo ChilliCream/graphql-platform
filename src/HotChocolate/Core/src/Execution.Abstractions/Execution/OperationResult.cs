@@ -8,7 +8,6 @@ namespace HotChocolate.Execution;
 /// </summary>
 public sealed class OperationResult : ExecutionResult
 {
-    private readonly DataFlags _dataFlags;
     private ImmutableList<IError> _errors;
     private ImmutableOrderedDictionary<string, object?> _extensions;
 
@@ -42,14 +41,9 @@ public sealed class OperationResult : ExecutionResult
             throw new ArgumentException("Either data or errors must be provided or extensions must be provided.");
         }
 
-        _dataFlags = data.IsValueNull
-            ? DataFlags.DataIsSet | DataFlags.DataIsNull
-            : DataFlags.DataIsSet;
-        Data = data.Value;
+        Data = data;
         _errors = errors ?? [];
         _extensions = extensions ?? [];
-
-        Features.Set(data.Formatter);
 
         if (data.MemoryHolder is { } memoryHolder)
         {
@@ -59,40 +53,6 @@ public sealed class OperationResult : ExecutionResult
                 return ValueTask.CompletedTask;
             });
         }
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="OperationResult"/> with dictionary-based data.
-    /// </summary>
-    /// <param name="data">
-    /// The data dictionary representing the GraphQL response data.
-    /// </param>
-    /// <param name="errors">
-    /// The GraphQL errors that occurred during execution.
-    /// </param>
-    /// <param name="extensions">
-    /// Additional information passed along with the result.
-    /// </param>
-    /// <exception cref="ArgumentException">
-    /// Thrown when neither data, errors, nor extensions are provided.
-    /// </exception>
-    public OperationResult(
-        IReadOnlyDictionary<string, object?>? data,
-        ImmutableList<IError>? errors = null,
-        ImmutableOrderedDictionary<string, object?>? extensions = null)
-    {
-        if (data is null && errors is null or { Count: 0 } && extensions is null or { Count: 0 })
-        {
-            throw new ArgumentException("Either data or errors must be provided or extensions must be provided.");
-        }
-
-        _dataFlags = data is null
-            ? DataFlags.DataIsSet | DataFlags.DataIsNull
-            : DataFlags.DataIsSet;
-
-        Data = data;
-        _errors = errors ?? [];
-        _extensions = extensions ?? [];
     }
 
     /// <summary>
@@ -119,7 +79,6 @@ public sealed class OperationResult : ExecutionResult
             throw new ArgumentException("At least one error must be provided.");
         }
 
-        _dataFlags = DataFlags.DataIsNull;
         _errors = errors;
         _extensions = extensions ?? [];
     }
@@ -145,7 +104,6 @@ public sealed class OperationResult : ExecutionResult
             throw new ArgumentException("At least one extension must be provided.");
         }
 
-        _dataFlags = DataFlags.DataIsNull;
         _errors = [];
         _extensions = extensions;
     }
@@ -185,19 +143,7 @@ public sealed class OperationResult : ExecutionResult
     /// <summary>
     /// Gets the data that is being delivered in this operation result.
     /// </summary>
-    public object? Data { get; }
-
-    /// <summary>
-    /// Gets a value indicating whether data was explicitly set.
-    /// If <c>false</c>, the data was not set (including null).
-    /// </summary>
-    public bool IsDataSet => (_dataFlags & DataFlags.DataIsSet) == DataFlags.DataIsSet;
-
-    /// <summary>
-    /// Gets a value indicating whether is null or not set.
-    /// If <c>true</c>, the data is null or not set.
-    /// </summary>
-    public bool IsDataNull => (_dataFlags & DataFlags.DataIsNull) == DataFlags.DataIsNull;
+    public OperationResultData? Data { get; }
 
     /// <summary>
     /// Gets the GraphQL errors that occurred during execution.
@@ -207,7 +153,7 @@ public sealed class OperationResult : ExecutionResult
         get => _errors;
         set
         {
-            if (IsDataNull && Errors is null or { Count: 0 } && Extensions is null or { Count: 0 })
+            if (!Data.HasValue && Errors is null or { Count: 0 } && Extensions is null or { Count: 0 })
             {
                 throw new ArgumentException("Either data, errors or extensions must be provided.");
             }
@@ -227,7 +173,7 @@ public sealed class OperationResult : ExecutionResult
         get => _extensions;
         set
         {
-            if (IsDataNull && Errors is null or { Count: 0 } && Extensions is null or { Count: 0 })
+            if (!Data.HasValue && Errors is null or { Count: 0 } && Extensions is null or { Count: 0 })
             {
                 throw new ArgumentException("Either data, errors or extensions must be provided.");
             }
@@ -298,10 +244,9 @@ public sealed class OperationResult : ExecutionResult
     }
 
     /// <summary>
-    /// Gets the JSON formatter that can serialize this operation result.
-    /// Used for high-performance custom serialization.
+    /// Gets whether this result is incremental.
     /// </summary>
-    public IRawJsonFormatter? JsonFormatter => Features.Get<IRawJsonFormatter>();
+    public bool IsIncremental => Features.Get<IncrementalDataFeature>() is not null;
 
     /// <summary>
     /// Creates an operation result containing a single error.
@@ -318,13 +263,4 @@ public sealed class OperationResult : ExecutionResult
     /// <returns>An operation result containing the specified errors.</returns>
     public static OperationResult FromError(params ImmutableList<IError> errors)
         => new(errors);
-
-    [Flags]
-    private enum DataFlags
-    {
-        // ReSharper disable once UnusedMember.Local
-        None = 0,
-        DataIsNull = 1,
-        DataIsSet = 2
-    }
 }

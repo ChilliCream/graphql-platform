@@ -84,7 +84,7 @@ internal sealed partial class SubscriptionExecutor
                 await subscription.DisposeAsync().ConfigureAwait(false);
             }
 
-            return new OperationResult(null, Unwrap(error));
+            return new OperationResult(Unwrap(error));
         }
 
         static ImmutableList<IError> Unwrap(IError error)

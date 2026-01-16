@@ -1,6 +1,4 @@
-using System.Buffers;
 using System.Diagnostics;
-using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Text.Json;
 
@@ -8,34 +6,18 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public sealed partial class CompositeResultDocument : IRawJsonFormatter
 {
-    public void WriteTo(OperationResult result, IBufferWriter<byte> writer, JsonWriterOptions options = default)
+    public void WriteDataTo(JsonWriter jsonWriter)
     {
-        options = options with { SkipValidation = true };
-        var jsonWriter = new JsonWriter(writer, options);
         var formatter = new RawJsonFormatter(this, jsonWriter);
         formatter.Write();
     }
 
-    internal ref struct RawJsonFormatter(CompositeResultDocument document, JsonWriter writer)
+    internal readonly ref struct RawJsonFormatter(CompositeResultDocument document, JsonWriter writer)
     {
         public void Write()
         {
-            writer.WriteStartObject();
-
-            if (document._errors?.Count > 0)
-            {
-                writer.WritePropertyName(JsonConstants.Errors);
-                JsonValueFormatter.WriteErrors(
-                    writer,
-                    document._errors,
-                    JsonSerializerOptionDefaults.GraphQL,
-                    default);
-            }
-
             var root = Cursor.Zero;
             var row = document._metaDb.Get(root);
-
-            writer.WritePropertyName(JsonConstants.Data);
 
             if (row.TokenType is ElementTokenType.Null
                 || (ElementFlags.Invalidated & row.Flags) == ElementFlags.Invalidated)
@@ -46,18 +28,6 @@ public sealed partial class CompositeResultDocument : IRawJsonFormatter
             {
                 WriteObject(root, row);
             }
-
-            if (document._extensions?.Count > 0)
-            {
-                writer.WritePropertyName(JsonConstants.Extensions);
-                JsonValueFormatter.WriteDictionary(
-                    writer,
-                    document._extensions,
-                    JsonSerializerOptionDefaults.GraphQL,
-                    default);
-            }
-
-            writer.WriteEndObject();
         }
 
         public void WriteValue(Cursor cursor, DbRow row)

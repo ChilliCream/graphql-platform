@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
+using HotChocolate.Transport.Formatters;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -475,7 +476,8 @@ public class CompositeResultDocumentTests : FusionTestBase
             compositeResult);
         var operationResult = new OperationResult(
             operationResultData);
-        compositeResult.WriteTo(operationResult, buffer, new JsonWriterOptions { Indented = true });
+
+        new JsonResultFormatter(indented: true).Format(operationResult, buffer);
 
         // assert
         var json = Encoding.UTF8.GetString(buffer.WrittenSpan);
@@ -542,7 +544,9 @@ public class CompositeResultDocumentTests : FusionTestBase
             compositeResult);
         var operationResult = new OperationResult(
             operationResultData);
-        compositeResult.WriteTo(operationResult, writer, new JsonWriterOptions { Indented = true});
+
+        new JsonResultFormatter(indented: true).Format(operationResult, writer);
+
         await writer.FlushAsync();
         await writer.CompleteAsync();
 

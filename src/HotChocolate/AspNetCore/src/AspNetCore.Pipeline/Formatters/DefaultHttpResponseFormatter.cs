@@ -380,7 +380,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             // server is still able to produce a well-formed response.
             // Even null represents a valid response, in this case of a non-null propagation
             // that erased the result.
-            if (result.IsDataSet)
+            if (result.Data.HasValue)
             {
                 return HttpStatusCode.OK;
             }

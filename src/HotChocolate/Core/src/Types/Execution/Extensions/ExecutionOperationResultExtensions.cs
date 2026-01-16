@@ -20,7 +20,7 @@ public static class ExecutionOperationResultExtensions
         /// </exception>
         public ResultElement UnwrapData()
         {
-            if (result.Data is not ResultDocument resultDocument)
+            if (result.Data?.Value is not ResultDocument resultDocument)
             {
                 throw new InvalidOperationException(
                     "Unexpected data object type.");

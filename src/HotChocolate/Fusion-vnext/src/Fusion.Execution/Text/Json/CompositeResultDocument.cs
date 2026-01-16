@@ -14,8 +14,6 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly List<SourceResultDocument> _sources = [];
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
-    private List<IError>? _errors;
-    private OrderedDictionary<string, object?>? _extensions;
     internal MetaDb _metaDb;
     private bool _disposed;
 
@@ -29,18 +27,6 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     public CompositeResultElement Data { get; }
-
-    public List<IError>? Errors
-    {
-        get => _errors;
-        internal set => _errors = value;
-    }
-
-    public OrderedDictionary<string, object?>? Extensions
-    {
-        get => _extensions;
-        internal set => _extensions = value;
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ElementTokenType GetElementTokenType(Cursor cursor)

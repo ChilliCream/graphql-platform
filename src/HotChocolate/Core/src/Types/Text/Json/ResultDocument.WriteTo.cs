@@ -1,40 +1,22 @@
-using System.Buffers;
 using System.Diagnostics;
-using System.Text.Json;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Text.Json;
 
 public sealed partial class ResultDocument : IRawJsonFormatter
 {
-    public void WriteTo(OperationResult result, IBufferWriter<byte> writer, JsonWriterOptions options)
+    public void WriteDataTo(JsonWriter jsonWriter)
     {
-        options = options with { SkipValidation = true };
-        var jsonWriter = new JsonWriter(writer, options);
-        var formatter = new RawJsonFormatter(this, jsonWriter, options);
-        formatter.Write(result);
+        var formatter = new RawJsonFormatter(this, jsonWriter);
+        formatter.Write();
     }
 
-    internal readonly ref struct RawJsonFormatter(ResultDocument document, JsonWriter writer, JsonWriterOptions options)
+    internal readonly ref struct RawJsonFormatter(ResultDocument document, JsonWriter writer)
     {
-        public void Write(OperationResult result)
+        public void Write()
         {
-            writer.WriteStartObject();
-
-            if (!result.Errors.IsEmpty)
-            {
-                writer.WritePropertyName(JsonConstants.Errors);
-                JsonValueFormatter.WriteErrors(
-                    writer,
-                    result.Errors,
-                    CreateSerializerOptions(),
-                    default);
-            }
-
             var root = Cursor.Zero;
             var row = document._metaDb.Get(root);
-
-            writer.WritePropertyName(JsonConstants.Data);
 
             if (row.TokenType is ElementTokenType.Null
                 || (ElementFlags.IsInvalidated & row.Flags) == ElementFlags.IsInvalidated)
@@ -45,18 +27,6 @@ public sealed partial class ResultDocument : IRawJsonFormatter
             {
                 WriteObject(root, row);
             }
-
-            if (result.Extensions?.Count > 0)
-            {
-                writer.WritePropertyName(JsonConstants.Extensions);
-                JsonValueFormatter.WriteDictionary(
-                    writer,
-                    result.Extensions,
-                    CreateSerializerOptions(),
-                    default);
-            }
-
-            writer.WriteEndObject();
         }
 
         public void WriteValue(Cursor cursor, DbRow row)
@@ -184,12 +154,5 @@ public sealed partial class ResultDocument : IRawJsonFormatter
 
             writer.WriteEndArray();
         }
-
-        private JsonSerializerOptions CreateSerializerOptions()
-            => new(JsonSerializerDefaults.Web)
-            {
-                Encoder = options.Encoder,
-                WriteIndented = options.Indented
-            };
     }
 }

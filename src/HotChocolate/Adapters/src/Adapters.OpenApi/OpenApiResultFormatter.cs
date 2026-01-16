@@ -20,7 +20,7 @@ internal sealed class OpenApiResultFormatter : IOpenApiResultFormatter
         OpenApiEndpointDescriptor endpoint,
         CancellationToken cancellationToken)
     {
-        if (operationResult.Data is not ResultDocument resultDocument)
+        if (operationResult.Data?.Value is not ResultDocument resultDocument)
         {
             await Results.InternalServerError().ExecuteAsync(httpContext);
             return;

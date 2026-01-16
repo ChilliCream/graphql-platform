@@ -97,8 +97,8 @@ internal static class OperationContextExtensions
                 resultBuilder.Errors,
                 resultBuilder.Extensions)
             {
-                RequestIndex = resultBuilder.RequestIndex > -1 ? resultBuilder.RequestIndex : 0,
-                VariableIndex = resultBuilder.VariableIndex > -1 ? resultBuilder.VariableIndex : 0,
+                RequestIndex = resultBuilder.RequestIndex > -1 ? resultBuilder.RequestIndex : null,
+                VariableIndex = resultBuilder.VariableIndex > -1 ? resultBuilder.VariableIndex : null,
                 ContextData = resultBuilder.ContextData
             };
 

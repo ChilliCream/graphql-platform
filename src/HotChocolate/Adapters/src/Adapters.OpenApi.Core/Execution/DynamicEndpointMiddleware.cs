@@ -97,7 +97,7 @@ internal sealed class DynamicEndpointMiddleware(
 
             // If the request had validation errors or execution didn't start, we return HTTP 400.
             if (operationResult.ContextData.ContainsKey(ExecutionContextData.ValidationErrors)
-                || operationResult is { IsDataSet: false })
+                || !operationResult.Data.HasValue)
             {
                 var firstErrorMessage = operationResult.Errors.FirstOrDefault()?.Message;
 

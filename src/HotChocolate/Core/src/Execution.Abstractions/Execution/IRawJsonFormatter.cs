@@ -1,8 +1,8 @@
-using System.Buffers;
-using System.Text.Json;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Execution;
 
+// TODO: Think about this again
 /// <summary>
 /// Represents a low level abstraction that allows the implementor to opt out of the
 /// standard JSON serialization to emit the JSON directly into the pipe writer
@@ -11,19 +11,10 @@ namespace HotChocolate.Execution;
 public interface IRawJsonFormatter
 {
     /// <summary>
-    /// Writes the JSON data into the <paramref name="writer"/>.
+    /// Writes the JSON data into the <paramref name="jsonWriter"/>.
     /// </summary>
-    /// <param name="result">
-    /// The result that shall be serialized.
+    /// <param name="jsonWriter">
+    /// The JSON writer.
     /// </param>
-    /// <param name="writer">
-    /// The buffer writer of the transport layer.
-    /// </param>
-    /// <param name="options">
-    /// The JSON writer options.
-    /// </param>
-    void WriteTo(
-        OperationResult result,
-        IBufferWriter<byte> writer,
-        JsonWriterOptions options = default);
+    void WriteDataTo(JsonWriter jsonWriter);
 }

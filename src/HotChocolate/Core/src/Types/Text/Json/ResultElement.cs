@@ -1158,7 +1158,7 @@ public readonly partial struct ResultElement
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
         var jsonWriter = new JsonWriter(writer, options);
-        var formatter = new ResultDocument.RawJsonFormatter(_parent, jsonWriter, options);
+        var formatter = new ResultDocument.RawJsonFormatter(_parent, jsonWriter);
         var row = _parent._metaDb.Get(_cursor);
         formatter.WriteValue(_cursor, row);
     }

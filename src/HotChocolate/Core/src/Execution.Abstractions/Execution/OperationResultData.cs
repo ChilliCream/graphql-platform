@@ -3,7 +3,7 @@ namespace HotChocolate.Execution;
 /// <summary>
 /// Represents the data portion of a GraphQL operation result with its associated formatter and memory management.
 /// </summary>
-public readonly ref struct OperationResultData
+public readonly struct OperationResultData
 {
     /// <summary>
     /// Initializes a new instance of <see cref="OperationResultData"/>.

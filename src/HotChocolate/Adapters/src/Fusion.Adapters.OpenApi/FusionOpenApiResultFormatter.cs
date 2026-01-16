@@ -12,7 +12,7 @@ internal sealed class FusionOpenApiResultFormatter : IOpenApiResultFormatter
         OpenApiEndpointDescriptor endpoint,
         CancellationToken cancellationToken)
     {
-        if (operationResult.Data is not CompositeResultDocument resultDocument)
+        if (operationResult.Data?.Value is not CompositeResultDocument resultDocument)
         {
             await Results.InternalServerError().ExecuteAsync(httpContext);
             return;
