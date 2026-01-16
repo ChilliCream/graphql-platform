@@ -85,7 +85,7 @@ public class InMemoryClientTests
         var request = Assert.IsType<HotChocolate.Execution.OperationRequest>(executor.Request);
         Assert.Equal(operationRequest.Name, request.OperationName);
         Assert.Equal("{ foo }", Encoding.UTF8.GetString(request.Document!.AsSpan()));
-        request.VariableValues?.Document.MatchInlineSnapshot("{ }");
+        request.VariableValues?.Document.MatchInlineSnapshot("{}");
     }
 
     [Fact]
