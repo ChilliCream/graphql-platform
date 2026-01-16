@@ -306,6 +306,7 @@ TODO
 ## AnyType
 
 TODO
+`JsonElement` is now inferred as `Any` instead of `Json`.
 
 # Deprecations
 
