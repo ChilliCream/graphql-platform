@@ -1,9 +1,6 @@
 {
   "document": "{ foo }",
   "operationName": "bar",
-  "extensions": {
-    "two": "bar"
-  },
   "contextData": {
     "one": "foo"
   },

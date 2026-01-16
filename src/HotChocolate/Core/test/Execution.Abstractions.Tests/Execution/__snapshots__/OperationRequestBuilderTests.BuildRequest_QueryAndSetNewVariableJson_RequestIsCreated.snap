@@ -1,8 +1,5 @@
 {
   "document": "{\n    foo\n}",
-  "extensions": {
-    "one": "bar"
-  },
   "variableValues": {
     "one": "bar"
   }

@@ -558,7 +558,7 @@ public sealed class OperationRequestBuilder : IFeatureProvider
             operationName: _operationName,
             errorHandlingMode: _errorHandlingMode,
             variableValues: _variableValues,
-            extensions: _variableValues,
+            extensions: _extensions,
             contextData: _readOnlyContextData ?? _contextData,
             features: features,
             services: _services,
