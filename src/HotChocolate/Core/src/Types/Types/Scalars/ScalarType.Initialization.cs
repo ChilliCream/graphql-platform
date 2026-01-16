@@ -58,7 +58,8 @@ public abstract partial class ScalarType
             context.Dependencies.Add(new TypeDependency(specifiedByTypeRef));
         }
 
-        if (options.ApplySerializeAsToScalars
+        if (ApplySerializeAsToScalars
+            && options.ApplySerializeAsToScalars
             && SerializationType is not ScalarSerializationType.Undefined
             && !SpecScalarNames.IsSpecScalar(Name))
         {

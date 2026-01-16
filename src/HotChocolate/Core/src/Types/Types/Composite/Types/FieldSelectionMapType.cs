@@ -36,6 +36,9 @@ public sealed class FieldSelectionMapType : ScalarType<IValueSelectionNode, Stri
     }
 
     /// <inheritdoc />
+    protected override bool ApplySerializeAsToScalars => false;
+
+    /// <inheritdoc />
     protected override IValueSelectionNode OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
         try

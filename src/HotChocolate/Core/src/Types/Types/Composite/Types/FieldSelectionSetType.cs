@@ -35,6 +35,9 @@ public sealed class FieldSelectionSetType : ScalarType<SelectionSetNode, StringV
     }
 
     /// <inheritdoc />
+    protected override bool ApplySerializeAsToScalars => false;
+
+    /// <inheritdoc />
     protected override SelectionSetNode OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
         try

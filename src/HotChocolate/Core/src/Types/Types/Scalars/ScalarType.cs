@@ -90,6 +90,11 @@ public abstract partial class ScalarType
     protected ITypeConverter Converter => _converter;
 
     /// <summary>
+    /// Gets a value indicating whether the <c>@serializeAs</c> directive should be applied to this scalar type.
+    /// </summary>
+    protected virtual bool ApplySerializeAsToScalars => true;
+
+    /// <summary>
     /// Defines if the specified <paramref name="type"/> is assignable from the current <see cref="ScalarType"/>.
     /// </summary>
     /// <param name="type">
