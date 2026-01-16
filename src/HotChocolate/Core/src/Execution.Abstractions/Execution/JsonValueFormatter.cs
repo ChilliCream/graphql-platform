@@ -8,6 +8,7 @@ namespace HotChocolate.Execution;
 
 public static class JsonValueFormatter
 {
+    // TODO : are the options still needed?
     public static void WriteValue(
         JsonWriter writer,
         object? value,
