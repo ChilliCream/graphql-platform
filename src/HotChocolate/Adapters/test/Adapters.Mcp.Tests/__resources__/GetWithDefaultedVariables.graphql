@@ -22,8 +22,6 @@ query GetWithDefaultedVariables(
   $id: ID! = "default"
   "Int description"
   $int: Int! = 1
-  "JSON description"
-  $json: JSON! = { key: "value" }
   "List description"
   $list: [String!]! = ["default"]
   "LocalDate description"
@@ -61,7 +59,6 @@ query GetWithDefaultedVariables(
     float: $float
     id: $id
     int: $int
-    json: $json
     list: $list
     localDate: $localDate
     localDateTime: $localDateTime
@@ -86,7 +83,6 @@ query GetWithDefaultedVariables(
     float
     id
     int
-    json
     list
     localDate
     localDateTime

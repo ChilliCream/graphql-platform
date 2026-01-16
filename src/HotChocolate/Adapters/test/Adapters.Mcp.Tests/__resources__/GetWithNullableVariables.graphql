@@ -11,7 +11,6 @@ query GetWithNullableVariables(
   "Float description" $float: Float
   "ID description" $id: ID
   "Int description" $int: Int
-  "JSON description" $json: JSON
   "List description" $list: [String]
   "LocalDate description" $localDate: LocalDate
   "LocalDateTime description" $localDateTime: LocalDateTime
@@ -37,7 +36,6 @@ query GetWithNullableVariables(
     float: $float
     id: $id
     int: $int
-    json: $json
     list: $list
     localDate: $localDate
     localDateTime: $localDateTime
@@ -62,7 +60,6 @@ query GetWithNullableVariables(
     float
     id
     int
-    json
     list
     localDate
     localDateTime

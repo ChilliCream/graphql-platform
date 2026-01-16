@@ -63,17 +63,6 @@
       "type": "integer",
       "description": "Int description"
     },
-    "json": {
-      "type": [
-        "object",
-        "array",
-        "boolean",
-        "string",
-        "number",
-        "integer"
-      ],
-      "description": "JSON description"
-    },
     "list": {
       "type": "array",
       "items": {
@@ -172,7 +161,6 @@
     "float",
     "id",
     "int",
-    "json",
     "list",
     "localDate",
     "localDateTime",

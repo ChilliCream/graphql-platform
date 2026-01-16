@@ -14,9 +14,6 @@
       "float": 1.5,
       "id": "test",
       "int": 1,
-      "json": {
-        "key": "value"
-      },
       "list": [
         "test"
       ],

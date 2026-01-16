@@ -19,7 +19,7 @@ public sealed class TestSchema
         public Book[] GetBooks() => [new("Title")];
 
         public ResultNullable GetWithNullableVariables(
-            [GraphQLType<AnyType>] object? any,
+            JsonElement? any,
             bool? boolean,
             byte? @byte,
             [GraphQLType<ByteArrayType>] byte[]? byteArray,
@@ -30,7 +30,6 @@ public sealed class TestSchema
             float? @float,
             [GraphQLType<IdType>] string? id,
             int? @int,
-            JsonElement? json,
             string?[]? list,
             DateOnly? localDate,
             [GraphQLType<LocalDateTimeType>] DateTime? localDateTime,
@@ -56,7 +55,6 @@ public sealed class TestSchema
                     @float,
                     id,
                     @int,
-                    json,
                     list,
                     localDate,
                     localDateTime,
@@ -71,7 +69,7 @@ public sealed class TestSchema
                     uuid);
 
         public ResultNonNullable GetWithNonNullableVariables(
-            [GraphQLType<NonNullType<AnyType>>] object any,
+            JsonElement any,
             bool boolean,
             byte @byte,
             [GraphQLType<NonNullType<ByteArrayType>>] byte[] byteArray,
@@ -82,7 +80,6 @@ public sealed class TestSchema
             float @float,
             [GraphQLType<NonNullType<IdType>>] string id,
             int @int,
-            JsonElement json,
             string[] list,
             DateOnly localDate,
             [GraphQLType<NonNullType<LocalDateTimeType>>] DateTime localDateTime,
@@ -108,7 +105,6 @@ public sealed class TestSchema
                     @float,
                     id,
                     @int,
-                    json,
                     list,
                     localDate,
                     localDateTime,
@@ -123,7 +119,7 @@ public sealed class TestSchema
                     uuid);
 
         public ResultDefaulted GetWithDefaultedVariables(
-            [GraphQLType<NonNullType<AnyType>>] object any,
+            JsonElement any,
             bool boolean,
             byte @byte,
             [GraphQLType<NonNullType<ByteArrayType>>] byte[] byteArray,
@@ -134,7 +130,6 @@ public sealed class TestSchema
             float @float,
             [GraphQLType<NonNullType<IdType>>] string id,
             int @int,
-            JsonElement json,
             string[] list,
             DateOnly localDate,
             [GraphQLType<NonNullType<LocalDateTimeType>>] DateTime localDateTime,
@@ -160,7 +155,6 @@ public sealed class TestSchema
                     @float,
                     id,
                     @int,
-                    json,
                     list,
                     localDate,
                     localDateTime,
@@ -328,7 +322,7 @@ public sealed class TestSchema
         OneOf Field);
 
     public sealed record ResultNullable(
-        [property: GraphQLType<AnyType>] object? Any,
+        JsonElement? Any,
         bool? Boolean,
         byte? Byte,
         [property: GraphQLType<ByteArrayType>] byte[]? ByteArray,
@@ -339,7 +333,6 @@ public sealed class TestSchema
         float? Float,
         [property: GraphQLType<IdType>] string? Id,
         int? Int,
-        JsonElement? Json,
         string?[]? List,
         DateOnly? LocalDate,
         [property: GraphQLType<LocalDateTimeType>] DateTime? LocalDateTime,
@@ -354,7 +347,7 @@ public sealed class TestSchema
         Guid? Uuid);
 
     public sealed record ResultNonNullable(
-        [property: GraphQLType<NonNullType<AnyType>>] object Any,
+        JsonElement Any,
         bool Boolean,
         byte Byte,
         [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
@@ -365,7 +358,6 @@ public sealed class TestSchema
         float Float,
         [property: GraphQLType<NonNullType<IdType>>] string Id,
         int Int,
-        JsonElement Json,
         string[] List,
         DateOnly LocalDate,
         [property: GraphQLType<NonNullType<LocalDateTimeType>>] DateTime LocalDateTime,
@@ -380,7 +372,7 @@ public sealed class TestSchema
         Guid Uuid);
 
     public sealed record ResultDefaulted(
-        [property: GraphQLType<NonNullType<AnyType>>] object Any,
+        JsonElement Any,
         bool Boolean,
         byte Byte,
         [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
@@ -391,7 +383,6 @@ public sealed class TestSchema
         float Float,
         [property: GraphQLType<NonNullType<IdType>>] string Id,
         int Int,
-        JsonElement Json,
         string[] List,
         DateOnly LocalDate,
         [property: GraphQLType<NonNullType<LocalDateTimeType>>] DateTime LocalDateTime,
