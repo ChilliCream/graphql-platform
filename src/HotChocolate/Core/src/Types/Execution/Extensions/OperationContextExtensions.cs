@@ -23,7 +23,7 @@ internal static class OperationContextExtensions
             {
                 foreach (var error in ex.Errors)
                 {
-                    ReportError(context, error, resolverContext);
+                    context.ReportError(error, resolverContext);
                 }
             }
             else
@@ -34,7 +34,7 @@ internal static class OperationContextExtensions
                     .AddLocations(selection.GetSyntaxNodes())
                     .Build();
 
-                ReportError(context, error, resolverContext);
+                context.ReportError(error, resolverContext);
             }
 
             return context;

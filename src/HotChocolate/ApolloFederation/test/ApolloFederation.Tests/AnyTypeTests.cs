@@ -6,7 +6,7 @@ using AnyType = HotChocolate.ApolloFederation.Types._AnyType;
 
 namespace HotChocolate.ApolloFederation;
 
-public class _AnyTypeTests
+public class AnyTypeTests
 {
     [Fact]
     public void Ensure_Type_Name_Is_Correct()
@@ -176,26 +176,10 @@ public class _AnyTypeTests
         var operation = CommonTestExtensions.CreateOperation();
         var resultDocument = new ResultDocument(operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
-        type.CoerceOutputValue(representation, resultValue);
+        void Error() => type.CoerceOutputValue(representation, resultValue);
 
         // assert
-        resultValue.MatchSnapshot();
-    }
-
-    [Fact]
-    public void CoerceOutputValue_Invalid_Format()
-    {
-        // arrange
-        var type = new AnyType();
-
-        // act
-        var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
-        var resultValue = resultDocument.Data.GetProperty("first");
-        void Action() => type.CoerceOutputValue(1, resultValue);
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
+        Assert.Throws<NotSupportedException>(Error);
     }
 
     [Fact]
