@@ -475,7 +475,7 @@ public class CompositeResultDocumentTests : FusionTestBase
             compositeResult);
         var operationResult = new OperationResult(
             operationResultData);
-        compositeResult.WriteTo(operationResult, buffer);
+        compositeResult.WriteTo(operationResult, buffer, new JsonWriterOptions { Indented = true });
 
         // assert
         var json = Encoding.UTF8.GetString(buffer.WrittenSpan);

@@ -1022,6 +1022,8 @@ public class InaccessibleTests : FusionTestBase
                 public override ScalarSerializationType SerializationType
                     => ScalarSerializationType.String;
 
+                protected override bool ApplySerializeAsToScalars => false;
+
                 public override bool IsValueCompatible(IValueNode valueLiteral)
                     => valueLiteral is StringValueNode;
 
