@@ -340,7 +340,8 @@ public sealed partial class OperationCompiler
 
             if (optimizers.Length > 0)
             {
-                selection.Features.SetSafe(optimizers);
+                var features = new SelectionFeatureCollection(compilationContext.Features, selection.Id);
+                features.SetSafe(optimizers);
             }
 
             // Register the selection in the elements array
@@ -363,7 +364,6 @@ public sealed partial class OperationCompiler
         var rewritten = current;
 
         var optimizerContext = new SelectionSetOptimizerContext(
-            selectionSetId,
             path,
             typeContext,
             ref rewritten,

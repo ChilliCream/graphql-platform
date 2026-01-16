@@ -13,7 +13,6 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 public ref struct SelectionSetOptimizerContext
 {
-    private readonly int _selectionSetId;
     private readonly ref ImmutableArray<Selection> _selections;
     private readonly OperationFeatureCollection _features;
     private readonly ref int _lastSelectionId;
@@ -23,7 +22,6 @@ public ref struct SelectionSetOptimizerContext
     /// Initializes a new instance of <see cref="SelectionSetOptimizerContext"/>
     /// </summary>
     internal SelectionSetOptimizerContext(
-        int selectionSetId,
         SelectionPath path,
         ObjectType typeContext,
         ref ImmutableArray<Selection> selections,
@@ -32,7 +30,6 @@ public ref struct SelectionSetOptimizerContext
         Schema schema,
         Func<Schema, ObjectField, FieldNode, FieldDelegate> createFieldPipeline)
     {
-        _selectionSetId = selectionSetId;
         _selections = ref selections;
         _features = features;
         _lastSelectionId = ref lastSelectionId;
@@ -80,7 +77,8 @@ public ref struct SelectionSetOptimizerContext
         return _selectionMap[responseName];
     }
 
-    public SelectionFeatureCollection Features => new(_features, _selectionSetId);
+    public SelectionFeatureCollection CreateSelectionFeatures(Selection selection)
+        => new SelectionFeatureCollection(_features, selection.Id);
 
     /// <summary>
     /// Gets the next operation unique selection id.

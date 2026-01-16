@@ -1,4 +1,3 @@
-using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Data.Projections;

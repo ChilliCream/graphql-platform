@@ -154,7 +154,8 @@ public abstract class ProjectionProvider
                     }
                 }
 
-                selection.Features.SetSafe(fieldHandler);
+                var features = context.CreateSelectionFeatures(selection);
+                features.SetSafe(fieldHandler);
                 return selection;
             }
         }
