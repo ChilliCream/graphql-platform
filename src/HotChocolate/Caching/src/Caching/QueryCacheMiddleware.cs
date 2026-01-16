@@ -36,16 +36,13 @@ internal sealed class QueryCacheMiddleware
             return;
         }
 
-        // only single operation results can be cached.
-        var operationResult = context.Result?.ExpectOperationResult();
-
-        if (operationResult is { Errors: null, ContextData: { } contextData })
+        if (context.Result is OperationResult { Errors.Count: 0, ContextData: { } contextData } operationResult)
         {
             contextData = contextData.Add(ExecutionContextData.CacheControlHeaderValue, headerValue);
 
             if (constraints.Vary.Length > 0)
             {
-                contextData =contextData.Add(ExecutionContextData.VaryHeaderValue, constraints.Vary);
+                contextData = contextData.Add(ExecutionContextData.VaryHeaderValue, constraints.VaryString);
             }
 
             operationResult.ContextData = contextData;
