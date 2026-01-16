@@ -61,7 +61,7 @@ find({ "BarShort" : { "$gte" : 13 } })
 find({ "BarShort" : { "$gte" : 14 } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

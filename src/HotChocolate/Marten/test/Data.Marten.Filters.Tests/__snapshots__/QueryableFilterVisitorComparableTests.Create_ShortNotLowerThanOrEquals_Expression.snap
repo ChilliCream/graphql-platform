@@ -51,7 +51,7 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo
 select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo as d where CAST(d.data ->> 'BarShort' as smallint) > :p0;
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

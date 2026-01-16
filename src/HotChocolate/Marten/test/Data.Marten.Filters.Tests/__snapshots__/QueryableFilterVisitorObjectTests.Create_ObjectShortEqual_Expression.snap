@@ -38,7 +38,7 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as 
 select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where CAST(d.data -> 'Foo' ->> 'BarShort' as smallint) = :p0;
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

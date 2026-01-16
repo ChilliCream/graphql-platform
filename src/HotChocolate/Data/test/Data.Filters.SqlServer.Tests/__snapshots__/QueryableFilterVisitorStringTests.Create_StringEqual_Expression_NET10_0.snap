@@ -42,7 +42,7 @@ FROM "Data" AS "d"
 WHERE "d"."Bar" = @p
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

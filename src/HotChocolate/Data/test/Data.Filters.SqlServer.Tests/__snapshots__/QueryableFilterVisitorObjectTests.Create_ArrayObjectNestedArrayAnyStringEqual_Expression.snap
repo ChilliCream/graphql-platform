@@ -114,7 +114,7 @@ WHERE EXISTS (
     WHERE "f"."Id" = "d0"."FooId")
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

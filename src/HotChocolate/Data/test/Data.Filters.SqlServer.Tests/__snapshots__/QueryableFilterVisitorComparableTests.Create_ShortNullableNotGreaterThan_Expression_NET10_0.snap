@@ -91,7 +91,7 @@ WHERE CASE
 END
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

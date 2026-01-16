@@ -34,7 +34,7 @@ FOO Query:
 find({ "BarEnum" : { "$eq" : 0 } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

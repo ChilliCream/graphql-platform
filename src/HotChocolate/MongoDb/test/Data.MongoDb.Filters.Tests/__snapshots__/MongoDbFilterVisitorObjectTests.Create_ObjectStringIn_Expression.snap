@@ -23,7 +23,7 @@ testatestAndtestb Query:
 find({ "Foo.BarString" : { "$in" : ["testatest", "testbtest"] } })
 ---------------
 
-testbtestAndNull Result:
+testbtestAndNull
 ---------------
 {
   "errors": [

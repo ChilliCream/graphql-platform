@@ -34,7 +34,7 @@ b Query:
 find({ "Bar" : { "$not" : { "$regex" : { "$regularExpression" : { "pattern" : "b", "options" : "" } } } } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

@@ -34,7 +34,7 @@ find({ "BarShort" : { "$nin" : [12, 13] } })
 find({ "BarShort" : { "$nin" : [13, 14] } })
 ---------------
 
-nullAnd14 Result:
+nullAnd14
 ---------------
 {
   "errors": [

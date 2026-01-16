@@ -48,7 +48,7 @@ FROM "Data" AS "d"
 WHERE "d"."Bar" IS NULL OR instr("d"."Bar", @p) <= 0
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

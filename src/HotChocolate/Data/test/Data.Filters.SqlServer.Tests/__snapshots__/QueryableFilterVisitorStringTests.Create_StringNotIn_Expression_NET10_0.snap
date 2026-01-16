@@ -17,7 +17,7 @@ FROM "Data" AS "d"
 WHERE "d"."Bar" NOT IN (@p1, @p2)
 ---------------
 
-testbtestAndNull Result:
+testbtestAndNull
 ---------------
 {
   "errors": [

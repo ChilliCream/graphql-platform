@@ -34,7 +34,7 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo
 select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo as d where NOT(CAST(d.data ->> 'BarShort' as smallint) = ANY(:p0));
 ---------------
 
-nullAnd14 Result:
+nullAnd14
 ---------------
 {
   "errors": [

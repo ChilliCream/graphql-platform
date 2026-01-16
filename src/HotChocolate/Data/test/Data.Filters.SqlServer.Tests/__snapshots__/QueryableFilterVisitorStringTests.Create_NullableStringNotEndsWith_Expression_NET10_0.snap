@@ -48,7 +48,7 @@ FROM "Data" AS "d"
 WHERE "d"."Bar" IS NULL OR "d"."Bar" NOT LIKE @p_endswith ESCAPE '\'
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

@@ -46,7 +46,7 @@ FOO Query:
 find({ "BarEnum" : { "$ne" : 0 } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

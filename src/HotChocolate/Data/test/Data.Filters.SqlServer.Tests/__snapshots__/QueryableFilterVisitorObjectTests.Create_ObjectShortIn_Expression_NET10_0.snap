@@ -70,7 +70,7 @@ INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 WHERE "f"."BarShort" IN (@p1, @p2)
 ---------------
 
-nullAnd14 Result:
+nullAnd14
 ---------------
 {
   "errors": [

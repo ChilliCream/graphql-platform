@@ -99,7 +99,7 @@ true Query:
 find({ "FooNested" : { "$exists" : true, "$nin" : [[], null] } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

@@ -38,7 +38,7 @@ FOO Query:
 find({ "Foo.BarEnum" : { "$eq" : 0 } })
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

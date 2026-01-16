@@ -40,7 +40,7 @@ testb SQL:
 select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where NOT((d.data ->> 'Bar' is not null and d.data ->> 'Bar' LIKE :p0));
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

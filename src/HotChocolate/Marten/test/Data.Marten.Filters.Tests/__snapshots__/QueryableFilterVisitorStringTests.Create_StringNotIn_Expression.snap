@@ -12,7 +12,7 @@ testatestAndtestb SQL:
 select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where NOT(d.data ->> 'Bar' = ANY(:p0));
 ---------------
 
-testbtestAndNull Result:
+testbtestAndNull
 ---------------
 {
   "errors": [

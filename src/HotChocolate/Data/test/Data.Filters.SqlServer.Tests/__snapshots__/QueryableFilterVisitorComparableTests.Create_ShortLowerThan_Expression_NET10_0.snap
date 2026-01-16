@@ -63,7 +63,7 @@ FROM "Data" AS "d"
 WHERE "d"."BarShort" < @p
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [
