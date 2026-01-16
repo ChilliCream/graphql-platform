@@ -134,7 +134,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
         var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(result.ExpectOperationResult().Errors);
         result.MatchSnapshot();
     }
 
