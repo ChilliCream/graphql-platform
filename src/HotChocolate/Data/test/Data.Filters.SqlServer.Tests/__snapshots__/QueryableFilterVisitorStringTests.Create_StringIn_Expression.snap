@@ -26,7 +26,7 @@ WHERE "d"."Bar" IN (
 )
 ---------------
 
-testbtestAndNull Result:
+testbtestAndNull
 ---------------
 {
   "errors": [

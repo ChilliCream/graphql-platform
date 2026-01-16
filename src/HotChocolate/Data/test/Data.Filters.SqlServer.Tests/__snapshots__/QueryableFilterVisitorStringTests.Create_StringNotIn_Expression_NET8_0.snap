@@ -19,7 +19,7 @@ WHERE "d"."Bar" NOT IN (
 )
 ---------------
 
-testbtestAndNull Result:
+testbtestAndNull
 ---------------
 {
   "errors": [

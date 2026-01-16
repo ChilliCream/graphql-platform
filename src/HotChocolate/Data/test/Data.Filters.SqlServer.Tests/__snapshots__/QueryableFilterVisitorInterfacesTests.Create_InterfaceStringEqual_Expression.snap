@@ -48,7 +48,7 @@ INNER JOIN "Test" AS "t" ON "d"."TestId" = "t"."Id"
 WHERE "t"."Prop" = @__p_0
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

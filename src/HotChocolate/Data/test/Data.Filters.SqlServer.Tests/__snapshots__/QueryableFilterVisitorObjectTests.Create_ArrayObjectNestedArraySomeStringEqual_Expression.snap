@@ -44,7 +44,7 @@ WHERE EXISTS (
     WHERE "f"."Id" = "d0"."FooId" AND "f0"."BarString" = @__p_0)
 ---------------
 
-null Result:
+null
 ---------------
 {
   "errors": [

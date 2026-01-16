@@ -54,7 +54,7 @@ WHERE "d"."BarShort" IN (
 )
 ---------------
 
-nullAnd14 Result:
+nullAnd14
 ---------------
 {
   "errors": [
