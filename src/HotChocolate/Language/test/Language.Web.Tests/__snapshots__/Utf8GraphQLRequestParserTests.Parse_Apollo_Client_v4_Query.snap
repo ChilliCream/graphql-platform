@@ -79,6 +79,8 @@
     "OperationName": "OnEvent",
     "ErrorHandlingMode": null,
     "Variables": null,
-    "Extensions": null
+    "Extensions": null,
+    "VariablesMemoryOwner": null,
+    "ExtensionsMemoryOwner": null
   }
 ]
