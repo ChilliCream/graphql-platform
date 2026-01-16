@@ -68,8 +68,8 @@ public partial class ObjectTypeXmlDocInferenceTests
         var content = snapshot.Match();
         AssertFieldDocumentation(
             content,
-            "Query and manages users.\\n    \\nPlease note:\\n* Users ...\\n* Users ...\\n    * Users ...\\n"
-            + "    * Users ...\\n    \\nYou need one of the following role: Owner,\\n"
+            "Query and manages users.\\n\\nPlease note:\\n* Users ...\\n* Users ...\\n    * Users ...\\n"
+            + "    * Users ...\\n\\nYou need one of the following role: Owner,\\n"
             + "Editor, use XYZ to manage permissions.");
     }
 

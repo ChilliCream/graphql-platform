@@ -1,4 +1,4 @@
 namespace HotChocolate.Adapters.OpenApi;
 
-public sealed record OpenApiDefinitionValidationContext(ISchemaDefinition Schema)
+public sealed record OpenApiDefinitionValidationContext(ISchemaDefinition? Schema)
     : IOpenApiDefinitionValidationContext;

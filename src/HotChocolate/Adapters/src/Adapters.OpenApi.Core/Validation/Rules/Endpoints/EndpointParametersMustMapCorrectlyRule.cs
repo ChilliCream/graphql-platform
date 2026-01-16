@@ -36,6 +36,7 @@ internal sealed class EndpointParametersMustMapCorrectlyRule: IOpenApiEndpointDe
             }
 
             if (routeParam.InputObjectPath is { Length: > 0 } inputObjectPath
+                && context.Schema is not null
                 && !IsValidInputObjectPath(variable, inputObjectPath, context.Schema))
             {
                 errors ??= [];
@@ -57,6 +58,7 @@ internal sealed class EndpointParametersMustMapCorrectlyRule: IOpenApiEndpointDe
             }
 
             if (queryParam.InputObjectPath is { Length: > 0 } inputObjectPath
+                && context.Schema is not null
                 && !IsValidInputObjectPath(variable, inputObjectPath, context.Schema))
             {
                 errors ??= [];

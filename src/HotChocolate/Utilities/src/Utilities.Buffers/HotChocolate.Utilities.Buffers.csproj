@@ -15,6 +15,13 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Pipeline" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Language.Web" />
+    <InternalsVisibleTo Include="HotChocolate.Types" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Microsoft.Bcl.HashCode" />
     <PackageReference Include="System.Memory" />

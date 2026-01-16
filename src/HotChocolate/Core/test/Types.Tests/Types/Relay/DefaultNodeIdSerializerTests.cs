@@ -48,7 +48,7 @@ public class DefaultNodeIdSerializerTests
         var value = Encoding.UTF8.GetString(Convert.FromBase64String("Rm9vOkberW9vVHlwZe+/vSs="));
         var id = serializer.Format("Foo", value);
 
-        Assert.Equal("Rm9vCmRGb286Rt6tb29UeXBl77-9Kw==", id);
+        Assert.Equal("Rm9vCmRGb286Rt6tb29UeXBl77-9Kw", id);
     }
 
     [Fact]

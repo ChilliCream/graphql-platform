@@ -182,7 +182,7 @@ public static class OpenApiDefinitionParser
 
         foreach (var segment in stringValue.Split('/', StringSplitOptions.RemoveEmptyEntries))
         {
-            routeBuilder.Append("/");
+            routeBuilder.Append('/');
 
             if (segment.StartsWith("{") && segment.EndsWith("}"))
             {
