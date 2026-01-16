@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Xml.Linq;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
@@ -268,7 +269,7 @@ public static class SymbolExtensions
                 var crefAttr = inheritdocElement.Attribute("cref");
                 if (crefAttr != null)
                 {
-                    var referencedSymbol = ResolveDocumentationId(crefAttr.Value, compilation);
+                    var referencedSymbol = ResolveDocumentationId(crefAttr.Value, compilation, symbol);
                     if (referencedSymbol != null)
                     {
                         inheritedDoc = GetXmlDocumentationElement(referencedSymbol, compilation, visited);
@@ -411,49 +412,6 @@ public static class SymbolExtensions
                 }
             }
         }
-
-        static string GetExceptionDocumentation(XDocument xDocument)
-        {
-            StringBuilder? builder = null;
-            var errorCount = 0;
-            var exceptionElements = xDocument.Descendants("exception");
-            foreach (var exceptionElement in exceptionElements)
-            {
-                if (string.IsNullOrEmpty(exceptionElement.Value))
-                {
-                    continue;
-                }
-
-                var code = exceptionElement.Attribute("code");
-                if (string.IsNullOrEmpty(code?.Value))
-                {
-                    continue;
-                }
-
-                builder ??= new StringBuilder();
-                builder.Append(builder.Length > 0 ? "\n" : string.Empty)
-                    .Append(++errorCount)
-                    .Append('.')
-                    .Append(' ')
-                    .Append(code!.Value)
-                    .Append(':')
-                    .Append(' ')
-                    .Append(exceptionElement.Value);
-            }
-
-            return builder?.ToString() ?? string.Empty;
-        }
-
-        static string GetReturnsElementText(XDocument doc)
-        {
-            var xElement = doc.Descendants("returns").FirstOrDefault();
-            if (xElement?.Value != null)
-            {
-                return "\n\n**Returns:**\n" + xElement.Value;
-            }
-
-            return string.Empty;
-        }
     }
 
     private static string? GetXmlDocumentationFromSyntax(ISymbol symbol)
@@ -464,6 +422,11 @@ public static class SymbolExtensions
         while (syntax is VariableDeclaratorSyntax vds)
         {
             syntax = vds.Parent?.Parent;
+        }
+
+        while (syntax is ParameterSyntax ps)
+        {
+            syntax = ps.Parent?.Parent;
         }
 
         if (syntax == null || syntax.SyntaxTree.Options.DocumentationMode == DocumentationMode.None)
@@ -494,37 +457,6 @@ public static class SymbolExtensions
             .Insert(0, "<member>")
             .Append("</member>")
             .ToString();
-    }
-
-    /// <summary>
-    /// Resolves an inheritdoc element by finding the referenced member.
-    /// </summary>
-    private static string? ResolveInheritdoc(
-        ISymbol symbol,
-        XElement inheritdocElement,
-        Compilation compilation,
-        HashSet<ISymbol> visited)
-    {
-        // Check for cref attribute (explicit reference)
-        var crefAttr = inheritdocElement.Attribute("cref");
-        if (crefAttr != null)
-        {
-            var referencedSymbol = ResolveDocumentationId(crefAttr.Value, compilation, symbol);
-            if (referencedSymbol != null)
-            {
-                return GetSummaryDocumentationWithInheritanceCore(referencedSymbol, compilation, visited);
-            }
-            return null;
-        }
-
-        // No cref - resolve from base class or interface
-        var baseMember = FindBaseMember(symbol);
-        if (baseMember != null)
-        {
-            return GetSummaryDocumentationWithInheritanceCore(baseMember, compilation, visited);
-        }
-
-        return null;
     }
 
     /// <summary>
