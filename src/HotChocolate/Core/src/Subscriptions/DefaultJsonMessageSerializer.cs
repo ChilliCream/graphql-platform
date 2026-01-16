@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using static HotChocolate.Subscriptions.Properties.Resources;
@@ -22,12 +23,16 @@ public sealed class DefaultJsonMessageSerializer : IMessageSerializer
     public string CompleteMessage => Completed;
 
     /// <inheritdoc />
+    [RequiresUnreferencedCode("JSON message serialization might require types that cannot be statically analyzed.")]
+    [RequiresDynamicCode("JSON message serialization might require types that cannot be statically analyzed and might need runtime code generation.")]
     public string Serialize<TMessage>(TMessage message)
     {
         return JsonSerializer.Serialize(new MessageEnvelope<TMessage>(message), _options);
     }
 
     /// <inheritdoc />
+    [RequiresUnreferencedCode("JSON message deserialization might require types that cannot be statically analyzed.")]
+    [RequiresDynamicCode("JSON message deserialization might require types that cannot be statically analyzed and might need runtime code generation.")]
     public MessageEnvelope<TMessage> Deserialize<TMessage>(string serializedMessage)
     {
         var result = JsonSerializer.Deserialize<InternalMessageEnvelope<TMessage>>(

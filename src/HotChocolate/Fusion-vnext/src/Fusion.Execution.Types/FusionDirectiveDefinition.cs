@@ -1,8 +1,10 @@
+using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Types;
 
@@ -14,12 +16,23 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     /// <summary>
     /// Represents a GraphQL directive definition.
     /// </summary>
-    public FusionDirectiveDefinition(string name,
+    public FusionDirectiveDefinition(
+        string name,
         string? description,
         bool isRepeatable,
         FusionInputFieldDefinitionCollection arguments,
         DirectiveLocation locations)
     {
+        name.EnsureGraphQLName();
+        ArgumentNullException.ThrowIfNull(arguments);
+
+        if (locations == 0)
+        {
+            throw new ArgumentException(
+                "At least one directive location must be specified.",
+                nameof(locations));
+        }
+
         Name = name;
         Description = description;
         IsRepeatable = isRepeatable;
@@ -71,6 +84,9 @@ public sealed class FusionDirectiveDefinition : IDirectiveDefinition
     /// Gets the runtime type of the directive.
     /// </summary>
     public Type RuntimeType { get; } = typeof(object);
+
+    /// <inheritdoc />
+    public IFeatureCollection Features => field ??= new FeatureCollection();
 
     /// <summary>
     /// Gets a string that represents the current object.

@@ -17,6 +17,8 @@ public class QueryableDescendingSortOperationHandler : QueryableOperationHandler
         return DescendingSortOperation.From(fieldSelector);
     }
 
+    public static QueryableDescendingSortOperationHandler Create(SortProviderContext context) => new();
+
     private sealed class DescendingSortOperation : QueryableSortOperation
     {
         private DescendingSortOperation(QueryableFieldSelector fieldSelector)

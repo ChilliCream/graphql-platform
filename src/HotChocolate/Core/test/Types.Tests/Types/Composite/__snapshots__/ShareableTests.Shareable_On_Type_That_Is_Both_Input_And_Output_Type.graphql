@@ -1,0 +1,33 @@
+schema {
+  query: Query2
+}
+
+type BothInputAndOutput @shareable {
+  field: String
+}
+
+type Query2 {
+  output(input: BothInputAndOutputInput!): BothInputAndOutput!
+}
+
+input BothInputAndOutputInput {
+  field: String
+}
+
+"""
+By default, only a single source schema is allowed to contribute
+a particular field to an object type.
+
+            
+This prevents source schemas from inadvertently defining similarly named
+fields that are not semantically equivalent.
+
+            
+Fields must be explicitly marked as @shareable to allow multiple source
+schemas to define them, ensuring that the decision to serve a field from
+more than one source schema is intentional and coordinated.
+
+
+directive @shareable repeatable on OBJECT | FIELD_DEFINITION
+"""
+directive @shareable repeatable on OBJECT | FIELD_DEFINITION

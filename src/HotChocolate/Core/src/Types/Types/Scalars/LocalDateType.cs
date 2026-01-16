@@ -6,13 +6,19 @@ using HotChocolate.Properties;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The `LocalDate` scalar type represents an ISO date string, represented as UTF-8
-/// character sequences YYYY-MM-DD. The scalar follows the specification defined in
-/// <a href="https://tools.ietf.org/html/rfc3339">RFC3339</a>
+/// <para>
+/// This scalar represents a date without a time-zone in the
+/// <see href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</see> calendar system.
+/// </para>
+/// <para>
+/// The pattern is "YYYY-MM-DD" with "YYYY" representing the year, "MM" the month, and "DD" the day.
+/// </para>
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/andimarek/local-date.html">Specification</seealso>
 public class LocalDateType : ScalarType<DateOnly, StringValueNode>
 {
     private const string LocalFormat = "yyyy-MM-dd";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/andimarek/local-date.html";
     private readonly bool _enforceSpecFormat;
 
     /// <summary>
@@ -26,6 +32,9 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+        SerializationType = ScalarSerializationType.String;
+        Pattern = @"^\d{4}-\d{2}-\d{2}$";
+        SpecifiedBy = new Uri(SpecifiedByUri);
         _enforceSpecFormat = !disableFormatCheck;
     }
 

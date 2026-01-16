@@ -38,4 +38,7 @@ public class QueryableComparableNotInHandler
                 context.RuntimeTypes.Peek().Source,
                 parsedValue));
     }
+
+    public static QueryableComparableNotInHandler Create(FilterProviderContext context)
+        => new(context.TypeConverter, context.InputParser);
 }

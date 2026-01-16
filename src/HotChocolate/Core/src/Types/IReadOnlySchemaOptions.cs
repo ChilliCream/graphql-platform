@@ -216,4 +216,15 @@ public interface IReadOnlySchemaOptions
     /// Applies the @sharable directive to all connection and edge types.
     /// </summary>
     bool ApplyShareableToConnections { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to the `node(id)` and `nodes(id)`
+    /// field when Global Object Identification is turned on.
+    /// </summary>
+    bool ApplyShareableToNodeFields { get; }
+
+    /// <summary>
+    /// Applies the @serializeAs directive to scalar types that specify a serialization format.
+    /// </summary>
+    bool ApplySerializeAsToScalars { get; }
 }

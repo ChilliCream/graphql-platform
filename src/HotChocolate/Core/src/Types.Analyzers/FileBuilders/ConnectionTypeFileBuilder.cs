@@ -8,6 +8,8 @@ namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(sb)
 {
+    protected override string OutputFieldDescriptorType => WellKnownTypes.ObjectFieldDescriptor;
+
     public override void WriteBeginClass(IOutputTypeInfo type)
     {
         Writer.WriteIndentedLine(
@@ -36,7 +38,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
 
         using (Writer.IncreaseIndent())
         {
-            if (connectionType.Resolvers.Length > 0 || connectionType.Attributes.Length > 0)
+            if (connectionType.Resolvers.Length > 0 || connectionType.DescriptorAttributes.Length > 0)
             {
                 Writer.WriteIndentedLine("var extension = descriptor.Extend();");
                 Writer.WriteIndentedLine("var configuration = extension.Configuration;");
@@ -55,19 +57,33 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                         : "var resolvers = new __Resolvers();");
             }
 
-            if (connectionType.Attributes.Length > 0)
+            if (connectionType.DescriptorAttributes.Length > 0)
             {
                 Writer.WriteLine();
-                Writer.WriteIndentedLine("var configurations = configuration.Configurations;");
-
-                foreach (var attribute in connectionType.Attributes)
+                Writer.WriteIndentedLine(
+                    "{0}.ApplyConfiguration(",
+                    WellKnownTypes.ConfigurationHelper);
+                using (Writer.IncreaseIndent())
                 {
-                    Writer.WriteIndentedLine(
-                        "configurations = configurations.Add({0});",
-                        GenerateAttributeInstantiation(attribute));
-                }
+                    Writer.WriteIndentedLine("extension.Context,");
+                    Writer.WriteIndentedLine("descriptor,");
+                    Writer.WriteIndentedLine("null,");
 
-                Writer.WriteIndentedLine("configuration.Configurations = configurations;");
+                    var first = true;
+                    foreach (var attribute in connectionType.DescriptorAttributes)
+                    {
+                        if (!first)
+                        {
+                            Writer.WriteLine(',');
+                        }
+
+                        Writer.WriteIndent();
+                        Writer.Write(GenerateAttributeInstantiation(attribute));
+                        first = false;
+                    }
+
+                    Writer.WriteLine([')', ';']);
+                }
             }
 
             if (connectionType.Inaccessible is DirectiveScope.Type)

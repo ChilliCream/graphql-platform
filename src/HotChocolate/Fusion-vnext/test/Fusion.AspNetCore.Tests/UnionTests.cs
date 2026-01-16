@@ -74,7 +74,7 @@ public class UnionTests : FusionTestBase
 
             union Post = Photo | Discussion
 
-            type Photo {
+            type Photo @key(fields: "id") {
               id: ID!
             }
 
@@ -151,11 +151,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -245,11 +245,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -331,7 +331,7 @@ public class UnionTests : FusionTestBase
               product: Product
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
             """);
@@ -401,7 +401,7 @@ public class UnionTests : FusionTestBase
 
             union Post = Photo | Discussion
 
-            type Photo {
+            type Photo @key(fields: "id") {
               id: ID!
             }
 
@@ -478,11 +478,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -572,11 +572,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -658,7 +658,7 @@ public class UnionTests : FusionTestBase
               product: Product
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
             """);
@@ -732,7 +732,7 @@ public class UnionTests : FusionTestBase
 
             union Post = Photo | Discussion
 
-            type Photo {
+            type Photo @key(fields: "id") {
               id: ID!
             }
 
@@ -815,11 +815,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -915,11 +915,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -1007,7 +1007,7 @@ public class UnionTests : FusionTestBase
               product: Product
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
             """);
@@ -1083,7 +1083,7 @@ public class UnionTests : FusionTestBase
 
             union Post = Photo | Discussion
 
-            type Photo {
+            type Photo @key(fields: "id") {
               id: ID!
             }
 
@@ -1166,11 +1166,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -1266,11 +1266,11 @@ public class UnionTests : FusionTestBase
               author: Author
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
 
-            type Author {
+            type Author @key(fields: "id") {
               id: ID!
             }
             """);
@@ -1358,7 +1358,7 @@ public class UnionTests : FusionTestBase
               product: Product
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
             """);

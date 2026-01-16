@@ -59,7 +59,7 @@ LIMIT @__p_0
 
 ```sql
 -- @__brandIds_0={ '11', '13' } (DbType = Object)
-SELECT t."BrandId", t0."Id", t0."Name", t0."BrandId"
+SELECT t."BrandId", t0."Id", t0."Name"
 FROM (
     SELECT p."BrandId"
     FROM "Products" AS p

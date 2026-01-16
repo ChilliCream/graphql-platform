@@ -15,7 +15,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
             }
 
@@ -32,7 +32,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               discussionById(id: ID!): Discussion @lookup @internal
             }
 
@@ -89,7 +89,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
             }
 
@@ -106,7 +106,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               discussionById(id: ID!): Discussion @lookup @internal
             }
 
@@ -163,7 +163,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
             }
 
@@ -180,7 +180,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               discussionById(id: ID!): Discussion @lookup @internal
             }
 
@@ -235,7 +235,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
             }
 
@@ -252,7 +252,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               discussionById(id: ID!): Discussion @lookup @internal
             }
 
@@ -308,7 +308,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
             }
 
@@ -325,7 +325,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               discussionById(id: ID!): Discussion @lookup @internal
             }
 
@@ -381,7 +381,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -399,7 +399,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             """
             type Query {
               authorById(id: ID!): Author @lookup
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -495,7 +495,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
             }
 
@@ -512,7 +512,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               discussionById(id: ID!): Discussion @lookup @internal
             }
 
@@ -566,7 +566,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
               discussionByName(title: String! @is(field: "title")): Discussion @lookup
             }
 
-            type Discussion {
+            type Discussion @key(fields: "id") {
               id: ID!
               title: String!
               commentCount: Int!
@@ -584,7 +584,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
               id: ID!
             }
 
-            type Discussion implements Node {
+            type Discussion implements Node @key(fields: "title") {
               id: ID!
               title: String!
             }
@@ -627,7 +627,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
             }
 
@@ -644,7 +644,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               discussion(id: ID!): Discussion @lookup
             }
 
@@ -780,7 +780,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
               discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
             }
 
-            interface Node {
+            interface Node @key(fields: "id") {
               id: ID!
             }
 
@@ -828,7 +828,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
               discussionById(id: ID!): Discussion @lookup
             }
 
@@ -842,7 +842,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
               product: Product
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
             """);
@@ -851,7 +851,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -905,7 +905,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -917,7 +917,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
               product: Product
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
             """);
@@ -926,7 +926,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -938,7 +938,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
               product: Product
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
             """);
@@ -947,7 +947,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "C",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -1005,7 +1005,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -1017,7 +1017,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
               product: Product
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
             """);
@@ -1026,7 +1026,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -1038,7 +1038,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
               product: Product
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
             """);
@@ -1047,7 +1047,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "C",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -1227,7 +1227,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -1258,7 +1258,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -1318,7 +1318,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -1348,7 +1348,7 @@ public class GlobalObjectIdentificationTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {

@@ -465,9 +465,7 @@ public class TypeConverterTests
 
         // act
         Action action = () =>
-            TypeConverterExtensions.TryConvert<string[], List<FooOrBar?>>(
-                null,
-                list, out var output);
+            TypeConverterExtensions.TryConvert<string[], List<FooOrBar?>>(null, list, out _);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

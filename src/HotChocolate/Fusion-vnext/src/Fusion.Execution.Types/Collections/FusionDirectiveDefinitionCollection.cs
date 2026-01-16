@@ -35,10 +35,10 @@ public sealed class FusionDirectiveDefinitionCollection
         => _directives[index];
 
     public FusionDirectiveDefinition SkipDirective
-        => _directiveLookup[SpecDirectiveNames.Skip.Name];
+        => _directiveLookup[DirectiveNames.Skip.Name];
 
     public FusionDirectiveDefinition IncludeDirective
-        => _directiveLookup[SpecDirectiveNames.Include.Name];
+        => _directiveLookup[DirectiveNames.Include.Name];
 
     public bool TryGetDirective(
         string name,

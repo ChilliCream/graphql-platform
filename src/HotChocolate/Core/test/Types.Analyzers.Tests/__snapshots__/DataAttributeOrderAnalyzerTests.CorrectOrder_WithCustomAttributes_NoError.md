@@ -71,7 +71,9 @@ namespace TestNamespace
                     var naming = field.Context.Naming;
 
                     configuration.DeprecationReason = "No longer supported.";
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Product>>>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product")))));
                     configuration.ResultType = typeof(global::System.Linq.IQueryable<global::TestNamespace.Product>);
 
                     configuration.SetSourceGeneratorFlags();
@@ -85,7 +87,9 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("productService", global::HotChocolate.Types.MemberKind.Argument),
-                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.ProductService>>>), HotChocolate.Types.TypeContext.Input),
+                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                                typeInspector.GetTypeRef(typeof(global::TestNamespace.ProductService), HotChocolate.Types.TypeContext.Input),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_ProductService"))),
                             RuntimeType = typeof(global::TestNamespace.ProductService)
                         };
 
@@ -100,12 +104,17 @@ namespace TestNamespace
                             typeof(global::TestNamespace.ProductService)
                         })!;
 
-                    var configurations = configuration.Configurations;
-                    configurations = configurations.Add(new global::HotChocolate.Types.UsePagingAttribute(null, 12));
-                    configurations = configurations.Add(new global::HotChocolate.Data.UseProjectionAttribute(13));
-                    configurations = configurations.Add(new global::HotChocolate.Data.UseFilteringAttribute(null, 15));
-                    configurations = configurations.Add(new global::HotChocolate.Data.UseSortingAttribute(null, 16));
-                    configuration.Configurations = configurations;
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Types.UsePagingAttribute(null, 12),
+                        new global::HotChocolate.Data.UseProjectionAttribute(13),
+                        new global::HotChocolate.Data.UseFilteringAttribute(null, 15),
+                        new global::HotChocolate.Data.UseSortingAttribute(null, 16));
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
 
                     configuration.Resolvers = context.Resolvers.GetProducts();
                 },

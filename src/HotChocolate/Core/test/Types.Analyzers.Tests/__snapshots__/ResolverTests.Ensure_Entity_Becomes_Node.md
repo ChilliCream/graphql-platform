@@ -68,9 +68,12 @@ namespace TestNamespace
             var bindingResolver = extension.Context.ParameterBindingResolver;
             var resolvers = new __Resolvers(bindingResolver);
 
-            var configurations = configuration.Configurations;
-            configurations = configurations.Add(new global::HotChocolate.Types.QueryTypeAttribute());
-            configuration.Configurations = configurations;
+            HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                extension.Context,
+                descriptor,
+                null,
+                new global::HotChocolate.Types.QueryTypeAttribute());
+            configuration.ConfigurationsAreApplied = true;
 
             var naming = descriptor.Extend().Context.Naming;
 
@@ -83,7 +86,7 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Test>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::TestNamespace.Test), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.Test);
 
                     configuration.SetSourceGeneratorFlags();
@@ -97,13 +100,20 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("id", global::HotChocolate.Types.MemberKind.Argument),
-                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<int>>>), HotChocolate.Types.TypeContext.Input),
+                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                                typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int"))),
                             RuntimeType = typeof(int)
                         };
 
-                        var argumentConfigurations = argumentConfiguration.Configurations;
-                        argumentConfigurations = argumentConfigurations.Add(new global::HotChocolate.Types.Relay.IDAttribute<global::TestNamespace.Test>());
-                        argumentConfiguration.Configurations = argumentConfigurations;
+                        var argumentDescriptor = global::HotChocolate.Types.Descriptors.ArgumentDescriptor.From(field.Context, argumentConfiguration);
+                        HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                            field.Context,
+                            argumentDescriptor,
+                            null,
+                            new global::HotChocolate.Types.Relay.IDAttribute<global::TestNamespace.Test>());
+                        argumentConfiguration.ConfigurationsAreApplied = true;
+                        argumentDescriptor.CreateConfiguration();
 
                         configuration.Arguments.Add(argumentConfiguration);
                     }
@@ -132,7 +142,7 @@ namespace TestNamespace
                     typeof(int),
                     isNullable: false,
                     [
-                        new global::HotChocolate.Types.Relay.IDAttribute<global::TestNamespace.Test>().
+                        new global::HotChocolate.Types.Relay.IDAttribute<global::TestNamespace.Test>()
                     ]);
 
             public HotChocolate.Resolvers.FieldResolverDelegates GetTestById()
@@ -204,28 +214,5 @@ namespace TestNamespace
 }
 
 
-```
-
-## Assembly Emit Diagnostics
-
-```json
-[
-  {
-    "Id": "CS1001",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "Query.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (89,103)-(89,103)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1001)",
-    "MessageFormat": "Identifier expected",
-    "Message": "Identifier expected",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  }
-]
 ```
 

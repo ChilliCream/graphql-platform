@@ -7,6 +7,8 @@ namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(sb)
 {
+    protected override string OutputFieldDescriptorType => WellKnownTypes.ObjectFieldDescriptor;
+
     public override void WriteBeginClass(IOutputTypeInfo type)
     {
         Writer.WriteIndentedLine(
@@ -35,7 +37,7 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
 
         using (Writer.IncreaseIndent())
         {
-            if (edgeType.Resolvers.Length > 0 || edgeType.Attributes.Length > 0)
+            if (edgeType.Resolvers.Length > 0 || edgeType.DescriptorAttributes.Length > 0)
             {
                 Writer.WriteIndentedLine("var extension = descriptor.Extend();");
                 Writer.WriteIndentedLine("var configuration = extension.Configuration;");
@@ -54,19 +56,33 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
                         : "var resolvers = new __Resolvers();");
             }
 
-            if (edgeType.Attributes.Length > 0)
+            if (edgeType.DescriptorAttributes.Length > 0)
             {
                 Writer.WriteLine();
-                Writer.WriteIndentedLine("var configurations = configuration.Configurations;");
-
-                foreach (var attribute in edgeType.Attributes)
+                Writer.WriteIndentedLine(
+                    "{0}.ApplyConfiguration(",
+                    WellKnownTypes.ConfigurationHelper);
+                using (Writer.IncreaseIndent())
                 {
-                    Writer.WriteIndentedLine(
-                        "configurations = configurations.Add({0});",
-                        GenerateAttributeInstantiation(attribute));
-                }
+                    Writer.WriteIndentedLine("extension.Context,");
+                    Writer.WriteIndentedLine("descriptor,");
+                    Writer.WriteIndentedLine("null,");
 
-                Writer.WriteIndentedLine("configuration.Configurations = configurations;");
+                    var first = true;
+                    foreach (var attribute in edgeType.DescriptorAttributes)
+                    {
+                        if (!first)
+                        {
+                            Writer.WriteLine(',');
+                        }
+
+                        Writer.WriteIndent();
+                        Writer.Write(GenerateAttributeInstantiation(attribute));
+                        first = false;
+                    }
+
+                    Writer.WriteLine([')', ';']);
+                }
             }
 
             if (edgeType.Inaccessible is DirectiveScope.Type)

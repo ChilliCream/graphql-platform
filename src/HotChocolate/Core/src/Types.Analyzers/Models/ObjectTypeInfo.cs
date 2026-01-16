@@ -25,9 +25,10 @@ public sealed class ObjectTypeInfo
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
         Description = schemaType.GetDescription();
+        Attributes = attributes;
         Shareable = attributes.GetShareableScope();
         Inaccessible = attributes.GetInaccessibleScope();
-        Attributes = attributes.GetUserAttributes();
+        DescriptorAttributes = attributes.GetUserAttributes();
     }
 
     public string Name => SchemaSchemaType.Name;
@@ -37,8 +38,6 @@ public sealed class ObjectTypeInfo
     public string? Description { get; }
 
     public bool IsPublic => SchemaSchemaType.DeclaredAccessibility == Accessibility.Public;
-
-    public bool IsRootType => false;
 
     public INamedTypeSymbol SchemaSchemaType { get; }
 
@@ -66,6 +65,8 @@ public sealed class ObjectTypeInfo
 
     public ImmutableArray<AttributeData> Attributes { get; }
 
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
+
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);
 
@@ -75,10 +76,23 @@ public sealed class ObjectTypeInfo
     public override bool Equals(SyntaxInfo? obj)
         => obj is ObjectTypeInfo other && Equals(other);
 
-    private bool Equals(ObjectTypeInfo other)
-        => string.Equals(SchemaTypeFullName, other.SchemaTypeFullName, StringComparison.Ordinal)
-            && ClassDeclaration.SyntaxTree.IsEquivalentTo(
-                other.ClassDeclaration.SyntaxTree);
+    private bool Equals(ObjectTypeInfo? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return OrderByKey.Equals(other.OrderByKey)
+            && string.Equals(SchemaTypeFullName, other.SchemaTypeFullName, StringComparison.Ordinal)
+            && ClassDeclaration.SyntaxTree.IsEquivalentTo(other.ClassDeclaration.SyntaxTree);
+    }
+
     public override int GetHashCode()
-        => HashCode.Combine(SchemaTypeFullName, ClassDeclaration);
+        => HashCode.Combine(OrderByKey, SchemaTypeFullName, ClassDeclaration);
 }

@@ -43,18 +43,18 @@ public static class Errors
 
     public static readonly DiagnosticDescriptor InterfaceTypePartialKeywordMissing =
         new(
-            id: "HC0080",
+            id: "HC0106",
             title: "Partial Keyword Missing",
-            messageFormat: "A split object type class needs to be a partial class",
+            messageFormat: "A split interface type class needs to be a partial class",
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor InterfaceTypeStaticKeywordMissing =
         new(
-            id: "HC0081",
+            id: "HC0107",
             title: "Static Keyword Missing",
-            messageFormat: "A split object type class needs to be a static class",
+            messageFormat: "A split interface type class needs to be a static class",
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
@@ -244,6 +244,15 @@ public static class Errors
             id: "HC0105",
             title: "ID Attribute Must Target Property",
             messageFormat: "The [ID] attribute on record parameters must use the 'property:' target specifier",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor WrongAuthorizeAttribute =
+        new(
+            id: "HC0106",
+            title: "Microsoft Authorization Attribute Not Allowed",
+            messageFormat: "Use HotChocolate.Authorization.{0} instead",
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);

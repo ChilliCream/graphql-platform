@@ -57,16 +57,16 @@ public class GraphQLParserSyntaxTests
 
     [Fact]
     public void Parse_ObjectValueNode_From_String() =>
-        Utf8GraphQLParser.Syntax.ParseObjectLiteral(@"{ a: 1 }").MatchSnapshot();
+        Utf8GraphQLParser.Syntax.ParseObjectLiteral("{ a: 1 }").MatchSnapshot();
 
     [Fact]
     public void Parse_ObjectValueNode_From_ByteArray() =>
-        Utf8GraphQLParser.Syntax.ParseObjectLiteral(GetUtf8Bytes(@"{ a: 1 }")).MatchSnapshot();
+        Utf8GraphQLParser.Syntax.ParseObjectLiteral(GetUtf8Bytes("{ a: 1 }")).MatchSnapshot();
 
     [Fact]
     public void Parse_ObjectValueNode_From_Reader()
     {
-        var reader = new Utf8GraphQLReader(GetUtf8Bytes(@"{ a: 1 }"));
+        var reader = new Utf8GraphQLReader(GetUtf8Bytes("{ a: 1 }"));
         reader.MoveNext();
 
         Utf8GraphQLParser.Syntax.ParseObjectLiteral(reader).MatchSnapshot();

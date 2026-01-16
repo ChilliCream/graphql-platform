@@ -119,14 +119,6 @@ public class DocumentNodeTests
     public void Document_With_Definitions_Null()
     {
         // arrange
-        var fragment = new FragmentDefinitionNode(
-            null, new NameNode("foo"),
-            description: null,
-            Array.Empty<VariableDefinitionNode>(),
-            new NamedTypeNode("foo"),
-            Array.Empty<DirectiveNode>(),
-            new SelectionSetNode(Array.Empty<ISelectionNode>()));
-
         var document = new DocumentNode(new IDefinitionNode[] { });
 
         // act

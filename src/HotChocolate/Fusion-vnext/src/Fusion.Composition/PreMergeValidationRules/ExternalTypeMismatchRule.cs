@@ -21,16 +21,14 @@ internal sealed class ExternalTypeMismatchRule : IEventHandler<OutputFieldGroupE
     {
         var (_, fieldGroup, _) = @event;
 
-        var externalFieldGroup =
-            fieldGroup.Where(i => i.Field.HasExternalDirective()).ToImmutableHashSet();
+        var externalFieldGroup = fieldGroup.Where(i => i.Field.IsExternal).ToImmutableHashSet();
 
         if (externalFieldGroup.IsEmpty)
         {
             return;
         }
 
-        var nonExternalFieldGroup =
-            fieldGroup.Where(i => !i.Field.HasExternalDirective()).ToImmutableHashSet();
+        var nonExternalFieldGroup = fieldGroup.Where(i => !i.Field.IsExternal).ToImmutableHashSet();
 
         if (nonExternalFieldGroup.IsEmpty)
         {

@@ -516,7 +516,7 @@ internal sealed class KeyTransitionVisitor : SyntaxWalker<KeyTransitionVisitor.C
     protected override ISyntaxVisitorAction Enter(FieldNode node, Context context)
     {
         var type = (FusionComplexTypeDefinition)context.Types.Peek();
-        var field = type.Fields[node.Name.Value];
+        var field = type.Fields.GetField(node.Name.Value, allowInaccessibleFields: true);
 
         if (!field.Sources.TryGetMember(context.SourceSchema, out var member) || member.Requirements is not null)
         {

@@ -49,7 +49,7 @@ LIMIT @__p_3 OFFSET @__p_2
 
 ```sql
 -- @__ids_0={ '6' } (DbType = Object)
-SELECT b."Id", b."Name"
+SELECT b."Name", b."Id"
 FROM "Brands" AS b
 WHERE b."Id" = ANY (@__ids_0)
 ```

@@ -1,5 +1,7 @@
+using System.Buffers;
 using System.Diagnostics;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
@@ -8,7 +10,7 @@ using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 namespace HotChocolate.Fusion.Text.Json;
 
-public readonly partial struct CompositeResultElement
+public readonly partial struct CompositeResultElement : IRawJsonFormatter
 {
     private readonly CompositeResultDocument _parent;
     private readonly CompositeResultDocument.Cursor _cursor;
@@ -20,6 +22,14 @@ public readonly partial struct CompositeResultElement
         // get here with a null.
         _parent = parent;
         _cursor = cursor;
+    }
+
+    public void WriteTo(IBufferWriter<byte> writer, bool indented = false)
+    {
+        var formatter = new CompositeResultDocument.RawJsonFormatter(_parent, writer, indented);
+
+        var row = _parent._metaDb.Get(_cursor);
+        formatter.WriteValue(_cursor, row);
     }
 
     /// <summary>

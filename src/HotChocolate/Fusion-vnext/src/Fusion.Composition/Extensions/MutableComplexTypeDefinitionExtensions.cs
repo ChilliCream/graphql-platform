@@ -8,20 +8,23 @@ namespace HotChocolate.Fusion.Extensions;
 
 internal static class MutableComplexTypeDefinitionExtensions
 {
-    public static void ApplyKeyDirective(this MutableComplexTypeDefinition type, string keyFields)
+    extension(MutableComplexTypeDefinition complexType)
     {
-        var keyDirectiveExists =
-            type.Directives.AsEnumerable().Any(
-                d =>
-                    d.Name == DirectiveNames.Key
-                    && ((StringValueNode)d.Arguments[ArgumentNames.Fields]).Value.Equals(keyFields));
-
-        if (!keyDirectiveExists)
+        public void ApplyKeyDirective(string keyFields)
         {
-            type.Directives.Add(
-                new Directive(
-                    FusionBuiltIns.SourceSchemaDirectives[DirectiveNames.Key],
-                    new ArgumentAssignment(ArgumentNames.Fields, keyFields)));
+            var keyDirectiveExists =
+                complexType.Directives.AsEnumerable().Any(
+                    d =>
+                        d.Name == DirectiveNames.Key
+                        && ((StringValueNode)d.Arguments[ArgumentNames.Fields]).Value.Equals(keyFields));
+
+            if (!keyDirectiveExists)
+            {
+                complexType.Directives.Add(
+                    new Directive(
+                        FusionBuiltIns.SourceSchemaDirectives[DirectiveNames.Key],
+                        new ArgumentAssignment(ArgumentNames.Fields, keyFields)));
+            }
         }
     }
 }

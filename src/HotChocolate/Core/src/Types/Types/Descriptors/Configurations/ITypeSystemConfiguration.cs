@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Features;
 
 namespace HotChocolate.Types.Descriptors.Configurations;
@@ -23,11 +22,6 @@ public interface ITypeSystemConfiguration : IFeatureProvider
     /// Gets or sets a name to which this definition is bound to.
     /// </summary>
     string? BindTo { get; set; }
-
-    /// <summary>
-    /// Gets configurations that shall be applied to this type system configuration.
-    /// </summary>
-    ImmutableList<IDescriptorConfiguration> Configurations { get; set; }
 
     /// <summary>
     /// Defines whether descriptor attributes are applied or not.

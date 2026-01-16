@@ -71,6 +71,7 @@ internal sealed class CapabilityInspector
 
         if (result.Data.ValueKind is JsonValueKind.Object
             && result.Data.TryGetProperty("__type", out var type)
+            && type.ValueKind is JsonValueKind.Object
             && type.TryGetProperty("fields", out var fields))
         {
             foreach (var field in fields.EnumerateArray())
@@ -129,9 +130,18 @@ internal sealed class CapabilityInspector
         using var response = await _client.SendAsync(request, _cancellationToken).ConfigureAwait(false);
         using var result = await response.ReadAsResultAsync(_cancellationToken).ConfigureAwait(false);
 
-        if (result.Data.ValueKind is JsonValueKind.Object
-            && result.Data.TryGetProperty("__type", out var type)
-            && type.TryGetProperty("fields", out var fields))
+        if (result.Data.ValueKind is not JsonValueKind.Object
+            || !result.Data.TryGetProperty("__type", out var type)
+            || type.ValueKind is not JsonValueKind.Object
+            || !type.TryGetProperty("fields", out var fields))
+        {
+            // if we cannot detect features because __type does return null,
+            // we will assume `locations` exists but assume all other
+            // directive related features do not exist.
+            _features.HasDirectiveLocations = true;
+            _features.HasRepeatableDirectives = false;
+        }
+        else
         {
             var locations = false;
             var isRepeatable = false;
@@ -203,6 +213,7 @@ internal sealed class CapabilityInspector
 
         if (result.Data.ValueKind is JsonValueKind.Object
             && result.Data.TryGetProperty("__schema", out var schema)
+            && schema.ValueKind is JsonValueKind.Object
             && schema.TryGetProperty("directives", out var directives))
         {
             var defer = false;
@@ -278,6 +289,7 @@ internal sealed class CapabilityInspector
 
         if (result.Data.ValueKind is JsonValueKind.Object
             && result.Data.TryGetProperty("__type", out var type)
+            && type.ValueKind is JsonValueKind.Object
             && type.TryGetProperty("fields", out var fields))
         {
             var description = false;

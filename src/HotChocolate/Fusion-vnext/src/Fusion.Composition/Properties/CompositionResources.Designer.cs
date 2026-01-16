@@ -105,6 +105,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Source schema preprocessing failed..
+        /// </summary>
+        internal static string ErrorHelper_SourceSchemaPreprocessingFailed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_SourceSchemaPreprocessingFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Source schema validation failed..
         /// </summary>
         internal static string ErrorHelper_SourceSchemaValidationFailed {
@@ -762,6 +771,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The input type &apos;{0}&apos; in schema &apos;{1}&apos; must be annotated with the &apos;@oneOf` directive, since the same type has been annotated with it in schema &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputWithMissingOneOf {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputWithMissingOneOf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The input type &apos;{0}&apos; in schema &apos;{1}&apos; must define the required field &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_InputWithMissingRequiredFields {
@@ -780,6 +798,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; must be shareable..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidFieldSharing {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidFieldSharing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid GraphQL in source schema. Exception message: {0}..
         /// </summary>
         internal static string LogEntryHelper_InvalidGraphQL {
@@ -789,7 +816,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The interface field &apos;{0}&apos; in schema &apos;{1}&apos; must not be marked as shareable..
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; must not be marked as shareable..
         /// </summary>
         internal static string LogEntryHelper_InvalidShareableUsage {
             get {
@@ -1019,6 +1046,42 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_QueryRootTypeInaccessible {
             get {
                 return ResourceManager.GetString("LogEntryHelper_QueryRootTypeInaccessible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged field argument &apos;{0}&apos; on field &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged input field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToInaccessibleTypeFromInputField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToInaccessibleTypeFromInputField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged output field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the internal type &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToInternalType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToInternalType", resourceCulture);
             }
         }
         
@@ -1298,6 +1361,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ShareableMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("ShareableMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @tag directive must have a &apos;name&apos; argument of type String..
+        /// </summary>
+        internal static string TagDirective_NameArgument_Invalid {
+            get {
+                return ResourceManager.GetString("TagDirective_NameArgument_Invalid", resourceCulture);
             }
         }
         

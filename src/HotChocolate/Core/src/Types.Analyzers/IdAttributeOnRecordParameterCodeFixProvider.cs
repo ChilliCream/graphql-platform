@@ -43,7 +43,7 @@ public sealed class IdAttributeOnRecordParameterCodeFixProvider : CodeFixProvide
             return;
         }
 
-        const string title = "Add 'property:' target to [ID] attribute";
+        const string title = "Add 'property:' target to ID attribute";
         context.RegisterCodeFix(
             CodeAction.Create(
                 title: title,
@@ -67,10 +67,13 @@ public sealed class IdAttributeOnRecordParameterCodeFixProvider : CodeFixProvide
         }
 
         // Create new attribute list with property: target
+        // This works for both [ID] and [ID<T>] syntax
         var propertyTarget = SyntaxFactory.AttributeTargetSpecifier(
             SyntaxFactory.Token(SyntaxKind.PropertyKeyword));
 
-        var newAttributeList = attributeList.WithTarget(propertyTarget);
+        var newAttributeList = attributeList.WithTarget(propertyTarget)
+            .WithLeadingTrivia(attributeList.GetLeadingTrivia())
+            .WithTrailingTrivia(attributeList.GetTrailingTrivia());
 
         var newRoot = root.ReplaceNode(attributeList, newAttributeList);
         return document.WithSyntaxRoot(newRoot);

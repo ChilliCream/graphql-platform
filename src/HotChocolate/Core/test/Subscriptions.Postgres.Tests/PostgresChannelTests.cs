@@ -281,7 +281,7 @@ public class PostgresChannelTests
         const string topicName = "test";
         var reconnected = false;
         NpgsqlConnection? connection = null;
-        var options = new PostgresSubscriptionOptions()
+        var options = new PostgresSubscriptionOptions
         {
             ConnectionFactory = async ct =>
             {
@@ -334,7 +334,7 @@ public class PostgresChannelTests
         var reconnected = false;
         var tries = 0;
         NpgsqlConnection? connection = null;
-        var options = new PostgresSubscriptionOptions()
+        var options = new PostgresSubscriptionOptions
         {
             ConnectionFactory = async ct =>
             {

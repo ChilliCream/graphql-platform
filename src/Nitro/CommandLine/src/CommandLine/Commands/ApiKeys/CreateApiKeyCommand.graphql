@@ -1,0 +1,23 @@
+mutation CreateApiKeyCommandMutation($input: CreateApiKeyInput!) {
+  createApiKey(input: $input) {
+    result {
+      key {
+        ...CreateApiKeyCommandMutation_ApiKey
+      }
+      secret
+    }
+    errors {
+      ...ApiNotFoundError
+      ...WorkspaceNotFound
+      ...PersonalWorkspaceNotSupportedError
+      ...ValidationError
+      ...RoleNotFoundError
+      ...Error
+    }
+  }
+}
+
+fragment CreateApiKeyCommandMutation_ApiKey on ApiKey {
+  id
+  ...ApiKeyDetailPrompt_ApiKey
+}

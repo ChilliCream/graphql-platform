@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Definitions;
+using HotChocolate.Fusion.DirectiveMergers;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Info;
 using HotChocolate.Fusion.Language;
@@ -14,8 +15,6 @@ using HotChocolate.Language.Utilities;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
-using HotChocolate.Types.Mutable.Definitions;
-using HotChocolate.Types.Mutable.Directives;
 using static HotChocolate.Fusion.StringUtilities;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
@@ -28,7 +27,7 @@ internal sealed class SourceSchemaMerger
 {
     private static readonly FusionFieldDefinitionSyntaxRewriter s_fieldDefinitionRewriter = new();
     private readonly ImmutableSortedSet<MutableSchemaDefinition> _schemas;
-    private readonly FrozenDictionary<MutableSchemaDefinition, string> _schemaConstantNames;
+    private readonly FrozenDictionary<string, string> _schemaConstantNames;
     private readonly SourceSchemaMergerOptions _options;
     private readonly FrozenDictionary<string, ITypeDefinition> _fusionTypeDefinitions;
     private readonly FrozenDictionary<string, MutableDirectiveDefinition>
@@ -36,34 +35,62 @@ internal sealed class SourceSchemaMerger
     private readonly Dictionary<string, ValueSelectionToSelectionSetRewriter>
         _selectedValueToSelectionSetRewriters = [];
     private readonly Dictionary<string, MergeSelectionSetRewriter> _mergeSelectionSetRewriters = [];
-    private readonly HashSet<string> _requireInputTypeNames = [];
+    private readonly FrozenDictionary<string, IDirectiveMerger> _directiveMergers;
+    private readonly List<Action> _applyDirectiveActions = [];
 
     public SourceSchemaMerger(
         ImmutableSortedSet<MutableSchemaDefinition> schemas,
         SourceSchemaMergerOptions? options = null)
     {
         _schemas = schemas;
-        _schemaConstantNames = schemas.ToFrozenDictionary(s => s, s => ToConstantCase(s.Name));
+        _schemaConstantNames = schemas.ToFrozenDictionary(s => s.Name, s => ToConstantCase(s.Name));
         _options = options ?? new SourceSchemaMergerOptions();
         _fusionTypeDefinitions = CreateFusionTypeDefinitions();
         _fusionDirectiveDefinitions = CreateFusionDirectiveDefinitions();
+        _directiveMergers =
+            new Dictionary<string, IDirectiveMerger>
+            {
+                {
+                    DirectiveNames.CacheControl,
+                    new CacheControlDirectiveMerger(_options.CacheControlMergeBehavior)
+                },
+                {
+                    DirectiveNames.McpToolAnnotations,
+                    new McpToolAnnotationsDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
+                    DirectiveNames.OneOf,
+                    new OneOfDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
+                    DirectiveNames.SerializeAs,
+                    new SerializeAsDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
+                    DirectiveNames.Tag,
+                    new TagDirectiveMerger(_options.TagMergeBehavior)
+                }
+            }.ToFrozenDictionary();
     }
 
     public CompositionResult<MutableSchemaDefinition> Merge()
     {
         var mergedSchema = new MutableSchemaDefinition();
 
-        MergeDirectiveDefinitions(mergedSchema);
         MergeTypes(mergedSchema);
+        MergeDirectiveDefinitions(mergedSchema);
+        ApplyDirectives();
         SetOperationTypes(mergedSchema);
         AddFusionLookupDirectives(mergedSchema);
-        AddTagDirectives(mergedSchema, [.. _schemas], mergedSchema);
         AddNodeField(mergedSchema);
+
+        // Merge directives.
+        _directiveMergers[DirectiveNames.Tag].MergeDirectives(mergedSchema, [.. _schemas], mergedSchema);
 
         // Remove unreferenced definitions.
         if (_options.RemoveUnreferencedDefinitions)
         {
-            mergedSchema.RemoveUnreferencedDefinitions(_requireInputTypeNames);
+            mergedSchema.RemoveUnreferencedDefinitions(GetPreservedInputTypeNames());
         }
 
         // Add Fusion definitions.
@@ -73,81 +100,6 @@ internal sealed class SourceSchemaMerger
         }
 
         return mergedSchema;
-    }
-
-    private void MergeDirectiveDefinitions(MutableSchemaDefinition mergedSchema)
-    {
-        // [DirectiveName: [{DirectiveDefinition, Schema}, ...], ...].
-        var directiveDefinitionGroupByName = _schemas
-            .SelectMany(
-                s => s.DirectiveDefinitions.AsEnumerable(),
-                (schema, directiveDefinition) => new DirectiveDefinitionInfo(directiveDefinition, schema))
-            .GroupBy(i => i.DirectiveDefinition.Name);
-
-        void DefaultPreprocessor(
-            MutableDirectiveDefinition directiveDefinition,
-            DirectiveMergeBehavior mergeBehavior,
-            MutableSchemaDefinition _)
-        {
-            if (mergeBehavior is DirectiveMergeBehavior.IncludePrivate)
-            {
-                directiveDefinition.Name = $"fusion__{directiveDefinition.Name}";
-            }
-        }
-
-        Dictionary<string, DirectiveMergeSettings> directivesToMerge = new()
-        {
-            {
-                DirectiveNames.CacheControl,
-                new DirectiveMergeSettings(
-                    _options.CacheControlMergeBehavior,
-                    CacheControlMutableDirectiveDefinition.Create,
-                    (directive, mergeBehavior, schema) =>
-                    {
-                        if (mergeBehavior is DirectiveMergeBehavior.IncludePrivate)
-                        {
-                            var scopeArgType = (MutableEnumTypeDefinition)directive.Arguments["scope"].Type;
-                            scopeArgType.Name = $"fusion__{scopeArgType.Name}";
-                            schema.Types.Add(scopeArgType);
-                        }
-
-                        DefaultPreprocessor(directive, mergeBehavior, schema);
-                    })
-            },
-            {
-                DirectiveNames.Tag,
-                new DirectiveMergeSettings(
-                    _options.TagMergeBehavior,
-                    TagMutableDirectiveDefinition.Create,
-                    DefaultPreprocessor)
-            }
-        };
-
-        foreach (var grouping in directiveDefinitionGroupByName)
-        {
-            if (!directivesToMerge.TryGetValue(grouping.Key, out var directiveMergeSettings)
-                || directiveMergeSettings.MergeBehavior is DirectiveMergeBehavior.Ignore)
-            {
-                continue;
-            }
-
-            var (mergeBehavior, factory, preprocessor) = directiveMergeSettings;
-
-            var canonicalDirectiveDefinition = factory(mergedSchema);
-
-            // Ensure that all directive definitions match the canonical definition.
-            var canonicalDirectiveNode = canonicalDirectiveDefinition.ToSyntaxNode();
-
-            if (!grouping.All(
-                d => d.DirectiveDefinition.ToSyntaxNode().Equals(canonicalDirectiveNode, SyntaxComparison.Syntax)))
-            {
-                // Skip merging if there is a mismatch.
-                continue;
-            }
-
-            preprocessor.Invoke(canonicalDirectiveDefinition, mergeBehavior, mergedSchema);
-            mergedSchema.DirectiveDefinitions.Add(canonicalDirectiveDefinition);
-        }
     }
 
     private void MergeTypes(MutableSchemaDefinition mergedSchema)
@@ -183,6 +135,48 @@ internal sealed class SourceSchemaMerger
         }
     }
 
+    private void MergeDirectiveDefinitions(MutableSchemaDefinition mergedSchema)
+    {
+        // [DirectiveName: [{DirectiveDefinition, Schema}, ...], ...].
+        var directiveDefinitionGroupByName = _schemas
+            .SelectMany(
+                s => s.DirectiveDefinitions.AsEnumerable(),
+                (schema, directiveDefinition) => new DirectiveDefinitionInfo(directiveDefinition, schema))
+            .GroupBy(i => i.DirectiveDefinition.Name);
+
+        foreach (var grouping in directiveDefinitionGroupByName)
+        {
+            if (!_directiveMergers.TryGetValue(grouping.Key, out var directiveMerger)
+                || directiveMerger.MergeBehavior is DirectiveMergeBehavior.Ignore)
+            {
+                continue;
+            }
+
+            var canonicalDirectiveDefinition = directiveMerger.GetCanonicalDirectiveDefinition(mergedSchema);
+            var canonicalDirectiveNode = canonicalDirectiveDefinition.ToSyntaxNode();
+
+            // Ensure that all directive definitions match the canonical definition.
+            if (!grouping.All(
+                d => d.DirectiveDefinition
+                    .ToSyntaxNode()
+                    .Equals(canonicalDirectiveNode, SyntaxComparison.SyntaxIgnoreDescriptions)))
+            {
+                // Skip merging if there is a mismatch.
+                continue;
+            }
+
+            directiveMerger.MergeDirectiveDefinition(canonicalDirectiveDefinition, mergedSchema);
+        }
+    }
+
+    private void ApplyDirectives()
+    {
+        foreach (var action in _applyDirectiveActions)
+        {
+            action.Invoke();
+        }
+    }
+
     private void AddFusionLookupDirectives(MutableSchemaDefinition mergedSchema)
     {
         foreach (var schema in _schemas)
@@ -194,29 +188,36 @@ internal sealed class SourceSchemaMerger
 
             foreach (var (typeName, lookupFieldGroup) in lookupFieldGroupByTypeName)
             {
-                if (mergedSchema.Types.TryGetType<IMutableTypeDefinition>(
+                if (!mergedSchema.Types.TryGetType<IMutableTypeDefinition>(
                     typeName,
                     out var mergedType))
                 {
-                    foreach (var (sourceField, sourcePath, sourceSchema) in lookupFieldGroup)
-                    {
-                        var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema]);
-                        var lookupMap = sourceField.GetFusionLookupMap();
-                        var keyArgument = sourceField.GetKeyFields(lookupMap, sourceSchema);
+                    continue;
+                }
 
-                        var fieldArgument =
-                            s_fieldDefinitionRewriter
-                                .Rewrite(sourceField.ToSyntaxNode())!
-                                .ToString(indented: false);
+                foreach (var (sourceField, sourcePath, sourceSchema) in lookupFieldGroup)
+                {
+                    var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema.Name]);
+
+                    var fieldArgument =
+                        s_fieldDefinitionRewriter
+                            .Rewrite(sourceField.ToSyntaxNode())!
+                            .ToString(indented: false);
+
+                    IValueNode pathArgument = sourcePath is null
+                        ? NullValueNode.Default
+                        : new StringValueNode(sourcePath);
+
+                    var @internal = sourceField.IsInternal;
+
+                    foreach (var valueSelectionGroup in sourceField.GetValueSelectionGroups())
+                    {
+                        var keyArgument = sourceField.GetKeyFields(valueSelectionGroup, sourceSchema);
 
                         var mapArgument =
-                            new ListValueNode(lookupMap.ConvertAll(a => new StringValueNode(a)));
-
-                        IValueNode pathArgument = sourcePath is null
-                            ? NullValueNode.Default
-                            : new StringValueNode(sourcePath);
-
-                        var @internal = sourceField.HasInternalDirective();
+                            new ListValueNode(
+                                valueSelectionGroup.ConvertAll(
+                                    a => new StringValueNode(a.ToString(indented: false))));
 
                         mergedType.Directives.Add(
                             new Directive(
@@ -230,44 +231,6 @@ internal sealed class SourceSchemaMerger
                     }
                 }
             }
-        }
-    }
-
-    private void AddTagDirectives(
-        IDirectivesProvider mergedMember,
-        ImmutableArray<IDirectivesProvider> memberDefinitions,
-        MutableSchemaDefinition mergedSchema)
-    {
-        if (_options.TagMergeBehavior is DirectiveMergeBehavior.Ignore)
-        {
-            return;
-        }
-
-        var tagDirectiveName =
-            _options.TagMergeBehavior is DirectiveMergeBehavior.Include
-                ? DirectiveNames.Tag
-                : DirectiveNames.FusionTag;
-
-        if (!mergedSchema.DirectiveDefinitions.TryGetDirective(tagDirectiveName, out var tagDirectiveDefinition))
-        {
-            // Merged definition not found.
-            return;
-        }
-
-        var uniqueTagDirectives =
-            memberDefinitions
-                .SelectMany(d => d.Directives.Where(dir => dir.Name == DirectiveNames.Tag))
-                .Select(TagDirective.From)
-                .DistinctBy(d => d.Name);
-
-        foreach (var uniqueTagDirective in uniqueTagDirectives)
-        {
-            var tagDirective =
-                new Directive(
-                    tagDirectiveDefinition,
-                    new ArgumentAssignment(ArgumentNames.Name, uniqueTagDirective.Name));
-
-            mergedMember.AddDirective(tagDirective);
         }
     }
 
@@ -299,6 +262,37 @@ internal sealed class SourceSchemaMerger
                 queryType.Fields.Add(canonicalNodeField);
             }
         }
+    }
+
+    /// <summary>
+    /// Returns a list of input type names for types that must be preserved in the merged schema
+    /// even if they are not directly referenced.
+    /// </summary>
+    private HashSet<string> GetPreservedInputTypeNames()
+    {
+        var preservedInputTypeNames = new HashSet<string>();
+
+        foreach (var schema in _schemas)
+        {
+            foreach (var type in schema.Types.OfType<IObjectTypeDefinition>())
+            {
+                foreach (var field in type.Fields)
+                {
+                    foreach (var argument in field.Arguments)
+                    {
+                        var argumentInnerType = argument.Type.InnerType();
+
+                        if (argumentInnerType is IInputObjectTypeDefinition inputObjectType
+                            && (argument.HasRequireDirective || field.IsLookup))
+                        {
+                            preservedInputTypeNames.Add(inputObjectType.Name);
+                        }
+                    }
+                }
+            }
+        }
+
+        return preservedInputTypeNames;
     }
 
     /// <summary>
@@ -342,7 +336,7 @@ internal sealed class SourceSchemaMerger
         ImmutableArray<FieldArgumentInfo> argumentGroup,
         MutableSchemaDefinition mergedSchema)
     {
-        Assert(!argumentGroup.Any(i => i.Argument.HasRequireDirective()));
+        Assert(!argumentGroup.Any(i => i.Argument.HasRequireDirective));
 
         var mergedArgument = argumentGroup.Select(i => i.Argument).FirstOrDefault();
 
@@ -360,15 +354,21 @@ internal sealed class SourceSchemaMerger
             .ReplaceNamedType(_ => GetOrCreateType(mergedSchema, mergedArgument.Type))
             .ExpectInputType();
 
-        var memberDefinitions = argumentGroup.Select(g => g.Argument).ToImmutableArray<IDirectivesProvider>();
-        AddTagDirectives(mergedArgument, memberDefinitions, mergedSchema);
-        AddFusionInputFieldDirectives(mergedArgument, argumentGroup);
+        // Add directives.
+        _applyDirectiveActions.Add(
+            () =>
+            {
+                var memberDefinitions = argumentGroup.Select(g => g.Argument).ToImmutableArray<IDirectivesProvider>();
+                _directiveMergers[DirectiveNames.Tag].MergeDirectives(mergedArgument, memberDefinitions, mergedSchema);
 
-        if (argumentGroup.Any(i => i.Argument.HasInaccessibleDirective()))
-        {
-            mergedArgument.Directives.Add(
-                new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
-        }
+                AddFusionInputFieldDirectives(mergedArgument, argumentGroup);
+
+                if (argumentGroup.Any(i => i.Argument.HasInaccessibleDirective()))
+                {
+                    mergedArgument.Directives.Add(
+                        new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
+                }
+            });
 
         return mergedArgument;
     }
@@ -396,15 +396,21 @@ internal sealed class SourceSchemaMerger
 
         enumType.Description = description;
 
-        var memberDefinitions = typeGroup.Select(g => g.Type).ToImmutableArray<IDirectivesProvider>();
-        AddTagDirectives(enumType, memberDefinitions, mergedSchema);
-        AddFusionTypeDirectives(enumType, typeGroup);
+        // Add directives.
+        _applyDirectiveActions.Add(
+            () =>
+            {
+                var memberDefinitions = typeGroup.Select(g => g.Type).ToImmutableArray<IDirectivesProvider>();
+                _directiveMergers[DirectiveNames.Tag].MergeDirectives(enumType, memberDefinitions, mergedSchema);
 
-        if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
-        {
-            enumType.Directives.Add(
-                new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
-        }
+                AddFusionTypeDirectives(enumType, typeGroup);
+
+                if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
+                {
+                    enumType.Directives.Add(
+                        new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
+                }
+            });
 
         // [EnumValueName: [{EnumValue, EnumType, Schema}, ...], ...].
         var enumValueGroupByName = typeGroup
@@ -459,15 +465,21 @@ internal sealed class SourceSchemaMerger
             DeprecationReason = deprecationReason
         };
 
-        var memberDefinitions = enumValueGroup.Select(g => g.EnumValue).ToImmutableArray<IDirectivesProvider>();
-        AddTagDirectives(enumValue, memberDefinitions, mergedSchema);
-        AddFusionEnumValueDirectives(enumValue, enumValueGroup);
+        // Add directives.
+        _applyDirectiveActions.Add(
+            () =>
+            {
+                var memberDefinitions = enumValueGroup.Select(g => g.EnumValue).ToImmutableArray<IDirectivesProvider>();
+                _directiveMergers[DirectiveNames.Tag].MergeDirectives(enumValue, memberDefinitions, mergedSchema);
 
-        if (enumValueGroup.Any(i => i.EnumValue.HasInaccessibleDirective()))
-        {
-            enumValue.Directives.Add(
-                new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
-        }
+                AddFusionEnumValueDirectives(enumValue, enumValueGroup);
+
+                if (enumValueGroup.Any(i => i.EnumValue.HasInaccessibleDirective()))
+                {
+                    enumValue.Directives.Add(
+                        new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
+                }
+            });
 
         return enumValue;
     }
@@ -484,7 +496,7 @@ internal sealed class SourceSchemaMerger
         ImmutableArray<TypeInfo> typeGroup,
         MutableSchemaDefinition mergedSchema)
     {
-        var firstType = typeGroup[0].Type;
+        var firstType = (MutableInputObjectTypeDefinition)typeGroup[0].Type;
         var typeName = firstType.Name;
         var description = firstType.Description;
         var inputObjectType =
@@ -497,15 +509,24 @@ internal sealed class SourceSchemaMerger
 
         inputObjectType.Description = description;
 
-        var memberDefinitions = typeGroup.Select(g => g.Type).ToImmutableArray<IDirectivesProvider>();
-        AddTagDirectives(inputObjectType, memberDefinitions, mergedSchema);
-        AddFusionTypeDirectives(inputObjectType, typeGroup);
+        // Add directives.
+        _applyDirectiveActions.Add(
+            () =>
+            {
+                var memberDefinitions = typeGroup.Select(g => g.Type).ToImmutableArray<IDirectivesProvider>();
+                _directiveMergers[DirectiveNames.OneOf]
+                    .MergeDirectives(inputObjectType, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.Tag]
+                    .MergeDirectives(inputObjectType, memberDefinitions, mergedSchema);
 
-        if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
-        {
-            inputObjectType.Directives.Add(
-                new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
-        }
+                AddFusionTypeDirectives(inputObjectType, typeGroup);
+
+                if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
+                {
+                    inputObjectType.Directives.Add(
+                        new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
+                }
+            });
 
         // [FieldName: [{Field, Type, Schema}, ...], ...].
         var fieldGroupByName = typeGroup
@@ -575,15 +596,21 @@ internal sealed class SourceSchemaMerger
                 .ExpectInputType()
         };
 
-        var memberDefinitions = inputFieldGroup.Select(g => g.Type).ToImmutableArray<IDirectivesProvider>();
-        AddTagDirectives(inputField, memberDefinitions, mergedSchema);
-        AddFusionInputFieldDirectives(inputField, inputFieldGroup);
+        // Add directives.
+        _applyDirectiveActions.Add(
+            () =>
+            {
+                var memberDefinitions = inputFieldGroup.Select(g => g.Type).ToImmutableArray<IDirectivesProvider>();
+                _directiveMergers[DirectiveNames.Tag].MergeDirectives(inputField, memberDefinitions, mergedSchema);
 
-        if (inputFieldGroup.Any(i => i.Field.HasInaccessibleDirective()))
-        {
-            inputField.Directives.Add(
-                new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
-        }
+                AddFusionInputFieldDirectives(inputField, inputFieldGroup);
+
+                if (inputFieldGroup.Any(i => i.Field.HasInaccessibleDirective()))
+                {
+                    inputField.Directives.Add(
+                        new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
+                }
+            });
 
         return inputField;
     }
@@ -626,17 +653,23 @@ internal sealed class SourceSchemaMerger
                 GetOrCreateType<MutableInterfaceTypeDefinition>(mergedSchema, interfaceName));
         }
 
-        var memberDefinitions = typeGroup.Select(g => g.Type).ToImmutableArray<IDirectivesProvider>();
-        AddCacheControlDirective(interfaceType, memberDefinitions, mergedSchema);
-        AddTagDirectives(interfaceType, memberDefinitions, mergedSchema);
-        AddFusionTypeDirectives(interfaceType, typeGroup);
-        AddFusionImplementsDirectives(interfaceType, [.. interfaceGroupByName.SelectMany(g => g)]);
+        // Add directives.
+        _applyDirectiveActions.Add(
+            () =>
+            {
+                var memberDefinitions = typeGroup.Select(g => g.Type).ToImmutableArray<IDirectivesProvider>();
+                _directiveMergers[DirectiveNames.CacheControl].MergeDirectives(interfaceType, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.Tag].MergeDirectives(interfaceType, memberDefinitions, mergedSchema);
 
-        if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
-        {
-            interfaceType.Directives.Add(
-                new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
-        }
+                AddFusionTypeDirectives(interfaceType, typeGroup);
+                AddFusionImplementsDirectives(interfaceType, [.. interfaceGroupByName.SelectMany(g => g)]);
+
+                if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
+                {
+                    interfaceType.Directives.Add(
+                        new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
+                }
+            });
 
         // [FieldName: [{Field, Type, Schema}, ...], ...].
         var fieldGroupByName = typeGroup
@@ -648,20 +681,12 @@ internal sealed class SourceSchemaMerger
 
         foreach (var fieldGroup in fieldGroupByName)
         {
-            var mergedField = MergeOutputFields([.. fieldGroup], mergedSchema);
+            var mergedField = MergeOutputFields([.. fieldGroup], interfaceType, mergedSchema);
 
             if (mergedField is not null)
             {
                 mergedField.DeclaringMember = interfaceType;
                 interfaceType.Fields.Add(mergedField);
-            }
-        }
-
-        foreach (var (fieldName, fieldGroup) in fieldGroupByName)
-        {
-            if (interfaceType.Fields.TryGetField(fieldName, out var outputField))
-            {
-                AddFusionRequiresDirectives(outputField, interfaceType, [.. fieldGroup]);
             }
         }
 
@@ -680,12 +705,8 @@ internal sealed class SourceSchemaMerger
         ImmutableArray<TypeInfo> typeGroup,
         MutableSchemaDefinition mergedSchema)
     {
-        // Filter out all types marked with @internal.
-        typeGroup =
-            [
-                .. typeGroup.Where(
-                    i => !((MutableObjectTypeDefinition)i.Type).HasInternalDirective())
-            ];
+        // Filter out internal types.
+        typeGroup = [.. typeGroup.Where(i => !((MutableObjectTypeDefinition)i.Type).IsInternal)];
 
         if (typeGroup.Length == 0)
         {
@@ -719,17 +740,25 @@ internal sealed class SourceSchemaMerger
                 GetOrCreateType<MutableInterfaceTypeDefinition>(mergedSchema, interfaceName));
         }
 
-        var memberDefinitions = typeGroup.Select(g => g.Type).ToImmutableArray<IDirectivesProvider>();
-        AddCacheControlDirective(objectType, memberDefinitions, mergedSchema);
-        AddTagDirectives(objectType, memberDefinitions, mergedSchema);
-        AddFusionTypeDirectives(objectType, typeGroup);
-        AddFusionImplementsDirectives(objectType, [.. interfaceGroupByName.SelectMany(g => g)]);
+        // Add directives.
+        _applyDirectiveActions.Add(
+            () =>
+            {
+                var memberDefinitions = typeGroup.Select(g => g.Type).ToImmutableArray<IDirectivesProvider>();
+                _directiveMergers[DirectiveNames.CacheControl]
+                    .MergeDirectives(objectType, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.Tag]
+                    .MergeDirectives(objectType, memberDefinitions, mergedSchema);
 
-        if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
-        {
-            objectType.Directives.Add(
-                new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
-        }
+                AddFusionTypeDirectives(objectType, typeGroup);
+                AddFusionImplementsDirectives(objectType, [.. interfaceGroupByName.SelectMany(g => g)]);
+
+                if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
+                {
+                    objectType.Directives.Add(
+                        new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
+                }
+            });
 
         // [FieldName: [{Field, Type, Schema}, ...], ...].
         var fieldGroupByName = typeGroup
@@ -741,20 +770,12 @@ internal sealed class SourceSchemaMerger
 
         foreach (var fieldGroup in fieldGroupByName)
         {
-            var mergedField = MergeOutputFields([.. fieldGroup], mergedSchema);
+            var mergedField = MergeOutputFields([.. fieldGroup], objectType, mergedSchema);
 
             if (mergedField is not null)
             {
                 mergedField.DeclaringMember = objectType;
                 objectType.Fields.Add(mergedField);
-            }
-        }
-
-        foreach (var (fieldName, fieldGroup) in fieldGroupByName)
-        {
-            if (objectType.Fields.TryGetField(fieldName, out var outputField))
-            {
-                AddFusionRequiresDirectives(outputField, objectType, [.. fieldGroup]);
             }
         }
 
@@ -772,14 +793,12 @@ internal sealed class SourceSchemaMerger
     /// </seealso>
     private MutableOutputFieldDefinition? MergeOutputFields(
         ImmutableArray<OutputFieldInfo> fieldGroup,
+        MutableComplexTypeDefinition complexType,
         MutableSchemaDefinition mergedSchema)
     {
         // Filter out internal or overridden fields.
-        var group = fieldGroup;
         fieldGroup =
-        [
-            .. fieldGroup.Where(i => !i.Field.HasInternalDirective() && !i.IsOverridden(group))
-        ];
+            [.. fieldGroup.Where(i => i.Field is { IsInternal: false, IsOverridden: false })];
 
         if (fieldGroup.Length == 0)
         {
@@ -820,21 +839,12 @@ internal sealed class SourceSchemaMerger
                 .ExpectOutputType()
         };
 
-        // Keep track of input object types that are referenced by field arguments with @require.
-        _requireInputTypeNames.UnionWith(
-            fieldGroup
-                .SelectMany(i => i.Field.Arguments.AsEnumerable())
-                .Where(a => a.HasRequireDirective())
-                .Select(a => a.Type.InnerType())
-                .OfType<IInputObjectTypeDefinition>()
-                .Select(t => t.Name));
-
         // [ArgumentName: [{Argument, Field, Type, Schema}, ...], ...].
         var argumentGroupByName = fieldGroup
             .SelectMany(
                 i => i.Field.Arguments.AsEnumerable(),
                 (i, a) => new FieldArgumentInfo(a, i.Field, i.Type, i.Schema))
-            .Where(i => !i.Argument.HasRequireDirective())
+            .Where(i => !i.Argument.HasRequireDirective)
             .GroupBy(i => i.Argument.Name)
             // Intersection: Argument definition count matches field definition count.
             .Where(g => g.Count() == fieldGroup.Length);
@@ -850,16 +860,27 @@ internal sealed class SourceSchemaMerger
             }
         }
 
-        var memberDefinitions = fieldGroup.Select(g => g.Field).ToImmutableArray<IDirectivesProvider>();
-        AddCacheControlDirective(outputField, memberDefinitions, mergedSchema);
-        AddTagDirectives(outputField, memberDefinitions, mergedSchema);
-        AddFusionFieldDirectives(outputField, fieldGroup);
+        // Add directives.
+        _applyDirectiveActions.Add(
+            () =>
+            {
+                var memberDefinitions = fieldGroup.Select(g => g.Field).ToImmutableArray<IDirectivesProvider>();
+                _directiveMergers[DirectiveNames.CacheControl]
+                    .MergeDirectives(outputField, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.McpToolAnnotations]
+                    .MergeDirectives(outputField, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.Tag]
+                    .MergeDirectives(outputField, memberDefinitions, mergedSchema);
 
-        if (fieldGroup.Any(i => i.Field.HasInaccessibleDirective()))
-        {
-            outputField.Directives.Add(
-                new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
-        }
+                AddFusionFieldDirectives(outputField, fieldGroup);
+                AddFusionRequiresDirectives(outputField, complexType, [.. fieldGroup]);
+
+                if (fieldGroup.Any(i => i.Field.HasInaccessibleDirective()))
+                {
+                    outputField.Directives.Add(
+                        new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
+                }
+            });
 
         return outputField;
     }
@@ -895,15 +916,24 @@ internal sealed class SourceSchemaMerger
 
         scalarType.Description = description;
 
-        var memberDefinitions = typeGroup.Select(g => g.Type).ToImmutableArray<IDirectivesProvider>();
-        AddTagDirectives(scalarType, memberDefinitions, mergedSchema);
-        AddFusionTypeDirectives(scalarType, typeGroup);
+        // Add directives.
+        _applyDirectiveActions.Add(
+            () =>
+            {
+                var memberDefinitions = typeGroup.Select(g => g.Type).ToImmutableArray<IDirectivesProvider>();
+                _directiveMergers[DirectiveNames.SerializeAs]
+                    .MergeDirectives(scalarType, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.Tag]
+                    .MergeDirectives(scalarType, memberDefinitions, mergedSchema);
 
-        if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
-        {
-            scalarType.Directives.Add(
-                new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
-        }
+                AddFusionTypeDirectives(scalarType, typeGroup);
+
+                if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
+                {
+                    scalarType.Directives.Add(
+                        new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
+                }
+            });
 
         return scalarType;
     }
@@ -931,32 +961,44 @@ internal sealed class SourceSchemaMerger
 
         unionType.Description = description;
 
-        var memberDefinitions = typeGroup.Select(g => g.Type).ToImmutableArray<IDirectivesProvider>();
-        AddCacheControlDirective(unionType, memberDefinitions, mergedSchema);
-        AddTagDirectives(unionType, memberDefinitions, mergedSchema);
-        AddFusionTypeDirectives(unionType, typeGroup);
-
         // [UnionMemberName: [{MemberType, UnionType, Schema}, ...], ...].
         var unionMemberGroupByName = typeGroup
             .SelectMany(
                 i => ((MutableUnionTypeDefinition)i.Type).Types.AsEnumerable(),
                 (i, t) => new UnionMemberInfo(t, (MutableUnionTypeDefinition)i.Type, i.Schema))
-            .Where(i => !i.MemberType.HasInternalDirective())
-            .GroupBy(i => i.MemberType.Name);
+            .Where(i => !i.MemberType.IsInternal)
+            .GroupBy(i => i.MemberType.Name)
+            .ToImmutableArray();
 
-        foreach (var (memberName, memberGroup) in unionMemberGroupByName)
+        foreach (var (memberName, _) in unionMemberGroupByName)
         {
-            AddFusionUnionMemberDirectives(unionType, [.. memberGroup]);
-
             unionType.Types.Add(
                 GetOrCreateType<MutableObjectTypeDefinition>(mergedSchema, memberName));
         }
 
-        if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
-        {
-            unionType.Directives.Add(
-                new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
-        }
+        // Add directives.
+        _applyDirectiveActions.Add(
+            () =>
+            {
+                var memberDefinitions = typeGroup.Select(g => g.Type).ToImmutableArray<IDirectivesProvider>();
+                _directiveMergers[DirectiveNames.CacheControl]
+                    .MergeDirectives(unionType, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.Tag]
+                    .MergeDirectives(unionType, memberDefinitions, mergedSchema);
+
+                AddFusionTypeDirectives(unionType, typeGroup);
+
+                foreach (var (_, memberGroup) in unionMemberGroupByName)
+                {
+                    AddFusionUnionMemberDirectives(unionType, [.. memberGroup]);
+                }
+
+                if (typeGroup.Any(i => i.Type.HasInaccessibleDirective()))
+                {
+                    unionType.Directives.Add(
+                        new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
+                }
+            });
 
         return unionType;
     }
@@ -1083,7 +1125,7 @@ internal sealed class SourceSchemaMerger
         }
     }
 
-    private static T GetOrCreateType<T>(MutableSchemaDefinition mergedSchema, string typeName)
+    private T GetOrCreateType<T>(MutableSchemaDefinition mergedSchema, string typeName)
         where T : class, INamedTypeSystemMemberDefinition<T>
     {
         if (mergedSchema.Types.TryGetType(typeName, out var existingType))
@@ -1091,14 +1133,27 @@ internal sealed class SourceSchemaMerger
             return (T)existingType;
         }
 
-        var newType = T.Create(typeName);
+        var sourceTypes = _schemas.SelectMany(s => s.Types.Where(t => t.Name == typeName)).ToArray();
+        var allInternal =
+            sourceTypes.Length != 0
+            && sourceTypes.All(t => t is MutableObjectTypeDefinition { IsInternal: true });
+
+        T newType;
+        if (allInternal)
+        {
+            newType = (T)(ITypeDefinition)new InternalMutableObjectTypeDefinition(typeName);
+        }
+        else
+        {
+            newType = T.Create(typeName);
+        }
 
         mergedSchema.Types.Add((ITypeDefinition)newType);
 
         return newType;
     }
 
-    private static ITypeDefinition GetOrCreateType(
+    private ITypeDefinition GetOrCreateType(
         MutableSchemaDefinition mergedSchema,
         IType sourceType)
     {
@@ -1127,98 +1182,13 @@ internal sealed class SourceSchemaMerger
         };
     }
 
-    private void AddCacheControlDirective(
-        IDirectivesProvider mergedMember,
-        ImmutableArray<IDirectivesProvider> memberDefinitions,
-        MutableSchemaDefinition mergedSchema)
-    {
-        if (_options.CacheControlMergeBehavior is DirectiveMergeBehavior.Ignore)
-        {
-            return;
-        }
-
-        var cacheControlDirectiveName =
-            _options.CacheControlMergeBehavior is DirectiveMergeBehavior.Include
-                ? DirectiveNames.CacheControl
-                : DirectiveNames.FusionCacheControl;
-
-        if (!mergedSchema.DirectiveDefinitions.TryGetDirective(
-            cacheControlDirectiveName,
-            out var cacheControlDirectiveDefinition))
-        {
-            // Merged definition not found.
-            return;
-        }
-
-        var cacheControlDirectives =
-            memberDefinitions
-                .SelectMany(
-                    d => d.Directives.Where(dir => dir.Name == DirectiveNames.CacheControl))
-                .Select(CacheControlDirective.From)
-                .ToArray();
-
-        if (cacheControlDirectives.Length != memberDefinitions.Length)
-        {
-            // Only merge if all member definitions have the @cacheControl directive.
-            return;
-        }
-
-        // Null is the lowest value.
-        var min = (int? acc, int? val) => (int?)(acc is null || val is null ? null : Math.Min(acc.Value, val.Value));
-        var maxAge = cacheControlDirectives.Select(d => d.MaxAge).Aggregate(min);
-        var sharedMaxAge = cacheControlDirectives.Select(d => d.SharedMaxAge).Aggregate(min);
-        var inheritMaxAge = cacheControlDirectives.All(d => d.InheritMaxAge == true);
-        var scope =
-            cacheControlDirectives.Any(d => d.Scope is CacheControlScope.Private)
-                ? CacheControlScope.Private
-                : CacheControlScope.Public;
-        var vary = cacheControlDirectives.Where(d => d.Vary.HasValue).SelectMany(d => d.Vary!.Value).ToHashSet();
-
-        var argumentAssignments = new List<ArgumentAssignment>();
-
-        if (maxAge is not null)
-        {
-            argumentAssignments.Add(new ArgumentAssignment(ArgumentNames.MaxAge, maxAge.Value));
-        }
-
-        if (sharedMaxAge is not null)
-        {
-            argumentAssignments.Add(new ArgumentAssignment(ArgumentNames.SharedMaxAge, sharedMaxAge.Value));
-        }
-
-        if (!cacheControlDirectives.All(d => d.InheritMaxAge is null))
-        {
-            argumentAssignments.Add(new ArgumentAssignment(ArgumentNames.InheritMaxAge, inheritMaxAge));
-        }
-
-        if (!cacheControlDirectives.All(d => d.Scope is null))
-        {
-            argumentAssignments.Add(
-                new ArgumentAssignment(
-                    ArgumentNames.Scope,
-                    new EnumValueNode(Enum.GetName(scope)!.ToUpperInvariant())));
-        }
-
-        if (vary.Count != 0)
-        {
-            argumentAssignments.Add(
-                new ArgumentAssignment(
-                    ArgumentNames.Vary,
-                    new ListValueNode(vary.Select(v => new StringValueNode(v)).ToList())));
-        }
-
-        var cacheControlDirective = new Directive(cacheControlDirectiveDefinition, argumentAssignments);
-
-        mergedMember.AddDirective(cacheControlDirective);
-    }
-
     private void AddFusionEnumValueDirectives(
         MutableEnumValue enumValue,
         ImmutableArray<EnumValueInfo> enumValueGroup)
     {
         foreach (var (_, _, sourceSchema) in enumValueGroup)
         {
-            var schema = new EnumValueNode(_schemaConstantNames[sourceSchema]);
+            var schema = new EnumValueNode(_schemaConstantNames[sourceSchema.Name]);
 
             enumValue.Directives.Add(
                 new Directive(
@@ -1234,7 +1204,11 @@ internal sealed class SourceSchemaMerger
         foreach (var (sourceField, _, sourceSchema) in fieldGroup)
         {
             List<ArgumentAssignment> arguments =
-                [new(ArgumentNames.Schema, new EnumValueNode(_schemaConstantNames[sourceSchema]))];
+            [
+                new(
+                    ArgumentNames.Schema,
+                    new EnumValueNode(_schemaConstantNames[sourceSchema.Name]))
+            ];
 
             if (!sourceField.Type.Equals(field.Type, TypeComparison.Structural))
             {
@@ -1249,7 +1223,7 @@ internal sealed class SourceSchemaMerger
                 arguments.Add(new ArgumentAssignment(ArgumentNames.Provides, selectionSet));
             }
 
-            if (sourceField.HasExternalDirective())
+            if (sourceField.IsExternal)
             {
                 arguments.Add(new ArgumentAssignment(ArgumentNames.Partial, true));
             }
@@ -1270,7 +1244,7 @@ internal sealed class SourceSchemaMerger
                     _fusionDirectiveDefinitions[DirectiveNames.FusionImplements],
                     new ArgumentAssignment(
                         ArgumentNames.Schema,
-                        new EnumValueNode(_schemaConstantNames[sourceSchema])),
+                        new EnumValueNode(_schemaConstantNames[sourceSchema.Name])),
                     new ArgumentAssignment(ArgumentNames.Interface, sourceInterface.Name)));
         }
     }
@@ -1282,7 +1256,11 @@ internal sealed class SourceSchemaMerger
         foreach (var (sourceArgument, _, _, sourceSchema) in argumentGroup)
         {
             List<ArgumentAssignment> arguments =
-                [new(ArgumentNames.Schema, new EnumValueNode(_schemaConstantNames[sourceSchema]))];
+            [
+                new(
+                    ArgumentNames.Schema,
+                    new EnumValueNode(_schemaConstantNames[sourceSchema.Name]))
+            ];
 
             if (!sourceArgument.Type.Equals(argument.Type, TypeComparison.Structural))
             {
@@ -1306,7 +1284,11 @@ internal sealed class SourceSchemaMerger
         foreach (var (sourceInputField, _, sourceSchema) in inputFieldGroup)
         {
             List<ArgumentAssignment> arguments =
-                [new(ArgumentNames.Schema, new EnumValueNode(_schemaConstantNames[sourceSchema]))];
+            [
+                new(
+                    ArgumentNames.Schema,
+                    new EnumValueNode(_schemaConstantNames[sourceSchema.Name]))
+            ];
 
             if (!sourceInputField.Type.Equals(inputField.Type, TypeComparison.Structural))
             {
@@ -1348,7 +1330,7 @@ internal sealed class SourceSchemaMerger
 
             if (map.Any(v => v is not null))
             {
-                var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema]);
+                var schemaArgument = new EnumValueNode(_schemaConstantNames[sourceSchema.Name]);
                 var requiresMap = map.Where(f => f is not null);
                 var selectedValues =
                     requiresMap.Select(a => new FieldSelectionMapParser(a).Parse());
@@ -1392,7 +1374,7 @@ internal sealed class SourceSchemaMerger
     {
         foreach (var (_, sourceSchema) in typeGroup)
         {
-            var schema = new EnumValueNode(_schemaConstantNames[sourceSchema]);
+            var schema = new EnumValueNode(_schemaConstantNames[sourceSchema.Name]);
 
             type.Directives.Add(
                 new Directive(
@@ -1407,7 +1389,7 @@ internal sealed class SourceSchemaMerger
     {
         foreach (var (sourceMemberType, _, sourceSchema) in unionMemberGroup)
         {
-            var schema = new EnumValueNode(_schemaConstantNames[sourceSchema]);
+            var schema = new EnumValueNode(_schemaConstantNames[sourceSchema.Name]);
 
             unionType.Directives.Add(
                 new Directive(
@@ -1441,7 +1423,7 @@ internal sealed class SourceSchemaMerger
             // Enum type definitions.
             {
                 TypeNames.FusionSchema,
-                new FusionSchemaMutableEnumTypeDefinition([.. _schemas.Select(s => s.Name)])
+                new FusionSchemaMutableEnumTypeDefinition(_schemaConstantNames)
             }
         }.ToFrozenDictionary();
     }
@@ -1461,7 +1443,7 @@ internal sealed class SourceSchemaMerger
         var stringType = BuiltIns.String.Create();
         var booleanType = BuiltIns.Boolean.Create();
 
-        return new Dictionary<string, MutableDirectiveDefinition>()
+        return new Dictionary<string, MutableDirectiveDefinition>
         {
             {
                 DirectiveNames.FusionEnumValue,
@@ -1567,9 +1549,4 @@ internal sealed class SourceSchemaMerger
             throw new InvalidOperationException();
         }
     }
-
-    private sealed record DirectiveMergeSettings(
-        DirectiveMergeBehavior MergeBehavior,
-        Func<MutableSchemaDefinition, MutableDirectiveDefinition> Factory,
-        Action<MutableDirectiveDefinition, DirectiveMergeBehavior, MutableSchemaDefinition> Preprocessor);
 }

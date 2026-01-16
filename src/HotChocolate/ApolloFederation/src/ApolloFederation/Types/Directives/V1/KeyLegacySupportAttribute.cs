@@ -7,7 +7,7 @@ internal sealed class KeyLegacySupportAttribute : DirectiveTypeDescriptorAttribu
     protected override void OnConfigure(
         IDescriptorContext context,
         IDirectiveTypeDescriptor descriptor,
-        Type type)
+        Type? type)
     {
         // federation v1 @key only specified "fields" parameter
         if (descriptor.GetFederationVersion() == FederationVersion.Federation10)

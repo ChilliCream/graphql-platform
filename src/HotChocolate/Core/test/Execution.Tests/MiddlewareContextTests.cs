@@ -3,7 +3,6 @@ using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution;
 
@@ -113,7 +112,9 @@ public class MiddlewareContextTests
     public async Task CustomServiceProvider()
     {
         // arrange
-        var services = new DictionaryServiceProvider(typeof(string), "hello");
+        var services = new ServiceCollection()
+            .AddSingleton(typeof(string), "hello")
+            .BuildServiceProvider();
 
         // assert
         var result =

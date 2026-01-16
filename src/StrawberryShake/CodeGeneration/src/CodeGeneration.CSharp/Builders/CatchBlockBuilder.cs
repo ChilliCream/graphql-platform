@@ -30,7 +30,7 @@ public class CatchBlockBuilder : ICode
     public void Build(CodeWriter writer)
     {
         writer.WriteIndent();
-        writer.Write($"catch");
+        writer.Write("catch");
         if (_exception is not null)
         {
             writer.Write("(");

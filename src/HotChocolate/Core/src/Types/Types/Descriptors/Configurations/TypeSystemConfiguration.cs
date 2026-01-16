@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Features;
 using HotChocolate.Utilities;
 
@@ -32,11 +31,6 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     /// Gets or sets a name to which this definition is bound to.
     /// </summary>
     public string? BindTo { get; set; }
-
-    /// <summary>
-    /// Gets configurations that shall be applied to this type system configuration.
-    /// </summary>
-    public ImmutableList<IDescriptorConfiguration> Configurations { get; set; } = [];
 
     /// <summary>
     /// Defines whether the <see cref="Configurations"/>> have been applied or not.
@@ -120,11 +114,6 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
             target._dependencies = [.. _dependencies];
         }
 
-        if (Configurations.Count > 0)
-        {
-            target.Configurations = Configurations;
-        }
-
         if (_tasks?.Count > 0)
         {
             target._tasks = [];
@@ -166,11 +155,6 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
             {
                 target._tasks.Add(configuration.Copy(target));
             }
-        }
-
-        if (Configurations.Count > 0)
-        {
-            target.Configurations = target.Configurations.AddRange(Configurations);
         }
 
         if (_features?.IsEmpty is false)

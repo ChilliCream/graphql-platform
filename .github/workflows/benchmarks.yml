@@ -1,0 +1,164 @@
+name: Benchmarks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+      - main-version-*
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: benchmarks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fusion-gateway:
+    name: "Fusion Gateway Benchmarks"
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
+    runs-on: benchmarking
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          show-progress: false
+
+      - name: Checkout performance data repository
+        uses: actions/checkout@v4
+        with:
+          repository: ChilliCream/graphql-platform-performance-data
+          token: ${{ secrets.PERFORMANCE_DATA_TOKEN }}
+          path: performance-data-repo
+          fetch-depth: 0
+          show-progress: false
+
+      - name: Install .NET
+        run: |
+          if ! command -v dotnet &> /dev/null; then
+            echo "Installing .NET..."
+            curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+            chmod +x dotnet-install.sh
+            ./dotnet-install.sh --channel 10.0 --install-dir $HOME/.dotnet
+            rm dotnet-install.sh
+            echo "$HOME/.dotnet" >> $GITHUB_PATH
+            export PATH="$HOME/.dotnet:$PATH"
+          fi
+          dotnet --version
+
+      - name: Install k6
+        run: |
+          if ! command -v k6 &> /dev/null; then
+            echo "Installing k6..."
+            sudo gpg -k
+            sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+            echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+            sudo apt-get update
+            sudo apt-get install k6 -y
+          fi
+          k6 version
+
+      - name: Install jq for result parsing
+        run: |
+          if ! command -v jq &> /dev/null; then
+            sudo apt-get install jq -y
+          fi
+
+      - name: Make scripts executable
+        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
+        run: chmod +x *.sh
+
+      - name: Run performance tests and collect data
+        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
+        run: ./run-and-collect-gateway.sh fusion-gateway-performance-data-current.json
+
+      - name: Fetch baseline performance data from external repo
+        if: github.event_name == 'pull_request'
+        run: |
+          if [ -f performance-data-repo/fusion-gateway-performance-data.json ]; then
+            echo "Baseline data fetched successfully from performance data repository"
+            cp performance-data-repo/fusion-gateway-performance-data.json baseline-performance.json
+            cat baseline-performance.json
+          else
+            echo "No baseline data found in performance data repository"
+            rm -f baseline-performance.json
+          fi
+
+      - name: Compare performance and generate report
+        if: github.event_name == 'pull_request'
+        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
+        run: |
+          chmod +x compare-gateway-performance.sh
+          ./compare-gateway-performance.sh fusion-gateway-performance-data-current.json ../../../../../baseline-performance.json performance-report.md
+
+      - name: Comment PR with performance report
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const reportPath = 'src/HotChocolate/Fusion-vnext/benchmarks/k6/performance-report.md';
+
+            let report;
+            try {
+              report = fs.readFileSync(reportPath, 'utf8');
+            } catch (error) {
+              console.error('Failed to read performance report:', error);
+              return;
+            }
+
+            const timestamp = new Date().toUTCString();
+            const commitSha = context.sha.substring(0, 7);
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const commentBody = `${report}\n\n---\n*Run [${context.runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: commentBody,
+            });
+
+      - name: Upload performance data as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fusion-gateway-performance-data
+          path: |
+            src/HotChocolate/Fusion-vnext/benchmarks/k6/fusion-gateway-performance-data-current.json
+            src/HotChocolate/Fusion-vnext/benchmarks/k6/performance-report.md
+          retention-days: 30
+
+      - name: Check for performance regression
+        if: github.event_name == 'pull_request'
+        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
+        run: |
+          if grep -q "⚠️ \*\*Performance regression detected" performance-report.md; then
+            echo "::warning::Performance regression detected! Please review the performance report."
+          fi
+
+      - name: Store performance data to external repository
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: performance-data-repo
+        run: |
+          cp ../src/HotChocolate/Fusion-vnext/benchmarks/k6/fusion-gateway-performance-data-current.json fusion-gateway-performance-data.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add fusion-gateway-performance-data.json
+
+          if ! git diff --staged --quiet; then
+            git commit -m "Update Fusion Gateway performance data from ${{ github.sha }}"
+            git push
+          else
+            echo "No changes to performance data"
+          fi

@@ -40,7 +40,7 @@ sourceSchemas:
         query: Query
       }
 
-      interface Node {
+      interface Node @key(fields: "id") {
         id: ID!
       }
 

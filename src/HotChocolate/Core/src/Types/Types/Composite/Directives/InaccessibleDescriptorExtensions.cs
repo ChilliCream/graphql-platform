@@ -1,5 +1,5 @@
+using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors.Configurations;
-using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Composite;
 
@@ -413,6 +413,37 @@ public static class InaccessibleDescriptorExtensions
     /// </exception>
     public static IUnionTypeDescriptor Inaccessible(
         this IUnionTypeDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        return descriptor.Directive(Composite.Inaccessible.Instance);
+    }
+
+    /// <summary>
+    /// <para>
+    /// Applies the @inaccessible directive to the scalar type to prevent it
+    /// from being accessible through the client-facing composite schema,
+    /// even if it is accessible in the underlying source schemas.
+    /// </para>
+    /// <para>
+    /// <code language="graphql">
+    /// scalar Email @inaccessible
+    /// </code>
+    /// </para>
+    /// <para>
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible"/>
+    /// </para>
+    /// </summary>
+    /// <param name="descriptor">
+    /// The union type descriptor to apply the directive to.
+    /// </param>
+    /// <returns>
+    /// The union type descriptor with the directive applied.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    public static IScalarTypeDescriptor Inaccessible(
+        this IScalarTypeDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(Composite.Inaccessible.Instance);

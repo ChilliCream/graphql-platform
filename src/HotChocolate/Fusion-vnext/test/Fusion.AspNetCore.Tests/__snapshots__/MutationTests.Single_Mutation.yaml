@@ -29,7 +29,7 @@ sourceSchemas:
         mutation: Mutation
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         id: Int!
         title: String!
       }

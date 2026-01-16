@@ -10,18 +10,18 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
 {
     private ConnectionClassInfo(
         INamedTypeSymbol runtimeType,
-        ClassDeclarationSyntax classDeclarations,
+        ClassDeclarationSyntax classDeclaration,
         ImmutableArray<Resolver> resolvers)
     {
         RuntimeType = runtimeType;
-        ClassDeclarations = classDeclarations;
+        ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
         OrderByKey = runtimeType.ToFullyQualified();
     }
 
     public INamedTypeSymbol RuntimeType { get; }
 
-    public ClassDeclarationSyntax ClassDeclarations { get; }
+    public ClassDeclarationSyntax ClassDeclaration { get; }
 
     public ImmutableArray<Resolver> Resolvers { get; }
 
@@ -48,11 +48,11 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
         }
 
         return OrderByKey.Equals(other.OrderByKey, StringComparison.Ordinal)
-            && ClassDeclarations.SyntaxTree.IsEquivalentTo(other.ClassDeclarations.SyntaxTree);
+            && ClassDeclaration.SyntaxTree.IsEquivalentTo(other.ClassDeclaration.SyntaxTree);
     }
 
     public override int GetHashCode()
-        => HashCode.Combine(OrderByKey, ClassDeclarations);
+        => HashCode.Combine(OrderByKey, ClassDeclaration);
 
     public static ConnectionClassInfo CreateConnection(
         Compilation compilation,
@@ -103,17 +103,16 @@ public sealed class ConnectionClassInfo : SyntaxInfo, IEquatable<ConnectionClass
                         }
                     }
 
-                    compilation.TryGetGraphQLDeprecationReason(property, out var deprecationReason);
-
                     resolvers.Add(
                         new Resolver(
                             name,
-                            deprecationReason,
                             property,
+                            compilation.GetDescription(property, []),
+                            compilation.GetDeprecationReason(property),
                             ResolverResultKind.Pure,
                             [],
                             ObjectTypeInspector.GetMemberBindings(member),
-                            GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
+                            compilation.CreateTypeReference(property),
                             flags: flags));
                     break;
             }

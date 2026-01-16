@@ -37,8 +37,8 @@
   <Folder Name="/HotChocolate/AspNetCore/" />
   <Folder Name="/HotChocolate/AspNetCore/benchmarks/" />
   <Folder Name="/HotChocolate/AspNetCore/benchmarks/k6/">
-    <Project Path="HotChocolate/AspNetCore/benchmarks/k6/Catalog.AppHost/eShop.Catalog.AppHost.csproj" />
     <Project Path="HotChocolate/AspNetCore/benchmarks/k6/Catalog.API/eShop.Catalog.API.csproj" />
+    <Project Path="HotChocolate/AspNetCore/benchmarks/k6/Catalog.AppHost/eShop.Catalog.AppHost.csproj" />
     <Project Path="HotChocolate/AspNetCore/benchmarks/k6/Catalog.ServiceDefaults/eShop.Catalog.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/AspNetCore/src/">
@@ -181,9 +181,34 @@
   <Folder Name="/HotChocolate/Diagnostics/test/">
     <Project Path="HotChocolate/Diagnostics/test/Diagnostics.Tests/HotChocolate.Diagnostics.Tests.csproj" />
   </Folder>
+  <Folder Name="/HotChocolate/Adapters/" />
+  <Folder Name="/HotChocolate/Adapters/src/">
+    <Project Path="HotChocolate/Adapters/src/Adapters.Mcp/HotChocolate.Adapters.Mcp.csproj" />
+    <Project Path="HotChocolate/Adapters/src/Adapters.Mcp.Core/HotChocolate.Adapters.Mcp.Core.csproj" />
+    <Project Path="HotChocolate/Adapters/src/Adapters.Mcp.Packaging/HotChocolate.Adapters.Mcp.Packaging.csproj" />
+    <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi/HotChocolate.Adapters.OpenApi.csproj" />
+    <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi.AspNetCore/HotChocolate.Adapters.OpenApi.AspNetCore.csproj" />
+    <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi.Core/HotChocolate.Adapters.OpenApi.Core.csproj" />
+    <Project Path="HotChocolate/Adapters/src/Adapters.OpenApi.Packaging/HotChocolate.Adapters.OpenApi.Packaging.csproj" />
+    <Project Path="HotChocolate/Adapters/src/Fusion.Adapters.Mcp/HotChocolate.Fusion.Adapters.Mcp.csproj" />
+    <Project Path="HotChocolate/Adapters/src/Fusion.Adapters.OpenApi/HotChocolate.Fusion.Adapters.OpenApi.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Adapters/test/">
+    <Project Path="HotChocolate/Adapters/test/Adapters.Mcp.Packaging.Tests/HotChocolate.Adapters.Mcp.Packaging.Tests.csproj" />
+    <Project Path="HotChocolate/Adapters/test/Adapters.Mcp.Tests/HotChocolate.Adapters.Mcp.Tests.csproj" />
+    <Project Path="HotChocolate/Adapters/test/Adapters.OpenApi.Packaging.Tests/HotChocolate.Adapters.OpenApi.Packaging.Tests.csproj" />
+    <Project Path="HotChocolate/Adapters/test/Adapters.OpenApi.Tests/HotChocolate.Adapters.OpenApi.Tests.csproj" />
+  </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/" />
   <Folder Name="/HotChocolate/Fusion-vnext/benchmarks/">
     <Project Path="HotChocolate/Fusion-vnext/benchmarks/Fusion.Execution.Benchmarks/Fusion.Execution.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/Fusion-vnext/benchmarks/k6/">
+    <Project Path="HotChocolate/Fusion-vnext/benchmarks/k6/eShop.Gateway/eShop.Gateway.csproj" />
+    <Project Path="HotChocolate\Fusion-vnext\benchmarks\k6\eShop.Accounts\eShop.Accounts.csproj" />
+    <Project Path="HotChocolate\Fusion-vnext\benchmarks\k6\eShop.Inventory\eShop.Inventory.csproj" />
+    <Project Path="HotChocolate\Fusion-vnext\benchmarks\k6\eShop.Products\eShop.Products.csproj" />
+    <Project Path="HotChocolate\Fusion-vnext\benchmarks\k6\eShop.Reviews\eShop.Reviews.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/src/">
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj" />
@@ -194,6 +219,7 @@
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Language/HotChocolate.Fusion.Language.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Packaging/HotChocolate.Fusion.Packaging.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/src/Fusion.Utilities/HotChocolate.Fusion.Utilities.csproj" />
+    <Project Path="HotChocolate/Fusion-vnext/src/Fusion.SourceSchema.Packaging/HotChocolate.Fusion.SourceSchema.Packaging.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/test/">
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
@@ -202,6 +228,7 @@
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Language.Tests/HotChocolate.Fusion.Language.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Packaging.Tests/HotChocolate.Fusion.Packaging.Tests.csproj" />
+    <Project Path="HotChocolate/Fusion-vnext/test/Fusion.SourceSchema.Packaging.Tests/HotChocolate.Fusion.SourceSchema.Packaging.Tests.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Tests.Shared/HotChocolate.Fusion.Tests.Shared.csproj" />
     <Project Path="HotChocolate/Fusion-vnext/test/Fusion.Utilities.Tests/HotChocolate.Fusion.Utilities.Tests.csproj" />
   </Folder>
@@ -234,13 +261,6 @@
   <Folder Name="/HotChocolate/Marten/test/">
     <Project Path="HotChocolate/Marten/test/Data.Marten.Filters.Tests/Data.Marten.Filters.Tests.csproj" />
     <Project Path="HotChocolate/Marten/test/Data.Marten.Sorting.Tests/Data.Marten.Sorting.Tests.csproj" />
-  </Folder>
-  <Folder Name="/HotChocolate/ModelContextProtocol/" />
-  <Folder Name="/HotChocolate/ModelContextProtocol/src/">
-    <Project Path="HotChocolate/ModelContextProtocol/src/HotChocolate.ModelContextProtocol/HotChocolate.ModelContextProtocol.csproj" />
-  </Folder>
-  <Folder Name="/HotChocolate/ModelContextProtocol/test/">
-    <Project Path="HotChocolate/ModelContextProtocol/test/HotChocolate.ModelContextProtocol.Tests/HotChocolate.ModelContextProtocol.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/MongoDb/" />
   <Folder Name="/HotChocolate/MongoDb/src/">
@@ -321,14 +341,12 @@
   <Folder Name="/Nitro/" />
   <Folder Name="/Nitro/CommandLine/" />
   <Folder Name="/Nitro/CommandLine/src/">
-    <Project Path="Nitro/CommandLine/src/CommandLine.Cloud/Nitro.CommandLine.Cloud.csproj" />
+    <Project Path="Nitro/CommandLine/src/CommandLine/Nitro.CommandLine.csproj" />
     <Project Path="Nitro/CommandLine/src/CommandLine.Core/Nitro.CommandLine.Core.csproj" />
     <Project Path="Nitro/CommandLine/src/CommandLine.Fusion.Compatibility/Nitro.CommandLine.Fusion.Compatibility.csproj" />
-    <Project Path="Nitro/CommandLine/src/CommandLine.Fusion/Nitro.CommandLine.Fusion.csproj" />
-    <Project Path="Nitro/CommandLine/src/CommandLine/Nitro.CommandLine.csproj" />
   </Folder>
   <Folder Name="/Nitro/CommandLine/test/">
-    <Project Path="Nitro/CommandLine/test/CommandLine.Fusion.Tests/Nitro.CommandLine.Fusion.Tests.csproj" />
+    <Project Path="Nitro/CommandLine/test/CommandLine.Tests/Nitro.CommandLine.Tests.csproj" />
   </Folder>
   <Folder Name="/StrawberryShake/" />
   <Folder Name="/StrawberryShake/Client/" />

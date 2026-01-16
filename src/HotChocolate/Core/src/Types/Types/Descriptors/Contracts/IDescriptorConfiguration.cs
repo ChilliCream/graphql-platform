@@ -17,6 +17,11 @@ public interface IDescriptorConfiguration
     int Order { get; }
 
     /// <summary>
+    /// Requires the attribute provide this configuration was applied to for reflection.
+    /// </summary>
+    bool RequiresAttributeProvider { get; }
+
+    /// <summary>
     /// Attempts to configure the specified descriptor based on the provided element.
     /// </summary>
     /// <param name="context">
@@ -26,12 +31,12 @@ public interface IDescriptorConfiguration
     /// The descriptor to configure. This could be a type descriptor, field descriptor,
     /// or any other GraphQL type system descriptor.
     /// </param>
-    /// <param name="element">
+    /// <param name="attributeProvider">
     /// The element (type, method, property, etc.) to which this configuration is being applied.
     /// This provides reflection metadata about the target element.
     /// </param>
     void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element);
+        ICustomAttributeProvider? attributeProvider);
 }

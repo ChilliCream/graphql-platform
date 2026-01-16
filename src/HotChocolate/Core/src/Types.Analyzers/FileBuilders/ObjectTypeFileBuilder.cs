@@ -6,6 +6,8 @@ namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(sb)
 {
+    protected override string OutputFieldDescriptorType => WellKnownTypes.ObjectFieldDescriptor;
+
     public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type is not ObjectTypeInfo objectType)
@@ -28,7 +30,7 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
                 objectType.Resolvers.Length > 0 || objectType.NodeResolver is not null,
                 objectType.Resolvers.Any(t => t.RequiresParameterBindings)
                     || (objectType.NodeResolver?.RequiresParameterBindings ?? false),
-                objectType.Attributes,
+                objectType.DescriptorAttributes,
                 objectType.Inaccessible);
 
             if (objectType.Shareable is DirectiveScope.Type)

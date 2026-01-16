@@ -106,4 +106,6 @@ public class QueryableProjectionFieldHandler
 
         return true;
     }
+
+    public static QueryableProjectionFieldHandler Create(ProjectionProviderContext context) => new();
 }

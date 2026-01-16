@@ -8,37 +8,37 @@ namespace HotChocolate.Fusion.Extensions;
 
 internal static class CompositionLogExtensions
 {
-    public static void WriteValidationLog(
-        this ICompositionLog log,
-        IValidationLog validationLog,
-        ISchemaDefinition schema)
+    extension(ICompositionLog log)
     {
-        foreach (var entry in validationLog)
+        public void WriteValidationLog(IValidationLog validationLog, ISchemaDefinition schema)
         {
-            log.Write(
-                LogEntryBuilder.New()
-                    .SetMessage(
-                        CompositionLogExtensions_EntryMessageWithSchemaName,
-                        entry.Message,
-                        schema.Name)
-                    .SetCode(entry.Code)
-                    .SetSeverity(MapLogSeverity(entry.Severity))
-                    .SetCoordinate(entry.Coordinate)
-                    .SetTypeSystemMember(entry.TypeSystemMember)
-                    .SetSchema(schema)
-                    .SetExtensions(entry.Extensions)
-                    .Build());
+            foreach (var entry in validationLog)
+            {
+                log.Write(
+                    LogEntryBuilder.New()
+                        .SetMessage(
+                            CompositionLogExtensions_EntryMessageWithSchemaName,
+                            entry.Message,
+                            schema.Name)
+                        .SetCode(entry.Code)
+                        .SetSeverity(MapLogSeverity(entry.Severity))
+                        .SetCoordinate(entry.Coordinate)
+                        .SetTypeSystemMember(entry.TypeSystemMember)
+                        .SetSchema(schema)
+                        .SetExtensions(entry.Extensions)
+                        .Build());
+            }
         }
-    }
 
-    private static LogSeverity MapLogSeverity(this ValidationLogSeverity severity)
-    {
-        return severity switch
+        private static LogSeverity MapLogSeverity(ValidationLogSeverity severity)
         {
-            ValidationLogSeverity.Info => LogSeverity.Info,
-            ValidationLogSeverity.Warning => LogSeverity.Warning,
-            ValidationLogSeverity.Error => LogSeverity.Error,
-            _ => throw new ArgumentOutOfRangeException(nameof(severity), severity, null)
-        };
+            return severity switch
+            {
+                ValidationLogSeverity.Info => LogSeverity.Info,
+                ValidationLogSeverity.Warning => LogSeverity.Warning,
+                ValidationLogSeverity.Error => LogSeverity.Error,
+                _ => throw new ArgumentOutOfRangeException(nameof(severity), severity, null)
+            };
+        }
     }
 }

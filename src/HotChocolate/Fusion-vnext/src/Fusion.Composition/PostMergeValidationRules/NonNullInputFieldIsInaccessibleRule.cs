@@ -29,6 +29,8 @@ internal sealed class NonNullInputFieldIsInaccessibleRule : IEventHandler<Schema
                 .SelectMany(
                     s => s.Types
                         .OfType<MutableInputObjectTypeDefinition>()
+                        // Filter out input object types that do not exist in the composed schema.
+                        .Where(t => schema.Types.ContainsName(t.Name))
                         .SelectMany(
                             t => t.Fields.AsEnumerable().Select(f => new InputFieldInfo(f, t, s))));
 

@@ -1,7 +1,10 @@
+using System.Buffers;
+
 namespace HotChocolate.Execution;
 
 public sealed class OperationResultBuilder
 {
+    private static readonly ArrayPool<Func<ValueTask>> s_arrayPool = ArrayPool<Func<ValueTask>>.Shared;
     private IReadOnlyDictionary<string, object?>? _data;
     private IReadOnlyList<object?>? _items;
     private List<IError>? _errors;
@@ -15,6 +18,7 @@ public sealed class OperationResultBuilder
     private int? _requestIndex;
     private int? _variableIndex;
     private Func<ValueTask>[] _cleanupTasks = [];
+    private int _cleanupTasksLength;
 
     public OperationResultBuilder SetData(IReadOnlyDictionary<string, object?>? data)
     {
@@ -153,9 +157,23 @@ public sealed class OperationResultBuilder
     {
         ArgumentNullException.ThrowIfNull(clean);
 
-        var index = _cleanupTasks.Length;
-        Array.Resize(ref _cleanupTasks, index + 1);
-        _cleanupTasks[index] = clean;
+        if (_cleanupTasks.Length == 0)
+        {
+            _cleanupTasks = s_arrayPool.Rent(9);
+        }
+        else if (_cleanupTasksLength >= _cleanupTasks.Length)
+        {
+            var buffer = s_arrayPool.Rent(_cleanupTasks.Length * 2);
+
+            var oldBuffer = _cleanupTasks.AsSpan();
+            oldBuffer.CopyTo(buffer);
+            oldBuffer.Clear();
+            s_arrayPool.Return(buffer);
+
+            _cleanupTasks = buffer;
+        }
+
+        _cleanupTasks[_cleanupTasksLength++] = clean;
         return this;
     }
 
@@ -170,7 +188,7 @@ public sealed class OperationResultBuilder
             _label,
             _path,
             _hasNext,
-            _cleanupTasks,
+            (_cleanupTasks, _cleanupTasksLength),
             _isDataSet ?? false,
             _requestIndex,
             _variableIndex);

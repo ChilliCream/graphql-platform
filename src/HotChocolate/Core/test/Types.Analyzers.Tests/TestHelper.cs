@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -28,9 +30,7 @@ internal static partial class TestHelper
     private static readonly HashSet<string> s_ignoreCodes = ["CS8652", "CS8632", "CS5001", "CS8019"];
 
     public static Snapshot GetGeneratedSourceSnapshot([StringSyntax("csharp")] string sourceText)
-    {
-        return GetGeneratedSourceSnapshot([sourceText]);
-    }
+        => GetGeneratedSourceSnapshot([sourceText]);
 
     public static Snapshot GetGeneratedSourceSnapshot(
         string[] sourceTexts,
@@ -102,7 +102,13 @@ internal static partial class TestHelper
             MetadataReference.CreateFromFile(typeof(WebApplication).Assembly.Location),
 
             // Microsoft.Extensions.DependencyInjection.Abstractions
-            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location)
+            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
+
+            // Microsoft.AspNetCore.Authorization
+            MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute).Assembly.Location),
+
+            // HotChocolate.Authorization
+            MetadataReference.CreateFromFile(typeof(Authorization.AuthorizeAttribute).Assembly.Location)
         ];
 
         // Create a Roslyn compilation for the syntax tree.
@@ -138,6 +144,7 @@ internal static partial class TestHelper
             driver.GetRunResult()
                 .Results
                 .SelectMany(r => r.GeneratedSources)
+                .OrderBy(gs => gs.HintName)
                 .Select(gs => CSharpSyntaxTree.ParseText(gs.SourceText, parseOptions, path: gs.HintName))
         );
 
@@ -205,7 +212,8 @@ internal static partial class TestHelper
                 new ShareableInterfaceTypeAnalyzer(),
                 new ShareableScopedOnMemberAnalyzer(),
                 new DataAttributeOrderAnalyzer(),
-                new IdAttributeOnRecordParameterAnalyzer());
+                new IdAttributeOnRecordParameterAnalyzer(),
+                new WrongAuthorizationAttributeAnalyzer());
 
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
             var analyzerDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;
@@ -306,4 +314,16 @@ internal static partial class TestHelper
 
     [GeneratedRegex("MiddlewareFactories([a-z0-9]{32})")]
     private static partial Regex MiddlewareFactoryHashRegex();
+
+    internal static class ForceInvariantDefaultCultureModuleInitializer
+    {
+        [ModuleInitializer]
+        internal static void Initialize()
+        {
+            // Compile errors are localized, so enforce a common default culture,
+            // since otherwise the snapshot comparison may fail
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+        }
+    }
 }

@@ -1,0 +1,230 @@
+title: Fetch_From_Nested_Internal_Lookup
+request:
+  document: |
+    {
+      books {
+        author {
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "books": [
+          {
+            "author": {
+              "name": "Jon Skeet"
+            }
+          },
+          {
+            "author": {
+              "name": "JRR Tolkien"
+            }
+          },
+          {
+            "author": {
+              "name": "JRR Tolkien"
+            }
+          },
+          {
+            "author": {
+              "name": "JRR Tolkien"
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author @key(fields: "id") {
+        id: Int!
+      }
+
+      type Book {
+        id: Int!
+        title: String!
+        author: Author! @shareable
+      }
+
+      type Query {
+        books: [Book!]!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_76f18599_1 {
+              books {
+                author {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "books": [
+                    {
+                      "author": {
+                        "id": 1
+                      }
+                    },
+                    {
+                      "author": {
+                        "id": 2
+                      }
+                    },
+                    {
+                      "author": {
+                        "id": 2
+                      }
+                    },
+                    {
+                      "author": {
+                        "id": 2
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: Int!
+        name: String!
+      }
+
+      type InternalLookups @internal {
+        authorById(id: Int!): Author! @lookup
+      }
+
+      type Query {
+        lookups: InternalLookups! @internal
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_76f18599_2(
+              $__fusion_1_id: Int!
+            ) {
+              lookups {
+                authorById(id: $__fusion_1_id) {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": 1
+              },
+              {
+                "__fusion_1_id": 2
+              },
+              {
+                "__fusion_1_id": 2
+              },
+              {
+                "__fusion_1_id": 2
+              }
+            ]
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "lookups": {
+                    "authorById": {
+                      "name": "Jon Skeet"
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "lookups": {
+                    "authorById": {
+                      "name": "JRR Tolkien"
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "lookups": {
+                    "authorById": {
+                      "name": "JRR Tolkien"
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "lookups": {
+                    "authorById": {
+                      "name": "JRR Tolkien"
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          books {
+            author {
+              name
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: 76f18599237e97efaa507bbabe6c3ee2
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_76f18599_1 {
+          books {
+            author {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: b
+      operation: |
+        query Op_76f18599_2(
+          $__fusion_1_id: Int!
+        ) {
+          lookups {
+            authorById(id: $__fusion_1_id) {
+              name
+            }
+          }
+        }
+      source: $.lookups.authorById
+      target: $.books.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

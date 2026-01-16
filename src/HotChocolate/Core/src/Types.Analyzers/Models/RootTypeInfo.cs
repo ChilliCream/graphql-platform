@@ -22,9 +22,10 @@ public sealed class RootTypeInfo
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
         Description = schemaType.GetDescription();
+        Attributes = attributes;
         Shareable = attributes.GetShareableScope();
         Inaccessible = attributes.GetInaccessibleScope();
-        Attributes = attributes.GetUserAttributes();
+        DescriptorAttributes = attributes.GetUserAttributes();
     }
 
     public string Name => SchemaSchemaType.Name;
@@ -61,6 +62,8 @@ public sealed class RootTypeInfo
 
     public ImmutableArray<AttributeData> Attributes { get; }
 
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
+
     public bool SourceSchemaDetected { get; set; }
 
     public void ReplaceResolver(Resolver current, Resolver replacement)
@@ -72,6 +75,23 @@ public sealed class RootTypeInfo
     public override bool Equals(SyntaxInfo? obj)
         => obj is RootTypeInfo other && Equals(other);
 
+    public bool Equals(RootTypeInfo? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return OrderByKey.Equals(other.OrderByKey, StringComparison.Ordinal)
+            && string.Equals(SchemaTypeFullName, other.SchemaTypeFullName, StringComparison.Ordinal)
+            && ClassDeclaration.SyntaxTree.IsEquivalentTo(other.ClassDeclaration.SyntaxTree);
+    }
+
     public override int GetHashCode()
-        => HashCode.Combine(SchemaTypeFullName, ClassDeclaration);
+        => HashCode.Combine(OrderByKey, SchemaTypeFullName, ClassDeclaration);
 }

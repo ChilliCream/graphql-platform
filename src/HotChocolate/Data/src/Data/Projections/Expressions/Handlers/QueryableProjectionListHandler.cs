@@ -100,4 +100,6 @@ public class QueryableProjectionListHandler
 
         return true;
     }
+
+    public static QueryableProjectionListHandler Create(ProjectionProviderContext context) => new();
 }

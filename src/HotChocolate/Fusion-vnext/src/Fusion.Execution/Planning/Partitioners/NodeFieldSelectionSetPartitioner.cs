@@ -50,7 +50,7 @@ internal sealed class NodeFieldSelectionSetPartitioner(FusionSchemaDefinition sc
             switch (selection)
             {
                 case FieldNode fieldNode:
-                    var field = schema.QueryType.Fields[fieldNode.Name.Value];
+                    var field = schema.QueryType.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
 
                     if (field.IsIntrospectionField)
                     {

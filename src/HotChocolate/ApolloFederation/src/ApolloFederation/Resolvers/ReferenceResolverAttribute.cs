@@ -24,11 +24,11 @@ public class ReferenceResolverAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         if (descriptor is IObjectTypeDescriptor objectTypeDescriptor)
         {
-            switch (element)
+            switch (attributeProvider)
             {
                 case Type type:
                     OnConfigure(objectTypeDescriptor, type);
@@ -42,7 +42,7 @@ public class ReferenceResolverAttribute : DescriptorAttribute
 
         if (descriptor is IInterfaceTypeDescriptor interfaceTypeDescriptor)
         {
-            switch (element)
+            switch (attributeProvider)
             {
                 case Type type:
                     OnConfigure(interfaceTypeDescriptor, type);

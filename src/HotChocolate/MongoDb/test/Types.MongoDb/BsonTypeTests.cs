@@ -1313,7 +1313,7 @@ public class BsonTypeTests
                 ]),
             ["String"] = new BsonString("String"),
             ["Null"] = BsonNull.Value,
-            ["Nested"] = new BsonDocument()
+            ["Nested"] = new BsonDocument
             {
                 ["Int32"] = new BsonInt32(42),
                 ["Int64"] = new BsonInt64(42)

@@ -1,5 +1,3 @@
-using GreenDonut.Data;
-
 namespace HotChocolate.Types;
 
 public class NodeResolverIdParameterAnalyzerTests

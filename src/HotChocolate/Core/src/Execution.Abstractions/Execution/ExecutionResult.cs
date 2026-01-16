@@ -1,3 +1,4 @@
+using System.Buffers;
 using HotChocolate.Features;
 
 namespace HotChocolate.Execution;
@@ -7,16 +8,23 @@ namespace HotChocolate.Execution;
 /// </summary>
 public abstract class ExecutionResult : IExecutionResult
 {
-    private Func<ValueTask>[] _cleanupTasks = [];
+    protected static readonly ArrayPool<Func<ValueTask>> CleanUpTaskPool = ArrayPool<Func<ValueTask>>.Shared;
+    private Func<ValueTask>[] _cleanUpTasks = [];
+    private int _cleanupTasksLength;
     private bool _disposed;
 
     protected ExecutionResult()
     {
     }
 
-    protected ExecutionResult(Func<ValueTask>[] cleanupTasks)
+    protected ExecutionResult((Func<ValueTask>[] Tasks, int Length) cleanupTasks)
     {
-        _cleanupTasks = cleanupTasks ?? throw new ArgumentNullException(nameof(cleanupTasks));
+        if (cleanupTasks.Tasks is null)
+        {
+            throw new ArgumentNullException(nameof(cleanupTasks));
+        }
+
+        (_cleanUpTasks, _cleanupTasksLength) = cleanupTasks;
     }
 
     /// <inheritdoc cref="IExecutionResult" />
@@ -28,34 +36,67 @@ public abstract class ExecutionResult : IExecutionResult
     /// <inheritdoc cref="IFeatureProvider" />
     public IFeatureCollection Features { get; } = new FeatureCollection();
 
-    private protected Func<ValueTask>[] CleanupTasks => _cleanupTasks;
+    /// <summary>
+    /// This helper allows someone else to take over the responsibility over the cleanup tasks.
+    /// This object no longer will track them after they were taken over.
+    /// </summary>
+    private protected (Func<ValueTask>[] Tasks, int Length) TakeCleanUpTasks()
+    {
+        var tasks = _cleanUpTasks;
+        var taskLength = _cleanupTasksLength;
+
+        _cleanUpTasks = [];
+        _cleanupTasksLength = 0;
+
+        return (tasks, taskLength);
+    }
 
     /// <inheritdoc cref="IExecutionResult" />
     public void RegisterForCleanup(Func<ValueTask> clean)
     {
         ArgumentNullException.ThrowIfNull(clean);
 
-        var length = _cleanupTasks.Length;
-        Array.Resize(ref _cleanupTasks, length + 1);
-        _cleanupTasks[length] = clean;
+        if (_cleanUpTasks.Length == 0)
+        {
+            _cleanUpTasks = CleanUpTaskPool.Rent(8);
+            _cleanupTasksLength = 0;
+        }
+        else if (_cleanupTasksLength >= _cleanUpTasks.Length)
+        {
+            var buffer = CleanUpTaskPool.Rent(_cleanupTasksLength * 2);
+            var currentBuffer = _cleanUpTasks.AsSpan();
+
+            currentBuffer.CopyTo(buffer);
+            currentBuffer.Clear();
+            CleanUpTaskPool.Return(_cleanUpTasks);
+
+            _cleanUpTasks = buffer;
+        }
+
+        _cleanUpTasks[_cleanupTasksLength++] = clean;
     }
 
     /// <summary>
     /// Will throw an <see cref="ObjectDisposedException"/> if the result is already disposed.
     /// </summary>
-    protected void EnsureNotDisposed()
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-    }
+    protected void EnsureNotDisposed() => ObjectDisposedException.ThrowIf(_disposed, this);
 
     /// <inheritdoc cref="IAsyncDisposable"/>
     public async ValueTask DisposeAsync()
     {
         if (!_disposed)
         {
-            for (var i = 0; i < _cleanupTasks.Length; i++)
+            if (_cleanupTasksLength > 0)
             {
-                await _cleanupTasks[i].Invoke();
+                var tasks = _cleanUpTasks;
+
+                for (var i = 0; i < _cleanupTasksLength; i++)
+                {
+                    await tasks[i]().ConfigureAwait(false);
+                }
+
+                tasks.AsSpan(0, _cleanupTasksLength).Clear();
+                CleanUpTaskPool.Return(tasks);
             }
 
             _disposed = true;

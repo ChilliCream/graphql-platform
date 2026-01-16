@@ -48,7 +48,7 @@ public sealed class InaccessibleAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {
@@ -90,6 +90,10 @@ public sealed class InaccessibleAttribute : DescriptorAttribute
 
             case IUnionTypeDescriptor unionTypeDescriptor:
                 unionTypeDescriptor.Inaccessible();
+                break;
+
+            case IScalarTypeDescriptor scalarTypeDescriptor:
+                scalarTypeDescriptor.Inaccessible();
                 break;
 
             default:

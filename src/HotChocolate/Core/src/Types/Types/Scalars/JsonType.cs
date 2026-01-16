@@ -19,14 +19,19 @@ public sealed class JsonType : ScalarType<JsonElement>
     /// Initializes a new instance of <see cref="JsonType"/>.
     /// </summary>
     public JsonType(string name, BindingBehavior bind = BindingBehavior.Explicit)
-        : base(name, bind) { }
+        : base(name, bind)
+    {
+        SerializationType = ScalarSerializationType.Any;
+    }
 
     /// <summary>
     /// Initializes a new instance of <see cref="JsonType"/>.
     /// </summary>
     [ActivatorUtilitiesConstructor]
     public JsonType()
-        : base(ScalarNames.JSON, BindingBehavior.Implicit) { }
+        : this(ScalarNames.JSON, BindingBehavior.Implicit)
+    {
+    }
 
     /// <summary>
     /// Defines if the specified <paramref name="valueSyntax"/> can be handled by the JSON scalar.

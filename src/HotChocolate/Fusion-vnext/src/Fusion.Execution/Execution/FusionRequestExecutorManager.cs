@@ -98,9 +98,13 @@ internal sealed class FusionRequestExecutorManager
             registration = await CreateInitialRegistrationAsync(schemaName, cancellationToken).ConfigureAwait(false);
             _registry.TryAdd(schemaName, registration);
 
-            _events.RaiseEvent(RequestExecutorEvent.Created(registration.Executor));
+            var nextExecutor = registration.Executor;
 
-            return registration.Executor;
+            registration.DiagnosticEvents.ExecutorCreated(nextExecutor.Schema.Name, nextExecutor);
+
+            _events.RaiseEvent(RequestExecutorEvent.Created(nextExecutor));
+
+            return nextExecutor;
         }
         finally
         {
@@ -111,10 +115,12 @@ internal sealed class FusionRequestExecutorManager
     private SemaphoreSlim GetSemaphoreForSchema(string schemaName)
         => _semaphoreBySchema.GetOrAdd(schemaName, _ => new SemaphoreSlim(1, 1));
 
-    private void EvictExecutor(FusionRequestExecutor executor)
+    private void EvictExecutor(FusionRequestExecutor executor, IFusionExecutionDiagnosticEvents diagnosticEvents)
     {
         try
         {
+            diagnosticEvents.ExecutorEvicted(executor.Schema.Name, executor);
+
             _events.RaiseEvent(RequestExecutorEvent.Evicted(executor));
         }
         finally
@@ -151,6 +157,7 @@ internal sealed class FusionRequestExecutorManager
             this,
             documentProvider,
             executor,
+            executor.Schema.Services.GetRequiredService<IFusionExecutionDiagnosticEvents>(),
             configuration);
     }
 
@@ -314,6 +321,7 @@ internal sealed class FusionRequestExecutorManager
         var features = new FeatureCollection();
 
         features.Set(options);
+        features.Set<IFusionSchemaOptions>(options);
         features.Set(requestOptions);
         features.Set(requestOptions.PersistedOperations);
         features.Set(parserOptions);
@@ -574,6 +582,7 @@ internal sealed class FusionRequestExecutorManager
             FusionRequestExecutorManager manager,
             IFusionConfigurationProvider documentProvider,
             FusionRequestExecutor executor,
+            IFusionExecutionDiagnosticEvents diagnosticEvents,
             FusionConfiguration configuration)
         {
             _manager = manager;
@@ -587,6 +596,7 @@ internal sealed class FusionRequestExecutorManager
 
             DocumentProvider = documentProvider;
             Executor = executor;
+            DiagnosticEvents = diagnosticEvents;
 
             WaitForUpdatesAsync().FireAndForget();
         }
@@ -594,6 +604,8 @@ internal sealed class FusionRequestExecutorManager
         public IFusionConfigurationProvider DocumentProvider { get; }
 
         public FusionRequestExecutor Executor { get; private set; }
+
+        public IFusionExecutionDiagnosticEvents DiagnosticEvents { get; }
 
         private async Task WaitForUpdatesAsync()
         {
@@ -622,9 +634,11 @@ internal sealed class FusionRequestExecutorManager
 
                 Executor = nextExecutor;
 
+                DiagnosticEvents.ExecutorCreated(nextExecutor.Schema.Name, nextExecutor);
+
                 _manager._events.RaiseEvent(RequestExecutorEvent.Created(nextExecutor));
 
-                _manager.EvictExecutor(previousExecutor);
+                _manager.EvictExecutor(previousExecutor, DiagnosticEvents);
 
                 configuration.Dispose();
             }

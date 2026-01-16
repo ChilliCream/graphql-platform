@@ -23,7 +23,6 @@ public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableP
         QueryableProjectionContext context,
         ISelection selection)
     {
-        var field = selection.Field;
         var filterFeature = selection.GetFilterFeature();
 
         if (filterFeature is not null
@@ -67,4 +66,6 @@ public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableP
     public void AfterProjection(QueryableProjectionContext context, ISelection selection)
     {
     }
+
+    public static QueryableFilterInterceptor Create(ProjectionProviderContext context) => new();
 }

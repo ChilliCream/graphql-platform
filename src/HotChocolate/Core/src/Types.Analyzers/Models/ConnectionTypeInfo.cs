@@ -27,9 +27,10 @@ public sealed class ConnectionTypeInfo
         Namespace = runtimeType.ContainingNamespace.ToDisplayString();
         ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
+        Attributes = attributes;
         Shareable = attributes.GetShareableScope();
         Inaccessible = attributes.GetInaccessibleScope();
-        Attributes = attributes.GetUserAttributes();
+        DescriptorAttributes = attributes.GetUserAttributes();
     }
 
     public string Name { get; }
@@ -68,6 +69,8 @@ public sealed class ConnectionTypeInfo
 
     public ImmutableArray<AttributeData> Attributes { get; }
 
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
+
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);
 
@@ -77,8 +80,18 @@ public sealed class ConnectionTypeInfo
     public override bool Equals(SyntaxInfo? obj)
         => obj is ConnectionTypeInfo other && Equals(other);
 
-    private bool Equals(ConnectionTypeInfo other)
+    private bool Equals(ConnectionTypeInfo? other)
     {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
         if (!string.Equals(OrderByKey, other.OrderByKey, StringComparison.Ordinal))
         {
             return false;
@@ -94,8 +107,7 @@ public sealed class ConnectionTypeInfo
             return false;
         }
 
-        return ClassDeclaration.SyntaxTree.IsEquivalentTo(
-            other.ClassDeclaration.SyntaxTree);
+        return ClassDeclaration.SyntaxTree.IsEquivalentTo(other.ClassDeclaration.SyntaxTree);
     }
 
     public override int GetHashCode()
@@ -112,7 +124,7 @@ public sealed class ConnectionTypeInfo
             nameFormat,
             edgeTypeName,
             connectionClass.RuntimeType,
-            connectionClass.ClassDeclarations,
+            connectionClass.ClassDeclaration,
             connectionClass.Resolvers,
             connectionClass.RuntimeType.GetAttributes());
     }
@@ -162,17 +174,16 @@ public sealed class ConnectionTypeInfo
                         flags |= FieldFlags.TotalCount;
                     }
 
-                    compilation.TryGetGraphQLDeprecationReason(property, out var deprecationReason);
-
                     resolvers.Add(
                         new Resolver(
                             connectionName,
-                            deprecationReason,
                             property,
+                            compilation.GetDescription(property, []),
+                            compilation.GetDeprecationReason(property),
                             ResolverResultKind.Pure,
                             [],
                             GetMemberBindings(property),
-                            GraphQLTypeBuilder.ToSchemaType(property.GetReturnType()!, compilation),
+                            compilation.CreateTypeReference(property),
                             flags: flags));
                     break;
             }
