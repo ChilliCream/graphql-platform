@@ -1,16 +1,12 @@
 using HotChocolate.Language;
+using HotChocolate.Validation.Rules;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 
-public class FieldMustBeDefinedRuleTests
-    : DocumentValidatorVisitorTestBase
+public class FieldMustBeDefinedRuleTests()
+    : DocumentValidatorVisitorTestBase(builder => builder.AddRule<FieldSelectionsRule>())
 {
-    public FieldMustBeDefinedRuleTests()
-        : base(builder => builder.AddFieldRules())
-    {
-    }
-
     [Fact]
     public void FieldIsNotDefinedOnTypeInFragment()
     {
@@ -46,7 +42,14 @@ public class FieldMustBeDefinedRuleTests
             t => Assert.Equal(
                 "The field `kawVolume` does not exist "
                 + "on the type `Dog`.", t.Message));
-        context.Errors.MatchSnapshot();
+        var snapshot = new Snapshot();
+
+        foreach (var error in context.Errors)
+        {
+            snapshot.Add(error);
+        }
+
+        snapshot.Match();
     }
 
     [Fact]

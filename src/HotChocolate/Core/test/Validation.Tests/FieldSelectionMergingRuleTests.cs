@@ -670,14 +670,12 @@ public class FieldSelectionMergingRuleTests
         ExpectErrors(
             """
             {
-                catOrDog {
-                    ... conflictingArgs
-                }
+                ... conflictingArgs
             }
 
-            fragment conflictingArgs on Dog {
-                isAtLocation(x: 0)
-                isAtLocation(y: 0)
+            fragment conflictingArgs on Query {
+                field(a: "a")
+                field(b: "b")
             }
             """);
     }
@@ -1177,10 +1175,10 @@ public class FieldSelectionMergingRuleTests
                 findDog(complex: { name: "A", owner: "B", child: { owner: "D", name: "C" } }) {
                   name
                 }
-                ... mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering
+                ... fragment
             }
 
-            fragment mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering on Query {
+            fragment fragment on Query {
                 findDog(complex: { owner: "B", name: "A", child: { name: "C", owner: "D" } }) {
                   barks
                 }
@@ -1197,10 +1195,10 @@ public class FieldSelectionMergingRuleTests
                 findDog(complex: { }) {
                   name
                 }
-                ... mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering
+                ... fragment
             }
 
-            fragment mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering on Query {
+            fragment fragment on Query {
                 findDog(complex: { }) {
                   barks
                 }
@@ -1217,10 +1215,10 @@ public class FieldSelectionMergingRuleTests
                 findDog(complex: { name: "A", owner: "B" }) {
                   name
                 }
-                ... mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering
+                ... fragment
             }
 
-            fragment mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering on Query {
+            fragment fragment on Query {
                 findDog(complex: { owner: "OTHER", name: "A" }) {
                   barks
                 }
@@ -1237,10 +1235,10 @@ public class FieldSelectionMergingRuleTests
                 findDog(complex: { name: "A", owner: "B", child: { owner: "D", name: "C" } }) {
                   name
                 }
-                ... mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering
+                ... fragment
             }
 
-            fragment mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering on Query {
+            fragment fragment on Query {
                 findDog(complex: { owner: "B", name: "A", child: { name: "C", owner: "OTHER" } }) {
                   barks
                 }

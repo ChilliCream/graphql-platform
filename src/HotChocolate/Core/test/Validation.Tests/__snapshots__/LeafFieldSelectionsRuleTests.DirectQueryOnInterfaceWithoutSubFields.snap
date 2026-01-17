@@ -7,6 +7,6 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
   }
 }

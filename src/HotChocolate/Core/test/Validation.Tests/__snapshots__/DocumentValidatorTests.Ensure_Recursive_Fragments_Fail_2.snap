@@ -1,18 +1,33 @@
-[
-  {
-    "Message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 5
-      }
-    ],
-    "Extensions": {
-      "fragment": "f",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
-    },
-    "Exception": null
+---------------
+{
+  "message": "The field \u0060f\u0060 does not exist on the type \u0060Query\u0060.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 5
+    }
+  ],
+  "extensions": {
+    "type": "Query",
+    "field": "f",
+    "responseName": "f",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
   }
-]
+}
+---------------
+
+---------------
+{
+  "message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
+  "locations": [
+    {
+      "line": 2,
+      "column": 5
+    }
+  ],
+  "extensions": {
+    "fragment": "f",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
+  }
+}
+---------------

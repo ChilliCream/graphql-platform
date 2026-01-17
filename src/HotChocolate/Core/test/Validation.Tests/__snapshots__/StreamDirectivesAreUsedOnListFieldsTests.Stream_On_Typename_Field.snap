@@ -2,8 +2,8 @@
   "message": "@stream directive is only valid on list fields.",
   "locations": [
     {
-      "line": 3,
-      "column": 5
+      "line": 2,
+      "column": 3
     }
   ],
   "extensions": {

@@ -1,15 +1,12 @@
-[
-  {
-    "Message": "Field \"barkVolume\" must not have a selection since type \"Int\" has no subfields.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 3,
-        "Column": 9
-      }
-    ],
-    "Extensions": null,
-    "Exception": null
+{
+  "message": "Field \u0022barkVolume\u0022 must not have a selection since type \u0022Int\u0022 has no subfields.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 9
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
   }
-]
+}

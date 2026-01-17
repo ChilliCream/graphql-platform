@@ -90,7 +90,6 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 case InlineFragmentNode inlineFragment:
                     var type = inlineFragment.TypeCondition is null
                         ? parentType
-                        // TODO: TryGet?
                         : context.Schema.Types[inlineFragment.TypeCondition.Name.Value];
                     CollectFields(context, fieldMap, inlineFragment.SelectionSet, type, visitedFragmentSpreads);
                     break;
@@ -103,7 +102,6 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
                     if (context.Fragments.TryGet(spread, out var fragment))
                     {
-                        // TODO: TryGet?
                         var fragType = context.Schema.Types[fragment.TypeCondition.Name.Value];
                         CollectFields(context, fieldMap, fragment.SelectionSet, fragType, visitedFragmentSpreads);
                     }
@@ -136,9 +134,6 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
             fields.Add(new FieldAndType(field, context.TypenameFieldType, unwrappedParentType));
             return;
         }
-
-        var meow = unwrappedParentType is IComplexTypeDefinition;
-        var woof = unwrappedParentType.IsComplexType();
 
         if (unwrappedParentType is IComplexTypeDefinition complexType
             && complexType.Fields.TryGetField(fieldName, out var fieldDef))

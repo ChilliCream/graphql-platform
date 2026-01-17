@@ -1,45 +1,44 @@
-[
-  {
-    "Message": "Field \"field\" of type \"Query\" must have a selection of subfields. Did you mean \"field { ... }\"?",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 5
-      }
-    ],
-    "Extensions": null,
-    "Exception": null
-  },
-  {
-    "Message": "The specified directive is not valid in the current location.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 7
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Directives-Are-In-Valid-Locations"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The following variables were not declared: foo.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
-    },
-    "Exception": null
+---------------
+{
+  "message": "Field \u0022field\u0022 of type \u0022Query\u0022 must have a selection of subfields. Did you mean \u0022field { ... }\u0022?",
+  "locations": [
+    {
+      "line": 2,
+      "column": 5
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
   }
-]
+}
+---------------
+
+---------------
+{
+  "message": "The specified directive is not valid in the current location.",
+  "locations": [
+    {
+      "line": 1,
+      "column": 7
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Directives-Are-In-Valid-Locations"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "The following variables were not declared: foo.",
+  "locations": [
+    {
+      "line": 1,
+      "column": 1
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
+  }
+}
+---------------

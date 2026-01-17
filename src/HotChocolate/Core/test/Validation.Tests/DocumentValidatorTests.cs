@@ -894,7 +894,14 @@ public class DocumentValidatorTests
             Assert.Collection(result.Errors, elementInspectors);
         }
 
-        result.Errors.MatchSnapshot();
+        var snapshot = Snapshot.Create();
+
+        foreach (var error in result.Errors)
+        {
+            snapshot.Add(error);
+        }
+
+        snapshot.Match();
     }
 
     private static DocumentValidator CreateValidator()

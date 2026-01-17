@@ -24,8 +24,8 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
                 {
                     context.ReportError(
                         ErrorBuilder.New()
-                            .SetMessage($"Operation `{operationDef.Name?.Value ?? "Unnamed"}` has an empty selection set. Root types without subfields are disallowed.")
-                            .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
+                            .SetMessage($"Operation `{operationDef.Name?.Value ?? "Unnamed"}` has an empty selection set. Root types without selections are disallowed.")
+                            .SpecifiedBy("sec-Leaf-Field-Selections")
                             .AddLocation(operationDef)
                             .Build());
 
@@ -49,13 +49,11 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
             {
                 var typeCondition = inlineFrag.TypeCondition is null
                     ? type
-                    // TODO: TryGet?
                     : context.Schema.Types[inlineFrag.TypeCondition.Name.Value];
                 ValidateSelectionSet(context, inlineFrag.SelectionSet, typeCondition);
             }
             else if (selection is FragmentSpreadNode spread && context.Fragments.TryEnter(spread, out var frag))
             {
-                // TODO: TryGet?
                 var typeCondition = context.Schema.Types[frag.TypeCondition.Name.Value];
                 ValidateSelectionSet(context, frag.SelectionSet, typeCondition);
                 context.Fragments.Leave(spread);
@@ -95,7 +93,7 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
                     ErrorBuilder.New()
                         .SetMessage(
                             $"Field \"{field.Name.Value}\" of type \"{fieldDef.Type.Print()}\" must have a selection of subfields. Did you mean \"{field.Name.Value} {{ ... }}\"?")
-                        .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
+                        .SpecifiedBy("sec-Leaf-Field-Selections")
                         .AddLocation(field)
                         .Build());
             }
