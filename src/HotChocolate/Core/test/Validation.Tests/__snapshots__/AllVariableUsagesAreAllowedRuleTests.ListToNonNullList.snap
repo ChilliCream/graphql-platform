@@ -1,13 +1,16 @@
 {
-  "Message": "The variable `booleanList` is not compatible with the type of the current location.",
-  "Locations": [
+  "message": "The variable \u0060booleanList\u0060 is not compatible with the type of the current location.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 52
+      "line": 3,
+      "column": 52
     }
   ],
-  "Path": "/arguments/nonNullBooleanListField",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "nonNullBooleanListField"
+  ],
+  "extensions": {
     "variable": "booleanList",
     "variableType": "[Boolean]",
     "locationType": "[Boolean]!",

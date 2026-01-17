@@ -1,13 +1,12 @@
 {
-  "Message": "The specified input object field `intField` does not exist.",
-  "Locations": [
+  "message": "The specified input object field \u0060intField\u0060 does not exist.",
+  "locations": [
     {
-      "Line": 1,
-      "Column": 48
+      "line": 1,
+      "column": 48
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "field": "intField",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
   }

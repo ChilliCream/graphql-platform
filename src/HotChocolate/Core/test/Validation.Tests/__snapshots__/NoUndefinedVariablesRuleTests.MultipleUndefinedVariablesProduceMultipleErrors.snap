@@ -1,14 +1,13 @@
 ---------------
 {
-  "Message": "The following variables were not used: b.",
-  "Locations": [
+  "message": "The following variables were not used: b.",
+  "locations": [
     {
-      "Line": 1,
-      "Column": 1
+      "line": 1,
+      "column": 1
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
   }
 }
@@ -16,15 +15,14 @@
 
 ---------------
 {
-  "Message": "The following variables were not declared: a.",
-  "Locations": [
+  "message": "The following variables were not declared: a.",
+  "locations": [
     {
-      "Line": 1,
-      "Column": 1
+      "line": 1,
+      "column": 1
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
   }
 }
@@ -32,15 +30,14 @@
 
 ---------------
 {
-  "Message": "The following variables were not used: a.",
-  "Locations": [
+  "message": "The following variables were not used: a.",
+  "locations": [
     {
-      "Line": 5,
-      "Column": 1
+      "line": 5,
+      "column": 1
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
   }
 }
@@ -48,15 +45,14 @@
 
 ---------------
 {
-  "Message": "The following variables were not declared: b.",
-  "Locations": [
+  "message": "The following variables were not declared: b.",
+  "locations": [
     {
-      "Line": 5,
-      "Column": 1
+      "line": 5,
+      "column": 1
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
   }
 }

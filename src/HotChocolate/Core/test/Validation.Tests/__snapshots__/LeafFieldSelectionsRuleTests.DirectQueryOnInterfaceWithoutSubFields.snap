@@ -1,11 +1,9 @@
 {
-  "Message": "Field \"pet\" of type \"Human\" must have a selection of subfields. Did you mean \"pet { ... }\"?",
-  "Locations": [
+  "message": "Field \u0022pet\u0022 of type \u0022Human\u0022 must have a selection of subfields. Did you mean \u0022pet { ... }\u0022?",
+  "locations": [
     {
-      "Line": 2,
-      "Column": 3
+      "line": 2,
+      "column": 3
     }
-  ],
-  "Path": null,
-  "Extensions": null
+  ]
 }

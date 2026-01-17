@@ -1,15 +1,18 @@
 {
-  "Message": "The specified argument value does not match the argument type.",
-  "Locations": [
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 43
+      "line": 3,
+      "column": 43
     }
   ],
-  "Path": "/arguments/stringListArgField",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "stringListArgField"
+  ],
+  "extensions": {
     "argument": "stringListArg",
-    "argumentValue": "[ \"one\", 2 ]",
+    "argumentValue": "[ \u0022one\u0022, 2 ]",
     "locationType": "[String]",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
   }

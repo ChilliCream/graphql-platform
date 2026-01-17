@@ -1,14 +1,16 @@
 ---------------
 {
-  "Message": "The argument `if` is required.",
-  "Locations": [
+  "message": "The argument \u0060if\u0060 is required.",
+  "locations": [
     {
-      "Line": 2,
-      "Column": 7
+      "line": 2,
+      "column": 7
     }
   ],
-  "Path": "/dog",
-  "Extensions": {
+  "path": [
+    "dog"
+  ],
+  "extensions": {
     "directive": "include",
     "argument": "if",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
@@ -18,15 +20,18 @@
 
 ---------------
 {
-  "Message": "The argument `if` is required.",
-  "Locations": [
+  "message": "The argument \u0060if\u0060 is required.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 10
+      "line": 3,
+      "column": 10
     }
   ],
-  "Path": "/dog/name",
-  "Extensions": {
+  "path": [
+    "dog",
+    "name"
+  ],
+  "extensions": {
     "directive": "skip",
     "argument": "if",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"

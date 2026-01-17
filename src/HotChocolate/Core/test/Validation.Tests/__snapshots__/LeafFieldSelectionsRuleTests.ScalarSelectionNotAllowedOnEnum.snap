@@ -1,11 +1,9 @@
 {
-  "Message": "Field \"furColor\" must not have a selection since type \"FurColor\" has no subfields.",
-  "Locations": [
+  "message": "Field \u0022furColor\u0022 must not have a selection since type \u0022FurColor\u0022 has no subfields.",
+  "locations": [
     {
-      "Line": 4,
-      "Column": 7
+      "line": 4,
+      "column": 7
     }
-  ],
-  "Path": null,
-  "Extensions": null
+  ]
 }

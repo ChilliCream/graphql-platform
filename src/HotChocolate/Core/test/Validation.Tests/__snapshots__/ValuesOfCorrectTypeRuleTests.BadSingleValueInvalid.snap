@@ -1,13 +1,16 @@
 {
-  "Message": "The specified argument value does not match the argument type.",
-  "Locations": [
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 43
+      "line": 3,
+      "column": 43
     }
   ],
-  "Path": "/arguments/stringListArgField",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "stringListArgField"
+  ],
+  "extensions": {
     "argument": "stringListArg",
     "argumentValue": "2",
     "locationType": "[String]",

@@ -1,13 +1,16 @@
 {
-  "Message": "The specified argument value does not match the argument type.",
-  "Locations": [
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 31
+      "line": 3,
+      "column": 31
     }
   ],
-  "Path": "/arguments/enumArgField",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "enumArgField"
+  ],
+  "extensions": {
     "argument": "enumArg",
     "argumentValue": "sit",
     "locationType": "DogCommand",

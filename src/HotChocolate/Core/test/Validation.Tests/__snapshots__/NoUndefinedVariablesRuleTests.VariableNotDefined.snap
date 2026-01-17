@@ -1,13 +1,12 @@
 {
-  "Message": "The following variables were not declared: d.",
-  "Locations": [
+  "message": "The following variables were not declared: d.",
+  "locations": [
     {
-      "Line": 1,
-      "Column": 1
+      "line": 1,
+      "column": 1
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
   }
 }

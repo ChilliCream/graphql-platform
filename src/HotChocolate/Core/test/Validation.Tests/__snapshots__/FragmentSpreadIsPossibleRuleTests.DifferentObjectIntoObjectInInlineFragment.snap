@@ -1,13 +1,16 @@
 {
-  "Message": "The parent type does not match the type condition on the fragment.",
-  "Locations": [
+  "message": "The parent type does not match the type condition on the fragment.",
+  "locations": [
     {
-      "Line": 10,
-      "Column": 3
+      "line": 10,
+      "column": 3
     }
   ],
-  "Path": "/human/pets",
-  "Extensions": {
+  "path": [
+    "human",
+    "pets"
+  ],
+  "extensions": {
     "typeCondition": "Dog",
     "selectionSetType": "Cat",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"

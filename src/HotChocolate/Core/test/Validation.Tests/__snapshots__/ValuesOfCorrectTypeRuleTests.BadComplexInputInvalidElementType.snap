@@ -1,13 +1,16 @@
 {
-  "Message": "The specified value type of field `stringListField` does not match the field type.",
-  "Locations": [
+  "message": "The specified value type of field \u0060stringListField\u0060 does not match the field type.",
+  "locations": [
     {
-      "Line": 4,
-      "Column": 30
+      "line": 4,
+      "column": 30
     }
   ],
-  "Path": "/arguments/complexArgField",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "complexArgField"
+  ],
+  "extensions": {
     "fieldName": "stringListField",
     "fieldType": "[String]",
     "locationType": "[String]",

@@ -1,13 +1,15 @@
 {
-  "Message": "The argument `nonNullBooleanArg` is required.",
-  "Locations": [
+  "message": "The argument \u0060nonNullBooleanArg\u0060 is required.",
+  "locations": [
     {
-      "Line": 8,
-      "Column": 26
+      "line": 8,
+      "column": 26
     }
   ],
-  "Path": "/arguments",
-  "Extensions": {
+  "path": [
+    "arguments"
+  ],
+  "extensions": {
     "type": "Arguments",
     "field": "nonNullBooleanArgField",
     "argument": "nonNullBooleanArg",

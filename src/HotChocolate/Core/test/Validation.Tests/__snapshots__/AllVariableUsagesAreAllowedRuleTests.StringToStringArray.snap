@@ -1,13 +1,16 @@
 {
-  "Message": "The variable `stringVar` is not compatible with the type of the current location.",
-  "Locations": [
+  "message": "The variable \u0060stringVar\u0060 is not compatible with the type of the current location.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 39
+      "line": 3,
+      "column": 39
     }
   ],
-  "Path": "/arguments/stringListArgField",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "stringListArgField"
+  ],
+  "extensions": {
     "variable": "stringVar",
     "variableType": "String",
     "locationType": "[String]",

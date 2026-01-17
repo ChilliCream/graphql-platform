@@ -1,16 +1,19 @@
 ---------------
 {
-  "Message": "The specified argument value does not match the argument type.",
-  "Locations": [
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 25
+      "line": 3,
+      "column": 25
     }
   ],
-  "Path": "/arguments/multipleReqs",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "multipleReqs"
+  ],
+  "extensions": {
     "argument": "x",
-    "argumentValue": "\"two\"",
+    "argumentValue": "\u0022two\u0022",
     "locationType": "Int!",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
   }
@@ -19,17 +22,20 @@
 
 ---------------
 {
-  "Message": "The specified argument value does not match the argument type.",
-  "Locations": [
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 35
+      "line": 3,
+      "column": 35
     }
   ],
-  "Path": "/arguments/multipleReqs",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "multipleReqs"
+  ],
+  "extensions": {
     "argument": "y",
-    "argumentValue": "\"one\"",
+    "argumentValue": "\u0022one\u0022",
     "locationType": "Int!",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
   }

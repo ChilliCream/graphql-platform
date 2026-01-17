@@ -1,13 +1,16 @@
 {
-  "Message": "The parent type does not match the type condition on the fragment.",
-  "Locations": [
+  "message": "The parent type does not match the type condition on the fragment.",
+  "locations": [
     {
-      "Line": 10,
-      "Column": 1
+      "line": 10,
+      "column": 1
     }
   ],
-  "Path": "/human/pets",
-  "Extensions": {
+  "path": [
+    "human",
+    "pets"
+  ],
+  "extensions": {
     "typeCondition": "Human",
     "selectionSetType": "Pet",
     "fragment": "humanFragment",

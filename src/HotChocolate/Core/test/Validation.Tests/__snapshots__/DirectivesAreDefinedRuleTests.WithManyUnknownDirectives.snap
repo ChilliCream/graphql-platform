@@ -1,14 +1,16 @@
 ---------------
 {
-  "Message": "The specified directive `unknown` is not supported by the current schema.",
-  "Locations": [
+  "message": "The specified directive \u0060unknown\u0060 is not supported by the current schema.",
+  "locations": [
     {
-      "Line": 2,
-      "Column": 7
+      "line": 2,
+      "column": 7
     }
   ],
-  "Path": "/dog",
-  "Extensions": {
+  "path": [
+    "dog"
+  ],
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Directives-Are-Defined"
   }
 }
@@ -16,15 +18,17 @@
 
 ---------------
 {
-  "Message": "The specified directive `unknown` is not supported by the current schema.",
-  "Locations": [
+  "message": "The specified directive \u0060unknown\u0060 is not supported by the current schema.",
+  "locations": [
     {
-      "Line": 5,
-      "Column": 9
+      "line": 5,
+      "column": 9
     }
   ],
-  "Path": "/human",
-  "Extensions": {
+  "path": [
+    "human"
+  ],
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Directives-Are-Defined"
   }
 }
@@ -32,15 +36,18 @@
 
 ---------------
 {
-  "Message": "The specified directive `unknown` is not supported by the current schema.",
-  "Locations": [
+  "message": "The specified directive \u0060unknown\u0060 is not supported by the current schema.",
+  "locations": [
     {
-      "Line": 7,
-      "Column": 10
+      "line": 7,
+      "column": 10
     }
   ],
-  "Path": "/human/pets",
-  "Extensions": {
+  "path": [
+    "human",
+    "pets"
+  ],
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Directives-Are-Defined"
   }
 }

@@ -1,13 +1,12 @@
 {
-  "Message": "The operation name `Foo` is not unique.",
-  "Locations": [
+  "message": "The operation name \u0060Foo\u0060 is not unique.",
+  "locations": [
     {
-      "Line": 5,
-      "Column": 1
+      "line": 5,
+      "column": 1
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "operation": "Foo",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Operation-Name-Uniqueness"
   }

@@ -1,14 +1,17 @@
 ---------------
 {
-  "Message": "The argument `unless` does not exist.",
-  "Locations": [
+  "message": "The argument \u0060unless\u0060 does not exist.",
+  "locations": [
     {
-      "Line": 8,
-      "Column": 47
+      "line": 8,
+      "column": 47
     }
   ],
-  "Path": "/dog/isHouseTrained",
-  "Extensions": {
+  "path": [
+    "dog",
+    "isHouseTrained"
+  ],
+  "extensions": {
     "directive": "include",
     "argument": "unless",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
@@ -18,15 +21,18 @@
 
 ---------------
 {
-  "Message": "The argument `if` is required.",
-  "Locations": [
+  "message": "The argument \u0060if\u0060 is required.",
+  "locations": [
     {
-      "Line": 8,
-      "Column": 38
+      "line": 8,
+      "column": 38
     }
   ],
-  "Path": "/dog/isHouseTrained",
-  "Extensions": {
+  "path": [
+    "dog",
+    "isHouseTrained"
+  ],
+  "extensions": {
     "directive": "include",
     "argument": "if",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"

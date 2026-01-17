@@ -1,16 +1,18 @@
 ---------------
 {
-  "Message": "The specified argument value does not match the argument type.",
-  "Locations": [
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
     {
-      "Line": 2,
-      "Column": 22
+      "line": 2,
+      "column": 22
     }
   ],
-  "Path": "/dog",
-  "Extensions": {
+  "path": [
+    "dog"
+  ],
+  "extensions": {
     "argument": "if",
-    "argumentValue": "\"yes\"",
+    "argumentValue": "\u0022yes\u0022",
     "locationType": "Boolean!",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
   }
@@ -19,15 +21,18 @@
 
 ---------------
 {
-  "Message": "The specified argument value does not match the argument type.",
-  "Locations": [
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 24
+      "line": 3,
+      "column": 24
     }
   ],
-  "Path": "/dog/name",
-  "Extensions": {
+  "path": [
+    "dog",
+    "name"
+  ],
+  "extensions": {
     "argument": "if",
     "argumentValue": "ENUM",
     "locationType": "Boolean!",

@@ -1,13 +1,16 @@
 {
-  "Message": "The argument `if` is required.",
-  "Locations": [
+  "message": "The argument \u0060if\u0060 is required.",
+  "locations": [
     {
-      "Line": 8,
-      "Column": 51
+      "line": 8,
+      "column": 51
     }
   ],
-  "Path": "/arguments/nonNullBooleanArgField",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "nonNullBooleanArgField"
+  ],
+  "extensions": {
     "directive": "skip",
     "argument": "if",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"

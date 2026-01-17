@@ -1,11 +1,9 @@
 {
-  "Message": "Field \"catOrDog\" of type \"CatOrDog\" must have a selection of subfields. Did you mean \"catOrDog { ... }\"?",
-  "Locations": [
+  "message": "Field \u0022catOrDog\u0022 of type \u0022CatOrDog\u0022 must have a selection of subfields. Did you mean \u0022catOrDog { ... }\u0022?",
+  "locations": [
     {
-      "Line": 2,
-      "Column": 3
+      "line": 2,
+      "column": 3
     }
-  ],
-  "Path": null,
-  "Extensions": null
+  ]
 }

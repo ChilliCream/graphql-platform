@@ -1,13 +1,16 @@
 {
-  "Message": "The specified argument value does not match the argument type.",
-  "Locations": [
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 29
+      "line": 3,
+      "column": 29
     }
   ],
-  "Path": "/arguments/intArgField",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "intArgField"
+  ],
+  "extensions": {
     "argument": "intArg",
     "argumentValue": "3.0",
     "locationType": "Int",

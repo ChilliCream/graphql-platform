@@ -1,13 +1,16 @@
 {
-  "Message": "The variable `nullableBoolean` is not compatible with the type of the current location.",
-  "Locations": [
+  "message": "The variable \u0060nullableBoolean\u0060 is not compatible with the type of the current location.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 49
+      "line": 3,
+      "column": 49
     }
   ],
-  "Path": "/arguments/nonNullBooleanListArgField",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "nonNullBooleanListArgField"
+  ],
+  "extensions": {
     "variable": "nullableBoolean",
     "variableType": "Boolean",
     "locationType": "Boolean!",

@@ -1,13 +1,15 @@
 {
-  "Message": "The variable `$dog` assigned to the field `dog` of the OneOf Input Object `PetInput` must be non-null.",
-  "Locations": [
+  "message": "The variable \u0060$dog\u0060 assigned to the field \u0060dog\u0060 of the OneOf Input Object \u0060PetInput\u0060 must be non-null.",
+  "locations": [
     {
-      "Line": 2,
-      "Column": 20
+      "line": 2,
+      "column": 20
     }
   ],
-  "Path": "/addPets",
-  "Extensions": {
+  "path": [
+    "addPets"
+  ],
+  "extensions": {
     "coordinate": "PetInput.dog",
     "specifiedBy": "https://spec.graphql.org/draft/#sec-All-Variable-Usages-Are-Allowed",
     "rfc": "https://github.com/graphql/graphql-spec/pull/825"

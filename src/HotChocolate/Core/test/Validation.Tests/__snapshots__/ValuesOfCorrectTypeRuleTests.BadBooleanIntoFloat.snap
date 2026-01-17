@@ -1,13 +1,16 @@
 {
-  "Message": "The specified argument value does not match the argument type.",
-  "Locations": [
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 33
+      "line": 3,
+      "column": 33
     }
   ],
-  "Path": "/arguments/floatArgField",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "floatArgField"
+  ],
+  "extensions": {
     "argument": "floatArg",
     "argumentValue": "true",
     "locationType": "Float",

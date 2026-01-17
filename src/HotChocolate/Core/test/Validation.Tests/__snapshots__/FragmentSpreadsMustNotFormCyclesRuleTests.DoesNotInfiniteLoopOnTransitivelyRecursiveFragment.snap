@@ -1,14 +1,16 @@
 ---------------
 {
-  "Message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
-  "Locations": [
+  "message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
+  "locations": [
     {
-      "Line": 11,
-      "Column": 33
+      "line": 11,
+      "column": 33
     }
   ],
-  "Path": "/dogOrHuman",
-  "Extensions": {
+  "path": [
+    "dogOrHuman"
+  ],
+  "extensions": {
     "fragment": "fragA",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
   }
@@ -17,15 +19,17 @@
 
 ---------------
 {
-  "Message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
-  "Locations": [
+  "message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
+  "locations": [
     {
-      "Line": 9,
-      "Column": 33
+      "line": 9,
+      "column": 33
     }
   ],
-  "Path": "/dogOrHuman",
-  "Extensions": {
+  "path": [
+    "dogOrHuman"
+  ],
+  "extensions": {
     "fragment": "fragB",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
   }
@@ -34,15 +38,17 @@
 
 ---------------
 {
-  "Message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
-  "Locations": [
+  "message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
+  "locations": [
     {
-      "Line": 10,
-      "Column": 33
+      "line": 10,
+      "column": 33
     }
   ],
-  "Path": "/dogOrHuman",
-  "Extensions": {
+  "path": [
+    "dogOrHuman"
+  ],
+  "extensions": {
     "fragment": "fragC",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
   }

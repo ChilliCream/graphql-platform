@@ -1,14 +1,16 @@
 ---------------
 {
-  "Message": "The specified fragment `bar` does not exist.",
-  "Locations": [
+  "message": "The specified fragment \u0060bar\u0060 does not exist.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 5
+      "line": 3,
+      "column": 5
     }
   ],
-  "Path": "/human",
-  "Extensions": {
+  "path": [
+    "human"
+  ],
+  "extensions": {
     "fragment": "bar",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spread-target-defined"
   }
@@ -17,15 +19,14 @@
 
 ---------------
 {
-  "Message": "The specified fragment `foo` is not used within the current document.",
-  "Locations": [
+  "message": "The specified fragment \u0060foo\u0060 is not used within the current document.",
+  "locations": [
     {
-      "Line": 6,
-      "Column": 1
+      "line": 6,
+      "column": 1
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "fragment": "foo",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
   }

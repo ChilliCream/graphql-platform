@@ -1,13 +1,16 @@
 {
-  "Message": "The variable `intArg` is not compatible with the type of the current location.",
-  "Locations": [
+  "message": "The variable \u0060intArg\u0060 is not compatible with the type of the current location.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 32
+      "line": 3,
+      "column": 32
     }
   ],
-  "Path": "/arguments/nonNullIntArgField",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "nonNullIntArgField"
+  ],
+  "extensions": {
     "variable": "intArg",
     "variableType": "Int",
     "locationType": "Int!",

@@ -1,14 +1,16 @@
 ---------------
 {
-  "Message": "The argument `command` does not exist.",
-  "Locations": [
+  "message": "The argument \u0060command\u0060 does not exist.",
+  "locations": [
     {
-      "Line": 8,
-      "Column": 19
+      "line": 8,
+      "column": 19
     }
   ],
-  "Path": "/dog",
-  "Extensions": {
+  "path": [
+    "dog"
+  ],
+  "extensions": {
     "type": "Dog",
     "field": "doesKnowCommand",
     "argument": "command",
@@ -19,15 +21,17 @@
 
 ---------------
 {
-  "Message": "The argument `dogCommand` is required.",
-  "Locations": [
+  "message": "The argument \u0060dogCommand\u0060 is required.",
+  "locations": [
     {
-      "Line": 8,
-      "Column": 3
+      "line": 8,
+      "column": 3
     }
   ],
-  "Path": "/dog",
-  "Extensions": {
+  "path": [
+    "dog"
+  ],
+  "extensions": {
     "type": "Dog",
     "field": "doesKnowCommand",
     "argument": "dogCommand",

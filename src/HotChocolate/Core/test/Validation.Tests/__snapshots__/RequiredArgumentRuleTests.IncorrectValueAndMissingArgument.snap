@@ -1,14 +1,16 @@
 ---------------
 {
-  "Message": "The argument `req1` does not exist.",
-  "Locations": [
+  "message": "The argument \u0060req1\u0060 does not exist.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 18
+      "line": 3,
+      "column": 18
     }
   ],
-  "Path": "/arguments",
-  "Extensions": {
+  "path": [
+    "arguments"
+  ],
+  "extensions": {
     "type": "Arguments",
     "field": "multipleReqs",
     "argument": "req1",
@@ -19,15 +21,17 @@
 
 ---------------
 {
-  "Message": "The argument `x` is required.",
-  "Locations": [
+  "message": "The argument \u0060x\u0060 is required.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 5
+      "line": 3,
+      "column": 5
     }
   ],
-  "Path": "/arguments",
-  "Extensions": {
+  "path": [
+    "arguments"
+  ],
+  "extensions": {
     "type": "Arguments",
     "field": "multipleReqs",
     "argument": "x",
@@ -38,15 +42,17 @@
 
 ---------------
 {
-  "Message": "The argument `y` is required.",
-  "Locations": [
+  "message": "The argument \u0060y\u0060 is required.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 5
+      "line": 3,
+      "column": 5
     }
   ],
-  "Path": "/arguments",
-  "Extensions": {
+  "path": [
+    "arguments"
+  ],
+  "extensions": {
     "type": "Arguments",
     "field": "multipleReqs",
     "argument": "y",

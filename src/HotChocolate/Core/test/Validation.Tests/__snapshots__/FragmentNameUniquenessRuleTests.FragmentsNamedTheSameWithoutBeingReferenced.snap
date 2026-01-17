@@ -1,14 +1,13 @@
 ---------------
 {
-  "Message": "There are multiple fragments with the name `fragA`.",
-  "Locations": [
+  "message": "There are multiple fragments with the name \u0060fragA\u0060.",
+  "locations": [
     {
-      "Line": 7,
-      "Column": 1
+      "line": 7,
+      "column": 1
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "fragment": "fragA",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-Name-Uniqueness"
   }
@@ -17,15 +16,14 @@
 
 ---------------
 {
-  "Message": "The specified fragment `fragA` is not used within the current document.",
-  "Locations": [
+  "message": "The specified fragment \u0060fragA\u0060 is not used within the current document.",
+  "locations": [
     {
-      "Line": 7,
-      "Column": 1
+      "line": 7,
+      "column": 1
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "fragment": "fragA",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
   }

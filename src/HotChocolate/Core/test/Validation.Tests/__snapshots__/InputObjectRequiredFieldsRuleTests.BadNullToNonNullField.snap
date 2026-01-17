@@ -1,13 +1,16 @@
 {
-  "Message": "`nonNullField` is a required field and cannot be null.",
-  "Locations": [
+  "message": "\u0060nonNullField\u0060 is a required field and cannot be null.",
+  "locations": [
     {
-      "Line": 5,
-      "Column": 7
+      "line": 5,
+      "column": 7
     }
   ],
-  "Path": "/arguments/complexArgField",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "complexArgField"
+  ],
+  "extensions": {
     "field": "nonNullField",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Required-Fields"
   }

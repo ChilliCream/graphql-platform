@@ -1,11 +1,9 @@
 {
-  "Message": "Field \"barkVolume\" must not have a selection since type \"Int\" has no subfields.",
-  "Locations": [
+  "message": "Field \u0022barkVolume\u0022 must not have a selection since type \u0022Int\u0022 has no subfields.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 5
+      "line": 3,
+      "column": 5
     }
-  ],
-  "Path": null,
-  "Extensions": null
+  ]
 }

@@ -1,13 +1,15 @@
 {
-  "Message": "The specified value type of field `name` does not match the field type.",
-  "Locations": [
+  "message": "The specified value type of field \u0060name\u0060 does not match the field type.",
+  "locations": [
     {
-      "Line": 2,
-      "Column": 30
+      "line": 2,
+      "column": 30
     }
   ],
-  "Path": "/findDog",
-  "Extensions": {
+  "path": [
+    "findDog"
+  ],
+  "extensions": {
     "fieldName": "name",
     "fieldType": "String",
     "locationType": "String",

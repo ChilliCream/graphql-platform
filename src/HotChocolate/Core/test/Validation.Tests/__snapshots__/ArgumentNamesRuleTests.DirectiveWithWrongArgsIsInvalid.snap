@@ -1,13 +1,15 @@
 {
-  "Message": "The argument `if` does not exist.",
-  "Locations": [
+  "message": "The argument \u0060if\u0060 does not exist.",
+  "locations": [
     {
-      "Line": 2,
-      "Column": 16
+      "line": 2,
+      "column": 16
     }
   ],
-  "Path": "/dog",
-  "Extensions": {
+  "path": [
+    "dog"
+  ],
+  "extensions": {
     "directive": "complex",
     "argument": "if",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"

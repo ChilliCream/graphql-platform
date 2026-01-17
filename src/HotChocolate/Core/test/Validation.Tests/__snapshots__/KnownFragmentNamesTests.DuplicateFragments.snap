@@ -1,14 +1,16 @@
 ---------------
 {
-  "Message": "The specified fragment `UnknownFragment1` does not exist.",
-  "Locations": [
+  "message": "The specified fragment \u0060UnknownFragment1\u0060 does not exist.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 5
+      "line": 3,
+      "column": 5
     }
   ],
-  "Path": "/human",
-  "Extensions": {
+  "path": [
+    "human"
+  ],
+  "extensions": {
     "fragment": "UnknownFragment1",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spread-target-defined"
   }
@@ -17,15 +19,17 @@
 
 ---------------
 {
-  "Message": "The specified fragment `UnknownFragment2` does not exist.",
-  "Locations": [
+  "message": "The specified fragment \u0060UnknownFragment2\u0060 does not exist.",
+  "locations": [
     {
-      "Line": 5,
-      "Column": 7
+      "line": 5,
+      "column": 7
     }
   ],
-  "Path": "/human",
-  "Extensions": {
+  "path": [
+    "human"
+  ],
+  "extensions": {
     "fragment": "UnknownFragment2",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spread-target-defined"
   }
@@ -34,15 +38,14 @@
 
 ---------------
 {
-  "Message": "The specified fragment `HumanFields` is not used within the current document.",
-  "Locations": [
+  "message": "The specified fragment \u0060HumanFields\u0060 is not used within the current document.",
+  "locations": [
     {
-      "Line": 9,
-      "Column": 1
+      "line": 9,
+      "column": 1
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "fragment": "HumanFields",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
   }

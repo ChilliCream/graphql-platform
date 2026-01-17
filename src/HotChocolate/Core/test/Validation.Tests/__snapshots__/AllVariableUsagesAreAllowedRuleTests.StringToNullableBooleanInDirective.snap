@@ -1,13 +1,15 @@
 {
-  "Message": "The variable `stringVar` is not compatible with the type of the current location.",
-  "Locations": [
+  "message": "The variable \u0060stringVar\u0060 is not compatible with the type of the current location.",
+  "locations": [
     {
-      "Line": 2,
-      "Column": 20
+      "line": 2,
+      "column": 20
     }
   ],
-  "Path": "/dog",
-  "Extensions": {
+  "path": [
+    "dog"
+  ],
+  "extensions": {
     "variable": "stringVar",
     "variableType": "String",
     "locationType": "Boolean!",

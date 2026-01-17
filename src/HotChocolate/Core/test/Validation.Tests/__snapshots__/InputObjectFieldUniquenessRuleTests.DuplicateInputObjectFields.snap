@@ -1,13 +1,16 @@
 {
-  "Message": "There can be only one input field named `f1`.",
-  "Locations": [
+  "message": "There can be only one input field named \u0060f1\u0060.",
+  "locations": [
     {
-      "Line": 6,
-      "Column": 7
+      "line": 6,
+      "column": 7
     }
   ],
-  "Path": "/arguments/complexArgField",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "complexArgField"
+  ],
+  "extensions": {
     "field": "f1",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Uniqueness"
   }

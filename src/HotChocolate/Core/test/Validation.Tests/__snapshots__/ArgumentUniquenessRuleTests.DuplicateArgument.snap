@@ -1,13 +1,15 @@
 {
-  "Message": "More than one argument with the same name in an argument set is ambiguous and invalid.",
-  "Locations": [
+  "message": "More than one argument with the same name in an argument set is ambiguous and invalid.",
+  "locations": [
     {
-      "Line": 8,
-      "Column": 51
+      "line": 8,
+      "column": 51
     }
   ],
-  "Path": "/arguments",
-  "Extensions": {
+  "path": [
+    "arguments"
+  ],
+  "extensions": {
     "type": "Arguments",
     "field": "nonNullBooleanArgField",
     "argument": "nonNullBooleanArg",

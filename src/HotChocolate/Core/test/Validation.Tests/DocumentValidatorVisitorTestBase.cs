@@ -74,13 +74,7 @@ public abstract class DocumentValidatorVisitorTestBase
 
         foreach (var error in context.Errors)
         {
-            snapshot.Add(new
-            {
-                error.Message,
-                error.Locations,
-                Path = error.Path?.ToString(),
-                error.Extensions
-            });
+            snapshot.Add(error);
         }
 
         snapshot.Match();

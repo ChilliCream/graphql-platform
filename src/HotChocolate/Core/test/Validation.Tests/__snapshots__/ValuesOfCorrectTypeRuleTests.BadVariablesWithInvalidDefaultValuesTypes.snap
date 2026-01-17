@@ -1,14 +1,13 @@
 ---------------
 {
-  "Message": "The specified value type of variable `a` does not match the variable type.",
-  "Locations": [
+  "message": "The specified value type of variable \u0060a\u0060 does not match the variable type.",
+  "locations": [
     {
-      "Line": 2,
-      "Column": 15
+      "line": 2,
+      "column": 15
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "variable": "a",
     "variableType": "Int",
     "locationType": "Int",
@@ -19,15 +18,14 @@
 
 ---------------
 {
-  "Message": "The specified value type of variable `b` does not match the variable type.",
-  "Locations": [
+  "message": "The specified value type of variable \u0060b\u0060 does not match the variable type.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 18
+      "line": 3,
+      "column": 18
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "variable": "b",
     "variableType": "String",
     "locationType": "String",
@@ -38,15 +36,14 @@
 
 ---------------
 {
-  "Message": "The specified value type of variable `c` does not match the variable type.",
-  "Locations": [
+  "message": "The specified value type of variable \u0060c\u0060 does not match the variable type.",
+  "locations": [
     {
-      "Line": 4,
-      "Column": 24
+      "line": 4,
+      "column": 24
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "variable": "c",
     "variableType": "ComplexInput",
     "locationType": "ComplexInput",

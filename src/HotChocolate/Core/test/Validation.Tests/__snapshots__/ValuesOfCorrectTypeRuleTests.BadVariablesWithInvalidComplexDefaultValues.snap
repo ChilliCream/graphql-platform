@@ -1,14 +1,13 @@
 ---------------
 {
-  "Message": "The specified input object field `requiredField` does not exist.",
-  "Locations": [
+  "message": "The specified input object field \u0060requiredField\u0060 does not exist.",
+  "locations": [
     {
-      "Line": 2,
-      "Column": 26
+      "line": 2,
+      "column": 26
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "field": "requiredField",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
   }
@@ -17,15 +16,14 @@
 
 ---------------
 {
-  "Message": "The specified input object field `intField` does not exist.",
-  "Locations": [
+  "message": "The specified input object field \u0060intField\u0060 does not exist.",
+  "locations": [
     {
-      "Line": 2,
-      "Column": 46
+      "line": 2,
+      "column": 46
     }
   ],
-  "Path": null,
-  "Extensions": {
+  "extensions": {
     "field": "intField",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
   }

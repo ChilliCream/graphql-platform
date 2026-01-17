@@ -1,13 +1,15 @@
 {
-  "Message": "The specified directive is not valid in the current location.",
-  "Locations": [
+  "message": "The specified directive is not valid in the current location.",
+  "locations": [
     {
-      "Line": 2,
-      "Column": 8
+      "line": 2,
+      "column": 8
     }
   ],
-  "Path": "/name",
-  "Extensions": {
+  "path": [
+    "name"
+  ],
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Directives-Are-In-Valid-Locations"
   }
 }

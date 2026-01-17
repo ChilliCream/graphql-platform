@@ -1,13 +1,16 @@
 {
-  "Message": "The variable `intArg` is not compatible with the type of the current location.",
-  "Locations": [
+  "message": "The variable \u0060intArg\u0060 is not compatible with the type of the current location.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 33
+      "line": 3,
+      "column": 33
     }
   ],
-  "Path": "/arguments/booleanArgField",
-  "Extensions": {
+  "path": [
+    "arguments",
+    "booleanArgField"
+  ],
+  "extensions": {
     "variable": "intArg",
     "variableType": "Int",
     "locationType": "Boolean",

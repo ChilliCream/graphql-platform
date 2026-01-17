@@ -30,9 +30,9 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
     private static void ValidateInternal(MergeContext context, DocumentNode document)
     {
-        foreach (var operation in document.Definitions)
+        foreach (var definition in document.Definitions)
         {
-            if (operation is not OperationDefinitionNode operationDef)
+            if (definition is not OperationDefinitionNode operationDef)
             {
                 continue;
             }
@@ -250,7 +250,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         // If there are no concrete groups, just return one group with all abstract fields
         if (concreteGroups.Count == 0)
         {
-            return [new HashSet<FieldAndType>(abstractFields)];
+            return [[..abstractFields]];
         }
 
         var result = new List<HashSet<FieldAndType>>();

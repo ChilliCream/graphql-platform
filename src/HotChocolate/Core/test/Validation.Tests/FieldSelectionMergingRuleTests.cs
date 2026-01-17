@@ -1169,6 +1169,154 @@ public class FieldSelectionMergingRuleTests
             """);
     }
 
+    [Fact]
+    public void IdenticalInputFieldValuesButDifferentOrdering()
+    {
+        ExpectValid(
+            """
+            {
+                findDog(complex: { name: "A", owner: "B", child: { owner: "D", name: "C" } }) {
+                  name
+                }
+                ... mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering
+            }
+
+            fragment mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering on Query {
+                findDog(complex: { owner: "B", name: "A", child: { name: "C", owner: "D" } }) {
+                  barks
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void ObjectValueWithNoFields()
+    {
+        ExpectValid(
+            """
+            {
+                findDog(complex: { }) {
+                  name
+                }
+                ... mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering
+            }
+
+            fragment mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering on Query {
+                findDog(complex: { }) {
+                  barks
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void ConflictingInputFieldValues()
+    {
+        ExpectErrors(
+            """
+            {
+                findDog(complex: { name: "A", owner: "B" }) {
+                  name
+                }
+                ... mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering
+            }
+
+            fragment mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering on Query {
+                findDog(complex: { owner: "OTHER", name: "A" }) {
+                  barks
+                }
+            }
+            """,
+            t => Assert.Equal(
+                "Encountered fields for the same object that cannot be merged.",
+                t.Message));
+    }
+
+    [Fact]
+    public void ConflictingNestedInputFieldValues()
+    {
+        ExpectErrors(
+            """
+            {
+                findDog(complex: { name: "A", owner: "B", child: { owner: "D", name: "C" } }) {
+                  name
+                }
+                ... mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering
+            }
+
+            fragment mergeIdenticalFieldsWithIdenticalInputFieldValuesButDifferentOrdering on Query {
+                findDog(complex: { owner: "B", name: "A", child: { name: "C", owner: "OTHER" } }) {
+                  barks
+                }
+            }
+            """,
+            t => Assert.Equal(
+                "Encountered fields for the same object that cannot be merged.",
+                t.Message));
+    }
+
+    [Fact]
+    public void IdenticalInputFieldListValuesButDifferentOrdering()
+    {
+        ExpectValid(
+            """
+            {
+                findDog3(complexList: [
+                  { name: "A", owner: "B", childList: [{ name: "A1", owner: "B1" }, { owner: "C1", name: "D1" }] },
+                  { owner: "C", name: "D", childList: [{ name: "A1", owner: "B1" }, { owner: "C1", name: "D1" }] }]) {
+                  name
+                }
+                findDog3(complexList: [
+                  { owner: "B", name: "A", childList: [{ owner: "B1", name: "A1" }, { name: "D1", owner: "C1" }] },
+                  { name: "D", owner: "C", childList: [{ owner: "B1", name: "A1" }, { name: "D1", owner: "C1" }] }]) {
+                  barks
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void ConflictingInputFieldListValues()
+    {
+        ExpectErrors(
+            """
+            {
+                findDog3(complexList: [{ name: "A", owner: "B" }, { owner: "C", name: "D" }]) {
+                  name
+                }
+                findDog3(complexList: [{ owner: "B", name: "A" }, { name: "OTHER", owner: "C" }]) {
+                  barks
+                }
+            }
+            """,
+            t => Assert.Equal(
+                "Encountered fields for the same object that cannot be merged.",
+                t.Message));
+    }
+
+    [Fact]
+    public void ConflictingNestedInputFieldListValues()
+    {
+        ExpectErrors(
+            """
+            {
+                findDog3(complexList: [
+                  { name: "A", owner: "B", childList: [{ name: "A1", owner: "B1" }, { owner: "C1", name: "D1" }] },
+                  { owner: "C", name: "D", childList: [{ name: "A1", owner: "B1" }, { owner: "C1", name: "D1" }] }]) {
+                  name
+                }
+                findDog3(complexList: [
+                  { owner: "B", name: "A", childList: [{ owner: "B1", name: "A1" }, { name: "D1", owner: "C1" }] },
+                  { name: "D", owner: "C", childList: [{ owner: "B1", name: "A1" }, { name: "D1", owner: "OTHER" }] }]) {
+                  barks
+                }
+            }
+            """,
+            t => Assert.Equal(
+                "Encountered fields for the same object that cannot be merged.",
+                t.Message));
+    }
+
     private static readonly ISchemaDefinition s_testSchema =
         SchemaBuilder.New()
             .AddDocumentFromString(
