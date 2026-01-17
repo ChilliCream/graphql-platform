@@ -1,18 +1,38 @@
 Variables:
 ---------------
 {
-  "RootElement": {
-    "ValueKind": "Object"
-  }
+  "a": "b",
+  "b": {
+    "a": "b",
+    "b": true,
+    "c": 1,
+    "d": 1.1
+  },
+  "c": [
+    {
+      "a": "b"
+    }
+  ]
 }
 ---------------
 
 Extensions:
 ---------------
 {
-  "RootElement": {
-    "ValueKind": "Object"
-  }
+  "aa": "bb",
+  "bb": {
+    "aa": "bb",
+    "bb": true,
+    "cc": 1,
+    "df": 1.1
+  },
+  "cc": [
+    {
+      "aa": "bb",
+      "ab": null,
+      "ac": false
+    }
+  ]
 }
 ---------------
 
