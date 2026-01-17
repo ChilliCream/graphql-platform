@@ -1,21 +1,12 @@
-[
-  {
-    "Message": "Field \"pet\" of type \"Human\" must have a selection of subfields. Did you mean \"pet { ... }\"?",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 3
-      }
-    ],
-    "Extensions": {
-      "declaringType": "Query",
-      "field": "pet",
-      "type": "Human",
-      "responseName": "pet",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
+{
+  "message": "Field \u0022pet\u0022 of type \u0022Human\u0022 must have a selection of subfields. Did you mean \u0022pet { ... }\u0022?",
+  "locations": [
+    {
+      "line": 2,
+      "column": 3
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
   }
-]
+}

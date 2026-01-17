@@ -447,11 +447,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         IType? typeB,
         HashSet<FieldAndType> fields)
     {
-        // TODO: What's the proper replacement?
-        // var typeNameA = typeA?.Print() ?? "null";
-        // var typeNameB = typeB?.Print() ?? "null";
-        var typeNameA = typeA?.ToString() ?? "null";
-        var typeNameB = typeB?.ToString() ?? "null";
+        var typeNameA = typeA?.Print() ?? "null";
+        var typeNameB = typeB?.Print() ?? "null";
 
         return new Conflict(
             string.Format(

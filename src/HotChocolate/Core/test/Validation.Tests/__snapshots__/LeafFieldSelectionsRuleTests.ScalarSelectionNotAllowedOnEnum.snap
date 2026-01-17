@@ -5,5 +5,8 @@
       "line": 4,
       "column": 7
     }
-  ]
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
+  }
 }
