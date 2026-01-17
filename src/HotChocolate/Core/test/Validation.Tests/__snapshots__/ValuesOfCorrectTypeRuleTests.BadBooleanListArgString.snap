@@ -13,6 +13,6 @@
     "argument": "booleanListArg",
     "argumentValue": "\u0022false\u0022",
     "locationType": "[Boolean!]",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
   }
 }

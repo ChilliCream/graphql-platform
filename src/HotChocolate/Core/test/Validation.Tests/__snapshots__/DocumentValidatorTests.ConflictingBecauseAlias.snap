@@ -8,6 +8,6 @@
   ],
   "extensions": {
     "fragment": "conflictingBecauseAlias",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragments-Must-Be-Used"
   }
 }

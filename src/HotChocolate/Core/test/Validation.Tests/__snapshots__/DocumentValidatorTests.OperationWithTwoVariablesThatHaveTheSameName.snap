@@ -9,6 +9,6 @@
   "extensions": {
     "variable": "atOtherHomes",
     "variableType": "Boolean",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variable-Uniqueness"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Variable-Uniqueness"
   }
 }

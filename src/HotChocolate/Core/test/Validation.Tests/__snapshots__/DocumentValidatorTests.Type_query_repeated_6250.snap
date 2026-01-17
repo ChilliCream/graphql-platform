@@ -8,7 +8,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
 }
 ---------------
@@ -23,7 +23,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
 }
 ---------------
@@ -38,7 +38,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
 }
 ---------------
@@ -53,7 +53,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
 }
 ---------------
@@ -68,7 +68,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
 }
 ---------------

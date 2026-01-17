@@ -11,6 +11,6 @@
   ],
   "extensions": {
     "typeCondition": "Boolean",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-On-Composite-Types"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragments-on-Object-Interface-or-Union-Types"
   }
 }

@@ -16,7 +16,7 @@
     "x"
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selection-Merging"
   }
 }
 ---------------
@@ -43,7 +43,7 @@
     "x"
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selection-Merging"
   }
 }
 ---------------

@@ -11,7 +11,7 @@
     "type": "Query",
     "field": "f",
     "responseName": "f",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
   }
 }
 ---------------
@@ -27,7 +27,7 @@
   ],
   "extensions": {
     "fragment": "f",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spreads-Must-Not-Form-Cycles"
   }
 }
 ---------------

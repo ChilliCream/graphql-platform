@@ -10,6 +10,6 @@
     "type": "Query",
     "field": "fieldWithArg",
     "argument": "arg1",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Argument-Uniqueness"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Argument-Uniqueness"
   }
 }

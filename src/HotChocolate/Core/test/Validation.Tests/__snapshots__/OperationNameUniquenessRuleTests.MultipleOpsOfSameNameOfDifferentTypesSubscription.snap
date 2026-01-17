@@ -8,6 +8,6 @@
   ],
   "extensions": {
     "operation": "Foo",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Operation-Name-Uniqueness"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Operation-Name-Uniqueness"
   }
 }

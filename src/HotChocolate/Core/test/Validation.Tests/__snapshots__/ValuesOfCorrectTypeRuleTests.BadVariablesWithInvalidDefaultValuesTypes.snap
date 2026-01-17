@@ -11,7 +11,7 @@
     "variable": "a",
     "variableType": "Int",
     "locationType": "Int",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
   }
 }
 ---------------
@@ -29,7 +29,7 @@
     "variable": "b",
     "variableType": "String",
     "locationType": "String",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
   }
 }
 ---------------
@@ -47,7 +47,7 @@
     "variable": "c",
     "variableType": "ComplexInput",
     "locationType": "ComplexInput",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
   }
 }
 ---------------

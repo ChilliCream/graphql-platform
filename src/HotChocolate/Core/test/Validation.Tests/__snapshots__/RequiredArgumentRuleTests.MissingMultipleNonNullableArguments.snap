@@ -14,7 +14,7 @@
     "type": "Arguments",
     "field": "multipleReqs",
     "argument": "x",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
   }
 }
 ---------------
@@ -35,7 +35,7 @@
     "type": "Arguments",
     "field": "multipleReqs",
     "argument": "y",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
   }
 }
 ---------------

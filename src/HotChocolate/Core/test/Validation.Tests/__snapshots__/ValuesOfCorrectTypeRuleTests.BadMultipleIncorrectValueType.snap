@@ -15,7 +15,7 @@
     "argument": "x",
     "argumentValue": "\u0022two\u0022",
     "locationType": "Int!",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
   }
 }
 ---------------
@@ -37,7 +37,7 @@
     "argument": "y",
     "argumentValue": "\u0022one\u0022",
     "locationType": "Int!",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
   }
 }
 ---------------

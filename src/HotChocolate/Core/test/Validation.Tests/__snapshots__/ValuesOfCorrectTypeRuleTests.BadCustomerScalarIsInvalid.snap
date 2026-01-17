@@ -13,6 +13,6 @@
     "argument": "arg",
     "argumentValue": "123",
     "locationType": "Invalid",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
   }
 }

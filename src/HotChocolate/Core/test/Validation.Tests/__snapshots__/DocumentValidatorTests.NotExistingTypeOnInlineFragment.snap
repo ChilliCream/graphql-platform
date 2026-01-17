@@ -11,6 +11,6 @@
   ],
   "extensions": {
     "typeCondition": "NotInSchema",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-Spread-Type-Existence"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spread-Type-Existence"
   }
 }

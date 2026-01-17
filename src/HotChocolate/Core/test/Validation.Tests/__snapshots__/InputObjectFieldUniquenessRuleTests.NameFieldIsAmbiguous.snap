@@ -11,6 +11,6 @@
   ],
   "extensions": {
     "field": "name",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Uniqueness"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Object-Field-Uniqueness"
   }
 }

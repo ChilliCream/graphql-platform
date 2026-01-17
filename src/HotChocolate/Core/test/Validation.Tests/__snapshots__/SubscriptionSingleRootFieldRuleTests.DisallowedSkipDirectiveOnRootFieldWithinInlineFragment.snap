@@ -7,7 +7,6 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/draft/#sec-Single-Root-Field",
-    "rfc": "https://github.com/graphql/graphql-spec/pull/860"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Single-Root-Field"
   }
 }

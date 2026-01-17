@@ -8,6 +8,6 @@
   ],
   "extensions": {
     "fragment": "f",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spreads-Must-Not-Form-Cycles"
   }
 }

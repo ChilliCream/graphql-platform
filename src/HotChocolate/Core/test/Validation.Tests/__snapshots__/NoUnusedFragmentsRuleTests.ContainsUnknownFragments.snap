@@ -9,7 +9,7 @@
   ],
   "extensions": {
     "fragment": "Unused1",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragments-Must-Be-Used"
   }
 }
 ---------------
@@ -25,7 +25,7 @@
   ],
   "extensions": {
     "fragment": "Unused2",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragments-Must-Be-Used"
   }
 }
 ---------------

@@ -10,6 +10,6 @@
     "variable": "search",
     "variableType": "ComplexInput",
     "locationType": "ComplexInput",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
   }
 }

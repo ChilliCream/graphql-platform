@@ -8,7 +8,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
 }
 ---------------
@@ -23,7 +23,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
 }
 ---------------
@@ -38,7 +38,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
 }
 ---------------
@@ -53,7 +53,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
 }
 ---------------
@@ -70,7 +70,7 @@
   "extensions": {
     "variable": "cat",
     "variableType": "Cat",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Variables-Are-Input-Types"
   }
 }
 ---------------
@@ -85,7 +85,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-All-Variables-Used"
   }
 }
 ---------------
@@ -102,7 +102,7 @@
   "extensions": {
     "variable": "dog",
     "variableType": "Dog!",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Variables-Are-Input-Types"
   }
 }
 ---------------
@@ -117,7 +117,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-All-Variables-Used"
   }
 }
 ---------------
@@ -134,7 +134,7 @@
   "extensions": {
     "variable": "pets",
     "variableType": "[Pet]",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Variables-Are-Input-Types"
   }
 }
 ---------------
@@ -149,7 +149,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-All-Variables-Used"
   }
 }
 ---------------
@@ -166,7 +166,7 @@
   "extensions": {
     "variable": "catOrDog",
     "variableType": "CatOrDog",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Variables-Are-Input-Types"
   }
 }
 ---------------
@@ -181,7 +181,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-All-Variables-Used"
   }
 }
 ---------------

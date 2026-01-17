@@ -8,6 +8,6 @@
   ],
   "extensions": {
     "fragment": "fragA",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-Name-Uniqueness"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Name-Uniqueness"
   }
 }

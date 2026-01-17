@@ -7,6 +7,6 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Single-root-field"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Single-Root-Field"
   }
 }

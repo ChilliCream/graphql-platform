@@ -11,6 +11,6 @@
   ],
   "extensions": {
     "variable": "cat",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Usages-are-Allowed"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-All-Variable-Usages-Are-Allowed"
   }
 }

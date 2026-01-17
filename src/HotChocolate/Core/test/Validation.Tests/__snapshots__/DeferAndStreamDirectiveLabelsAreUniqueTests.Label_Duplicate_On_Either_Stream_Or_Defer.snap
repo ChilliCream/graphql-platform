@@ -10,7 +10,8 @@
     "b"
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Defer-And-Stream-Directive-Labels-Are-Unique",
+    "specifiedBy": "https://spec.graphql.org/draft/#sec-Defer-And-Stream-Directive-Labels-Are-Unique",
+    "rfc": "https://github.com/graphql/graphql-spec/pull/1110",
     "label": "a"
   }
 }

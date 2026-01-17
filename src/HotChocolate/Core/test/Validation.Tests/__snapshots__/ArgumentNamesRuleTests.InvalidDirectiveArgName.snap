@@ -14,7 +14,7 @@
   "extensions": {
     "directive": "include",
     "argument": "unless",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
   }
 }
 ---------------
@@ -35,7 +35,7 @@
   "extensions": {
     "directive": "include",
     "argument": "if",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
   }
 }
 ---------------

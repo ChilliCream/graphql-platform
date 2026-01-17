@@ -12,6 +12,6 @@
   ],
   "extensions": {
     "field": "nonNullField",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Required-Fields"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Object-Required-Fields"
   }
 }

@@ -7,6 +7,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Stream-Directives-Are-Used-On-List-Fields"
+    "specifiedBy": "https://spec.graphql.org/draft/#sec-Stream-Directives-Are-Used-On-List-Fields",
+    "rfc": "https://github.com/graphql/graphql-spec/pull/1110"
   }
 }

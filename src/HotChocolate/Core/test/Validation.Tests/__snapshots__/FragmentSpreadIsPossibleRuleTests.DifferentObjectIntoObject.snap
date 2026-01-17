@@ -14,6 +14,6 @@
     "typeCondition": "Dog",
     "selectionSetType": "Cat",
     "fragment": "dogFragment",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spread-Is-Possible"
   }
 }

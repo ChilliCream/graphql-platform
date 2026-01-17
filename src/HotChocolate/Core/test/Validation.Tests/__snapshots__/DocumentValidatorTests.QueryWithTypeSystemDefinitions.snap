@@ -8,7 +8,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Executable-Definitions"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Executable-Definitions"
   }
 }
 ---------------
@@ -26,7 +26,7 @@
     "type": "Dog",
     "field": "color",
     "responseName": "color",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
   }
 }
 ---------------

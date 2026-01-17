@@ -8,7 +8,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
 }
 ---------------
@@ -23,7 +23,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Directives-Are-In-Valid-Locations"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Directives-Are-in-Valid-Locations"
   }
 }
 ---------------
@@ -38,7 +38,7 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-All-Variable-Uses-Defined"
   }
 }
 ---------------

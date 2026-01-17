@@ -12,7 +12,7 @@
   ],
   "extensions": {
     "fragment": "bar",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spread-target-defined"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spread-Target-Defined"
   }
 }
 ---------------
@@ -28,7 +28,7 @@
   ],
   "extensions": {
     "fragment": "foo",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragments-Must-Be-Used"
   }
 }
 ---------------
