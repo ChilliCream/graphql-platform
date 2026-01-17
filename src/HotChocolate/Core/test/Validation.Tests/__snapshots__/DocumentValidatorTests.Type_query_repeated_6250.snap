@@ -8,7 +8,11 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
+    "declaringType": "Query",
+    "field": "__type",
+    "type": "__Type",
+    "responseName": "__type",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
   }
 }
 ---------------
@@ -23,7 +27,11 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
+    "declaringType": "Query",
+    "field": "__type",
+    "type": "__Type",
+    "responseName": "__type",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
   }
 }
 ---------------
@@ -38,7 +46,11 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
+    "declaringType": "Query",
+    "field": "__type",
+    "type": "__Type",
+    "responseName": "__type",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
   }
 }
 ---------------
@@ -53,7 +65,11 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
+    "declaringType": "Query",
+    "field": "__type",
+    "type": "__Type",
+    "responseName": "__type",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
   }
 }
 ---------------
@@ -68,7 +84,11 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
+    "declaringType": "Query",
+    "field": "__type",
+    "type": "__Type",
+    "responseName": "__type",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
   }
 }
 ---------------

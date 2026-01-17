@@ -7,6 +7,10 @@
     }
   ],
   "extensions": {
+    "declaringType": "Cat",
+    "field": "furColor",
+    "type": "FurColor",
+    "responseName": "furColor",
     "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
 }

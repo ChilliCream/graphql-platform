@@ -8,7 +8,9 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
+    "operation": "takesCat",
+    "type": "Query",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
   }
 }
 ---------------
@@ -23,7 +25,9 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
+    "operation": "takesDogBang",
+    "type": "Query",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
   }
 }
 ---------------
@@ -38,7 +42,9 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
+    "operation": "takesListOfPet",
+    "type": "Query",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
   }
 }
 ---------------
@@ -53,7 +59,9 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
+    "operation": "takesCatOrDog",
+    "type": "Query",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
   }
 }
 ---------------

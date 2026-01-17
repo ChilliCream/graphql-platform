@@ -7,6 +7,10 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
+    "declaringType": "Human",
+    "field": "pets",
+    "type": "[Pet]",
+    "responseName": "pets",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
   }
 }

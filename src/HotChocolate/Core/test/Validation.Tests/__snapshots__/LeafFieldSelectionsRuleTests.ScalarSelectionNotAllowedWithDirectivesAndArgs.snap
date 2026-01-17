@@ -7,6 +7,10 @@
     }
   ],
   "extensions": {
+    "declaringType": "Dog",
+    "field": "doesKnowCommand",
+    "type": "Boolean!",
+    "responseName": "doesKnowCommand",
     "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
 }

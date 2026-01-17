@@ -7,6 +7,10 @@
     }
   ],
   "extensions": {
+    "declaringType": "Dog",
+    "field": "name",
+    "type": "String!",
+    "responseName": "name",
     "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
 }

@@ -60,12 +60,11 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 fieldNodes ??= [];
                 fieldNodes.Clear();
                 fieldNodes.AddRange(conflict.Fields);
-                fieldNodes.Order(FieldLocationComparer.Instance);
 
                 context.ReportError(
                     ErrorBuilder.New()
                         .SetMessage(conflict.Reason)
-                        .AddLocations(fieldNodes)
+                        .AddLocations(fieldNodes.Order(FieldLocationComparer.Instance))
                         .SetPath(conflict.Path)
                         .SpecifiedBy("sec-Field-Selection-Merging")
                         .Build());

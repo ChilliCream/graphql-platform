@@ -3,7 +3,7 @@ namespace HotChocolate.Language.SyntaxTree;
 public class ObjectValueNodeTests
 {
     [Fact]
-    public void GetHashCode_FieldOrder_DoesMatter()
+    public void GetHashCode_FieldOrder_DoesNotMatter()
     {
         // arrange
         var a = new ObjectValueNode(
@@ -34,8 +34,8 @@ public class ObjectValueNodeTests
 
         // assert
         Assert.Equal(aHash, bHash);
-        Assert.NotEqual(aHash, cHash);
-        Assert.NotEqual(aHash, dHash);
+        Assert.Equal(aHash, cHash);
+        Assert.Equal(aHash, dHash);
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public class ObjectValueNodeTests
     }
 
     [Fact]
-    public void Equals_FieldOrder_DoesMatter()
+    public void Equals_FieldOrder_DoesNotMatter()
     {
         // arrange
         var a = new ObjectValueNode(
@@ -94,8 +94,8 @@ public class ObjectValueNodeTests
         // assert
         Assert.True(abResult);
         Assert.True(aaResult);
-        Assert.False(acResult);
-        Assert.False(adResult);
+        Assert.True(acResult);
+        Assert.True(adResult);
         Assert.False(aNullResult);
     }
 

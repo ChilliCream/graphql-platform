@@ -8,7 +8,11 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
+    "declaringType": "Query",
+    "field": "field",
+    "type": "Query",
+    "responseName": "field",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
   }
 }
 ---------------

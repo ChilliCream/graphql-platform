@@ -26,16 +26,16 @@
   "message": "Fields \u0060a\u0060 and \u0060b\u0060 conflict because they have differing names. Use different aliases on the fields to fetch both if this was intentional.",
   "locations": [
     {
+      "line": 13,
+      "column": 9
+    },
+    {
       "line": 18,
       "column": 5
     },
     {
       "line": 22,
       "column": 5
-    },
-    {
-      "line": 13,
-      "column": 9
     }
   ],
   "path": [

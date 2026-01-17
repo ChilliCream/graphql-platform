@@ -23,11 +23,9 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
                 if (operationDef.SelectionSet.Selections.Count == 0)
                 {
                     context.ReportError(
-                        ErrorBuilder.New()
-                            .SetMessage($"Operation `{operationDef.Name?.Value ?? "Unnamed"}` has an empty selection set. Root types without selections are disallowed.")
-                            .SpecifiedBy("sec-Leaf-Field-Selections")
-                            .AddLocation(operationDef)
-                            .Build());
+                        context.NoSelectionOnRootType(
+                            operationDef,
+                            rootType));
 
                     continue;
                 }
@@ -84,12 +82,7 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
             if (field.SelectionSet is not null)
             {
                 context.ReportError(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            $"Field \"{field.Name.Value}\" must not have a selection since type \"{fieldDef.Type.Print()}\" has no subfields.")
-                        .SpecifiedBy("sec-Leaf-Field-Selections")
-                        .AddLocation(field)
-                        .Build());
+                    context.LeafFieldsCannotHaveSelections(field, complex, fieldDef.Type));
             }
         }
         else
@@ -97,12 +90,7 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
             if (field.SelectionSet is null or { Selections.Count: 0 })
             {
                 context.ReportError(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            $"Field \"{field.Name.Value}\" of type \"{fieldDef.Type.Print()}\" must have a selection of subfields. Did you mean \"{field.Name.Value} {{ ... }}\"?")
-                        .SpecifiedBy("sec-Leaf-Field-Selections")
-                        .AddLocation(field)
-                        .Build());
+                    context.NoSelectionOnCompositeField(field, complex, fieldDef.Type));
             }
             else
             {

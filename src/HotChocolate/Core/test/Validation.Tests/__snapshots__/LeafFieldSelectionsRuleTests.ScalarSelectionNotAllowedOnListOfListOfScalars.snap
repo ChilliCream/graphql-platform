@@ -7,6 +7,10 @@
     }
   ],
   "extensions": {
+    "declaringType": "Query",
+    "field": "listOfListOfScalars",
+    "type": "[[String]]",
+    "responseName": "listOfListOfScalars",
     "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
 }
