@@ -1,17 +1,21 @@
 {
-  "Message": "Fields `scalar` and `unrelatedField` conflict because they have differing names. Use different aliases on the fields to fetch both if this was intentional.",
-  "Locations": [
+  "message": "Fields \u0060scalar\u0060 and \u0060unrelatedField\u0060 conflict because they have differing names. Use different aliases on the fields to fetch both if this was intentional.",
+  "locations": [
     {
-      "Line": 5,
-      "Column": 17
+      "line": 5,
+      "column": 17
     },
     {
-      "Line": 6,
-      "Column": 17
+      "line": 6,
+      "column": 17
     }
   ],
-  "Path": "/someBox/box/val",
-  "Extensions": {
+  "path": [
+    "someBox",
+    "box",
+    "val"
+  ],
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
   }
 }

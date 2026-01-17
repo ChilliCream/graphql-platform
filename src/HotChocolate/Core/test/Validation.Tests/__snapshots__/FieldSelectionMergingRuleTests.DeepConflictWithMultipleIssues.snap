@@ -1,18 +1,21 @@
 ---------------
 {
-  "Message": "Fields `a` and `b` conflict because they have differing names. Use different aliases on the fields to fetch both if this was intentional.",
-  "Locations": [
+  "message": "Fields \u0060a\u0060 and \u0060b\u0060 conflict because they have differing names. Use different aliases on the fields to fetch both if this was intentional.",
+  "locations": [
     {
-      "Line": 3,
-      "Column": 9
+      "line": 3,
+      "column": 9
     },
     {
-      "Line": 7,
-      "Column": 9
+      "line": 7,
+      "column": 9
     }
   ],
-  "Path": "/f1/x",
-  "Extensions": {
+  "path": [
+    "f1",
+    "x"
+  ],
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
   }
 }
@@ -20,19 +23,22 @@
 
 ---------------
 {
-  "Message": "Fields `c` and `d` conflict because they have differing names. Use different aliases on the fields to fetch both if this was intentional.",
-  "Locations": [
+  "message": "Fields \u0060c\u0060 and \u0060d\u0060 conflict because they have differing names. Use different aliases on the fields to fetch both if this was intentional.",
+  "locations": [
     {
-      "Line": 4,
-      "Column": 9
+      "line": 4,
+      "column": 9
     },
     {
-      "Line": 8,
-      "Column": 9
+      "line": 8,
+      "column": 9
     }
   ],
-  "Path": "/f1/y",
-  "Extensions": {
+  "path": [
+    "f1",
+    "y"
+  ],
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
   }
 }

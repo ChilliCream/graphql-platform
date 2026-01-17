@@ -1,6 +1,5 @@
 using HotChocolate.Types;
 using HotChocolate.Validation.Rules;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 
@@ -8,7 +7,7 @@ public class FieldSelectionMergingRuleTests
     : DocumentValidatorVisitorTestBase
 {
     public FieldSelectionMergingRuleTests()
-        : base(builder => builder.AddFieldRules())
+        : base(builder => builder.AddRule<OverlappingFieldsCanBeMergedRule>())
     {
     }
 
@@ -1226,10 +1225,7 @@ public class FieldSelectionMergingRuleTests
                   barks
                 }
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -1249,10 +1245,7 @@ public class FieldSelectionMergingRuleTests
                   barks
                 }
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -1288,10 +1281,7 @@ public class FieldSelectionMergingRuleTests
                   barks
                 }
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     [Fact]
@@ -1311,10 +1301,7 @@ public class FieldSelectionMergingRuleTests
                   barks
                 }
             }
-            """,
-            t => Assert.Equal(
-                "Encountered fields for the same object that cannot be merged.",
-                t.Message));
+            """);
     }
 
     private static readonly ISchemaDefinition s_testSchema =

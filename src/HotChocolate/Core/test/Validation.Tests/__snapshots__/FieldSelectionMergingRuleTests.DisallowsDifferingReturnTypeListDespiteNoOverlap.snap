@@ -1,17 +1,20 @@
 {
-  "Message": "Fields `stringBox` conflict because they return conflicting types `[StringBox]` and `StringBox`. Use different aliases on the fields to fetch both if this was intentional.",
-  "Locations": [
+  "message": "Fields \u0060stringBox\u0060 conflict because they return conflicting types \u0060[StringBox]\u0060 and \u0060StringBox\u0060. Use different aliases on the fields to fetch both if this was intentional.",
+  "locations": [
     {
-      "Line": 4,
-      "Column": 13
+      "line": 4,
+      "column": 13
     },
     {
-      "Line": 9,
-      "Column": 13
+      "line": 9,
+      "column": 13
     }
   ],
-  "Path": "/someBox/box",
-  "Extensions": {
+  "path": [
+    "someBox",
+    "box"
+  ],
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
   }
 }

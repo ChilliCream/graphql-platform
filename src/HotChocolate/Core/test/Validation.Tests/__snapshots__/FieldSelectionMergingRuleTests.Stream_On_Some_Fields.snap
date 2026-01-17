@@ -1,17 +1,20 @@
 {
-  "Message": "Fields `fields` conflict because they have differing stream directives. ",
-  "Locations": [
+  "message": "Fields \u0060fields\u0060 conflict because they have differing stream directives. ",
+  "locations": [
     {
-      "Line": 4,
-      "Column": 9
+      "line": 4,
+      "column": 9
     },
     {
-      "Line": 9,
-      "Column": 9
+      "line": 9,
+      "column": 9
     }
   ],
-  "Path": "/__type/fields",
-  "Extensions": {
+  "path": [
+    "__type",
+    "fields"
+  ],
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
   }
 }

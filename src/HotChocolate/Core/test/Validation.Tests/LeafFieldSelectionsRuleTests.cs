@@ -1,9 +1,9 @@
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Validation.Rules;
 
 namespace HotChocolate.Validation;
 
 public class LeafFieldSelectionsRuleTests()
-    : DocumentValidatorVisitorTestBase(builder => builder.AddFieldRules())
+    : DocumentValidatorVisitorTestBase(builder => builder.AddRule<LeafFieldSelectionsRule>())
 {
     [Fact]
     public void ScalarSelection()

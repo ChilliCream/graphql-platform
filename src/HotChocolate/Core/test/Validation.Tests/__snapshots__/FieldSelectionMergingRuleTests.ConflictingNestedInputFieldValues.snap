@@ -1,8 +1,8 @@
 {
-  "message": "Fields \u0060doesKnowCommand\u0060 conflict because they have differing arguments. Use different aliases on the fields to fetch both if this was intentional. ",
+  "message": "Fields \u0060findDog\u0060 conflict because they have differing arguments. Use different aliases on the fields to fetch both if this was intentional. ",
   "locations": [
     {
-      "line": 8,
+      "line": 2,
       "column": 5
     },
     {
@@ -11,8 +11,7 @@
     }
   ],
   "path": [
-    "dog",
-    "doesKnowCommand"
+    "findDog"
   ],
   "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"

@@ -1,17 +1,21 @@
 {
-  "Message": "Fields `scalar` conflict because they return conflicting types `String` and `Int`. Use different aliases on the fields to fetch both if this was intentional.",
-  "Locations": [
+  "message": "Fields \u0060scalar\u0060 conflict because they return conflicting types \u0060String\u0060 and \u0060Int\u0060. Use different aliases on the fields to fetch both if this was intentional.",
+  "locations": [
     {
-      "Line": 5,
-      "Column": 17
+      "line": 5,
+      "column": 17
     },
     {
-      "Line": 10,
-      "Column": 17
+      "line": 10,
+      "column": 17
     }
   ],
-  "Path": "/someBox/box/scalar",
-  "Extensions": {
+  "path": [
+    "someBox",
+    "box",
+    "scalar"
+  ],
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
   }
 }

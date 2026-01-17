@@ -84,7 +84,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
             switch (selection)
             {
                 case FieldNode field:
-                    CollectFieldsForField(fieldMap, parentType, field);
+                    CollectFieldsForField(fieldMap, parentType, field, context);
                     break;
 
                 case InlineFragmentNode inlineFragment:
@@ -116,9 +116,11 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
     private static void CollectFieldsForField(
         Dictionary<string, HashSet<FieldAndType>> fieldMap,
         IType parentType,
-        FieldNode field)
+        FieldNode field,
+        MergeContext context)
     {
-        var responseName = field.Alias?.Value ?? field.Name.Value;
+        var fieldName = field.Name.Value;
+        var responseName = field.Alias?.Value ?? fieldName;
         if (!fieldMap.TryGetValue(responseName, out var fields))
         {
             fields = [];
@@ -127,14 +129,21 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
         var unwrappedParentType = parentType.NamedType();
 
+        // __typename can be selected on unions and interfaces, which don't have this field,
+        // so we need this special case for it.
+        if (IntrospectionFieldNames.TypeName.Equals(fieldName, StringComparison.Ordinal))
+        {
+            fields.Add(new FieldAndType(field, context.TypenameFieldType, unwrappedParentType));
+            return;
+        }
+
+        var meow = unwrappedParentType is IComplexTypeDefinition;
+        var woof = unwrappedParentType.IsComplexType();
+
         if (unwrappedParentType is IComplexTypeDefinition complexType
-            && complexType.Fields.TryGetField(field.Name.Value, out var fieldDef))
+            && complexType.Fields.TryGetField(fieldName, out var fieldDef))
         {
             fields.Add(new FieldAndType(field, fieldDef.Type, complexType));
-        }
-        else
-        {
-            fields.Add(new FieldAndType(field, null, unwrappedParentType));
         }
     }
 
@@ -337,7 +346,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
         foreach (var item in fields)
         {
-            if (item.Field.SelectionSet is null || item.Type is null)
+            if (item.Field.SelectionSet is null)
             {
                 continue;
             }
@@ -400,8 +409,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                     break;
                 }
 
-                a = a?.InnerType();
-                b = b?.InnerType();
+                a = a.InnerType();
+                b = b.InnerType();
             }
 
             if (!SameType(a, b))
@@ -443,12 +452,12 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
     private static Conflict TypeMismatchConflict(
         string responseName,
         Path path,
-        IType? typeA,
-        IType? typeB,
+        IType typeA,
+        IType typeB,
         HashSet<FieldAndType> fields)
     {
-        var typeNameA = typeA?.Print() ?? "null";
-        var typeNameB = typeB?.Print() ?? "null";
+        var typeNameA = typeA.Print();
+        var typeNameB = typeB.Print();
 
         return new Conflict(
             string.Format(
@@ -579,20 +588,13 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         return fieldNodes;
     }
 
-    private sealed class FieldAndType
+    private sealed class FieldAndType(FieldNode field, IType type, IType parentType)
     {
-        public FieldAndType(FieldNode field, IType? type, IType parentType)
-        {
-            Field = field;
-            Type = type;
-            ParentType = parentType;
-        }
+        public FieldNode Field { get; } = field;
 
-        public FieldNode Field { get; }
+        public IType Type { get; } = type;
 
-        public IType? Type { get; }
-
-        public IType ParentType { get; }
+        public IType ParentType { get; } = parentType;
 
         public override bool Equals(object? obj)
             => obj is FieldAndType other && Field.Equals(other.Field);
@@ -640,6 +642,9 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
     private sealed class MergeContext(DocumentValidatorContext context)
     {
         public ISchemaDefinition Schema => context.Schema;
+
+        // TODO: Improve?
+        public IType TypenameFieldType => new NonNullType(context.Schema.Types["String"]);
 
         public HashSet<HashSet<FieldAndType>> SameResponseShapeChecked { get; }
             = new(HashSetComparer<FieldAndType>.Instance);

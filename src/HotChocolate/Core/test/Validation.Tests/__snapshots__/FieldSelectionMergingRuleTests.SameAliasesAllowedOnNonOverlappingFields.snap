@@ -1,17 +1,20 @@
 {
-  "Message": "Fields `nickname` conflict because they return conflicting types `String!` and `String`. Use different aliases on the fields to fetch both if this was intentional.",
-  "Locations": [
+  "message": "Fields \u0060nickname\u0060 conflict because they return conflicting types \u0060String!\u0060 and \u0060String\u0060. Use different aliases on the fields to fetch both if this was intentional.",
+  "locations": [
     {
-      "Line": 9,
-      "Column": 9
+      "line": 9,
+      "column": 9
     },
     {
-      "Line": 12,
-      "Column": 9
+      "line": 12,
+      "column": 9
     }
   ],
-  "Path": "/catOrDog/name",
-  "Extensions": {
+  "path": [
+    "catOrDog",
+    "name"
+  ],
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
   }
 }

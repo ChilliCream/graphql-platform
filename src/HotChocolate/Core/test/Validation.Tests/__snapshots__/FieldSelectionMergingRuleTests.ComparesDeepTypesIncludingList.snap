@@ -1,17 +1,22 @@
 {
-  "Message": "Fields `name` conflict because they return conflicting types `ID` and `String`. Use different aliases on the fields to fetch both if this was intentional.",
-  "Locations": [
+  "message": "Fields \u0060name\u0060 conflict because they return conflicting types \u0060ID\u0060 and \u0060String\u0060. Use different aliases on the fields to fetch both if this was intentional.",
+  "locations": [
     {
-      "Line": 15,
-      "Column": 13
+      "line": 15,
+      "column": 13
     },
     {
-      "Line": 6,
-      "Column": 17
+      "line": 6,
+      "column": 17
     }
   ],
-  "Path": "/connection/edges/node/id",
-  "Extensions": {
+  "path": [
+    "connection",
+    "edges",
+    "node",
+    "id"
+  ],
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
   }
 }

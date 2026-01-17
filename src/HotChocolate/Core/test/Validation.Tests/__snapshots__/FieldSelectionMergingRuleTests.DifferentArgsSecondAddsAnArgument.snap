@@ -1,17 +1,20 @@
 {
-  "Message": "Fields `doesKnowCommand` conflict because they have differing arguments. Use different aliases on the fields to fetch both if this was intentional. ",
-  "Locations": [
+  "message": "Fields \u0060doesKnowCommand\u0060 conflict because they have differing arguments. Use different aliases on the fields to fetch both if this was intentional. ",
+  "locations": [
     {
-      "Line": 7,
-      "Column": 5
+      "line": 7,
+      "column": 5
     },
     {
-      "Line": 8,
-      "Column": 5
+      "line": 8,
+      "column": 5
     }
   ],
-  "Path": "/catOrDog/doesKnowCommand",
-  "Extensions": {
+  "path": [
+    "catOrDog",
+    "doesKnowCommand"
+  ],
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
   }
 }

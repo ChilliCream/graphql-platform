@@ -1,17 +1,19 @@
 {
-  "Message": "Fields `a` and `b` conflict because they have differing names. Use different aliases on the fields to fetch both if this was intentional.",
-  "Locations": [
+  "message": "Fields \u0060a\u0060 and \u0060b\u0060 conflict because they have differing names. Use different aliases on the fields to fetch both if this was intentional.",
+  "locations": [
     {
-      "Line": 7,
-      "Column": 5
+      "line": 7,
+      "column": 5
     },
     {
-      "Line": 11,
-      "Column": 5
+      "line": 11,
+      "column": 5
     }
   ],
-  "Path": "/x",
-  "Extensions": {
+  "path": [
+    "x"
+  ],
+  "extensions": {
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
   }
 }
