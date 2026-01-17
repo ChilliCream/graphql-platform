@@ -18,7 +18,7 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
                 continue;
             }
 
-            if (context.Schema.GetOperationType(operationDef.Operation) is { } rootType)
+            if (context.Schema.TryGetOperationType(operationDef.Operation, out var rootType))
             {
                 if (operationDef.SelectionSet.Selections.Count == 0)
                 {
@@ -47,15 +47,22 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
             }
             else if (selection is InlineFragmentNode inlineFrag)
             {
-                var typeCondition = inlineFrag.TypeCondition is null
-                    ? type
-                    : context.Schema.Types[inlineFrag.TypeCondition.Name.Value];
-                ValidateSelectionSet(context, inlineFrag.SelectionSet, typeCondition);
+                if (inlineFrag.TypeCondition is null)
+                {
+                    ValidateSelectionSet(context, inlineFrag.SelectionSet, type);
+                }
+                else if (context.Schema.Types.TryGetType(inlineFrag.TypeCondition.Name.Value, out var typeCondition))
+                {
+                    ValidateSelectionSet(context, inlineFrag.SelectionSet, typeCondition);
+                }
             }
             else if (selection is FragmentSpreadNode spread && context.Fragments.TryEnter(spread, out var frag))
             {
-                var typeCondition = context.Schema.Types[frag.TypeCondition.Name.Value];
-                ValidateSelectionSet(context, frag.SelectionSet, typeCondition);
+                if (context.Schema.Types.TryGetType(frag.TypeCondition.Name.Value, out var typeCondition))
+                {
+                    ValidateSelectionSet(context, frag.SelectionSet, typeCondition);
+                }
+
                 context.Fragments.Leave(spread);
             }
         }

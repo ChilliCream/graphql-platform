@@ -1,198 +1,187 @@
-[
-  {
-    "Message": "Operation `takesCat` has an empty selection set. Root types without subfields are disallowed.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "operation": "takesCat",
-      "type": "Query",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "Operation `takesDogBang` has an empty selection set. Root types without subfields are disallowed.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 5,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "operation": "takesDogBang",
-      "type": "Query",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "Operation `takesListOfPet` has an empty selection set. Root types without subfields are disallowed.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 9,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "operation": "takesListOfPet",
-      "type": "Query",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "Operation `takesCatOrDog` has an empty selection set. Root types without subfields are disallowed.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 13,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "operation": "takesCatOrDog",
-      "type": "Query",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The type of variable `cat` is not an input type.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 16
-      }
-    ],
-    "Extensions": {
-      "variable": "cat",
-      "variableType": "Cat",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The following variables were not used: cat.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The type of variable `dog` is not an input type.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 5,
-        "Column": 20
-      }
-    ],
-    "Extensions": {
-      "variable": "dog",
-      "variableType": "Dog!",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The following variables were not used: dog.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 5,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The type of variable `pets` is not an input type.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 9,
-        "Column": 22
-      }
-    ],
-    "Extensions": {
-      "variable": "pets",
-      "variableType": "[Pet]",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The following variables were not used: pets.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 9,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The type of variable `catOrDog` is not an input type.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 13,
-        "Column": 21
-      }
-    ],
-    "Extensions": {
-      "variable": "catOrDog",
-      "variableType": "CatOrDog",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The following variables were not used: catOrDog.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 13,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
-    },
-    "Exception": null
+---------------
+{
+  "message": "Operation \u0060takesCat\u0060 has an empty selection set. Root types without selections are disallowed.",
+  "locations": [
+    {
+      "line": 1,
+      "column": 1
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
   }
-]
+}
+---------------
+
+---------------
+{
+  "message": "Operation \u0060takesDogBang\u0060 has an empty selection set. Root types without selections are disallowed.",
+  "locations": [
+    {
+      "line": 5,
+      "column": 1
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "Operation \u0060takesListOfPet\u0060 has an empty selection set. Root types without selections are disallowed.",
+  "locations": [
+    {
+      "line": 9,
+      "column": 1
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "Operation \u0060takesCatOrDog\u0060 has an empty selection set. Root types without selections are disallowed.",
+  "locations": [
+    {
+      "line": 13,
+      "column": 1
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "The type of variable \u0060cat\u0060 is not an input type.",
+  "locations": [
+    {
+      "line": 1,
+      "column": 16
+    }
+  ],
+  "extensions": {
+    "variable": "cat",
+    "variableType": "Cat",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "The following variables were not used: cat.",
+  "locations": [
+    {
+      "line": 1,
+      "column": 1
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "The type of variable \u0060dog\u0060 is not an input type.",
+  "locations": [
+    {
+      "line": 5,
+      "column": 20
+    }
+  ],
+  "extensions": {
+    "variable": "dog",
+    "variableType": "Dog!",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "The following variables were not used: dog.",
+  "locations": [
+    {
+      "line": 5,
+      "column": 1
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "The type of variable \u0060pets\u0060 is not an input type.",
+  "locations": [
+    {
+      "line": 9,
+      "column": 22
+    }
+  ],
+  "extensions": {
+    "variable": "pets",
+    "variableType": "[Pet]",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "The following variables were not used: pets.",
+  "locations": [
+    {
+      "line": 9,
+      "column": 1
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "The type of variable \u0060catOrDog\u0060 is not an input type.",
+  "locations": [
+    {
+      "line": 13,
+      "column": 21
+    }
+  ],
+  "extensions": {
+    "variable": "catOrDog",
+    "variableType": "CatOrDog",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variables-Are-Input-Types"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "The following variables were not used: catOrDog.",
+  "locations": [
+    {
+      "line": 13,
+      "column": 1
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
+  }
+}
+---------------

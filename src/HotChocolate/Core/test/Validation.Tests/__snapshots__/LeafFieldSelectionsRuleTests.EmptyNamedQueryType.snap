@@ -1,5 +1,5 @@
 {
-  "message": "Operation \u0060Foo\u0060 has an empty selection set. Root types without subfields are disallowed.",
+  "message": "Operation \u0060Foo\u0060 has an empty selection set. Root types without selections are disallowed.",
   "locations": [
     {
       "line": 1,
@@ -7,6 +7,6 @@
     }
   ],
   "extensions": {
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
   }
 }

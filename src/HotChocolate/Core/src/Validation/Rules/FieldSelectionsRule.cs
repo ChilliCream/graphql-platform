@@ -19,7 +19,7 @@ internal sealed class FieldSelectionsRule : IDocumentValidatorRule
                 continue;
             }
 
-            if (context.Schema.GetOperationType(operationDef.Operation) is { } rootType)
+            if (context.Schema.TryGetOperationType(operationDef.Operation, out var rootType))
             {
                 ValidateSelectionSet(context, operationDef.SelectionSet, rootType);
             }
@@ -28,6 +28,13 @@ internal sealed class FieldSelectionsRule : IDocumentValidatorRule
 
     private void ValidateSelectionSet(DocumentValidatorContext context, SelectionSetNode selectionSet, IType type)
     {
+        if (type.NamedType() is IUnionTypeDefinition unionType
+            && HasFields(selectionSet))
+        {
+            context.ReportError(context.UnionFieldError(selectionSet, unionType));
+            return;
+        }
+
         foreach (var selection in selectionSet.Selections)
         {
             if (selection is FieldNode field)
@@ -36,15 +43,22 @@ internal sealed class FieldSelectionsRule : IDocumentValidatorRule
             }
             else if (selection is InlineFragmentNode inlineFrag)
             {
-                var typeCondition = inlineFrag.TypeCondition is null
-                    ? type
-                    : context.Schema.Types[inlineFrag.TypeCondition.Name.Value];
-                ValidateSelectionSet(context, inlineFrag.SelectionSet, typeCondition);
+                if (inlineFrag.TypeCondition is null)
+                {
+                    ValidateSelectionSet(context, inlineFrag.SelectionSet, type);
+                }
+                else if (context.Schema.Types.TryGetType(inlineFrag.TypeCondition.Name.Value, out var typeCondition))
+                {
+                    ValidateSelectionSet(context, inlineFrag.SelectionSet, typeCondition);
+                }
             }
             else if (selection is FragmentSpreadNode spread && context.Fragments.TryEnter(spread, out var frag))
             {
-                var typeCondition = context.Schema.Types[frag.TypeCondition.Name.Value];
-                ValidateSelectionSet(context, frag.SelectionSet, typeCondition);
+                if (context.Schema.Types.TryGetType(frag.TypeCondition.Name.Value, out var typeCondition))
+                {
+                    ValidateSelectionSet(context, frag.SelectionSet, typeCondition);
+                }
+
                 context.Fragments.Leave(spread);
             }
         }
@@ -52,16 +66,6 @@ internal sealed class FieldSelectionsRule : IDocumentValidatorRule
 
     private void ValidateField(DocumentValidatorContext context, FieldNode field, IType parentType)
     {
-        var unwrappedParentType = parentType.NamedType();
-
-        if (unwrappedParentType is IUnionTypeDefinition unionType
-            && field.SelectionSet is {} unionSelectionSet
-            && HasFields(unionSelectionSet))
-        {
-            context.ReportError(context.UnionFieldError(unionSelectionSet, unionType));
-            return;
-        }
-
         if (IsTypeNameField(field.Name.Value))
         {
             if (field.IsStreamable())
@@ -71,6 +75,8 @@ internal sealed class FieldSelectionsRule : IDocumentValidatorRule
 
             return;
         }
+
+        var unwrappedParentType = parentType.NamedType();
 
         if (unwrappedParentType is not IComplexTypeDefinition complex)
         {
@@ -88,9 +94,9 @@ internal sealed class FieldSelectionsRule : IDocumentValidatorRule
             context.ReportError(context.StreamOnNonListField(field));
         }
 
-        if (field.SelectionSet is not null)
+        if (field.SelectionSet is { } fieldSelectionSet)
         {
-            ValidateSelectionSet(context, field.SelectionSet, fieldDef.Type);
+            ValidateSelectionSet(context, fieldSelectionSet, fieldDef.Type);
         }
     }
 

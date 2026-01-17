@@ -37,7 +37,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 continue;
             }
 
-            if (context.Schema.GetOperationType(operationDef.Operation) is not { } rootType)
+            if (!context.Schema.TryGetOperationType(operationDef.Operation, out var rootType))
             {
                 continue;
             }
@@ -88,10 +88,15 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                     break;
 
                 case InlineFragmentNode inlineFragment:
-                    var type = inlineFragment.TypeCondition is null
-                        ? parentType
-                        : context.Schema.Types[inlineFragment.TypeCondition.Name.Value];
-                    CollectFields(context, fieldMap, inlineFragment.SelectionSet, type, visitedFragmentSpreads);
+                    if (inlineFragment.TypeCondition is null)
+                    {
+                        CollectFields(context, fieldMap, inlineFragment.SelectionSet, parentType, visitedFragmentSpreads);
+                    }
+                    else if (context.Schema.Types.TryGetType(inlineFragment.TypeCondition.Name.Value,
+                        out var typeCondition))
+                    {
+                        CollectFields(context, fieldMap, inlineFragment.SelectionSet, typeCondition, visitedFragmentSpreads);
+                    }
                     break;
 
                 case FragmentSpreadNode spread:
@@ -100,9 +105,9 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                         continue;
                     }
 
-                    if (context.Fragments.TryGet(spread, out var fragment))
+                    if (context.Fragments.TryGet(spread, out var fragment)
+                        && context.Schema.Types.TryGetType(fragment.TypeCondition.Name.Value, out var fragType))
                     {
-                        var fragType = context.Schema.Types[fragment.TypeCondition.Name.Value];
                         CollectFields(context, fieldMap, fragment.SelectionSet, fragType, visitedFragmentSpreads);
                     }
 
