@@ -126,6 +126,8 @@ public sealed class DocumentValidator
                     break;
                 }
 
+                context.Reset();
+
                 start = ref Unsafe.Add(ref start, 1)!;
             }
 
