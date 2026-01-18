@@ -158,7 +158,6 @@ public sealed class DocumentValidator
 
     private void ReturnContext(DocumentValidatorContext context)
     {
-        context.Clear();
         _contextPool.Return(context);
     }
 }

@@ -532,6 +532,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                     s_fieldInfoPool.Return(_buffers[i]);
                 }
 
+                _buffers.Clear();
                 _buffers.Push(buffer);
             }
             else
