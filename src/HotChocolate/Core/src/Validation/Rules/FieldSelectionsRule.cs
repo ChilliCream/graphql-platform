@@ -23,6 +23,10 @@ internal sealed class FieldSelectionsRule : IDocumentValidatorRule
             {
                 ValidateSelectionSet(context, operationDef.SelectionSet, rootType);
             }
+            else
+            {
+                context.ReportError(context.OperationNotSupported(operationDef.Operation));
+            }
         }
     }
 

@@ -193,11 +193,11 @@ public class DocumentValidatorTests
             }
             """,
             t => Assert.Equal(
-                "Subscription operations must have exactly one root field.",
-                t.Message),
-            t => Assert.Equal(
                 "The field `disallowedSecondRootFieldNonExisting` does not exist "
                 + "on the type `Subscription`.",
+                t.Message),
+            t => Assert.Equal(
+                "Subscription operations must have exactly one root field.",
                 t.Message));
     }
 
