@@ -161,6 +161,8 @@ public sealed class PooledFeatureCollection : IFeatureCollection
         }
 
         _features.Clear();
+        _defaults = null;
+        _containerRevision = 0;
     }
 
     /// <inheritdoc />

@@ -141,7 +141,7 @@ public sealed class DocumentValidator
         }
         finally
         {
-            ReturnContext(context);
+            _contextPool.Return(context);
         }
     }
 
@@ -154,10 +154,5 @@ public sealed class DocumentValidator
         var context = _contextPool.Get();
         context.Initialize(schema, documentId, document, _maxAllowedErrors, features);
         return context;
-    }
-
-    private void ReturnContext(DocumentValidatorContext context)
-    {
-        _contextPool.Return(context);
     }
 }

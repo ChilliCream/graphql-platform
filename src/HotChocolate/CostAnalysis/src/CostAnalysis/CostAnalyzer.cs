@@ -370,26 +370,19 @@ file sealed class CostContext : ValidatorFeature
         FieldSets.Clear();
         SelectionSetCost.Clear();
         Processed.Clear();
+        InputCostVisitorContext.Clear();
 
         if (_buffers.Count > 1)
         {
-            var buffer = _buffers.Pop();
-            buffer.Clear();
-
-            for (var i = 0; i < _buffers.Count; i++)
+            for (var i = 1; i < _buffers.Count; i++)
             {
                 s_fieldInfoPool.Return(_buffers[i]);
             }
 
-            _buffers.Clear();
-            _buffers.Push(buffer);
-        }
-        else
-        {
-            _buffers[0].Clear();
+            _buffers.RemoveRange(1, _buffers.Count - 1);
         }
 
-        InputCostVisitorContext.Clear();
+        _buffers[0].Clear();
     }
 }
 
