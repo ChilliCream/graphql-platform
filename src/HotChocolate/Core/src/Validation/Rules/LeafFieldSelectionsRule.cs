@@ -35,7 +35,10 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
         }
     }
 
-    private void ValidateSelectionSet(DocumentValidatorContext context, SelectionSetNode selectionSet, IType type)
+    private void ValidateSelectionSet(
+        DocumentValidatorContext context,
+        SelectionSetNode selectionSet,
+        IType type)
     {
         foreach (var selection in selectionSet.Selections)
         {
@@ -54,19 +57,28 @@ internal sealed class LeafFieldSelectionsRule : IDocumentValidatorRule
                     ValidateSelectionSet(context, inlineFrag.SelectionSet, typeCondition);
                 }
             }
-            else if (selection is FragmentSpreadNode spread && context.Fragments.TryEnter(spread, out var frag))
+            else if (selection is FragmentSpreadNode spread)
             {
-                if (context.Schema.Types.TryGetType(frag.TypeCondition.Name.Value, out var typeCondition))
+                var parentType = type.NamedType();
+
+                if (!context.VisitedFragments.Add((parentType.Name, spread.Name.Value)))
                 {
-                    ValidateSelectionSet(context, frag.SelectionSet, typeCondition);
+                    continue;
                 }
 
-                context.Fragments.Leave(spread);
+                if (context.Fragments.TryGet(spread, out var fragment)
+                    && context.Schema.Types.TryGetType(fragment.TypeCondition.Name.Value, out var fragType))
+                {
+                    ValidateSelectionSet(context, fragment.SelectionSet, fragType);
+                }
             }
         }
     }
 
-    private void ValidateField(DocumentValidatorContext context, FieldNode field, IType parentType)
+    private void ValidateField(
+        DocumentValidatorContext context,
+        FieldNode field,
+        IType parentType)
     {
         if (parentType is not IComplexTypeDefinition complex
             || !complex.Fields.TryGetField(field.Name.Value, out var fieldDef))

@@ -174,7 +174,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
             context.SameResponseShapeChecked.Add(entry.Value);
 
             var newPath = path.Append(entry.Key);
-            var conflict = RequireSameOutputTypeShape(entry.Value, newPath);
+            var conflict = RequireSameOutputTypeShape(entry.Value, newPath, context);
 
             if (conflict != null)
             {
@@ -207,7 +207,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
                 context.SameForCommonParentsChecked.Add(group);
 
-                var conflict = RequireSameNameAndArguments(newPath, group);
+                var conflict = RequireSameNameAndArguments(newPath, group, context);
                 if (conflict is not null)
                 {
                     conflictsResult.Add(conflict);
@@ -283,7 +283,10 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         return result;
     }
 
-    private static Conflict? RequireSameNameAndArguments(Path path, HashSet<FieldAndType> fieldGroup)
+    private static Conflict? RequireSameNameAndArguments(
+        Path path,
+        HashSet<FieldAndType> fieldGroup,
+        MergeContext context)
     {
         if (fieldGroup.Count <= 1)
         {
@@ -299,12 +302,12 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         {
             if (field.Name.Value != name)
             {
-                return NameMismatchConflict(name, field.Name.Value, path, fieldGroup);
+                return NameMismatchConflict(name, field.Name.Value, path, fieldGroup, context);
             }
 
             if (!SameArguments(arguments, field.Arguments))
             {
-                return ArgumentMismatchConflict(responseName, path, fieldGroup);
+                return ArgumentMismatchConflict(responseName, path, fieldGroup, context);
             }
         }
 
@@ -361,7 +364,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
     private static Conflict? RequireSameOutputTypeShape(
         HashSet<FieldAndType> fields,
-        Path path)
+        Path path,
+        MergeContext context)
     {
         if (fields.Count <= 1)
         {
@@ -386,7 +390,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                             path,
                             a,
                             b,
-                            fields);
+                            fields,
+                            context);
                     }
                 }
 
@@ -399,7 +404,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                             path,
                             a,
                             b,
-                            fields);
+                            fields,
+                            context);
                     }
                 }
 
@@ -419,7 +425,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                     path,
                     a,
                     b,
-                    fields);
+                    fields,
+                    context);
             }
         }
 
@@ -453,7 +460,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         Path path,
         IType typeA,
         IType typeB,
-        HashSet<FieldAndType> fields)
+        HashSet<FieldAndType> fields,
+        MergeContext context)
     {
         var typeNameA = typeA.Print();
         var typeNameB = typeB.Print();
@@ -465,21 +473,22 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 responseName,
                 typeNameA,
                 typeNameB),
-            GetFieldNodes(fields),
+            GetFieldNodes(fields, context),
             path);
     }
 
     private static Conflict ArgumentMismatchConflict(
         string responseName,
         Path path,
-        HashSet<FieldAndType> fields)
+        HashSet<FieldAndType> fields,
+        MergeContext context)
     {
         return new Conflict(
             string.Format(
                 "Fields `{0}` conflict because they have differing arguments. "
                 + "Use different aliases on the fields to fetch both if this was intentional. ",
                 responseName),
-            GetFieldNodes(fields),
+            GetFieldNodes(fields, context),
             path);
     }
 
@@ -487,7 +496,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         string fieldName1,
         string fieldName2,
         Path path,
-        HashSet<FieldAndType> fields)
+        HashSet<FieldAndType> fields,
+        MergeContext context)
     {
         return new Conflict(
             string.Format(
@@ -495,7 +505,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 + "Use different aliases on the fields to fetch both if this was intentional.",
                 fieldName1,
                 fieldName2),
-            GetFieldNodes(fields),
+            GetFieldNodes(fields, context),
             path);
     }
 
@@ -526,14 +536,14 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         {
             if (!TryGetStreamDirective(field, out var streamDirective))
             {
-                return StreamDirectiveMismatch(field.Name.Value, path, fields);
+                return StreamDirectiveMismatch(field.Name.Value, path, fields, context);
             }
 
             var initialCount = GetStreamInitialCount(streamDirective);
 
             if (!SyntaxComparer.BySyntax.Equals(baseInitialCount, initialCount))
             {
-                return StreamDirectiveMismatch(field.Name.Value, path, fields);
+                return StreamDirectiveMismatch(field.Name.Value, path, fields, context);
             }
         }
 
@@ -565,23 +575,32 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
     private static Conflict StreamDirectiveMismatch(
         string fieldName,
         Path path,
-        HashSet<FieldAndType> fields)
+        HashSet<FieldAndType> fields,
+        MergeContext context)
     {
         return new Conflict(
             string.Format(
                 "Fields `{0}` conflict because they have differing stream directives. ",
                 fieldName),
-            GetFieldNodes(fields),
+            GetFieldNodes(fields, context),
             path);
     }
 
-    private static HashSet<FieldNode> GetFieldNodes(HashSet<FieldAndType> fields)
+    private static HashSet<FieldNode> GetFieldNodes(HashSet<FieldAndType> fields, MergeContext context)
     {
-        var fieldNodes = new HashSet<FieldNode>(fields.Count);
+        var maxLocations = context.MaxLocationsPerError;
+        var fieldNodes = new HashSet<FieldNode>(Math.Min(fields.Count, maxLocations));
 
+        var i = 0;
         foreach (var field in fields)
         {
+            if (i == maxLocations)
+            {
+                break;
+            }
+
             fieldNodes.Add(field.Field);
+            i++;
         }
 
         return fieldNodes;
@@ -641,6 +660,8 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
     private sealed class MergeContext(DocumentValidatorContext context)
     {
         public ISchemaDefinition Schema => context.Schema;
+
+        public int MaxLocationsPerError => context.MaxLocationsPerError;
 
         // TODO: Improve?
         public IType TypenameFieldType => new NonNullType(context.Schema.Types["String"]);

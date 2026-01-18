@@ -17,4 +17,15 @@
     <ProjectReference Include="..\..\src\Validation\HotChocolate.Validation.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="query.graphql" />
+    <Content Include="query.graphql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Remove="schema.graphqls" />
+    <Content Include="schema.graphqls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

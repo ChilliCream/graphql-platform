@@ -46,5 +46,12 @@ public class QueryType : ObjectType<Query>
         descriptor.Field("listOfListOfScalars")
             .Type<ListType<ListType<StringType>>>()
             .Resolve<string[][]>(_ => []);
+
+        descriptor.Field("me").Type<UserType>().Resolve(() => null!);
+
+        for (char i = 'a'; i <= 'z'; i++)
+        {
+            descriptor.Field(i.ToString()).Type<StringType>().Resolve(() => null!);
+        }
     }
 }

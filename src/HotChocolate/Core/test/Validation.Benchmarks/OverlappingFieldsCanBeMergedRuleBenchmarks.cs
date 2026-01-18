@@ -1,6 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using HotChocolate.Language;
 using HotChocolate.Validation.Rules;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation.Benchmarks;
 
@@ -11,7 +12,7 @@ public class OverlappingFieldsCanBeMergedRuleBenchmarks
         .AddVisitor<FieldVisitor>()
         .Build();
     private readonly DocumentValidator _newRule = DocumentValidatorBuilder.New()
-        .AddRule<OverlappingFieldsCanBeMergedRule>()
+        .AddFieldRules()
         .Build();
     private readonly DocumentValidatorContext _context = new();
     private readonly Dictionary<string, object?> _contextData = new();
@@ -20,8 +21,8 @@ public class OverlappingFieldsCanBeMergedRuleBenchmarks
 
     public OverlappingFieldsCanBeMergedRuleBenchmarks()
     {
-        _schema = CreateTestSchema("/Users/michael/local/hc-0/src/HotChocolate/Core/test/Validation.Benchmarks/schema.graphqls");
-        var query = File.ReadAllBytes("/Users/michael/local/hc-0/src/HotChocolate/Core/test/Validation.Benchmarks/query.graphql");
+        _schema = CreateTestSchema("schema.graphqls");
+        var query = File.ReadAllBytes("query.graphql");
         _document = Utf8GraphQLParser.Parse(query);
     }
 

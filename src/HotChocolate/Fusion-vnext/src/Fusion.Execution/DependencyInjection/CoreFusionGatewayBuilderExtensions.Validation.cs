@@ -105,6 +105,19 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder;
     }
 
+    public static IFusionGatewayBuilder SetMaxAllowedLocationsPerError(
+        this IFusionGatewayBuilder builder,
+        int maxLocationsPerError)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        ConfigureValidation(
+            builder,
+            (_, b) => b.ModifyOptions(o => o.MaxLocationsPerError = maxLocationsPerError));
+
+        return builder;
+    }
+
     public static IFusionGatewayBuilder SetIntrospectionAllowedDepth(
         this IFusionGatewayBuilder builder,
         ushort maxAllowedOfTypeDepth,
