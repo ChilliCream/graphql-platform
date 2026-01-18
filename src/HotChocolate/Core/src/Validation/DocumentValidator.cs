@@ -126,6 +126,8 @@ public sealed class DocumentValidator
                     break;
                 }
 
+                context.Reset();
+
                 start = ref Unsafe.Add(ref start, 1)!;
             }
 
@@ -156,7 +158,6 @@ public sealed class DocumentValidator
 
     private void ReturnContext(DocumentValidatorContext context)
     {
-        context.Clear();
         _contextPool.Return(context);
     }
 }
