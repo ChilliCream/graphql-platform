@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation.Benchmarks;
 
+[ShortRunJob]
 [RPlotExporter, CategoriesColumn, RankColumn, MeanColumn, MedianColumn, MemoryDiagnoser]
 public class OverlappingFieldsCanBeMergedRuleBenchmarks
 {

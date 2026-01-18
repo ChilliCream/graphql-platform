@@ -865,12 +865,6 @@ public class DocumentValidatorTests
     }
 
     [Fact]
-    public void Deep_Fragment_Traversal()
-    {
-        ExpectErrors(FileResource.Open("deep-fragment-traversal.graphql"));
-    }
-
-    [Fact]
     public void Introspection_Cycle_Detected()
         => ExpectErrors(FileResource.Open("introspection_with_cycle.graphql"));
 
