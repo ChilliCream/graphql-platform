@@ -246,7 +246,7 @@ public static partial class RequestExecutorBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// <paramref name="builder"/> is <c>null</c>.
     /// </exception>
-    public static IRequestExecutorBuilder SetMaxLocationsPeralidationError(
+    public static IRequestExecutorBuilder SetMaxAllowedLocationsPerValidationError(
         this IRequestExecutorBuilder builder,
         int maxAllowedLocationsPerError)
     {

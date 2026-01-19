@@ -105,7 +105,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder;
     }
 
-    public static IFusionGatewayBuilder SetMaxAllowedLocationsPerError(
+    public static IFusionGatewayBuilder SetMaxAllowedLocationsPerValidationError(
         this IFusionGatewayBuilder builder,
         int maxLocationsPerError)
     {

@@ -95,7 +95,6 @@ internal sealed class CostAnalyzerMiddleware(
                     documentId,
                     document,
                     maxAllowedErrors: 1,
-                    // TODO: This should come from the options
                     maxLocationsPerError: 5,
                     context.Features);
 
