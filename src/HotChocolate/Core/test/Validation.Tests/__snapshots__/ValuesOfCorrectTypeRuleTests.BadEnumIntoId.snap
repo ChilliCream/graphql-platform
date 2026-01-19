@@ -1,34 +1,19 @@
-[
-  {
-    "Message": "The specified argument value does not match the argument type.",
-    "Code": null,
-    "Path": {
-      "Name": "idArgField",
-      "Parent": {
-        "Name": "arguments",
-        "Parent": {
-          "Parent": null,
-          "Length": 0,
-          "IsRoot": true
-        },
-        "Length": 1,
-        "IsRoot": false
-      },
-      "Length": 2,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 3,
-        "Column": 27
-      }
-    ],
-    "Extensions": {
-      "argument": "idArg",
-      "argumentValue": "TRUE",
-      "locationType": "ID",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
-    },
-    "Exception": null
+{
+  "message": "The specified argument value does not match the argument type.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 27
+    }
+  ],
+  "path": [
+    "arguments",
+    "idArgField"
+  ],
+  "extensions": {
+    "argument": "idArg",
+    "argumentValue": "TRUE",
+    "locationType": "ID",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
   }
-]
+}

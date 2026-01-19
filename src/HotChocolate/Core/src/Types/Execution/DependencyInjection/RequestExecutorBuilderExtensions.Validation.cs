@@ -202,12 +202,14 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Sets the max allowed document validation errors.
+    /// Sets the maximum allowed document validation errors.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
-    /// <param name="maxAllowedValidationErrors"></param>
+    /// <param name="maxAllowedValidationErrors">
+    /// The maximum number of validation errors.
+    /// </param>
     /// <returns>
     /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
     /// configuration.
@@ -224,6 +226,35 @@ public static partial class RequestExecutorBuilderExtensions
         ConfigureValidation(
             builder,
             (_, b) => b.ModifyOptions(o => o.MaxAllowedErrors = maxAllowedValidationErrors));
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Sets the maximum allowed locations per validation error.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="maxAllowedLocationsPerError">
+    /// The maximum number of locations per validation error.
+    /// </param>
+    /// <returns>
+    /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
+    /// configuration.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    public static IRequestExecutorBuilder SetMaxAllowedLocationsPerValidationError(
+        this IRequestExecutorBuilder builder,
+        int maxAllowedLocationsPerError)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        ConfigureValidation(
+            builder,
+            (_, b) => b.ModifyOptions(o => o.MaxLocationsPerError = maxAllowedLocationsPerError));
 
         return builder;
     }

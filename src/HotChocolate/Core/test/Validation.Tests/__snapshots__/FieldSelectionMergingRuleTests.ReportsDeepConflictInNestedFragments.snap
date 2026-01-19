@@ -1,56 +1,45 @@
-﻿[
-  {
-    "Message": "Encountered fields for the same object that cannot be merged.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 11,
-        "Column": 5
-      },
-      {
-        "Line": 25,
-        "Column": 5
-      }
-    ],
-    "Extensions": {
-      "declaringTypeA": "Query",
-      "declaringTypeB": "Query",
-      "fieldA": "a",
-      "fieldB": "b",
-      "typeA": "String",
-      "typeB": "String",
-      "responseNameA": "x",
-      "responseNameB": "x",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
+---------------
+{
+  "message": "Fields \u0060a\u0060 and \u0060b\u0060 conflict because they have differing names. Use different aliases on the fields to fetch both if this was intentional.",
+  "locations": [
+    {
+      "line": 11,
+      "column": 5
     },
-    "Exception": null
-  },
-  {
-    "Message": "Encountered fields for the same object that cannot be merged.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 16,
-        "Column": 5
-      },
-      {
-        "Line": 20,
-        "Column": 5
-      }
-    ],
-    "Extensions": {
-      "declaringTypeA": "Query",
-      "declaringTypeB": "Query",
-      "fieldA": "c",
-      "fieldB": "d",
-      "typeA": "String",
-      "typeB": "String",
-      "responseNameA": "y",
-      "responseNameB": "y",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
-    },
-    "Exception": null
+    {
+      "line": 25,
+      "column": 5
+    }
+  ],
+  "path": [
+    "f1",
+    "x"
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selection-Merging"
   }
-]
+}
+---------------
+
+---------------
+{
+  "message": "Fields \u0060c\u0060 and \u0060d\u0060 conflict because they have differing names. Use different aliases on the fields to fetch both if this was intentional.",
+  "locations": [
+    {
+      "line": 16,
+      "column": 5
+    },
+    {
+      "line": 20,
+      "column": 5
+    }
+  ],
+  "path": [
+    "f1",
+    "y"
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selection-Merging"
+  }
+}
+---------------

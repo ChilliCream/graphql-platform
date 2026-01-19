@@ -11,7 +11,7 @@ internal static class ErrorHelper
         => ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_SkipAndIncludeNotAllowedOnSubscriptionRootField)
             .AddLocation(selection)
-            .SpecifiedBy("sec-Single-Root-Field", rfc: 860)
+            .SpecifiedBy("sec-Single-Root-Field")
             .Build();
 
     public static IError DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot(
@@ -65,7 +65,7 @@ internal static class ErrorHelper
                 .AddLocation(variable)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("variable", variableName)
-                .SpecifiedBy("sec-All-Variable-Usages-are-Allowed")
+                .SpecifiedBy("sec-All-Variable-Usages-Are-Allowed")
                 .Build();
         }
 
@@ -84,7 +84,7 @@ internal static class ErrorHelper
                 .SetExtension("variable", variableName)
                 .SetExtension("variableType", variableDefinition.Type.ToString())
                 .SetExtension("locationType", context.Types.Peek().FullTypeName())
-                .SpecifiedBy("sec-All-Variable-Usages-are-Allowed")
+                .SpecifiedBy("sec-All-Variable-Usages-Are-Allowed")
                 .Build();
         }
 
@@ -94,7 +94,7 @@ internal static class ErrorHelper
                 .SetMessage(Resources.ErrorHelper_DirectiveNotValidInLocation)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
-                .SpecifiedBy("sec-Directives-Are-In-Valid-Locations")
+                .SpecifiedBy("sec-Directives-Are-in-Valid-Locations")
                 .Build();
         }
 
@@ -115,7 +115,7 @@ internal static class ErrorHelper
                 .SetMessage(Resources.ErrorHelper_DirectiveMustBeUniqueInLocation)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
-                .SpecifiedBy("sec-Directives-Are-Unique-Per-Location")
+                .SpecifiedBy("sec-Directives-Are-Unique-per-Location")
                 .Build();
 
         public IError TypeSystemDefinitionNotAllowed(IDefinitionNode node)
@@ -134,7 +134,7 @@ internal static class ErrorHelper
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("type", type.Name)
-                .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
+                .SpecifiedBy("sec-Field-Selections")
                 .Build();
         }
 
@@ -149,7 +149,7 @@ internal static class ErrorHelper
                 .SetExtension("type", outputType.Name)
                 .SetExtension("field", node.Name.Value)
                 .SetExtension("responseName", (node.Alias ?? node.Name).Value)
-                .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
+                .SpecifiedBy("sec-Field-Selections")
                 .Build();
         }
 
@@ -239,7 +239,7 @@ internal static class ErrorHelper
                 .SetExtension("field", node.Name.Value)
                 .SetExtension("type", fieldType.FullTypeName())
                 .SetExtension("responseName", (node.Alias ?? node.Name).Value)
-                .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
+                .SpecifiedBy("sec-Field-Selections")
                 .Build();
         }
 
@@ -253,7 +253,7 @@ internal static class ErrorHelper
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("operation", node.Name?.Value ?? "Unnamed")
                 .SetExtension("type", fieldType.FullTypeName())
-                .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
+                .SpecifiedBy("sec-Field-Selections")
                 .Build();
         }
 
@@ -327,7 +327,7 @@ internal static class ErrorHelper
                 .AddLocation(fragmentSpread)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("fragment", fragmentSpread.Name.Value)
-                .SpecifiedBy("sec-Fragment-spreads-must-not-form-cycles")
+                .SpecifiedBy("sec-Fragment-Spreads-Must-Not-Form-Cycles")
                 .Build();
         }
 
@@ -340,7 +340,7 @@ internal static class ErrorHelper
                 .AddLocation(fragmentSpread)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("fragment", fragmentSpread.Name.Value)
-                .SpecifiedBy("sec-Fragment-spread-target-defined")
+                .SpecifiedBy("sec-Fragment-Spread-Target-Defined")
                 .Build();
         }
 
@@ -356,7 +356,7 @@ internal static class ErrorHelper
                 .SetExtension("typeCondition", typeCondition.Name)
                 .SetExtension("selectionSetType", parentType.Name)
                 .SetFragmentName(node)
-                .SpecifiedBy("sec-Fragment-spread-is-possible")
+                .SpecifiedBy("sec-Fragment-Spread-Is-Possible")
                 .Build();
         }
 
@@ -382,7 +382,7 @@ internal static class ErrorHelper
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("typeCondition", type.FullTypeName())
                 .SetFragmentName(node)
-                .SpecifiedBy("sec-Fragments-On-Composite-Types")
+                .SpecifiedBy("sec-Fragments-on-Object-Interface-or-Union-Types")
                 .Build();
         }
 
@@ -557,7 +557,7 @@ internal static class ErrorHelper
             return ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_SubscriptionSingleRootField)
                 .AddLocation(operation)
-                .SpecifiedBy("sec-Single-root-field")
+                .SpecifiedBy("sec-Single-Root-Field")
                 .Build();
         }
 
@@ -566,7 +566,7 @@ internal static class ErrorHelper
             return ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_SubscriptionNoTopLevelIntrospectionField)
                 .AddLocation(operation)
-                .SpecifiedBy("sec-Single-root-field")
+                .SpecifiedBy("sec-Single-Root-Field")
                 .Build();
         }
 
@@ -603,7 +603,7 @@ internal static class ErrorHelper
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension(nameof(type), type.Name)
-                .SpecifiedBy("sec-All-Variable-Usages-Are-Allowed", rfc: 825)
+                .SpecifiedBy("sec-All-Variable-Usages-Are-Allowed")
                 .Build();
 
         public IError OneOfVariablesMustBeNonNull(
@@ -619,14 +619,14 @@ internal static class ErrorHelper
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
                 .SetCoordinate(fieldCoordinate)
-                .SpecifiedBy("sec-All-Variable-Usages-Are-Allowed", rfc: 825)
+                .SpecifiedBy("sec-All-Variable-Usages-Are-Allowed")
                 .Build();
 
         public IError DeferAndStreamDuplicateLabel(ISyntaxNode selection, string label)
             => ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_DeferAndStreamDuplicateLabel)
                 .AddLocation(selection)
-                .SpecifiedBy("sec-Defer-And-Stream-Directive-Labels-Are-Unique")
+                .SpecifiedBy("sec-Defer-And-Stream-Directive-Labels-Are-Unique", rfc: 1110)
                 .SetExtension(nameof(label), label)
                 .SetPath(context.CreateErrorPath())
                 .Build();
@@ -635,7 +635,7 @@ internal static class ErrorHelper
             => ErrorBuilder.New()
                 .SetMessage(Resources.ErrorHelper_DeferAndStreamLabelIsVariable)
                 .AddLocation(selection)
-                .SpecifiedBy("sec-Defer-And-Stream-Directive-Labels-Are-Unique")
+                .SpecifiedBy("sec-Defer-And-Stream-Directive-Labels-Are-Unique", rfc: 1110)
                 .SetExtension(nameof(variable), $"${variable}")
                 .SetPath(context.CreateErrorPath())
                 .Build();
@@ -644,7 +644,7 @@ internal static class ErrorHelper
             => ErrorBuilder.New()
                 .SetMessage("@stream directive is only valid on list fields.")
                 .AddLocation(selection)
-                .SpecifiedBy("sec-Stream-Directives-Are-Used-On-List-Fields")
+                .SpecifiedBy("sec-Stream-Directives-Are-Used-On-List-Fields", rfc: 1110)
                 .SetPath(context.CreateErrorPath())
                 .Build();
 

@@ -1,16 +1,12 @@
 using HotChocolate.Language;
+using HotChocolate.Validation.Rules;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;
 
-public class FieldMustBeDefinedRuleTests
-    : DocumentValidatorVisitorTestBase
+public class FieldMustBeDefinedRuleTests()
+    : DocumentValidatorVisitorTestBase(builder => builder.AddRule<FieldSelectionsRule>())
 {
-    public FieldMustBeDefinedRuleTests()
-        : base(builder => builder.AddFieldRules())
-    {
-    }
-
     [Fact]
     public void FieldIsNotDefinedOnTypeInFragment()
     {
@@ -46,7 +42,14 @@ public class FieldMustBeDefinedRuleTests
             t => Assert.Equal(
                 "The field `kawVolume` does not exist "
                 + "on the type `Dog`.", t.Message));
-        context.Errors.MatchSnapshot();
+        var snapshot = new Snapshot();
+
+        foreach (var error in context.Errors)
+        {
+            snapshot.Add(error);
+        }
+
+        snapshot.Match();
     }
 
     [Fact]
@@ -237,41 +240,5 @@ public class FieldMustBeDefinedRuleTests
 
         // assert
         Assert.Empty(context.Errors);
-    }
-
-    [Fact]
-    public void Ensure_Non_Existent_Root_Types_Cause_Error()
-    {
-        // arrange
-        var document = Utf8GraphQLParser.Parse(
-            """
-            subscription {
-                foo
-            }
-            """);
-        var context = ValidationUtils.CreateContext(document, CreateQueryOnlySchema());
-
-        // act
-        Rule.Validate(context, document);
-
-        // assert
-        Assert.Collection(
-            context.Errors,
-            t => Assert.Equal(
-                "This GraphQL schema does not support `Subscription` operations.",
-                t.Message));
-    }
-
-    private static ISchemaDefinition CreateQueryOnlySchema()
-    {
-        return SchemaBuilder.New()
-            .AddDocumentFromString(
-                """
-                type Query {
-                    foo: String
-                }
-                """)
-            .Use(next => next)
-            .Create();
     }
 }

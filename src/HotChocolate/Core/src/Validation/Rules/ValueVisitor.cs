@@ -186,7 +186,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         ObjectValueNode node,
         DocumentValidatorContext context)
     {
-        var inputFieldNames = context.Features.GetOrSet<ValueVisitorFeature>().InputFieldNames;
+        var inputFieldNames = context.Features.GetRequired<ValueVisitorFeature>().InputFieldNames;
         inputFieldNames.Clear();
 
         for (var i = 0; i < node.Fields.Count; i++)

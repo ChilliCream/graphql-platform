@@ -13,8 +13,7 @@
       ],
       "extensions": {
         "type": "ExampleInput",
-        "specifiedBy": "https://spec.graphql.org/draft/#sec-All-Variable-Usages-Are-Allowed",
-        "rfc": "https://github.com/graphql/graphql-spec/pull/825"
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-All-Variable-Usages-Are-Allowed"
       }
     },
     {
@@ -32,7 +31,7 @@
         "fieldName": "b",
         "fieldType": "Int",
         "locationType": "Int",
-        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
       }
     }
   ]
