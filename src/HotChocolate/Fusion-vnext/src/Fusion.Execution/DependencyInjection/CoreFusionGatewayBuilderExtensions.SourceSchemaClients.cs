@@ -22,6 +22,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <param name="supportedOperations">
     /// The supported operations.
     /// </param>
+    /// <param name="batchingMode">
+    /// The batching mode.
+    /// </param>
     /// <param name="onBeforeSend">
     /// The action to call before the request is sent.
     /// </param>
@@ -39,6 +42,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         string name,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
+        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
         Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
         Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null,
         Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null)
@@ -48,6 +52,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             name,
             baseAddress,
             supportedOperations,
+            batchingMode,
             onBeforeSend,
             onAfterReceive,
             onSourceSchemaResult);
@@ -70,6 +75,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <param name="supportedOperations">
     /// The supported operations.
     /// </param>
+    /// <param name="batchingMode">
+    /// The batching mode.
+    /// </param>
     /// <param name="onBeforeSend">
     /// The action to call before the request is sent.
     /// </param>
@@ -88,6 +96,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         string httpClientName,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
+        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
         Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
         Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null,
         Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null)
@@ -104,6 +113,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
                 httpClientName,
                 baseAddress,
                 supportedOperations,
+                batchingMode,
                 onBeforeSend,
                 onAfterReceive,
                 onSourceSchemaResult));

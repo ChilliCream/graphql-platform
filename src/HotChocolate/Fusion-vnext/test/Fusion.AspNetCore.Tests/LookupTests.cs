@@ -1,7 +1,9 @@
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using HotChocolate.Types.Composite;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
@@ -138,14 +140,67 @@ public class LookupTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    // TODO: JsonL is used as the return type for request batching
+
+    [Fact]
+    public async Task Fetch_With_Request_Batching()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<OneOfLookups.SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            """
+            type Query {
+              authorById(id: ID!): Author @lookup
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+            }
+            """,
+            batchingMode: SourceSchemaHttpClientBatchingMode.RequestBatching);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                author {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     public static class NestedLookups
     {
         public static class SourceSchema1
         {
-            public record Book(int Id, string Title, [property: Shareable] Author Author);
+            public record Book([property: ID] int Id, string Title, [property: Shareable] Author Author);
 
             [EntityKey("id")]
-            public record Author(int Id);
+            public record Author([property: ID] int Id);
 
             public class Query
             {
@@ -165,7 +220,7 @@ public class LookupTests : FusionTestBase
 
         public static class SourceSchema2
         {
-            public record Author(int Id, string Name);
+            public record Author([property: ID] int Id, string Name);
 
             public class Query
             {
@@ -183,11 +238,11 @@ public class LookupTests : FusionTestBase
                 };
 
                 [Lookup]
-                public Author GetAuthorById(int id)
+                public Author GetAuthorById([ID] int id)
                     => _authors[id];
             }
 
-            public record Book(int Id, [property: Shareable] Author Author)
+            public record Book([property: ID] int Id, [property: Shareable] Author Author)
             {
                 public string IdAndTitle([Require] string title)
                     => $"{Id} - {title}";
@@ -199,10 +254,10 @@ public class LookupTests : FusionTestBase
     {
         public static class SourceSchema1
         {
-            public record Book(int Id, string Title, [property: Shareable] Author Author);
+            public record Book([property: ID] int Id, string Title, [property: Shareable] Author Author);
 
             [EntityKey("id")]
-            public record Author(int Id);
+            public record Author([property: ID] int Id);
 
             public class Query
             {
@@ -222,7 +277,7 @@ public class LookupTests : FusionTestBase
 
         public static class SourceSchema2
         {
-            public record Author(int Id, string Name);
+            public record Author([property: ID] int Id, string Name);
 
             public class Query
             {
@@ -251,14 +306,14 @@ public class LookupTests : FusionTestBase
                 }
             }
 
-            public record Book(int Id, [property: Shareable] Author Author)
+            public record Book([property: ID] int Id, [property: Shareable] Author Author)
             {
                 public string IdAndTitle([Require] string title)
                     => $"{Id} - {title}";
             }
 
             [OneOf]
-            public record AuthorByInput(int? Id, string? Name);
+            public record AuthorByInput([property: ID] int? Id, string? Name);
         }
 
         public static class SourceSchema3

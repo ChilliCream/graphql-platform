@@ -10,6 +10,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
@@ -55,6 +56,7 @@ public abstract partial class FusionTestBase : IDisposable
                 gatewayBuilder.AddHttpClientConfiguration(
                     name,
                     new Uri("http://localhost:5000/graphql"),
+                    batchingMode: sourceSchemaOptions.BatchingMode,
                     onBeforeSend: (context, node, request) =>
                     {
                         if (request.Content is not { } content)
@@ -230,6 +232,8 @@ public abstract partial class FusionTestBase : IDisposable
         public bool IsOffline { get; set; }
 
         public bool IsTimingOut { get; set; }
+
+        public SourceSchemaHttpClientBatchingMode BatchingMode { get; set; }
 
         public Action<HttpClient>? ConfigureHttpClient { get; set; }
     }

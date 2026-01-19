@@ -293,9 +293,10 @@ internal sealed class FusionRequestExecutorManager
                         var hasClientName = http.TryGetProperty("clientName", out var clientName);
 
                         var httpClient = new SourceSchemaHttpClientConfiguration(
-                            sourceSchema.Name,
+                            name: sourceSchema.Name,
                             httpClientName: hasClientName ? clientName.GetString()! : "fusion",
-                            new Uri(http.GetProperty("url").GetString()!));
+                            baseAddress: new Uri(http.GetProperty("url").GetString()!),
+                            batchingMode: GetBatchingMode(http));
 
                         configurations.Add(httpClient);
                     }
@@ -309,6 +310,18 @@ internal sealed class FusionRequestExecutorManager
         }
 
         return new SourceSchemaClientConfigurations(configurations);
+    }
+
+    private static SourceSchemaHttpClientBatchingMode GetBatchingMode(JsonElement httpSettings)
+    {
+        if (httpSettings.TryGetProperty("batchingMode", out var batchingMode)
+            && batchingMode.ValueKind == JsonValueKind.String
+            && batchingMode.GetString() == "REQUEST_BATCHING")
+        {
+            return SourceSchemaHttpClientBatchingMode.RequestBatching;
+        }
+
+        return SourceSchemaHttpClientBatchingMode.VariableBatching;
     }
 
     private FeatureCollection CreateSchemaFeatures(
