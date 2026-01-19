@@ -362,11 +362,12 @@ public class ActivityEnricher
         try
         {
             var rootSelectionSet = operation.RootSelectionSet;
+            var selectionCount = rootSelectionSet.Selections.Length;
 
             displayName.Append('{');
             displayName.Append(' ');
 
-            foreach (var selection in rootSelectionSet.Selections[..3])
+            foreach (var selection in rootSelectionSet.Selections[..Math.Min(3, selectionCount)])
             {
                 if (displayName.Length > 2)
                 {
