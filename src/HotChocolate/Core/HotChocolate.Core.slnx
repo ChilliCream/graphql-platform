@@ -67,7 +67,4 @@
     <Project Path="test/Utilities/HotChocolate.Tests.Utilities.csproj" />
     <Project Path="test/Validation.Tests/HotChocolate.Validation.Tests.csproj" />
   </Folder>
-  <Folder Name="/test/Validation.Benchmarks/">
-    <Project Path="test/Validation.Benchmarks/HotChocolate.Validation.Benchmarks.csproj" />
-  </Folder>
 </Solution>

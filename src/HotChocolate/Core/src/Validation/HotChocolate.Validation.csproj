@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Validation.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.Validation.Benchmarks" />
     <InternalsVisibleTo Include="HotChocolate.CostAnalysis" />
   </ItemGroup>
 

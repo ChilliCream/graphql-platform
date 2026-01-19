@@ -663,8 +663,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
         public int MaxLocationsPerError => context.MaxLocationsPerError;
 
-        // TODO: Improve?
-        public IType TypenameFieldType => new NonNullType(context.Schema.Types["String"]);
+        public IType TypenameFieldType { get; } = new NonNullType(context.Schema.Types["String"]);
 
         public HashSet<HashSet<FieldAndType>> SameResponseShapeChecked { get; }
             = new(HashSetComparer<FieldAndType>.Instance);
