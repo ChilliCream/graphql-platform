@@ -27,7 +27,7 @@ internal static class ErrorBuilderExtensions
         {
             errorBuilder.SetExtension(
                 "specifiedBy",
-                "https://spec.graphql.org/October2021/#" + section);
+                "https://spec.graphql.org/September2025/#" + section);
         }
 
         return errorBuilder;

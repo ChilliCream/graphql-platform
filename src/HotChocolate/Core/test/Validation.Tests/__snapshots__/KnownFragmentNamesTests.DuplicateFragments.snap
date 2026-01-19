@@ -1,68 +1,53 @@
-[
-  {
-    "Message": "The specified fragment `UnknownFragment1` does not exist.",
-    "Code": null,
-    "Path": {
-      "Name": "human",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 3,
-        "Column": 5
-      }
-    ],
-    "Extensions": {
-      "fragment": "UnknownFragment1",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spread-target-defined"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The specified fragment `UnknownFragment2` does not exist.",
-    "Code": null,
-    "Path": {
-      "Name": "human",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 5,
-        "Column": 7
-      }
-    ],
-    "Extensions": {
-      "fragment": "UnknownFragment2",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spread-target-defined"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The specified fragment `HumanFields` is not used within the current document.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 9,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "fragment": "HumanFields",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
-    },
-    "Exception": null
+---------------
+{
+  "message": "The specified fragment \u0060UnknownFragment1\u0060 does not exist.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 5
+    }
+  ],
+  "path": [
+    "human"
+  ],
+  "extensions": {
+    "fragment": "UnknownFragment1",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spread-Target-Defined"
   }
-]
+}
+---------------
+
+---------------
+{
+  "message": "The specified fragment \u0060UnknownFragment2\u0060 does not exist.",
+  "locations": [
+    {
+      "line": 5,
+      "column": 7
+    }
+  ],
+  "path": [
+    "human"
+  ],
+  "extensions": {
+    "fragment": "UnknownFragment2",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spread-Target-Defined"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "The specified fragment \u0060HumanFields\u0060 is not used within the current document.",
+  "locations": [
+    {
+      "line": 9,
+      "column": 1
+    }
+  ],
+  "extensions": {
+    "fragment": "HumanFields",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragments-Must-Be-Used"
+  }
+}
+---------------

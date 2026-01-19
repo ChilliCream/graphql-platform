@@ -1,29 +1,18 @@
-[
-  {
-    "Message": "The parent type does not match the type condition on the fragment.",
-    "Code": null,
-    "Path": {
-      "Name": "catOrDog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 8,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "typeCondition": "HumanOrAlien",
-      "selectionSetType": "CatOrDog",
-      "fragment": "petFragment",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"
-    },
-    "Exception": null
+{
+  "message": "The parent type does not match the type condition on the fragment.",
+  "locations": [
+    {
+      "line": 8,
+      "column": 1
+    }
+  ],
+  "path": [
+    "catOrDog"
+  ],
+  "extensions": {
+    "typeCondition": "HumanOrAlien",
+    "selectionSetType": "CatOrDog",
+    "fragment": "petFragment",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spread-Is-Possible"
   }
-]
+}
