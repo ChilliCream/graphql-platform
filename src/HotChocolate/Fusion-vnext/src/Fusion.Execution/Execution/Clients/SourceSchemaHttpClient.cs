@@ -91,7 +91,16 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 };
 
             default:
-                return new GraphQLHttpRequest(CreateBatchRequest(operationSourceText, originalRequest))
+                if (_configuration.BatchingMode == SourceSchemaHttpClientBatchingMode.RequestBatching)
+                {
+                    return new GraphQLHttpRequest(CreateOperationBatchRequest(operationSourceText, originalRequest))
+                    {
+                        Uri = _configuration.BaseAddress,
+                        Accept = AcceptContentTypes.RequestBatching
+                    };
+                }
+
+                return new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, originalRequest))
                 {
                     Uri = _configuration.BaseAddress,
                     Accept = AcceptContentTypes.VariableBatching
@@ -118,7 +127,23 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             extensions: null);
     }
 
-    private static VariableBatchRequest CreateBatchRequest(
+    private static OperationBatchRequest CreateOperationBatchRequest(
+        string operationSourceText,
+        SourceSchemaClientRequest originalRequest)
+    {
+        var requests = new OperationRequest[originalRequest.Variables.Length];
+
+        for (var i = 0; i < requests.Length; i++)
+        {
+            requests[i] = CreateSingleRequest(
+                operationSourceText,
+                originalRequest.Variables[i].Values);
+        }
+
+        return new OperationBatchRequest(requests);
+    }
+
+    private static VariableBatchRequest CreateVariableBatchRequest(
         string operationSourceText,
         SourceSchemaClientRequest originalRequest)
     {
@@ -219,24 +244,44 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     {
                         SourceSchemaResult? errorResult = null;
 
-                        await foreach (var result in response.ReadAsResultStreamAsync()
-                            .WithCancellation(cancellationToken))
+                        if (configuration.BatchingMode == SourceSchemaHttpClientBatchingMode.RequestBatching)
                         {
-                            if (!result.Root.TryGetProperty(VariableIndex, out var variableIndex)
-                                || variableIndex.ValueKind is not JsonValueKind.Number)
+                            var requestIndex = 0;
+                            await foreach (var result in response.ReadAsResultStreamAsync()
+                                .WithCancellation(cancellationToken))
                             {
-                                errorResult = new SourceSchemaResult(variables[0].Path, result);
-                                configuration.OnSourceSchemaResult?.Invoke(context, node, errorResult);
-                                break;
+                                var (path, _) = variables[requestIndex];
+
+                                var sourceSchemaResult = new SourceSchemaResult(path, result);
+
+                                configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+
+                                yield return sourceSchemaResult;
+
+                                requestIndex++;
                             }
+                        }
+                        else
+                        {
+                            await foreach (var result in response.ReadAsResultStreamAsync()
+                                .WithCancellation(cancellationToken))
+                            {
+                                if (!result.Root.TryGetProperty(VariableIndex, out var variableIndex)
+                                    || variableIndex.ValueKind is not JsonValueKind.Number)
+                                {
+                                    errorResult = new SourceSchemaResult(variables[0].Path, result);
+                                    configuration.OnSourceSchemaResult?.Invoke(context, node, errorResult);
+                                    break;
+                                }
 
-                            var index = variableIndex.GetInt32();
-                            var (path, _) = variables[index];
-                            var sourceSchemaResult = new SourceSchemaResult(path, result);
+                                var index = variableIndex.GetInt32();
+                                var (path, _) = variables[index];
+                                var sourceSchemaResult = new SourceSchemaResult(path, result);
 
-                            configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+                                configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
-                            yield return sourceSchemaResult;
+                                yield return sourceSchemaResult;
+                            }
                         }
 
                         if (errorResult is not null)
@@ -279,6 +324,18 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         [
             new("application/jsonl") { CharSet = "utf-8" },
             new("text/event-stream") { CharSet = "utf-8" },
+            new("application/graphql-response+json") { CharSet = "utf-8" },
+            new("application/json") { CharSet = "utf-8" }
+        ];
+
+        public static readonly ImmutableArray<MediaTypeWithQualityHeaderValue> RequestBatching =
+        [
+            new("application/jsonl") { CharSet = "utf-8" },
+            // Most server's won't support jsonl, so we also accept multipart as a fallback.
+            // TODO: GraphQLHttpResponse needs to support reading multipart
+            // TODO: Can we force multipart in our tests?
+            new("multipart/mixed") { CharSet = "utf-8" },
+            // TODO: Do we need to support JSON array responses?
             new("application/graphql-response+json") { CharSet = "utf-8" },
             new("application/json") { CharSet = "utf-8" }
         ];

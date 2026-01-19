@@ -241,28 +241,40 @@ public abstract partial class FusionTestBase
                 }
                 else
                 {
-                    writer.WriteLine("document: |");
-                    writer.Indent();
-
                     var jsonBody = JsonDocument.Parse(request.Body);
 
-                    jsonBody.RootElement.TryGetProperty("query", out var queryProperty);
-                    jsonBody.RootElement.TryGetProperty("variables", out var variablesProperty);
-
-                    var query = queryProperty.GetString()!;
-
-                    // Ensure consistent formatting
-                    var document = Utf8GraphQLParser.Parse(query).ToString(indented: true);
-
-                    WriteMultilineString(writer, document);
-                    writer.Unindent();
-
-                    if (variablesProperty.ValueKind != JsonValueKind.Undefined)
+                    // OperationBatchRequest
+                    if (jsonBody.RootElement.ValueKind is JsonValueKind.Array)
                     {
-                        writer.WriteLine("variables: |");
+                        request.Body.Position = 0;
+                        var streamReader = new StreamReader(request.Body);
+                        var rawRequestString = streamReader.ReadToEnd();
+
+                        WriteRawRequest(writer, null, rawRequestString);
+                    }
+                    else
+                    {
+                        writer.WriteLine("document: |");
                         writer.Indent();
-                        WriteFormattedJson(writer, variablesProperty);
+
+                        jsonBody.RootElement.TryGetProperty("query", out var queryProperty);
+                        jsonBody.RootElement.TryGetProperty("variables", out var variablesProperty);
+
+                        var query = queryProperty.GetString()!;
+
+                        // Ensure consistent formatting
+                        var document = Utf8GraphQLParser.Parse(query).ToString(indented: true);
+
+                        WriteMultilineString(writer, document);
                         writer.Unindent();
+
+                        if (variablesProperty.ValueKind != JsonValueKind.Undefined)
+                        {
+                            writer.WriteLine("variables: |");
+                            writer.Indent();
+                            WriteFormattedJson(writer, variablesProperty);
+                            writer.Unindent();
+                        }
                     }
 
                     writer.Unindent();
@@ -375,7 +387,7 @@ public abstract partial class FusionTestBase
                 var streamReader = new StreamReader(rawRequest.Body);
                 var rawRequestString = streamReader.ReadToEnd();
 
-                WriteRawRequest(writer, contentType.MediaType!, rawRequestString);
+                WriteRawRequest(writer, contentType.MediaType, rawRequestString);
             }
 
             return;
@@ -462,9 +474,13 @@ public abstract partial class FusionTestBase
         WriteRawRequest(writer, contentTypeString, rawRequestString);
     }
 
-    private static void WriteRawRequest(CodeWriter writer, string contentType, string body)
+    private static void WriteRawRequest(CodeWriter writer, string? contentType, string body)
     {
-        writer.WriteLine("contentType: {0}", contentType);
+        if (!string.IsNullOrEmpty(contentType))
+        {
+            writer.WriteLine("contentType: {0}", contentType);
+        }
+
         writer.WriteLine("body: |");
         writer.Indent();
 

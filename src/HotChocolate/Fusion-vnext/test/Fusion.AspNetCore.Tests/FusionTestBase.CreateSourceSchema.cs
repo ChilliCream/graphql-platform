@@ -1,5 +1,7 @@
+using HotChocolate.AspNetCore;
 using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Types.Descriptors;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
@@ -50,7 +52,8 @@ public abstract partial class FusionTestBase
         string schemaName,
         string schemaText,
         bool isOffline = false,
-        bool isTimingOut = false)
+        bool isTimingOut = false,
+        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching)
     {
         return _testServerSession.CreateServer(services =>
         {
@@ -68,12 +71,21 @@ public abstract partial class FusionTestBase
             {
                 opt.IsOffline = isOffline;
                 opt.IsTimingOut = isTimingOut;
+                opt.BatchingMode = batchingMode;
             });
         },
         app =>
         {
             app.UseRouting();
-            app.UseEndpoints(endpoint => endpoint.MapGraphQL(schemaName: schemaName));
+            app.UseEndpoints(
+                endpoint =>
+                {
+                    endpoint.MapGraphQL(schemaName: schemaName)
+                        .WithOptions(new GraphQLServerOptions
+                        {
+                            EnableBatching = true
+                        });
+                });
         });
     }
 

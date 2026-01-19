@@ -20,6 +20,9 @@ public class SourceSchemaHttpClientConfiguration
     /// <param name="supportedOperations">
     /// The supported operations.
     /// </param>
+    /// <param name="batchingMode">
+    /// The batching mode.
+    /// </param>
     /// <param name="onBeforeSend">
     /// The action to call before the request is sent.
     /// </param>
@@ -33,6 +36,7 @@ public class SourceSchemaHttpClientConfiguration
         string name,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
+        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
         Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
         Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null,
         Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null)
@@ -44,6 +48,7 @@ public class SourceSchemaHttpClientConfiguration
         HttpClientName = name;
         BaseAddress = baseAddress;
         SupportedOperations = supportedOperations;
+        BatchingMode = batchingMode;
         OnBeforeSend = onBeforeSend;
         OnAfterReceive = onAfterReceive;
         OnSourceSchemaResult = onSourceSchemaResult;
@@ -62,6 +67,9 @@ public class SourceSchemaHttpClientConfiguration
     /// <param name="supportedOperations">
     /// The supported operations.
     /// </param>
+    /// <param name="batchingMode">
+    /// The batching mode.
+    /// </param>
     /// <param name="onBeforeSend">
     /// The action to call before the request is sent.
     /// </param>
@@ -76,6 +84,7 @@ public class SourceSchemaHttpClientConfiguration
         string httpClientName,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
+        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
         Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
         Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null,
         Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null)
@@ -88,6 +97,7 @@ public class SourceSchemaHttpClientConfiguration
         HttpClientName = httpClientName;
         BaseAddress = baseAddress;
         SupportedOperations = supportedOperations;
+        BatchingMode = batchingMode;
         OnBeforeSend = onBeforeSend;
         OnAfterReceive = onAfterReceive;
         OnSourceSchemaResult = onSourceSchemaResult;
@@ -112,6 +122,11 @@ public class SourceSchemaHttpClientConfiguration
     /// Gets the supported operations.
     /// </summary>
     public SupportedOperationType SupportedOperations { get; }
+
+    /// <summary>
+    /// Gets the preferred batching mode.
+    /// </summary>
+    public SourceSchemaHttpClientBatchingMode BatchingMode { get; }
 
     /// <summary>
     /// Called before the request is sent.
