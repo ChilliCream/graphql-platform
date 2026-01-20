@@ -79,7 +79,7 @@ public static class CommandLineBuilderExtensions
         catch (Exception exception)
         {
             context.ExitCode = ExitCodes.Error;
-            context.BindingContext.GetRequiredService<IAnsiConsole>().ErrorLine(exception.Message);
+            await context.BindingContext.GetRequiredService<IAnsiConsole>().Error.WriteLineAsync(exception.Message);
             throw;
         }
     }
