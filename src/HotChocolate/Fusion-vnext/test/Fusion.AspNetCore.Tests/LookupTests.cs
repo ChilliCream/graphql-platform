@@ -140,7 +140,9 @@ public class LookupTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    // TODO: JsonL is used as the return type for request batching
+    // TODO: Improve formatting of request batching requests in snapshots
+    // TODO: Test with array responses
+    // TODO: Test with SSE responses
 
     [Fact]
     public async Task Fetch_With_Request_Batching()
@@ -162,7 +164,7 @@ public class LookupTests : FusionTestBase
               name: String!
             }
             """,
-            batchingMode: SourceSchemaHttpClientBatchingMode.RequestBatching);
+            batchingMode: SourceSchemaHttpClientBatchingMode.ApolloRequestBatching);
 
         using var gateway = await CreateCompositeSchemaAsync(
         [
