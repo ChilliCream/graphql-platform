@@ -16,20 +16,30 @@ using FieldNames = HotChocolate.Fusion.WellKnownFieldNames;
 
 namespace HotChocolate.Fusion;
 
-internal sealed class SatisfiabilityValidator(
-    MutableSchemaDefinition schema,
-    ICompositionLog log,
-    SatisfiabilityOptions? options = null)
+internal sealed class SatisfiabilityValidator
 {
-    private readonly SatisfiabilityOptions _options = options ?? new SatisfiabilityOptions();
-    private readonly RequirementsValidator _requirementsValidator = new(schema);
+    private readonly SatisfiabilityOptions _options;
+    private readonly RequirementsValidator _requirementsValidator;
+    private readonly MutableSchemaDefinition _schema;
+    private readonly ICompositionLog _log;
+
+    public SatisfiabilityValidator(
+        MutableSchemaDefinition schema,
+        ICompositionLog log,
+        SatisfiabilityOptions? options = null)
+    {
+        _schema = schema;
+        _log = log;
+        _options = options ?? new SatisfiabilityOptions();
+        _requirementsValidator = new RequirementsValidator(schema, _options.IncludeSatisfiabilityPaths);
+    }
 
     public CompositionResult Validate()
     {
         var context = new SatisfiabilityValidatorContext();
 
         MutableObjectTypeDefinition?[] rootTypes =
-            [schema.QueryType, schema.MutationType, schema.SubscriptionType];
+            [_schema.QueryType, _schema.MutationType, _schema.SubscriptionType];
 
         foreach (var rootType in rootTypes)
         {
@@ -39,7 +49,7 @@ internal sealed class SatisfiabilityValidator(
             }
         }
 
-        return log.HasErrors
+        return _log.HasErrors
             ? ErrorHelper.SatisfiabilityValidationFailed()
             : CompositionResult.Success();
     }
@@ -60,8 +70,8 @@ internal sealed class SatisfiabilityValidator(
             // The node and nodes fields are "virtual" fields that might not directly map
             // to an underlying source schema, so we have to validate them differently.
             if (field.Name is FieldNames.Node or FieldNames.Nodes
-                && objectType == schema.QueryType
-                && schema.Types.TryGetType<IInterfaceTypeDefinition>(WellKnownTypeNames.Node, out var nodeType)
+                && objectType == _schema.QueryType
+                && _schema.Types.TryGetType<IInterfaceTypeDefinition>(WellKnownTypeNames.Node, out var nodeType)
                 && field.Type.NamedType() == nodeType)
             {
                 if (field.Name == FieldNames.Nodes)
@@ -107,7 +117,7 @@ internal sealed class SatisfiabilityValidator(
             // If the field is marked as partial, it must be provided by the current schema for it
             // to be an option.
             if (field.IsPartial(schemaName)
-                && previousPathItem?.Provides(field, type, schemaName, schema) != true)
+                && previousPathItem?.Provides(field, type, schemaName, _schema) != true)
             {
                 continue;
             }
@@ -178,7 +188,7 @@ internal sealed class SatisfiabilityValidator(
             // Visit each of the possible types that the field may return.
             if (fieldType is MutableComplexTypeDefinition or MutableUnionTypeDefinition)
             {
-                var possibleTypes = fieldType.GetPossibleTypes(schemaName, schema);
+                var possibleTypes = fieldType.GetPossibleTypes(schemaName, _schema);
 
                 foreach (var possibleType in possibleTypes)
                 {
@@ -211,15 +221,21 @@ internal sealed class SatisfiabilityValidator(
                 return;
             }
 
-            var error = new SatisfiabilityError(
-                string.Format(
-                    SatisfiabilityValidator_UnableToAccessFieldOnPath,
-                    type.Name,
-                    field.Name,
-                    context.Path),
-                [.. errors]);
+            var message =
+                _options.IncludeSatisfiabilityPaths
+                    ? string.Format(
+                        SatisfiabilityValidator_UnableToAccessFieldOnPath,
+                        type.Name,
+                        field.Name,
+                        context.Path)
+                    : string.Format(
+                        SatisfiabilityValidator_UnableToAccessField,
+                        type.Name,
+                        field.Name);
 
-            log.Write(
+            var error = new SatisfiabilityError(message, [.. errors]);
+
+            _log.Write(
                 LogEntryBuilder.New()
                     .SetMessage(error.ToString())
                     .SetCode(LogEntryCodes.Unsatisfiable)
@@ -235,9 +251,9 @@ internal sealed class SatisfiabilityValidator(
         IInterfaceTypeDefinition nodeType,
         SatisfiabilityValidatorContext context)
     {
-        foreach (var possibleType in schema.GetPossibleTypes(nodeType))
+        foreach (var possibleType in _schema.GetPossibleTypes(nodeType))
         {
-            var byIdLookups = schema
+            var byIdLookups = _schema
                 .GetPossibleFusionLookupDirectivesById(possibleType);
 
             var hasNodeLookup = false;
@@ -252,7 +268,7 @@ internal sealed class SatisfiabilityValidator(
                 var lookupFieldDefinition = ParseFieldDefinition(fieldDirectiveArgument);
                 var lookupFieldTypeName = lookupFieldDefinition.Type.NamedType().Name.Value;
 
-                if (!schema.Types.TryGetType(lookupFieldTypeName, out var lookupFieldNamedType))
+                if (!_schema.Types.TryGetType(lookupFieldTypeName, out var lookupFieldNamedType))
                 {
                     continue;
                 }
@@ -279,7 +295,7 @@ internal sealed class SatisfiabilityValidator(
                 var error = new SatisfiabilityError(
                     string.Format(SatisfiabilityValidator_NodeTypeHasNoNodeLookup, possibleType.Name));
 
-                log.Write(
+                _log.Write(
                     LogEntryBuilder.New()
                         .SetMessage(error.ToString())
                         .SetCode(LogEntryCodes.Unsatisfiable)
@@ -300,7 +316,7 @@ internal sealed class SatisfiabilityValidator(
         var errors = new List<SatisfiabilityError>();
 
         var lookupDirectives =
-            schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
+            _schema.GetPossibleFusionLookupDirectives(type, transitionToSchemaName);
 
         if (!lookupDirectives.Any() && !CanTransitionToSchemaThroughPath(context.Path, transitionToSchemaName))
         {
@@ -365,7 +381,7 @@ internal sealed class SatisfiabilityValidator(
         foreach (var pathItem in path)
         {
             var lookupDirectives =
-                schema.GetPossibleFusionLookupDirectives(
+                _schema.GetPossibleFusionLookupDirectives(
                     pathItem.Type,
                     schemaName);
 

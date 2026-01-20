@@ -389,7 +389,8 @@ public sealed class FusionComposeCommandTests : IDisposable
             "--source-schema-file",
             "__resources__/valid-example-2/source-schema-b.graphqls",
             "--fusion-archive",
-            archiveFileName
+            archiveFileName,
+            "--include-satisfiability-paths"
         ];
         var testConsole = new TestConsole();
 
