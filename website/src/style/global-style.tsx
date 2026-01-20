@@ -19,8 +19,6 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   html {
-    height: 100vh;
-    overflow: hidden;
     font-family: ${FONT_FAMILY};
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
@@ -28,7 +26,7 @@ export const GlobalStyle = createGlobalStyle`
 
   body {
     margin: 0;
-    overflow: hidden;
+    overflow-x: hidden;
     font-size: 1rem;
     letter-spacing: 0.025rem;
     line-height: 1.6em;
@@ -36,6 +34,7 @@ export const GlobalStyle = createGlobalStyle`
     background-image: radial-gradient(ellipse at bottom, #151135 0%, ${THEME_COLORS.background} 40%);
     background-color: ${THEME_COLORS.background};
     background-size: auto;
+    background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
@@ -94,10 +93,6 @@ export const GlobalStyle = createGlobalStyle`
 
   *:focus {
     outline: none;
-  }
-
-  div, span {
-    overflow: hidden;
   }
 
   a {

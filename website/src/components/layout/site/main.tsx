@@ -1,4 +1,4 @@
-import React, { FC, PropsWithChildren, useEffect, useRef } from "react";
+import React, { FC, PropsWithChildren, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import styled from "styled-components";
 
@@ -8,7 +8,6 @@ import { Footer } from "./footer";
 import { Header } from "./header";
 
 export const Main: FC<PropsWithChildren<unknown>> = ({ children }) => {
-  const ref = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -19,23 +18,19 @@ export const Main: FC<PropsWithChildren<unknown>> = ({ children }) => {
     );
 
     const handleScroll = () => {
-      if (!ref.current || ref.current.scrollTop === undefined) {
-        return;
-      }
-
       dispatch(
         hasScrolled({
-          yScrollPosition: ref.current.scrollTop,
+          yScrollPosition: window.scrollY,
         })
       );
     };
 
-    ref.current?.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
-      ref.current?.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     const { hash } = window.location;
@@ -48,14 +43,14 @@ export const Main: FC<PropsWithChildren<unknown>> = ({ children }) => {
   });
 
   const scrollToTop = () => {
-    ref.current?.scrollTo({
+    window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
   };
 
   return (
-    <Container ref={ref}>
+    <Container>
       <Header />
       <Content>{children}</Content>
       <Footer />
@@ -68,8 +63,6 @@ const Container = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow-y: auto;
 `;
 
 const Content = styled.main`
@@ -78,6 +71,11 @@ const Content = styled.main`
   flex-direction: column;
   align-items: center;
   width: 100%;
-  overflow: visible;
   flex: 1 0 auto;
+  overflow-x: hidden;
+
+  /* Reset overflow-x if article-layout is present to fix "position: sticky" */
+  :has(.article-layout) {
+    overflow-x: visible;
+  }
 `;
