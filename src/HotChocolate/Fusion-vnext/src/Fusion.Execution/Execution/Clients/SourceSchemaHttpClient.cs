@@ -65,8 +65,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         SourceSchemaClientRequest originalRequest)
     {
         var defaultAccept = originalRequest.OperationType is OperationType.Subscription
-            ? AcceptContentTypes.Subscription
-            : AcceptContentTypes.Default;
+            ? _configuration.SubscriptionAcceptHeaderValues
+            : _configuration.DefaultAcceptHeaderValues;
         var operationSourceText = originalRequest.OperationSourceText;
 
         switch (originalRequest.Variables.Length)
@@ -91,19 +91,19 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 };
 
             default:
-                if (_configuration.BatchingMode == SourceSchemaHttpClientBatchingMode.RequestBatching)
+                if (_configuration.BatchingMode == SourceSchemaHttpClientBatchingMode.ApolloRequestBatching)
                 {
                     return new GraphQLHttpRequest(CreateOperationBatchRequest(operationSourceText, originalRequest))
                     {
                         Uri = _configuration.BaseAddress,
-                        Accept = AcceptContentTypes.RequestBatching
+                        Accept = _configuration.BatchingAcceptHeaderValues
                     };
                 }
 
                 return new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, originalRequest))
                 {
                     Uri = _configuration.BaseAddress,
-                    Accept = AcceptContentTypes.VariableBatching
+                    Accept = _configuration.BatchingAcceptHeaderValues
                 };
         }
     }
@@ -244,7 +244,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     {
                         SourceSchemaResult? errorResult = null;
 
-                        if (configuration.BatchingMode == SourceSchemaHttpClientBatchingMode.RequestBatching)
+                        if (configuration.BatchingMode == SourceSchemaHttpClientBatchingMode.ApolloRequestBatching)
                         {
                             var requestIndex = 0;
                             await foreach (var result in response.ReadAsResultStreamAsync()
@@ -308,42 +308,5 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         public override bool IsSuccessful => response.IsSuccessStatusCode;
 
         public override void Dispose() => response.Dispose();
-    }
-
-    private static class AcceptContentTypes
-    {
-        public static readonly ImmutableArray<MediaTypeWithQualityHeaderValue> Default =
-        [
-            new("application/graphql-response+json") { CharSet = "utf-8" },
-            new("application/json") { CharSet = "utf-8" },
-            new("application/jsonl") { CharSet = "utf-8" },
-            new("text/event-stream") { CharSet = "utf-8" }
-        ];
-
-        public static ImmutableArray<MediaTypeWithQualityHeaderValue> VariableBatching { get; } =
-        [
-            new("application/jsonl") { CharSet = "utf-8" },
-            new("text/event-stream") { CharSet = "utf-8" },
-            new("application/graphql-response+json") { CharSet = "utf-8" },
-            new("application/json") { CharSet = "utf-8" }
-        ];
-
-        public static readonly ImmutableArray<MediaTypeWithQualityHeaderValue> RequestBatching =
-        [
-            new("application/jsonl") { CharSet = "utf-8" },
-            // Most server's won't support jsonl, so we also accept multipart as a fallback.
-            // TODO: GraphQLHttpResponse needs to support reading multipart
-            // TODO: Can we force multipart in our tests?
-            new("multipart/mixed") { CharSet = "utf-8" },
-            // TODO: Do we need to support JSON array responses?
-            new("application/graphql-response+json") { CharSet = "utf-8" },
-            new("application/json") { CharSet = "utf-8" }
-        ];
-
-        public static ImmutableArray<MediaTypeWithQualityHeaderValue> Subscription { get; } =
-        [
-            new("application/jsonl") { CharSet = "utf-8" },
-            new("text/event-stream") { CharSet = "utf-8" }
-        ];
     }
 }

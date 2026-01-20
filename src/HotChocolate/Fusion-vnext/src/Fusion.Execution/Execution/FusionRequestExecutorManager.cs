@@ -292,8 +292,10 @@ internal sealed class FusionRequestExecutorManager
                     {
                         var hasClientName = http.TryGetProperty("clientName", out var clientName);
 
+                        // TODO: Optionally add contentTypes from the file here
                         var httpClient = new SourceSchemaHttpClientConfiguration(
                             name: sourceSchema.Name,
+                            // TODO: This should come from a constants class
                             httpClientName: hasClientName ? clientName.GetString()! : "fusion",
                             baseAddress: new Uri(http.GetProperty("url").GetString()!),
                             batchingMode: GetBatchingMode(http));
@@ -318,7 +320,7 @@ internal sealed class FusionRequestExecutorManager
             && batchingMode.ValueKind == JsonValueKind.String
             && batchingMode.GetString() == "REQUEST_BATCHING")
         {
-            return SourceSchemaHttpClientBatchingMode.RequestBatching;
+            return SourceSchemaHttpClientBatchingMode.ApolloRequestBatching;
         }
 
         return SourceSchemaHttpClientBatchingMode.VariableBatching;

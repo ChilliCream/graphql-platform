@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using System.Net.Http.Headers;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
@@ -25,6 +27,15 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <param name="batchingMode">
     /// The batching mode.
     /// </param>
+    /// <param name="defaultAcceptHeaderValues">
+    /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
+    /// </param>
+    /// <param name="batchingAcceptHeaderValues">
+    /// The <c>Accept</c> header values sent in case of a batching request.
+    /// </param>>
+    /// <param name="subscriptionAcceptHeaderValues">
+    /// The <c>Accept</c> header values sent in case of a subscription.
+    /// </param>
     /// <param name="onBeforeSend">
     /// The action to call before the request is sent.
     /// </param>
@@ -43,6 +54,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
         SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
         Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
         Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null,
         Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null)
@@ -53,6 +67,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
             baseAddress,
             supportedOperations,
             batchingMode,
+            defaultAcceptHeaderValues,
+            batchingAcceptHeaderValues,
+            subscriptionAcceptHeaderValues,
             onBeforeSend,
             onAfterReceive,
             onSourceSchemaResult);
@@ -78,6 +95,15 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <param name="batchingMode">
     /// The batching mode.
     /// </param>
+    /// <param name="defaultAcceptHeaderValues">
+    /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
+    /// </param>
+    /// <param name="batchingAcceptHeaderValues">
+    /// The <c>Accept</c> header values sent in case of a batching request.
+    /// </param>>
+    /// <param name="subscriptionAcceptHeaderValues">
+    /// The <c>Accept</c> header values sent in case of a subscription.
+    /// </param>
     /// <param name="onBeforeSend">
     /// The action to call before the request is sent.
     /// </param>
@@ -97,6 +123,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
         SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
         Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
         Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null,
         Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null)
@@ -114,6 +143,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
                 baseAddress,
                 supportedOperations,
                 batchingMode,
+                defaultAcceptHeaderValues,
+                batchingAcceptHeaderValues,
+                subscriptionAcceptHeaderValues,
                 onBeforeSend,
                 onAfterReceive,
                 onSourceSchemaResult));
