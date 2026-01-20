@@ -67,6 +67,11 @@ internal sealed class FusionComposeCommand : Command
             Description = ComposeCommand_EnableGlobalObjectIdentification_Description
         };
 
+        var includeSatisfiabilityPathsOption = new Option<bool?>("--include-satisfiability-paths")
+        {
+            Description = ComposeCommand_IncludeSatisfiabilityPaths_Description
+        };
+
         var watchModeOption = new Option<bool>("--watch") { Arity = ArgumentArity.ZeroOrOne };
 
         var printSchemaOption = new Option<bool>("--print") { IsHidden = true };
@@ -76,6 +81,7 @@ internal sealed class FusionComposeCommand : Command
         AddOption(archiveOption);
         AddOption(environmentOption);
         AddOption(enableGlobalIdsOption);
+        AddOption(includeSatisfiabilityPathsOption);
         AddOption(watchModeOption);
         AddOption(printSchemaOption);
 
@@ -86,6 +92,7 @@ internal sealed class FusionComposeCommand : Command
             var archive = context.ParseResult.GetValueForOption(archiveOption);
             var environment = context.ParseResult.GetValueForOption(environmentOption);
             var enableGlobalIds = context.ParseResult.GetValueForOption(enableGlobalIdsOption);
+            var includeSatisfiabilityPaths = context.ParseResult.GetValueForOption(includeSatisfiabilityPathsOption);
             var watchMode = context.ParseResult.GetValueForOption(watchModeOption);
             var printSchema = context.ParseResult.GetValueForOption(printSchemaOption);
 
@@ -96,6 +103,7 @@ internal sealed class FusionComposeCommand : Command
                 archive,
                 environment,
                 enableGlobalIds,
+                includeSatisfiabilityPaths,
                 watchMode,
                 printSchema,
                 context.GetCancellationToken());
@@ -109,6 +117,7 @@ internal sealed class FusionComposeCommand : Command
         string? archiveFile,
         string? environment,
         bool? enableGlobalObjectIdentification,
+        bool? includeSatisfiabilityPaths,
         bool watchMode,
         bool printSchema,
         CancellationToken cancellationToken)
@@ -153,6 +162,7 @@ internal sealed class FusionComposeCommand : Command
                 archiveFile,
                 environment,
                 enableGlobalObjectIdentification,
+                includeSatisfiabilityPaths,
                 cancellationToken);
         }
 
@@ -166,6 +176,10 @@ internal sealed class FusionComposeCommand : Command
                 Merger = new CompositionSettings.MergerSettings
                 {
                     EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                },
+                Satisfiability = new CompositionSettings.SatisfiabilitySettings
+                {
+                    IncludeSatisfiabilityPaths = includeSatisfiabilityPaths
                 }
             },
             printSchema,
@@ -179,6 +193,7 @@ internal sealed class FusionComposeCommand : Command
         string archiveFile,
         string? environment,
         bool? enableGlobalObjectIdentification,
+        bool? includeSatisfiabilityPaths,
         CancellationToken cancellationToken)
     {
         console.Out.WriteLine("🔍 Starting watch mode...");
@@ -194,6 +209,10 @@ internal sealed class FusionComposeCommand : Command
                 Merger = new CompositionSettings.MergerSettings
                 {
                     EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                },
+                Satisfiability = new CompositionSettings.SatisfiabilitySettings
+                {
+                    IncludeSatisfiabilityPaths = includeSatisfiabilityPaths
                 }
             },
             false,
@@ -218,6 +237,7 @@ internal sealed class FusionComposeCommand : Command
             archiveFile,
             environment,
             enableGlobalObjectIdentification,
+            includeSatisfiabilityPaths,
             cancellationToken);
 
         var sourceSchemaFileWatchers = new List<FileSystemWatcher>();
@@ -334,6 +354,7 @@ internal sealed class FusionComposeCommand : Command
         string archiveFile,
         string? environment,
         bool? enableGlobalObjectIdentification,
+        bool? includeSatisfiabilityPaths,
         CancellationToken cancellationToken)
     {
         var lastComposition = DateTime.MinValue;
@@ -369,6 +390,10 @@ internal sealed class FusionComposeCommand : Command
                         Merger = new CompositionSettings.MergerSettings
                         {
                             EnableGlobalObjectIdentification = enableGlobalObjectIdentification
+                        },
+                        Satisfiability = new CompositionSettings.SatisfiabilitySettings
+                        {
+                            IncludeSatisfiabilityPaths = includeSatisfiabilityPaths
                         }
                     },
                     false,
@@ -529,8 +554,8 @@ internal sealed class FusionComposeCommand : Command
             compositionSettings?.MergeInto(existingCompositionSettings) ?? existingCompositionSettings;
 
         var sourceSchemaOptionsMap = new Dictionary<string, SourceSchemaOptions>();
-        var mergerOptions = mergedCompositionSettings.Merger?.ToOptions() ?? new SourceSchemaMergerOptions();
-        var satisfiabilityOptions = new SatisfiabilityOptions();
+        var mergerOptions = mergedCompositionSettings.Merger.ToOptions();
+        var satisfiabilityOptions = mergedCompositionSettings.Satisfiability.ToOptions();
 
         foreach (var (sourceSchemaName, (_, sourceSchemaSettings)) in sourceSchemas)
         {
@@ -551,7 +576,7 @@ internal sealed class FusionComposeCommand : Command
             Satisfiability = satisfiabilityOptions
         };
 
-        if (existingCompositionSettings.Merger?.EnableGlobalObjectIdentification
+        if (existingCompositionSettings.Merger.EnableGlobalObjectIdentification
             != schemaComposerOptions.Merger.EnableGlobalObjectIdentification)
         {
             compositionLog.Write(
@@ -746,6 +771,10 @@ internal sealed class FusionComposeCommand : Command
             Merger = new CompositionSettings.MergerSettings
             {
                 EnableGlobalObjectIdentification = options.Merger.EnableGlobalObjectIdentification
+            },
+            Satisfiability = new CompositionSettings.SatisfiabilitySettings
+            {
+                IncludeSatisfiabilityPaths = options.Satisfiability.IncludeSatisfiabilityPaths
             }
         };
         var settingsJson = JsonSerializer.SerializeToDocument(
