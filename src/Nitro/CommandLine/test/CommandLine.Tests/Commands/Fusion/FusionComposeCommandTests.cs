@@ -352,7 +352,7 @@ public sealed class FusionComposeCommandTests : IDisposable
     }
 
     [Fact]
-    public async Task Compose_InvalidExample1_FromWorkingDirectory_ToStdOutWithWarningsAndErrors()
+    public async Task Compose_InvalidExample2_FromWorkingDirectory_ToStdOutWithWarningsAndErrors()
     {
         // arrange
         var builder = GetCommandLineBuilder();
