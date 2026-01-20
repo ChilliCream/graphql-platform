@@ -486,7 +486,6 @@ ReadNameToken_Next:
                 case GraphQLConstants.GroupSeparator:
                 case GraphQLConstants.RecordSeparator:
                 case GraphQLConstants.UnitSeparator:
-                case GraphQLConstants.Delete:
                     run = false;
                     break;
 
@@ -581,7 +580,6 @@ ReadNameToken_Next:
                 case GraphQLConstants.GroupSeparator:
                 case GraphQLConstants.RecordSeparator:
                 case GraphQLConstants.UnitSeparator:
-                case GraphQLConstants.Delete:
                     throw new SyntaxException(this, InvalidCharacterWithinString, code);
             }
         }
@@ -674,7 +672,6 @@ ReadNameToken_Next:
                 case GraphQLConstants.GroupSeparator:
                 case GraphQLConstants.RecordSeparator:
                 case GraphQLConstants.UnitSeparator:
-                case GraphQLConstants.Delete:
                     throw new SyntaxException(
                         this,
                         string.Format(InvalidCharacterWithinString, code));

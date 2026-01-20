@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -92,6 +93,35 @@ public class RequestExecutorTests
 
         // the cancellation token was correctly passed to the resolver.
         Assert.True(tokenWasCorrectlyPassedToResolver);
+    }
+
+    [Fact]
+    public async Task DeleteChar_StringInput_IsAllowed()
+    {
+        var schema = SchemaBuilder.New()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("echo")
+                .Argument("arg", arg => arg.Type<StringType>())
+                .Resolve(x => x.ArgumentValue<string>("arg")))
+            .Create();
+
+        // act
+        var executor = schema.MakeExecutable();
+        var result = await executor.ExecuteAsync($$""""
+                                                   {
+                                                       delChar: echo(arg: "\u007F")
+                                                       delCharNonEscaped: echo(arg: "{{"\u007f"}}")
+                                                       delCharNonEscapedBlockString: echo(arg:
+                                                       """
+                                                       {{"\u007f"}}
+                                                       """)
+                                                       #Comment with del char -> {{"\u007f"}} <-
+                                                   }
+                                                   """");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     [Fact]

@@ -43,7 +43,6 @@ internal static class GraphQLConstants
     public const byte GroupSeparator = 29;
     public const byte RecordSeparator = 30;
     public const byte UnitSeparator = 31;
-    public const byte Delete = 127;
 
     public const byte A = (byte)'a';
     public const byte B = (byte)'b';
