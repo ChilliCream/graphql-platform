@@ -31,7 +31,7 @@ public class FilterConventionTests
         var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
         var type = new FooFilterInput();
 
-        //act
+        // act
         CreateSchemaWith(type, convention);
         var executor = new ExecutorBuilder(type);
 
@@ -87,7 +87,7 @@ public class FilterConventionTests
 
         var type = new FooFilterInput();
 
-        //act
+        // act
         var error = Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         // assert
@@ -96,7 +96,7 @@ public class FilterConventionTests
     }
 
     [Fact]
-    public void FilterConvention_Should_Fail_When_OperationsInUknown()
+    public void FilterConvention_Should_Fail_When_OperationsInUnknown()
     {
         // arrange
         var provider = new QueryableFilterProvider(
@@ -115,7 +115,7 @@ public class FilterConventionTests
 
         var type = new FooFilterInput();
 
-        //act
+        // act
         var error = Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         // assert
@@ -144,7 +144,7 @@ public class FilterConventionTests
 
         var type = new FooFilterInput();
 
-        //act
+        // act
         Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
     }
 
@@ -161,7 +161,7 @@ public class FilterConventionTests
 
         var type = new FooFilterInput();
 
-        //act
+        // act
         var error = Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         Assert.Single(error.Errors);
@@ -188,7 +188,7 @@ public class FilterConventionTests
 
         var type = new FooFilterInput();
 
-        //act
+        // act
         var error = Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
         // assert
@@ -208,7 +208,7 @@ public class FilterConventionTests
             });
 
         var convention = new FilterConvention(
-            descriptor =>
+            _ =>
             {
             });
 
@@ -225,7 +225,7 @@ public class FilterConventionTests
         var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
         var type = new FooFilterInput();
 
-        //act
+        // act
         CreateSchemaWith(type, convention, extension1, extension2);
         var executor = new ExecutorBuilder(type);
 
@@ -260,7 +260,7 @@ public class FilterConventionTests
         var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
         var type = new FooFilterInput();
 
-        //act
+        // act
         CreateSchemaWithTypes(
             type,
             convention,
@@ -301,7 +301,7 @@ public class FilterConventionTests
         var value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
         var type = new FooFilterInput();
 
-        //act
+        // act
         CreateSchemaWith(type, convention, extension1);
         var executor = new ExecutorBuilder(type);
 
@@ -334,7 +334,7 @@ public class FilterConventionTests
             .AddQueryType(
                 x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
 
-        //act
+        // act
         var schema = await builder.BuildSchemaAsync();
 
         // assert
@@ -379,7 +379,7 @@ public class FilterConventionTests
             .AddQueryType(
                 x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
 
-        //act
+        // act
         var schema = await builder.BuildSchemaAsync();
 
         // assert
@@ -404,7 +404,32 @@ public class FilterConventionTests
             .AddQueryType(
                 x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
 
-        //act
+        // act
+        var schema = await builder.BuildSchemaAsync();
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task FilterConvention_Should_Support_OpenGeneric_RuntimeType_Binding()
+    {
+        // arrange
+        var convention = new FilterConvention(
+            descriptor =>
+            {
+                descriptor.AddDefaults();
+                descriptor.BindRuntimeType(typeof(GenericFoo<>), typeof(GenericFooOperationFilterInput));
+            });
+
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddConvention<IFilterConvention>(convention)
+            .AddFiltering()
+            .AddQueryType(
+                x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<UsingGenericFoo>()));
+
+        // act
         var schema = await builder.BuildSchemaAsync();
 
         // assert
@@ -461,8 +486,7 @@ public class FilterConventionTests
 
     public class MockFilterProviderExtensionConvention : QueryableFilterProviderExtension
     {
-        protected override void Configure(
-            IFilterProviderDescriptor<QueryableFilterContext> descriptor)
+        protected override void Configure(IFilterProviderDescriptor<QueryableFilterContext> descriptor)
         {
             descriptor.AddFieldHandler(QueryableStringEqualsHandler.Create);
         }
@@ -485,8 +509,7 @@ public class FilterConventionTests
         }
     }
 
-    public class FailingCombinator
-        : FilterOperationCombinator<FilterVisitorContext<string>, string>
+    public class FailingCombinator : FilterOperationCombinator<FilterVisitorContext<string>, string>
     {
         public override bool TryCombineOperations(
             FilterVisitorContext<string> context,
@@ -503,11 +526,19 @@ public class FilterConventionTests
         public string Bar { get; set; } = null!;
     }
 
-    public class FooFilterInput
-        : FilterInputType<Foo>
+    public class GenericFoo<T>
     {
-        protected override void Configure(
-            IFilterInputTypeDescriptor<Foo> descriptor)
+        public string Bar { get; set; } = null!;
+    }
+
+    public class UsingGenericFoo
+    {
+        public GenericFoo<Foo> Bar { get; set; } = null!;
+    }
+
+    public class FooFilterInput : FilterInputType<Foo>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
         {
             descriptor.Field(t => t.Bar);
             descriptor.AllowAnd(false).AllowOr(false);
@@ -515,4 +546,13 @@ public class FilterConventionTests
     }
 
     public class CustomFooFilterInput : FilterInputType<Foo>;
+
+    public class GenericFooOperationFilterInput : StringOperationFilterInputType
+    {
+        protected override void Configure(IFilterInputTypeDescriptor descriptor)
+        {
+            descriptor.Operation(DefaultFilterOperations.Equals).Type<StringType>();
+            descriptor.AllowAnd(false).AllowOr(false);
+        }
+    }
 }
