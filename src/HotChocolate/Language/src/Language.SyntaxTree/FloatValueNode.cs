@@ -363,6 +363,10 @@ public sealed class FloatValueNode : IValueNode<string>, IFloatValueLiteral
     public FloatValueNode WithLocation(Location? location)
         => new(location, Format) { _memorySegment = _memorySegment, _value = _value };
 
+    /// <inheritdoc />
+    IValueNode IValueNode.WithLocation(Location? location)
+        => WithLocation(location);
+
     /// <summary>
     /// Creates a new node from the current instance and replaces the
     /// <see cref="Value" /> with <paramref name="value" />.

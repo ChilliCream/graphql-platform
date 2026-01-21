@@ -223,32 +223,20 @@ public static class VariableRewriter
         {
             case SyntaxKind.Variable:
                 rewritten = Rewrite((VariableNode)original, defaultValue, variableValues);
-                return true;
+                break;
 
             case SyntaxKind.ObjectValue when type.Kind == TypeKind.InputObject:
                 rewritten = Rewrite(
                     (ObjectValueNode)original,
                     (InputObjectType)type,
                     variableValues);
-
-                if (ReferenceEquals(rewritten, original))
-                {
-                    rewritten = null;
-                    return false;
-                }
-                return true;
+                break;
 
             case SyntaxKind.ObjectValue when type.Kind == TypeKind.List:
                 rewritten = Rewrite(
                     (ObjectValueNode)original,
                     (ListType)type,
                     variableValues);
-
-                if (ReferenceEquals(rewritten, original))
-                {
-                    rewritten = null;
-                    return false;
-                }
                 return true;
 
             case SyntaxKind.ListValue when type.Kind == TypeKind.List:
@@ -256,18 +244,21 @@ public static class VariableRewriter
                     (ListValueNode)original,
                     (ListType)type,
                     variableValues);
-
-                if (ReferenceEquals(rewritten, original))
-                {
-                    rewritten = null;
-                    return false;
-                }
-                return true;
+                break;
 
             default:
                 rewritten = null;
                 return false;
         }
+
+        if (ReferenceEquals(rewritten, original))
+        {
+            rewritten = null;
+            return false;
+        }
+
+        rewritten = rewritten.WithLocation(original.Location);
+        return true;
     }
 
     private static IValueNode Rewrite(
