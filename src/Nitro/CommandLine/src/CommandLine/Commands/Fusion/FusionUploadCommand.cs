@@ -42,6 +42,8 @@ public sealed class FusionUploadCommand : Command
         sourceSchemaFileOption.AddAlias("-s");
         sourceSchemaFileOption.LegalFilePathsOnly();
 
+        this.AddNitroCloudDefaultOptions();
+
         AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
         AddOption(workingDirectoryOption);

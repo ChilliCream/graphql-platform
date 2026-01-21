@@ -99,6 +99,7 @@ internal sealed class FusionSettingsSetCommand : Command
         return await FusionPublishCommand.ExecuteAsync(
             null,
             [],
+            [],
             apiId,
             stageName,
             tag,
