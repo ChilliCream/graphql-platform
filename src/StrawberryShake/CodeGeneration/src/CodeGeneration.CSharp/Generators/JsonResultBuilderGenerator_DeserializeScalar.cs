@@ -11,24 +11,40 @@ public partial class JsonResultBuilderGenerator
         MethodBuilder methodBuilder,
         ILeafTypeDescriptor namedType)
     {
-        var methodCall = MethodCallBuilder
-            .New()
-            .SetReturn()
-            .SetMethodName(GetFieldName(namedType.Name) + "Parser", "Parse");
-
-        if (namedType.SerializationType.ToString() == TypeNames.JsonElement)
+        if (namedType is EnumTypeDescriptor { OptionalEnum: true })
         {
-            methodCall.AddArgument($"{Obj}.{nameof(Nullable<JsonElement>.Value)}!");
+            // Todo: Ugly
+            var methodCall = MethodCallBuilder
+                .New()
+                .SetReturn()
+                .SetMethodName($"new global::StrawberryShake.Serialization.OptionalEnum")
+                .AddGeneric(namedType.Name)
+                .AddArgument($"{Obj}.{nameof(Nullable<JsonElement>.Value)}!.GetString()")
+                .AddArgument(GetFieldName(namedType.Name) + "Parser");
+
+            methodBuilder.AddCode(methodCall);
         }
         else
         {
-            var deserializeMethod = JsonUtils.GetParseMethod(namedType.SerializationType);
-            methodCall.AddArgument(MethodCallBuilder
-                .Inline()
-                .SetMethodName(Obj, nameof(Nullable<JsonElement>.Value), deserializeMethod)
-                .SetNullForgiving());
-        }
+            var methodCall = MethodCallBuilder
+                .New()
+                .SetReturn()
+                .SetMethodName(GetFieldName(namedType.Name) + "Parser", "Parse");
 
-        methodBuilder.AddCode(methodCall);
+            if (namedType.SerializationType.ToString() == TypeNames.JsonElement)
+            {
+                methodCall.AddArgument($"{Obj}.{nameof(Nullable<JsonElement>.Value)}!");
+            }
+            else
+            {
+                var deserializeMethod = JsonUtils.GetParseMethod(namedType.SerializationType);
+                methodCall.AddArgument(MethodCallBuilder
+                    .Inline()
+                    .SetMethodName(Obj, nameof(Nullable<JsonElement>.Value), deserializeMethod)
+                    .SetNullForgiving());
+            }
+
+            methodBuilder.AddCode(methodCall);
+        }
     }
 }
