@@ -28,6 +28,24 @@ internal sealed class FusionValidateCommand : Command
         AddOption(Opt<SourceSchemaFileListOption>.Instance);
         this.AddNitroCloudDefaultOptions();
 
+        AddValidator(result =>
+        {
+            var exclusiveOptionsCount = new[]
+            {
+                result.FindResultFor(Opt<SourceSchemaFileListOption>.Instance) is not null,
+                result.FindResultFor(archiveOption) is not null
+            }.Count(x => x);
+
+            if (exclusiveOptionsCount > 1)
+            {
+                result.ErrorMessage = "You can only specify one of: '--source-schema-file' or '--archive'.";
+            }
+            else if (exclusiveOptionsCount < 1)
+            {
+                result.ErrorMessage = "You need to specify one of: '--source-schema-file' or '--archive'.";
+            }
+        });
+
         this.SetHandler(
             ExecuteAsync,
             Opt<StageNameOption>.Instance,
@@ -51,11 +69,6 @@ internal sealed class FusionValidateCommand : Command
         CancellationToken ct)
     {
         console.Title($"Validate against {stageName.EscapeMarkup()}");
-
-        if (archiveFile is not null && sourceSchemaFiles.Count > 0)
-        {
-            throw new ExitException("You can not specify both '--source-schema-file' and '--archive'.");
-        }
 
         var isValid = false;
 

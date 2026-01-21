@@ -177,14 +177,18 @@ internal static class FusionPublishHelpers
 
         var response = await httpClient.SendAsync(request, cancellationToken);
 
-        if (response.StatusCode == HttpStatusCode.NotFound)
+        if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
         {
-            // TODO: Properly handle
+            throw new ExitException(
+                $"Got a HTTP {response.StatusCode} while attempting to download source schema '{sourceSchemaName}' in version '{sourceSchemaVersion}'. "
+                + "Make sure that you have the proper credentials / permissions to execute this command.");
         }
 
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        if (response.StatusCode is HttpStatusCode.NotFound)
         {
-            // TODO: Properly handle
+            throw new ExitException(
+                $"Got a HTTP {HttpStatusCode.NotFound} while attempting to download source schema '{sourceSchemaName}' in version '{sourceSchemaVersion}'. "
+                + "Make sure you've properly uploaded a source schema version before running this command.");
         }
 
         response.EnsureSuccessStatusCode();
