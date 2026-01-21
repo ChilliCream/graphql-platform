@@ -4,13 +4,13 @@ Result:
   "data": {
     "root": [
       {
-        "foo": {
-          "barString": "testatest"
+        "bar": {
+          "baz": "testatest"
         }
       },
       {
-        "foo": {
-          "barString": "testbtest"
+        "bar": {
+          "baz": "testbtest"
         }
       }
     ]
@@ -20,7 +20,6 @@ Result:
 
 SQL:
 ---------------
-SELECT "f"."BarString"
+SELECT "d"."Bar_Baz" AS "Baz"
 FROM "Data" AS "d"
-INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 ---------------
