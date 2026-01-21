@@ -36,7 +36,8 @@ internal static partial class TestHelper
         string[] sourceTexts,
         string? assemblyName = "Tests",
         bool enableInterceptors = false,
-        bool enableAnalyzers = false)
+        bool enableAnalyzers = false,
+        DocumentationMode documentationMode = DocumentationMode.Parse)
     {
         IEnumerable<PortableExecutableReference> references =
         [
@@ -120,6 +121,8 @@ internal static partial class TestHelper
                 {
                     ["InterceptorsNamespaces"] = "HotChocolate.Execution.Generated"
                 });
+
+        parseOptions = parseOptions.WithDocumentationMode(documentationMode);
 
         var compilation = CSharpCompilation.Create(
             assemblyName: assemblyName,
@@ -213,7 +216,8 @@ internal static partial class TestHelper
                 new ShareableScopedOnMemberAnalyzer(),
                 new DataAttributeOrderAnalyzer(),
                 new IdAttributeOnRecordParameterAnalyzer(),
-                new WrongAuthorizationAttributeAnalyzer());
+                new WrongAuthorizationAttributeAnalyzer(),
+                new XmlDocumentationEnabledAnalyzer());
 
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
             var analyzerDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;

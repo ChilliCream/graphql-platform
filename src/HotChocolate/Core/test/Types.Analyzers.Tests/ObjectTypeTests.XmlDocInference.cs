@@ -238,4 +238,225 @@ public partial class ObjectTypeXmlDocInferenceTests
         var emitted = s_description.Matches(content).Single().Groups;
         Assert.Equal("This type is similar useless to 'The Bar type.'.", emitted[1].Value);
     }
+
+    [Fact]
+    public void XmlDocumentation_Is_Used_When_No_Attributes_Are_Present()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                namespace TestNamespace;
+
+                [QueryType]
+                internal static partial class Query
+                {
+                    /// <summary>
+                    /// This is XML
+                    /// </summary>
+                    public static string GetUser() => "User";
+                }
+                """);
+
+        var content = snapshot.Match();
+        var emitted = s_description.Matches(content).Single().Groups;
+        Assert.Equal("This is XML", emitted[1].Value);
+    }
+
+    [Fact]
+    public void XmlDocumentation_Is_Ignored_When_IgnoreAttribute_Is_On_Member()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                namespace TestNamespace;
+
+                [QueryType]
+                internal static partial class Query
+                {
+                    /// <summary>
+                    /// This is XML
+                    /// </summary>
+                    [GraphQLIgnoreXmlDocumentation]
+                    public static string GetUser() => "User";
+                }
+                """);
+
+        var content = snapshot.Match();
+        Assert.DoesNotMatch(s_description, content);
+    }
+
+    [Fact]
+    public void XmlDocumentation_Is_Ignored_When_IgnoreAttribute_Is_On_Type()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                namespace TestNamespace;
+
+                [QueryType]
+                [GraphQLIgnoreXmlDocumentation]
+                internal static partial class Query
+                {
+                    /// <summary>
+                    /// This is XML
+                    /// </summary>
+                    public static string GetUser() => "User";
+                }
+                """);
+
+        var content = snapshot.Match();
+        Assert.DoesNotMatch(s_description, content);
+    }
+
+    [Fact]
+    public void XmlDocumentation_Is_Ignored_When_IgnoreAttribute_Is_On_Assembly()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                [assembly: GraphQLIgnoreXmlDocumentation]
+
+                namespace TestNamespace;
+
+                [QueryType]
+                internal static partial class Query
+                {
+                    /// <summary>
+                    /// This is XML
+                    /// </summary>
+                    public static string GetUser() => "User";
+                }
+                """);
+
+        var content = snapshot.Match();
+        Assert.DoesNotMatch(s_description, content);
+    }
+
+    [Fact]
+    public void XmlDocumentation_OptIn_OnType_Overrides_Assembly_Level_Ignore()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                [assembly: GraphQLIgnoreXmlDocumentation]
+
+                namespace TestNamespace;
+
+                [QueryType]
+                [GraphQLIgnoreXmlDocumentation(Ignore = false)]
+                internal static partial class Query
+                {
+                    /// <summary>
+                    /// This is XML
+                    /// </summary>
+                    public static string GetUser() => "User";
+                }
+                """);
+
+        var content = snapshot.Match();
+        var emitted = s_description.Matches(content).Single().Groups;
+        Assert.Equal("This is XML", emitted[1].Value);
+    }
+
+    [Fact]
+    public void XmlDocumentation_OptIn_OnMember_Overrides_Assembly_Level_Ignore()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                [assembly: GraphQLIgnoreXmlDocumentation]
+
+                namespace TestNamespace;
+
+                [QueryType]
+                internal static partial class Query
+                {
+                    /// <summary>
+                    /// This is XML
+                    /// </summary>
+                    [GraphQLIgnoreXmlDocumentation(Ignore = false)]
+                    public static string GetUser() => "User";
+                }
+                """);
+
+        var content = snapshot.Match();
+        var emitted = s_description.Matches(content).Single().Groups;
+        Assert.Equal("This is XML", emitted[1].Value);
+    }
+
+    [Fact]
+    public void XmlDocumentation_OptIn_OnMember_Overrides_Type_Level_Ignore()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                namespace TestNamespace;
+
+                [QueryType]
+                [GraphQLIgnoreXmlDocumentation]
+                internal static partial class Query
+                {
+                    /// <summary>
+                    /// This is XML
+                    /// </summary>
+                    [GraphQLIgnoreXmlDocumentation(Ignore = false)]
+                    public static string GetUser() => "User";
+                }
+                """);
+
+        var content = snapshot.Match();
+        var emitted = s_description.Matches(content).Single().Groups;
+        Assert.Equal("This is XML", emitted[1].Value);
+    }
+
+    [Fact]
+    public void DescriptionAttribute_Overrides_Xml_Even_When_XmlIgnored()
+    {
+        var snapshot =
+            TestHelper.GetGeneratedSourceSnapshot(
+                """
+                using HotChocolate;
+                using HotChocolate.Types;
+
+                [assembly: GraphQLIgnoreXmlDocumentation]
+
+                namespace TestNamespace;
+
+                [QueryType]
+                internal static partial class Query
+                {
+                    /// <summary>
+                    /// This is XML
+                    /// </summary>
+                    [GraphQLIgnoreXmlDocumentation(Ignore = false)]
+                    [GraphQLDescription("Explicit")]
+                    public static string GetUser() => "User";
+                }
+                """);
+
+        var content = snapshot.Match();
+        var emitted = s_description.Matches(content).Single().Groups;
+        Assert.Equal("Explicit", emitted[1].Value);
+    }
 }

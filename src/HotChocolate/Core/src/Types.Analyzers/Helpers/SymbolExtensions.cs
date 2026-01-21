@@ -383,6 +383,11 @@ public static class SymbolExtensions
             return null;
         }
 
+        if (IsXmlDocInferenceDisabledByAttribute(symbol))
+        {
+            return null;
+        }
+
         var trivia = syntax.GetLeadingTrivia();
         StringBuilder? builder = null;
         foreach (var comment in trivia)
@@ -636,6 +641,47 @@ public static class SymbolExtensions
             {
                 return symbol;
             }
+        }
+    }
+
+    private static bool IsXmlDocInferenceDisabledByAttribute(ISymbol symbol)
+    {
+        var currentSymbol = symbol;
+        while (currentSymbol != null)
+        {
+            var ignoreValue = GetIgnoreValue(currentSymbol);
+            if (ignoreValue.HasValue)
+            {
+                return ignoreValue.Value;
+            }
+
+            currentSymbol = currentSymbol.ContainingSymbol;
+        }
+
+        var assemblyScopeIgnore = GetIgnoreValue(symbol.ContainingAssembly);
+        return assemblyScopeIgnore.HasValue && assemblyScopeIgnore.Value;
+
+        static bool? GetIgnoreValue(ISymbol s)
+        {
+            const string attributeName = "GraphQLIgnoreXmlDocumentationAttribute";
+            foreach (var attr in s.GetAttributes())
+            {
+                if (attr.AttributeClass?.Name == attributeName)
+                {
+                    foreach (var arg in attr.NamedArguments)
+                    {
+                        if (arg is { Key: "Ignore", Value.Value: bool ignore })
+                        {
+                            return ignore;
+                        }
+                    }
+
+                    // Default: Ignore = true
+                    return true;
+                }
+            }
+
+            return null;
         }
     }
 

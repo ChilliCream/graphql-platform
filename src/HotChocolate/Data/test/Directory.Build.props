@@ -6,6 +6,10 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);HC0106;</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <Using Include="CookieCrumble" />
     <Using Include="CookieCrumble.HotChocolate" />
