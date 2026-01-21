@@ -1171,6 +1171,108 @@ public class GraphQLHttpClientTests : ServerTestBase
         }
     }
 
+    [Fact]
+    public async Task Read_Apollo_Request_Batching_Array_Response()
+    {
+        // arrange
+        var handler = new MockHttpMessageHandler(
+            """
+            [
+              {
+                "data": {
+                  "number": 0
+                }
+              },
+              {
+                "data": {
+                  "number": 1
+                }
+              }
+            ]
+            """,
+            "application/json");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest = new OperationBatchRequest(
+            [
+                new OperationRequest("{ number }"),
+                new OperationRequest("{ number }")
+            ]);
+        var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var result = await client.SendAsync(request);
+        var stream = result.ReadAsResultStreamAsync();
+
+        // assert
+        var count = 0;
+
+        await foreach (var document in stream)
+        {
+            var number = document.Data.GetProperty("number").GetInt32();
+
+            Assert.Equal(count, number);
+
+            document.Dispose();
+
+            count++;
+        }
+
+        Assert.Equal(2, count);
+    }
+
+    [Fact]
+    public async Task Read_Single_Object_Response_Via_Stream()
+    {
+        // arrange
+        var handler = new MockHttpMessageHandler(
+            """
+            {
+              "data": {
+                "number": 42
+              }
+            }
+            """,
+            "application/json");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest = new OperationRequest("{ number }");
+        var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var result = await client.SendAsync(request);
+        var stream = result.ReadAsResultStreamAsync();
+
+        // assert
+        var count = 0;
+
+        await foreach (var document in stream)
+        {
+            var number = document.Data.GetProperty("number").GetInt32();
+            Assert.Equal(42, number);
+
+            document.Dispose();
+
+            count++;
+        }
+
+        Assert.Equal(1, count);
+    }
+
+    private class MockHttpMessageHandler(string responseContent, string contentType) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(responseContent, System.Text.Encoding.UTF8, contentType)
+            };
+            return Task.FromResult(response);
+        }
+    }
+
     private class CustomHttpClientHandler(HttpStatusCode? httpStatusCode = null) : HttpClientHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(
