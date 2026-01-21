@@ -22,7 +22,7 @@ export const DocArticleCommunity: FC<DocArticleCommunityProps> = ({
   originPath,
 }) => {
   const metadata = data.site!.siteMetadata!;
-  const docPath = `${metadata.repositoryUrl!}/blob/master/website/src/docs/${originPath}`;
+  const docPath = `${metadata.repositoryUrl!}/blob/main/website/src/docs/${originPath}`;
 
   return (
     <Container>
