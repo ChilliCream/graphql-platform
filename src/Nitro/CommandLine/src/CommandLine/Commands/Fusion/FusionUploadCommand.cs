@@ -46,7 +46,7 @@ public sealed class FusionUploadCommand : Command
         IAnsiConsole console,
         IApiClient client,
         string workingDirectory,
-        FileInfo sourceSchemaFile,
+        string sourceSchemaFilePath,
         string tag,
         string apiId,
         CancellationToken cancellationToken)
@@ -85,8 +85,6 @@ public sealed class FusionUploadCommand : Command
 
         async Task UploadSourceSchemaFile(StatusContext? ctx)
         {
-            var sourceSchemaFilePath = sourceSchemaFile.FullName;
-
             if (!Path.IsPathRooted(sourceSchemaFilePath))
             {
                 sourceSchemaFilePath = Path.Combine(workingDirectory, sourceSchemaFilePath);

@@ -31,7 +31,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "__resources__/valid-example-1/source-schema-1.graphqls",
             "--source-schema-file",
             "__resources__/valid-example-1/source-schema-2.graphqls",
-            "--fusion-archive",
+            "--archive",
             archiveFileName
         ];
         var testConsole = new TestConsole();
@@ -61,7 +61,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "compose",
             "--working-directory",
             "__resources__/valid-example-1",
-            "--fusion-archive",
+            "--archive",
             archiveFileName
         ];
         var testConsole = new TestConsole();
@@ -93,7 +93,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "__resources__/valid-example-1/source-schema-1.graphqls",
             "--source-schema-file",
             "__resources__/valid-example-1/source-schema-2.graphqls",
-            "--fusion-archive",
+            "--archive",
             archiveFileName
         ];
 
@@ -128,7 +128,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "__resources__/valid-example-1/source-schema-1.graphqls",
             "--source-schema-file",
             "__resources__/valid-example-1/source-schema-2.graphqls",
-            "--fusion-archive",
+            "--archive",
             fileName
         ];
 
@@ -161,7 +161,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "compose",
             "--working-directory",
             workingDirectory,
-            "--fusion-archive",
+            "--archive",
             fileName
         ];
 
@@ -194,7 +194,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "compose",
             "--working-directory",
             workingDirectory,
-            "--fusion-archive",
+            "--archive",
             fileName
         ];
 
@@ -226,7 +226,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "compose",
             "--working-directory",
             workingDirectory,
-            "--fusion-archive",
+            "--archive",
             filePath
         ];
 
@@ -286,7 +286,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "__resources__/valid-example-1/source-schema-1.graphqls",
             "--source-schema-file",
             "__resources__/valid-example-1/source-schema-2.graphqls",
-            "--fusion-archive",
+            "--archive",
             archiveFileName
         ];
 
@@ -336,7 +336,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "compose",
             "--working-directory",
             "__resources__/invalid-example-1",
-            "--fusion-archive",
+            "--archive",
             archiveFileName,
             "--print"
         ];
@@ -388,7 +388,7 @@ public sealed class FusionComposeCommandTests : IDisposable
             "__resources__/valid-example-2/source-schema-a.graphqls",
             "--source-schema-file",
             "__resources__/valid-example-2/source-schema-b.graphqls",
-            "--fusion-archive",
+            "--archive",
             archiveFileName,
             "--include-satisfiability-paths"
         ];

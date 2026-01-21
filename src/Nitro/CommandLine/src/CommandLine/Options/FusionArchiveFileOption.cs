@@ -1,6 +1,6 @@
 namespace ChilliCream.Nitro.CommandLine.Options;
 
-internal sealed class FusionArchiveFileOption : Option<FileInfo>
+internal sealed class FusionArchiveFileOption : Option<string>
 {
     public FusionArchiveFileOption() : this(true)
     {
@@ -13,7 +13,7 @@ internal sealed class FusionArchiveFileOption : Option<FileInfo>
         AddAlias("-a");
         // This is only here to not break existing scripts
         AddAlias("--configuration");
-        this.DefaultFileFromEnvironmentValue("FUSION_CONFIG_FILE");
+        this.DefaultFromEnvironmentValue("FUSION_CONFIG_FILE");
         this.LegalFilePathsOnly();
     }
 }

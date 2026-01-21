@@ -43,9 +43,8 @@ internal sealed class FusionComposeCommand : Command
         var printSchemaOption = new Option<bool>("--print") { IsHidden = true };
 
         var archiveOption = new FusionArchiveFileOption(isRequired: false);
-        var sourceSchemaFilesOption = new SourceSchemaFileListOption(isRequired: true);
 
-        AddOption(sourceSchemaFilesOption);
+        AddOption(Opt<SourceSchemaFileListOption>.Instance);
         AddOption(archiveOption);
         AddOption(environmentOption);
         AddOption(enableGlobalIdsOption);
@@ -57,7 +56,7 @@ internal sealed class FusionComposeCommand : Command
         this.SetHandler(async context =>
         {
             var workingDirectory = context.ParseResult.GetValueForOption(Opt<WorkingDirectoryOption>.Instance)!;
-            var sourceSchemaFiles = context.ParseResult.GetValueForOption(sourceSchemaFilesOption)!;
+            var sourceSchemaFiles = context.ParseResult.GetValueForOption(Opt<SourceSchemaFileListOption>.Instance)!;
             var archive = context.ParseResult.GetValueForOption(archiveOption)!;
             var environment = context.ParseResult.GetValueForOption(environmentOption);
             var enableGlobalIds = context.ParseResult.GetValueForOption(enableGlobalIdsOption);
@@ -83,7 +82,7 @@ internal sealed class FusionComposeCommand : Command
         IConsole console,
         string workingDirectory,
         List<string> sourceSchemaFiles,
-        FileInfo? archiveFile,
+        string? archiveFile,
         string? environment,
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
@@ -91,18 +90,16 @@ internal sealed class FusionComposeCommand : Command
         bool printSchema,
         CancellationToken cancellationToken)
     {
-        var archiveFilePath = archiveFile?.FullName ?? workingDirectory;
+        archiveFile ??= workingDirectory;
 
-        if (Directory.Exists(archiveFilePath))
+        if (Directory.Exists(archiveFile))
         {
-            archiveFilePath = Path.Combine(archiveFilePath, "gateway.far");
+            archiveFile = Path.Combine(archiveFile, "gateway.far");
         }
-        else if (!Path.IsPathRooted(archiveFilePath))
+        else if (!Path.IsPathRooted(archiveFile))
         {
-            archiveFilePath = Path.Combine(workingDirectory, archiveFilePath);
+            archiveFile = Path.Combine(workingDirectory, archiveFile);
         }
-
-        archiveFile =  new FileInfo(archiveFilePath);
 
         if (sourceSchemaFiles.Count == 0)
         {
@@ -161,7 +158,7 @@ internal sealed class FusionComposeCommand : Command
         IConsole console,
         string workingDirectory,
         List<string> sourceSchemaFiles,
-        FileInfo archiveFile,
+        string archiveFile,
         string? environment,
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
@@ -322,7 +319,7 @@ internal sealed class FusionComposeCommand : Command
         ChannelReader<string> reader,
         IConsole console,
         List<string> sourceSchemaFiles,
-        FileInfo archiveFile,
+        string archiveFile,
         string? environment,
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
@@ -395,15 +392,15 @@ internal sealed class FusionComposeCommand : Command
     private static async Task<int> ComposeAsync(
         IConsole console,
         List<string> sourceSchemaFiles,
-        FileInfo archiveFile,
+        string archiveFile,
         string? environment,
         CompositionSettings compositionSettings,
         bool printSchema,
         CancellationToken cancellationToken)
     {
-        using var archive = archiveFile.Exists
-            ? FusionArchive.Open(archiveFile.FullName, mode: FusionArchiveMode.Update)
-            : FusionArchive.Create(archiveFile.FullName);
+        using var archive = File.Exists(archiveFile)
+            ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
+            : FusionArchive.Create(archiveFile);
 
         try
         {

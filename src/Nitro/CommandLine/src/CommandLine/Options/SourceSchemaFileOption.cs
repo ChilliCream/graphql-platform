@@ -1,6 +1,6 @@
 namespace ChilliCream.Nitro.CommandLine.Options;
 
-public sealed class SourceSchemaFileOption : Option<FileInfo>
+public sealed class SourceSchemaFileOption : Option<string>
 {
     public SourceSchemaFileOption() : base("--source-schema-file")
     {

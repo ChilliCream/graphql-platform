@@ -38,7 +38,7 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
             throw new ExitException(
                 "No request id was provided and no request id was found in the cache. Please provide a request id.");
 
-        var configurationFile =
+        var archiveFile =
             context.ParseResult.GetValueForOption(Opt<FusionArchiveFileOption>.Instance)!;
 
         console.Title("Commit the composition of a fusion configuration");
@@ -69,7 +69,7 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
 
         async Task Commit(StatusContext? ctx)
         {
-            var stream = FileHelpers.CreateFileStream(configurationFile);
+            var stream = FileHelpers.CreateFileStream(new FileInfo(archiveFile));
             committed = await FusionPublishHelpers.UploadFusionArchiveAsync(
                 requestId,
                 stream,

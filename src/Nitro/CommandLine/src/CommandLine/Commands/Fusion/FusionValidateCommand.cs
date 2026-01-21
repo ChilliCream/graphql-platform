@@ -20,11 +20,11 @@ internal sealed class FusionValidateCommand : Command
     {
         Description = "Validates the composed GraphQL schema of a Fusion configuration against a stage.";
 
-        var archiveOptions = new FusionArchiveFileOption(isRequired: false);
+        var archiveOption = new FusionArchiveFileOption(isRequired: false);
 
         AddOption(Opt<ApiIdOption>.Instance);
         AddOption(Opt<StageNameOption>.Instance);
-        AddOption(archiveOptions);
+        AddOption(archiveOption);
         AddOption(Opt<SourceSchemaFileListOption>.Instance);
         this.AddNitroCloudDefaultOptions();
 
@@ -32,7 +32,7 @@ internal sealed class FusionValidateCommand : Command
             ExecuteAsync,
             Opt<StageNameOption>.Instance,
             Opt<ApiIdOption>.Instance,
-            archiveOptions,
+            archiveOption,
             Opt<SourceSchemaFileListOption>.Instance,
             Bind.FromServiceProvider<IAnsiConsole>(),
             Bind.FromServiceProvider<IApiClient>(),
@@ -43,7 +43,7 @@ internal sealed class FusionValidateCommand : Command
     private static async Task<int> ExecuteAsync(
         string stageName,
         string apiId,
-        FileInfo? archiveFile,
+        string? archiveFile,
         List<string> sourceSchemaFiles,
         IAnsiConsole console,
         IApiClient client,
@@ -69,11 +69,11 @@ internal sealed class FusionValidateCommand : Command
                 {
                     if (archiveFile is not null)
                     {
-                        await ValidateWithArchive(ctx, archiveFile);
+                        await ValidateWithArchive(ctx);
                     }
                     else
                     {
-                        await ValidateWithSourceSchemaFiles(ctx, sourceSchemaFiles);
+                        await ValidateWithSourceSchemaFiles(ctx);
                     }
                 });
         }
@@ -81,19 +81,19 @@ internal sealed class FusionValidateCommand : Command
         {
             if (archiveFile is not null)
             {
-                await ValidateWithArchive(null, archiveFile);
+                await ValidateWithArchive(null);
             }
             else
             {
-                await ValidateWithSourceSchemaFiles(null, sourceSchemaFiles);
+                await ValidateWithSourceSchemaFiles(null);
             }
         }
 
         return isValid ? ExitCodes.Success : ExitCodes.Error;
 
-        async Task ValidateWithSourceSchemaFiles(StatusContext? ctx, List<string> sourceSchemaFiles2)
+        async Task ValidateWithSourceSchemaFiles(StatusContext? ctx)
         {
-            var newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(sourceSchemaFiles2, ct);
+            var newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(sourceSchemaFiles, ct);
 
             var archiveStream = new MemoryStream();
             var existingArchiveStream = await FusionPublishHelpers.DownloadLatestFusionArchiveAsync(
@@ -124,11 +124,11 @@ internal sealed class FusionValidateCommand : Command
             await ValidateSchemaAsync(ctx, schemaStream);
         }
 
-        async Task ValidateWithArchive(StatusContext? ctx, FileInfo archiveFile2)
+        async Task ValidateWithArchive(StatusContext? ctx)
         {
-            console.Log($"Reading file [blue]{archiveFile2.FullName.EscapeMarkup()}[/]");
+            console.Log($"Reading file [blue]{archiveFile.EscapeMarkup()}[/]");
 
-            await using var stream = FileHelpers.CreateFileStream(archiveFile2);
+            await using var stream = FileHelpers.CreateFileStream(new FileInfo(archiveFile));
 
             Stream schemaStream;
             IDisposable disposableArchive;
