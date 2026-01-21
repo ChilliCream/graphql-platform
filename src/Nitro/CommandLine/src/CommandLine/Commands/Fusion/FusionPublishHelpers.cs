@@ -1,8 +1,10 @@
+using System.Net;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using HotChocolate.Fusion.SourceSchema.Packaging;
 using StrawberryShake;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
@@ -156,6 +158,51 @@ internal static class FusionPublishHelpers
         return await downloadResult.Content.ReadAsStreamAsync(cancellationToken);
     }
 
+    public static async Task<FusionSourceSchemaArchive> DownloadSourceSchemaArchiveAsync(
+        string apiId,
+        string sourceSchemaName,
+        string sourceSchemaVersion,
+        IHttpClientFactory httpClientFactory,
+        CancellationToken cancellationToken)
+    {
+        using var httpClient = httpClientFactory.CreateClient(ApiClient.ClientName);
+
+        var request = CreateDownloadSourceSchemaVersionRequest(apiId, sourceSchemaName, sourceSchemaVersion);
+
+        var response = await httpClient.SendAsync(request, cancellationToken);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            // TODO: Properly handle
+        }
+
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            // TODO: Properly handle
+        }
+
+        response.EnsureSuccessStatusCode();
+
+        var memoryStream = new MemoryStream();
+        await response.Content.CopyToAsync(memoryStream, cancellationToken);
+
+        memoryStream.Position = 0;
+
+        return FusionSourceSchemaArchive.Open(memoryStream);
+    }
+
+    private static HttpRequestMessage CreateDownloadSourceSchemaVersionRequest(
+        string apiId,
+        string sourceSchemaName,
+        string sourceSchemaVersion)
+    {
+        const string path = "/api/v1/apis/{0}/fusion-subgraphs/{1}/versions/{2}/download";
+
+        var escapedApiId = Uri.EscapeDataString(apiId);
+        var requestUri = string.Format(path, escapedApiId, sourceSchemaName, sourceSchemaVersion);
+
+        return new HttpRequestMessage(HttpMethod.Get, requestUri);
+    }
     public static async Task<bool> UploadConfigurationAsync(
         string requestId,
         Stream stream,

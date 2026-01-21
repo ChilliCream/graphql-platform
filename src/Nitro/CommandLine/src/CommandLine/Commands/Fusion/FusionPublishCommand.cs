@@ -1,10 +1,14 @@
 using System.CommandLine.IO;
+using System.Text;
+using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Settings;
+using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
+using HotChocolate.Fusion.SourceSchema.Packaging;
 using static ChilliCream.Nitro.CommandLine.CommandLineResources;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
@@ -88,9 +92,6 @@ internal sealed class FusionPublishCommand : Command
                 apiId,
                 stageName,
                 tag,
-                // We'll always take the settings already in the configuration for this
-                compositionSettings: null,
-                requireExistingConfiguration: false,
                 console,
                 apiClient,
                 httpClientFactory,
@@ -98,15 +99,109 @@ internal sealed class FusionPublishCommand : Command
         });
     }
 
-    public static async Task<int> ExecuteAsync(
-        string? workingDirectory,
+    private static async Task<int> ExecuteAsync(
+        string workingDirectory,
         List<string> sourceSchemaFiles,
         List<string> sourceSchemaIdentifiers,
         string apiId,
         string stageName,
         string tag,
+        IAnsiConsole console,
+        IApiClient client,
+        IHttpClientFactory httpClientFactory,
+        CancellationToken cancellationToken)
+    {
+        var sourceSchemaVersions = sourceSchemaIdentifiers
+            .Select(i => ParseSourceSchemaVersion(i, tag))
+            .ToArray();
+
+        if (sourceSchemaFiles.Count == 0 && sourceSchemaVersions.Length == 0)
+        {
+            sourceSchemaFiles.AddRange(
+                new DirectoryInfo(workingDirectory)
+                    .GetFiles("*.graphql*", SearchOption.AllDirectories)
+                    .Where(f => FusionComposeCommand.IsSchemaFile(f.Name))
+                    .Select(i => i.FullName));
+        }
+        else
+        {
+            for (var i = 0; i < sourceSchemaFiles.Count; i++)
+            {
+                var sourceSchemaFile = sourceSchemaFiles[i];
+                if (!Path.IsPathRooted(sourceSchemaFile))
+                {
+                    sourceSchemaFiles[i] = Path.Combine(workingDirectory, sourceSchemaFile);
+                }
+            }
+        }
+
+        if (sourceSchemaFiles.Count > 0 && sourceSchemaVersions.Length > 0)
+        {
+            throw new ExitException("You can not specify both '--source-schema' and '--source-schema-file'.");
+        }
+
+        Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas;
+
+        if (sourceSchemaFiles.Count > 0)
+        {
+            newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
+                sourceSchemaFiles,
+                cancellationToken);
+        }
+        else
+        {
+            newSourceSchemas = [];
+
+            foreach (var sourceSchemaVersion in sourceSchemaVersions)
+            {
+                using var archive = await FusionPublishHelpers.DownloadSourceSchemaArchiveAsync(
+                    apiId,
+                    sourceSchemaVersion.Name,
+                    sourceSchemaVersion.Version,
+                    httpClientFactory,
+                    cancellationToken);
+
+                var settings = await archive.TryGetSettingsAsync(cancellationToken);
+
+                if (settings is null)
+                {
+                    throw new ExitException(
+                        $"Archive of source schema '{sourceSchemaVersion.Name}' does not contain source schema settings.");
+                }
+
+                var schema = await archive.TryGetSchemaAsync(cancellationToken);
+
+                if (!schema.HasValue)
+                {
+                    throw new ExitException(
+                        $"Archive of source schema '{sourceSchemaVersion.Name}' does not contain a GraphQL schema.");
+                }
+
+                var schemaName = sourceSchemaVersion.Name;
+                var schemaText = Encoding.UTF8.GetString(schema.Value.Span);
+
+                newSourceSchemas.Add(schemaName, (new SourceSchemaText(schemaName, schemaText), settings));
+            }
+        }
+
+        return await PublishFusionConfigurationAsync(
+            apiId,
+            stageName,
+            tag,
+            newSourceSchemas,
+            compositionSettings: null,
+            console,
+            client,
+            httpClientFactory,
+            cancellationToken);
+    }
+
+    internal static async Task<int> PublishFusionConfigurationAsync(
+        string apiId,
+        string stageName,
+        string tag,
+        Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
         CompositionSettings? compositionSettings,
-        bool requireExistingConfiguration,
         IAnsiConsole console,
         IApiClient client,
         IHttpClientFactory httpClientFactory,
@@ -260,11 +355,6 @@ internal sealed class FusionPublishCommand : Command
 
             if (stream is null)
             {
-                if (requireExistingConfiguration)
-                {
-                    throw new ExitException($"Expected an existing configuration on '{stageName}'.");
-                }
-
                 console.WarningLine($"There is no existing configuration on '{stageName}'.");
             }
             else
@@ -296,36 +386,11 @@ internal sealed class FusionPublishCommand : Command
                 archive = FusionArchive.Create(archiveStream, leaveOpen: true);
             }
 
-            if (!string.IsNullOrEmpty(workingDirectory))
-            {
-                if (sourceSchemaFiles.Count == 0)
-                {
-                    // TODO: In this case there can only ever be one source schema file, since
-                    //       the name schema-settings.json can only be used once in the directory.
-                    sourceSchemaFiles.AddRange(
-                        new DirectoryInfo(workingDirectory)
-                            .GetFiles("*.graphql*", SearchOption.AllDirectories)
-                            .Where(f => FusionComposeCommand.IsSchemaFile(f.Name))
-                            .Select(i => i.FullName));
-                }
-                else
-                {
-                    for (var i = 0; i < sourceSchemaFiles.Count; i++)
-                    {
-                        var sourceSchemaFile = sourceSchemaFiles[i];
-                        if (!Path.IsPathRooted(sourceSchemaFile))
-                        {
-                            sourceSchemaFiles[i] = Path.Combine(workingDirectory, sourceSchemaFile);
-                        }
-                    }
-                }
-            }
-
             var compositionLog = new CompositionLog();
 
             var result = await FusionComposeCommand.ComposeAsync(
                 compositionLog,
-                sourceSchemaFiles,
+                newSourceSchemas,
                 archive,
                 environment: stageName,
                 compositionSettings,

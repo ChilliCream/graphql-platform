@@ -96,15 +96,12 @@ internal sealed class FusionSettingsSetCommand : Command
                 throw new ArgumentOutOfRangeException(nameof(settingName));
         }
 
-        return await FusionPublishCommand.ExecuteAsync(
-            null,
-            [],
-            [],
+        return await FusionPublishCommand.PublishFusionConfigurationAsync(
             apiId,
             stageName,
             tag,
+            [],
             compositionSettings,
-            requireExistingConfiguration: true,
             console,
             client,
             httpClientFactory,

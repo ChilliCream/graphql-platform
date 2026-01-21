@@ -120,27 +120,20 @@ public sealed class FusionUploadCommand : Command
                 sourceSchemaFilePath = Path.Combine(workingDirectory, sourceSchemaFilePath);
             }
 
-            var sourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
-                [sourceSchemaFilePath],
+            var (_, sourceText, settings) = await FusionComposeCommand.ReadSourceSchemaAsync(
+                sourceSchemaFilePath,
                 cancellationToken);
 
-            if (sourceSchemas.Count < 1)
-            {
-                throw new ExitException($"Could not find a source schema at '{sourceSchemaFilePath}'.");
-            }
-
             console.Log($"Uploading source schema at '{sourceSchemaFilePath}'...");
-
-            var sourceSchema = sourceSchemas.Values.First();
 
             await using var archiveStream = new MemoryStream();
             var archive = FusionSourceSchemaArchive.Create(archiveStream, leaveOpen: true);
 
             await archive.SetArchiveMetadataAsync(new ArchiveMetadata(), cancellationToken);
             await archive.SetSchemaAsync(
-                Encoding.UTF8.GetBytes(sourceSchema.Item1.SourceText),
+                Encoding.UTF8.GetBytes(sourceText.SourceText),
                 cancellationToken);
-            await archive.SetSettingsAsync(sourceSchema.Item2, cancellationToken);
+            await archive.SetSettingsAsync(settings, cancellationToken);
 
             await archive.CommitAsync(cancellationToken);
             archive.Dispose();
