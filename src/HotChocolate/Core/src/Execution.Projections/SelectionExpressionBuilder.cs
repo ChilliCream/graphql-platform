@@ -163,7 +163,7 @@ internal sealed class SelectionExpressionBuilder
         return BuildSelectionSetExpression(context, parent.Nodes[0]);
     }
 
-    private static MemberInitExpression? BuildSelectionSetExpression(
+    private static Expression? BuildSelectionSetExpression(
         Context context,
         TypeNode parent)
     {
@@ -184,9 +184,84 @@ internal sealed class SelectionExpressionBuilder
             return null;
         }
 
-        return Expression.MemberInit(
-            Expression.New(context.ParentType),
-            assignments.ToImmutable());
+        var assignmentList = assignments.ToImmutable();
+
+        // Quick path: parameterless constructor + MemberInit
+        var parameterlessCtor = context.ParentType.GetConstructor(Type.EmptyTypes);
+        if (parameterlessCtor != null)
+        {
+            var allWritable = assignmentList.All(a =>
+                a.Member is PropertyInfo { CanWrite: true, SetMethod.IsPublic: true });
+            if (allWritable)
+            {
+                return Expression.MemberInit(
+                    Expression.New(parameterlessCtor),
+                    assignmentList);
+            }
+        }
+
+        // Fallback: Use the best matching constructor.
+        // Argument names must match parameter names (case-insensitive),
+        // and argument types must be assignable to the parameter types.
+        var bestMatchingCtor = context.ParentType.GetConstructors()
+            .Select(c => (Constructor: c, Parameters: c.GetParameters()))
+            .OrderBy(cp => cp.Parameters.Length)
+            .FirstOrDefault(cp =>
+                cp.Parameters.Length >= assignmentList.Length
+                && assignmentList.All(a =>
+                    cp.Parameters.Any(p =>
+                        string.Equals(a.Member.Name, p.Name, StringComparison.OrdinalIgnoreCase)
+                        && a.Expression.Type.IsAssignableTo(p.ParameterType))));
+
+        if (bestMatchingCtor.Constructor != null)
+        {
+            var ctorParams = bestMatchingCtor.Parameters;
+            var args = ctorParams.Select(p =>
+            {
+                var match = assignmentList.FirstOrDefault(a =>
+                    string.Equals(a.Member.Name, p.Name, StringComparison.OrdinalIgnoreCase)
+                    && a.Expression.Type.IsAssignableTo(p.ParameterType));
+
+                if (match != null)
+                {
+                    return match.Expression.Type == p.ParameterType
+                        ? match.Expression
+                        : Expression.Convert(match.Expression, p.ParameterType);
+                }
+
+                if (p.HasDefaultValue)
+                {
+                    return Expression.Convert(Expression.Constant(p.DefaultValue), p.ParameterType);
+                }
+
+                if (!p.ParameterType.IsValueType && IsMarkedAsExplicitlyNonNullable(p))
+                {
+                    /*
+                     * The constructor includes a non-nullable reference type (e.g.,
+                     * public record Foo(string Prop1, string Prop2);),
+                     * but we cannot provide a value for 'Prop2' based on the current selection set,
+                     * as 'Prop2' is not included in it.
+                     *
+                     * To fix this, consider updating the constructor to:
+                     *   - Make the parameter nullable: Foo(string Prop1, string? Prop2);
+                     *   - Provide a default value: Foo(string Prop1, string Prop2 = "");
+                     *     - That may also be a null-forgiving one: Foo(string Prop1, string Prop2 = default!)
+                     *
+                     * Lets hope that this error is descriptive for the user.
+                     */
+                    throw new InvalidOperationException(
+                        $"Cannot construct '{context.ParentType.Name}': missing required argument '{p.Name}' "
+                        + "(non-nullable reference type with no default value).");
+                }
+
+                return Expression.Default(p.ParameterType);
+            }).ToArray();
+
+            return Expression.New(bestMatchingCtor.Constructor, args);
+        }
+
+        throw new InvalidOperationException(
+            $"No writable properties or suitable constructor found for type '{context.ParentType.Name}'.");
     }
 
     private void CollectSelection(
@@ -350,5 +425,10 @@ internal sealed class SelectionExpressionBuilder
                 ? Requirements.GetRequirements(selection.Field)
                 : null;
         }
+    }
+
+    static bool IsMarkedAsExplicitlyNonNullable(ParameterInfo p)
+    {
+        return new NullabilityInfoContext().Create(p).WriteState is NullabilityState.NotNull;
     }
 }
