@@ -78,7 +78,7 @@ nullAndFoo Result:
         "fieldName": "in",
         "fieldType": "[BarEnum!]",
         "locationType": "[BarEnum!]",
-        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
       }
     }
   ]

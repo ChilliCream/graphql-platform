@@ -408,6 +408,9 @@
   <data name="RequirementsValidator_NoOtherSchemasContainField" xml:space="preserve">
     <value>No other schemas contain the field '{0}.{1}'.</value>
   </data>
+  <data name="RequirementsValidator_UnableToAccessField" xml:space="preserve">
+    <value>Unable to access the required field '{0}.{1}'.</value>
+  </data>
   <data name="RequirementsValidator_UnableToAccessFieldOnPath" xml:space="preserve">
     <value>Unable to access the required field '{0}.{1}' on path '{2}'.</value>
   </data>
@@ -434,6 +437,9 @@
   </data>
   <data name="SatisfiabilityValidator_NoLookupsFoundForType" xml:space="preserve">
     <value>No lookups found for type '{0}' in schema '{1}'.</value>
+  </data>
+  <data name="SatisfiabilityValidator_UnableToAccessField" xml:space="preserve">
+    <value>Unable to access the field '{0}.{1}'.</value>
   </data>
   <data name="SatisfiabilityValidator_UnableToAccessFieldOnPath" xml:space="preserve">
     <value>Unable to access the field '{0}.{1}' on path '{2}'.</value>

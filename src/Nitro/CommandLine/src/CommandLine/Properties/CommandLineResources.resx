@@ -57,6 +57,9 @@
   <data name="ComposeCommand_Error_WorkingDirectoryDoesNotExist" xml:space="preserve">
     <value>❌ Working directory '{0}' does not exist.</value>
   </data>
+  <data name="ComposeCommand_IncludeSatisfiabilityPaths_Description" xml:space="preserve">
+    <value>Determines whether to include paths in satisfiability error messages.</value>
+  </data>
   <data name="ComposeCommand_SourceSchemaFile_Description" xml:space="preserve">
     <value>Specifies the path to a source schema file (.graphqls) to include in the composition.</value>
   </data>

@@ -86,6 +86,12 @@ public class OperationVisitor : DocumentValidatorVisitor
         feature.OperationType = node.Operation;
         feature.ResponseNames.Clear();
 
+        if (!context.Schema.TryGetOperationType(node.Operation, out _))
+        {
+            context.ReportError(context.OperationNotSupported(node.Operation));
+            return Skip;
+        }
+
         if (node.Operation == OperationType.Mutation)
         {
             return Continue;

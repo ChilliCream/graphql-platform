@@ -1,56 +1,19 @@
-﻿[
-  {
-    "Message": "The field `isAtLocation` does not exist on the type `Dog`.",
-    "Code": null,
-    "Path": {
-      "Name": "catOrDog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
+{
+  "message": "Fields \u0060field\u0060 conflict because they have differing arguments. Use different aliases on the fields to fetch both if this was intentional. ",
+  "locations": [
+    {
+      "line": 6,
+      "column": 5
     },
-    "Locations": [
-      {
-        "Line": 8,
-        "Column": 5
-      }
-    ],
-    "Extensions": {
-      "type": "Dog",
-      "field": "isAtLocation",
-      "responseName": "isAtLocation",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The field `isAtLocation` does not exist on the type `Dog`.",
-    "Code": null,
-    "Path": {
-      "Name": "catOrDog",
-      "Parent": {
-        "Parent": null,
-        "Length": 0,
-        "IsRoot": true
-      },
-      "Length": 1,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 9,
-        "Column": 5
-      }
-    ],
-    "Extensions": {
-      "type": "Dog",
-      "field": "isAtLocation",
-      "responseName": "isAtLocation",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
+    {
+      "line": 7,
+      "column": 5
+    }
+  ],
+  "path": [
+    "field"
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selection-Merging"
   }
-]
+}
