@@ -1,0 +1,13 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "exists": {
+            "field": "scalarList"
+          }
+        }
+      ]
+    }
+  }
+}

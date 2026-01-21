@@ -1,0 +1,30 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "bool": {
+            "must": [
+              {
+                "match": {
+                  "bar": {
+                    "query": "B"
+                  }
+                }
+              }
+            ],
+            "must_not": [
+              {
+                "match": {
+                  "qux": {
+                    "query": "A"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

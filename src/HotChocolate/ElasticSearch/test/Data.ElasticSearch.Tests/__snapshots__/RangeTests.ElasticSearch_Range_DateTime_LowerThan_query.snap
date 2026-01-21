@@ -1,0 +1,15 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "range": {
+            "dateTimeValue": {
+              "lt": "2022-12-23T15:05:22Z"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

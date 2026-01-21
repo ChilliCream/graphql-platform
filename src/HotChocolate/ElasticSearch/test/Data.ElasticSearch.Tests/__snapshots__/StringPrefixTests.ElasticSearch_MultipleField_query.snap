@@ -1,0 +1,28 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "bool": {
+            "must": [
+              {
+                "wildcard": {
+                  "qux": {
+                    "wildcard": "do*"
+                  }
+                }
+              },
+              {
+                "wildcard": {
+                  "bar": {
+                    "wildcard": "th*"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

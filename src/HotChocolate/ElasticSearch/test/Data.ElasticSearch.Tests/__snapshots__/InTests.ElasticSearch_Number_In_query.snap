@@ -1,0 +1,28 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "bool": {
+            "should": [
+              {
+                "match": {
+                  "id": {
+                    "query": "2"
+                  }
+                }
+              },
+              {
+                "match": {
+                  "id": {
+                    "query": "3"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

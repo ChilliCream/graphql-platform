@@ -1,0 +1,12 @@
+﻿{
+  "data": {
+    "test": [
+      {
+        "value": "hello"
+      },
+      {
+        "value": "world"
+      }
+    ]
+  }
+}

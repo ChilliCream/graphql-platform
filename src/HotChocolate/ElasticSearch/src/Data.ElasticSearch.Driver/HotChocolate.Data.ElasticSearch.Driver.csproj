@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Data.ElasticSearch.Driver</PackageId>
+    <AssemblyName>HotChocolate.Data.ElasticSearch.Driver</AssemblyName>
+    <RootNamespace>HotChocolate.Data.ElasticSearch.Driver</RootNamespace>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NeutralLanguage>en</NeutralLanguage>
+    <NoWarn>$(NoWarn);CA1062</NoWarn>
+    <Description>Contains the driver for HotChocolate.ElasticSearch and HotChocolate.OpenSearch.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj" />
+    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="ElasticSearchResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ElasticSearchResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="ElasticSearchResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ElasticSearchResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>
