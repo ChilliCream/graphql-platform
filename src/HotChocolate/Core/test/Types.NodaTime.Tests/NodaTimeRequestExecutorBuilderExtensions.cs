@@ -28,6 +28,9 @@ public static class NodaTimeRequestExecutorBuilderExtensions
         typeof(OffsetTimeType),
         typeof(OffsetType),
         typeof(PeriodType),
-        typeof(ZonedDateTimeType)
+        typeof(ZonedDateTimeType),
+        typeof(YearMonthType),
+        typeof(AnnualDateType),
+        typeof(CalendarSystemType)
     ];
 }
