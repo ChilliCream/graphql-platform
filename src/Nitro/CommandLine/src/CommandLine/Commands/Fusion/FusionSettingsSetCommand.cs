@@ -77,7 +77,7 @@ internal sealed class FusionSettingsSetCommand : Command
                 var tags = settingValue
                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-                compositionSettings.Preprocessor!.ExcludeByTag = tags.ToHashSet();
+                compositionSettings.Preprocessor.ExcludeByTag = tags.ToHashSet();
                 break;
 
             case SettingNames.GlobalObjectIdentification:
@@ -87,7 +87,17 @@ internal sealed class FusionSettingsSetCommand : Command
                     return ExitCodes.Error;
                 }
 
-                compositionSettings.Merger!.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+                compositionSettings.Merger.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+                break;
+
+            case SettingNames.IncludeSatisfiabilityPaths:
+                if (!bool.TryParse(settingValue, out var includeSatisfiabilityPaths))
+                {
+                    console.ErrorLine($"Expected a boolean value for setting '{settingName}'.");
+                    return ExitCodes.Error;
+                }
+
+                compositionSettings.Satisfiability.IncludeSatisfiabilityPaths = includeSatisfiabilityPaths;
                 break;
 
             default:
@@ -112,5 +122,6 @@ internal sealed class FusionSettingsSetCommand : Command
     {
         public const string ExcludeByTag = "exclude-by-tag";
         public const string GlobalObjectIdentification = "global-object-identification";
+        public const string IncludeSatisfiabilityPaths = "include-satisfiability-paths";
     }
 }

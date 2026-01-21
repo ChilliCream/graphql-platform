@@ -53,7 +53,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -109,7 +110,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -168,7 +170,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -307,7 +310,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -362,7 +366,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -1456,7 +1461,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -1617,7 +1623,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -1964,7 +1971,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -2015,7 +2023,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -2102,7 +2111,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -2281,7 +2291,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -2340,7 +2351,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();
@@ -2506,7 +2518,8 @@ public sealed class SatisfiabilityValidatorTests
                     "Section.name",
                     ["A:Query.productById<Product> -> B:Product.section<Section>"]
                 }
-            }
+            },
+            IncludeSatisfiabilityPaths = true
         };
         var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
@@ -2534,7 +2547,8 @@ public sealed class SatisfiabilityValidatorTests
 
         var schema = merger.Merge().Value;
         var log = new CompositionLog();
-        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+        var options = new SatisfiabilityOptions { IncludeSatisfiabilityPaths = true };
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log, options);
 
         // act
         var result = satisfiabilityValidator.Validate();

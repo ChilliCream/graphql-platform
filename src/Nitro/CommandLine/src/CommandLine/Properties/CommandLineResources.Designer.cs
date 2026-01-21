@@ -177,6 +177,15 @@ namespace ChilliCream.Nitro.CommandLine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Determines whether to include paths in satisfiability error messages..
+        /// </summary>
+        internal static string ComposeCommand_IncludeSatisfiabilityPaths_Description {
+            get {
+                return ResourceManager.GetString("ComposeCommand_IncludeSatisfiabilityPaths_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Specifies the path to a source schema file (.graphqls) to include in the composition..
         /// </summary>
         internal static string ComposeCommand_SourceSchemaFile_Description {
