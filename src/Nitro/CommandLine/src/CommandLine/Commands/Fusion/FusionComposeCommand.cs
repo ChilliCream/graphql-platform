@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.CommandLine;
 using System.CommandLine.IO;
-using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
+using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Settings;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion;
@@ -30,41 +24,6 @@ internal sealed class FusionComposeCommand : Command
     {
         Description = ComposeCommand_Description;
 
-        var workingDirectoryOption = new Option<string>("--working-directory")
-        {
-            Description = ComposeCommand_WorkingDirectory_Description
-        };
-        workingDirectoryOption.AddAlias("-w");
-        workingDirectoryOption.AddValidator(result =>
-        {
-            var workingDirectory = result.GetValueForOption(workingDirectoryOption);
-
-            if (!Directory.Exists(workingDirectory))
-            {
-                result.ErrorMessage =
-                    string.Format(
-                        ComposeCommand_Error_WorkingDirectoryDoesNotExist,
-                        workingDirectory);
-            }
-        });
-        workingDirectoryOption.SetDefaultValueFactory(Directory.GetCurrentDirectory);
-        workingDirectoryOption.LegalFilePathsOnly();
-
-        var sourceSchemaFileOption = new Option<List<string>>("--source-schema-file")
-        {
-            Description = ComposeCommand_SourceSchemaFile_Description
-        };
-        sourceSchemaFileOption.AddAlias("-s");
-        sourceSchemaFileOption.LegalFilePathsOnly();
-
-        var archiveOption = new Option<string>("--fusion-archive")
-        {
-            Description = ComposeCommand_CompositeSchemaFile_Description
-        };
-        archiveOption.AddAlias("--far");
-        archiveOption.AddAlias("-f");
-        archiveOption.LegalFilePathsOnly();
-
         var environmentOption = new Option<string?>("--environment");
         environmentOption.AddAlias("--env");
         environmentOption.AddAlias("-e");
@@ -83,20 +42,23 @@ internal sealed class FusionComposeCommand : Command
 
         var printSchemaOption = new Option<bool>("--print") { IsHidden = true };
 
-        AddOption(workingDirectoryOption);
-        AddOption(sourceSchemaFileOption);
+        var archiveOption = new FusionArchiveFileOption(isRequired: false);
+        var sourceSchemaFilesOption = new SourceSchemaFileListOption(isRequired: true);
+
+        AddOption(sourceSchemaFilesOption);
         AddOption(archiveOption);
         AddOption(environmentOption);
         AddOption(enableGlobalIdsOption);
         AddOption(includeSatisfiabilityPathsOption);
         AddOption(watchModeOption);
         AddOption(printSchemaOption);
+        AddOption(Opt<WorkingDirectoryOption>.Instance);
 
         this.SetHandler(async context =>
         {
-            var workingDirectory = context.ParseResult.GetValueForOption(workingDirectoryOption)!;
-            var sourceSchemaFiles = context.ParseResult.GetValueForOption(sourceSchemaFileOption)!;
-            var archive = context.ParseResult.GetValueForOption(archiveOption);
+            var workingDirectory = context.ParseResult.GetValueForOption(Opt<WorkingDirectoryOption>.Instance)!;
+            var sourceSchemaFiles = context.ParseResult.GetValueForOption(sourceSchemaFilesOption)!;
+            var archive = context.ParseResult.GetValueForOption(archiveOption)!;
             var environment = context.ParseResult.GetValueForOption(environmentOption);
             var enableGlobalIds = context.ParseResult.GetValueForOption(enableGlobalIdsOption);
             var includeSatisfiabilityPaths = context.ParseResult.GetValueForOption(includeSatisfiabilityPathsOption);
@@ -121,7 +83,7 @@ internal sealed class FusionComposeCommand : Command
         IConsole console,
         string workingDirectory,
         List<string> sourceSchemaFiles,
-        string? archiveFile,
+        FileInfo? archiveFile,
         string? environment,
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
@@ -129,21 +91,21 @@ internal sealed class FusionComposeCommand : Command
         bool printSchema,
         CancellationToken cancellationToken)
     {
-        archiveFile ??= workingDirectory;
+        var archiveFilePath = archiveFile?.FullName ?? workingDirectory;
 
-        if (Directory.Exists(archiveFile))
+        if (Directory.Exists(archiveFilePath))
         {
-            archiveFile = Path.Combine(archiveFile, "gateway.far");
+            archiveFilePath = Path.Combine(archiveFilePath, "gateway.far");
         }
-        else if (!Path.IsPathRooted(archiveFile))
+        else if (!Path.IsPathRooted(archiveFilePath))
         {
-            archiveFile = Path.Combine(workingDirectory, archiveFile);
+            archiveFilePath = Path.Combine(workingDirectory, archiveFilePath);
         }
+
+        archiveFile =  new FileInfo(archiveFilePath);
 
         if (sourceSchemaFiles.Count == 0)
         {
-            // TODO: In this case there can only ever be one source schema file, since
-            //       the name schema-settings.json can only be used once in the directory.
             sourceSchemaFiles.AddRange(
                 new DirectoryInfo(workingDirectory)
                     .GetFiles("*.graphql*", SearchOption.AllDirectories)
@@ -199,7 +161,7 @@ internal sealed class FusionComposeCommand : Command
         IConsole console,
         string workingDirectory,
         List<string> sourceSchemaFiles,
-        string archiveFile,
+        FileInfo archiveFile,
         string? environment,
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
@@ -360,7 +322,7 @@ internal sealed class FusionComposeCommand : Command
         ChannelReader<string> reader,
         IConsole console,
         List<string> sourceSchemaFiles,
-        string archiveFile,
+        FileInfo archiveFile,
         string? environment,
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
@@ -433,15 +395,15 @@ internal sealed class FusionComposeCommand : Command
     private static async Task<int> ComposeAsync(
         IConsole console,
         List<string> sourceSchemaFiles,
-        string archiveFile,
+        FileInfo archiveFile,
         string? environment,
         CompositionSettings compositionSettings,
         bool printSchema,
         CancellationToken cancellationToken)
     {
-        using var archive = File.Exists(archiveFile)
-            ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
-            : FusionArchive.Create(archiveFile);
+        using var archive = archiveFile.Exists
+            ? FusionArchive.Open(archiveFile.FullName, mode: FusionArchiveMode.Update)
+            : FusionArchive.Create(archiveFile.FullName);
 
         try
         {

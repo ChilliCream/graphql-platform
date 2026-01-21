@@ -1,4 +1,3 @@
-using System.CommandLine.IO;
 using System.Text;
 using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Client;
@@ -6,10 +5,6 @@ using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Settings;
 using HotChocolate.Fusion;
-using HotChocolate.Fusion.Logging;
-using HotChocolate.Fusion.Packaging;
-using HotChocolate.Fusion.SourceSchema.Packaging;
-using static ChilliCream.Nitro.CommandLine.CommandLineResources;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
@@ -31,52 +26,23 @@ internal sealed class FusionPublishCommand : Command
         AddCommand(new FusionConfigurationPublishCancelCommand());
         AddCommand(new FusionConfigurationPublishCommitCommand());
 
-        var workingDirectoryOption = new Option<string>("--working-directory")
-        {
-            Description = ComposeCommand_WorkingDirectory_Description
-        };
-        workingDirectoryOption.AddAlias("-w");
-        workingDirectoryOption.AddValidator(result =>
-        {
-            var workingDirectory = result.GetValueForOption(workingDirectoryOption);
+        var archiveOptions = new FusionArchiveFileOption(isRequired: false);
 
-            if (!Directory.Exists(workingDirectory))
-            {
-                result.ErrorMessage =
-                    string.Format(
-                        ComposeCommand_Error_WorkingDirectoryDoesNotExist,
-                        workingDirectory);
-            }
-        });
-        workingDirectoryOption.SetDefaultValueFactory(Directory.GetCurrentDirectory);
-        workingDirectoryOption.LegalFilePathsOnly();
-
-        var sourceSchemaFileOption = new Option<List<string>>("--source-schema-file")
-        {
-            Description = ComposeCommand_SourceSchemaFile_Description
-        };
-        sourceSchemaFileOption.AddAlias("-f");
-        sourceSchemaFileOption.LegalFilePathsOnly();
-
-        var sourceSchemaOption = new Option<List<string>>("--source-schema")
-        {
-            Description = PublishCommand_SourceSchemaOption_Description
-        };
-        sourceSchemaOption.AddAlias("-s");
-
-        AddOption(workingDirectoryOption);
-        AddOption(sourceSchemaFileOption);
-        AddOption(sourceSchemaOption);
-        AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
+        AddOption(Opt<StageNameOption>.Instance);
+        AddOption(Opt<TagOption>.Instance);
+        AddOption(Opt<SourceSchemaIdentifierOption>.Instance);
+        AddOption(Opt<SourceSchemaFileListOption>.Instance);
+        AddOption(archiveOptions);
+        AddOption(Opt<WorkingDirectoryOption>.Instance);
         this.AddNitroCloudDefaultOptions();
 
         this.SetHandler(async context =>
         {
-            var workingDirectory = context.ParseResult.GetValueForOption(workingDirectoryOption)!;
-            var sourceSchemaFiles = context.ParseResult.GetValueForOption(sourceSchemaFileOption) ?? [];
-            var sourceSchemaIdentifiers = context.ParseResult.GetValueForOption(sourceSchemaOption) ?? [];
+            var workingDirectory = context.ParseResult.GetValueForOption(Opt<WorkingDirectoryOption>.Instance)!;
+            var sourceSchemaFiles = context.ParseResult.GetValueForOption(Opt<SourceSchemaFileListOption>.Instance) ?? [];
+            var sourceSchemaIdentifiers = context.ParseResult.GetValueForOption(Opt<SourceSchemaIdentifierOption>.Instance) ?? [];
+            var archiveFile = context.ParseResult.GetValueForOption(archiveOptions);
             var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
             var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
@@ -89,6 +55,7 @@ internal sealed class FusionPublishCommand : Command
                 workingDirectory,
                 sourceSchemaFiles,
                 sourceSchemaIdentifiers,
+                archiveFile,
                 apiId,
                 stageName,
                 tag,
@@ -103,6 +70,7 @@ internal sealed class FusionPublishCommand : Command
         string workingDirectory,
         List<string> sourceSchemaFiles,
         List<string> sourceSchemaIdentifiers,
+        FileInfo? archiveFile,
         string apiId,
         string stageName,
         string tag,
@@ -231,19 +199,26 @@ internal sealed class FusionPublishCommand : Command
                         async _ => await ClaimDeploymentSlotAsync());
 
                 // download
-                Stream? existingConfigurationStream = null;
+                Stream? exitingArchiveStream = null;
                 await console
                     .Status()
                     .Spinner(Spinner.Known.BouncingBar)
                     .SpinnerStyle(Style.Parse("green bold"))
                     .StartAsync(
                         $"Downloading existing configuration from '{stageName}'...",
-                        async _ => existingConfigurationStream = await DownloadConfigurationAsync());
+                        async _ => exitingArchiveStream = await DownloadConfigurationAsync());
 
                 // compose
                 await using Stream archiveStream = new MemoryStream();
 
-                var success = await ComposeAsync(archiveStream, existingConfigurationStream);
+                var success = await FusionPublishHelpers.ComposeAsync(
+                    archiveStream,
+                    exitingArchiveStream,
+                    stageName,
+                    newSourceSchemas,
+                    compositionSettings,
+                    console,
+                    cancellationToken);
 
                 if (!success)
                 {
@@ -277,12 +252,19 @@ internal sealed class FusionPublishCommand : Command
 
                 // download
                 console.WriteLine($"Downloading existing configuration from '{stageName}'...");
-                var existingConfigurationStream = await DownloadConfigurationAsync();
+                var exitingArchiveStream = await DownloadConfigurationAsync();
 
                 // compose
                 await using Stream archiveStream = new MemoryStream();
 
-                var success = await ComposeAsync(archiveStream, existingConfigurationStream);
+                var success = await FusionPublishHelpers.ComposeAsync(
+                    archiveStream,
+                    exitingArchiveStream,
+                    stageName,
+                    newSourceSchemas,
+                    compositionSettings,
+                    console,
+                    cancellationToken);
 
                 if (!success)
                 {
@@ -346,7 +328,7 @@ internal sealed class FusionPublishCommand : Command
 
         async Task<Stream?> DownloadConfigurationAsync()
         {
-            var stream = await FusionPublishHelpers.DownloadConfigurationAsync(
+            var stream = await FusionPublishHelpers.DownloadLatestFusionArchiveAsync(
                 apiId,
                 stageName,
                 client,
@@ -365,62 +347,9 @@ internal sealed class FusionPublishCommand : Command
             return stream;
         }
 
-        async Task<bool> ComposeAsync(Stream archiveStream, Stream? existingConfigurationStream)
-        {
-            FusionArchive archive;
-
-            if (existingConfigurationStream is not null)
-            {
-                await existingConfigurationStream.CopyToAsync(archiveStream, cancellationToken);
-                await existingConfigurationStream.DisposeAsync();
-
-                archiveStream.Seek(0, SeekOrigin.Begin);
-
-                archive = FusionArchive.Open(
-                    archiveStream,
-                    mode: FusionArchiveMode.Update,
-                    leaveOpen: true);
-            }
-            else
-            {
-                archive = FusionArchive.Create(archiveStream, leaveOpen: true);
-            }
-
-            var compositionLog = new CompositionLog();
-
-            var result = await FusionComposeCommand.ComposeAsync(
-                compositionLog,
-                newSourceSchemas,
-                archive,
-                environment: stageName,
-                compositionSettings,
-                cancellationToken);
-
-            var writer = new AnsiStreamWriter(result.IsSuccess ? console.Out : console.Error);
-
-            FusionComposeCommand.WriteCompositionLog(
-                compositionLog,
-                writer,
-                false);
-
-            if (result.IsFailure)
-            {
-                foreach (var error in result.Errors)
-                {
-                    console.Error.WriteLine(error.Message);
-                }
-
-                return false;
-            }
-
-            archiveStream.Seek(0, SeekOrigin.Begin);
-
-            return true;
-        }
-
         async Task UploadConfigurationAsync(Stream stream, StatusContext? statusContext)
         {
-            var success = await FusionPublishHelpers.UploadConfigurationAsync(
+            var success = await FusionPublishHelpers.UploadFusionArchiveAsync(
                 requestId,
                 stream,
                 statusContext,
@@ -468,15 +397,4 @@ internal sealed class FusionPublishCommand : Command
     }
 
     private sealed record SourceSchemaVersion(string Name, string Version);
-
-    private sealed class AnsiStreamWriter(TextWriter textWriter) : IStandardStreamWriter
-    {
-        public void Write(string? value)
-        {
-            if (!string.IsNullOrEmpty(value))
-            {
-                textWriter.Write(value);
-            }
-        }
-    }
 }

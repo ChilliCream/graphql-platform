@@ -1,9 +1,15 @@
+using System.CommandLine.IO;
 using System.Net;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Settings;
+using HotChocolate.Fusion;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Packaging;
 using HotChocolate.Fusion.SourceSchema.Packaging;
 using StrawberryShake;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -131,7 +137,7 @@ internal static class FusionPublishHelpers
         console.PrintErrorsAndExit(data.CancelFusionConfigurationComposition.Errors);
     }
 
-    public static async Task<Stream?> DownloadConfigurationAsync(
+    public static async Task<Stream?> DownloadLatestFusionArchiveAsync(
         string apiId,
         string stageName,
         IApiClient client,
@@ -191,19 +197,7 @@ internal static class FusionPublishHelpers
         return FusionSourceSchemaArchive.Open(memoryStream);
     }
 
-    private static HttpRequestMessage CreateDownloadSourceSchemaVersionRequest(
-        string apiId,
-        string sourceSchemaName,
-        string sourceSchemaVersion)
-    {
-        const string path = "/api/v1/apis/{0}/fusion-subgraphs/{1}/versions/{2}/download";
-
-        var escapedApiId = Uri.EscapeDataString(apiId);
-        var requestUri = string.Format(path, escapedApiId, sourceSchemaName, sourceSchemaVersion);
-
-        return new HttpRequestMessage(HttpMethod.Get, requestUri);
-    }
-    public static async Task<bool> UploadConfigurationAsync(
+    public static async Task<bool> UploadFusionArchiveAsync(
         string requestId,
         Stream stream,
         StatusContext? statusContext,
@@ -304,5 +298,89 @@ internal static class FusionPublishHelpers
         }
 
         return committed;
+    }
+
+    public static async Task<bool> ComposeAsync(
+        Stream archiveStream,
+        Stream? existingArchiveStream,
+        string stageName,
+        Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
+        CompositionSettings? compositionSettings,
+        IAnsiConsole console,
+        CancellationToken cancellationToken)
+    {
+        FusionArchive archive;
+
+        if (existingArchiveStream is not null)
+        {
+            await existingArchiveStream.CopyToAsync(archiveStream, cancellationToken);
+            await existingArchiveStream.DisposeAsync();
+
+            archiveStream.Seek(0, SeekOrigin.Begin);
+
+            archive = FusionArchive.Open(
+                archiveStream,
+                mode: FusionArchiveMode.Update,
+                leaveOpen: true);
+        }
+        else
+        {
+            archive = FusionArchive.Create(archiveStream, leaveOpen: true);
+        }
+
+        var compositionLog = new CompositionLog();
+
+        var result = await FusionComposeCommand.ComposeAsync(
+            compositionLog,
+            newSourceSchemas,
+            archive,
+            environment: stageName,
+            compositionSettings,
+            cancellationToken);
+
+        var writer = new AnsiStreamWriter(result.IsSuccess ? console.Out : console.Error);
+
+        FusionComposeCommand.WriteCompositionLog(
+            compositionLog,
+            writer,
+            false);
+
+        if (result.IsFailure)
+        {
+            foreach (var error in result.Errors)
+            {
+                console.Error.WriteLine(error.Message);
+            }
+
+            return false;
+        }
+
+        archiveStream.Seek(0, SeekOrigin.Begin);
+
+        return true;
+    }
+
+    private static HttpRequestMessage CreateDownloadSourceSchemaVersionRequest(
+        string apiId,
+        string sourceSchemaName,
+        string sourceSchemaVersion)
+    {
+        const string path = "/api/v1/apis/{0}/fusion-subgraphs/{1}/versions/{2}/download";
+
+        var escapedApiId = Uri.EscapeDataString(apiId);
+        var requestUri = string.Format(path, escapedApiId, sourceSchemaName, sourceSchemaVersion);
+
+        return new HttpRequestMessage(HttpMethod.Get, requestUri);
+    }
+
+    private sealed class AnsiStreamWriter(TextWriter textWriter) : IStandardStreamWriter
+    {
+        public void Write(string? value)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                textWriter.Write(value);
+            }
+        }
     }
 }

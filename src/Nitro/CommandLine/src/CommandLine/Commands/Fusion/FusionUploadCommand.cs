@@ -15,44 +15,16 @@ public sealed class FusionUploadCommand : Command
     {
         Description = "Upload a source schema for a later composition.";
 
-        var workingDirectoryOption = new Option<string>("--working-directory")
-        {
-            Description = ComposeCommand_WorkingDirectory_Description
-        };
-        workingDirectoryOption.AddAlias("-w");
-        workingDirectoryOption.AddValidator(result =>
-        {
-            var workingDirectory = result.GetValueForOption(workingDirectoryOption);
-
-            if (!Directory.Exists(workingDirectory))
-            {
-                result.ErrorMessage =
-                    string.Format(
-                        ComposeCommand_Error_WorkingDirectoryDoesNotExist,
-                        workingDirectory);
-            }
-        });
-        workingDirectoryOption.SetDefaultValueFactory(Directory.GetCurrentDirectory);
-        workingDirectoryOption.LegalFilePathsOnly();
-
-        var sourceSchemaFileOption = new Option<FileInfo>("--source-schema-file")
-        {
-            Description = ComposeCommand_SourceSchemaFile_Description
-        };
-        sourceSchemaFileOption.AddAlias("-s");
-        sourceSchemaFileOption.LegalFilePathsOnly();
-
-        this.AddNitroCloudDefaultOptions();
-
-        AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(workingDirectoryOption);
-        AddOption(sourceSchemaFileOption);
+        AddOption(Opt<TagOption>.Instance);
+        AddOption(Opt<SourceSchemaFileOption>.Instance);
+        AddOption(Opt<WorkingDirectoryOption>.Instance);
+        this.AddNitroCloudDefaultOptions();
 
         this.SetHandler(async context =>
         {
-            var workingDirectory = context.ParseResult.GetValueForOption(workingDirectoryOption)!;
-            var sourceSchemaFile = context.ParseResult.GetValueForOption(sourceSchemaFileOption)!;
+            var workingDirectory = context.ParseResult.GetValueForOption(Opt<WorkingDirectoryOption>.Instance)!;
+            var sourceSchemaFile = context.ParseResult.GetValueForOption(Opt<SourceSchemaFileOption>.Instance)!;
             var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
 
