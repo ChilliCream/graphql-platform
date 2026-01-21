@@ -71,9 +71,12 @@ public class MethodCallBuilder : ICode
 
     public MethodCallBuilder AddOutArgument(
         string value,
-        string typeReference)
+        string? typeReference)
     {
-        _arguments.Add(CodeInlineBuilder.New().SetText($"out {typeReference}? {value}"));
+        var code = typeReference is null
+            ? $"out {value}"
+            : $"out {typeReference}? {value}";
+        _arguments.Add(CodeInlineBuilder.New().SetText(code));
         return this;
     }
 
