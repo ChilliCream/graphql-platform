@@ -177,9 +177,11 @@
   <Folder Name="/HotChocolate/Diagnostics/" />
   <Folder Name="/HotChocolate/Diagnostics/src/">
     <Project Path="HotChocolate/Diagnostics/src/Diagnostics/HotChocolate.Diagnostics.csproj" />
+    <Project Path="HotChocolate/Diagnostics/src/Fusion.Diagnostics/HotChocolate.Fusion.Diagnostics.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Diagnostics/test/">
     <Project Path="HotChocolate/Diagnostics/test/Diagnostics.Tests/HotChocolate.Diagnostics.Tests.csproj" />
+    <Project Path="HotChocolate/Diagnostics/test/Fusion.Diagnostics.Tests/HotChocolate.Fusion.Diagnostics.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Adapters/" />
   <Folder Name="/HotChocolate/Adapters/src/">

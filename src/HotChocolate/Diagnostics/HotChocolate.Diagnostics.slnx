@@ -1,8 +1,10 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Diagnostics/HotChocolate.Diagnostics.csproj" />
+    <Project Path="src/Fusion.Diagnostics/HotChocolate.Fusion.Diagnostics.csproj" />
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/Diagnostics.Tests/HotChocolate.Diagnostics.Tests.csproj" />
+    <Project Path="test/Fusion.Diagnostics.Tests/HotChocolate.Fusion.Diagnostics.Tests.csproj" />
   </Folder>
 </Solution>
