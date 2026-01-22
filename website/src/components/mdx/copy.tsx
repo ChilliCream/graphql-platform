@@ -22,27 +22,34 @@ function copyToClipboard(content: string): void {
 
 export interface CopyProps {
   readonly content: string;
+  readonly hideToast?: boolean;
+  readonly className?: string;
 }
 
-export const Copy: FC<CopyProps> = ({ content }) => {
+export const Copy: FC<CopyProps> = ({ content, hideToast, className }) => {
   const [showToast, setShowToast] = useState(false);
 
   return (
     <>
       <CopyIconButton
+        className={className}
+        title="Copy to clipboard"
         onClick={() => {
           copyToClipboard(content);
 
-          setShowToast(true);
-          setTimeout(() => {
-            setShowToast(false);
-          }, 3000);
+          if (!hideToast) {
+            setShowToast(true);
+            setTimeout(() => {
+              setShowToast(false);
+            }, 3000);
+          }
         }}
       >
         <IconContainer $size={20}>
           <Icon {...CopyIconSvg} />
         </IconContainer>
       </CopyIconButton>
+
       {showToast && <CopySuccessToast />}
     </>
   );

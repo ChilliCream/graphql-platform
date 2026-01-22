@@ -32,7 +32,7 @@ export const CommunityVisualization: FC = () => {
       </Graph>
       <Numbers>
         <Number>
-          <NumberTitle>6k</NumberTitle>
+          <NumberTitle>7.1k</NumberTitle>
           <NumberText>Slack Users</NumberText>
         </Number>
         <Number>
@@ -40,11 +40,11 @@ export const CommunityVisualization: FC = () => {
           <NumberText>Package Downloads</NumberText>
         </Number>
         <Number>
-          <NumberTitle>5k</NumberTitle>
+          <NumberTitle>5.6k</NumberTitle>
           <NumberText>GitHub Stars</NumberText>
         </Number>
         <Number>
-          <NumberTitle>3.2k</NumberTitle>
+          <NumberTitle>4.6k</NumberTitle>
           <NumberText>Pull Requests</NumberText>
         </Number>
       </Numbers>
