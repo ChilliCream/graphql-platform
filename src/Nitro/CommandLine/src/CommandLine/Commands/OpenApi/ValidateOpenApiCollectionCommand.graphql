@@ -1,4 +1,6 @@
-mutation ValidateOpenApiCollectionCommandMutation($input: ValidateOpenApiCollectionInput!) {
+mutation ValidateOpenApiCollectionCommandMutation(
+  $input: ValidateOpenApiCollectionInput!
+) {
   validateOpenApiCollection(input: $input) {
     id
     errors {

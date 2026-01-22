@@ -1,4 +1,6 @@
-mutation UploadOpenApiCollectionCommandMutation($input: UploadOpenApiCollectionInput!) {
+mutation UploadOpenApiCollectionCommandMutation(
+  $input: UploadOpenApiCollectionInput!
+) {
   uploadOpenApiCollection(input: $input) {
     openApiCollectionVersion {
       id
@@ -6,6 +8,7 @@ mutation UploadOpenApiCollectionCommandMutation($input: UploadOpenApiCollectionI
     errors {
       ...UnauthorizedOperation
       ...OpenApiCollectionNotFoundError
+      ...InvalidOpenApiCollectionArchiveError
       ...DuplicatedTagError
       ...ConcurrentOperationError
       ...Error

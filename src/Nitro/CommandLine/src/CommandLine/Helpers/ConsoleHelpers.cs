@@ -149,6 +149,69 @@ internal static class ConsoleHelpers
         console.Write(node);
     }
 
+    private static void PrintError(this IAnsiConsole console, IOpenApiCollectionValidationError error)
+    {
+        foreach (var collectionError in error.Collections)
+        {
+            var openApiCollection = collectionError.OpenApiCollection;
+
+            // TODO: This needs to write to stderr
+            console.WarningLine(
+                $"There were errors in the OpenAPI collection '{openApiCollection?.Name.AsHighlight()}' [dim](ID: {openApiCollection?.Id})[/]");
+
+            var node = new Tree("");
+            foreach (var entity in collectionError.Entities)
+            {
+                var entityNode = node.AddNode(GetEntityNodeHeading(entity));
+
+                foreach (var entityError in entity.Errors)
+                {
+                    if (entityError is
+                        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_OpenApiCollectionValidationDocumentError
+                        documentError)
+                    {
+                        var errorLocation = string.Empty;
+                        if (documentError.Locations is { Count: > 0 } locations)
+                        {
+                            errorLocation = $"[grey]({locations[0].Line}:{locations[0].Column})[/]";
+                        }
+
+                        entityNode.AddNode($"{documentError.Message.EscapeMarkup()} {errorLocation}");
+                    }
+                    else if (entityError is
+                        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_OpenApiCollectionValidationEntityValidationError
+                        entityValidationError)
+                    {
+                        entityNode.AddNode(entityValidationError.Message.EscapeMarkup());
+                    }
+                    else
+                    {
+                        entityNode.AddNode("Unknown error type");
+                    }
+                }
+            }
+
+            // TODO: This needs to write to stderr
+            console.Write(node);
+        }
+
+        static string GetEntityNodeHeading(
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities
+                entity)
+        {
+            var heading = entity switch
+            {
+                IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_OpenApiCollectionValidationEndpoint endpoint
+                    => $"Endpoint '{endpoint.HttpMethod} {endpoint.Route}'",
+                IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_OpenApiCollectionValidationModel model
+                    => $"Model '{model.Name}'",
+                _ => "Unknown entity type"
+            };
+
+            return $"[red]{heading}[/]";
+        }
+    }
+
     private static void PrintError(
         this IAnsiConsole console,
         IInvalidGraphQLSchemaError error)
@@ -166,6 +229,15 @@ internal static class ConsoleHelpers
 
         // TODO: This needs to write to stderr
         console.Write(node);
+    }
+
+    private static void PrintInvalidOpenApiCollectionArchiveError(this IAnsiConsole console, string message)
+    {
+        console.Error.WriteLine(
+            "The server received an invalid archive. "
+            + "This indicates a bug in the tooling. "
+            + "Please notify ChilliCream."
+            + "Error received: " + message);
     }
 
     private static void PrintMutationError(this IAnsiConsole ansiConsole, object error)
@@ -228,12 +300,24 @@ internal static class ConsoleHelpers
                 ansiConsole.PrintError(err);
                 break;
 
-            case IError err:
-                ansiConsole.ErrorLine(err.Message);
-                break;
-
             case ISchemaChangeViolationError err:
                 ansiConsole.PrintError(err);
+                break;
+
+            case IOpenApiCollectionValidationError err:
+                ansiConsole.PrintError(err);
+                break;
+
+            case IInvalidOpenApiCollectionArchiveError err:
+                ansiConsole.PrintInvalidOpenApiCollectionArchiveError(err.Message);
+                break;
+
+            case IOpenApiCollectionValidationArchiveError err:
+                ansiConsole.PrintInvalidOpenApiCollectionArchiveError(err.Message);
+                break;
+
+            case IError err:
+                ansiConsole.ErrorLine(err.Message);
                 break;
 
             default:

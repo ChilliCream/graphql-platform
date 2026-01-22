@@ -452,6 +452,7 @@ fragment WaitForApproval on WaitForApproval {
         ...SchemaChangeViolationError
         ...InvalidGraphQLSchemaError
         ...PersistedQueryValidationError
+        ...OpenApiCollectionValidationError
       }
     }
     ... on ClientDeployment {
@@ -464,11 +465,13 @@ fragment WaitForApproval on WaitForApproval {
         ...SchemaChangeViolationError
         ...InvalidGraphQLSchemaError
         ...PersistedQueryValidationError
+        ...OpenApiCollectionValidationError
       }
     }
     ... on OpenApiCollectionDeployment {
-      # TODO: We need to query for errors here
-      __typename
+      errors {
+        ...OpenApiCollectionValidationError
+      }
     }
   }
 }
@@ -507,6 +510,7 @@ fragment FusionConfigurationValidationFailed on FusionConfigurationValidationFai
     ...PersistedQueryValidationError
     ...SchemaVersionChangeViolationError
     ...InvalidGraphQLSchemaError
+    ...OpenApiCollectionValidationError
   }
 }
 fragment FusionConfigurationValidationSuccess on FusionConfigurationValidationSuccess {
@@ -532,7 +536,7 @@ fragment SchemaVersionValidationFailed on SchemaVersionValidationFailed {
     ...PersistedQueryValidationError
     ...SchemaVersionChangeViolationError
     ...OperationsAreNotAllowedError
-    ...PersistedQueryValidationError
+    ...OpenApiCollectionValidationError
   }
 }
 
@@ -555,6 +559,7 @@ fragment SchemaVersionPublishFailed on SchemaVersionPublishFailed {
     ...PersistedQueryValidationError
     ...UnexpectedProcessingError
     ...ProcessingTimeoutError
+    ...OpenApiCollectionValidationError
   }
 }
 
@@ -698,6 +703,8 @@ fragment OpenApiCollectionVersionValidationFailed on OpenApiCollectionVersionVal
   errors {
     ...ProcessingTimeoutError
     ...UnexpectedProcessingError
+    ...OpenApiCollectionValidationError
+    ...OpenApiCollectionValidationArchiveError
   }
 }
 
@@ -716,4 +723,48 @@ fragment OpenApiCollectionVersionPublishFailed on OpenApiCollectionVersionPublis
     ...ProcessingTimeoutError
     ...ConcurrentOperationError
   }
+}
+
+fragment OpenApiCollectionValidationError on OpenApiCollectionValidationError {
+  collections {
+    openApiCollection {
+      id
+      name
+    }
+    entities {
+      errors {
+        ...OpenApiCollectionValidationDocumentError
+        ...OpenApiCollectionValidationEntityValidationError
+      }
+      ... on OpenApiCollectionValidationEndpoint {
+        httpMethod
+        route
+      }
+      ... on OpenApiCollectionValidationModel {
+        name
+      }
+    }
+  }
+}
+
+fragment OpenApiCollectionValidationDocumentError on OpenApiCollectionValidationDocumentError {
+  code
+  message
+  path
+  locations {
+    column
+    line
+  }
+}
+
+fragment OpenApiCollectionValidationEntityValidationError on OpenApiCollectionValidationEntityValidationError {
+  message
+}
+
+fragment InvalidOpenApiCollectionArchiveError on InvalidOpenApiCollectionArchiveError {
+  message
+}
+
+fragment OpenApiCollectionValidationArchiveError on OpenApiCollectionValidationArchiveError {
+  message
 }

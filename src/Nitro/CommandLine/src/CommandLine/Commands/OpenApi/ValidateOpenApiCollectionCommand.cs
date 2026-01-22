@@ -100,9 +100,9 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
 
                 switch (x.Data?.OnOpenApiCollectionVersionValidationUpdate)
                 {
-                    case IOpenApiCollectionVersionValidationFailed { Errors: var schemaErrors }:
+                    case IOpenApiCollectionVersionValidationFailed { Errors: var validationErrors }:
                         console.ErrorLine("The OpenAPI collection is invalid:");
-                        console.PrintErrorsAndExit(schemaErrors);
+                        console.PrintErrorsAndExit(validationErrors);
                         stopSignal.OnNext(Unit.Default);
                         break;
 
