@@ -16,7 +16,7 @@
       "OutputDirectoryName": "Generated",
       "NoStore": false,
       "RazorComponents": null,
-      "GenerateWithHttpStatusCodeCaptureMethod": null,
+      "GenerateWithHttpStatusCodeCaptureMethod": true,
       "Records": {
         "Inputs": false,
         "Entities": false
@@ -27,14 +27,7 @@
           "Default": "Http",
           "Query": null,
           "Mutation": null,
-          "Subscription": null
-        },
-        {
-          "Name": null,
-          "Default": "WebSocket",
-          "Query": null,
-          "Mutation": null,
-          "Subscription": null
+          "Subscription": "WebSocket"
         }
       ]
     }

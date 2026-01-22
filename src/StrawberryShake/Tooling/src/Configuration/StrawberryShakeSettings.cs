@@ -66,6 +66,13 @@ public class StrawberryShakeSettings
     public bool? RazorComponents { get; set; }
 
     /// <summary>
+    /// Defines if the generator shall generate the
+    /// <c>WithHttpStatusCodeCapture(string key = "HttpStatusCode")</c>-method
+    /// that can be used to capture the HTTP status code.
+    /// </summary>
+    public bool? GenerateWithHttpStatusCodeCaptureMethod { get; set; }
+
+    /// <summary>
     /// Gets the record generator settings.
     /// </summary>
     public StrawberryShakeSettingsRecords Records { get; } =

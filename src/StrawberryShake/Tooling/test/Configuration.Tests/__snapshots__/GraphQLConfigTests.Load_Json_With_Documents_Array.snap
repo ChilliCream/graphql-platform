@@ -1,4 +1,4 @@
-﻿{
+{
   "Schema": "schema.graphql",
   "Documents": [
     "**/*.graphql",
@@ -19,6 +19,7 @@
       "OutputDirectoryName": "Generated",
       "NoStore": false,
       "RazorComponents": null,
+      "GenerateWithHttpStatusCodeCaptureMethod": null,
       "Records": {
         "Inputs": true,
         "Entities": true

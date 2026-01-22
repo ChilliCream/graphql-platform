@@ -95,7 +95,8 @@ public static class GeneratorTestHelper
                 NoStore = settings.NoStore,
                 InputRecords = settings.InputRecords,
                 EntityRecords = settings.EntityRecords,
-                RazorComponents = settings.RazorComponents
+                RazorComponents = settings.RazorComponents,
+                GenerateWithHttpStatusCodeCaptureMethod = settings.GenerateWithHttpStatusCodeCaptureMethod
             });
 
         Assert.False(
@@ -200,6 +201,7 @@ public static class GeneratorTestHelper
         TransportProfile[]? profiles = null,
         AccessModifier accessModifier = AccessModifier.Public,
         bool noStore = false,
+        bool generateWithHttpStatusCodeCaptureMethod = false,
         [CallerMemberName] string? testName = null)
     {
         var snapshotFullName = Snapshot.FullName();
@@ -228,6 +230,7 @@ public static class GeneratorTestHelper
                 testName + "Test.Client.cs"),
             RequestStrategy = requestStrategy,
             NoStore = noStore,
+            GenerateWithHttpStatusCodeCaptureMethod = generateWithHttpStatusCodeCaptureMethod,
             Profiles = (profiles ??
             [
                 TransportProfile.Default
@@ -284,5 +287,7 @@ public static class GeneratorTestHelper
 
         public RequestStrategyGen RequestStrategy { get; set; } =
             RequestStrategyGen.Default;
+
+        public bool GenerateWithHttpStatusCodeCaptureMethod { get; set; }
     }
 }
