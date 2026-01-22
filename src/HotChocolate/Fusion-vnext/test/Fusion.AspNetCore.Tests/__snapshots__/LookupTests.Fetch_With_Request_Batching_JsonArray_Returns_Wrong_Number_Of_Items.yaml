@@ -1,4 +1,4 @@
-title: Fetch_With_Request_Batching
+title: Fetch_With_Request_Batching_JsonArray_Returns_Wrong_Number_Of_Items
 request:
   document: |
     {
@@ -17,25 +17,25 @@ response:
           {
             "author": {
               "id": "1",
-              "name": "Author: 1"
+              "name": "Author 1"
             }
           },
           {
             "author": {
               "id": "2",
-              "name": "Author: 2"
+              "name": "Author 2"
             }
           },
           {
             "author": {
               "id": "2",
-              "name": "Author: 2"
+              "name": null
             }
           },
           {
             "author": {
               "id": "2",
-              "name": "Author: 2"
+              "name": null
             }
           }
         ]
@@ -116,15 +116,63 @@ sourceSchemas:
       }
     interactions:
       - request:
-          body: |
-            [{"query":"query Op_fb4f667e_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":"1"}},{"query":"query Op_fb4f667e_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":"2"}},{"query":"query Op_fb4f667e_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":"2"}},{"query":"query Op_fb4f667e_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    name\n  }\n}","variables":{"__fusion_1_id":"2"}}]
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_fb4f667e_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    name
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "1"
+                }
+            - document: |
+                query Op_fb4f667e_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    name
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "2"
+                }
+            - document: |
+                query Op_fb4f667e_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    name
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "2"
+                }
+            - document: |
+                query Op_fb4f667e_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    name
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "2"
+                }
         response:
           results:
             - |
               {
                 "data": {
                   "authorById": {
-                    "name": "Author: 1"
+                    "name": "Author 1"
                   }
                 }
               }
@@ -132,23 +180,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "name": "Author: 2"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "name": "Author: 2"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "name": "Author: 2"
+                    "name": "Author 2"
                   }
                 }
               }

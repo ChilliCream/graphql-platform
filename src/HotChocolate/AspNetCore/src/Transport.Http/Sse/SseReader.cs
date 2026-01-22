@@ -107,14 +107,14 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
                                 case SseEventType.Complete:
                                     reader.AdvanceTo(buffer.GetPosition(1, position.Value));
 #if FUSION
-                                    JsonMemory.Return(eventBuffers);
                                     eventBuffers.Clear();
+                                    JsonMemory.Return(eventBuffers);
 #endif
                                     yield break;
 
                                 case SseEventType.Next when eventMessage.Data is not null:
 #if FUSION
-                                    var leftOver = eventBuffers.Count - eventMessage.Data.Length;
+                                    var leftOver = eventBuffers.Count - eventMessage.UsedChunks;
                                     currentPosition = 0;
 
                                     if (leftOver == 0)

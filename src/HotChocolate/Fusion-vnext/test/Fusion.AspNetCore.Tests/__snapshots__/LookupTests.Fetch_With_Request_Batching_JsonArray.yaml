@@ -1,4 +1,4 @@
-title: Fetch_OneOf_Lookup_With_Id
+title: Fetch_With_Request_Batching_JsonArray
 request:
   document: |
     {
@@ -17,25 +17,25 @@ response:
           {
             "author": {
               "id": "1",
-              "name": "Jon Skeet"
+              "name": "Author 1"
             }
           },
           {
             "author": {
               "id": "2",
-              "name": "JRR Tolkien"
+              "name": "Author 2"
             }
           },
           {
             "author": {
               "id": "2",
-              "name": "JRR Tolkien"
+              "name": "Author 2"
             }
           },
           {
             "author": {
               "id": "2",
-              "name": "JRR Tolkien"
+              "name": "Author 2"
             }
           }
         ]
@@ -111,112 +111,96 @@ sourceSchemas:
         name: String!
       }
 
-      type InternalLookups @internal {
-        author(by: AuthorByInput! @is(field: "{\n  id\n} | {\n  name\n}")): Author! @lookup @internal
-      }
-
       type Query {
-        lookups: InternalLookups! @internal
+        authorById(id: ID!): Author @lookup
       }
-
-      input AuthorByInput @oneOf {
-        id: ID
-        name: String
-      }
-
-      "The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
-      directive @oneOf on INPUT_OBJECT
     interactions:
       - request:
-          document: |
-            query Op_fb4f667e_2(
-              $__fusion_1_by: AuthorByInput!
-            ) {
-              lookups {
-                author(by: $__fusion_1_by) {
-                  name
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_fb4f667e_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    name
+                  }
                 }
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_1_by": {
-                  "id": "1"
+              variables: |
+                {
+                  "__fusion_1_id": "1"
                 }
-              },
-              {
-                "__fusion_1_by": {
-                  "id": "2"
+            - document: |
+                query Op_fb4f667e_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    name
+                  }
                 }
-              },
-              {
-                "__fusion_1_by": {
-                  "id": "2"
+              variables: |
+                {
+                  "__fusion_1_id": "2"
                 }
-              },
-              {
-                "__fusion_1_by": {
-                  "id": "2"
+            - document: |
+                query Op_fb4f667e_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    name
+                  }
                 }
-              }
-            ]
+              variables: |
+                {
+                  "__fusion_1_id": "2"
+                }
+            - document: |
+                query Op_fb4f667e_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    name
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "2"
+                }
         response:
-          contentType: application/jsonl; charset=utf-8
+          contentType: application/json; charset=utf-8
           results:
             - |
               {
                 "data": {
-                  "lookups": {
-                    "author": {
-                      "name": "Jon Skeet"
-                    }
+                  "authorById": {
+                    "name": "Author 1"
                   }
                 }
               }
             - |
               {
                 "data": {
-                  "lookups": {
-                    "author": {
-                      "name": "JRR Tolkien"
-                    }
+                  "authorById": {
+                    "name": "Author 2"
                   }
                 }
               }
             - |
               {
                 "data": {
-                  "lookups": {
-                    "author": {
-                      "name": "JRR Tolkien"
-                    }
+                  "authorById": {
+                    "name": "Author 2"
                   }
                 }
               }
             - |
               {
                 "data": {
-                  "lookups": {
-                    "author": {
-                      "name": "JRR Tolkien"
-                    }
+                  "authorById": {
+                    "name": "Author 2"
                   }
                 }
               }
-  - name: c
-    schema: |
-      schema {
-        query: Query
-      }
-
-      type Author {
-        name: String! @shareable
-      }
-
-      type Query {
-        topAuthor: Author!
-      }
 operationPlan:
   operation:
     - document: |
@@ -248,21 +232,17 @@ operationPlan:
       schema: b
       operation: |
         query Op_fb4f667e_2(
-          $__fusion_1_by: AuthorByInput!
+          $__fusion_1_id: ID!
         ) {
-          lookups {
-            author(by: $__fusion_1_by) {
-              name
-            }
+          authorById(id: $__fusion_1_id) {
+            name
           }
         }
-      source: $.lookups.author
+      source: $.authorById
       target: $.books.author
       requirements:
-        - name: __fusion_1_by
+        - name: __fusion_1_id
           selectionMap: >-
-            {
-              id
-            }
+            id
       dependencies:
         - id: 1

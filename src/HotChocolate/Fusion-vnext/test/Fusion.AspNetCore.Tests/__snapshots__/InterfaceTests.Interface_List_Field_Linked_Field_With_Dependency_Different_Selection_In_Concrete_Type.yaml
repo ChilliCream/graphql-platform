@@ -146,6 +146,7 @@ sourceSchemas:
               }
             ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -185,6 +186,7 @@ sourceSchemas:
               }
             ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {

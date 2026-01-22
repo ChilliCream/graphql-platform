@@ -243,14 +243,41 @@ public abstract partial class FusionTestBase
                 {
                     var jsonBody = JsonDocument.Parse(request.Body);
 
-                    // OperationBatchRequest
                     if (jsonBody.RootElement.ValueKind is JsonValueKind.Array)
                     {
-                        request.Body.Position = 0;
-                        var streamReader = new StreamReader(request.Body);
-                        var rawRequestString = streamReader.ReadToEnd();
+                        writer.WriteLine("kind: OperationBatch");
+                        writer.WriteLine("items:");
+                        writer.Indent();
 
-                        WriteRawRequest(writer, null, rawRequestString);
+                        foreach (var item in jsonBody.RootElement.EnumerateArray())
+                        {
+                            writer.WriteLine("- document: |");
+                            writer.Indent();
+                            writer.Indent();
+
+                            item.TryGetProperty("query", out var queryProperty);
+                            item.TryGetProperty("variables", out var variablesProperty);
+
+                            var query = queryProperty.GetString()!;
+
+                            // Ensure consistent formatting
+                            var document = Utf8GraphQLParser.Parse(query).ToString(indented: true);
+
+                            WriteMultilineString(writer, document);
+                            writer.Unindent();
+
+                            if (variablesProperty.ValueKind != JsonValueKind.Undefined)
+                            {
+                                writer.WriteLine("variables: |");
+                                writer.Indent();
+                                WriteFormattedJson(writer, variablesProperty);
+                                writer.Unindent();
+                            }
+
+                            writer.Unindent();
+                        }
+
+                        writer.Unindent();
                     }
                     else
                     {
@@ -285,9 +312,15 @@ public abstract partial class FusionTestBase
                     writer.WriteLine("response:");
                     writer.Indent();
 
-                    if (interaction.StatusCode.HasValue && interaction.StatusCode != HttpStatusCode.OK)
+                    if (interaction.StatusCode != HttpStatusCode.OK)
                     {
                         writer.WriteLine("statusCode: {0}", (int)interaction.StatusCode);
+                    }
+
+                    if (!string.IsNullOrEmpty(interaction.ContentType)
+                        && interaction.ContentType != "application/graphql-response+json; charset=utf-8")
+                    {
+                        writer.WriteLine("contentType: {0}", interaction.ContentType);
                     }
 
                     if (interaction.Results.Count > 0)

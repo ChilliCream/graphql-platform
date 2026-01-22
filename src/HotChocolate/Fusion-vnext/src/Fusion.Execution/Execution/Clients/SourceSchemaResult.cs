@@ -18,6 +18,13 @@ public sealed class SourceSchemaResult : IDisposable
         ArgumentNullException.ThrowIfNull(document);
 
         _document = document;
+
+        if (_document.Root.TryGetProperty(ErrorsProperty, out var errors))
+        {
+            RawErrors = errors;
+            Errors = SourceSchemaErrors.From(errors);
+        }
+
         Path = path;
         Final = final;
     }
@@ -33,21 +40,11 @@ public sealed class SourceSchemaResult : IDisposable
         }
     }
 
-    public SourceSchemaErrors? Errors
-        => _document.Root.TryGetProperty(ErrorsProperty, out var errors)
-            ? SourceSchemaErrors.From(errors)
-            : null;
+    public SourceSchemaErrors? Errors { get; }
 
-    internal SourceResultElement RawErrors
-    {
-        get
-        {
-            _document.Root.TryGetProperty(ErrorsProperty, out var errors);
-            return errors;
-        }
-    }
+    internal SourceResultElement RawErrors { get; }
 
-    public bool HasErrors => _document.Root.TryGetProperty(ErrorsProperty, out _);
+    public bool HasErrors => Errors is not null;
 
     public SourceResultElement Extensions
     {
