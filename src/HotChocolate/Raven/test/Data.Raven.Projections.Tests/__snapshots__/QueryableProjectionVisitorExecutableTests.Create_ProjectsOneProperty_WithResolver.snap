@@ -8,14 +8,11 @@
           "column": 23
         }
       ],
-      "path": [
-        "rootExecutable"
-      ],
       "extensions": {
         "type": "Foo",
         "field": "foo",
         "responseName": "foo",
-        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
       }
     }
   ]

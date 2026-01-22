@@ -1239,6 +1239,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to access the required field &apos;{0}.{1}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_UnableToAccessField {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_UnableToAccessField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to access the required field &apos;{0}.{1}&apos; on path &apos;{2}&apos;..
         /// </summary>
         internal static string RequirementsValidator_UnableToAccessFieldOnPath {
@@ -1316,6 +1325,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string SatisfiabilityValidator_NoLookupsFoundForType {
             get {
                 return ResourceManager.GetString("SatisfiabilityValidator_NoLookupsFoundForType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to access the field &apos;{0}.{1}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_UnableToAccessField {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_UnableToAccessField", resourceCulture);
             }
         }
         

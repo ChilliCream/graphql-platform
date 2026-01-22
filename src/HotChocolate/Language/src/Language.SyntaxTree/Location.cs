@@ -3,7 +3,7 @@ namespace HotChocolate.Language;
 /// <summary>
 /// The location of a <see cref="ISyntaxNode"/>.
 /// </summary>
-public sealed class Location : IEquatable<Location>
+public sealed class Location : IEquatable<Location>, IComparable<Location>
 {
     /// <summary>
     /// Initializes a new instance of <see cref="Location"/>.
@@ -110,4 +110,25 @@ public sealed class Location : IEquatable<Location>
 
     public static bool operator !=(Location? left, Location? right)
         => !Equals(left, right);
+
+    public int CompareTo(Location? other)
+    {
+        if (ReferenceEquals(this, other))
+        {
+            return 0;
+        }
+
+        if (other is null)
+        {
+            return 1;
+        }
+
+        var startComparison = Start.CompareTo(other.Start);
+        if (startComparison != 0)
+        {
+            return startComparison;
+        }
+
+        return End.CompareTo(other.End);
+    }
 }

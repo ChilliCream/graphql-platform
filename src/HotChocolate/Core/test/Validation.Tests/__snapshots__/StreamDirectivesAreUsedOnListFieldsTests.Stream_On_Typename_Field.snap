@@ -1,0 +1,13 @@
+{
+  "message": "@stream directive is only valid on list fields.",
+  "locations": [
+    {
+      "line": 2,
+      "column": 3
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/draft/#sec-Stream-Directives-Are-Used-On-List-Fields",
+    "rfc": "https://github.com/graphql/graphql-spec/pull/1110"
+  }
+}

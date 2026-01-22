@@ -14,20 +14,26 @@ internal static class SettingsExtensions
                 Merger = new CompositionSettings.MergerSettings
                 {
                     AddFusionDefinitions =
-                        compositionSettings.Merger?.AddFusionDefinitions
-                        ?? settings.Merger?.AddFusionDefinitions,
+                        compositionSettings.Merger.AddFusionDefinitions
+                        ?? settings.Merger.AddFusionDefinitions,
                     CacheControlMergeBehavior =
-                        compositionSettings.Merger?.CacheControlMergeBehavior
-                        ?? settings.Merger?.CacheControlMergeBehavior,
+                        compositionSettings.Merger.CacheControlMergeBehavior
+                        ?? settings.Merger.CacheControlMergeBehavior,
                     EnableGlobalObjectIdentification =
-                        compositionSettings.Merger?.EnableGlobalObjectIdentification
-                        ?? settings.Merger?.EnableGlobalObjectIdentification,
+                        compositionSettings.Merger.EnableGlobalObjectIdentification
+                        ?? settings.Merger.EnableGlobalObjectIdentification,
                     RemoveUnreferencedDefinitions =
-                        compositionSettings.Merger?.RemoveUnreferencedDefinitions
-                        ?? settings.Merger?.RemoveUnreferencedDefinitions,
+                        compositionSettings.Merger.RemoveUnreferencedDefinitions
+                        ?? settings.Merger.RemoveUnreferencedDefinitions,
                     TagMergeBehavior =
-                        compositionSettings.Merger?.TagMergeBehavior
-                        ?? settings.Merger?.TagMergeBehavior
+                        compositionSettings.Merger.TagMergeBehavior
+                        ?? settings.Merger.TagMergeBehavior
+                },
+                Satisfiability = new CompositionSettings.SatisfiabilitySettings
+                {
+                    IncludeSatisfiabilityPaths =
+                        compositionSettings.Satisfiability.IncludeSatisfiabilityPaths
+                        ?? settings.Satisfiability.IncludeSatisfiabilityPaths
                 }
             };
         }
@@ -79,6 +85,21 @@ internal static class SettingsExtensions
         }
     }
 
+    extension(CompositionSettings.SatisfiabilitySettings satisfiabilitySettings)
+    {
+        public SatisfiabilityOptions ToOptions()
+        {
+            var satisfiabilityOptions = new SatisfiabilityOptions();
+
+            if (satisfiabilitySettings.IncludeSatisfiabilityPaths is { } includeSatisfiabilityPaths)
+            {
+                satisfiabilityOptions.IncludeSatisfiabilityPaths = includeSatisfiabilityPaths;
+            }
+
+            return satisfiabilityOptions;
+        }
+    }
+
     extension(SourceSchemaSettings sourceSchemaSettings)
     {
         public SourceSchemaOptions ToOptions()
@@ -124,6 +145,11 @@ internal static class SettingsExtensions
         private SourceSchemaPreprocessorOptions ToOptions()
         {
             var preprocessorOptions = new SourceSchemaPreprocessorOptions();
+
+            if (preprocessorSettings.EnableSchemaValidation is { } enableSchemaValidation)
+            {
+                preprocessorOptions.EnableSchemaValidation = enableSchemaValidation;
+            }
 
             if (preprocessorSettings.InferKeysFromLookups is { } inferKeys)
             {

@@ -116,7 +116,10 @@ public static partial class HotChocolateValidationBuilderExtensions
     public static DocumentValidatorBuilder AddFieldRules(
         this DocumentValidatorBuilder builder)
     {
-        return builder.AddVisitor<FieldVisitor>();
+        return builder
+            .AddRule<FieldSelectionsRule>()
+            .AddRule<LeafFieldSelectionsRule>()
+            .AddRule<OverlappingFieldsCanBeMergedRule>();
     }
 
     /// <summary>

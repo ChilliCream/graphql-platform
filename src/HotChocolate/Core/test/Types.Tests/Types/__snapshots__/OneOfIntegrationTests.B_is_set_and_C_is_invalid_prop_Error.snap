@@ -13,8 +13,7 @@
       ],
       "extensions": {
         "type": "ExampleInput",
-        "specifiedBy": "https://spec.graphql.org/draft/#sec-All-Variable-Usages-Are-Allowed",
-        "rfc": "https://github.com/graphql/graphql-spec/pull/825"
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-All-Variable-Usages-Are-Allowed"
       }
     },
     {
@@ -30,7 +29,7 @@
       ],
       "extensions": {
         "field": "c",
-        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Object-Field-Names"
       }
     }
   ]
