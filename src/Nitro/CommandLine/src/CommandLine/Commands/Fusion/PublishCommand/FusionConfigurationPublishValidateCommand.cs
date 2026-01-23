@@ -18,7 +18,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
     {
         Description = "Validates a Fusion configuration against the schema and clients.";
         AddOption(Opt<OptionalRequestIdOption>.Instance);
-        AddOption(Opt<ConfigurationFileOption>.Instance);
+        AddOption(Opt<FusionArchiveFileOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -42,8 +42,8 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
             throw new ExitException(
                 "No request id was provided and no request id was found in the cache. Please provide a request id.");
 
-        var configurationFile =
-            context.ParseResult.GetValueForOption(Opt<ConfigurationFileOption>.Instance)!;
+        var archiveFile =
+            context.ParseResult.GetValueForOption(Opt<FusionArchiveFileOption>.Instance)!;
 
         console.Title("Validating the composition of a fusion configuration");
 
@@ -64,7 +64,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
         {
             console.Log("Initialized");
 
-            var stream = FileHelpers.CreateFileStream(configurationFile);
+            var stream = FileHelpers.CreateFileStream(new FileInfo(archiveFile));
 
             var input = new ValidateFusionConfigurationCompositionInput
             {

@@ -686,6 +686,10 @@ fragment SchemaChangeViolationError on SchemaChangeViolationError {
   }
 }
 
+fragment InvalidFusionSourceSchemaArchiveError on InvalidFusionSourceSchemaArchiveError {
+  message
+}
+
 fragment OpenApiCollectionNotFoundError on OpenApiCollectionNotFoundError {
   openApiCollectionId
   ...Error

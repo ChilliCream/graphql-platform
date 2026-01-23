@@ -304,6 +304,14 @@ internal static class ConsoleHelpers
                 ansiConsole.PrintError(err);
                 break;
 
+            case IInvalidFusionSourceSchemaArchiveError err:
+                ansiConsole.Error.WriteLine(
+                    "The server received an invalid archive. "
+                    + "This indicates a bug in the tooling. "
+                    + "Please notify ChilliCream."
+                    + "Error received: " + err.Message);
+                break;
+
             case IOpenApiCollectionValidationError err:
                 ansiConsole.PrintError(err);
                 break;
