@@ -16,7 +16,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
             "{0} partial class {1} : ObjectType<global::{2}>",
             type.IsPublic ? "public" : "internal",
             type.Name,
-            type.RuntimeTypeFullName);
+            type.RuntimeTypeName?.FullName);
         Writer.WriteIndentedLine("{");
         Writer.IncreaseIndent();
     }
@@ -32,7 +32,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
         Writer.WriteIndentedLine(
             "protected override void Configure(global::{0}<global::{1}> descriptor)",
             WellKnownTypes.IObjectTypeDescriptor,
-            connectionType.RuntimeTypeFullName);
+            connectionType.RuntimeTypeName.FullName);
 
         Writer.WriteIndentedLine("{");
 
@@ -48,7 +48,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
             {
                 Writer.WriteIndentedLine(
                     "var thisType = typeof(global::{0});",
-                    connectionType.RuntimeTypeFullName);
+                    connectionType.RuntimeTypeName.FullName);
                 Writer.WriteIndentedLine(
                     "var bindingResolver = extension.Context.ParameterBindingResolver;");
                 Writer.WriteIndentedLine(
@@ -106,15 +106,14 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                 }
             }
 
-            if (connectionType.RuntimeType.IsGenericType
+            if (connectionType.NodeFullyQualifiedName is not null
                 && !string.IsNullOrEmpty(connectionType.NameFormat)
                 && connectionType.NameFormat!.Contains("{0}"))
             {
-                var nodeTypeName = connectionType.RuntimeType.TypeArguments[0].ToFullyQualified();
                 Writer.WriteLine();
                 Writer.WriteIndentedLine(
                     "var nodeTypeRef = extension.Context.TypeInspector.GetTypeRef(typeof({0}));",
-                    nodeTypeName);
+                    connectionType.NodeFullyQualifiedName);
                 Writer.WriteIndentedLine("descriptor");
                 using (Writer.IncreaseIndent())
                 {

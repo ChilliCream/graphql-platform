@@ -20,20 +20,28 @@ public sealed class ConnectionTypeInfo
         ImmutableArray<AttributeData> attributes)
     {
         Name = name;
+        RuntimeTypeName = TypeNameInfo.Create(runtimeType);
+        NodeFullyQualifiedName = runtimeType.IsGenericType ? runtimeType.TypeArguments[0].ToFullyQualified() : null;
         NameFormat = nameFormat;
         EdgeTypeName = edgeTypeName;
-        RuntimeTypeFullName = runtimeType.ToDisplayString();
-        RuntimeType = runtimeType;
         Namespace = runtimeType.ContainingNamespace.ToDisplayString();
+        IsPublic = runtimeType.DeclaredAccessibility == Accessibility.Public;
         ClassDeclaration = classDeclaration;
         Resolvers = resolvers;
-        Attributes = attributes;
         Shareable = attributes.GetShareableScope();
         Inaccessible = attributes.GetInaccessibleScope();
         DescriptorAttributes = attributes.GetUserAttributes();
     }
 
     public string Name { get; }
+
+    public TypeNameInfo? SchemaTypeName => null;
+
+    public TypeNameInfo RuntimeTypeName { get; }
+
+    public string? NodeFullyQualifiedName { get; }
+
+    public string? RegistrationKey => null;
 
     public string? NameFormat { get; }
 
@@ -43,17 +51,9 @@ public sealed class ConnectionTypeInfo
 
     public string? Description => null;
 
-    public bool IsPublic => RuntimeType.DeclaredAccessibility == Accessibility.Public;
-
-    public INamedTypeSymbol? SchemaSchemaType => null;
-
-    public string? SchemaTypeFullName => null;
+    public bool IsPublic { get; }
 
     public bool HasSchemaType => false;
-
-    public INamedTypeSymbol RuntimeType { get; }
-
-    public string RuntimeTypeFullName { get; }
 
     public bool HasRuntimeType => true;
 
@@ -61,13 +61,11 @@ public sealed class ConnectionTypeInfo
 
     public ImmutableArray<Resolver> Resolvers { get; private set; }
 
-    public override string OrderByKey => RuntimeTypeFullName;
+    public override string OrderByKey => RuntimeTypeName.FullName;
 
     public DirectiveScope Shareable { get; }
 
     public DirectiveScope Inaccessible { get; }
-
-    public ImmutableArray<AttributeData> Attributes { get; }
 
     public ImmutableArray<AttributeData> DescriptorAttributes { get; }
 

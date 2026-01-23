@@ -50,9 +50,9 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                 if (syntaxInfo is IOutputTypeInfo { HasRuntimeType: true } typeInfo)
                 {
 #if NET8_0_OR_GREATER
-                    connectionTypeLookup[typeInfo.RuntimeTypeFullName] = typeInfo;
+                    connectionTypeLookup[typeInfo.RuntimeTypeName.FullName] = typeInfo;
 #else
-                    connectionTypeLookup[typeInfo.RuntimeTypeFullName!] = typeInfo;
+                    connectionTypeLookup[typeInfo.RuntimeTypeName!.FullName] = typeInfo;
 #endif
                 }
             }

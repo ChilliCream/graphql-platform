@@ -659,6 +659,13 @@ public static class SymbolExtensions
     public static string PrintNullRefQualifier(this ITypeSymbol typeSymbol)
         => typeSymbol.IsNullableRefType() ? "?" : string.Empty;
 
+    public static string ToAssemblyQualified(this ITypeSymbol typeSymbol)
+    {
+        var assemblyName = typeSymbol.ContainingAssembly?.Name ?? "UnknownAssembly";
+        var typeFullName = typeSymbol.ToDisplayString();
+        return $"{assemblyName}::{typeFullName}";
+    }
+
     public static string ToFullyQualified(this ITypeSymbol typeSymbol)
         => typeSymbol.ToDisplayString(FullyQualifiedFormat);
 

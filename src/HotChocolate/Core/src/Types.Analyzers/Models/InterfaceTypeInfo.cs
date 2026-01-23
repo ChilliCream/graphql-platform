@@ -5,7 +5,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class InterfaceTypeInfo : SyntaxInfo, IOutputTypeInfo
+public sealed class InterfaceTypeInfo
+    : SyntaxInfo
+    , IOutputTypeInfo
 {
     public InterfaceTypeInfo(
         INamedTypeSymbol schemaType,
@@ -14,37 +16,36 @@ public sealed class InterfaceTypeInfo : SyntaxInfo, IOutputTypeInfo
         ImmutableArray<Resolver> resolvers,
         ImmutableArray<AttributeData> attributes)
     {
-        SchemaSchemaType = schemaType;
-        SchemaTypeFullName = schemaType.ToDisplayString();
-        RuntimeType = runtimeType;
-        RuntimeTypeFullName = runtimeType.ToDisplayString();
+        Name = schemaType.Name;
+        SchemaTypeName = TypeNameInfo.Create(schemaType);
+        RuntimeTypeName = TypeNameInfo.Create(runtimeType);
+        RegistrationKey = schemaType.ToAssemblyQualified();
+        Namespace = schemaType.ContainingNamespace.ToDisplayString();
+        Description = schemaType.GetDescription();
+        IsPublic = schemaType.DeclaredAccessibility == Accessibility.Public;
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
-        Description = schemaType.GetDescription();
         // sharable directives are only allowed on object types and field definitions
         Shareable = DirectiveScope.None;
-        Attributes = attributes;
         Inaccessible = attributes.GetInaccessibleScope();
         DescriptorAttributes = attributes.GetUserAttributes();
     }
 
-    public string Name => SchemaSchemaType.Name;
+    public string Name { get; }
 
-    public string Namespace => SchemaSchemaType.ContainingNamespace.ToDisplayString();
+    public TypeNameInfo SchemaTypeName { get; }
+
+    public TypeNameInfo RuntimeTypeName { get; }
+
+    public string RegistrationKey { get; }
+
+    public string Namespace { get; }
 
     public string? Description { get; }
 
-    public bool IsPublic => SchemaSchemaType.DeclaredAccessibility == Accessibility.Public;
-
-    public INamedTypeSymbol SchemaSchemaType { get; }
-
-    public string SchemaTypeFullName { get; }
+    public bool IsPublic { get; }
 
     public bool HasSchemaType => true;
-
-    public INamedTypeSymbol RuntimeType { get; }
-
-    public string? RuntimeTypeFullName { get; }
 
     public bool HasRuntimeType => true;
 
@@ -52,13 +53,11 @@ public sealed class InterfaceTypeInfo : SyntaxInfo, IOutputTypeInfo
 
     public ImmutableArray<Resolver> Resolvers { get; private set; }
 
-    public override string OrderByKey => SchemaTypeFullName;
+    public override string OrderByKey => SchemaTypeName.FullName;
 
     public DirectiveScope Shareable { get; }
 
     public DirectiveScope Inaccessible { get; }
-
-    public ImmutableArray<AttributeData> Attributes { get; }
 
     public ImmutableArray<AttributeData> DescriptorAttributes { get; }
 
@@ -84,10 +83,10 @@ public sealed class InterfaceTypeInfo : SyntaxInfo, IOutputTypeInfo
         }
 
         return OrderByKey.Equals(other.OrderByKey)
-            && string.Equals(SchemaTypeFullName, other.SchemaTypeFullName, StringComparison.Ordinal)
+            && string.Equals(SchemaTypeName.FullName, other.SchemaTypeName.FullName, StringComparison.Ordinal)
             && ClassDeclaration.SyntaxTree.IsEquivalentTo(other.ClassDeclaration.SyntaxTree);
     }
 
     public override int GetHashCode()
-        => HashCode.Combine(OrderByKey, SchemaTypeFullName, ClassDeclaration);
+        => HashCode.Combine(OrderByKey, SchemaTypeName.FullName, ClassDeclaration);
 }
