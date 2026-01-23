@@ -258,7 +258,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         // If there are no concrete groups, just return one group with all abstract fields
         if (concreteGroups.Count == 0)
         {
-            return [[..abstractFields]];
+            return [[.. abstractFields]];
         }
 
         var result = new List<HashSet<FieldAndType>>();

@@ -45,7 +45,7 @@ internal sealed class ListSizeDirective(
         {
             slicingArguments = slicingArgumentsArg switch
             {
-                ListValueNode listValueNode when listValueNode.Items.All(v =>  v is StringValueNode)
+                ListValueNode listValueNode when listValueNode.Items.All(v => v is StringValueNode)
                     => listValueNode.Items.Cast<StringValueNode>().Select(v => v.Value).ToImmutableArray(),
                 NullValueNode => [],
                 _ => throw new InvalidOperationException(ListSizeDirective_SlicingArgumentsArgument_Invalid)
@@ -56,7 +56,7 @@ internal sealed class ListSizeDirective(
         {
             sizedFields = sizedFieldsArg switch
             {
-                ListValueNode listValueNode when listValueNode.Items.All(v =>  v is StringValueNode)
+                ListValueNode listValueNode when listValueNode.Items.All(v => v is StringValueNode)
                     => listValueNode.Items.Cast<StringValueNode>().Select(v => v.Value).ToImmutableArray(),
                 NullValueNode => [],
                 _ => throw new InvalidOperationException(ListSizeDirective_SizedFieldsArgument_Invalid)

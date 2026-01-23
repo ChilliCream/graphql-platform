@@ -1,6 +1,5 @@
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Adapters.OpenApi;
 

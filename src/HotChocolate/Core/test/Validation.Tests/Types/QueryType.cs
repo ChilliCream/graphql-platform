@@ -49,7 +49,7 @@ public class QueryType : ObjectType<Query>
 
         descriptor.Field("me").Type<UserType>().Resolve(() => null!);
 
-        for (char i = 'a'; i <= 'z'; i++)
+        for (var i = 'a'; i <= 'z'; i++)
         {
             descriptor.Field(i.ToString()).Type<StringType>().Resolve(() => null!);
         }
