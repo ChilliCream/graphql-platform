@@ -7,12 +7,14 @@ Each network protocol of Strawberry Shake handles authentication a bit different
 
 # HTTP
 
-Strawberry Shake uses the `HttpClientFactory` to generate a `HttpClient` on every request.
-You can either register a `HttpClient` directly on the `ServiceCollection` or use the `ConfigureHttpClient` method on the client builder.
+There are several ways to adjust how Strawberry Shake obtains the `HttpClient` that will be used to perform HTTP calls.
+Unless specified otherwise, Strawberry Shake uses the `HttpClientFactory` to generate a new `HttpClient` for every request.
 
 ## ConfigureHttpClient
 
-The generated extension method to register the client on the service collection, returns a builder that can be used to configure the http client.
+The generated `ConfigureHttpClient` extension method can be used to register a client on the service collection.
+It returns a builder that allows you to configure the `HttpClient`.
+For example, you may adjust its `BaseAddress` or set authentication headers.
 
 ```csharp
  services
@@ -22,11 +24,12 @@ The generated extension method to register the client on the service collection,
         client.BaseAddress =
             new Uri("https://workshop.chillicream.com/graphql/");
         client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", "Your Oauth token");
+            new AuthenticationHeaderValue("Bearer", "Your OAuth token");
     });
 ```
 
-There is an overload of the `ConfigureHttpClient` method that provides access to the `IServiceProvider`, in case the access token is stored there.
+There is also an overload of the `ConfigureHttpClient` method that provides access to the `IServiceProvider`.
+This allows you to resolve other services, f.e. to obtain an access token.
 
 ```csharp
 services
@@ -34,10 +37,12 @@ services
     .ConfigureHttpClient((serviceProvider, client) =>
     {
         var token = serviceProvider.GetRequiredService<ISomeService>().Token;
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
     });
 ```
 
-The second parameter of `ConfigureHttpClient` allows direct access to the `HttpClientBuilder`. Use this delegate to register extensions like Polly.
+The second parameter of `ConfigureHttpClient` allows direct access to the `HttpClientBuilder`. 
+You may use this delegate to register extensions like Polly.
 
 ```csharp
 services
@@ -50,7 +55,7 @@ services
 
 ## HttpClientFactory
 
-In case you want to configure the `HttpClient` directly on the `ServiceCollection`, Strawberry Shake generates you a property `ClientName`, that you can use to set the correct name for the client.
+In case you want to configure the `HttpClient` directly on the `ServiceCollection`, Strawberry Shake provides a property called `ClientName`, that you can use to set the correct name for the client.
 
 ```csharp
 services.AddHttpClient(
@@ -60,6 +65,23 @@ services.AddHttpClient(
 
 services.AddConferenceClient();
 ```
+
+## With-Methods
+
+Strawberry Shake also generates `WithHttpClient` and `WithRequestUri` methods.
+These methods allow you to explicitly set a custom client and/or request URI for a specific call:
+
+```csharp
+IConferenceClient client = services.GetRequiredService<IConferenceClient>();
+
+var result = await client.GetSessions
+    .WithRequestUri(new Uri("https://localhost:5001/graphql"))
+    .WithHttpClient(new MyCustomHttpClient())
+    .ExecuteAsync();
+```
+
+> Note: The provided `HttpClient` will be disposed once `ExecuteAsync` completes.
+> Therefore, the same `HttpClient`-instance cannot be reused for subsequent calls.
 
 # Websockets
 
@@ -134,7 +156,7 @@ client.ConnectionInterceptor = new CustomConnectionInterceptor();
 
 ## Initial payload
 
-In JavaScript it is not possible to add headers to a web socket. Therefor many GraphQL server do not use HTTP headers for the authentication of web sockets. Instead, they send the authentication token with the first payload to the server.
+In JavaScript it is not possible to add headers to a web socket. Therefore many GraphQL server do not use HTTP headers for the authentication of web sockets. Instead, they send the authentication token with the first payload to the server.
 
 You can specify create this payload with a `ISocketConnectionInterceptor`
 
