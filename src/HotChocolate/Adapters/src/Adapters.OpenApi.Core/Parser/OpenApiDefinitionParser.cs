@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Adapters.OpenApi.Validation;
 using HotChocolate.Language;
-using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Adapters.OpenApi;
 
