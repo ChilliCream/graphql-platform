@@ -1,0 +1,23 @@
+mutation ValidateMcpFeatureCollectionCommandMutation(
+  $input: ValidateMcpFeatureCollectionInput!
+) {
+  validateMcpFeatureCollection(input: $input) {
+    id
+    errors {
+      ...UnauthorizedOperation
+      ...StageNotFoundError
+      ...McpFeatureCollectionNotFoundError
+      ...Error
+    }
+  }
+}
+
+subscription ValidateMcpFeatureCollectionCommandSubscription($requestId: ID!) {
+  onMcpFeatureCollectionVersionValidationUpdate(requestId: $requestId) {
+    __typename
+    ...McpFeatureCollectionVersionValidationFailed
+    ...McpFeatureCollectionVersionValidationSuccess
+    ...OperationInProgress
+    ...ValidationInProgress
+  }
+}

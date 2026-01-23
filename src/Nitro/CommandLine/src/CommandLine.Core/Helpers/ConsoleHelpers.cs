@@ -34,6 +34,7 @@ public static class ConsoleHelpers
 
     public static void ErrorLine(this IAnsiConsole console, string message)
     {
+        // TODO: This needs to write to stderr
         console.MarkupLine(Glyphs.Cross.Space() + message);
     }
 
