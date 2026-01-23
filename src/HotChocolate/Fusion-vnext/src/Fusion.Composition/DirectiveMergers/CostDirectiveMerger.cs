@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Globalization;
 using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Directives;
 using HotChocolate.Fusion.Extensions;
@@ -11,17 +12,14 @@ using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.DirectiveMergers;
 
-internal class TagDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
+internal class CostDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
     : DirectiveMergerBase(mergeBehavior)
 {
-    public override string DirectiveName { get; } =
-        mergeBehavior is DirectiveMergeBehavior.IncludePrivate
-            ? $"fusion__{DirectiveNames.Tag}"
-            : DirectiveNames.Tag;
+    public override string DirectiveName => DirectiveNames.Cost;
 
     public override MutableDirectiveDefinition GetCanonicalDirectiveDefinition(ISchemaDefinition schema)
     {
-        return TagMutableDirectiveDefinition.Create(schema);
+        return CostMutableDirectiveDefinition.Create(schema);
     }
 
     public override void MergeDirectives(
@@ -29,31 +27,28 @@ internal class TagDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
         ImmutableArray<DirectivesProviderInfo> memberDefinitions,
         MutableSchemaDefinition mergedSchema)
     {
-        if (MergeBehavior is DirectiveMergeBehavior.Ignore)
-        {
-            return;
-        }
-
         if (!mergedSchema.DirectiveDefinitions.TryGetDirective(DirectiveName, out var directiveDefinition))
         {
             // Merged definition not found.
             return;
         }
 
-        var uniqueTagDirectives =
+        var costDirectives =
             memberDefinitions
-                .SelectMany(d => d.Member.Directives.Where(dir => dir.Name == DirectiveNames.Tag))
-                .Select(TagDirective.From)
-                .DistinctBy(d => d.Name);
+                .SelectMany(d => d.Member.Directives.Where(dir => dir.Name == DirectiveNames.Cost))
+                .Select(CostDirective.From)
+                .ToArray();
 
-        foreach (var uniqueTagDirective in uniqueTagDirectives)
+        if (costDirectives.Length == 0)
         {
-            var tagDirective =
-                new Directive(
-                    directiveDefinition,
-                    new ArgumentAssignment(ArgumentNames.Name, uniqueTagDirective.Name));
-
-            mergedMember.AddDirective(tagDirective);
+            return;
         }
+
+        var maxWeight = costDirectives.Max(d => d.Weight);
+        var weightArgument =
+            new ArgumentAssignment(ArgumentNames.Weight, maxWeight.ToString(CultureInfo.InvariantCulture));
+        var costDirective = new Directive(directiveDefinition, weightArgument);
+
+        mergedMember.AddDirective(costDirective);
     }
 }

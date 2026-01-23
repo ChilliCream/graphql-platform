@@ -431,6 +431,64 @@ public static class DirectiveNames
         }
     }
 
+    /// <summary>
+    /// The name constants of the @cost directive.
+    /// </summary>
+    public static class Cost
+    {
+        public const string Name = "cost";
+
+        /// <summary>
+        /// The argument names of the @cost directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the weight argument.
+            /// </summary>
+            public const string Weight = "weight";
+        }
+    }
+
+    /// <summary>
+    /// The name constants of the @listSize directive.
+    /// </summary>
+    public static class ListSize
+    {
+        public const string Name = "listSize";
+
+        /// <summary>
+        /// The argument names of the @listSize directive.
+        /// </summary>
+        public static class Arguments
+        {
+            /// <summary>
+            /// The name of the assumedSize argument.
+            /// </summary>
+            public const string AssumedSize = "assumedSize";
+
+            /// <summary>
+            /// The name of the slicingArguments argument.
+            /// </summary>
+            public const string SlicingArguments = "slicingArguments";
+
+            /// <summary>
+            /// The name of the slicingArgumentDefaultValue argument.
+            /// </summary>
+            public const string SlicingArgumentDefaultValue = "slicingArgumentDefaultValue";
+
+            /// <summary>
+            /// The name of the sizedFields argument.
+            /// </summary>
+            public const string SizedFields = "sizedFields";
+
+            /// <summary>
+            /// The name of the requireOneSlicingArgument argument.
+            /// </summary>
+            public const string RequireOneSlicingArgument = "requireOneSlicingArgument";
+        }
+    }
+
     public static bool IsSpecDirective(string name)
         => name switch
         {
