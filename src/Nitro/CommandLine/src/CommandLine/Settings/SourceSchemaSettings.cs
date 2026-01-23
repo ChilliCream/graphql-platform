@@ -19,6 +19,8 @@ internal sealed record SourceSchemaSettings
 
     internal sealed record PreprocessorSettings
     {
+        public bool? EnableSchemaValidation { get; init; }
+
         public bool? InferKeysFromLookups { get; init; }
 
         public bool? InheritInterfaceKeys { get; init; }

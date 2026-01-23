@@ -1,36 +1,53 @@
-[
-  {
-    "Message": "The field `f` does not exist on the type `Query`.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 3,
-        "Column": 5
-      }
-    ],
-    "Extensions": {
-      "type": "Query",
-      "field": "f",
-      "responseName": "f",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 2,
-        "Column": 5
-      }
-    ],
-    "Extensions": {
-      "fragment": "f",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
-    },
-    "Exception": null
+---------------
+{
+  "message": "Field \u0022f\u0022 must not have a selection since type \u0022String\u0022 has no subfields.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 5
+    }
+  ],
+  "extensions": {
+    "declaringType": "Query",
+    "field": "f",
+    "type": "String",
+    "responseName": "f",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Leaf-Field-Selections"
   }
-]
+}
+---------------
+
+---------------
+{
+  "message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
+  "locations": [
+    {
+      "line": 2,
+      "column": 5
+    }
+  ],
+  "extensions": {
+    "fragment": "f",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spreads-Must-Not-Form-Cycles"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
+  "locations": [
+    {
+      "line": 4,
+      "column": 9
+    }
+  ],
+  "path": [
+    "f"
+  ],
+  "extensions": {
+    "fragment": "f",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spreads-Must-Not-Form-Cycles"
+  }
+}
+---------------

@@ -6,6 +6,11 @@ namespace HotChocolate.Fusion.Options;
 public sealed class SourceSchemaPreprocessorOptions
 {
     /// <summary>
+    /// Enables schema validation when preprocessing source schemas.
+    /// </summary>
+    public bool EnableSchemaValidation { get; set; } = true;
+
+    /// <summary>
     /// A list of tags used to exclude type system members from composition.
     /// Any members annotated with these tags will be excluded.
     /// </summary>

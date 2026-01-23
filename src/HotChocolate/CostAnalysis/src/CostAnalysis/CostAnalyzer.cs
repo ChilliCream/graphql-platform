@@ -368,6 +368,8 @@ file sealed class CostContext : ValidatorFeature
     {
         NonNullString = null!;
         FieldSets.Clear();
+        SelectionSetCost.Clear();
+        Processed.Clear();
 
         if (_buffers.Count > 1)
         {
@@ -379,6 +381,7 @@ file sealed class CostContext : ValidatorFeature
                 s_fieldInfoPool.Return(_buffers[i]);
             }
 
+            _buffers.Clear();
             _buffers.Push(buffer);
         }
         else

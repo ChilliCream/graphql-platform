@@ -17,6 +17,7 @@ public sealed class DocumentValidator
     private readonly IDocumentValidatorRule[] _allRules;
     private readonly IDocumentValidatorRule[] _nonCacheableRules;
     private readonly int _maxAllowedErrors;
+    private readonly int _maxLocationsPerError;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DocumentValidator"/>.
@@ -30,10 +31,14 @@ public sealed class DocumentValidator
     /// <param name="maxAllowedErrors">
     /// The maximum number of errors that are allowed to be reported.
     /// </param>
+    /// <param name="maxLocationsPerError">
+    /// The maximum number of locations that will be added to a validation error.
+    /// </param>
     internal DocumentValidator(
         ObjectPool<DocumentValidatorContext> contextPool,
         IDocumentValidatorRule[] rules,
-        int maxAllowedErrors)
+        int maxAllowedErrors,
+        int maxLocationsPerError)
     {
         ArgumentNullException.ThrowIfNull(rules);
         ArgumentNullException.ThrowIfNull(contextPool);
@@ -43,6 +48,7 @@ public sealed class DocumentValidator
         _allRules = rules;
         _nonCacheableRules = [.. rules.Where(rule => !rule.IsCacheable)];
         _maxAllowedErrors = maxAllowedErrors > 0 ? maxAllowedErrors : 1;
+        _maxLocationsPerError = maxLocationsPerError > 0 ? maxLocationsPerError : 1;
     }
 
     /// <summary>
@@ -126,6 +132,8 @@ public sealed class DocumentValidator
                     break;
                 }
 
+                context.Reset();
+
                 start = ref Unsafe.Add(ref start, 1)!;
             }
 
@@ -150,13 +158,12 @@ public sealed class DocumentValidator
         IFeatureCollection? features)
     {
         var context = _contextPool.Get();
-        context.Initialize(schema, documentId, document, _maxAllowedErrors, features);
+        context.Initialize(schema, documentId, document, _maxAllowedErrors, _maxLocationsPerError, features);
         return context;
     }
 
     private void ReturnContext(DocumentValidatorContext context)
     {
-        context.Clear();
         _contextPool.Return(context);
     }
 }

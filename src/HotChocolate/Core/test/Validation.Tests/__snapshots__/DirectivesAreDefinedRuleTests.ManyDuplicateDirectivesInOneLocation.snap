@@ -1,32 +1,29 @@
-[
-  {
-    "Message": "Only one of each directive is allowed per location.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 5,
-        "Column": 21
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Directives-Are-Unique-Per-Location"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "Only one of each directive is allowed per location.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 5,
-        "Column": 33
-      }
-    ],
-    "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Directives-Are-Unique-Per-Location"
-    },
-    "Exception": null
+---------------
+{
+  "message": "Only one of each directive is allowed per location.",
+  "locations": [
+    {
+      "line": 5,
+      "column": 21
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Directives-Are-Unique-per-Location"
   }
-]
+}
+---------------
+
+---------------
+{
+  "message": "Only one of each directive is allowed per location.",
+  "locations": [
+    {
+      "line": 5,
+      "column": 33
+    }
+  ],
+  "extensions": {
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Directives-Are-Unique-per-Location"
+  }
+}
+---------------

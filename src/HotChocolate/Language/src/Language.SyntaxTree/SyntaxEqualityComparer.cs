@@ -1,3 +1,5 @@
+using System.Buffers;
+
 namespace HotChocolate.Language;
 
 internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : IEqualityComparer<ISyntaxNode>
@@ -320,7 +322,96 @@ internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : 
             && Equals(x.Fields, y.Fields);
 
     private bool Equals(ObjectValueNode x, ObjectValueNode y)
-        => Equals(x.Fields, y.Fields);
+    {
+        var xFields = x.Fields;
+        var yFields = y.Fields;
+        var count = xFields.Count;
+
+        if (count != yFields.Count)
+        {
+            return false;
+        }
+
+        if (count == 0)
+        {
+            return true;
+        }
+
+        if (count <= 8)
+        {
+            var alreadyMatchedYs = (byte)0;
+
+            for (var i = 0; i < count; i++)
+            {
+                var xField = xFields[i];
+                var found = false;
+
+                for (var j = 0; j < count; j++)
+                {
+                    var yBit = (byte)(1 << j);
+                    if ((alreadyMatchedYs & yBit) != 0)
+                    {
+                        continue;
+                    }
+
+                    var yField = yFields[j];
+                    if (Equals(xField, yField))
+                    {
+                        alreadyMatchedYs |= yBit;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        var matchedArray = ArrayPool<bool>.Shared.Rent(count);
+        var matched = matchedArray.AsSpan(0, count);
+        matched.Clear();
+
+        try
+        {
+            for (var i = 0; i < count; i++)
+            {
+                var xField = xFields[i];
+                var found = false;
+
+                for (var j = 0; j < count; j++)
+                {
+                    if (matched[j])
+                    {
+                        continue;
+                    }
+
+                    var yField = yFields[j];
+                    if (Equals(xField, yField))
+                    {
+                        matched[j] = true;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        finally
+        {
+            ArrayPool<bool>.Shared.Return(matchedArray);
+        }
+    }
 
     private bool Equals(OperationDefinitionNode x, OperationDefinitionNode y)
         => SyntaxComparer.BySyntax.Equals(x.Name, y.Name)
@@ -1025,9 +1116,8 @@ internal sealed class SyntaxEqualityComparer(bool ignoreDescriptions = false) : 
         var hashCode = new HashCode();
         hashCode.Add(node.Kind);
 
-        for (var i = 0; i < node.Fields.Count; i++)
+        foreach (var field in node.Fields.OrderBy(field => field.Name.Value, StringComparer.Ordinal))
         {
-            var field = node.Fields[i];
             hashCode.Add(GetHashCode(field));
         }
 

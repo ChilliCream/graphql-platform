@@ -352,7 +352,7 @@ public sealed class FusionComposeCommandTests : IDisposable
     }
 
     [Fact]
-    public async Task Compose_InvalidExample1_FromWorkingDirectory_ToStdOutWithWarningsAndErrors()
+    public async Task Compose_InvalidExample2_FromWorkingDirectory_ToStdOutWithWarningsAndErrors()
     {
         // arrange
         var builder = GetCommandLineBuilder();
@@ -389,7 +389,8 @@ public sealed class FusionComposeCommandTests : IDisposable
             "--source-schema-file",
             "__resources__/valid-example-2/source-schema-b.graphqls",
             "--fusion-archive",
-            archiveFileName
+            archiveFileName,
+            "--include-satisfiability-paths"
         ];
         var testConsole = new TestConsole();
 
