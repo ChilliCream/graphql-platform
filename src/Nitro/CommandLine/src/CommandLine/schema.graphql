@@ -1743,6 +1743,10 @@ type McpFeatureCollectionNotFoundError implements Error {
   message: String!
 }
 
+type McpFeatureCollectionValidationArchiveError implements McpFeatureCollectionVersionValidationError & ProcessingError {
+  message: String!
+}
+
 type McpFeatureCollectionValidationCollection {
   entities: [McpFeatureCollectionValidationEntity!]!
   mcpFeatureCollection: McpFeatureCollection

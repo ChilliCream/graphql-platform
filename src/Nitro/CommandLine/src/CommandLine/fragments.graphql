@@ -452,6 +452,7 @@ fragment WaitForApproval on WaitForApproval {
         ...SchemaChangeViolationError
         ...InvalidGraphQLSchemaError
         ...PersistedQueryValidationError
+        ...McpFeatureCollectionValidationError
       }
     }
     ... on ClientDeployment {
@@ -464,11 +465,13 @@ fragment WaitForApproval on WaitForApproval {
         ...SchemaChangeViolationError
         ...InvalidGraphQLSchemaError
         ...PersistedQueryValidationError
+        ...McpFeatureCollectionValidationError
       }
     }
     ... on McpFeatureCollectionDeployment {
-      # TODO: We need to query for errors here
-      __typename
+      errors {
+        ...McpFeatureCollectionValidationError
+      }
     }
   }
 }
@@ -507,6 +510,7 @@ fragment FusionConfigurationValidationFailed on FusionConfigurationValidationFai
     ...PersistedQueryValidationError
     ...SchemaVersionChangeViolationError
     ...InvalidGraphQLSchemaError
+    ...McpFeatureCollectionValidationError
   }
 }
 fragment FusionConfigurationValidationSuccess on FusionConfigurationValidationSuccess {
@@ -532,7 +536,7 @@ fragment SchemaVersionValidationFailed on SchemaVersionValidationFailed {
     ...PersistedQueryValidationError
     ...SchemaVersionChangeViolationError
     ...OperationsAreNotAllowedError
-    ...PersistedQueryValidationError
+    ...McpFeatureCollectionValidationError
   }
 }
 
@@ -555,6 +559,7 @@ fragment SchemaVersionPublishFailed on SchemaVersionPublishFailed {
     ...PersistedQueryValidationError
     ...UnexpectedProcessingError
     ...ProcessingTimeoutError
+    ...McpFeatureCollectionValidationError
   }
 }
 
@@ -698,6 +703,8 @@ fragment McpFeatureCollectionVersionValidationFailed on McpFeatureCollectionVers
   errors {
     ...ProcessingTimeoutError
     ...UnexpectedProcessingError
+    ...McpFeatureCollectionValidationError
+    ...McpFeatureCollectionValidationArchiveError
   }
 }
 
@@ -716,4 +723,47 @@ fragment McpFeatureCollectionVersionPublishFailed on McpFeatureCollectionVersion
     ...ProcessingTimeoutError
     ...ConcurrentOperationError
   }
+}
+
+fragment McpFeatureCollectionValidationError on McpFeatureCollectionValidationError {
+  collections {
+    mcpFeatureCollection {
+      id
+      name
+    }
+    entities {
+      errors {
+        ...McpFeatureCollectionValidationDocumentError
+        ...McpFeatureCollectionValidationEntityValidationError
+      }
+      ... on McpFeatureCollectionValidationPrompt {
+        name
+      }
+      ... on McpFeatureCollectionValidationTool {
+        name
+      }
+    }
+  }
+}
+
+fragment McpFeatureCollectionValidationDocumentError on McpFeatureCollectionValidationDocumentError {
+  code
+  message
+  path
+  locations {
+    column
+    line
+  }
+}
+
+fragment McpFeatureCollectionValidationEntityValidationError on McpFeatureCollectionValidationEntityValidationError {
+  message
+}
+
+fragment InvalidMcpFeatureCollectionArchiveError on InvalidMcpFeatureCollectionArchiveError {
+  message
+}
+
+fragment McpFeatureCollectionValidationArchiveError on McpFeatureCollectionValidationArchiveError {
+  message
 }

@@ -1,4 +1,6 @@
-mutation UploadMcpFeatureCollectionCommandMutation($input: UploadMcpFeatureCollectionInput!) {
+mutation UploadMcpFeatureCollectionCommandMutation(
+  $input: UploadMcpFeatureCollectionInput!
+) {
   uploadMcpFeatureCollection(input: $input) {
     mcpFeatureCollectionVersion {
       id
@@ -6,6 +8,7 @@ mutation UploadMcpFeatureCollectionCommandMutation($input: UploadMcpFeatureColle
     errors {
       ...UnauthorizedOperation
       ...McpFeatureCollectionNotFoundError
+      ...InvalidMcpFeatureCollectionArchiveError
       ...DuplicatedTagError
       ...ConcurrentOperationError
       ...Error

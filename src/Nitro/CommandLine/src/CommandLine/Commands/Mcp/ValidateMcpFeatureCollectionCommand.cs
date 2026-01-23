@@ -104,9 +104,9 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
                 switch (x.Data?.OnMcpFeatureCollectionVersionValidationUpdate)
                 {
-                    case IMcpFeatureCollectionVersionValidationFailed { Errors: var schemaErrors }:
+                    case IMcpFeatureCollectionVersionValidationFailed { Errors: var validationErrors }:
                         console.ErrorLine("The MCP Feature Collection is invalid:");
-                        console.PrintErrorsAndExit(schemaErrors);
+                        console.PrintErrorsAndExit(validationErrors);
                         stopSignal.OnNext(Unit.Default);
                         break;
 

@@ -1,4 +1,6 @@
-mutation ValidateMcpFeatureCollectionCommandMutation($input: ValidateMcpFeatureCollectionInput!) {
+mutation ValidateMcpFeatureCollectionCommandMutation(
+  $input: ValidateMcpFeatureCollectionInput!
+) {
   validateMcpFeatureCollection(input: $input) {
     id
     errors {
