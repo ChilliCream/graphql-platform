@@ -1,0 +1,14 @@
+mutation uploadFusionSubgraph($input: UploadFusionSubgraphInput!) {
+  uploadFusionSubgraph(input: $input) {
+    fusionSubgraphVersion {
+      id
+    }
+    errors {
+      ...UnauthorizedOperation
+      ...DuplicatedTagError
+      ...ConcurrentOperationError
+      ...InvalidFusionSourceSchemaArchiveError
+      ...Error
+    }
+  }
+}
