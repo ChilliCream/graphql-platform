@@ -277,10 +277,6 @@ type Api implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): ClientsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   createdAt: DateTime!
   createdBy: UserInfo!
   documents(
@@ -289,10 +285,6 @@ type Api implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): ApiDocumentConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   httpConnection: ApiHttpConnection
   id: ID!
   kind: ApiKind
@@ -306,7 +298,6 @@ type Api implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): MockSchemasConnection
-<<<<<<< HEAD
   modifiedAt: DateTime!
   modifiedBy: UserInfo!
   name: String!
@@ -320,12 +311,6 @@ type Api implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): ApiOpenApiCollectionsConnection
-=======
-
-  modifiedAt: DateTime!
-  modifiedBy: UserInfo!
-  name: String!
->>>>>>> origin/main
   operations(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -336,10 +321,6 @@ type Api implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OperationsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   path: [String!]!
   schemaVersions(
     "Returns the elements in the list that come after the specified cursor."
@@ -351,10 +332,6 @@ type Api implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): SchemaVersionsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   settings: ApiSettings!
   stages: [Stage!]!
   version: Version!
@@ -531,10 +508,6 @@ type ApiKey implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): ApiKeyRoleAssignmentsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   scopes: [ApiKeyScope!]!
   workspace: Workspace
 }
@@ -758,10 +731,6 @@ type Client implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OperationsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   versions(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -842,10 +811,6 @@ type ClientVersion implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): PersistedQueriesConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   publishedTo: [PublishedClientVersion!]!
   tag: String!
   tags: [String!]! @deprecated(reason: "Use `tag` instead.")
@@ -1458,10 +1423,6 @@ type FieldCoordinateMetrics implements CoordinateMetrics {
     to: DateTime!
   ): CoordinateClientUsage
   clientUsages(from: DateTime!, to: DateTime!): [CoordinateClientUsage!]!
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   duration(
     from: DateTime!
     resolution: Int! = 300
@@ -1542,10 +1503,6 @@ type FusionConfigurationDeploymentSchemaChanges {
     last: Int
     severity: SchemaChangeSeverity
   ): SchemaChangesConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   statistic: SchemaChangeLogStatistic!
 }
 
@@ -1579,8 +1536,6 @@ type FusionSubgraph implements Subgraph {
   name: String!
 }
 
-<<<<<<< HEAD
-=======
 type FusionSubgraphVersion {
   createdAt: DateTime!
   fusionSubgraph: FusionSubgraph!
@@ -1588,7 +1543,6 @@ type FusionSubgraphVersion {
   tag: String!
 }
 
->>>>>>> origin/main
 type GraphQLDirectiveArgumentDefinition implements Node & GraphQLTypeSystemMember & GraphQLInputValueDefinition {
   coordinate: String!
   id: ID!
@@ -1678,10 +1632,6 @@ type GraphQLInterfaceFieldArgumentDefinitionArgumentsConnection implements Graph
 
 type GraphQLInterfaceFieldDefinition implements Node & GraphQLTypeSystemMember & GraphQLOutputFieldDefinition {
   arguments: GraphQLInterfaceFieldArgumentDefinitionArgumentsConnection!
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   coordinate: String!
   id: ID!
   isDeprecated: Boolean!
@@ -1722,10 +1672,6 @@ type GraphQLObjectFieldArgumentDefinitionArgumentsConnection implements GraphQLO
 
 type GraphQLObjectFieldDefinition implements Node & GraphQLTypeSystemMember & GraphQLOutputFieldDefinition {
   arguments: GraphQLObjectFieldArgumentDefinitionArgumentsConnection!
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   coordinate: String!
   id: ID!
   isDeprecated: Boolean!
@@ -1785,10 +1731,6 @@ type Group implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): GroupGroupsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   id: ID!
   isDefault: Boolean!
   members(
@@ -1801,10 +1743,6 @@ type Group implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): GroupMembersConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   name: String!
   organization: Organization
   roleAssignments(
@@ -1987,18 +1925,10 @@ type MockSchemasEdge {
 
 type Mutation {
   approveDeployment(input: ApproveDeploymentInput!): ApproveDeploymentPayload!
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   beginFusionConfigurationPublish(
     input: BeginFusionConfigurationPublishInput!
   ): BeginFusionConfigurationPublishPayload!
   cancelDeployment(input: CancelDeploymentInput!): CancelDeploymentPayload!
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   cancelFusionConfigurationComposition(
     input: CancelFusionConfigurationCompositionInput!
   ): CancelFusionConfigurationCompositionPayload!
@@ -2007,29 +1937,18 @@ type Mutation {
   ): CommitFusionConfigurationPublishPayload!
   createAccount: CreateAccountPayload!
   createApiKey(input: CreateApiKeyInput!): CreateApiKeyPayload!
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   createApiKeyForApi(
     input: CreateApiKeyForApiInput!
   ): CreateApiKeyForApiPayload!
   createClient(input: CreateClientInput!): CreateClientPayload!
-<<<<<<< HEAD
   createMockSchema(input: CreateMockSchemaInput!): CreateMockSchemaPayload!
   createOpenApiCollection(
     input: CreateOpenApiCollectionInput!
   ): CreateOpenApiCollectionPayload!
-=======
-
-  createMockSchema(input: CreateMockSchemaInput!): CreateMockSchemaPayload!
-
->>>>>>> origin/main
   createPersonalAccessToken(
     input: CreatePersonalAccessTokenInput!
   ): CreatePersonalAccessTokenPayload!
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspacePayload!
-<<<<<<< HEAD
   deleteApiById(input: DeleteApiByIdInput!): DeleteApiByIdPayload!
   deleteApiKey(input: DeleteApiKeyInput!): DeleteApiKeyPayload!
   deleteClientById(input: DeleteClientByIdInput!): DeleteClientByIdPayload!
@@ -2040,35 +1959,18 @@ type Mutation {
     input: DeleteOpenApiCollectionByIdInput!
   ): DeleteOpenApiCollectionByIdPayload!
   ensureTunnelSession: EnsureTunnelSessionPayload!
-=======
-
-  deleteApiById(input: DeleteApiByIdInput!): DeleteApiByIdPayload!
-
-  deleteApiKey(input: DeleteApiKeyInput!): DeleteApiKeyPayload!
-
-  deleteClientById(input: DeleteClientByIdInput!): DeleteClientByIdPayload!
-
-  deleteMockSchemaById(
-    input: DeleteMockSchemaByIdInput!
-  ): DeleteMockSchemaByIdPayload!
-  ensureTunnelSession: EnsureTunnelSessionPayload!
-
->>>>>>> origin/main
   pollClientVersionPublishRequest(
     input: PollClientVersionPublishRequestInput!
   ): PollClientVersionPublishRequestPayload!
   pollClientVersionValidationRequest(
     input: PollClientVersionValidationRequestInput!
   ): PollClientVersionValidationRequestPayload!
-<<<<<<< HEAD
   pollOpenApiCollectionVersionPublishRequest(
     input: PollOpenApiCollectionVersionPublishRequestInput!
   ): PollOpenApiCollectionVersionPublishRequestPayload!
   pollOpenApiCollectionVersionValidationRequest(
     input: PollOpenApiCollectionVersionValidationRequestInput!
   ): PollOpenApiCollectionVersionValidationRequestPayload!
-=======
->>>>>>> origin/main
   pollSchemaVersionPublishRequest(
     input: PollSchemaVersionPublishRequestInput!
   ): PollSchemaVersionPublishRequestPayload!
@@ -2076,72 +1978,42 @@ type Mutation {
     input: PollSchemaVersionValidationRequestInput!
   ): PollSchemaVersionValidationRequestPayload!
   publishClient(input: PublishClientInput!): PublishClientPayload!
-<<<<<<< HEAD
   publishOpenApiCollection(
     input: PublishOpenApiCollectionInput!
   ): PublishOpenApiCollectionPayload!
   publishSchema(input: PublishSchemaInput!): PublishSchemaPayload!
-=======
-
-  publishSchema(input: PublishSchemaInput!): PublishSchemaPayload!
-
->>>>>>> origin/main
   pushDocumentChanges(
     input: PushDocumentChangeInput!
   ): PushDocumentChangesPayload! @deprecated(reason: "Use pushWorkspaceChanges")
   pushWorkspaceChanges(
     input: PushWorkspaceChangesInput!
   ): PushWorkspaceChangesPayload!
-<<<<<<< HEAD
   removeWorkspace(input: RemoveWorkspaceInput!): RemoveWorkspacePayload!
   renameWorkspace(input: RenameWorkspaceInput!): RenameWorkspacePayload!
-=======
-
-  removeWorkspace(input: RemoveWorkspaceInput!): RemoveWorkspacePayload!
-
-  renameWorkspace(input: RenameWorkspaceInput!): RenameWorkspacePayload!
-
->>>>>>> origin/main
   revokePersonalAccessToken(
     input: RevokePersonalAccessTokenInput!
   ): RevokePersonalAccessTokenPayload!
   setActiveWorkspace(
     input: SetActiveWorkspaceInput!
   ): SetActiveWorkspacePayload!
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   startFusionConfigurationComposition(
     input: StartFusionConfigurationCompositionInput!
   ): StartFusionConfigurationCompositionPayload!
   unpublishClient(input: UnpublishClientInput!): UnpublishClientPayload!
-<<<<<<< HEAD
   updateApiSettings(input: UpdateApiSettingsInput!): UpdateApiSettingsPayload!
-=======
-
-  updateApiSettings(input: UpdateApiSettingsInput!): UpdateApiSettingsPayload!
-
->>>>>>> origin/main
   updateFeatureFlags(
     input: UpdateFeatureFlagsInput!
   ): UpdateFeatureFlagsPayload!
   updateMockSchema(input: UpdateMockSchemaInput!): UpdateMockSchemaPayload!
-<<<<<<< HEAD
   updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload!
   updateStages(input: UpdateStagesInput!): UpdateStagesPayload!
-=======
-
-  updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload!
-
-  updateStages(input: UpdateStagesInput!): UpdateStagesPayload!
-
->>>>>>> origin/main
   updateThemeSettings(
     input: UpdateThemeSettingsInput!
   ): UpdateThemeSettingsPayload!
   uploadClient(input: UploadClientInput!): UploadClientPayload!
-<<<<<<< HEAD
+  uploadFusionSubgraph(
+    input: UploadFusionSubgraphInput!
+  ): UploadFusionSubgraphPayload!
   uploadOpenApiCollection(
     input: UploadOpenApiCollectionInput!
   ): UploadOpenApiCollectionPayload!
@@ -2153,19 +2025,6 @@ type Mutation {
   validateOpenApiCollection(
     input: ValidateOpenApiCollectionInput!
   ): ValidateOpenApiCollectionPayload!
-=======
-
-  uploadFusionSubgraph(
-    input: UploadFusionSubgraphInput!
-  ): UploadFusionSubgraphPayload!
-  uploadSchema(input: UploadSchemaInput!): UploadSchemaPayload!
-
-  validateClient(input: ValidateClientInput!): ValidateClientPayload!
-
-  validateFusionConfigurationComposition(
-    input: ValidateFusionConfigurationCompositionInput!
-  ): ValidateFusionConfigurationCompositionPayload!
->>>>>>> origin/main
   validateSchema(input: ValidateSchemaInput!): ValidateSchemaPayload!
 }
 
@@ -2414,19 +2273,11 @@ type OpenTelemetryGraphQLOperationSpan implements OpenTelemetrySpan {
   api: Api
   clockSkew: Float
   document: OpenTelemetryGraphQLOperationSpanDocumentAttributes
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   duration: Float!
   epoch: Float!
   events: [OpenTelemetryTraceEvent!]!
   links: [OpenTelemetryTraceLink!]!
   operation: OpenTelemetryGraphQLOperationSpanOperationAttributes
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
   spanAttributes: [Attribute!]!
@@ -2460,10 +2311,6 @@ type OpenTelemetryGraphQLResolverSpan implements OpenTelemetrySpan {
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
   selection: OpenTelemetryGraphQLResolverSpanSelectionAttributes
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   spanAttributes: [Attribute!]!
   spanId: String!
   spanKind: String!
@@ -2616,10 +2463,6 @@ type OpenTelemetryTrace {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OpenTelemetryLogsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   spans: [OpenTelemetrySpan!]!
   totalDuration: Float!
 }
@@ -2906,10 +2749,6 @@ type Organization implements Node {
     last: Int
     to: DateTime
   ): OrganizationAuthorizationEventLogsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   billingInfo: OrganizationBillingInfo
   displayName: String!
   groups(
@@ -2922,10 +2761,6 @@ type Organization implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OrganizationGroupsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   id: ID!
   members(
     "Returns the elements in the list that come after the specified cursor."
@@ -2937,10 +2772,6 @@ type Organization implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OrganizationMembersConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   name: String!
   plan: OrganizationPlan
   usage(from: DateTime, to: DateTime): OrganizationUsage
@@ -3005,10 +2836,6 @@ type OrganizationMember implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OrganizationMemberGroupsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   id: ID!
   isDisabled: Boolean!
   userName: String
@@ -3068,10 +2895,6 @@ type OrganizationPlan {
 
 type OrganizationUsage {
   cumulativeGigabyteHours: OrganizationUsageCumulativeGigabyteHoursGraph
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   gigabyteHours: OrganizationUsageGigabyteHoursGraph
   period: OrganizationUsagePeriod!
 }
@@ -3260,11 +3083,7 @@ type ProcessingTaskApproved implements SchemaVersionPublishResult & ClientVersio
   state: ProcessingState!
 }
 
-<<<<<<< HEAD
 type ProcessingTaskIsQueued implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult & OpenApiCollectionVersionPublishResult {
-=======
-type ProcessingTaskIsQueued implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult {
->>>>>>> origin/main
   queuePosition: Int!
   state: ProcessingState!
 }
@@ -3324,16 +3143,9 @@ type PushWorkspaceChangesPayload {
 type Query {
   apiById(id: ID!): Api
   fusionConfigurationByApiId(id: ID!, stage: String!): FusionConfiguration
-<<<<<<< HEAD
   me: Viewer
   "Fetches an object given its ID."
   node("ID of the object." id: ID!): Node @lookup @shareable
-=======
-
-  me: Viewer
-  "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node
->>>>>>> origin/main
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]!
   organizationById(id: ID!): Organization
@@ -3468,10 +3280,6 @@ type SchemaChangeLog implements StageChangeLog & Node {
     last: Int
     severity: SchemaChangeSeverity
   ): SchemaChangesConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   id: ID!
   kind: StageChangeLogKind!
   previousSchema: SchemaVersion
@@ -3516,10 +3324,6 @@ type SchemaCoordinateMetrics implements CoordinateMetrics {
     to: DateTime!
   ): CoordinateClientUsage
   clientUsages(from: DateTime!, to: DateTime!): [CoordinateClientUsage!]!
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   requests(
     from: DateTime!
     resolution: Int! = 300
@@ -3555,10 +3359,6 @@ type SchemaDeploymentSchemaChanges {
     last: Int
     severity: SchemaChangeSeverity
   ): SchemaChangesConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   previousSchema: SchemaVersion
   schema: SchemaVersion
   statistic: SchemaChangeLogStatistic!
@@ -3657,10 +3457,6 @@ type Stage implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): StageChangeLogConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   conditions: [StageCondition!]!
   coordinate(coordinate: String!): GraphQLTypeSystemMember
   coordinates(
@@ -3675,10 +3471,6 @@ type Stage implements Node {
     search: String
     to: DateTime
   ): CoordinatesConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   deployments(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -3689,10 +3481,6 @@ type Stage implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): DeploymentsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   displayName: String!
   essentials: StageEssentials
   id: ID!
@@ -3712,19 +3500,11 @@ type Stage implements Node {
     last: Int
     to: DateTime
   ): OpenTelemetryLogsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   metrics: StageMetrics!
   name: String!
   publishedClients: [PublishedClient!]!
   publishedFusionConfiguration: FusionConfiguration
   publishedSchema: PublishedSchemaVersion
-<<<<<<< HEAD
-  subgraphs: [Subgraph!]!
-=======
->>>>>>> origin/main
   traceById(
     seeker: String
     spanId: String
@@ -3810,10 +3590,6 @@ type StageNotFoundError implements Error {
 
 type StageOperationMetrics {
   latency(from: DateTime!, to: DateTime!): OperationLatencyGraph
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   latencyDistribution(
     from: DateTime!
     to: DateTime!
@@ -3849,20 +3625,12 @@ type StageOperationsMetrics {
     search: String
     to: DateTime!
   ): OperationInsightsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   latency(
     from: DateTime!
     operationKinds: [OperationKind!]
     to: DateTime!
   ): OperationsLatencyGraph
   summary(from: DateTime!, to: DateTime!): StageOperationMetricsSummary!
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   throughput(
     from: DateTime!
     operationKinds: [OperationKind!]
@@ -3872,10 +3640,6 @@ type StageOperationsMetrics {
 
 type StageResolverMetrics {
   latency(from: DateTime!, to: DateTime!): ResolverLatencyGraph
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   throughput(from: DateTime!, to: DateTime!): ResolverThroughputGraph
 }
 
@@ -3914,10 +3678,6 @@ type StageThroughputSummary {
 
 type StageTransactionMetrics {
   latency(from: DateTime!, to: DateTime!): OpenTelemetryTransactionLatencyGraph
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   latencyDistribution(
     from: DateTime!
     to: DateTime!
@@ -3951,20 +3711,12 @@ type StageTransactionsMetrics {
     spanKinds: [OpenTelemetrySpanKind!]
     to: DateTime!
   ): OpenTelemetryTransactionInsightsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   latency(
     from: DateTime!
     spanKinds: [OpenTelemetrySpanKind!]
     to: DateTime!
   ): OpenTelemetryTransactionsLatencyGraph
   summary(from: DateTime!, to: DateTime!): StageTransactionMetricsSummary!
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   throughput(
     from: DateTime!
     spanKinds: [OpenTelemetrySpanKind!]
@@ -4059,15 +3811,12 @@ type Subscription {
   onFusionConfigurationPublishingTaskChanged(
     requestId: ID!
   ): FusionConfigurationPublishingResult!
-<<<<<<< HEAD
   onOpenApiCollectionVersionPublishingUpdate(
     requestId: ID!
   ): OpenApiCollectionVersionPublishResult!
   onOpenApiCollectionVersionValidationUpdate(
     requestId: ID!
   ): OpenApiCollectionVersionValidationResult!
-=======
->>>>>>> origin/main
   onPersistedQueriesChanged(
     apiId: ID!
     stageName: String!
@@ -4197,15 +3946,14 @@ type UploadClientPayload {
   errors: [UploadClientError!]
 }
 
-<<<<<<< HEAD
-type UploadOpenApiCollectionPayload {
-  errors: [UploadOpenApiCollectionError!]
-  openApiCollectionVersion: OpenApiCollectionVersion
-=======
 type UploadFusionSubgraphPayload {
   errors: [UploadFusionSubgraphError!]
   fusionSubgraphVersion: FusionSubgraphVersion
->>>>>>> origin/main
+}
+
+type UploadOpenApiCollectionPayload {
+  errors: [UploadOpenApiCollectionError!]
+  openApiCollectionVersion: OpenApiCollectionVersion
 }
 
 type UploadSchemaPayload {
@@ -4277,10 +4025,6 @@ type Viewer {
     "Returns the last _n_ elements from the list."
     last: Int
   ): PersonalAccessTokensConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   preferences: Any!
   sessionId: String!
   settings: UserSettings!
@@ -4297,11 +4041,7 @@ type Viewer {
   ): WorkspacesConnection
 }
 
-<<<<<<< HEAD
 type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult {
-=======
-type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult {
->>>>>>> origin/main
   deployment: Deployment
   state: ProcessingState!
 }
@@ -4313,10 +4053,6 @@ type Workspace implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): ApiDocumentsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   apiKeys(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -4327,20 +4063,12 @@ type Workspace implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): ApiKeysConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   apis(
     "Returns the elements in the list that come after the specified cursor."
     after: Version
     "Returns the first _n_ elements from the list."
     first: Int
   ): ApisConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   changed(version: Version!): Boolean!
   changes(
     "Returns the elements in the list that come after the specified cursor."
@@ -4348,10 +4076,6 @@ type Workspace implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): ChangesConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   documentChanges(
     "Returns the elements in the list that come after the specified cursor."
     after: Version
@@ -4364,10 +4088,6 @@ type Workspace implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): DocumentsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   documentsChanged(version: Version): Boolean!
     @deprecated(reason: "Use changed")
   environments(
@@ -4376,10 +4096,6 @@ type Workspace implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): EnvironmentsConnection
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/main
   id: ID!
   members: [WorkspaceMember!]!
   name: String!
@@ -4488,22 +4204,14 @@ type WorkspacesEdge {
 union ApiKeyReference = Api
 
 union ApproveDeploymentError =
-<<<<<<< HEAD
   | UnauthorizedOperation
-=======
-    UnauthorizedOperation
->>>>>>> origin/main
   | DeploymentNotFoundError
   | DeploymentIsNotWaitingForApprovalError
 
 union ArgumentChange = DeprecatedChange | DescriptionChanged | TypeChanged
 
 union AuthorizationEventLogPrincipal =
-<<<<<<< HEAD
   | UserInfo
-=======
-    UserInfo
->>>>>>> origin/main
   | ApiKey
   | OrganizationMember
   | Group
@@ -4515,53 +4223,33 @@ union AuthorizationEventLogResource = Organization | Workspace | Api
 union AuthorizationEventLogSubject = User | ApiKey
 
 union BeginFusionConfigurationPublishError =
-<<<<<<< HEAD
   | UnauthorizedOperation
-=======
-    UnauthorizedOperation
->>>>>>> origin/main
   | ApiNotFoundError
   | StageNotFoundError
   | SubgraphInvalidError
   | InvalidProcessingStateTransitionError
 
 union CancelDeploymentError =
-<<<<<<< HEAD
   | UnauthorizedOperation
-=======
-    UnauthorizedOperation
->>>>>>> origin/main
   | DeploymentNotFoundError
   | DeploymentCannotBeCancelledError
 
 union CancelFusionConfigurationCompositionError =
-<<<<<<< HEAD
   | UnauthorizedOperation
-=======
-    UnauthorizedOperation
->>>>>>> origin/main
   | FusionConfigurationRequestNotFoundError
   | InvalidProcessingStateTransitionError
 
 union ClientDeploymentError = PersistedQueryValidationError
 
 union CommitFusionConfigurationPublishError =
-<<<<<<< HEAD
   | UnauthorizedOperation
-=======
-    UnauthorizedOperation
->>>>>>> origin/main
   | FusionConfigurationRequestNotFoundError
   | InvalidProcessingStateTransitionError
 
 union CreateAccountError = UnauthorizedOperation
 
 union CreateApiKeyError =
-<<<<<<< HEAD
   | ApiNotFoundError
-=======
-    ApiNotFoundError
->>>>>>> origin/main
   | WorkspaceNotFound
   | PersonalWorkspaceNotSupportedError
   | ValidationError
@@ -4569,11 +4257,7 @@ union CreateApiKeyError =
   | RoleNotFoundError
 
 union CreateApiKeyForApiError =
-<<<<<<< HEAD
   | ApiNotFoundError
-=======
-    ApiNotFoundError
->>>>>>> origin/main
   | PersonalWorkspaceNotSupportedError
   | ValidationError
   | UnauthorizedOperation
@@ -4581,30 +4265,19 @@ union CreateApiKeyForApiError =
 union CreateClientError = ApiNotFoundError | UnauthorizedOperation
 
 union CreateMockSchemaError =
-<<<<<<< HEAD
   | ApiNotFoundError
   | MockSchemaNonUniqueNameError
   | UnauthorizedOperation
   | ValidationError
 
 union CreateOpenApiCollectionError = ApiNotFoundError | UnauthorizedOperation
-=======
-    ApiNotFoundError
-  | MockSchemaNonUniqueNameError
-  | UnauthorizedOperation
-  | ValidationError
->>>>>>> origin/main
 
 union CreatePersonalAccessTokenError = ValidationError | UnauthorizedOperation
 
 union CreateWorkspaceError = UnauthorizedOperation | ValidationError
 
 union DeleteApiByIdError =
-<<<<<<< HEAD
   | ApiNotFoundError
-=======
-    ApiNotFoundError
->>>>>>> origin/main
   | UnauthorizedOperation
   | ApiDeletionFailedError
 
@@ -4613,25 +4286,17 @@ union DeleteApiKeyError = ApiKeyNotFoundError | UnauthorizedOperation
 union DeleteClientByIdError = ClientNotFoundError | UnauthorizedOperation
 
 union DeleteMockSchemaByIdError =
-<<<<<<< HEAD
   | MockSchemaNotFoundError
   | UnauthorizedOperation
 
 union DeleteOpenApiCollectionByIdError =
   | OpenApiCollectionNotFoundError
-=======
-    MockSchemaNotFoundError
->>>>>>> origin/main
   | UnauthorizedOperation
 
 union DeploymentEvent = DeploymentCreatedEvent | DeploymentUpdatedEvent
 
 union DirectiveChange =
-<<<<<<< HEAD
   | ArgumentAdded
-=======
-    ArgumentAdded
->>>>>>> origin/main
   | ArgumentChanged
   | ArgumentRemoved
   | DescriptionChanged
@@ -4641,11 +4306,7 @@ union DirectiveChange =
 union EnsureTunnelSessionError = UnauthorizedOperation
 
 union EnumChange =
-<<<<<<< HEAD
   | DescriptionChanged
-=======
-    DescriptionChanged
->>>>>>> origin/main
   | EnumValueAdded
   | EnumValueChanged
   | EnumValueRemoved
@@ -4653,11 +4314,7 @@ union EnumChange =
 union EnumValueChange = DeprecatedChange | DescriptionChanged
 
 union FieldChange =
-<<<<<<< HEAD
   | ArgumentAdded
-=======
-    ArgumentAdded
->>>>>>> origin/main
   | ArgumentChanged
   | ArgumentRemoved
   | DeprecatedChange
@@ -4665,35 +4322,21 @@ union FieldChange =
   | TypeChanged
 
 union FusionConfigurationDeploymentError =
-<<<<<<< HEAD
   | PersistedQueryValidationError
   | SchemaChangeViolationError
   | InvalidGraphQLSchemaError
   | OpenApiCollectionValidationError
-=======
-    PersistedQueryValidationError
-  | SchemaChangeViolationError
-  | InvalidGraphQLSchemaError
->>>>>>> origin/main
 
 union InputFieldChange = DeprecatedChange | DescriptionChanged | TypeChanged
 
 union InputObjectChange =
-<<<<<<< HEAD
   | DescriptionChanged
-=======
-    DescriptionChanged
->>>>>>> origin/main
   | FieldAddedChange
   | FieldRemovedChange
   | InputFieldChanged
 
 union InterfaceChange =
-<<<<<<< HEAD
   | DescriptionChanged
-=======
-    DescriptionChanged
->>>>>>> origin/main
   | FieldAddedChange
   | FieldRemovedChange
   | InterfaceImplementationAdded
@@ -4703,18 +4346,13 @@ union InterfaceChange =
   | PossibleTypeRemoved
 
 union ObjectChange =
-<<<<<<< HEAD
   | DescriptionChanged
-=======
-    DescriptionChanged
->>>>>>> origin/main
   | FieldAddedChange
   | FieldRemovedChange
   | InterfaceImplementationAdded
   | InterfaceImplementationRemoved
   | OutputFieldChanged
 
-<<<<<<< HEAD
 union OpenApiCollectionDeploymentError = OpenApiCollectionValidationError
 
 union OutputFieldChange =
@@ -4763,40 +4401,6 @@ union PublishOpenApiCollectionError =
 
 union PublishSchemaError =
   | StageNotFoundError
-=======
-union OutputFieldChange =
-    ArgumentAdded
-  | ArgumentChanged
-  | ArgumentRemoved
-  | DeprecatedChange
-  | DescriptionChanged
-  | TypeChanged
-
-union PollClientVersionPublishRequestError =
-    ClientVersionRequestNotFoundError
-  | UnauthorizedOperation
-
-union PollClientVersionValidationRequestError =
-    ClientVersionRequestNotFoundError
-  | UnauthorizedOperation
-
-union PollSchemaVersionPublishRequestError =
-    SchemaVersionRequestNotFoundError
-  | UnauthorizedOperation
-
-union PollSchemaVersionValidationRequestError =
-    SchemaVersionRequestNotFoundError
-  | UnauthorizedOperation
-
-union PublishClientError =
-    StageNotFoundError
-  | ClientNotFoundError
-  | UnauthorizedOperation
-  | ClientVersionNotFoundError
-
-union PublishSchemaError =
-    StageNotFoundError
->>>>>>> origin/main
   | ApiNotFoundError
   | SchemaNotFoundError
   | UnauthorizedOperation
@@ -4806,29 +4410,17 @@ union PushDocumentChangesError = UnauthorizedOperation | ChangeStructureInvalid
 union PushWorkspaceChangesError = UnauthorizedOperation | ChangeStructureInvalid
 
 union RemoveWorkspaceError =
-<<<<<<< HEAD
   | UnauthorizedOperation
-=======
-    UnauthorizedOperation
->>>>>>> origin/main
   | WorkspaceNotFound
   | ValidationError
 
 union RenameWorkspaceError =
-<<<<<<< HEAD
   | UnauthorizedOperation
-=======
-    UnauthorizedOperation
->>>>>>> origin/main
   | WorkspaceNotFound
   | ValidationError
 
 union RevokePersonalAccessTokenError =
-<<<<<<< HEAD
   | UnauthorizedOperation
-=======
-    UnauthorizedOperation
->>>>>>> origin/main
   | PersonalAccessTokenNotFoundError
 
 union RoleAssignmentCondition = RoleAssignmentStageAuthorizationCondition
@@ -4836,11 +4428,7 @@ union RoleAssignmentCondition = RoleAssignmentStageAuthorizationCondition
 union ScalarChange = DescriptionChanged
 
 union SchemaChangeLogEntry =
-<<<<<<< HEAD
   | DirectiveModifiedChange
-=======
-    DirectiveModifiedChange
->>>>>>> origin/main
   | EnumModifiedChange
   | InputObjectModifiedChange
   | InterfaceModifiedChange
@@ -4852,25 +4440,15 @@ union SchemaChangeLogEntry =
   | UnionModifiedChange
 
 union SchemaDeploymentError =
-<<<<<<< HEAD
   | PersistedQueryValidationError
-=======
-    PersistedQueryValidationError
->>>>>>> origin/main
   | SchemaChangeViolationError
   | OperationsAreNotAllowedError
   | SchemaVersionSyntaxError
   | InvalidGraphQLSchemaError
-<<<<<<< HEAD
   | OpenApiCollectionValidationError
 
 union SchemaMemberChange =
   | ArgumentAdded
-=======
-
-union SchemaMemberChange =
-    ArgumentAdded
->>>>>>> origin/main
   | ArgumentChanged
   | ArgumentRemoved
   | DescriptionChanged
@@ -4895,22 +4473,14 @@ union SetActiveWorkspaceError = UnauthorizedOperation | WorkspaceNotFound
 union StageCondition = AfterStageCondition
 
 union StartFusionConfigurationCompositionError =
-<<<<<<< HEAD
   | UnauthorizedOperation
-=======
-    UnauthorizedOperation
->>>>>>> origin/main
   | FusionConfigurationRequestNotFoundError
   | InvalidProcessingStateTransitionError
 
 union UnionChange = DescriptionChanged | UnionMemberAdded | UnionMemberRemoved
 
 union UnpublishClientError =
-<<<<<<< HEAD
   | StageNotFoundError
-=======
-    StageNotFoundError
->>>>>>> origin/main
   | ClientNotFoundError
   | UnauthorizedOperation
   | ClientVersionNotFoundError
@@ -4921,11 +4491,7 @@ union UpdateApiSettingsError = ApiNotFoundError | UnauthorizedOperation
 union UpdateFeatureFlagsError = UnauthorizedOperation | ValidationError
 
 union UpdateMockSchemaError =
-<<<<<<< HEAD
   | MockSchemaNonUniqueNameError
-=======
-    MockSchemaNonUniqueNameError
->>>>>>> origin/main
   | MockSchemaNotFoundError
   | UnauthorizedOperation
   | ValidationError
@@ -4933,11 +4499,7 @@ union UpdateMockSchemaError =
 union UpdatePreferencesError = UnauthorizedOperation | ValidationError
 
 union UpdateStagesError =
-<<<<<<< HEAD
   | ApiNotFoundError
-=======
-    ApiNotFoundError
->>>>>>> origin/main
   | StageNotFoundError
   | StagesHavePublishedDependenciesError
   | StageValidationError
@@ -4945,17 +4507,19 @@ union UpdateStagesError =
 union UpdateThemeSettingsError = UnauthorizedOperation | ValidationError
 
 union UploadClientError =
-<<<<<<< HEAD
   | ClientNotFoundError
-=======
-    ClientNotFoundError
->>>>>>> origin/main
   | ConcurrentOperationError
   | InvalidPersistedQueryError
   | UnauthorizedOperation
   | DuplicatedTagError
 
-<<<<<<< HEAD
+union UploadFusionSubgraphError =
+  | InvalidFusionSourceSchemaArchiveError
+  | ApiNotFoundError
+  | ConcurrentOperationError
+  | UnauthorizedOperation
+  | DuplicatedTagError
+
 union UploadOpenApiCollectionError =
   | OpenApiCollectionNotFoundError
   | ConcurrentOperationError
@@ -4965,31 +4529,16 @@ union UploadOpenApiCollectionError =
 
 union UploadSchemaError =
   | ApiNotFoundError
-=======
-union UploadFusionSubgraphError =
-    InvalidFusionSourceSchemaArchiveError
-  | ConcurrentOperationError
-  | UnauthorizedOperation
-  | DuplicatedTagError
-
-union UploadSchemaError =
-    ApiNotFoundError
->>>>>>> origin/main
   | ConcurrentOperationError
   | DuplicatedTagError
   | UnauthorizedOperation
 
 union ValidateClientError =
-<<<<<<< HEAD
   | StageNotFoundError
-=======
-    StageNotFoundError
->>>>>>> origin/main
   | ClientNotFoundError
   | UnauthorizedOperation
 
 union ValidateFusionConfigurationCompositionError =
-<<<<<<< HEAD
   | UnauthorizedOperation
   | FusionConfigurationRequestNotFoundError
   | InvalidProcessingStateTransitionError
@@ -5015,38 +4564,12 @@ union WorkspaceChangeError =
 
 union WorkspaceChangeResult =
   | ApiDocument
-=======
-    UnauthorizedOperation
-  | FusionConfigurationRequestNotFoundError
-  | InvalidProcessingStateTransitionError
-
-union ValidateSchemaError =
-    StageNotFoundError
-  | SchemaNotFoundError
-  | ApiNotFoundError
-  | UnauthorizedOperation
-
-union WorkspaceChangeError =
-    ChangeValidationFailed
-  | HasBeenChangedConflict
-  | HasBeenDeletedConflict
-  | IdentifierCollisionConflict
-  | UnexpectedErrorOnChange
-  | WorkspaceNotFoundForChange
-
-union WorkspaceChangeResult =
-    ApiDocument
->>>>>>> origin/main
   | Api
   | WorkspaceDocument
   | Environment
 
 union WorkspaceDocumentChangeError =
-<<<<<<< HEAD
   | DocumentChangedConflict
-=======
-    DocumentChangedConflict
->>>>>>> origin/main
   | DocumentNameCollisionConflict
   | DocumentDeletionConflict
   | UnexpectedErrorOnDocumentChange
@@ -5525,15 +5048,15 @@ input UploadClientInput {
   tag: String!
 }
 
-<<<<<<< HEAD
-input UploadOpenApiCollectionInput {
-  collection: Upload!
-  openApiCollectionId: ID!
-=======
 input UploadFusionSubgraphInput {
   apiId: ID!
   archive: Upload!
->>>>>>> origin/main
+  tag: String!
+}
+
+input UploadOpenApiCollectionInput {
+  collection: Upload!
+  openApiCollectionId: ID!
   tag: String!
 }
 
@@ -5845,14 +5368,9 @@ directive @specifiedBy(
 
 scalar Any
 
-<<<<<<< HEAD
 "The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
 scalar DateTime
   @specifiedBy(url: "https://scalars.graphql.org/andimarek/date-time.html")
-=======
-"The `DateTime` scalar represents an ISO-8601 compliant date time type."
-scalar DateTime @specifiedBy(url: "https://www.graphql-scalars.com/date-time")
->>>>>>> origin/main
 
 "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
 scalar Long

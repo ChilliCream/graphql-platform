@@ -27,10 +27,10 @@ internal static class OpenApiCollectionHelpers
                 var document = Utf8GraphQLParser.Parse(fileContent);
                 definition = OpenApiDefinitionParser.Parse(document);
             }
-            catch
+            catch (Exception exception)
             {
                 // TODO: Handle properly
-                continue;
+                throw new ExitException(exception.Message);
             }
 
             if (definition is OpenApiEndpointDefinition endpoint)
@@ -66,6 +66,8 @@ internal static class OpenApiCollectionHelpers
 
         await collectionArchive.CommitAsync(cancellationToken);
         collectionArchive.Dispose();
+
+        archiveStream.Position = 0;
 
         return archiveStream;
     }

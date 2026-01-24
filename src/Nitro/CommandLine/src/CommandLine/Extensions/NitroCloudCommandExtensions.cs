@@ -40,19 +40,16 @@ public static class NitroCloudCommandExtensions
         command.AddCommand(new ApiCommand());
         command.AddCommand(new ClientCommand());
         command.AddCommand(new EnvironmentCommand());
-
-        var fusionCommand = new FusionCommand();
-        command.AddCommand(fusionCommand);
-
+        command.AddCommand(new FusionCommand());
         command.AddCommand(new LaunchCommand());
         command.AddCommand(new LoginCommand());
         command.AddCommand(new LogoutCommand());
         command.AddCommand(new MockCommand());
+        command.AddCommand(new OpenApiCommand());
         command.AddCommand(new PersonalAccessTokenCommand());
         command.AddCommand(new SchemaCommand());
         command.AddCommand(new StageCommand());
         command.AddCommand(new WorkspaceCommand());
-        command.AddCommand(new OpenApiCommand());
     }
 
     internal static void AddNitroCloudDefaultOptions(this Command command)
