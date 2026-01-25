@@ -726,6 +726,7 @@ fragment OpenApiCollectionVersionPublishFailed on OpenApiCollectionVersionPublis
     ...UnexpectedProcessingError
     ...ProcessingTimeoutError
     ...ConcurrentOperationError
+    ...OpenApiCollectionValidationError
   }
 }
 
