@@ -61,7 +61,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         }
     }
 
-    protected override async ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestsFromBodyAsync(
+    protected override async ValueTask<GraphQLRequest[]> ParseRequestsFromBodyAsync(
         HttpContext context,
         ExecutorSession session)
     {

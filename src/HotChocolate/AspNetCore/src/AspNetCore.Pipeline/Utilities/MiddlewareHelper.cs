@@ -126,7 +126,7 @@ internal static class MiddlewareHelper
                     await executorSession.RequestParser.ParsePersistedOperationRequestAsync(
                         operationId,
                         operationName,
-                        context.Request.Body,
+                        context.Request.BodyReader,
                         context.RequestAborted);
             }
             catch (GraphQLRequestException ex)

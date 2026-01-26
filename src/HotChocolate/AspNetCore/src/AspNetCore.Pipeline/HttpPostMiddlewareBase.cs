@@ -242,10 +242,17 @@ HANDLE_RESULT:
         }
     }
 
-    protected virtual async ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestsFromBodyAsync(
+    protected virtual async ValueTask<GraphQLRequest[]> ParseRequestsFromBodyAsync(
         HttpContext context,
         ExecutorSession session)
-        => await session.RequestParser.ParseRequestAsync(context.Request.Body, context.RequestAborted);
+    {
+        var requests =
+            await session.RequestParser.ParseRequestAsync(
+                context.Request.BodyReader,
+                context.RequestAborted);
+
+        return requests;
+    }
 
     private static bool TryParseOperations(
         string operationNameString,
