@@ -309,7 +309,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 {
                     throw DefaultHttpRequestParser_MaxRequestSizeExceeded();
                 }
-            } while (read == chunkSize);
+            } while (read != 0);
 
             if (writer.Length == 0)
             {
