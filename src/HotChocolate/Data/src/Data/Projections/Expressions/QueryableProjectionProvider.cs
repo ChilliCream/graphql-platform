@@ -107,7 +107,7 @@ public class QueryableProjectionProvider : ProjectionProvider
             var visitorContext = new QueryableProjectionContext(
                 context,
                 context.ObjectType,
-                context.Selection.Type.UnwrapRuntimeType(),
+                typeof(TEntityType),
                 inMemory);
 
             var visitor = new QueryableProjectionVisitor();
