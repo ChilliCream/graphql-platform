@@ -2,6 +2,7 @@ namespace HotChocolate.Fusion;
 
 internal static class WellKnownArgumentNames
 {
+    public const string AssumedSize = "assumedSize";
     public const string DestructiveHint = "destructiveHint";
     public const string Field = "field";
     public const string Fields = "fields";
@@ -22,10 +23,15 @@ internal static class WellKnownArgumentNames
     public const string Pattern = "pattern";
     public const string Provides = "provides";
     public const string Requirements = "requirements";
+    public const string RequireOneSlicingArgument = "requireOneSlicingArgument";
     public const string Schema = "schema";
     public const string Scope = "scope";
     public const string SharedMaxAge = "sharedMaxAge";
+    public const string SizedFields = "sizedFields";
+    public const string SlicingArgumentDefaultValue = "slicingArgumentDefaultValue";
+    public const string SlicingArguments = "slicingArguments";
     public const string SourceType = "sourceType";
     public const string Type = "type";
     public const string Vary = "vary";
+    public const string Weight = "weight";
 }

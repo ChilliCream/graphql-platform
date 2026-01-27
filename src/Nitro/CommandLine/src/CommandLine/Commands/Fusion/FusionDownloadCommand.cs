@@ -51,7 +51,7 @@ internal sealed class FusionDownloadCommand : Command
 
         console.Title($"Download the fusion configuration {apiId}/{stageName}");
 
-        await using var stream = await FusionPublishHelpers.DownloadConfigurationAsync(
+        await using var stream = await FusionPublishHelpers.DownloadLatestFusionArchiveAsync(
             apiId,
             stageName,
             client,

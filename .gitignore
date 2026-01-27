@@ -325,5 +325,5 @@ conferences.db-wal
 .mono/
 packages.lock.json
 
-Directory.Build.props.user
+Directory.Build.user.props
 .generated/

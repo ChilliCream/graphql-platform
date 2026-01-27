@@ -69,4 +69,7 @@
   <data name="RootCommand_Description" xml:space="preserve">
     <value>Nitro CLI</value>
   </data>
+  <data name="PublishCommand_SourceSchemaOption_Description" xml:space="preserve">
+    <value>Specifies one or more source schemas that should be included in the composition. Source schemas can either be just a name ('example') or a name and a version ('example@1.0.0'). If no version is specified the value of the '--tag' option is taken as the source schema version.</value>
+  </data>
 </root>
