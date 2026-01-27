@@ -32,19 +32,6 @@ public static class HotChocolateFusionServiceCollectionExtensions
         return CreateBuilder(services, name);
     }
 
-    /// <summary>
-    /// Gets the root service provider from the schema services. This allows
-    /// schema services to access application level services.
-    /// </summary>
-    /// <param name="services">
-    /// The schema services.
-    /// </param>
-    /// <returns>
-    /// The root service provider.
-    /// </returns>
-    public static IServiceProvider GetRootServiceProvider(this IServiceProvider services)
-        => services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
-
     private static void AddRequestExecutorManager(
         IServiceCollection services)
     {
