@@ -76,5 +76,5 @@ public class PageConnection<TNode> : ConnectionBase<TNode, PageEdge<TNode>, Page
     /// Identifies the total count of items in the connection.
     /// </summary>
     [GraphQLDescription("Identifies the total count of items in the connection.")]
-    public int TotalCount => _page.TotalCount ?? -1;
+    public int TotalCount => _page.TotalCount ?? 0;
 }
