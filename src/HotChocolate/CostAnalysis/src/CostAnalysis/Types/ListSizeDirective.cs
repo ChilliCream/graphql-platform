@@ -31,11 +31,7 @@ public sealed class ListSizeDirective
         SlicingArguments = slicingArguments ?? [];
         SizedFields = sizedFields ?? [];
         SlicingArgumentDefaultValue = slicingArgumentDefaultValue;
-
-        // https://ibm.github.io/graphql-specs/cost-spec.html#sec-requireOneSlicingArgument
-        // Per default, requireOneSlicingArgument is enabled,
-        // and has to be explicitly disabled if not desired for a field.
-        RequireOneSlicingArgument = SlicingArguments is { Length: > 0 } && (requireOneSlicingArgument ?? true);
+        RequireOneSlicingArgument = requireOneSlicingArgument;
     }
 
     /// <summary>
