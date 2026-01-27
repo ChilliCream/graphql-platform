@@ -304,7 +304,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public CancellationToken RequestAborted => _context.RequestAborted;
 
-        public IFeatureCollection Features => throw new NotImplementedException();
+        public IFeatureCollection Features => _context.Features;
 
         public T Parent<T>() => _context.Parent<T>();
 

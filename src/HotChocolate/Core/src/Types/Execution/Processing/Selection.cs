@@ -270,7 +270,7 @@ public sealed class Selection : ISelection, IFeatureProvider
     {
         ArgumentNullException.ThrowIfNull(field);
 
-        return new Selection(
+        var selection = new Selection(
             Id,
             ResponseName,
             _utf8ResponseName,
@@ -283,13 +283,17 @@ public sealed class Selection : ISelection, IFeatureProvider
             Strategy,
             ResolverPipeline,
             PureResolver);
+
+        selection._declaringSelectionSet = _declaringSelectionSet;
+
+        return selection;
     }
 
     public Selection WithType(IType type)
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        return new Selection(
+        var selection = new Selection(
             Id,
             ResponseName,
             _utf8ResponseName,
@@ -302,6 +306,10 @@ public sealed class Selection : ISelection, IFeatureProvider
             Strategy,
             ResolverPipeline,
             PureResolver);
+
+        selection._declaringSelectionSet = _declaringSelectionSet;
+
+        return selection;
     }
 
     public override string ToString()

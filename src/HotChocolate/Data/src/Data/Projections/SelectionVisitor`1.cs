@@ -146,7 +146,7 @@ public class SelectionVisitor<TContext> : SelectionVisitor where TContext : ISel
                     continue;
                 }
 
-                if (Visit(selection, context).Kind is SelectionVisitorActionKind.Break)
+                if (Visit(childSelection, context).Kind is SelectionVisitorActionKind.Break)
                 {
                     return Break;
                 }
