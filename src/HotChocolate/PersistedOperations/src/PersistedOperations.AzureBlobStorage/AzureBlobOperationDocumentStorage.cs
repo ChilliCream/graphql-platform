@@ -8,7 +8,7 @@ using HotChocolate.Language;
 namespace HotChocolate.PersistedOperations.AzureBlobStorage;
 
 /// <summary>
-/// An implementation of <see cref="IOperationDocumentStorage"/> that uses Redis as a storage.
+/// An implementation of <see cref="IOperationDocumentStorage"/> that uses Azure Blob Storage.
 /// </summary>
 public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
 {
