@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
@@ -87,16 +86,18 @@ public static class CompilationExtensions
 
     public static IMemberDescription? GetDescription(
         this Compilation compilation,
-        ISymbol methodOrProperty,
-        ImmutableArray<ResolverParameter> parameters)
+        ISymbol symbol)
     {
-        switch (methodOrProperty)
+        switch (symbol)
         {
             case IPropertySymbol property:
                 return property.GetDescription(compilation);
 
             case IMethodSymbol method:
                 return method.GetDescription(compilation);
+
+            case IParameterSymbol parameter:
+                return parameter.GetDescription(compilation);
 
             default:
                 return null;
