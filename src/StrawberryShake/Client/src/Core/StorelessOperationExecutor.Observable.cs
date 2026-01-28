@@ -49,7 +49,12 @@ public partial class StorelessOperationExecutor<TData, TResult>
                         return;
                     }
 
-                    observer.OnNext(resultBuilder.Build(response));
+                    var result = resultBuilder.Build(response);
+                    observer.OnNext(result);
+                    if (result.IsErrorResult())
+                    {
+                        break;
+                    }
                 }
             }
             catch (Exception ex)
