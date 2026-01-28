@@ -11,7 +11,7 @@ internal sealed class OperationTool(DocumentNode documentNode, Tool tool)
 
     public Tool Tool { get; } = tool;
 
-    public Resource? OpenAiComponentResource { get; init; }
+    public Resource? ViewResource { get; init; }
 
-    public string? OpenAiComponentHtml { get; init; }
+    public string? ViewHtml { get; init; }
 }

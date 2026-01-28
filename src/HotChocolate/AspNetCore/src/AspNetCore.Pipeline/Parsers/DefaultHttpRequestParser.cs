@@ -60,7 +60,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         {
             const int chunkSize = 256;
             using var writer = new PooledArrayWriter();
-            var read = 0;
+            int read;
 
             do
             {
@@ -72,7 +72,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 {
                     throw DefaultHttpRequestParser_MaxRequestSizeExceeded();
                 }
-            } while (read == chunkSize);
+            } while (read != 0);
 
             if (writer.Length == 0)
             {
@@ -309,7 +309,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 {
                     throw DefaultHttpRequestParser_MaxRequestSizeExceeded();
                 }
-            } while (read == chunkSize);
+            } while (read != 0);
 
             if (writer.Length == 0)
             {
