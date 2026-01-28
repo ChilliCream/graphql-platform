@@ -2,12 +2,60 @@ using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using HotChocolate.Types.Composite;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
 public class RequireTests : FusionTestBase
 {
+    [Fact]
+    public async Task Requirement_On_Nullable_Field()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product {
+              id: ID!
+              nullableField: String @null
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<NullableRequirement.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              productById(id: "1") {
+                fieldWithNullableRequirement
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     [Fact]
     public async Task Require_Object_In_A_List()
     {
@@ -185,6 +233,23 @@ public class RequireTests : FusionTestBase
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    private static class NullableRequirement
+    {
+        public class Query
+        {
+            [Lookup]
+            public Product? GetProductById([ID] int id) => new Product(id);
+        }
+
+        public record Product([property: ID] int Id)
+        {
+            public string GetFieldWithNullableRequirement([Require("nullableField")] string? nullableArgument)
+            {
+                return nullableArgument is null ? "Required field is null" : "Required field is not null";
+            }
+        }
     }
 
     public static class BookCatalog
