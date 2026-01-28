@@ -4,10 +4,9 @@
     "Title": "Get With Non Nullable Variables",
     "Description": "GetWithNonNullableVariables description",
     "Meta": {
-      "openai/outputTemplate": "ui://open-ai-components/get-with-non-nullable-variables-C7C16BF50987BEE49CA1D2CCC7BBC3D3A3A92660EB0380F842EBA6BB87F56259.html",
-      "openai/widgetAccessible": true,
-      "openai/toolInvocation/invoking": "Invoking GetWithNonNullableVariables...",
-      "openai/toolInvocation/invoked": "GetWithNonNullableVariables invoked."
+      "ui": {
+        "resourceUri": "ui://views/get-with-non-nullable-variables-A3466F8D1004DE6FF9F8786180799B3534129EE7ABD562AA77F9973EEC4D2898.html"
+      }
     }
   },
   {

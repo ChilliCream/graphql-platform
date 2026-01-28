@@ -26,13 +26,13 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
         var outputSchema = CreateOutputSchema(CreateDataSchema(result.Properties, result.RequiredProperties));
 
         JsonObject? meta = null;
-        Resource? openAiComponentResource = null;
+        Resource? viewResource = null;
 
-        if (toolDefinition.OpenAiComponent is { } openAiComponent)
+        if (toolDefinition.View is { } view)
         {
             meta = [];
-            AddOpenAiComponentMetadata(meta, toolDefinition);
-            openAiComponentResource = CreateOpenAiComponentResource(openAiComponent, toolDefinition);
+            AddViewMetadata(meta, toolDefinition);
+            viewResource = CreateViewResource(view, toolDefinition);
         }
 
         var tool = new Tool
@@ -67,8 +67,8 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
 
         return new OperationTool(toolDefinition.Document, tool)
         {
-            OpenAiComponentResource = openAiComponentResource,
-            OpenAiComponentHtml = toolDefinition.OpenAiComponent?.HtmlTemplateText
+            ViewResource = viewResource,
+            ViewHtml = toolDefinition.View?.Html
         };
     }
 
@@ -136,91 +136,137 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
                 .Required(requiredProperties);
     }
 
-    private static void AddOpenAiComponentMetadata(
+    private static void AddViewMetadata(
         JsonObject meta,
         OperationToolDefinition toolDefinition)
     {
-        if (toolDefinition.OpenAiComponent is not { } openAiComponent)
+        JsonObject? ui = null;
+
+        if (toolDefinition.ViewResourceUri is not null)
         {
-            return;
+            ui ??= [];
+            ui.Add("resourceUri", toolDefinition.ViewResourceUri);
         }
 
-        meta.Add("openai/outputTemplate", toolDefinition.OpenAiComponentOutputTemplate);
-
-        if (openAiComponent.AllowToolCalls)
+        if (toolDefinition.Visibility is { } visibility)
         {
-            meta.Add("openai/widgetAccessible", openAiComponent.AllowToolCalls);
+            ui ??= [];
+            var values = visibility.Select(v => JsonValue.Create(v.ToString().ToLowerInvariant())).ToArray<JsonNode>();
+            ui.Add("visibility", new JsonArray(values));
         }
 
-        if (openAiComponent.ToolInvokingStatusText is not null)
+        if (ui is not null)
         {
-            meta.Add("openai/toolInvocation/invoking", openAiComponent.ToolInvokingStatusText);
-        }
-
-        if (openAiComponent.ToolInvokedStatusText is not null)
-        {
-            meta.Add("openai/toolInvocation/invoked", openAiComponent.ToolInvokedStatusText);
+            meta.Add("ui", ui);
         }
     }
 
-    private static Resource CreateOpenAiComponentResource(
-        OpenAiComponent openAiComponent,
+    private static Resource CreateViewResource(
+        McpAppView view,
         OperationToolDefinition toolDefinition)
     {
         JsonObject? meta = null;
 
-        if (openAiComponent.Description is not null)
-        {
-            meta ??= [];
-            meta["openai/widgetDescription"] = openAiComponent.Description;
-        }
-
-        if (openAiComponent.PrefersBorder is not null)
-        {
-            meta ??= [];
-            meta["openai/widgetPrefersBorder"] = openAiComponent.PrefersBorder;
-        }
-
-        if (openAiComponent.Csp is { } csp)
+        if (view.Csp is { } csp)
         {
             JsonObject? contentSecurityPolicy = null;
+
+            if (csp.BaseUriDomains is { Length: > 0 } baseUriDomains)
+            {
+                contentSecurityPolicy ??= [];
+                contentSecurityPolicy.Add(
+                    "baseUriDomains",
+                    new JsonArray(baseUriDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
+            }
 
             if (csp.ConnectDomains is { Length: > 0 } connectDomains)
             {
                 contentSecurityPolicy ??= [];
                 contentSecurityPolicy.Add(
-                    "connect_domains",
+                    "connectDomains",
                     new JsonArray(connectDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
+            }
+
+            if (csp.FrameDomains is { Length: > 0 } frameDomains)
+            {
+                contentSecurityPolicy ??= [];
+                contentSecurityPolicy.Add(
+                    "frameDomains",
+                    new JsonArray(frameDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
             }
 
             if (csp.ResourceDomains is { Length: > 0 } resourceDomains)
             {
                 contentSecurityPolicy ??= [];
                 contentSecurityPolicy.Add(
-                    "resource_domains",
+                    "resourceDomains",
                     new JsonArray(resourceDomains.Select(d => JsonValue.Create(d)).ToArray<JsonNode>()));
             }
 
             if (contentSecurityPolicy is not null)
             {
                 meta ??= [];
-                meta.Add("openai/widgetCSP", contentSecurityPolicy);
+                meta.Add("csp", contentSecurityPolicy);
             }
         }
 
-        if (openAiComponent.Domain is not null)
+        if (view.Domain is not null)
         {
             meta ??= [];
-            meta.Add("openai/widgetDomain", openAiComponent.Domain);
+            meta.Add("domain", view.Domain);
+        }
+
+        if (view.Permissions is { } permissions)
+        {
+            JsonObject? permissionsObject = null;
+
+            if (permissions.Camera is true)
+            {
+                permissionsObject ??= [];
+                permissionsObject.Add("camera", new JsonObject());
+            }
+
+            if (permissions.ClipboardWrite is true)
+            {
+                permissionsObject ??= [];
+                permissionsObject.Add("clipboardWrite", new JsonObject());
+            }
+
+            if (permissions.Geolocation is true)
+            {
+                permissionsObject ??= [];
+                permissionsObject.Add("geolocation", new JsonObject());
+            }
+
+            if (permissions.Microphone is true)
+            {
+                permissionsObject ??= [];
+                permissionsObject.Add("microphone", new JsonObject());
+            }
+
+            if (permissionsObject is not null)
+            {
+                meta ??= [];
+                meta.Add("permissions", permissionsObject);
+            }
+        }
+
+        if (view.PrefersBorder is not null)
+        {
+            meta ??= [];
+            meta["prefersBorder"] = view.PrefersBorder;
         }
 
         return new Resource
         {
-            Name = string.Format(OperationToolFactory_OpenAiComponentResourceName, toolDefinition.Name),
-            Uri = toolDefinition.OpenAiComponentOutputTemplate!,
-            MimeType = "text/html+skybridge",
-            Size = Encoding.UTF8.GetByteCount(openAiComponent.HtmlTemplateText),
-            Meta = meta
+            Name = string.Format(OperationToolFactory_McpAppViewResourceName, toolDefinition.Name),
+            Uri = toolDefinition.ViewResourceUri!,
+            MimeType = "text/html;profile=mcp-app",
+            Size = Encoding.UTF8.GetByteCount(view.Html),
+            Meta = new JsonObject
+            {
+                ["ui"] = meta
+            }
         };
     }
 
