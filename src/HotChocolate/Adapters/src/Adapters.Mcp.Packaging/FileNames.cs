@@ -13,6 +13,6 @@ internal static class FileNames
     public static string GetToolSettingsPath(string name)
         => $"tools/{name}/settings.json";
 
-    public static string GetToolOpenAiComponentPath(string name)
-        => $"tools/{name}/open-ai-component.html";
+    public static string GetToolViewPath(string name)
+        => $"tools/{name}/view.html";
 }

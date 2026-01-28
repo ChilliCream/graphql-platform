@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+using HotChocolate.Adapters.Mcp.Storage;
 
 namespace HotChocolate.Adapters.Mcp.Serialization;
 
@@ -10,7 +10,9 @@ public sealed record McpToolSettingsDto
 
     public McpToolSettingsAnnotationsDto? Annotations { get; set; }
 
-    public McpToolSettingsOpenAiComponentDto? OpenAiComponent { get; set; }
+    public McpToolSettingsMcpAppViewDto? View { get; set; }
+
+    public List<McpAppViewVisibility>? Visibility { get; set; }
 }
 
 public sealed record McpToolSettingsIconDto
@@ -33,26 +35,35 @@ public sealed record McpToolSettingsAnnotationsDto
     public bool? OpenWorldHint { get; set; }
 }
 
-public sealed record McpToolSettingsOpenAiComponentDto
+public sealed record McpToolSettingsMcpAppViewDto
 {
-    public string? Description { get; set; }
+    public McpToolSettingsCspDto? Csp { get; set; }
 
     public string? Domain { get; set; }
 
+    public McpToolSettingsPermissionsDto? Permissions { get; set; }
+
     public bool? PrefersBorder { get; set; }
+}
 
-    public string? ToolInvokingStatusText { get; set; }
+public class McpToolSettingsPermissionsDto
+{
+    public bool? Camera { get; set; }
 
-    public string? ToolInvokedStatusText { get; set; }
+    public bool? ClipboardWrite { get; set; }
 
-    public bool? AllowToolCalls { get; set; }
+    public bool? Geolocation { get; set; }
 
-    public McpToolSettingsCspDto? Csp { get; set; }
+    public bool? Microphone { get; set; }
 }
 
 public sealed record McpToolSettingsCspDto
 {
-    public ImmutableArray<string>? ConnectDomains { get; set; }
+    public List<string>? BaseUriDomains { get; set; }
 
-    public ImmutableArray<string>? ResourceDomains { get; set; }
+    public List<string>? ConnectDomains { get; set; }
+
+    public List<string>? FrameDomains { get; set; }
+
+    public List<string>? ResourceDomains { get; set; }
 }
