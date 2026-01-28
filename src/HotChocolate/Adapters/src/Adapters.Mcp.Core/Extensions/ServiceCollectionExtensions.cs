@@ -31,7 +31,7 @@ internal static class ServiceCollectionExtensions
                     sp.GetRequiredService<IRequestExecutorProvider>(),
                     sp.GetRequiredService<IRequestExecutorEvents>(),
 #if NET10_0_OR_GREATER
-                    (string)name))
+                    (string)name!))
 #else
                     (string)name!))
 #endif
