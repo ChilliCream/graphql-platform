@@ -243,6 +243,13 @@ internal static class ResultDataMapper
             var fieldResultValueKind = fieldResult.ValueKind;
             if (fieldResultValueKind is JsonValueKind.Null)
             {
+                // If we get a `null` for a leaf value, we can return it.
+                if (currentSegment.PathSegment is null)
+                {
+                    return fieldResult;
+                }
+
+                // If we get a `null` for an item on the path, we return undefined.
                 return default;
             }
 
