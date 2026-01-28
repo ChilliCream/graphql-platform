@@ -536,7 +536,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
     public virtual void WriteConfigureMethod(IOutputTypeInfo type)
     {
-        if (type.RuntimeType is null)
+        if (type.RuntimeTypeName is null)
         {
             Writer.WriteIndentedLine(
                 "static partial void Configure(global::HotChocolate.Types.IObjectTypeDescriptor descriptor);");
@@ -545,7 +545,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         {
             Writer.WriteIndentedLine(
                 "static partial void Configure(global::HotChocolate.Types.IObjectTypeDescriptor<{0}> descriptor);",
-                type.RuntimeType.ToFullyQualified());
+                type.RuntimeTypeName.FullyQualifiedName);
         }
 
         Writer.WriteLine();
@@ -595,14 +595,15 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
     public virtual void WriteResolverConstructor(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
-        var resolverType =
-            type.SchemaSchemaType ??
-            type.RuntimeType ?? throw new InvalidOperationException("Schema type and runtime type are null.");
+        var resolverTypeName =
+            type.SchemaTypeName?.FullyQualifiedName
+            ?? type.RuntimeTypeName?.FullyQualifiedName
+                ?? throw new InvalidOperationException("Schema type and runtime type are null.");
 
         WriteResolverConstructor(
             type,
             typeLookup,
-            resolverType.ToFullyQualified(),
+            resolverTypeName,
             type.Resolvers.Any(t => t.RequiresParameterBindings));
     }
 

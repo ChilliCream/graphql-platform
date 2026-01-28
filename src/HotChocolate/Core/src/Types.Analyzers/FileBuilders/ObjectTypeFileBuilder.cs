@@ -19,14 +19,14 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
         Writer.WriteIndentedLine(
             "internal static void Initialize(global::{0}<global::{1}> descriptor)",
             WellKnownTypes.IObjectTypeDescriptor,
-            objectType.RuntimeTypeFullName);
+            objectType.RuntimeTypeName.FullName);
 
         Writer.WriteIndentedLine("{");
 
         using (Writer.IncreaseIndent())
         {
             WriteInitializationBase(
-                objectType.SchemaTypeFullName,
+                objectType.SchemaTypeName.FullName,
                 objectType.Resolvers.Length > 0 || objectType.NodeResolver is not null,
                 objectType.Resolvers.Any(t => t.RequiresParameterBindings)
                     || (objectType.NodeResolver?.RequiresParameterBindings ?? false),
@@ -92,7 +92,7 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
         WriteResolverConstructor(
             objectType,
             typeLookup,
-            $"global::{objectType.SchemaTypeFullName}",
+            $"global::{objectType.SchemaTypeName.FullName}",
             type.Resolvers.Any(t => t.RequiresParameterBindings)
             || (objectType.NodeResolver?.RequiresParameterBindings ?? false));
     }

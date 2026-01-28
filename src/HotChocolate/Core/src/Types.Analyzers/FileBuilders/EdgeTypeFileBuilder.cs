@@ -1,6 +1,5 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Generators;
-using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
@@ -15,7 +14,7 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
             "{0} partial class {1} : ObjectType<global::{2}>",
             type.IsPublic ? "public" : "internal",
             type.Name,
-            type.RuntimeTypeFullName);
+            type.RuntimeTypeName?.FullName);
         Writer.WriteIndentedLine("{");
         Writer.IncreaseIndent();
     }
@@ -31,7 +30,7 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
         Writer.WriteIndentedLine(
             "protected override void Configure(global::{0}<global::{1}> descriptor)",
             WellKnownTypes.IObjectTypeDescriptor,
-            edgeType.RuntimeTypeFullName);
+            edgeType.RuntimeTypeName.FullName);
 
         Writer.WriteIndentedLine("{");
 
@@ -47,7 +46,7 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
             {
                 Writer.WriteIndentedLine(
                     "var thisType = typeof(global::{0});",
-                    edgeType.RuntimeTypeFullName);
+                    edgeType.RuntimeTypeName.FullName);
                 Writer.WriteIndentedLine(
                     "var bindingResolver = extension.Context.ParameterBindingResolver;");
                 Writer.WriteIndentedLine(
@@ -105,15 +104,14 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
                 }
             }
 
-            if (edgeType.RuntimeType.IsGenericType
+            if (edgeType.NodeFullyQualifiedName is not null
                 && !string.IsNullOrEmpty(edgeType.NameFormat)
                 && edgeType.NameFormat!.Contains("{0}"))
             {
-                var nodeTypeName = edgeType.RuntimeType.TypeArguments[0].ToFullyQualified();
                 Writer.WriteLine();
                 Writer.WriteIndentedLine(
                     "var nodeTypeRef = extension.Context.TypeInspector.GetTypeRef(typeof({0}));",
-                    nodeTypeName);
+                    edgeType.NodeFullyQualifiedName);
                 Writer.WriteIndentedLine("descriptor");
                 using (Writer.IncreaseIndent())
                 {
