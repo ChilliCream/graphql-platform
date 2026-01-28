@@ -445,7 +445,7 @@ internal sealed class FusionPublishCommand : Command
         }
         catch (Exception exception)
         {
-            console.Error.WriteLine(exception.Message);
+            console.ErrorLine(exception.Message);
 
             if (!string.IsNullOrEmpty(requestId))
             {

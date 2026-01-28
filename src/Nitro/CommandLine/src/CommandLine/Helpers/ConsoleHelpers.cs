@@ -12,7 +12,7 @@ internal static class ConsoleHelpers
         if (result.Errors is { Count: > 0 })
         {
             var firstError = result.Errors[0];
-            console.Error.WriteLine($"{firstError.Message} ({firstError.Code})");
+            console.ErrorLine($"{firstError.Message} ({firstError.Code})");
 
             throw new ExitException();
         }
@@ -23,7 +23,7 @@ internal static class ConsoleHelpers
     {
         if (result.Data is null)
         {
-            console.Error.WriteLine($"{Errors.BA00001Message} ({Errors.BA00001})");
+            console.ErrorLine($"{Errors.BA00001Message} ({Errors.BA00001})");
 
             throw new ExitException();
         }
@@ -91,8 +91,8 @@ internal static class ConsoleHelpers
         this IAnsiConsole console,
         IStagesHavePublishedDependenciesError error)
     {
-        console.Error.WriteLine(error.Message);
-        console.Error.WriteLine();
+        console.ErrorLine(error.Message);
+        console.WriteLine();
 
         foreach (var stage in error.Stages)
         {
@@ -121,7 +121,7 @@ internal static class ConsoleHelpers
         console.WarningLine(
             $"There were errors on client {error.Client?.Name.AsHighlight()} [dim](ID: {error.Client?.Id})[/]");
 
-        console.Error.WriteLine(error.Message);
+        console.ErrorLine(error.Message);
 
         var node = new Tree("");
         foreach (var query in error.Queries)
@@ -149,6 +149,69 @@ internal static class ConsoleHelpers
         console.Write(node);
     }
 
+    private static void PrintError(this IAnsiConsole console, IOpenApiCollectionValidationError error)
+    {
+        foreach (var collectionError in error.Collections)
+        {
+            var openApiCollection = collectionError.OpenApiCollection;
+
+            // TODO: This needs to write to stderr
+            console.WarningLine(
+                $"There were errors in the OpenAPI collection '{openApiCollection?.Name.AsHighlight()}' [dim](ID: {openApiCollection?.Id})[/]");
+
+            var node = new Tree("");
+            foreach (var entity in collectionError.Entities)
+            {
+                var entityNode = node.AddNode(GetEntityNodeHeading(entity));
+
+                foreach (var entityError in entity.Errors)
+                {
+                    if (entityError is
+                        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_OpenApiCollectionValidationDocumentError
+                        documentError)
+                    {
+                        var errorLocation = string.Empty;
+                        if (documentError.Locations is { Count: > 0 } locations)
+                        {
+                            errorLocation = $"[grey]({locations[0].Line}:{locations[0].Column})[/]";
+                        }
+
+                        entityNode.AddNode($"{documentError.Message.EscapeMarkup()} {errorLocation}");
+                    }
+                    else if (entityError is
+                        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_OpenApiCollectionValidationEntityValidationError
+                        entityValidationError)
+                    {
+                        entityNode.AddNode(entityValidationError.Message.EscapeMarkup());
+                    }
+                    else
+                    {
+                        entityNode.AddNode("Unknown error type");
+                    }
+                }
+            }
+
+            // TODO: This needs to write to stderr
+            console.Write(node);
+        }
+
+        static string GetEntityNodeHeading(
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities
+                entity)
+        {
+            var heading = entity switch
+            {
+                IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_OpenApiCollectionValidationEndpoint endpoint
+                    => $"Endpoint '{endpoint.HttpMethod} {endpoint.Route}'",
+                IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_OpenApiCollectionValidationModel model
+                    => $"Model '{model.Name}'",
+                _ => "Unknown entity type"
+            };
+
+            return $"[red]{heading}[/]";
+        }
+    }
+
     private static void PrintError(
         this IAnsiConsole console,
         IInvalidGraphQLSchemaError error)
@@ -156,7 +219,7 @@ internal static class ConsoleHelpers
         console.Error.ErrorLine(
             "The schema you are trying to publish is invalid. Please fix the following errors:");
 
-        console.Error.WriteLine(error.Message);
+        console.ErrorLine(error.Message);
 
         var node = new Tree("");
         foreach (var query in error.Errors)
@@ -168,24 +231,33 @@ internal static class ConsoleHelpers
         console.Write(node);
     }
 
+    private static void PrintInvalidOpenApiCollectionArchiveError(this IAnsiConsole console, string message)
+    {
+        console.Error.WriteLine(
+            "The server received an invalid archive. "
+            + "This indicates a bug in the tooling. "
+            + "Please notify ChilliCream."
+            + "Error received: " + message);
+    }
+
     private static void PrintMutationError(this IAnsiConsole ansiConsole, object error)
     {
         switch (error)
         {
             case IOperationsAreNotAllowedError err:
-                ansiConsole.Error.WriteLine(err.Message);
+                ansiConsole.ErrorLine(err.Message);
                 break;
 
             case IConcurrentOperationError err:
-                ansiConsole.Error.WriteLine(err.Message);
+                ansiConsole.ErrorLine(err.Message);
                 break;
 
             case IUnexpectedProcessingError err:
-                ansiConsole.Error.WriteLine(err.Message);
+                ansiConsole.ErrorLine(err.Message);
                 break;
 
             case IProcessingTimeoutError err:
-                ansiConsole.Error.WriteLine(err.Message);
+                ansiConsole.ErrorLine(err.Message);
                 break;
 
             case ISchemaVersionChangeViolationError err:
@@ -193,7 +265,7 @@ internal static class ConsoleHelpers
                 break;
 
             case ISchemaVersionSyntaxError err:
-                ansiConsole.Error.WriteLine(err.Message);
+                ansiConsole.ErrorLine(err.Message);
                 break;
 
             case IPersistedQueryValidationError err:
@@ -205,23 +277,23 @@ internal static class ConsoleHelpers
                 break;
 
             case IApiNotFoundError err:
-                ansiConsole.Error.WriteLine(err.Message);
+                ansiConsole.ErrorLine(err.Message);
                 break;
 
             case IMockSchemaNonUniqueNameError err:
-                ansiConsole.Error.WriteLine(err.Message);
+                ansiConsole.ErrorLine(err.Message);
                 break;
 
             case IMockSchemaNotFoundError err:
-                ansiConsole.Error.WriteLine(err.Message);
+                ansiConsole.ErrorLine(err.Message);
                 break;
 
             case IStageNotFoundError err:
-                ansiConsole.Error.WriteLine(err.Message);
+                ansiConsole.ErrorLine(err.Message);
                 break;
 
             case ISubgraphInvalidError err:
-                ansiConsole.Error.WriteLine(err.Message);
+                ansiConsole.ErrorLine(err.Message);
                 break;
 
             case IInvalidGraphQLSchemaError err:
@@ -240,12 +312,24 @@ internal static class ConsoleHelpers
                     + "Error received: " + err.Message);
                 break;
 
+            case IOpenApiCollectionValidationError err:
+                ansiConsole.PrintError(err);
+                break;
+
+            case IInvalidOpenApiCollectionArchiveError err:
+                ansiConsole.PrintInvalidOpenApiCollectionArchiveError(err.Message);
+                break;
+
+            case IOpenApiCollectionValidationArchiveError err:
+                ansiConsole.PrintInvalidOpenApiCollectionArchiveError(err.Message);
+                break;
+
             case IError err:
-                ansiConsole.Error.WriteLine(err.Message);
+                ansiConsole.ErrorLine(err.Message);
                 break;
 
             default:
-                ansiConsole.Error.WriteLine("Unexpected Error");
+                ansiConsole.ErrorLine("Unexpected Error");
                 break;
         }
     }
