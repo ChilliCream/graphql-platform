@@ -33,7 +33,14 @@ public class DefaultWebSocketPayloadFormatter(WebSocketPayloadFormatterOptions o
     public void Format(IReadOnlyList<IError> errors, IBufferWriter<byte> bufferWriter)
     {
         var writer = new JsonWriter(bufferWriter, _writerOptions);
-        WriteErrors(writer, errors, _serializerOptions, _nullIgnoreCondition);
+        writer.WriteStartArray();
+
+        for (var i = 0; i < errors.Count; i++)
+        {
+            WriteError(writer, errors[i], _serializerOptions, _nullIgnoreCondition);
+        }
+
+        writer.WriteEndArray();
     }
 
     /// <inheritdoc />
