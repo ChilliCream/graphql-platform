@@ -256,4 +256,17 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor MissingXmlDocumentation =
+        new(
+            id: "HC0106",
+            title: "XML documentation is not enabled",
+            messageFormat:
+            "XML documentation inference is enabled, but no XML documentation file was generated. "
+            + "Enable XML documentation generation within the current project"
+            + "or add [assembly: GraphQLIgnoreXmlDocumentation] to disable XML documentation inference.",
+            category: "Documentation",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            customTags: WellKnownDiagnosticTags.CompilationEnd);
 }
