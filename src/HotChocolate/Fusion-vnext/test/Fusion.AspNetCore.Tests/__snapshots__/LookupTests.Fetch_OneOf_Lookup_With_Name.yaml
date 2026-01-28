@@ -12,7 +12,7 @@ response:
     {
       "data": {
         "topAuthor": {
-          "id": 1,
+          "id": "1",
           "name": "Jon Skeet"
         }
       }
@@ -25,11 +25,11 @@ sourceSchemas:
       }
 
       type Author @key(fields: "id") {
-        id: Int!
+        id: ID!
       }
 
       type Book {
-        id: Int!
+        id: ID!
         title: String!
         author: Author! @shareable
       }
@@ -44,7 +44,7 @@ sourceSchemas:
       }
 
       type Author {
-        id: Int!
+        id: ID!
         name: String!
       }
 
@@ -57,7 +57,7 @@ sourceSchemas:
       }
 
       input AuthorByInput @oneOf {
-        id: Int
+        id: ID
         name: String
       }
 
@@ -88,7 +88,7 @@ sourceSchemas:
                 "data": {
                   "lookups": {
                     "author": {
-                      "id": 1
+                      "id": "1"
                     }
                   }
                 }

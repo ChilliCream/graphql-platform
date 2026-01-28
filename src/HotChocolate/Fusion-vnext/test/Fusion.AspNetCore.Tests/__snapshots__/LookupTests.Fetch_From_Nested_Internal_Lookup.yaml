@@ -44,11 +44,11 @@ sourceSchemas:
       }
 
       type Author @key(fields: "id") {
-        id: Int!
+        id: ID!
       }
 
       type Book {
-        id: Int!
+        id: ID!
         title: String!
         author: Author! @shareable
       }
@@ -74,22 +74,22 @@ sourceSchemas:
                   "books": [
                     {
                       "author": {
-                        "id": 1
+                        "id": "1"
                       }
                     },
                     {
                       "author": {
-                        "id": 2
+                        "id": "2"
                       }
                     },
                     {
                       "author": {
-                        "id": 2
+                        "id": "2"
                       }
                     },
                     {
                       "author": {
-                        "id": 2
+                        "id": "2"
                       }
                     }
                   ]
@@ -102,12 +102,12 @@ sourceSchemas:
       }
 
       type Author {
-        id: Int!
+        id: ID!
         name: String!
       }
 
       type InternalLookups @internal {
-        authorById(id: Int!): Author! @lookup
+        authorById(id: ID!): Author! @lookup
       }
 
       type Query {
@@ -117,7 +117,7 @@ sourceSchemas:
       - request:
           document: |
             query Op_76f18599_2(
-              $__fusion_1_id: Int!
+              $__fusion_1_id: ID!
             ) {
               lookups {
                 authorById(id: $__fusion_1_id) {
@@ -128,19 +128,20 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": 1
+                "__fusion_1_id": "1"
               },
               {
-                "__fusion_1_id": 2
+                "__fusion_1_id": "2"
               },
               {
-                "__fusion_1_id": 2
+                "__fusion_1_id": "2"
               },
               {
-                "__fusion_1_id": 2
+                "__fusion_1_id": "2"
               }
             ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -212,7 +213,7 @@ operationPlan:
       schema: b
       operation: |
         query Op_76f18599_2(
-          $__fusion_1_id: Int!
+          $__fusion_1_id: ID!
         ) {
           lookups {
             authorById(id: $__fusion_1_id) {

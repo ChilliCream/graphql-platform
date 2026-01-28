@@ -2,6 +2,8 @@
 title: Migrate Hot Chocolate from 15 to 16
 ---
 
+<!-- TODO: Request batching now responds with JSONL -->
+
 This guide will walk you through the manual migration steps to update your Hot Chocolate GraphQL server to version 16.
 
 Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.*` packages referenced by your project.

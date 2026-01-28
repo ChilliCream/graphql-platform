@@ -65,8 +65,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         SourceSchemaClientRequest originalRequest)
     {
         var defaultAccept = originalRequest.OperationType is OperationType.Subscription
-            ? AcceptContentTypes.Subscription
-            : AcceptContentTypes.Default;
+            ? _configuration.SubscriptionAcceptHeaderValues
+            : _configuration.DefaultAcceptHeaderValues;
         var operationSourceText = originalRequest.OperationSourceText;
 
         switch (originalRequest.Variables.Length)
@@ -91,10 +91,19 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 };
 
             default:
-                return new GraphQLHttpRequest(CreateBatchRequest(operationSourceText, originalRequest))
+                if (_configuration.BatchingMode == SourceSchemaHttpClientBatchingMode.ApolloRequestBatching)
+                {
+                    return new GraphQLHttpRequest(CreateOperationBatchRequest(operationSourceText, originalRequest))
+                    {
+                        Uri = _configuration.BaseAddress,
+                        Accept = _configuration.BatchingAcceptHeaderValues
+                    };
+                }
+
+                return new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, originalRequest))
                 {
                     Uri = _configuration.BaseAddress,
-                    Accept = AcceptContentTypes.VariableBatching
+                    Accept = _configuration.BatchingAcceptHeaderValues
                 };
         }
     }
@@ -118,7 +127,23 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             extensions: null);
     }
 
-    private static VariableBatchRequest CreateBatchRequest(
+    private static OperationBatchRequest CreateOperationBatchRequest(
+        string operationSourceText,
+        SourceSchemaClientRequest originalRequest)
+    {
+        var requests = new OperationRequest[originalRequest.Variables.Length];
+
+        for (var i = 0; i < requests.Length; i++)
+        {
+            requests[i] = CreateSingleRequest(
+                operationSourceText,
+                originalRequest.Variables[i].Values);
+        }
+
+        return new OperationBatchRequest(requests);
+    }
+
+    private static VariableBatchRequest CreateVariableBatchRequest(
         string operationSourceText,
         SourceSchemaClientRequest originalRequest)
     {
@@ -219,24 +244,44 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     {
                         SourceSchemaResult? errorResult = null;
 
-                        await foreach (var result in response.ReadAsResultStreamAsync()
-                            .WithCancellation(cancellationToken))
+                        if (configuration.BatchingMode == SourceSchemaHttpClientBatchingMode.ApolloRequestBatching)
                         {
-                            if (!result.Root.TryGetProperty(VariableIndex, out var variableIndex)
-                                || variableIndex.ValueKind is not JsonValueKind.Number)
+                            var requestIndex = 0;
+                            await foreach (var result in response.ReadAsResultStreamAsync()
+                                .WithCancellation(cancellationToken))
                             {
-                                errorResult = new SourceSchemaResult(variables[0].Path, result);
-                                configuration.OnSourceSchemaResult?.Invoke(context, node, errorResult);
-                                break;
+                                var (path, _) = variables[requestIndex];
+
+                                var sourceSchemaResult = new SourceSchemaResult(path, result);
+
+                                configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+
+                                yield return sourceSchemaResult;
+
+                                requestIndex++;
                             }
+                        }
+                        else
+                        {
+                            await foreach (var result in response.ReadAsResultStreamAsync()
+                                .WithCancellation(cancellationToken))
+                            {
+                                if (!result.Root.TryGetProperty(VariableIndex, out var variableIndex)
+                                    || variableIndex.ValueKind is not JsonValueKind.Number)
+                                {
+                                    errorResult = new SourceSchemaResult(variables[0].Path, result);
+                                    configuration.OnSourceSchemaResult?.Invoke(context, node, errorResult);
+                                    break;
+                                }
 
-                            var index = variableIndex.GetInt32();
-                            var (path, _) = variables[index];
-                            var sourceSchemaResult = new SourceSchemaResult(path, result);
+                                var index = variableIndex.GetInt32();
+                                var (path, _) = variables[index];
+                                var sourceSchemaResult = new SourceSchemaResult(path, result);
 
-                            configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+                                configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
-                            yield return sourceSchemaResult;
+                                yield return sourceSchemaResult;
+                            }
                         }
 
                         if (errorResult is not null)
@@ -263,30 +308,5 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         public override bool IsSuccessful => response.IsSuccessStatusCode;
 
         public override void Dispose() => response.Dispose();
-    }
-
-    private static class AcceptContentTypes
-    {
-        public static readonly ImmutableArray<MediaTypeWithQualityHeaderValue> Default =
-        [
-            new("application/graphql-response+json") { CharSet = "utf-8" },
-            new("application/json") { CharSet = "utf-8" },
-            new("application/jsonl") { CharSet = "utf-8" },
-            new("text/event-stream") { CharSet = "utf-8" }
-        ];
-
-        public static ImmutableArray<MediaTypeWithQualityHeaderValue> VariableBatching { get; } =
-        [
-            new("application/jsonl") { CharSet = "utf-8" },
-            new("text/event-stream") { CharSet = "utf-8" },
-            new("application/graphql-response+json") { CharSet = "utf-8" },
-            new("application/json") { CharSet = "utf-8" }
-        ];
-
-        public static ImmutableArray<MediaTypeWithQualityHeaderValue> Subscription { get; } =
-        [
-            new("application/jsonl") { CharSet = "utf-8" },
-            new("text/event-stream") { CharSet = "utf-8" }
-        ];
     }
 }

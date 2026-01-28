@@ -140,7 +140,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             {
                 buffer[index++] = result;
 
-                if (result.Errors is not null)
+                if (result.HasErrors)
                 {
                     hasSomeErrors = true;
                 }

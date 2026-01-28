@@ -1,5 +1,9 @@
+using System.Collections.Immutable;
+using System.Net.Http.Headers;
+using HotChocolate.AspNetCore;
 using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Types.Descriptors;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
@@ -50,7 +54,11 @@ public abstract partial class FusionTestBase
         string schemaName,
         string schemaText,
         bool isOffline = false,
-        bool isTimingOut = false)
+        bool isTimingOut = false,
+        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
+        Action<HttpClient>? configureHttpClient = null,
+        HttpClient? httpClient = null)
     {
         return _testServerSession.CreateServer(services =>
         {
@@ -68,12 +76,24 @@ public abstract partial class FusionTestBase
             {
                 opt.IsOffline = isOffline;
                 opt.IsTimingOut = isTimingOut;
+                opt.ConfigureHttpClient = configureHttpClient;
+                opt.HttpClient = httpClient;
+                opt.BatchingMode = batchingMode;
+                opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;
             });
         },
         app =>
         {
             app.UseRouting();
-            app.UseEndpoints(endpoint => endpoint.MapGraphQL(schemaName: schemaName));
+            app.UseEndpoints(
+                endpoint =>
+                {
+                    endpoint.MapGraphQL(schemaName: schemaName)
+                        .WithOptions(new GraphQLServerOptions
+                        {
+                            EnableBatching = true
+                        });
+                });
         });
     }
 

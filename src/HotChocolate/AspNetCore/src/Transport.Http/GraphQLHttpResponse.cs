@@ -340,8 +340,8 @@ public sealed class GraphQLHttpResponse : IDisposable
         if (contentType?.MediaType?.Equals(ContentType.Json, StringComparison.Ordinal) ?? false)
         {
             _message.EnsureSuccessStatusCode();
-            return new GraphQLHttpSingleResultEnumerable(
-                ct => ReadAsResultInternalAsync(contentType.CharSet, ct));
+
+            return new JsonResultEnumerable(_message, contentType.CharSet);
         }
 
         _message.EnsureSuccessStatusCode();

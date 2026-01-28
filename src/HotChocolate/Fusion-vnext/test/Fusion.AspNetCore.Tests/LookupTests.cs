@@ -1,7 +1,10 @@
+using System.Net;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using HotChocolate.Types.Composite;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
@@ -138,14 +141,354 @@ public class LookupTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Fetch_With_Request_Batching_JsonLines()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<OneOfLookups.SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            """
+            type Query {
+              authorById(id: ID!): Author @lookup
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+            }
+            """,
+            batchingMode: SourceSchemaHttpClientBatchingMode.ApolloRequestBatching,
+            batchingAcceptHeaderValues: [new("application/jsonl") { CharSet = "utf-8" }]);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                author {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Fetch_With_Request_Batching_SSE()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<OneOfLookups.SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            """
+            type Query {
+              authorById(id: ID!): Author @lookup
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+            }
+            """,
+            batchingMode: SourceSchemaHttpClientBatchingMode.ApolloRequestBatching,
+            batchingAcceptHeaderValues: [new("text/event-stream") { CharSet = "utf-8" }]);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                author {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Fetch_With_Request_Batching_JsonArray()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<OneOfLookups.SourceSchema1.Query>());
+
+        const string jsonArrayResponse =
+            """
+            [
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Author 1"
+                  }
+                }
+              },
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Author 2"
+                  }
+                }
+              },
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Author 2"
+                  }
+                }
+              },
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Author 2"
+                  }
+                }
+              }
+            ]
+            """;
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            """
+            type Query {
+              authorById(id: ID!): Author @lookup
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+            }
+            """,
+            batchingMode: SourceSchemaHttpClientBatchingMode.ApolloRequestBatching,
+            httpClient: new HttpClient(new MockHttpMessageHandler(jsonArrayResponse)));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                author {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact(Skip = "The Gateway needs to produce errors for this")]
+    public async Task Fetch_With_Request_Batching_JsonArray_Returns_Wrong_Number_Of_Items()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<OneOfLookups.SourceSchema1.Query>());
+
+        // this contains just 2 entries, while it should contain 4.
+        const string jsonArrayResponse =
+            """
+            [
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Author 1"
+                  }
+                }
+              },
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Author 2"
+                  }
+                }
+              }
+            ]
+            """;
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            """
+            type Query {
+              authorById(id: ID!): Author @lookup
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+            }
+            """,
+            batchingMode: SourceSchemaHttpClientBatchingMode.ApolloRequestBatching,
+            httpClient: new HttpClient(new MockHttpMessageHandler(jsonArrayResponse)));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                author {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact(Skip = "The Gateway needs to produce errors for this")]
+    public async Task Fetch_With_Request_Batching_JsonArray_Returns_Singular_Response()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<OneOfLookups.SourceSchema1.Query>());
+
+        const string jsonResponse =
+            """
+            {
+              "data": {
+                "authorById": {
+                  "name": "Author 1"
+                }
+              }
+            }
+            """;
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            """
+            type Query {
+              authorById(id: ID!): Author @lookup
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+            }
+            """,
+            batchingMode: SourceSchemaHttpClientBatchingMode.ApolloRequestBatching,
+            httpClient: new HttpClient(new MockHttpMessageHandler(jsonResponse)));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                author {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    private sealed class MockHttpMessageHandler(string responseContent) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(responseContent, System.Text.Encoding.UTF8, "application/json")
+            };
+            return Task.FromResult(response);
+        }
+    }
+
     public static class NestedLookups
     {
         public static class SourceSchema1
         {
-            public record Book(int Id, string Title, [property: Shareable] Author Author);
+            public record Book([property: ID] int Id, string Title, [property: Shareable] Author Author);
 
             [EntityKey("id")]
-            public record Author(int Id);
+            public record Author([property: ID] int Id);
 
             public class Query
             {
@@ -165,7 +508,7 @@ public class LookupTests : FusionTestBase
 
         public static class SourceSchema2
         {
-            public record Author(int Id, string Name);
+            public record Author([property: ID] int Id, string Name);
 
             public class Query
             {
@@ -183,11 +526,11 @@ public class LookupTests : FusionTestBase
                 };
 
                 [Lookup]
-                public Author GetAuthorById(int id)
+                public Author GetAuthorById([ID] int id)
                     => _authors[id];
             }
 
-            public record Book(int Id, [property: Shareable] Author Author)
+            public record Book([property: ID] int Id, [property: Shareable] Author Author)
             {
                 public string IdAndTitle([Require] string title)
                     => $"{Id} - {title}";
@@ -199,10 +542,10 @@ public class LookupTests : FusionTestBase
     {
         public static class SourceSchema1
         {
-            public record Book(int Id, string Title, [property: Shareable] Author Author);
+            public record Book([property: ID] int Id, string Title, [property: Shareable] Author Author);
 
             [EntityKey("id")]
-            public record Author(int Id);
+            public record Author([property: ID] int Id);
 
             public class Query
             {
@@ -222,7 +565,7 @@ public class LookupTests : FusionTestBase
 
         public static class SourceSchema2
         {
-            public record Author(int Id, string Name);
+            public record Author([property: ID] int Id, string Name);
 
             public class Query
             {
@@ -251,14 +594,14 @@ public class LookupTests : FusionTestBase
                 }
             }
 
-            public record Book(int Id, [property: Shareable] Author Author)
+            public record Book([property: ID] int Id, [property: Shareable] Author Author)
             {
                 public string IdAndTitle([Require] string title)
                     => $"{Id} - {title}";
             }
 
             [OneOf]
-            public record AuthorByInput(int? Id, string? Name);
+            public record AuthorByInput([property: ID] int? Id, string? Name);
         }
 
         public static class SourceSchema3
