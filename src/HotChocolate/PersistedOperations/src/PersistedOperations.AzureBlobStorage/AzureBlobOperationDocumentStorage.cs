@@ -71,10 +71,10 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
                     buffer = newBuffer;
                 }
 
-                var read = await blobStream.ReadAsync(buffer, position, 256, ct);
+                var read = await blobStream.ReadAsync(buffer.AsMemory(position, 256), ct);
                 position += read;
 
-                if (read < 256)
+                if (read == 0)
                 {
                     break;
                 }
