@@ -12,7 +12,7 @@ internal static class ReadResourceHandler
     {
         var registry = context.Services!.GetRequiredService<McpFeatureRegistry>();
 
-        if (!registry.TryGetToolByOpenAiComponentResourceUri(context.Params!.Uri, out var tool))
+        if (!registry.TryGetToolByViewResourceUri(context.Params!.Uri, out var tool))
         {
             throw new McpProtocolException(
                 string.Format(ReadResourceHandler_ResourceNotFound, context.Params.Uri),
@@ -31,10 +31,10 @@ internal static class ReadResourceHandler
             [
                 new TextResourceContents
                 {
-                    Uri = tool.OpenAiComponentResource!.Uri,
-                    MimeType = tool.OpenAiComponentResource!.MimeType,
-                    Text = tool.OpenAiComponentHtml!,
-                    Meta = tool.OpenAiComponentResource!.Meta
+                    Uri = tool.ViewResource!.Uri,
+                    MimeType = tool.ViewResource!.MimeType,
+                    Text = tool.ViewHtml!,
+                    Meta = tool.ViewResource!.Meta
                 }
             ]
         };
