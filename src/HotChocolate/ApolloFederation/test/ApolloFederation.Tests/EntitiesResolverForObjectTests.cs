@@ -242,10 +242,38 @@ public class EntitiesResolverForObjectTests
         Assert.Equal("testId", obj.Detail!.Id);
     }
 
+    [Fact]
+    public async Task TestResolveViaStronglyTypedEntityResolver_EnumType()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddQueryType<Query>()
+            .BuildSchemaAsync();
+
+        var context = CreateResolverContext(schema);
+
+        // act
+        var representations = new List<Representation>
+        {
+            new("TypeWithEnumAndStronglyTypedReferenceResolver",
+                new ObjectValueNode(
+                    new ObjectFieldNode("id", "42"),
+                    new ObjectFieldNode("enumValue", "BAR")))
+        };
+
+        // assert
+        var result = await EntitiesResolver.ResolveAsync(schema, representations, context);
+        var obj = Assert.IsType<TypeWithEnumAndStronglyTypedReferenceResolver>(result[0]);
+        Assert.Equal("42", obj.Id);
+        Assert.Equal(TestEnum.Bar, obj.EnumValue);
+    }
+
     public class Query
     {
         public ForeignType ForeignType { get; set; } = null!;
         public TypeWithReferenceResolver TypeWithReferenceResolver { get; set; } = null!;
+        public TypeWithEnumAndStronglyTypedReferenceResolver TypeWithEnumAndStronglyTypedReferenceResolver { get; set; } = null!;
         public TypeWithoutRefResolver TypeWithoutRefResolver { get; set; } = null!;
         public MixedFieldTypes MixedFieldTypes { get; set; } = null!;
         public FederatedType TypeWithReferenceResolverMany { get; set; } = null!;
@@ -261,7 +289,6 @@ public class EntitiesResolverForObjectTests
     {
         public string Id { get; set; } = null!;
         public string SomeField { get; set; } = null!;
-
         public static TypeWithReferenceResolver Get([LocalState] ObjectValueNode data)
         {
             return new TypeWithReferenceResolver { Id = "1", SomeField = "SomeField" };
@@ -401,5 +428,25 @@ public class EntitiesResolverForObjectTests
     public class FederatedTypeDetail
     {
         public string Id { get; set; } = null!;
+    }
+
+    public enum TestEnum
+    {
+        Default,
+        Foo,
+        Bar
+    }
+
+    [ReferenceResolver(EntityResolver = nameof(Get))]
+    public class TypeWithEnumAndStronglyTypedReferenceResolver
+    {
+        public string Id { get; set; } = null!;
+
+        public TestEnum EnumValue { get; set; }
+
+        public static TypeWithEnumAndStronglyTypedReferenceResolver Get(string id, TestEnum enumValue)
+        {
+            return new TypeWithEnumAndStronglyTypedReferenceResolver { Id = id, EnumValue = enumValue };
+        }
     }
 }
