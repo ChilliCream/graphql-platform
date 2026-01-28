@@ -260,5 +260,5 @@ public sealed class Operation : IOperation
     internal SelectionSet GetSelectionSetById(int id)
         => Unsafe.As<SelectionSet>(Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(_elementsById), id));
 
-    public override string ToString() => Definition.ToString(indented: true);
+    public override string ToString() => OperationPrinter.Print(this);
 }

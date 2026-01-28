@@ -1,4 +1,4 @@
-﻿{
+{
   foo
 }
 
@@ -6,6 +6,6 @@
 
 {
   ... on Query {
-    foo @__execute(id: 0, kind: DEFAULT, type: LEAF)
+    foo @__execute(id: 2, kind: DEFAULT, type: LEAF)
   }
 }
