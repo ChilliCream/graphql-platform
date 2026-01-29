@@ -37,7 +37,7 @@ internal static class SchemaFileExporter
 
         await File.WriteAllTextAsync(
             schemaFileName,
-            sdl,
+            sdl + Environment.NewLine,
             new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
             cancellationToken);
 
@@ -83,6 +83,7 @@ internal static class SchemaFileExporter
                 await using var writer = new Utf8JsonWriter(writeStream, new JsonWriterOptions { Indented = true });
                 root.WriteTo(writer);
                 await writer.FlushAsync(cancellationToken);
+                await writeStream.WriteAsync(Encoding.UTF8.GetBytes(Environment.NewLine), cancellationToken);
                 return true;
             }
 
@@ -119,6 +120,7 @@ internal static class SchemaFileExporter
         jsonWriter.WriteEndObject();
 
         await jsonWriter.FlushAsync(cancellationToken);
+        await settingsFileStream.WriteAsync(Encoding.UTF8.GetBytes(Environment.NewLine), cancellationToken);
     }
 }
 

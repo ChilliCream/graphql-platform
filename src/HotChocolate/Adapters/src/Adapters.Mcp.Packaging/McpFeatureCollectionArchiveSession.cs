@@ -213,8 +213,8 @@ internal sealed class McpFeatureCollectionArchiveSession : IDisposable
         {
             FileKind.Document
                 => _readOptions.MaxAllowedDocumentSize,
-            FileKind.OpenAiComponent
-                => _readOptions.MaxAllowedOpenAiComponentSize,
+            FileKind.View
+                => _readOptions.MaxAllowedViewSize,
             FileKind.Settings or FileKind.Metadata
                 => _readOptions.MaxAllowedSettingsSize,
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)

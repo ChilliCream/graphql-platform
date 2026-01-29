@@ -161,6 +161,8 @@ internal sealed class FusionPublishCommand : Command
 
             foreach (var sourceSchemaVersion in sourceSchemaVersions)
             {
+                console.Log($"Downloading version '{sourceSchemaVersion.Version}' of source schema '{sourceSchemaVersion.Name}'...");
+
                 using var archive = await FusionPublishHelpers.DownloadSourceSchemaArchiveAsync(
                     apiId,
                     sourceSchemaVersion.Name,

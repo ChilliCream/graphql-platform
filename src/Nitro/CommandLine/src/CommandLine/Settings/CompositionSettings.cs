@@ -1,14 +1,29 @@
+using System.Text.Json.Serialization;
 using HotChocolate.Fusion.Options;
 
 namespace ChilliCream.Nitro.CommandLine.Settings;
 
 internal sealed record CompositionSettings
 {
-    public PreprocessorSettings Preprocessor { get; init; } = new();
+    // If the composition settings are older / have a different format,
+    // this ensures that all of the settings properties are initialized
+    // when attempting to deserialize from JSON.
+    [JsonConstructor]
+    public CompositionSettings(
+        PreprocessorSettings? preprocessor = null,
+        MergerSettings? merger = null,
+        SatisfiabilitySettings? satisfiability = null)
+    {
+        Preprocessor = preprocessor ?? new();
+        Merger = merger ?? new();
+        Satisfiability = satisfiability ?? new();
+    }
 
-    public MergerSettings Merger { get; init; } = new();
+    public PreprocessorSettings Preprocessor { get; init; }
 
-    public SatisfiabilitySettings Satisfiability { get; init; } = new();
+    public MergerSettings Merger { get; init; }
+
+    public SatisfiabilitySettings Satisfiability { get; init; }
 
     internal sealed record PreprocessorSettings
     {

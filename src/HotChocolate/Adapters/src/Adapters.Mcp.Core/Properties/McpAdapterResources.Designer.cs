@@ -123,24 +123,6 @@ namespace HotChocolate.Adapters.Mcp.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ToolInvokedStatusText cannot exceed 64 characters..
-        /// </summary>
-        internal static string OpenAiComponent_ToolInvokedStatusTextCannotExceed64Characters {
-            get {
-                return ResourceManager.GetString("OpenAiComponent_ToolInvokedStatusTextCannotExceed64Characters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ToolInvokingStatusText cannot exceed 64 characters..
-        /// </summary>
-        internal static string OpenAiComponent_ToolInvokingStatusTextCannotExceed64Characters {
-            get {
-                return ResourceManager.GetString("OpenAiComponent_ToolInvokingStatusTextCannotExceed64Characters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to An operation tool document must have exactly one operation definition..
         /// </summary>
         internal static string OperationToolDefinition_DocumentMustContainSingleOperation {
@@ -159,11 +141,11 @@ namespace HotChocolate.Adapters.Mcp.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} OpenAI Component.
+        ///   Looks up a localized string similar to {0} View.
         /// </summary>
-        internal static string OperationToolFactory_OpenAiComponentResourceName {
+        internal static string OperationToolFactory_McpAppViewResourceName {
             get {
-                return ResourceManager.GetString("OperationToolFactory_OpenAiComponentResourceName", resourceCulture);
+                return ResourceManager.GetString("OperationToolFactory_McpAppViewResourceName", resourceCulture);
             }
         }
         
