@@ -1734,6 +1734,30 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     [Fact]
+    public void ResolveWithStatic()
+    {
+        SchemaBuilder.New()
+            .AddQueryType<ResolveWithStaticQueryType>()
+            .Create()
+            .MakeExecutable()
+            .Execute("{ foo baz }")
+            .ToJson()
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public void ResolveWithStaticAsync()
+    {
+        SchemaBuilder.New()
+            .AddQueryType<ResolveWithStaticQueryTypeAsync>()
+            .Create()
+            .MakeExecutable()
+            .Execute("{ foo baz qux }")
+            .ToJson()
+            .MatchSnapshot();
+    }
+
+    [Fact]
     public void ResolveWith_NonGeneric()
     {
         SchemaBuilder.New()
@@ -2353,6 +2377,16 @@ public class ObjectTypeTests : TypeTestBase
             => Task.FromResult(context is not null);
     }
 
+    public static class ResolveWithStaticQueryResolver
+    {
+        public static string Bar() => "Bar";
+
+        public static Task<string> FooAsync() => Task.FromResult("Foo");
+
+        public static Task<bool> BarAsync(IResolverContext context)
+            => Task.FromResult(context is not null);
+    }
+
     public class ResolveWithQueryType : ObjectType<ResolveWithQuery>
     {
         protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
@@ -2375,6 +2409,25 @@ public class ObjectTypeTests : TypeTestBase
 
             descriptor.Field("quuz")
                 .ResolveWith<ResolveWithQueryResolver, bool>(t => t.BarAsync(null));
+        }
+    }
+
+    public class ResolveWithStaticQueryType : ObjectType<ResolveWithQuery>
+    {
+        protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
+        {
+            descriptor.Field(t => t.Foo).ResolveWith(ResolveWithStaticQueryResolver.Bar);
+            descriptor.Field("baz").ResolveWith(ResolveWithStaticQueryResolver.Bar);
+        }
+    }
+
+    public class ResolveWithStaticQueryTypeAsync : ObjectType<ResolveWithQuery>
+    {
+        protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
+        {
+            descriptor.Field(t => t.Foo).ResolveWith(ResolveWithStaticQueryResolver.FooAsync);
+            descriptor.Field("baz").ResolveWith(ResolveWithStaticQueryResolver.FooAsync);
+            descriptor.Field("qux").ResolveWith(ResolveWithStaticQueryResolver.BarAsync);
         }
     }
 
