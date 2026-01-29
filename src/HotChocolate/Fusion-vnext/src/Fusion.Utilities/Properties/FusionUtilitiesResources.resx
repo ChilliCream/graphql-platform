@@ -84,4 +84,7 @@
   <data name="FieldSelectionMapValidator_InvalidFieldParentType" xml:space="preserve">
     <value>Expected the parent type of field '{0}' to be a complex type but received '{1}'.</value>
   </data>
+  <data name="FieldSelectionMapValidator_NullableFieldOnPathToNonNullType" xml:space="preserve">
+    <value>The input type '{0}' is non-null, but one of the fields on the path '{1}' returns a nullable type.</value>
+  </data>
 </root>

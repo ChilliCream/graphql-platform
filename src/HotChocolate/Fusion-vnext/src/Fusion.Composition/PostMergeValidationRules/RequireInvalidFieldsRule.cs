@@ -35,7 +35,9 @@ internal sealed class RequireInvalidFieldsRule : IEventHandler<SchemaEvent>
                 x => x.f.Arguments.AsEnumerable().Where(a => a.HasRequireDirective),
                 (x, a) => new FieldArgumentInfo(a, x.f, x.o, x.s));
 
-        var validator = new FieldSelectionMapValidator(schema);
+        var validator = new FieldSelectionMapValidator(
+            schema,
+            disallowNullableFieldsOnPathToNonNullInputType: true);
 
         foreach (var (sourceArgument, _, sourceType, sourceSchema) in sourceArgumentGroup)
         {
