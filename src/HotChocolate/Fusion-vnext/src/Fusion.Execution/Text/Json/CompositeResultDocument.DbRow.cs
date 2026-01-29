@@ -15,7 +15,7 @@ public sealed partial class CompositeResultDocument
         // 27 bits for location + 2 bits OpRefType + 3 reserved bits
         private readonly int _locationAndOpRefType;
 
-        // Sign bit for HasComplexChildren + 31 bits for size/length
+        // A Sign bit for HasComplexChildren + 31 bits for size/length
         private readonly int _sizeOrLengthUnion;
 
         // 4 bits TokenType + 27 bits NumberOfRows + 1 reserved bit
@@ -57,67 +57,87 @@ public sealed partial class CompositeResultDocument
         }
 
         /// <summary>
-        /// Byte offset in source data OR metaDb row index for references.
-        /// 27 bits = 134M limit (increased from 26 bits / 67M limit)
+        /// Element token type (includes Reference for composition).
         /// </summary>
-        public int Location => _locationAndOpRefType & 0x07FFFFFF;
+        /// <remarks>
+        /// 4 bits = possible values
+        /// </remarks>
+        public ElementTokenType TokenType => (ElementTokenType)(unchecked((uint)_numberOfRowsTypeAndReserved) >> 28);
 
         /// <summary>
         /// Operation reference type indicating the type of GraphQL operation element.
-        /// 2 bits = 4 possible values
         /// </summary>
+        /// <remarks>
+        /// 2 bits = 4 possible values
+        /// </remarks>
         public OperationReferenceType OperationReferenceType
             => (OperationReferenceType)((_locationAndOpRefType >> 27) & 0x03);
 
         /// <summary>
-        /// Length of data in JSON payload, number of elements if array or number of properties in an object.
-        /// 31 bits = 2GB limit
+        /// Byte offset in source data OR metaDb row index for references
         /// </summary>
+        /// <remarks>
+        /// 27 bits = 134M limit
+        /// </remarks>
+        public int Location => _locationAndOpRefType & 0x07FFFFFF;
+
+        /// <summary>
+        /// Length of data in JSON payload, number of elements if array or number of properties in an object.
+        /// </summary>
+        /// <remarks>
+        /// 31 bits = 2GB limit
+        /// </remarks>
         public int SizeOrLength => _sizeOrLengthUnion & int.MaxValue;
 
         /// <summary>
         /// String/PropertyName: Unescaping required.
-        /// Array: Contains complex children.
         /// </summary>
         public bool HasComplexChildren => _sizeOrLengthUnion < 0;
 
+        /// <summary>
+        /// Specifies if a size for the item has ben set.
+        /// </summary>
         public bool IsUnknownSize => _sizeOrLengthUnion == UnknownSize;
 
         /// <summary>
-        /// Element token type (includes Reference for composition).
-        /// 4 bits = 16 types
-        /// </summary>
-        public ElementTokenType TokenType => (ElementTokenType)(unchecked((uint)_numberOfRowsTypeAndReserved) >> 28);
-
-        /// <summary>
         /// Number of metadb rows this element spans.
-        /// 27 bits = 134M rows
         /// </summary>
+        /// <remarks>
+        /// 27 bits = 134M rows
+        /// </remarks>
         public int NumberOfRows => _numberOfRowsTypeAndReserved & 0x07FFFFFF;
 
         /// <summary>
         /// Which source JSON document contains the data.
-        /// 15 bits = 32K documents
         /// </summary>
+        /// <remarks>
+        /// 15 bits = 32K documents
+        /// </remarks>
         public int SourceDocumentId => _sourceAndParentHigh & 0x7FFF;
 
         /// <summary>
         /// Index of parent element in metadb for navigation and null propagation.
-        /// 28 bits = 268M rows (reconstructed from high+low bits)
         /// </summary>
+        /// <remarks>
+        /// 28 bits = 268M rows
+        /// </remarks>
         public int ParentRow
             => ((int)((uint)_sourceAndParentHigh >> 15) << 11) | ((_selectionSetFlagsAndParentLow >> 21) & 0x7FF);
 
         /// <summary>
         /// Reference to GraphQL selection set or selection metadata.
-        /// 15 bits = 32K selections
         /// </summary>
+        /// <remarks>
+        /// 15 bits = 32K selections
+        /// </remarks>
         public int OperationReferenceId => _selectionSetFlagsAndParentLow & 0x7FFF;
 
         /// <summary>
         /// Element metadata flags.
-        /// 6 bits = 64 combinations
         /// </summary>
+        /// <remarks>
+        /// 6 bits = 64 combinations
+        /// </remarks>
         public ElementFlags Flags => (ElementFlags)((_selectionSetFlagsAndParentLow >> 15) & 0x3F);
 
         /// <summary>

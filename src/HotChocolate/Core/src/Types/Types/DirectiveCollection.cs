@@ -247,7 +247,7 @@ public sealed class DirectiveCollection : IReadOnlyList<Directive>
                         runtimeValue = value;
                     }
                 }
-                catch (SerializationException ex)
+                catch (LeafCoercionException ex)
                 {
                     hasErrors = true;
 

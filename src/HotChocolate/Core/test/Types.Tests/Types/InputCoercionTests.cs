@@ -150,7 +150,7 @@ public class InputCoercionTests
             inputParser.ParseLiteral(value, type, Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -182,7 +182,7 @@ public class InputCoercionTests
             inputParser.ParseLiteral(list, type, Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -198,7 +198,7 @@ public class InputCoercionTests
             inputParser.ParseLiteral(element, type, Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     private void InputIsCoercedCorrectly<TType, TLiteral, TExpected>(
@@ -210,7 +210,7 @@ public class InputCoercionTests
         var type = new TType();
 
         // act
-        var coercedValue = type.ParseLiteral(literal);
+        var coercedValue = type.CoerceInputLiteral(literal);
 
         // assert
         Assert.IsType<TExpected>(coercedValue);
@@ -226,9 +226,9 @@ public class InputCoercionTests
         var type = new TType();
 
         // act
-        void Action() => type.ParseLiteral(literal);
+        void Action() => type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 }

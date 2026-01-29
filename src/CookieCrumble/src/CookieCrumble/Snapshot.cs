@@ -27,6 +27,7 @@ public class Snapshot
             new PlainTextSnapshotValueFormatter(),
             new ExceptionSnapshotValueFormatter(),
             new HttpResponseSnapshotValueFormatter(),
+            new JsonDocumentSnapshotValueFormatter(),
             new JsonElementSnapshotValueFormatter()
         });
     private static readonly JsonSnapshotValueFormatter s_defaultFormatter = new();

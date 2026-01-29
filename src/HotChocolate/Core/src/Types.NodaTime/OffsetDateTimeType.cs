@@ -31,7 +31,6 @@ public class OffsetDateTimeType : StringToStructBaseType<OffsetDateTime>
             allowedPatterns,
             NodaTimeResources.OffsetDateTimeType_Description,
             NodaTimeResources.OffsetDateTimeType_Description_Extended);
-        SerializationType = ScalarSerializationType.String;
     }
 
     /// <summary>
@@ -46,15 +45,19 @@ public class OffsetDateTimeType : StringToStructBaseType<OffsetDateTime>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(OffsetDateTime runtimeValue)
-        => _serializationPattern
-            .Format(runtimeValue);
-
-    /// <inheritdoc />
-    protected override bool TryDeserialize(
+    protected override bool TryCoerceRuntimeValue(
         string resultValue,
         [NotNullWhen(true)] out OffsetDateTime? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    /// <inheritdoc />
+    protected override bool TryCoerceOutputValue(
+        OffsetDateTime runtimeValue,
+        [NotNullWhen(true)] out string? resultValue)
+    {
+        resultValue = _serializationPattern.Format(runtimeValue);
+        return true;
+    }
 
     protected override Dictionary<IPattern<OffsetDateTime>, string> PatternMap => new()
     {

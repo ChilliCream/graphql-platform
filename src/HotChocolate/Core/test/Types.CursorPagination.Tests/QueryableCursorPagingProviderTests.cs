@@ -493,7 +493,7 @@ public class QueryableCursorPagingProviderTests
     {
         private readonly CursorPagingArguments _arguments;
 
-        private MockContext(CursorPagingArguments arguments, IOperation operation, ISelection selection)
+        private MockContext(CursorPagingArguments arguments, Operation operation, Selection selection)
         {
             _arguments = arguments;
             Operation = operation;
@@ -519,14 +519,7 @@ public class QueryableCursorPagingProviderTests
                 }
                 """);
 
-            var compiler = new OperationCompiler(new InputParser());
-            var operation = compiler.Compile(
-                new OperationCompilerRequest(
-                    "abc",
-                    document,
-                    document.Definitions.OfType<OperationDefinitionNode>().First(),
-                    schema.QueryType,
-                    schema));
+            var operation = OperationCompiler.Compile("abc", document, schema);
 
             return new MockContext(arguments, operation, operation.RootSelectionSet.Selections[0]);
         }
@@ -574,13 +567,13 @@ public class QueryableCursorPagingProviderTests
             throw new NotImplementedException();
         }
 
-        public IReadOnlyList<ISelection> GetSelections(
+        public SelectionEnumerator GetSelections(
             ObjectType typeContext,
-            ISelection? selection = null,
+            Selection? selection = null,
             bool allowInternals = false)
         {
             var selectionSet = Operation.GetSelectionSet(selection ?? Selection, typeContext);
-            return selectionSet.Selections;
+            return new SelectionEnumerator(selectionSet, IncludeFlags);
         }
 
         public ISelectionCollection Select()
@@ -607,13 +600,15 @@ public class QueryableCursorPagingProviderTests
 
         public ObjectType ObjectType => throw new NotImplementedException();
 
-        public IOperation Operation { get; }
+        public Operation Operation { get; }
 
-        public ISelection Selection { get; }
+        public Selection Selection { get; }
 
         public IVariableValueCollection Variables => throw new NotImplementedException();
 
         public Path Path => throw new NotImplementedException();
+
+        public ulong IncludeFlags => 0;
 
         public T Parent<T>()
         {

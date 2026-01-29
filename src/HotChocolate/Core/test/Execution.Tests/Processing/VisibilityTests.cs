@@ -1,3 +1,6 @@
+using System.Collections;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using Moq;
 
@@ -6,35 +9,6 @@ namespace HotChocolate.Execution.Processing;
 public class VisibilityTests
 {
     [Fact]
-    public void TryExtract_Skip_With_Literal()
-    {
-        // arrange
-        var variables = new Mock<IVariableValueCollection>();
-        var field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: true)");
-
-        // act
-        var includeCondition = IncludeCondition.FromSelection(field);
-
-        // assert
-        Assert.False(includeCondition.IsIncluded(variables.Object));
-    }
-
-    [Fact]
-    public void Equals_Skip_With_Literal_True()
-    {
-        // arrange
-        var fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
-        var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: true)");
-
-        // act
-        var includeConditionA = IncludeCondition.FromSelection(fieldA);
-        var includeConditionB = IncludeCondition.FromSelection(fieldB);
-
-        // assert
-        Assert.True(includeConditionA.Equals(includeConditionB));
-    }
-
-    [Fact]
     public void Equals_Skip_With_Variable_True()
     {
         // arrange
@@ -42,41 +16,13 @@ public class VisibilityTests
         var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: $a)");
 
         // act
-        var includeConditionA = IncludeCondition.FromSelection(fieldA);
-        var includeConditionB = IncludeCondition.FromSelection(fieldB);
+        var hasIncludeConditionA = IncludeCondition.TryCreate(fieldA, out var includeConditionA);
+        var hasIncludeConditionB = IncludeCondition.TryCreate(fieldB, out var includeConditionB);
 
         // assert
+        Assert.True(hasIncludeConditionA);
+        Assert.True(hasIncludeConditionB);
         Assert.True(includeConditionA.Equals(includeConditionB));
-    }
-
-    [Fact]
-    public void Equals_Skip_With_Literal_False()
-    {
-        // arrange
-        var fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
-        var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: false)");
-
-        // act
-        var includeConditionA = IncludeCondition.FromSelection(fieldA);
-        var includeConditionB = IncludeCondition.FromSelection(fieldB);
-
-        // assert
-        Assert.False(includeConditionA.Equals(includeConditionB));
-    }
-
-    [Fact]
-    public void Equals_Skip_With_Variable_False()
-    {
-        // arrange
-        var fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
-        var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: $a)");
-
-        // act
-        var includeConditionA = IncludeCondition.FromSelection(fieldA);
-        var includeConditionB = IncludeCondition.FromSelection(fieldB);
-
-        // assert
-        Assert.False(includeConditionA.Equals(includeConditionB));
     }
 
     [Fact]
@@ -87,10 +33,10 @@ public class VisibilityTests
         var field = Utf8GraphQLParser.Syntax.ParseField("field @test(test: true)");
 
         // act
-        var includeCondition = IncludeCondition.FromSelection(field);
+        var hasIncludeCondition = IncludeCondition.TryCreate(field, out var includeCondition);
 
         // assert
-        Assert.True(includeCondition.IsIncluded(variables.Object));
+        Assert.False(hasIncludeCondition);
     }
 
     [Fact]
@@ -101,106 +47,67 @@ public class VisibilityTests
         var field = Utf8GraphQLParser.Syntax.ParseField("field");
 
         // act
-        var includeCondition = IncludeCondition.FromSelection(field);
+        var hasIncludeCondition = IncludeCondition.TryCreate(field, out var includeCondition);
 
         // assert
-        Assert.True(includeCondition.IsIncluded(variables.Object));
-    }
-
-    [Fact]
-    public void TryExtract_True()
-    {
-        // arrange
-        var variables = new Mock<IVariableValueCollection>();
-        var field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: true)");
-
-        // act
-        var includeCondition = IncludeCondition.FromSelection(field);
-
-        // assert
-        Assert.False(includeCondition.IsIncluded(variables.Object));
-    }
-
-    [Fact]
-    public void GetHashCode_Skip_With_Literal_Equal()
-    {
-        // arrange
-        var fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
-        var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: true)");
-
-        var includeConditionA = IncludeCondition.FromSelection(fieldA);
-        var includeConditionB = IncludeCondition.FromSelection(fieldB);
-
-        // act
-        var hashCodeA = includeConditionA.GetHashCode();
-        var hashCodeB = includeConditionB.GetHashCode();
-
-        // assert
-        Assert.Equal(hashCodeA, hashCodeB);
-    }
-
-    [Fact]
-    public void GetHashCode_Skip_With_Literal_NotEqual()
-    {
-        // arrange
-        var fieldA = Utf8GraphQLParser.Syntax.ParseField("fieldA @skip(if: true)");
-        var fieldB = Utf8GraphQLParser.Syntax.ParseField("fieldB @skip(if: false)");
-
-        var includeConditionA = IncludeCondition.FromSelection(fieldA);
-        var includeConditionB = IncludeCondition.FromSelection(fieldB);
-
-        // act
-        var hashCodeA = includeConditionA.GetHashCode();
-        var hashCodeB = includeConditionB.GetHashCode();
-
-        // assert
-        Assert.NotEqual(hashCodeA, hashCodeB);
+        Assert.False(hasIncludeCondition);
     }
 
     [Fact]
     public void IsVisible_Skip_Variables_True()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetValue<BooleanValueNode>(It.IsAny<string>())).Returns(BooleanValueNode.False);
+        var variables = new MockVariables(BooleanValueNode.False);
         var field = Utf8GraphQLParser.Syntax.ParseField("field @skip(if: $a)");
-        var includeCondition = IncludeCondition.FromSelection(field);
 
         // act
-        var visible = includeCondition.IsIncluded(variables.Object);
+        var hasIncludeCondition = IncludeCondition.TryCreate(field, out var includeCondition);
 
         // assert
-        Assert.True(visible);
+        Assert.True(hasIncludeCondition);
+        Assert.True(includeCondition.IsIncluded(variables));
     }
 
     [Fact]
     public void IsVisible_Include_Variables_True()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetValue<BooleanValueNode>(It.IsAny<string>())).Returns(BooleanValueNode.True);
+        var variables = new MockVariables(BooleanValueNode.True);
         var field = Utf8GraphQLParser.Syntax.ParseField("field @include(if: $a)");
-        var includeCondition = IncludeCondition.FromSelection(field);
 
         // act
-        var visible = includeCondition.IsIncluded(variables.Object);
+        var hasIncludeCondition = IncludeCondition.TryCreate(field, out var includeCondition);
 
         // assert
-        Assert.True(visible);
+        Assert.True(hasIncludeCondition);
+        Assert.True(includeCondition.IsIncluded(variables));
     }
 
-    [Fact]
-    public void IsVisible_Include_Literal_True()
+    private class MockVariables(BooleanValueNode value) : IVariableValueCollection
     {
-        // arrange
-        var variables = new Mock<IVariableValueCollection>();
-        var field = Utf8GraphQLParser.Syntax.ParseField("field @include(if: true)");
-        var includeCondition = IncludeCondition.FromSelection(field);
+        public BooleanValueNode Value { get; } = value;
 
-        // act
-        var visible = includeCondition.IsIncluded(variables.Object);
+        public bool IsEmpty { get; }
 
-        // assert
-        Assert.True(visible);
+        public T GetValue<T>(string name) where T : IValueNode
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool TryGetValue<T>(string name, [NotNullWhen(true)] out T? value) where T : IValueNode
+        {
+            value = (T)(object)Value;
+            return true;
+        }
+
+        public IEnumerator<Execution.VariableValue> GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 }

@@ -93,18 +93,6 @@
       ],
       "description": "Int description"
     },
-    "json": {
-      "type": [
-        "object",
-        "array",
-        "boolean",
-        "string",
-        "number",
-        "integer",
-        "null"
-      ],
-      "description": "JSON description"
-    },
     "list": {
       "type": [
         "array",

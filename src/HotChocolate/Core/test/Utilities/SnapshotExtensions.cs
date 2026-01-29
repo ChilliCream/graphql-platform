@@ -48,6 +48,6 @@ public static class SnapshotExtensions
 
     public static void MatchSnapshot(this GraphQLException ex)
     {
-        OperationResultBuilder.CreateError(ex.Errors).MatchSnapshot();
+        OperationResult.FromError([.. ex.Errors]).MatchSnapshot();
     }
 }

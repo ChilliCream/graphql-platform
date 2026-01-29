@@ -18,27 +18,23 @@ public class DateTimeZoneType : StringToClassBaseType<DateTimeZone>
     public DateTimeZoneType() : base("DateTimeZone")
     {
         Description = NodaTimeResources.DateTimeZoneType_Description;
-        SerializationType = ScalarSerializationType.String;
     }
 
     /// <inheritdoc />
-    protected override string Serialize(DateTimeZone runtimeValue)
-        => runtimeValue.Id;
-
-    /// <inheritdoc />
-    protected override bool TryDeserialize(
+    protected override bool TryCoerceRuntimeValue(
         string resultValue,
         [NotNullWhen(true)] out DateTimeZone? runtimeValue)
     {
-        var result = DateTimeZoneProviders.Tzdb.GetZoneOrNull(resultValue);
+        runtimeValue = DateTimeZoneProviders.Tzdb.GetZoneOrNull(resultValue);
+        return runtimeValue is not null;
+    }
 
-        if (result == null)
-        {
-            runtimeValue = null;
-            return false;
-        }
-
-        runtimeValue = result;
+    /// <inheritdoc />
+    protected override bool TryCoerceOutputValue(
+        DateTimeZone runtimeValue,
+        [NotNullWhen(true)] out string? resultValue)
+    {
+        resultValue = runtimeValue.Id;
         return true;
     }
 }

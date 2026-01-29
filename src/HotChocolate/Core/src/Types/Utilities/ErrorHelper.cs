@@ -1,4 +1,5 @@
 using System.Globalization;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -365,7 +366,7 @@ internal static class ErrorHelper
         DirectiveNode? syntaxNode,
         object source,
         Path path,
-        SerializationException exception)
+        LeafCoercionException exception)
     {
         var message = string.Format(
             ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong,
@@ -452,7 +453,7 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
 
-    public static IError Relay_NoNodeResolver(string typeName, Path path, IReadOnlyList<FieldNode> fieldNodes)
+    public static IError Relay_NoNodeResolver(string typeName, Path path, Selection selection)
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_Relay_NoNodeResolver, typeName)
             .SetPath(path)
@@ -493,7 +494,7 @@ internal static class ErrorHelper
             .Build();
 
     public static IError FetchedToManyNodesAtOnce(
-        IReadOnlyList<FieldNode> fieldNodes,
+        Selection selection,
         Path path,
         int maxAllowedNodes,
         int requestNodes)

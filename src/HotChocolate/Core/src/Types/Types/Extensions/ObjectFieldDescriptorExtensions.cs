@@ -14,8 +14,6 @@ public static class ObjectFieldDescriptorExtensions
     /// </summary>
     public static IObjectFieldDescriptor Serial(this IObjectFieldDescriptor descriptor)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         descriptor.Extend().OnBeforeCreate(c => c.IsParallelExecutable = false);
         return descriptor;
     }
@@ -26,8 +24,6 @@ public static class ObjectFieldDescriptorExtensions
     /// </summary>
     public static IObjectFieldDescriptor Parallel(this IObjectFieldDescriptor descriptor)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         descriptor.Extend().OnBeforeCreate(c => c.IsParallelExecutable = true);
         return descriptor;
     }
@@ -45,7 +41,6 @@ public static class ObjectFieldDescriptorExtensions
     /// Returns the object field descriptor for configuration chaining.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="descriptor"/> is <c>null</c>.
     /// <paramref name="typeSyntax"/> is <c>null</c>.
     /// </exception>
     /// <exception cref="SyntaxException">
@@ -55,9 +50,7 @@ public static class ObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string typeSyntax)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(typeSyntax);
-
         return descriptor.Type(Utf8GraphQLParser.Syntax.ParseTypeReference(typeSyntax));
     }
 
@@ -74,7 +67,6 @@ public static class ObjectFieldDescriptorExtensions
     /// Returns the argument descriptor for configuration chaining.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="descriptor"/> is <c>null</c>.
     /// <paramref name="typeSyntax"/> is <c>null</c>.
     /// </exception>
     /// <exception cref="SyntaxException">
@@ -84,9 +76,7 @@ public static class ObjectFieldDescriptorExtensions
         this IArgumentDescriptor descriptor,
         string typeSyntax)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(typeSyntax);
-
         return descriptor.Type(Utf8GraphQLParser.Syntax.ParseTypeReference(typeSyntax));
     }
 
@@ -99,14 +89,9 @@ public static class ObjectFieldDescriptorExtensions
     /// <returns>
     /// Returns the object field descriptor for configuration chaining.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="descriptor"/> is <c>null</c>.
-    /// </exception>
     public static IObjectFieldDescriptor UseRequestScope(
         this IObjectFieldDescriptor descriptor)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         descriptor.Extend().Configuration.DependencyInjectionScope = DependencyInjectionScope.Request;
         return descriptor;
     }
@@ -120,14 +105,9 @@ public static class ObjectFieldDescriptorExtensions
     /// <returns>
     /// Returns the object field descriptor for configuration chaining.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="descriptor"/> is <c>null</c>.
-    /// </exception>
     public static IObjectFieldDescriptor UseResolverScope(
         this IObjectFieldDescriptor descriptor)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         descriptor.Extend().Configuration.DependencyInjectionScope = DependencyInjectionScope.Resolver;
         return descriptor;
     }

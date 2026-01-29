@@ -16,7 +16,7 @@ public static class SortingContextResolverContextExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var argumentName = context.Selection.GetSortingArgumentName();
+        var argumentName = context.Selection.SortingArgumentName;
         if (string.IsNullOrEmpty(argumentName))
         {
             return null;

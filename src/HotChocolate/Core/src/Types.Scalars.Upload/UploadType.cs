@@ -1,4 +1,7 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types.Properties;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -7,74 +10,74 @@ namespace HotChocolate.Types;
 /// <summary>
 /// The GraphQL Upload scalar.
 /// </summary>
-public class UploadType : ScalarType<IFile, FileValueNode>
+public sealed class UploadType : ScalarType<IFile, StringValueNode>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="UploadType"/> class.
     /// </summary>
-    public UploadType(
-        string name,
-        string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
-        : base(name, bind)
+    [ActivatorUtilitiesConstructor]
+    public UploadType() : base("Upload", BindingBehavior.Implicit)
     {
-        Description = description;
+        Description = UploadResources.UploadType_Description;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UploadType"/> class.
+    /// This operation is not supported. Upload scalars cannot be used in GraphQL literals.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public UploadType()
-        : this(
-            "Upload",
-            UploadResources.UploadType_Description,
-            BindingBehavior.Implicit)
-    {
-    }
+    /// <param name="valueLiteral">The GraphQL literal (not used).</param>
+    /// <returns>Never returns; always throws.</returns>
+    /// <exception cref="NotSupportedException">Always thrown as literal input is not supported.</exception>
+    protected override IFile OnCoerceInputLiteral(StringValueNode valueLiteral)
+        => throw new NotSupportedException();
 
-    public override IValueNode ParseResult(object? resultValue)
+    /// <summary>
+    /// Coerces a JSON string value containing a file reference into an <see cref="IFile"/> instance.
+    /// The file reference is looked up using the <see cref="IFileLookup"/> service from the context.
+    /// </summary>
+    /// <param name="inputValue">
+    /// The JSON element containing the file reference as a string.
+    /// </param>
+    /// <param name="context">
+    /// The feature provider context containing the <see cref="IFileLookup"/> service.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IFile"/> instance representing the uploaded file.
+    /// </returns>
+    /// <exception cref="LeafCoercionException">
+    /// Thrown when the file reference cannot be found in the file lookup service.
+    /// </exception>
+    protected override IFile OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (resultValue is null)
+        var fileLookup = context.Features.Get<IFileLookup>();
+        var fileName = inputValue.GetString()!;
+
+        if (fileLookup is null || !fileLookup.TryGetFile(fileName, out var file))
         {
-            return NullValueNode.Default;
+            throw new LeafCoercionException(
+                string.Format(
+                    "The specified file `{0}` could not be found.",
+                    fileName),
+                this);
         }
 
-        if (resultValue is IFile file)
-        {
-            return new FileValueNode(file);
-        }
-
-        throw base.CreateParseValueError(resultValue);
+        return file;
     }
 
-    protected override IFile ParseLiteral(FileValueNode valueSyntax) =>
-        valueSyntax.Value;
+    /// <summary>
+    /// This operation is not supported. Upload scalars are input-only and cannot be used in output.
+    /// </summary>
+    /// <param name="runtimeValue">The runtime value (not used).</param>
+    /// <param name="resultValue">The result element (not used).</param>
+    /// <exception cref="NotSupportedException">Always thrown as output coercion is not supported.</exception>
+    protected override void OnCoerceOutputValue(IFile runtimeValue, ResultElement resultValue)
+        => throw new NotSupportedException();
 
-    protected override FileValueNode ParseValue(IFile runtimeValue) =>
-        new(runtimeValue);
-
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-    {
-        throw new GraphQLException(
-            UploadResources.UploadType_TrySerialize_NotSupported);
-    }
-
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        if (resultValue is null)
-        {
-            runtimeValue = null;
-            return true;
-        }
-
-        if (resultValue is IFile file)
-        {
-            runtimeValue = file;
-            return true;
-        }
-
-        runtimeValue = null;
-        return false;
-    }
+    /// <summary>
+    /// This operation is not supported. Upload scalars cannot be converted to GraphQL literals.
+    /// </summary>
+    /// <param name="runtimeValue">The runtime value (not used).</param>
+    /// <returns>Never returns; always throws.</returns>
+    /// <exception cref="NotSupportedException">Always thrown as value to literal conversion is not supported.</exception>
+    protected override StringValueNode OnValueToLiteral(IFile runtimeValue)
+        => throw new NotSupportedException();
 }

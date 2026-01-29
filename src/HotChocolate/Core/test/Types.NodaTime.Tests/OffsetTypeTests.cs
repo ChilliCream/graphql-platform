@@ -1,5 +1,8 @@
 using System.Globalization;
-using HotChocolate.Execution;
+using System.Text;
+using System.Text.Json;
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using NodaTime;
 using NodaTime.Text;
 
@@ -7,127 +10,98 @@ namespace HotChocolate.Types.NodaTime.Tests;
 
 public class OffsetTypeIntegrationTests
 {
-    public static class Schema
-    {
-        public class Query
-        {
-            public Offset Hours => Offset.FromHours(2);
-            public Offset HoursAndMinutes => Offset.FromHoursAndMinutes(2, 35);
-            public Offset ZOffset => Offset.Zero;
-        }
-
-        public class Mutation
-        {
-            public Offset Test(Offset arg)
-                => arg + Offset.FromHoursAndMinutes(1, 5);
-        }
-    }
-
-    private readonly IRequestExecutor _testExecutor = SchemaBuilder.New()
-        .AddQueryType<Schema.Query>()
-        .AddMutationType<Schema.Mutation>()
-        .AddNodaTime()
-        .Create()
-        .MakeExecutable();
-
     [Fact]
-    public void QueryReturns()
+    public void CoerceInputLiteral()
     {
-        var result = _testExecutor.Execute("query { test: hours }");
-        Assert.Equal("+02", result.ExpectOperationResult().Data!["test"]);
+        var type = new OffsetType();
+        var inputValue = new StringValueNode("+02");
+        var runtimeValue = type.CoerceInputLiteral(inputValue);
+        Assert.Equal(Offset.FromHours(2), Assert.IsType<Offset>(runtimeValue));
     }
 
     [Fact]
-    public void QueryReturnsWithMinutes()
+    public void CoerceInputLiteral_With_Z()
     {
-        var result = _testExecutor.Execute("query { test: hoursAndMinutes }");
-        Assert.Equal("+02:35", result.ExpectOperationResult().Data!["test"]);
+        var type = new OffsetType();
+        var inputValue = new StringValueNode("Z");
+        var runtimeValue = type.CoerceInputLiteral(inputValue);
+        Assert.Equal(Offset.Zero, Assert.IsType<Offset>(runtimeValue));
     }
 
     [Fact]
-    public void QueryReturnsWithZ()
+    public void CoerceInputLiteral_Invalid_Value_Throws()
     {
-        var result = _testExecutor.Execute("query { test: zOffset }");
-        Assert.Equal("Z", result.ExpectOperationResult().Data!["test"]);
+        var type = new OffsetType();
+        var valueLiteral = new StringValueNode("18:30:13+02");
+        Action error = () => type.CoerceInputLiteral(valueLiteral);
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
-    public void ParsesVariable()
+    public void CoerceInputValue()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "+02" } })
-                .Build());
-        Assert.Equal("+03:05", result.ExpectOperationResult().Data!["test"]);
+        var type = new OffsetType();
+        var inputValue = ParseInputValue("\"+02\"");
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+        Assert.Equal(Offset.FromHours(2), Assert.IsType<Offset>(runtimeValue));
     }
 
     [Fact]
-    public void ParsesVariableWithMinutes()
+    public void CoerceInputValue_Invalid_Value_Throws()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "+02:35" } })
-                .Build());
-        Assert.Equal("+03:40", result.ExpectOperationResult().Data!["test"]);
+        var type = new OffsetType();
+        var inputValue = ParseInputValue("\"18:30:13+02\"");
+        Action error = () => type.CoerceInputValue(inputValue, null!);
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
-    public void DoesntParseAnIncorrectVariable()
+    public void CoerceOutputValue()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13+02" } })
-                .Build());
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
+        var type = new OffsetType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(Offset.FromHours(2), resultValue);
+        Assert.Equal("+02", resultValue.GetString());
     }
 
     [Fact]
-    public void ParsesLiteral()
+    public void CoerceOutputValue_Zero()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"+02\") }")
-                .Build());
-        Assert.Equal("+03:05", result.ExpectOperationResult().Data!["test"]);
+        var type = new OffsetType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(Offset.Zero, resultValue);
+        Assert.Equal("Z", resultValue.GetString());
     }
 
     [Fact]
-    public void ParsesLiteralWithMinutes()
+    public void CoerceOutputValue_Invalid_Value_Throws()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"+02:35\") }")
-                .Build());
-        Assert.Equal("+03:40", result.ExpectOperationResult().Data!["test"]);
+        var type = new OffsetType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        Action error = () => type.CoerceOutputValue("+02", resultValue);
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
-    public void ParsesLiteralWithZ()
+    public void ValueToLiteral()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"Z\") }")
-                .Build());
-        Assert.Equal("+01:05", result.ExpectOperationResult().Data!["test"]);
+        var type = new OffsetType();
+        var valueLiteral = type.ValueToLiteral(Offset.FromHours(2));
+        Assert.Equal("\"+02\"", valueLiteral.ToString());
     }
 
     [Fact]
-    public void DoesntParseIncorrectLiteral()
+    public void ValueToLiteral_Invalid_Value_Throws()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"18:30:13+02\") }")
-                .Build());
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
-        Assert.Null(result.ExpectOperationResult().Errors![0].Code);
-        Assert.Equal(
-            "Unable to deserialize string to Offset",
-            result.ExpectOperationResult().Errors![0].Message);
+        var type = new OffsetType();
+        Action error = () => type.ValueToLiteral("+02");
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
@@ -170,5 +144,11 @@ public class OffsetTypeIntegrationTests
             An offset from UTC in seconds.
             A positive value means that the local time is ahead of UTC (e.g. for Europe); a negative value means that the local time is behind UTC (e.g. for America).
             """);
+    }
+
+    private static JsonElement ParseInputValue(string sourceText)
+    {
+        var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(sourceText));
+        return JsonElement.ParseValue(ref reader);
     }
 }

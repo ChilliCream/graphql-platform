@@ -56,6 +56,31 @@ public static class ResultFieldNames
     public static ReadOnlySpan<byte> Incremental => "incremental"u8;
 
     /// <summary>
+    /// Gets the completed field name.
+    /// </summary>
+    public static ReadOnlySpan<byte> Completed => "completed"u8;
+
+    /// <summary>
+    /// Gets the pending field name.
+    /// </summary>
+    public static ReadOnlySpan<byte> Pending => "pending"u8;
+
+    /// <summary>
+    /// Gets the id field name.
+    /// </summary>
+    public static ReadOnlySpan<byte> Id => "id"u8;
+
+    /// <summary>
+    /// Gets the label field name.
+    /// </summary>
+    public static ReadOnlySpan<byte> Label => "label"u8;
+
+    /// <summary>
+    /// Gets the hasNext field name
+    /// </summary>
+    public static ReadOnlySpan<byte> HasNext => "hasNext"u8;
+
+    /// <summary>
     /// Gets the request index field name.
     /// </summary>
     public static ReadOnlySpan<byte> RequestIndex => "requestIndex"u8;

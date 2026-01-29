@@ -27,4 +27,37 @@
   <data name="ParseMany_InvalidOpenToken" xml:space="preserve">
     <value>Expected a {0} token but found `{1}`.</value>
   </data>
+  <data name="ThrowHelper_InvalidVariablesValue" xml:space="preserve">
+    <value>Invalid 'variables' value. Expected object, array, or null, but got {0}.</value>
+  </data>
+  <data name="ThrowHelper_InvalidExtensionsValue" xml:space="preserve">
+    <value>Invalid 'extensions' value. Expected object or null, but got {0}.</value>
+  </data>
+  <data name="ThrowHelper_UnknownRequestProperty" xml:space="preserve">
+    <value>Unknown property '{0}' in GraphQL request.</value>
+  </data>
+  <data name="ThrowHelper_InvalidQueryValue" xml:space="preserve">
+    <value>Invalid 'query' value. Expected string or null, but got {0}.</value>
+  </data>
+  <data name="ThrowHelper_InvalidDocumentIdValue" xml:space="preserve">
+    <value>Invalid 'id' or 'documentId' value. Expected string or null, but got {0}.</value>
+  </data>
+  <data name="ThrowHelper_InvalidOperationNameValue" xml:space="preserve">
+    <value>Invalid 'operationName' value. Expected string or null, but got {0}.</value>
+  </data>
+  <data name="ThrowHelper_InvalidOnErrorValue" xml:space="preserve">
+    <value>Invalid 'onError' value. Expected string or null, but got {0}.</value>
+  </data>
+  <data name="Utf8GraphQLRequestParser_Parse_EmptyJSONDocument" xml:space="preserve">
+    <value>Empty JSON document.</value>
+  </data>
+  <data name="Utf8GraphQLRequestParser_Parse_InvalidJSONDocument_" xml:space="preserve">
+    <value>Invalid JSON document.</value>
+  </data>
+  <data name="Utf8GraphQLRequestParser_Parse_InvalidRequestStructure" xml:space="preserve">
+    <value>Invalid request structure. Expected object or array.</value>
+  </data>
+  <data name="ThrowHelper_InvalidOperationTypeStructure" xml:space="preserve">
+    <value>Invalid 'operationType' value. Expected string or null, but got {0}.</value>
+  </data>
 </root>

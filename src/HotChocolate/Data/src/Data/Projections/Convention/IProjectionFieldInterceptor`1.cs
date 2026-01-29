@@ -14,7 +14,7 @@ public interface IProjectionFieldInterceptor<in TContext>
     /// <param name="selection">The current selection</param>
     void BeforeProjection(
         TContext context,
-        ISelection selection);
+        Selection selection);
 
     /// <summary>
     /// This method is called after the enter and leave methods of a
@@ -24,5 +24,5 @@ public interface IProjectionFieldInterceptor<in TContext>
     /// <param name="selection">The current selection</param>
     void AfterProjection(
         TContext context,
-        ISelection selection);
+        Selection selection);
 }

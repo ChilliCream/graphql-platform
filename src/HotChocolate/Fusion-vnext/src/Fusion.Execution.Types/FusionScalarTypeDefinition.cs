@@ -58,6 +58,8 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
     /// </summary>
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     /// <summary>
     /// Gets a value indicating whether this scalar type is marked as inaccessible.
     /// </summary>
@@ -118,7 +120,7 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
 
         if (context.Directives is null)
         {
-            ThrowHelper.InvalidCompletionContext();
+            throw ThrowHelper.InvalidCompletionContext();
         }
 
         Directives = context.Directives;
@@ -160,16 +162,16 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
     }
 
     /// <inheritdoc />
-    public bool IsInstanceOfType(IValueNode value)
+    public bool IsValueCompatible(IValueNode valueLiteral)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(valueLiteral);
 
         if (ValueKind == ScalarValueKind.Any)
         {
             return true;
         }
 
-        return value.Kind switch
+        return valueLiteral.Kind switch
         {
             SyntaxKind.NullValue => true,
             SyntaxKind.EnumValue => false,

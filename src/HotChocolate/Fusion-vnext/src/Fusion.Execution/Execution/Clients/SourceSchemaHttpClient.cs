@@ -80,10 +80,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
             case 1:
                 var variableValues = originalRequest.Variables[0].Values;
-                return new GraphQLHttpRequest(CreateSingleRequest(
-                    operationSourceText,
-                    variableValues,
-                    originalRequest.RequiresFileUpload))
+                return new GraphQLHttpRequest(CreateSingleRequest(operationSourceText, variableValues))
                 {
                     Uri = _configuration.BaseAddress,
                     Accept = defaultAccept,
@@ -101,14 +98,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
     private static OperationRequest CreateSingleRequest(
         string operationSourceText,
-        ObjectValueNode? variables = null,
-        bool requiresFileUpload = false)
+        ObjectValueNode? variables = null)
     {
-        if (requiresFileUpload && variables is not null)
-        {
-            variables = RewriteFileReferencesInVariables(variables);
-        }
-
         return new OperationRequest(
             operationSourceText,
             id: null,
@@ -149,20 +140,6 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         _disposed = true;
 
         return ValueTask.CompletedTask;
-    }
-
-    private static ObjectValueNode RewriteFileReferencesInVariables(ObjectValueNode variables)
-    {
-        var newFields = new ObjectFieldNode[variables.Fields.Count];
-
-        for (var i = 0; i < variables.Fields.Count; i++)
-        {
-            var field = variables.Fields[i];
-            var newValue = FileVariableRewriter.Rewrite(field.Value);
-            newFields[i] = new ObjectFieldNode(field.Name.Value, newValue);
-        }
-
-        return new ObjectValueNode(newFields);
     }
 
     private sealed class Response(

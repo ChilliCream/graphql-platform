@@ -1,5 +1,8 @@
 using System.Globalization;
-using HotChocolate.Execution;
+using System.Text;
+using System.Text.Json;
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using NodaTime;
 using NodaTime.Text;
 
@@ -7,90 +10,78 @@ namespace HotChocolate.Types.NodaTime.Tests;
 
 public class LocalDateTypeIntegrationTests
 {
-    public static class Schema
-    {
-        public class Query
-        {
-            public LocalDate One => LocalDate.FromDateTime(
-                new DateTime(2020, 02, 20, 17, 42, 59))
-                    .WithCalendar(CalendarSystem.HebrewCivil);
-        }
-
-        public class Mutation
-        {
-            public LocalDate Test(LocalDate arg)
-            {
-                return arg + Period.FromDays(3);
-            }
-        }
-    }
-
-    private readonly IRequestExecutor _testExecutor =
-        SchemaBuilder.New()
-            .AddQueryType<Schema.Query>()
-            .AddMutationType<Schema.Mutation>()
-            .AddNodaTime()
-            .Create()
-            .MakeExecutable();
-
     [Fact]
-    public void QueryReturns()
+    public void CoerceInputLiteral()
     {
-        var result = _testExecutor.Execute("query { test: one }");
-
-        Assert.Equal("5780-05-25", result.ExpectOperationResult().Data!["test"]);
+        var type = new LocalDateType();
+        var inputValue = new StringValueNode("2020-02-20");
+        var runtimeValue = type.CoerceInputLiteral(inputValue);
+        Assert.Equal(new LocalDate(2020, 2, 20), Assert.IsType<LocalDate>(runtimeValue));
     }
 
     [Fact]
-    public void ParsesVariable()
+    public void CoerceInputLiteral_Invalid_Value_Throws()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-21" } })
-                .Build());
-
-        Assert.Equal("2020-02-24", result.ExpectOperationResult().Data!["test"]);
+        var type = new LocalDateType();
+        var valueLiteral = new StringValueNode("2020-02-20T17:42:59");
+        Action error = () => type.CoerceInputLiteral(valueLiteral);
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
-    public void DoesntParseAnIncorrectVariable()
+    public void CoerceInputValue()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-20T17:42:59" } })
-                .Build());
-
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
+        var type = new LocalDateType();
+        var inputValue = ParseInputValue("\"2020-02-20\"");
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+        Assert.Equal(new LocalDate(2020, 2, 20), Assert.IsType<LocalDate>(runtimeValue));
     }
 
     [Fact]
-    public void ParsesLiteral()
+    public void CoerceInputValue_Invalid_Value_Throws()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"2020-02-20\") }")
-                .Build());
-
-        Assert.Equal("2020-02-23", result.ExpectOperationResult().Data!["test"]);
+        var type = new LocalDateType();
+        var inputValue = ParseInputValue("\"2020-02-20T17:42:59\"");
+        Action error = () => type.CoerceInputValue(inputValue, null!);
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
-    public void DoesntParseIncorrectLiteral()
+    public void CoerceOutputValue()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59\") }")
-                .Build());
+        var type = new LocalDateType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(new LocalDate(2020, 2, 20), resultValue);
+        Assert.Equal("2020-02-20", resultValue.GetString());
+    }
 
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
-        Assert.Null(result.ExpectOperationResult().Errors![0].Code);
-        Assert.Equal(
-            "Unable to deserialize string to LocalDate",
-            result.ExpectOperationResult().Errors![0].Message);
+    [Fact]
+    public void CoerceOutputValue_Invalid_Value_Throws()
+    {
+        var type = new LocalDateType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        Action error = () => type.CoerceOutputValue("2020-02-20", resultValue);
+        Assert.Throws<LeafCoercionException>(error);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        var type = new LocalDateType();
+        var valueLiteral = type.ValueToLiteral(new LocalDate(2020, 2, 20));
+        Assert.Equal("\"2020-02-20\"", valueLiteral.ToString());
+    }
+
+    [Fact]
+    public void ValueToLiteral_Invalid_Value_Throws()
+    {
+        var type = new LocalDateType();
+        Action error = () => type.ValueToLiteral("2020-02-20");
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
@@ -127,5 +118,11 @@ public class LocalDateTypeIntegrationTests
 
         localDateType.Description.MatchInlineSnapshot(
             "LocalDate represents a date within the calendar, with no reference to a particular time zone or time of day.");
+    }
+
+    private static JsonElement ParseInputValue(string sourceText)
+    {
+        var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(sourceText));
+        return JsonElement.ParseValue(ref reader);
     }
 }

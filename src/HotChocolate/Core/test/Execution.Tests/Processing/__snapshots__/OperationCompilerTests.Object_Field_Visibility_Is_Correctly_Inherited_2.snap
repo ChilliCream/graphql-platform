@@ -22,18 +22,18 @@ query foo(
 query foo(
   $v: Boolean!
   $q: Boolean!
-) @includeCondition(flag: 2) @includeCondition(flag: 3) {
+) {
   ... on Query {
-    hero(episode: EMPIRE) @__execute(id: 0, kind: PURE, type: COMPOSITE) {
-      ... on Droid {
-        name @conditional @__execute(id: 1, kind: PURE, type: LEAF)
-        id @__execute(id: 2, kind: PURE, type: LEAF)
-        height @conditional @__execute(id: 3, kind: PURE, type: LEAF)
-      }
+    hero(episode: EMPIRE) @__execute(id: 2, kind: PURE, type: COMPOSITE) {
       ... on Human {
         name @conditional @__execute(id: 4, kind: PURE, type: LEAF)
         id @__execute(id: 5, kind: PURE, type: LEAF)
         height @conditional @__execute(id: 6, kind: PURE, type: LEAF)
+      }
+      ... on Droid {
+        name @conditional @__execute(id: 8, kind: PURE, type: LEAF)
+        id @__execute(id: 9, kind: PURE, type: LEAF)
+        height @conditional @__execute(id: 10, kind: PURE, type: LEAF)
       }
     }
   }

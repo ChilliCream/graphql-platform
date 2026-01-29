@@ -1,5 +1,8 @@
 using System.Globalization;
-using HotChocolate.Execution;
+using System.Text;
+using System.Text.Json;
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using NodaTime;
 using NodaTime.Text;
 
@@ -7,121 +10,82 @@ namespace HotChocolate.Types.NodaTime.Tests;
 
 public class OffsetTimeTypeIntegrationTests
 {
-    public static class Schema
-    {
-        public class Query
-        {
-            public OffsetTime Hours =>
-                new OffsetTime(
-                    LocalTime
-                        .FromHourMinuteSecondMillisecondTick(18, 30, 13, 10, 100)
-                        .PlusNanoseconds(1234),
-                    Offset.FromHours(2));
-
-            public OffsetTime HoursAndMinutes =>
-                new OffsetTime(
-                    LocalTime
-                        .FromHourMinuteSecondMillisecondTick(18, 30, 13, 10, 100)
-                        .PlusNanoseconds(1234),
-                    Offset.FromHoursAndMinutes(2, 35));
-        }
-
-        public class Mutation
-        {
-            public OffsetTime Test(OffsetTime arg) => arg;
-        }
-    }
-
-    private readonly IRequestExecutor _testExecutor =
-        SchemaBuilder.New()
-            .AddQueryType<Schema.Query>()
-            .AddMutationType<Schema.Mutation>()
-            .AddNodaTime()
-            .Create()
-            .MakeExecutable();
-
     [Fact]
-    public void QueryReturns()
+    public void CoerceInputLiteral()
     {
-        var result = _testExecutor.Execute("query { test: hours }");
-        Assert.Equal("18:30:13+02", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void QueryReturnsWithMinutes()
-    {
-        var result = _testExecutor.Execute("query { test: hoursAndMinutes }");
-        Assert.Equal("18:30:13+02:35", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void ParsesVariable()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13+02" } })
-                .Build());
-        Assert.Equal("18:30:13+02", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void ParsesVariableWithMinutes()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13+02:35" } })
-                .Build());
-        Assert.Equal("18:30:13+02:35", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void DoesntParseAnIncorrectVariable()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "18:30:13" } })
-                .Build());
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
-    }
-
-    [Fact]
-    public void ParsesLiteral()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"18:30:13+02\") }")
-                .Build());
-        Assert.Equal("18:30:13+02", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void ParsesLiteralWithMinutes()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"18:30:13+02:35\") }")
-                .Build());
-        Assert.Equal("18:30:13+02:35", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void DoesntParseIncorrectLiteral()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"18:30:13\") }")
-                .Build());
-
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
-        Assert.Null(result.ExpectOperationResult().Errors![0].Code);
+        var type = new OffsetTimeType();
+        var inputValue = new StringValueNode("18:30:13+02");
+        var runtimeValue = type.CoerceInputLiteral(inputValue);
         Assert.Equal(
-            "Unable to deserialize string to OffsetTime",
-            result.ExpectOperationResult().Errors![0].Message);
+            new OffsetTime(new LocalTime(18, 30, 13), Offset.FromHours(2)),
+            Assert.IsType<OffsetTime>(runtimeValue));
+    }
+
+    [Fact]
+    public void CoerceInputLiteral_Invalid_Value_Throws()
+    {
+        var type = new OffsetTimeType();
+        var valueLiteral = new StringValueNode("18:30:13");
+        Action error = () => type.CoerceInputLiteral(valueLiteral);
+        Assert.Throws<LeafCoercionException>(error);
+    }
+
+    [Fact]
+    public void CoerceInputValue()
+    {
+        var type = new OffsetTimeType();
+        var inputValue = ParseInputValue("\"18:30:13+02\"");
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+        Assert.Equal(
+            new OffsetTime(new LocalTime(18, 30, 13), Offset.FromHours(2)),
+            Assert.IsType<OffsetTime>(runtimeValue));
+    }
+
+    [Fact]
+    public void CoerceInputValue_Invalid_Value_Throws()
+    {
+        var type = new OffsetTimeType();
+        var inputValue = ParseInputValue("\"18:30:13\"");
+        Action error = () => type.CoerceInputValue(inputValue, null!);
+        Assert.Throws<LeafCoercionException>(error);
+    }
+
+    [Fact]
+    public void CoerceOutputValue()
+    {
+        var type = new OffsetTimeType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(new OffsetTime(new LocalTime(18, 30, 13), Offset.FromHours(2)), resultValue);
+        Assert.Equal("18:30:13+02", resultValue.GetString());
+    }
+
+    [Fact]
+    public void CoerceOutputValue_Invalid_Value_Throws()
+    {
+        var type = new OffsetTimeType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        Action error = () => type.CoerceOutputValue("18:30:13+02", resultValue);
+        Assert.Throws<LeafCoercionException>(error);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        var type = new OffsetTimeType();
+        var valueLiteral = type.ValueToLiteral(new OffsetTime(new LocalTime(18, 30, 13), Offset.FromHours(2)));
+        Assert.Equal("\"18:30:13+02\"", valueLiteral.ToString());
+    }
+
+    [Fact]
+    public void ValueToLiteral_Invalid_Value_Throws()
+    {
+        var type = new OffsetTimeType();
+        Action error = () => type.ValueToLiteral("18:30:13+02");
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
@@ -160,5 +124,11 @@ public class OffsetTimeTypeIntegrationTests
 
         offsetTimeType.Description.MatchInlineSnapshot(
             "A combination of a LocalTime and an Offset, to represent a time-of-day at a specific offset from UTC but without any date information.");
+    }
+
+    private static JsonElement ParseInputValue(string sourceText)
+    {
+        var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(sourceText));
+        return JsonElement.ParseValue(ref reader);
     }
 }

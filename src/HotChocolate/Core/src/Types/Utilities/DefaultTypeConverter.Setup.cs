@@ -365,4 +365,17 @@ public partial class DefaultTypeConverter
         registry.Register<List<string>, ImmutableArray<string>>(
             from => from.ToImmutableArray());
     }
+
+    private static void RegisterJsonElementConversions(
+        DefaultTypeConverter registry)
+    {
+        registry.Register<IReadOnlyDictionary<string, object?>, JsonElement>(
+            DictionaryToJsonDocumentConverter.FromDictionary);
+        registry.Register<JsonElement, IReadOnlyDictionary<string, object?>>(
+            DictionaryToJsonDocumentConverter.ToDictionary);
+        registry.Register<IReadOnlyList<object?>, JsonElement>(
+            DictionaryToJsonDocumentConverter.FromList);
+        registry.Register<JsonElement, IReadOnlyList<object?>>(
+            DictionaryToJsonDocumentConverter.ToList);
+    }
 }

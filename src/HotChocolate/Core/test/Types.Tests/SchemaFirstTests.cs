@@ -278,13 +278,14 @@ public class SchemaFirstTests
         const string sourceText = "type Query { hello: Any }";
 
         // act
-        var schema = SchemaBuilder.New()
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
             .AddDocumentFromString(sourceText)
             .AddResolver<Query>()
-            .Create();
+            .AddJsonTypeConverter()
+            .BuildRequestExecutorAsync();
 
         // assert
-        var executor = schema.MakeExecutable();
         var result = await executor.ExecuteAsync("{ hello }");
         result.ToJson().MatchSnapshot();
     }

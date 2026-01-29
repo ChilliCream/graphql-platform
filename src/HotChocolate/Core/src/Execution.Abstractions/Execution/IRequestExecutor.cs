@@ -32,16 +32,16 @@ public interface IRequestExecutor : IFeatureProvider
     /// Returns the execution result of the given GraphQL <paramref name="request" />.
     ///
     /// If the request operation is a simple query or mutation the result is a
-    /// <see cref="IOperationResult" />.
+    /// <see cref="OperationResult" />.
     ///
     /// If the request operation is a query or mutation where data is deferred, streamed or
     /// includes live data the result is a <see cref="IResponseStream" /> where each result
-    /// that the <see cref="IResponseStream" /> yields is a <see cref="IOperationResult" />.
+    /// that the <see cref="IResponseStream" /> yields is a <see cref="OperationResult" />.
     ///
     /// If the request operation is a subscription the result is a
     /// <see cref="IResponseStream" /> where each result that the
     /// <see cref="IResponseStream" /> yields is a
-    /// <see cref="IOperationResult" />.
+    /// <see cref="OperationResult" />.
     /// </returns>
     Task<IExecutionResult> ExecuteAsync(
         IOperationRequest request,

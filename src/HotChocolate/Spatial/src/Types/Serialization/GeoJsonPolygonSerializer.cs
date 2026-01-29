@@ -1,9 +1,9 @@
 using System.Collections;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
-using static HotChocolate.Types.Spatial.WellKnownFields;
 
 namespace HotChocolate.Types.Spatial.Serialization;
 
@@ -13,6 +13,69 @@ internal class GeoJsonPolygonSerializer
     private GeoJsonPolygonSerializer()
         : base(GeoJsonGeometryType.Polygon)
     {
+    }
+
+    public override void CoerceOutputCoordinates(
+        IType type,
+        object runtimeValue,
+        ResultElement resultElement)
+    {
+        if (runtimeValue is Polygon polygon)
+        {
+            var ringCount = polygon.NumInteriorRings + 1;
+            resultElement.SetArrayValue(ringCount);
+
+            var ringIndex = 0;
+            foreach (var ringElement in resultElement.EnumerateArray())
+            {
+                var ring = ringIndex == 0 ? polygon.ExteriorRing : polygon.InteriorRings[ringIndex - 1];
+                var coords = ring.Coordinates;
+                ringElement.SetArrayValue(coords.Length);
+
+                var coordIndex = 0;
+                foreach (var coordElement in ringElement.EnumerateArray())
+                {
+                    GeoJsonPositionSerializer.Default.CoerceOutputCoordinates(type, coords[coordIndex++], coordElement);
+                }
+
+                ringIndex++;
+            }
+
+            return;
+        }
+
+        throw Serializer_CouldNotParseValue(type);
+    }
+
+    public override IValueNode CoordinateToLiteral(IType type, object? runtimeValue)
+    {
+        if (runtimeValue is Polygon p)
+        {
+            var geometryCoords = new IValueNode[p.NumInteriorRings + 1];
+            geometryCoords[0] = RingToLiteral(type, p.ExteriorRing);
+
+            for (var i = 0; i < p.InteriorRings.Length; i++)
+            {
+                geometryCoords[i + 1] = RingToLiteral(type, p.InteriorRings[i]);
+            }
+
+            return new ListValueNode(geometryCoords);
+        }
+
+        throw Serializer_CouldNotParseValue(type);
+    }
+
+    private static IValueNode RingToLiteral(IType type, LineString ring)
+    {
+        var coords = ring.Coordinates;
+        var result = new IValueNode[coords.Length];
+
+        for (var i = 0; i < coords.Length; i++)
+        {
+            result[i] = GeoJsonPositionSerializer.Default.ValueToLiteral(type, coords[i]);
+        }
+
+        return new ListValueNode(result);
     }
 
     public override Polygon CreateGeometry(
@@ -79,108 +142,22 @@ internal class GeoJsonPolygonSerializer
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        if (runtimeValue is not Polygon geometry
-            || !TrySerializeCoordinates(type, geometry, out var serialized))
+        if (runtimeValue is not Polygon geometry)
         {
             throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
         }
 
+        // Build the coordinate arrays for polygon (rings)
+        var rings = new Coordinate[geometry.NumInteriorRings + 1][];
+        rings[0] = geometry.ExteriorRing.Coordinates;
+        for (var i = 0; i < geometry.InteriorRings.Length; i++)
+        {
+            rings[i + 1] = geometry.InteriorRings[i].Coordinates;
+        }
+
         fieldValues[0] = GeoJsonGeometryType.Polygon;
-        fieldValues[1] = serialized;
+        fieldValues[1] = rings;
         fieldValues[2] = geometry.SRID;
-    }
-
-    public override IValueNode ParseValue(IType type, object? runtimeValue)
-    {
-        ArgumentNullException.ThrowIfNull(type);
-
-        if (runtimeValue is null)
-        {
-            return NullValueNode.Default;
-        }
-
-        if (runtimeValue is IReadOnlyDictionary<string, object> dict)
-        {
-            return ParseResult(type, dict);
-        }
-
-        if (runtimeValue is Polygon geometry)
-        {
-            var list = new List<ObjectFieldNode>
-                {
-                    new(TypeFieldName,
-                        GeoJsonTypeSerializer.Default.ParseResult(
-                            type,
-                            GeoJsonGeometryType.Polygon)),
-                    new(CoordinatesFieldName, ParseCoordinateValue(type, geometry)),
-                    new(CrsFieldName, new IntValueNode(geometry.SRID))
-                };
-
-            return new ObjectValueNode(list);
-        }
-
-        throw Serializer_CouldNotParseValue(type);
-    }
-
-    public override IValueNode ParseCoordinateValue(IType type, object? runtimeValue)
-    {
-        if (runtimeValue is Polygon p)
-        {
-            var geometryCoords = new IValueNode[p.NumInteriorRings + 1];
-            geometryCoords[0] = base.ParseCoordinateValue(type, p.ExteriorRing);
-            for (var i = 0; i < p.InteriorRings.Length; i++)
-            {
-                geometryCoords[i + 1] =
-                    base.ParseCoordinateValue(type, p.InteriorRings[i]);
-            }
-
-            return new ListValueNode(geometryCoords);
-        }
-
-        throw Serializer_CouldNotParseValue(type);
-    }
-
-    public override bool TrySerializeCoordinates(
-        IType type,
-        object runtimeValue,
-        out object? serialized)
-    {
-        if (runtimeValue is Polygon polygon)
-        {
-            var geometryCoords = new object?[polygon.NumInteriorRings + 1];
-
-            if (base.TrySerializeCoordinates(type,
-                polygon.ExteriorRing,
-                out var serializedPolygonCoords))
-            {
-                geometryCoords[0] = serializedPolygonCoords;
-            }
-            else
-            {
-                throw Serializer_CouldNotSerialize(type);
-            }
-
-            for (var i = 0; i < polygon.InteriorRings.Length; i++)
-            {
-                if (base.TrySerializeCoordinates(
-                    type,
-                    polygon.InteriorRings[i],
-                    out var coords))
-                {
-                    geometryCoords[i + 1] = coords;
-                }
-                else
-                {
-                    throw Serializer_CouldNotSerialize(type);
-                }
-            }
-
-            serialized = geometryCoords;
-            return true;
-        }
-
-        serialized = null;
-        return false;
     }
 
     public static readonly GeoJsonPolygonSerializer Default = new();

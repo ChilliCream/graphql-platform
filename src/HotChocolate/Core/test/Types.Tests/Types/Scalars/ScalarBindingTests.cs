@@ -1,4 +1,7 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
@@ -57,22 +60,24 @@ public class ScalarBindingTests
         {
         }
 
-        public override bool IsInstanceOfType(IValueNode literal)
+        public override ScalarSerializationType SerializationType => ScalarSerializationType.Int;
+
+        public override object CoerceInputLiteral(IValueNode valueSyntax)
         {
             throw new NotImplementedException();
         }
 
-        public override object? ParseLiteral(IValueNode valueSyntax)
+        public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
         {
             throw new NotImplementedException();
         }
 
-        public override IValueNode ParseValue(object? value)
+        public override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
         {
             throw new NotImplementedException();
         }
 
-        public override IValueNode ParseResult(object? resultValue)
+        public override IValueNode OnValueToLiteral(int runtimeValue)
         {
             throw new NotImplementedException();
         }
@@ -85,22 +90,24 @@ public class ScalarBindingTests
         {
         }
 
-        public override bool IsInstanceOfType(IValueNode literal)
+        public override ScalarSerializationType SerializationType => ScalarSerializationType.Int;
+
+        public override object CoerceInputLiteral(IValueNode valueSyntax)
         {
             throw new NotImplementedException();
         }
 
-        public override object? ParseLiteral(IValueNode valueSyntax)
+        public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
         {
             throw new NotImplementedException();
         }
 
-        public override IValueNode ParseValue(object? value)
+        public override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
         {
             throw new NotImplementedException();
         }
 
-        public override IValueNode ParseResult(object? resultValue)
+        public override IValueNode OnValueToLiteral(int runtimeValue)
         {
             throw new NotImplementedException();
         }

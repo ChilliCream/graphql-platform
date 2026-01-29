@@ -1,5 +1,7 @@
+using System.Text.Json;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using static HotChocolate.ApolloFederation.FederationTypeNames;
 using static HotChocolate.Language.Utf8GraphQLParser;
@@ -20,94 +22,70 @@ public class FieldSetTypeTests
     }
 
     [Fact]
-    public void Deserialize()
+    public void CoerceInputLiteral()
     {
         // arrange
         var type = new FieldSetType();
-        const string serialized = "a b c d e(d: $b)";
+        const string selection = "a b c d e(d: $b)";
+        var serialized = new StringValueNode(selection);
 
         // act
-        var selectionSet = type.Deserialize(serialized);
+        var selectionSetObject = type.CoerceInputLiteral(serialized);
 
         // assert
-        Assert.IsType<SelectionSetNode>(selectionSet);
+        var selectionSet = Assert.IsType<SelectionSetNode>(selectionSetObject);
+        Assert.Equal(5, selectionSet.Selections.Count);
     }
 
     [Fact]
-    public void Deserialize_Invalid_Format()
+    public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
         var type = new FieldSetType();
-        const string serialized = "1";
+        var serialized = new StringValueNode("1");
 
         // act
-        void Action() => type.Deserialize(serialized);
+        void Action() => type.CoerceInputLiteral(serialized);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void TryDeserialize()
-    {
-        // arrange
-        var type = new FieldSetType();
-        const string serialized = "a b c d e(d: $b)";
-
-        // act
-        var success = type.TryDeserialize(serialized, out var selectionSet);
-
-        // assert
-        Assert.True(success);
-        Assert.IsType<SelectionSetNode>(selectionSet);
-    }
-
-    [Fact]
-    public void TryDeserialize_Null()
+    public void CoerceInputValue()
     {
         // arrange
         var type = new FieldSetType();
 
+        var inputValue = JsonDocument.Parse(
+            """
+            "a b c d e(d: $b)"
+            """);
+
         // act
-        var success = type.TryDeserialize(null, out var selectionSet);
+        var selectionSetObject = type.CoerceInputValue(inputValue.RootElement, null!);
 
         // assert
-        Assert.True(success);
-        Assert.Null(selectionSet);
+        var selectionSet = Assert.IsType<SelectionSetNode>(selectionSetObject);
+        Assert.Equal(5, selectionSet.Selections.Count);
     }
 
     [Fact]
-    public void TryDeserialize_Invalid_Syntax()
+    public void CoerceInputValue_Invalid_Format()
     {
         // arrange
         var type = new FieldSetType();
-        const string serialized = "1";
+        var inputValue = JsonDocument.Parse("1").RootElement;
 
         // act
-        var success = type.TryDeserialize(serialized, out var selectionSet);
+        void Action() => type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.False(success);
-        Assert.Null(selectionSet);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void TryDeserialize_Invalid_Type()
-    {
-        // arrange
-        var type = new FieldSetType();
-        const int serialized = 1;
-
-        // act
-        var success = type.TryDeserialize(serialized, out var selectionSet);
-
-        // assert
-        Assert.False(success);
-        Assert.Null(selectionSet);
-    }
-
-    [Fact]
-    public void Serialize()
+    public void CoerceOutputValue()
     {
         // arrange
         var type = new FieldSetType();
@@ -115,59 +93,33 @@ public class FieldSetTypeTests
         var selectionSet = Syntax.ParseSelectionSet(Braces(selection));
 
         // act
-        var serialized = type.Serialize(selectionSet);
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(selectionSet, resultValue);
 
         // assert
-        Assert.Equal(selection, serialized);
+        resultValue.MatchSnapshot();
     }
 
     [Fact]
-    public void Serialize_Invalid_Format()
+    public void CoerceOutputValue_Invalid_Format()
     {
         // arrange
         var type = new FieldSetType();
 
         // act
-        void Action() => type.Serialize(1);
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue(1, resultValue);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void TrySerialize()
-    {
-        // arrange
-        var type = new FieldSetType();
-        const string selection = "a b c d e(d: $b)";
-        var selectionSet = Syntax.ParseSelectionSet(Braces(selection));
-
-        // act
-        var success = type.TrySerialize(selectionSet, out var serialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(selection, serialized);
-    }
-
-    [Fact]
-    public void TrySerialize_Invalid_Format()
-    {
-        // arrange
-        var type = new FieldSetType();
-
-        // act
-        var success = type.TrySerialize(1, out var serialized);
-
-        // assert
-        Assert.False(success);
-        Assert.Null(serialized);
-    }
-
-    private static string Braces(string s) => $"{{ {s} }}";
-
-    [Fact]
-    public void ParseValue()
+    public void ValueToLiteral()
     {
         // arrange
         var type = new FieldSetType();
@@ -175,7 +127,7 @@ public class FieldSetTypeTests
         var selectionSet = Syntax.ParseSelectionSet(Braces(selection));
 
         // act
-        var valueSyntax = type.ParseValue(selectionSet);
+        var valueSyntax = type.ValueToLiteral(selectionSet);
 
         // assert
         Assert.Equal(
@@ -184,28 +136,46 @@ public class FieldSetTypeTests
     }
 
     [Fact]
-    public void ParseValue_Null()
+    public void ValueToLiteral_Invalid_Format()
     {
         // arrange
         var type = new FieldSetType();
 
         // act
-        var valueSyntax = type.ParseValue(null);
+        Action action = () => type.ValueToLiteral(1);
 
         // assert
-        Assert.IsType<NullValueNode>(valueSyntax);
+        Assert.Throws<LeafCoercionException>(action);
     }
 
     [Fact]
-    public void ParseValue_InvalidValue()
+    public void ParseLiteral()
+    {
+        // arrange
+        var type = new FieldSetType();
+        const string selection = "a b c d e(d: $b)";
+        var stringValueNode = new StringValueNode(selection);
+
+        // act
+        var valueSyntax = type.CoerceInputLiteral(stringValueNode);
+
+        // assert
+        var parsedSelectionSet = Assert.IsType<SelectionSetNode>(valueSyntax);
+        Assert.Equal(5, parsedSelectionSet.Selections.Count);
+    }
+
+    [Fact]
+    public void ParseLiteral_InvalidValue()
     {
         // arrange
         var type = new FieldSetType();
 
         // act
-        void Action() => type.ParseValue(1);
+        void Action() => type.CoerceInputLiteral(new StringValueNode("1"));
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
+
+    private static string Braces(string s) => $"{{ {s} }}";
 }

@@ -2,11 +2,11 @@
   "errors": [
     {
       "message": "The OneOf Input Objects `ExampleInput` require that exactly one field must be supplied and that field must not be `null`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.",
-      "path": [
-        "var"
-      ],
       "extensions": {
-        "code": "HC0054"
+        "code": "HC0054",
+        "inputPath": [
+          "var"
+        ]
       }
     }
   ]

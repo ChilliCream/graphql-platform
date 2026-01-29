@@ -1,6 +1,9 @@
+using System.Text.Json;
 using HotChocolate.ApolloFederation.Properties;
+using HotChocolate.Features;
 using HotChocolate.Language;
-using static HotChocolate.ApolloFederation.ThrowHelper;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation.Types;
 
@@ -39,95 +42,40 @@ public sealed class FieldSetType : ScalarType<SelectionSetNode, StringValueNode>
         Description = FederationResources.FieldsetType_Description;
     }
 
-    /// <inheritdoc />
-    protected override SelectionSetNode ParseLiteral(StringValueNode valueSyntax)
+    protected override SelectionSetNode OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
         try
         {
-            return ParseSelectionSet(valueSyntax.Value);
+            return ParseSelectionSet(valueLiteral.Value);
         }
         catch (SyntaxException)
         {
-            throw FieldSet_InvalidFormat(this);
+            throw ThrowHelper.FieldSet_InvalidFormat(this);
         }
     }
 
-    /// <inheritdoc />
-    protected override StringValueNode ParseValue(SelectionSetNode runtimeValue)
-        => new(SerializeSelectionSet(runtimeValue));
-
-    /// <inheritdoc />
-    public override IValueNode ParseResult(object? resultValue)
+    protected override SelectionSetNode OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (resultValue is null)
-        {
-            return NullValueNode.Default;
-        }
-
-        if (resultValue is string s)
-        {
-            return new StringValueNode(s);
-        }
-
-        if (resultValue is SelectionSetNode selectionSet)
-        {
-            return new StringValueNode(SerializeSelectionSet(selectionSet));
-        }
-
-        throw Scalar_CannotParseValue(this, resultValue.GetType());
-    }
-
-    /// <inheritdoc />
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-    {
-        if (runtimeValue is null)
-        {
-            resultValue = null;
-            return true;
-        }
-
-        if (runtimeValue is SelectionSetNode selectionSet)
-        {
-            resultValue = SerializeSelectionSet(selectionSet);
-            return true;
-        }
-
-        resultValue = null;
-        return false;
-    }
-
-    /// <inheritdoc />
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        if (resultValue is null)
-        {
-            runtimeValue = null;
-            return true;
-        }
-
-        if (resultValue is SelectionSetNode selectionSet)
-        {
-            runtimeValue = selectionSet;
-            return true;
-        }
-
-        if (resultValue is string serializedSelectionSet)
+        if (inputValue.ValueKind is JsonValueKind.String)
         {
             try
             {
-                runtimeValue = ParseSelectionSet(serializedSelectionSet);
-                return true;
+                return ParseSelectionSet(inputValue.GetString()!);
             }
             catch (SyntaxException)
             {
-                runtimeValue = null;
-                return false;
+                throw ThrowHelper.FieldSet_InvalidFormat(this);
             }
         }
 
-        runtimeValue = null;
-        return false;
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
+
+    protected override void OnCoerceOutputValue(SelectionSetNode runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(SerializeSelectionSet(runtimeValue));
+
+    protected override StringValueNode OnValueToLiteral(SelectionSetNode runtimeValue)
+        => new(SerializeSelectionSet(runtimeValue));
 
     internal static SelectionSetNode ParseSelectionSet(string s)
         => Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{s}}}");

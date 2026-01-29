@@ -1,7 +1,9 @@
 using System.Globalization;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
+using HotChocolate.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
@@ -9,221 +11,26 @@ namespace HotChocolate.Types;
 public class LocalTimeTypeTests
 {
     [Fact]
-    public void Serialize_TimeOnly()
+    public void Ensure_Type_Name_Is_Correct()
     {
         // arrange
-        var localTimeType = new LocalTimeType();
-        var timeOnly = new TimeOnly(8, 46, 14);
-        const string expectedValue = "08:46:14";
-
         // act
-        var serializedValue = (string?)localTimeType.Serialize(timeOnly);
+        var type = new LocalTimeType();
 
         // assert
-        Assert.Equal(expectedValue, serializedValue);
+        Assert.Equal("LocalTime", type.Name);
     }
 
     [Fact]
-    public void Serialize_DateTime()
-    {
-        // arrange
-        var localTimeType = new LocalTimeType();
-        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-        const string expectedValue = "08:46:14";
-
-        // act
-        var serializedValue = (string?)localTimeType.Serialize(dateTime);
-
-        // assert
-        Assert.Equal(expectedValue, serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_DateTimeOffset()
-    {
-        // arrange
-        var localTimeType = new LocalTimeType();
-        var dateTime = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 2, 46, 14),
-            new TimeSpan(4, 0, 0));
-        const string expectedValue = "02:46:14";
-
-        // act
-        var serializedValue = (string?)localTimeType.Serialize(dateTime);
-
-        // assert
-        Assert.Equal(expectedValue, serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Null()
-    {
-        // arrange
-        var localTimeType = new LocalTimeType();
-
-        // act
-        var serializedValue = localTimeType.Serialize(null);
-
-        // assert
-        Assert.Null(serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_String_Exception()
-    {
-        // arrange
-        var localTimeType = new LocalTimeType();
-
-        // act
-        void Action() => localTimeType.Serialize("foo");
-
-        // assert
-        Assert.Throws<SerializationException>(Action);
-    }
-
-    [Fact]
-    public void Deserialize_IsoString_TimeOnly()
-    {
-        // arrange
-        var localTimeType = new LocalTimeType();
-        var time = new TimeOnly(8, 46, 14);
-
-        // act
-        var result = (TimeOnly)localTimeType.Deserialize("08:46:14")!;
-
-        // assert
-        Assert.Equal(time, result);
-    }
-
-    [Fact]
-    public void Deserialize_InvalidFormat_To_TimeOnly()
+    public void CoerceInputLiteral()
     {
         // arrange
         var type = new LocalTimeType();
-
-        // act
-        var success = type.TryDeserialize("08:46:14 pm", out _);
-
-        // assert
-        Assert.False(success);
-    }
-
-    [Fact]
-    public void Deserialize_InvalidString_To_TimeOnly()
-    {
-        // arrange
-        var type = new LocalTimeType();
-
-        // act
-        var success = type.TryDeserialize("abc", out _);
-
-        // assert
-        Assert.False(success);
-    }
-
-    [Fact]
-    public void Deserialize_TimeOnly_To_TimeOnly()
-    {
-        // arrange
-        var type = new LocalTimeType();
-        var time = new TimeOnly(8, 46, 14);
-
-        // act
-        var success = type.TryDeserialize(time, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(time, deserialized);
-    }
-
-    [Fact]
-    public void Deserialize_DateTime_To_TimeOnly()
-    {
-        // arrange
-        var type = new LocalTimeType();
-        var date = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-
-        // act
-        var success = type.TryDeserialize(date, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(TimeOnly.FromDateTime(date),
-            Assert.IsType<TimeOnly>(deserialized));
-    }
-
-    [Fact]
-    public void Deserialize_DateTimeOffset_To_TimeOnly()
-    {
-        // arrange
-        var type = new LocalTimeType();
-        var date = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 2, 46, 14),
-            new TimeSpan(4, 0, 0));
-
-        // act
-        var success = type.TryDeserialize(date, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(TimeOnly.FromDateTime(date.DateTime),
-            Assert.IsType<TimeOnly>(deserialized));
-    }
-
-    [Fact]
-    public void Deserialize_NullableTimeOnly_To_TimeOnly()
-    {
-        // arrange
-        var type = new LocalTimeType();
-        TimeOnly? time = new TimeOnly(8, 46, 14);
-
-        // act
-        var success = type.TryDeserialize(time, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(time, Assert.IsType<TimeOnly>(deserialized));
-    }
-
-    [Fact]
-    public void Deserialize_NullableTimeOnly_To_TimeOnly_2()
-    {
-        // arrange
-        var type = new LocalTimeType();
-        TimeOnly? time = null;
-
-        // act
-        var success = type.TryDeserialize(time, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(deserialized);
-    }
-
-    [Fact]
-    public void Deserialize_Null_To_Null()
-    {
-        // arrange
-        var type = new LocalTimeType();
-
-        // act
-        var success = type.TryDeserialize(null, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(deserialized);
-    }
-
-    [Fact]
-    public void ParseLiteral_StringValueNode()
-    {
-        // arrange
-        var localTimeType = new LocalTimeType();
         var literal = new StringValueNode("08:46:14");
         var expectedTimeOnly = new TimeOnly(8, 46, 14);
 
         // act
-        var timeOnly = (TimeOnly)localTimeType.ParseLiteral(literal)!;
+        var timeOnly = type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expectedTimeOnly, timeOnly);
@@ -235,169 +42,140 @@ public class LocalTimeTypeTests
     [InlineData("de-CH")]
     [InlineData("de-de")]
     [Theory]
-    public void ParseLiteral_StringValueNode_DifferentCulture(
-        string cultureName)
+    public void CoerceInputLiteral_DifferentCulture(string cultureName)
     {
         // arrange
         Thread.CurrentThread.CurrentCulture =
             CultureInfo.GetCultureInfo(cultureName);
 
-        var localTimeType = new LocalTimeType();
+        var type = new LocalTimeType();
         var literal = new StringValueNode("08:46:14");
         var expectedTimeOnly = new TimeOnly(8, 46, 14);
 
         // act
-        var timeOnly = (TimeOnly)localTimeType.ParseLiteral(literal)!;
+        var timeOnly = (TimeOnly)type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expectedTimeOnly, timeOnly);
     }
 
     [Fact]
-    public void ParseLiteral_NullValueNode()
+    public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
-        var localTimeType = new LocalTimeType();
-        var literal = NullValueNode.Default;
+        var type = new LocalTimeType();
+        var literal = new StringValueNode("abc");
 
         // act
-        var value = localTimeType.ParseLiteral(literal);
+        void Action() => type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Null(value);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseValue_TimeOnly()
+    public void CoerceInputValue()
     {
         // arrange
-        var localTimeType = new LocalTimeType();
+        var type = new LocalTimeType();
+        var inputValue = JsonDocument.Parse("\"08:46:14\"").RootElement;
+        var expectedTime = new TimeOnly(8, 46, 14);
+
+        // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Equal(expectedTime, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new LocalTimeType();
+        var inputValue = JsonDocument.Parse("\"abc\"").RootElement;
+
+        // act
+        void Action() => type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void CoerceOutputValue()
+    {
+        // arrange
+        var type = new LocalTimeType();
         var timeOnly = new TimeOnly(8, 46, 14);
-        const string expectedLiteralValue = "08:46:14";
 
         // act
-        var stringLiteral =
-            (StringValueNode)localTimeType.ParseValue(timeOnly);
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(timeOnly, resultValue);
 
         // assert
-        Assert.Equal(expectedLiteralValue, stringLiteral.Value);
+        resultValue.MatchInlineSnapshot("\"08:46:14\"");
     }
 
     [Fact]
-    public void ParseValue_Null()
-    {
-        // arrange
-        var localTimeType = new LocalTimeType();
-
-        // act
-        var literal = localTimeType.ParseValue(null);
-
-        // assert
-        Assert.Equal(NullValueNode.Default, literal);
-    }
-
-    [Fact]
-    public void ParseResult_TimeOnly()
-    {
-        // arrange
-        var localTimeType = new LocalTimeType();
-        var resultValue = new TimeOnly(8, 46, 14);
-        const string expectedLiteralValue = "08:46:14";
-
-        // act
-        var literal = localTimeType.ParseResult(resultValue);
-
-        // assert
-        Assert.Equal(typeof(StringValueNode), literal.GetType());
-        Assert.Equal(expectedLiteralValue, literal.Value);
-    }
-
-    [Fact]
-    public void ParseResult_DateTime()
-    {
-        // arrange
-        var localTimeType = new LocalTimeType();
-        var resultValue = new DateTime(2023, 6, 19, 11, 24, 0, DateTimeKind.Utc);
-        const string expectedLiteralValue = "11:24:00";
-
-        // act
-        var literal = localTimeType.ParseResult(resultValue);
-
-        // assert
-        Assert.Equal(typeof(StringValueNode), literal.GetType());
-        Assert.Equal(expectedLiteralValue, literal.Value);
-    }
-
-    [Fact]
-    public void ParseResult_DateTimeOffset()
-    {
-        // arrange
-        var localTimeType = new LocalTimeType();
-        var resultValue = new DateTimeOffset(2023, 6, 19, 11, 24, 0, new TimeSpan(6, 0, 0));
-        const string expectedLiteralValue = "11:24:00";
-
-        // act
-        var literal = localTimeType.ParseResult(resultValue);
-
-        // assert
-        Assert.Equal(typeof(StringValueNode), literal.GetType());
-        Assert.Equal(expectedLiteralValue, literal.Value);
-    }
-
-    [Fact]
-    public void ParseResult_String()
-    {
-        // arrange
-        var localTimeType = new LocalTimeType();
-        const string resultValue = "11:24:00";
-        const string expectedLiteralValue = "11:24:00";
-
-        // act
-        var literal = localTimeType.ParseResult(resultValue);
-
-        // assert
-        Assert.Equal(typeof(StringValueNode), literal.GetType());
-        Assert.Equal(expectedLiteralValue, literal.Value);
-    }
-
-    [Fact]
-    public void ParseResult_Null()
-    {
-        // arrange
-        var localTimeType = new LocalTimeType();
-
-        // act
-        var literal = localTimeType.ParseResult(null);
-
-        // assert
-        Assert.Equal(NullValueNode.Default, literal);
-    }
-
-    [Fact]
-    public void ParseResult_SerializationException()
-    {
-        // arrange
-        var localTimeType = new LocalTimeType();
-        const int resultValue = 1;
-
-        // act
-        var exception = Record.Exception(() => localTimeType.ParseResult(resultValue));
-
-        // assert
-        Assert.IsType<SerializationException>(exception);
-    }
-
-    [Fact]
-    public void EnsureLocalTimeTypeKindIsCorrect()
+    public void CoerceOutputValue_Invalid_Format()
     {
         // arrange
         var type = new LocalTimeType();
 
         // act
-        var kind = type.Kind;
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue(123, resultValue);
 
         // assert
-        Assert.Equal(TypeKind.Scalar, kind);
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        // arrange
+        var type = new LocalTimeType();
+        var timeOnly = new TimeOnly(8, 46, 14);
+        const string expectedLiteralValue = "08:46:14";
+
+        // act
+        var stringLiteral = type.ValueToLiteral(timeOnly);
+
+        // assert
+        Assert.Equal(expectedLiteralValue, Assert.IsType<StringValueNode>(stringLiteral).Value);
+    }
+
+    [Fact]
+    public void ParseLiteral()
+    {
+        // arrange
+        var type = new LocalTimeType();
+        var literal = new StringValueNode("08:46:14");
+        var expectedTimeOnly = new TimeOnly(8, 46, 14);
+
+        // act
+        var timeOnly = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(expectedTimeOnly, Assert.IsType<TimeOnly>(timeOnly));
+    }
+
+    [Fact]
+    public void ParseLiteral_InvalidValue()
+    {
+        // arrange
+        var type = new LocalTimeType();
+
+        // act
+        void Action() => type.CoerceInputLiteral(new IntValueNode(123));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -470,20 +248,6 @@ public class LocalTimeTypeTests
                 }
                 """)
             .MatchSnapshotAsync();
-    }
-
-    [Fact]
-    public void LocalTime_Relaxed_Format_Check()
-    {
-        // arrange
-        const string s = "8:46 am";
-
-        // act
-        var localTimeType = new LocalTimeType(disableFormatCheck: true);
-        var result = localTimeType.Deserialize(s);
-
-        // assert
-        Assert.IsType<TimeOnly>(result);
     }
 
     public class Query

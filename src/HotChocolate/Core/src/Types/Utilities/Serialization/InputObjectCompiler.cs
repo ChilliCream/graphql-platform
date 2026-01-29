@@ -171,7 +171,7 @@ internal static class InputObjectCompiler
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : class, IInputValueDefinition, IPropertyProvider, IHasRuntimeType, IFieldIndexProvider
+        where T : class, IInputValueDefinition, IPropertyProvider, IRuntimeTypeProvider, IFieldIndexProvider
         => Expression.New(
             constructor,
             CompileAssignParameters(fields, constructor, fieldValues));
@@ -180,7 +180,7 @@ internal static class InputObjectCompiler
         Dictionary<string, T> fields,
         ConstructorInfo constructor,
         Expression fieldValues)
-        where T : class, IInputValueDefinition, IPropertyProvider, IHasRuntimeType, IFieldIndexProvider
+        where T : class, IInputValueDefinition, IPropertyProvider, IRuntimeTypeProvider, IFieldIndexProvider
     {
         var parameters = constructor.GetParameters();
 
@@ -232,7 +232,7 @@ internal static class InputObjectCompiler
         IEnumerable<T> fields,
         Expression fieldValues,
         List<Expression> currentBlock)
-        where T : IInputValueDefinition, IPropertyProvider, IFieldIndexProvider, IHasRuntimeType
+        where T : IInputValueDefinition, IPropertyProvider, IFieldIndexProvider, IRuntimeTypeProvider
     {
         foreach (var field in fields)
         {

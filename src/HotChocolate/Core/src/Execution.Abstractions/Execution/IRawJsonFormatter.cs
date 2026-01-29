@@ -1,7 +1,8 @@
-using System.Buffers;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Execution;
 
+// TODO: Think about this again
 /// <summary>
 /// Represents a low level abstraction that allows the implementor to opt out of the
 /// standard JSON serialization to emit the JSON directly into the pipe writer
@@ -10,13 +11,10 @@ namespace HotChocolate.Execution;
 public interface IRawJsonFormatter
 {
     /// <summary>
-    /// Writes the JSON data into the <paramref name="writer"/>.
+    /// Writes the JSON data into the <paramref name="jsonWriter"/>.
     /// </summary>
-    /// <param name="writer">
-    /// The pipe writer of the transport layer.
+    /// <param name="jsonWriter">
+    /// The JSON writer.
     /// </param>
-    /// <param name="indented">
-    /// Specifies if the JSON shall be indented.
-    /// </param>
-    void WriteTo(IBufferWriter<byte> writer, bool indented = false);
+    void WriteDataTo(JsonWriter jsonWriter);
 }

@@ -1,6 +1,9 @@
 using System.Globalization;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Tests;
+using HotChocolate.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
@@ -8,84 +11,28 @@ namespace HotChocolate.Types;
 public class DateTimeTypeTests
 {
     [Fact]
-    public void Serialize_Utc_DateTimeOffset()
+    public void Ensure_Type_Name_Is_Correct()
     {
         // arrange
-        var dateTimeType = new DateTimeType();
-        DateTimeOffset dateTime = new DateTime(
-            2018,
-            6,
-            11,
-            8,
-            46,
-            14,
-            DateTimeKind.Utc);
-
-        const string expectedValue = "2018-06-11T08:46:14.000Z";
-
         // act
-        var serializedValue = (string?)dateTimeType.Serialize(dateTime);
+        var type = new DateTimeType();
 
         // assert
-        Assert.Equal(expectedValue, serializedValue);
+        Assert.Equal("DateTime", type.Name);
     }
 
     [Fact]
-    public void Serialize_DateTimeOffset()
+    public void CoerceInputLiteral()
     {
         // arrange
-        var dateTimeType = new DateTimeType();
-        var dateTime = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 8, 46, 14),
-            new TimeSpan(4, 0, 0));
-        const string expectedValue = "2018-06-11T08:46:14.000+04:00";
-
-        // act
-        var serializedValue = (string?)dateTimeType.Serialize(dateTime);
-
-        // assert
-        Assert.Equal(expectedValue, serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Null()
-    {
-        // arrange
-        var dateTimeType = new DateTimeType();
-
-        // act
-        var serializedValue = dateTimeType.Serialize(null);
-
-        // assert
-        Assert.Null(serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_String_Exception()
-    {
-        // arrange
-        var dateTimeType = new DateTimeType();
-
-        // act
-        Action a = () => dateTimeType.Serialize("foo");
-
-        // assert
-        Assert.Throws<SerializationException>(a);
-    }
-
-    [Fact]
-    public void ParseLiteral_StringValueNode()
-    {
-        // arrange
-        var dateTimeType = new DateTimeType();
-        var literal = new StringValueNode(
-            "2018-06-29T08:46:14+04:00");
+        var type = new DateTimeType();
+        var literal = new StringValueNode("2018-06-29T08:46:14+04:00");
         var expectedDateTime = new DateTimeOffset(
             new DateTime(2018, 6, 29, 8, 46, 14),
             new TimeSpan(4, 0, 0));
 
         // act
-        var dateTime = (DateTimeOffset)dateTimeType.ParseLiteral(literal)!;
+        var dateTime = (DateTimeOffset)type.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -93,14 +40,14 @@ public class DateTimeTypeTests
 
     [Theory]
     [MemberData(nameof(ValidDateTimeScalarStrings))]
-    public void ParseLiteral_StringValueNode_Valid(string dateTime, DateTimeOffset result)
+    public void CoerceInputLiteral_Valid(string dateTime, DateTimeOffset result)
     {
         // arrange
-        var dateTimeType = new DateTimeType();
+        var type = new DateTimeType();
         var literal = new StringValueNode(dateTime);
 
         // act
-        var dateTimeOffset = (DateTimeOffset?)dateTimeType.ParseLiteral(literal);
+        var dateTimeOffset = (DateTimeOffset?)type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(result, dateTimeOffset);
@@ -108,280 +55,212 @@ public class DateTimeTypeTests
 
     [Theory]
     [MemberData(nameof(InvalidDateTimeScalarStrings))]
-    public void ParseLiteral_StringValueNode_Invalid(string dateTime)
+    public void CoerceInputLiteral_Invalid(string dateTime)
     {
         // arrange
-        var dateTimeType = new DateTimeType();
+        var type = new DateTimeType();
         var literal = new StringValueNode(dateTime);
 
         // act
-        void Act()
-        {
-            dateTimeType.ParseLiteral(literal);
-        }
+        void Action() => type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(
-            "DateTime cannot parse the given literal of type `StringValueNode`.",
-            Assert.Throws<SerializationException>(Act).Message);
+            "DateTime cannot coerce the given literal of type `StringValue` to a runtime value.",
+            Assert.Throws<LeafCoercionException>(Action).Message);
     }
 
+    [Theory]
     [InlineData("en-US")]
     [InlineData("en-AU")]
     [InlineData("en-GB")]
     [InlineData("de-CH")]
     [InlineData("de-de")]
-    [Theory]
-    public void ParseLiteral_StringValueNode_DifferentCulture(string cultureName)
+    public void CoerceInputLiteral_DifferentCulture(string cultureName)
     {
         // arrange
         Thread.CurrentThread.CurrentCulture =
             CultureInfo.GetCultureInfo(cultureName);
 
-        var dateTimeType = new DateTimeType();
-        var literal = new StringValueNode(
-            "2018-06-29T08:46:14+04:00");
+        var type = new DateTimeType();
+        var literal = new StringValueNode("2018-06-29T08:46:14+04:00");
         var expectedDateTime = new DateTimeOffset(
             new DateTime(2018, 6, 29, 8, 46, 14),
             new TimeSpan(4, 0, 0));
 
         // act
-        var dateTime = (DateTimeOffset)dateTimeType.ParseLiteral(literal)!;
+        var dateTime = (DateTimeOffset)type.CoerceInputLiteral(literal)!;
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
     }
 
     [Fact]
-    public void Deserialize_IsoString_DateTimeOffset()
+    public void CoerceInputValue_IsoString()
     {
         // arrange
-        var dateTimeType = new DateTimeType();
+        var type = new DateTimeType();
+        var inputValue = JsonDocument.Parse("\"2018-06-11T08:46:14+04:00\"").RootElement;
+        var expectedDateTime = new DateTimeOffset(
+            new DateTime(2018, 6, 11, 8, 46, 14),
+            new TimeSpan(4, 0, 0));
+
+        // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Equal(expectedDateTime, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputValue_ZuluString()
+    {
+        // arrange
+        var type = new DateTimeType();
+        var inputValue = JsonDocument.Parse("\"2018-06-11T08:46:14.000Z\"").RootElement;
+        var expectedDateTime = new DateTimeOffset(
+            new DateTime(2018, 6, 11, 8, 46, 14),
+            TimeSpan.Zero);
+
+        // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Equal(expectedDateTime, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new DateTimeType();
+        var inputValue = JsonDocument.Parse("\"abc\"").RootElement;
+
+        // act
+        void Action() => type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void CoerceOutputValue_Utc_DateTimeOffset()
+    {
+        // arrange
+        var type = new DateTimeType();
+        DateTimeOffset dateTime = new DateTime(
+            2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(dateTime, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"2018-06-11T08:46:14.000Z\"");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_DateTimeOffset()
+    {
+        // arrange
+        var type = new DateTimeType();
         var dateTime = new DateTimeOffset(
             new DateTime(2018, 6, 11, 8, 46, 14),
             new TimeSpan(4, 0, 0));
 
         // act
-        var deserializedValue = (DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14+04:00")!;
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(dateTime, resultValue);
 
         // assert
-        Assert.Equal(dateTime, deserializedValue);
+        resultValue.MatchInlineSnapshot("\"2018-06-11T08:46:14.000+04:00\"");
     }
 
     [Fact]
-    public void Deserialize_ZuluString_DateTimeOffset()
-    {
-        // arrange
-        var dateTimeType = new DateTimeType();
-        var dateTime = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 8, 46, 14),
-            new TimeSpan(0, 0, 0));
-
-        // act
-        var deserializedValue = (DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14.000Z")!;
-
-        // assert
-        Assert.Equal(dateTime, deserializedValue);
-    }
-
-    [Fact]
-    public void Deserialize_IsoString_DateTime()
-    {
-        // arrange
-        var dateTimeType = new DateTimeType();
-        var dateTime = new DateTime(
-            2018,
-            6,
-            11,
-            8,
-            46,
-            14,
-            DateTimeKind.Unspecified);
-
-        // act
-        var deserializedValue = ((DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14+04:00")!).DateTime;
-
-        // assert
-        Assert.Equal(dateTime, deserializedValue);
-        Assert.Equal(DateTimeKind.Unspecified, deserializedValue.Kind);
-    }
-
-    [Fact]
-    public void Deserialize_ZuluString_DateTime()
-    {
-        // arrange
-        var dateTimeType = new DateTimeType();
-        DateTimeOffset dateTime = new DateTime(
-            2018,
-            6,
-            11,
-            8,
-            46,
-            14,
-            DateTimeKind.Utc);
-
-        // act
-        var deserializedValue = (DateTimeOffset)dateTimeType.Deserialize("2018-06-11T08:46:14.000Z")!;
-
-        // assert
-        Assert.Equal(dateTime, deserializedValue.UtcDateTime);
-    }
-
-    [Fact]
-    public void Deserialize_InvalidString_To_DateTimeOffset()
+    public void CoerceOutputValue_Invalid_Format()
     {
         // arrange
         var type = new DateTimeType();
 
         // act
-        var success = type.TryDeserialize("abc", out _);
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue("foo", resultValue);
 
         // assert
-        Assert.False(success);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void Deserialize_DateTimeOffset_To_DateTimeOffset()
+    public void ValueToLiteral_DateTimeOffset()
     {
         // arrange
         var type = new DateTimeType();
-        var time = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc));
-
-        // act
-        var success = type.TryDeserialize(time, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(time, deserialized);
-    }
-
-    [Fact]
-    public void Deserialize_DateTime_To_DateTimeOffset()
-    {
-        // arrange
-        var type = new DateTimeType();
-        var time = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-
-        // act
-        var success = type.TryDeserialize(time, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(time,
-            Assert.IsType<DateTimeOffset>(deserialized).UtcDateTime);
-    }
-
-    [Fact]
-    public void Deserialize_NullableDateTime_To_DateTimeOffset()
-    {
-        // arrange
-        var type = new DateTimeType();
-        DateTime? time =
-            new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-
-        // act
-        var success = type.TryDeserialize(time, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(time,
-            Assert.IsType<DateTimeOffset>(deserialized).UtcDateTime);
-    }
-
-    [Fact]
-    public void Deserialize_NullableDateTime_To_DateTimeOffset_2()
-    {
-        // arrange
-        var type = new DateTimeType();
-        DateTime? time = null;
-
-        // act
-        var success = type.TryDeserialize(time, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(deserialized);
-    }
-
-    [Fact]
-    public void Deserialize_Null_To_Null()
-    {
-        // arrange
-        var type = new DateTimeType();
-
-        // act
-        var success = type.TryDeserialize(null, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(deserialized);
-    }
-
-    [Fact]
-    public void ParseLiteral_NullValueNode()
-    {
-        // arrange
-        var dateTimeType = new DateTimeType();
-        var literal = NullValueNode.Default;
-
-        // act
-        var value = dateTimeType.ParseLiteral(literal);
-
-        // assert
-        Assert.Null(value);
-    }
-
-    [Fact]
-    public void ParseValue_DateTimeOffset()
-    {
-        // arrange
-        var dateTimeType = new DateTimeType();
         var dateTime = new DateTimeOffset(
             new DateTime(2018, 6, 11, 8, 46, 14),
             new TimeSpan(4, 0, 0));
         const string expectedLiteralValue = "2018-06-11T08:46:14.000+04:00";
 
         // act
-        var stringLiteral =
-            (StringValueNode)dateTimeType.ParseValue(dateTime);
+        var stringLiteral = (StringValueNode)type.ValueToLiteral(dateTime);
 
         // assert
         Assert.Equal(expectedLiteralValue, stringLiteral.Value);
     }
 
     [Fact]
-    public void ParseValue_Utc_DateTimeOffset()
+    public void ValueToLiteral_Utc_DateTimeOffset()
     {
         // arrange
-        var dateTimeType = new DateTimeType();
+        var type = new DateTimeType();
         DateTimeOffset dateTime =
             new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
         const string expectedLiteralValue = "2018-06-11T08:46:14.000Z";
 
         // act
-        var stringLiteral =
-            (StringValueNode)dateTimeType.ParseValue(dateTime);
+        var stringLiteral = (StringValueNode)type.ValueToLiteral(dateTime);
 
         // assert
         Assert.Equal(expectedLiteralValue, stringLiteral.Value);
     }
 
     [Fact]
-    public void ParseValue_Null()
+    public void ParseLiteral()
     {
         // arrange
-        var dateTimeType = new DateTimeType();
+        var type = new DateTimeType();
+        var literal = new StringValueNode("2018-06-29T08:46:14+04:00");
+        var expectedDateTime = new DateTimeOffset(
+            new DateTime(2018, 6, 29, 8, 46, 14),
+            new TimeSpan(4, 0, 0));
 
         // act
-        var literal = dateTimeType.ParseValue(null);
+        var dateTime = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.IsType<NullValueNode>(literal);
+        Assert.Equal(expectedDateTime, Assert.IsType<DateTimeOffset>(dateTime));
     }
 
     [Fact]
-    public void EnsureDateTimeTypeKindIsCorrect()
+    public void ParseLiteral_InvalidValue()
+    {
+        // arrange
+        var type = new DateTimeType();
+
+        // act
+        void Action() => type.CoerceInputLiteral(new IntValueNode(123));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void Ensure_TypeKind_Is_Scalar()
     {
         // arrange
         var type = new DateTimeType();
@@ -416,8 +295,9 @@ public class DateTimeTypeTests
         const string s = "2011-08-30";
 
         // act
-        var dateTimeType = new DateTimeType(disableFormatCheck: true);
-        var result = dateTimeType.Deserialize(s);
+        var type = new DateTimeType(disableFormatCheck: true);
+        var inputValue = JsonDocument.Parse($"\"{s}\"").RootElement;
+        var result = type.CoerceInputValue(inputValue, null!);
 
         // assert
         Assert.IsType<DateTimeOffset>(result);

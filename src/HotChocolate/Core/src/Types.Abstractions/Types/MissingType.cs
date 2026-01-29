@@ -49,6 +49,9 @@ public sealed class MissingType : IInputTypeDefinition, IOutputTypeDefinition
     /// <inheritdoc />
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    /// <inheritdoc />
+    public Type RuntimeType => typeof(object);
+
     /// <summary>
     /// Gets the directives annotated to this type.
     /// </summary>

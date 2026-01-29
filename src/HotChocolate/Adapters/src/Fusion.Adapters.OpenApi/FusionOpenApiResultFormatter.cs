@@ -1,5 +1,5 @@
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution.Results;
+using HotChocolate.Fusion.Text.Json;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Adapters.OpenApi;
@@ -7,18 +7,18 @@ namespace HotChocolate.Adapters.OpenApi;
 internal sealed class FusionOpenApiResultFormatter : IOpenApiResultFormatter
 {
     public async Task FormatResultAsync(
-        IOperationResult operationResult,
+        OperationResult operationResult,
         HttpContext httpContext,
         OpenApiEndpointDescriptor endpoint,
         CancellationToken cancellationToken)
     {
-        if (operationResult is not RawOperationResult rawOperationResult)
+        if (operationResult.Data?.Value is not CompositeResultDocument resultDocument)
         {
             await Results.InternalServerError().ExecuteAsync(httpContext);
             return;
         }
 
-        if (!rawOperationResult.Result.Data.TryGetProperty(endpoint.ResponseNameToExtract, out var rootProperty))
+        if (!resultDocument.Data.TryGetProperty(endpoint.ResponseNameToExtract, out var rootProperty))
         {
             await Results.InternalServerError().ExecuteAsync(httpContext);
             return;

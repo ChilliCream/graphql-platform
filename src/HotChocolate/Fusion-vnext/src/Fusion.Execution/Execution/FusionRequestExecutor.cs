@@ -152,7 +152,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
     /// <summary>
     /// Executes a batch of GraphQL operation requests and returns an
     /// <see cref="IResponseStream"/> that yields each individual
-    /// <see cref="IOperationResult"/> as it becomes available.
+    /// <see cref="OperationResult"/> as it becomes available.
     /// </summary>
     /// <param name="requestBatch">
     /// The batch of operation requests.
@@ -172,7 +172,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
                 ExecutionResultKind.BatchResult));
     }
 
-    private async IAsyncEnumerable<IOperationResult> CreateResponseStream(
+    private async IAsyncEnumerable<OperationResult> CreateResponseStream(
         OperationRequestBatch requestBatch,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
@@ -207,7 +207,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
         }
     }
 
-    private async IAsyncEnumerable<IOperationResult> ExecuteBatchStream(
+    private async IAsyncEnumerable<OperationResult> ExecuteBatchStream(
         OperationRequestBatch requestBatch,
         IServiceProvider services,
         [EnumeratorCancellation] CancellationToken ct = default)
@@ -216,14 +216,14 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
         var requestCount = requests.Count;
         var tasks = Interlocked.Exchange(ref _taskList, null) ?? new List<Task>(requestCount);
 
-        var completed = new List<IOperationResult>();
+        var completed = new List<OperationResult>();
 
         for (var i = 0; i < requestCount; i++)
         {
             tasks.Add(ExecuteBatchItemAsync(WithServices(requests[i], services), i, completed, ct));
         }
 
-        var buffer = new IOperationResult[Math.Min(16, requestCount)];
+        var buffer = new OperationResult[Math.Min(16, requestCount)];
 
         while (tasks.Count > 0 || completed.Count > 0)
         {
@@ -280,7 +280,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
     private async Task ExecuteBatchItemAsync(
         IOperationRequest request,
         int requestIndex,
-        List<IOperationResult> completed,
+        List<OperationResult> completed,
         CancellationToken cancellationToken)
     {
         var result = await ExecuteAsync(request, requestIndex, cancellationToken).ConfigureAwait(false);
@@ -289,7 +289,7 @@ internal sealed class FusionRequestExecutor : IRequestExecutor, IAsyncDisposable
 
     private static async Task UnwrapBatchItemResultAsync(
         IExecutionResult result,
-        List<IOperationResult> completed,
+        List<OperationResult> completed,
         CancellationToken cancellationToken)
     {
         switch (result)

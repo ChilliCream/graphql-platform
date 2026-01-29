@@ -1,5 +1,8 @@
 using System.Globalization;
-using HotChocolate.Execution;
+using System.Text;
+using System.Text.Json;
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using NodaTime;
 using NodaTime.Text;
 
@@ -7,98 +10,82 @@ namespace HotChocolate.Types.NodaTime.Tests;
 
 public class LocalDateTimeTypeIntegrationTests
 {
-    public static class Schema
-    {
-        public class Query
-        {
-            public LocalDateTime One =>
-                LocalDateTime.FromDateTime(
-                        new DateTime(2020, 02, 20, 17, 42, 59))
-                    .PlusNanoseconds(1234)
-                    .WithCalendar(CalendarSystem.Julian);
-        }
-
-        public class Mutation
-        {
-            public LocalDateTime Test(LocalDateTime arg)
-            {
-                return arg + Period.FromMinutes(10);
-            }
-        }
-    }
-
-    private readonly IRequestExecutor _testExecutor =
-        SchemaBuilder.New()
-            .AddQueryType<Schema.Query>()
-            .AddMutationType<Schema.Mutation>()
-            .AddNodaTime()
-            .Create()
-            .MakeExecutable();
-
     [Fact]
-    public void QueryReturns()
+    public void CoerceInputLiteral()
     {
-        var result = _testExecutor.Execute("query { test: one }");
-
-        Assert.Equal("2020-02-07T17:42:59.000001234", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void ParsesVariable()
-    {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
-                    .SetVariableValues(
-                        new Dictionary<string, object?> { { "arg", "2020-02-21T17:42:59.000001234" } })
-                    .Build());
-
-        Assert.Equal("2020-02-21T17:52:59.000001234", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void DoesntParseAnIncorrectVariable()
-    {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
-                    .SetVariableValues(
-                        new Dictionary<string, object?> { { "arg", "2020-02-20T17:42:59.000001234Z" } })
-                    .Build());
-
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
-    }
-
-    [Fact]
-    public void ParsesLiteral()
-    {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59.000001234\") }")
-                    .Build());
-
-        Assert.Equal("2020-02-20T17:52:59.000001234", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void DoesntParseIncorrectLiteral()
-    {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59.000001234Z\") }")
-                    .Build());
-
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
-        Assert.Null(result.ExpectOperationResult().Errors![0].Code);
+        var type = new LocalDateTimeType();
+        var inputValue = new StringValueNode("2020-02-20T17:42:59.000001234");
+        var runtimeValue = type.CoerceInputLiteral(inputValue);
         Assert.Equal(
-            "Unable to deserialize string to LocalDateTime",
-            result.ExpectOperationResult().Errors![0].Message);
+            LocalDateTime.FromDateTime(new DateTime(2020, 02, 20, 17, 42, 59)).PlusNanoseconds(1234),
+            Assert.IsType<LocalDateTime>(runtimeValue));
+    }
+
+    [Fact]
+    public void CoerceInputLiteral_Invalid_Value_Throws()
+    {
+        var type = new LocalDateTimeType();
+        var valueLiteral = new StringValueNode("2020-02-20T17:42:59.000001234Z");
+        Action error = () => type.CoerceInputLiteral(valueLiteral);
+        Assert.Throws<LeafCoercionException>(error);
+    }
+
+    [Fact]
+    public void CoerceInputValue()
+    {
+        var type = new LocalDateTimeType();
+        var inputValue = ParseInputValue("\"2020-02-20T17:42:59.000001234\"");
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+        Assert.Equal(
+            LocalDateTime.FromDateTime(new DateTime(2020, 02, 20, 17, 42, 59)).PlusNanoseconds(1234),
+            Assert.IsType<LocalDateTime>(runtimeValue));
+    }
+
+    [Fact]
+    public void CoerceInputValue_Invalid_Value_Throws()
+    {
+        var type = new LocalDateTimeType();
+        var inputValue = ParseInputValue("\"2020-02-20T17:42:59.000001234Z\"");
+        Action error = () => type.CoerceInputValue(inputValue, null!);
+        Assert.Throws<LeafCoercionException>(error);
+    }
+
+    [Fact]
+    public void CoerceOutputValue()
+    {
+        var type = new LocalDateTimeType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(LocalDateTime.FromDateTime(new DateTime(2020, 02, 20, 17, 42, 59)).PlusNanoseconds(1234), resultValue);
+        Assert.Equal("2020-02-20T17:42:59.000001234", resultValue.GetString());
+    }
+
+    [Fact]
+    public void CoerceOutputValue_Invalid_Value_Throws()
+    {
+        var type = new LocalDateTimeType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        Action error = () => type.CoerceOutputValue("2020-02-20T17:42:59.000001234", resultValue);
+        Assert.Throws<LeafCoercionException>(error);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        var type = new LocalDateTimeType();
+        var valueLiteral = type.ValueToLiteral(LocalDateTime.FromDateTime(new DateTime(2020, 02, 20, 17, 42, 59)).PlusNanoseconds(1234));
+        Assert.Equal("\"2020-02-20T17:42:59.000001234\"", valueLiteral.ToString());
+    }
+
+    [Fact]
+    public void ValueToLiteral_Invalid_Value_Throws()
+    {
+        var type = new LocalDateTimeType();
+        Action error = () => type.ValueToLiteral("2020-02-20T17:42:59.000001234");
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
@@ -137,5 +124,11 @@ public class LocalDateTimeTypeIntegrationTests
 
         localDateTimeType.Description.MatchInlineSnapshot(
             "A date and time in a particular calendar system.");
+    }
+
+    private static JsonElement ParseInputValue(string sourceText)
+    {
+        var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(sourceText));
+        return JsonElement.ParseValue(ref reader);
     }
 }

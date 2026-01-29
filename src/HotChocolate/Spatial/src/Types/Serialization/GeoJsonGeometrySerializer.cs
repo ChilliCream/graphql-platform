@@ -1,4 +1,7 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.Serialization.GeoJsonSerializers;
 using static HotChocolate.Types.Spatial.ThrowHelper;
@@ -8,116 +11,121 @@ namespace HotChocolate.Types.Spatial.Serialization;
 
 internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
 {
-    public bool TrySerialize(IType type, object? runtimeValue, out object? resultValue)
+    public bool IsValueCompatible(IType type, IValueNode valueLiteral)
     {
         ArgumentNullException.ThrowIfNull(type);
+        ArgumentNullException.ThrowIfNull(valueLiteral);
 
-        try
-        {
-            resultValue = Serialize(type, runtimeValue);
-            return true;
-        }
-        catch
-        {
-            resultValue = null;
-            return false;
-        }
-    }
-
-    public bool IsInstanceOfType(IType type, IValueNode valueSyntax)
-    {
-        ArgumentNullException.ThrowIfNull(type);
-        ArgumentNullException.ThrowIfNull(valueSyntax);
-
-        if (valueSyntax is NullValueNode)
+        if (valueLiteral is NullValueNode)
         {
             return true;
         }
 
-        if (valueSyntax.Kind != SyntaxKind.ObjectValue)
+        if (valueLiteral.Kind != SyntaxKind.ObjectValue)
         {
             return false;
         }
 
-        return GetGeometrySerializer(type, (ObjectValueNode)valueSyntax)
-            .IsInstanceOfType(type, valueSyntax);
+        return GetGeometrySerializer(type, (ObjectValueNode)valueLiteral)
+            .IsValueCompatible(type, valueLiteral);
     }
 
-    public bool IsInstanceOfType(IType type, object? runtimeValue)
+    public bool IsValueCompatible(IType type, JsonElement inputValue)
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        return runtimeValue is Geometry
-            && SerializersByType.TryGetValue(runtimeValue.GetType(), out var serializer)
-            && serializer.IsInstanceOfType(type, runtimeValue);
+        if (inputValue.ValueKind == JsonValueKind.Null)
+        {
+            return true;
+        }
+
+        if (inputValue.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
+
+        if (!TryGetGeometryKindFromJson(type, inputValue, out var geometryType))
+        {
+            return false;
+        }
+
+        if (!Serializers.TryGetValue(geometryType, out var serializer))
+        {
+            return false;
+        }
+
+        return serializer.IsValueCompatible(type, inputValue);
     }
 
-    public object? ParseLiteral(IType type, IValueNode valueSyntax)
+    public object? CoerceInputLiteral(IType type, IValueNode valueLiteral)
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        if (valueSyntax.Kind is SyntaxKind.NullValue)
+        if (valueLiteral.Kind is SyntaxKind.NullValue)
         {
             return null;
         }
 
-        if (valueSyntax.Kind is not SyntaxKind.ObjectValue)
+        if (valueLiteral.Kind is not SyntaxKind.ObjectValue)
         {
-            throw Serializer_Parse_ValueKindInvalid(type, valueSyntax.Kind);
+            throw Serializer_Parse_ValueKindInvalid(type, valueLiteral.Kind);
         }
 
-        return GetGeometrySerializer(type, (ObjectValueNode)valueSyntax)
-            .ParseLiteral(type, valueSyntax);
+        return GetGeometrySerializer(type, (ObjectValueNode)valueLiteral)
+            .CoerceInputLiteral(type, valueLiteral);
     }
 
-    public IValueNode ParseResult(IType type, object? resultValue)
+    public object? CoerceInputValue(IType type, JsonElement inputValue, IFeatureProvider context)
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        if (resultValue is null)
+        if (inputValue.ValueKind == JsonValueKind.Null)
         {
-            return NullValueNode.Default;
+            return null;
         }
 
-        if (resultValue is Geometry)
+        if (inputValue.ValueKind != JsonValueKind.Object)
         {
-            return ParseValue(type, resultValue);
+            throw Serializer_Parse_ValueKindInvalid(type, SyntaxKind.ObjectValue);
         }
 
-        if (resultValue is IReadOnlyDictionary<string, object> dict)
+        if (!TryGetGeometryKindFromJson(type, inputValue, out var geometryType))
         {
-            if (!dict.TryGetValue(TypeFieldName, out var typeObject)
-                || typeObject is not string typeName)
-            {
-                throw Serializer_TypeIsMissing(type);
-            }
-
-            if (GeoJsonTypeSerializer.Default.TryParseString(
-                    typeName,
-                    out var kind))
-            {
-                return Serializers[kind].ParseResult(type, resultValue);
-            }
-
-            throw Geometry_Parse_InvalidGeometryKind(type, typeName);
+            throw Geometry_Parse_InvalidType(type);
         }
 
-        throw Serializer_CouldNotParseValue(type);
+        if (!Serializers.TryGetValue(geometryType, out var serializer))
+        {
+            throw Geometry_Serializer_NotFound(type, geometryType);
+        }
+
+        return serializer.CoerceInputValue(type, inputValue, context);
     }
 
-    public IValueNode ParseValue(IType type, object? runtimeValue)
+    public void CoerceOutputValue(IType type, object runtimeValue, ResultElement resultValue)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        if (runtimeValue is not Geometry geometry)
+        {
+            throw Geometry_Serialize_InvalidGeometryType(type, runtimeValue.GetType());
+        }
+
+        if (!TryGetGeometryKind(geometry, out var kind))
+        {
+            throw Geometry_Serialize_TypeIsUnknown(type, geometry.GeometryType);
+        }
+
+        Serializers[kind].CoerceOutputValue(type, runtimeValue, resultValue);
+    }
+
+    public IValueNode ValueToLiteral(IType type, object? runtimeValue)
     {
         ArgumentNullException.ThrowIfNull(type);
 
         if (runtimeValue is null)
         {
             return NullValueNode.Default;
-        }
-
-        if (runtimeValue is IReadOnlyDictionary<string, object>
-            || runtimeValue is IDictionary<string, object>)
-        {
-            return ParseResult(type, runtimeValue);
         }
 
         if (runtimeValue is not Geometry geometry)
@@ -135,92 +143,18 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
             throw Geometry_Serializer_NotFound(type, kind);
         }
 
-        return geometryType.ParseValue(type, runtimeValue);
+        return geometryType.ValueToLiteral(type, runtimeValue);
     }
 
-    public object? Serialize(IType type, object? runtimeValue)
-    {
-        ArgumentNullException.ThrowIfNull(type);
+    public IValueNode CoordinateToLiteral(IType type, object? runtimeValue)
+        => throw Serializer_OperationIsNotSupported(type,
+            this,
+            nameof(CoordinateToLiteral));
 
-        if (runtimeValue is null)
-        {
-            return null;
-        }
-
-        if (runtimeValue is IReadOnlyDictionary<string, object>
-            || runtimeValue is IDictionary<string, object>)
-        {
-            return runtimeValue;
-        }
-
-        if (runtimeValue is not Geometry geometry)
-        {
-            throw Geometry_Serialize_InvalidGeometryType(type, runtimeValue.GetType());
-        }
-
-        if (!TryGetGeometryKind(geometry, out var kind))
-        {
-            throw Geometry_Serialize_TypeIsUnknown(type, geometry.GeometryType);
-        }
-
-        return Serializers[kind].Serialize(type, runtimeValue);
-    }
-
-    public object? Deserialize(IType type, object? resultValue)
-    {
-        ArgumentNullException.ThrowIfNull(type);
-
-        if (resultValue is null)
-        {
-            return null;
-        }
-
-        if (resultValue is Geometry geometry)
-        {
-            if (!TryGetGeometryKind(geometry, out var kind))
-            {
-                throw Geometry_Deserialize_TypeIsUnknown(type, geometry.GeometryType);
-            }
-
-            return Serializers[kind].Deserialize(type, resultValue);
-        }
-
-        if (resultValue is IReadOnlyDictionary<string, object> dict)
-        {
-            if (!dict.TryGetValue(TypeFieldName, out var typeObject)
-                || typeObject is not string typeName)
-            {
-                throw Geometry_Deserialize_TypeIsMissing(type);
-            }
-
-            if (GeoJsonTypeSerializer.Default.TryParseString(
-                    typeName,
-                    out var kind))
-            {
-                return Serializers[kind].Deserialize(type, resultValue);
-            }
-
-            throw Geometry_Deserialize_TypeIsUnknown(type, typeName);
-        }
-
-        throw Serializer_CouldNotDeserialize(type);
-    }
-
-    public bool TryDeserialize(IType type, object? resultValue, out object? runtimeValue)
-    {
-        ArgumentNullException.ThrowIfNull(type);
-
-        try
-        {
-            runtimeValue = Deserialize(type, resultValue);
-            return false;
-        }
-        catch
-        {
-            runtimeValue = null;
-            return false;
-        }
-    }
+    public void CoerceOutputCoordinates(IType type, object runtimeValue, ResultElement resultElement)
+        => throw Serializer_OperationIsNotSupported(type,
+            this,
+            nameof(CoerceOutputCoordinates));
 
     public object CreateInstance(IType type, object?[] fieldValues)
         => throw Serializer_OperationIsNotSupported(type,
@@ -231,24 +165,6 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
         => throw Serializer_OperationIsNotSupported(type,
             this,
             nameof(GetFieldData));
-
-    public bool TrySerializeCoordinates(
-        IType type,
-        object runtimeValue,
-        out object? serialized)
-        => throw Serializer_OperationIsNotSupported(type,
-            this,
-            nameof(TrySerializeCoordinates));
-
-    public IValueNode ParseCoordinateValue(IType type, object? runtimeValue)
-        => throw Serializer_OperationIsNotSupported(type,
-            this,
-            nameof(ParseCoordinateValue));
-
-    public IValueNode ParseCoordinateResult(IType type, object? runtimeValue)
-        => throw Serializer_OperationIsNotSupported(type,
-            this,
-            nameof(ParseCoordinateResult));
 
     private IGeoJsonSerializer GetGeometrySerializer(
         IType type,
@@ -282,10 +198,30 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
         for (var i = 0; i < fields.Count; i++)
         {
             if (fields[i].Name.Value == TypeFieldName
-                && GeoJsonTypeSerializer.Default.ParseLiteral(type, fields[i].Value) is
+                && GeoJsonTypeSerializer.Default.CoerceInputLiteral(type, fields[i].Value) is
                     GeoJsonGeometryType gt)
             {
                 geometryType = gt;
+                return true;
+            }
+        }
+
+        geometryType = default;
+        return false;
+    }
+
+    private bool TryGetGeometryKindFromJson(
+        IType type,
+        JsonElement inputValue,
+        out GeoJsonGeometryType geometryType)
+    {
+        if (inputValue.TryGetProperty(TypeFieldName, out var typeElement)
+            && typeElement.ValueKind == JsonValueKind.String)
+        {
+            var typeName = typeElement.GetString();
+            if (typeName is not null
+                && GeoJsonTypeSerializer.Default.TryParseString(typeName, out geometryType))
+            {
                 return true;
             }
         }

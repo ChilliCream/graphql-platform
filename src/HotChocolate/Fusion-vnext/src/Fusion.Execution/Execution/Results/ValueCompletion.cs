@@ -12,23 +12,23 @@ namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed class ValueCompletion
 {
+    private readonly FetchResultStore _store;
     private readonly ISchemaDefinition _schema;
-    private readonly CompositeResultDocument _result;
     private readonly IErrorHandler _errorHandler;
     private readonly ErrorHandlingMode _errorHandlingMode;
     private readonly int _maxDepth;
 
     public ValueCompletion(
+        FetchResultStore store,
         ISchemaDefinition schema,
-        CompositeResultDocument result,
         IErrorHandler errorHandler,
         ErrorHandlingMode errorHandlingMode,
         int maxDepth)
     {
         ArgumentNullException.ThrowIfNull(schema);
 
+        _store = store;
         _schema = schema;
-        _result = result;
         _errorHandler = errorHandler;
         _errorHandlingMode = errorHandlingMode;
         _maxDepth = maxDepth;
@@ -115,8 +115,7 @@ internal sealed class ValueCompletion
                 .Build();
             errorWithPath = _errorHandler.Handle(errorWithPath);
 
-            _result.Errors ??= [];
-            _result.Errors.Add(errorWithPath);
+            _store.AddError(errorWithPath);
 
             switch (_errorHandlingMode)
             {
@@ -193,8 +192,7 @@ internal sealed class ValueCompletion
 
                 error = _errorHandler.Handle(error);
 
-                _result.Errors ??= [];
-                _result.Errors.Add(error);
+                _store.AddError(error);
 
                 if (_errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
                 {
@@ -221,8 +219,7 @@ internal sealed class ValueCompletion
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
 
-                _result.Errors ??= [];
-                _result.Errors.Add(errorWithPath);
+                _store.AddError(errorWithPath);
 
                 if (_errorHandlingMode is ErrorHandlingMode.Halt)
                 {
@@ -292,8 +289,7 @@ internal sealed class ValueCompletion
                     .Build();
                 errorWithPath = _errorHandler.Handle(errorWithPath);
 
-                _result.Errors ??= [];
-                _result.Errors.Add(errorWithPath);
+                _store.AddError(errorWithPath);
 
                 if (_errorHandlingMode is ErrorHandlingMode.Halt)
                 {

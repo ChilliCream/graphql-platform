@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -15,15 +14,16 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 {
     public void OptimizeOperation(OperationOptimizerContext context)
     {
-        if (context.Definition.Operation is not OperationType.Query
-            || context.HasIncrementalParts
+        // TODO : we need to include this again when defer is back.
+        if (context.Operation.Kind is not OperationType.Query
+            // || context.HasIncrementalParts
             || ContainsIntrospectionFields(context))
         {
             // if this is an introspection query, we will not cache it.
             return;
         }
 
-        var constraints = ComputeCacheControlConstraints(context.CreateOperation());
+        var constraints = ComputeCacheControlConstraints(context.Operation);
 
         if (constraints.MaxAge is not null || constraints.SharedMaxAge is not null)
         {
@@ -38,25 +38,13 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
                     : null
             };
 
-            context.ContextData.Add(
-                ExecutionContextData.CacheControlConstraints,
-                constraints);
-
-            context.ContextData.Add(
-                ExecutionContextData.CacheControlHeaderValue,
-                headerValue);
-        }
-
-        if (constraints.Vary is { Length: > 0 })
-        {
-            context.ContextData.Add(
-                ExecutionContextData.VaryHeaderValue,
-                string.Join(", ", constraints.Vary));
+            context.Operation.Features.SetSafe(constraints);
+            context.Operation.Features.SetSafe(headerValue);
         }
     }
 
     private static ImmutableCacheConstraints ComputeCacheControlConstraints(
-        IOperation operation)
+        Operation operation)
     {
         var constraints = new CacheControlConstraints();
         var rootSelections = operation.RootSelectionSet.Selections;
@@ -91,9 +79,9 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
     }
 
     private static void ProcessSelection(
-        ISelection selection,
+        Selection selection,
         CacheControlConstraints constraints,
-        IOperation operation)
+        Operation operation)
     {
         var field = selection.Field;
         var maxAgeSet = false;
@@ -117,19 +105,18 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
             }
         }
 
-        if (selection.SelectionSet is not null)
+        if (selection.HasSelections)
         {
             var possibleTypes = operation.GetPossibleTypes(selection);
 
             foreach (var type in possibleTypes)
             {
-                var selectionSet = Unsafe.As<SelectionSet>(operation.GetSelectionSet(selection, type));
-                var length = selectionSet.Selections.Count;
-                ref var start = ref selectionSet.GetSelectionsReference();
+                var selectionSet = operation.GetSelectionSet(selection, type);
+                var selections = selectionSet.Selections;
 
-                for (var i = 0; i < length; i++)
+                foreach (var childSelection in selections)
                 {
-                    ProcessSelection(Unsafe.Add(ref start, i), constraints, operation);
+                    ProcessSelection(childSelection, constraints, operation);
                 }
             }
         }
@@ -223,13 +210,11 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 
     private static bool ContainsIntrospectionFields(OperationOptimizerContext context)
     {
-        var length = context.RootSelectionSet.Selections.Count;
-        ref var start = ref ((SelectionSet)context.RootSelectionSet).GetSelectionsReference();
+        var selections = context.Operation.RootSelectionSet.Selections;
 
-        for (var i = 0; i < length; i++)
+        foreach (var selection in selections)
         {
-            var field = Unsafe.Add(ref start, i).Field;
-
+            var field = selection.Field;
             if (field.IsIntrospectionField
                 && !field.Name.EqualsOrdinal(IntrospectionFieldNames.TypeName))
             {

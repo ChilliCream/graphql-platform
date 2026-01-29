@@ -6,14 +6,12 @@ namespace HotChocolate.Execution;
 
 public sealed class ResponseStream : ExecutionResult, IResponseStream
 {
-    private readonly Func<IAsyncEnumerable<IOperationResult>>? _resultStreamFactory;
+    private readonly Func<IAsyncEnumerable<OperationResult>>? _resultStreamFactory;
     private bool _isRead;
 
     public ResponseStream(
-        Func<IAsyncEnumerable<IOperationResult>>? resultStreamFactory,
-        ExecutionResultKind kind = SubscriptionResult,
-        IReadOnlyDictionary<string, object?>? contextData = null,
-        IReadOnlyList<Func<IOperationResult, IOperationResult>>? onFirstResult = null)
+        Func<IAsyncEnumerable<OperationResult>>? resultStreamFactory,
+        ExecutionResultKind kind = SubscriptionResult)
     {
         _resultStreamFactory = resultStreamFactory ??
             throw new ArgumentNullException(nameof(resultStreamFactory));
@@ -24,17 +22,17 @@ public sealed class ResponseStream : ExecutionResult, IResponseStream
         }
 
         Kind = kind;
-        ContextData = contextData;
-        OnFirstResult = onFirstResult ?? ImmutableArray<Func<IOperationResult, IOperationResult>>.Empty;
     }
 
     public override ExecutionResultKind Kind { get; }
 
-    public override IReadOnlyDictionary<string, object?>? ContextData { get; }
+    public ImmutableList<Func<OperationResult, OperationResult>> OnFirstResult
+    {
+        get => Features.Get<ImmutableList<Func<OperationResult, OperationResult>>>() ?? [];
+        set => Features.Set(value);
+    }
 
-    public IReadOnlyList<Func<IOperationResult, IOperationResult>> OnFirstResult { get; }
-
-    public IAsyncEnumerable<IOperationResult> ReadResultsAsync()
+    public IAsyncEnumerable<OperationResult> ReadResultsAsync()
     {
         if (_resultStreamFactory is null)
         {
@@ -52,46 +50,12 @@ public sealed class ResponseStream : ExecutionResult, IResponseStream
         return new OperationResultStream(_resultStreamFactory, ExecuteOnFirstResult);
     }
 
-    /// <summary>
-    /// Creates a new response stream with a list of mutators that are applied to the first result of this stream.
-    /// </summary>
-    /// <param name="onFirstResult">
-    /// The mutators that are applied to the first result of this stream.
-    /// </param>
-    /// <returns>
-    /// Returns a new response stream with the specified mutators.
-    /// </returns>
-    public ResponseStream WithOnFirstResult(
-        IReadOnlyList<Func<IOperationResult, IOperationResult>> onFirstResult)
-    {
-        var newStream = new ResponseStream(
-            _resultStreamFactory,
-            Kind,
-            ContextData,
-            onFirstResult);
-
-        var (tasks, length) = TakeCleanUpTasks();
-
-        if (length > 0)
-        {
-            for (var i = 0; i < length; i++)
-            {
-                newStream.RegisterForCleanup(tasks[i]);
-            }
-
-            tasks.AsSpan(0, length).Clear();
-            CleanUpTaskPool.Return(tasks);
-        }
-
-        return newStream;
-    }
-
     private class OperationResultStream(
-        Func<IAsyncEnumerable<IOperationResult>> resultStreamFactory,
-        Func<IOperationResult, IOperationResult> onFirstResult)
-        : IAsyncEnumerable<IOperationResult>
+        Func<IAsyncEnumerable<OperationResult>> resultStreamFactory,
+        Func<OperationResult, OperationResult> onFirstResult)
+        : IAsyncEnumerable<OperationResult>
     {
-        public async IAsyncEnumerator<IOperationResult> GetAsyncEnumerator(
+        public async IAsyncEnumerator<OperationResult> GetAsyncEnumerator(
             CancellationToken cancellationToken)
         {
             var first = true;
@@ -110,7 +74,7 @@ public sealed class ResponseStream : ExecutionResult, IResponseStream
         }
     }
 
-    private IOperationResult ExecuteOnFirstResult(IOperationResult firstResult)
+    private OperationResult ExecuteOnFirstResult(OperationResult firstResult)
     {
         foreach (var mutator in OnFirstResult)
         {

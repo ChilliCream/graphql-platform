@@ -95,7 +95,7 @@ public class TransactionScopeHandlerTests
     {
         public void Complete()
         {
-            if (context.Result is IOperationResult { Data: not null, Errors: null or { Count: 0 } })
+            if (context.Result is OperationResult { Data: not null, Errors: null or { Count: 0 } })
             {
                 complete();
             }

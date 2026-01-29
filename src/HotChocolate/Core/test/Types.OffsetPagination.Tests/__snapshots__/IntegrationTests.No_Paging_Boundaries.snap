@@ -1,13 +1,7 @@
-﻿{
+{
   "errors": [
     {
       "message": "You must provide take to properly paginate the `LettersCollectionSegment`.",
-      "locations": [
-        {
-          "line": 3,
-          "column": 21
-        }
-      ],
       "path": [
         "letters"
       ],

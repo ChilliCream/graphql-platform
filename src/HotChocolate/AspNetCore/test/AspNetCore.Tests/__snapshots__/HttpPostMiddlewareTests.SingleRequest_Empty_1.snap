@@ -4,15 +4,9 @@
   "Data": null,
   "Errors": [
     {
-      "message": "The request is missing the `query` property and the `id` property.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 2
-        }
-      ],
+      "message": "Request must contain either a query or a document id.",
       "extensions": {
-        "code": "HC0011"
+        "code": "HC0012"
       }
     }
   ],

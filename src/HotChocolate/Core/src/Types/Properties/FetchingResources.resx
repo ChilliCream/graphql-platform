@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="DataLoaderRegistry_KeyNullOrEmpty" xml:space="preserve">
+    <value>The DataLoader key cannot be null or empty.</value>
+  </data>
+  <data name="DefaultDataLoaderRegistry_GetOrRegister" xml:space="preserve">
+    <value>The DataLoader `{0}` was not of the requested type `{1}`.</value>
+  </data>
+  <data name="DataLoaderResolverContextExtensions_CreateDataLoader_AbstractType" xml:space="preserve">
+    <value>The DataLoader `{0}` needs to be register with the dependency injection provider.</value>
+  </data>
+  <data name="DataLoaderResolverContextExtensions_CreateDataLoader_UnableToCreate" xml:space="preserve">
+    <value>Unable to create DataLoader `{0}`.</value>
+  </data>
+  <data name="DataLoaderResolverContextExtensions_RegistryIsNull" xml:space="preserve">
+    <value>No DataLoader registry was registered with your dependency injection.</value>
+  </data>
+  <data name="DataLoaderResolverContextExtensions_UnableToRegister" xml:space="preserve">
+    <value>Unable to register a DataLoader with your DataLoader registry.</value>
+  </data>
+  <data name="ThrowHelper_DataLoader_InvalidType" xml:space="preserve">
+    <value>The provided type {0} is not a DataLoader.</value>
+  </data>
+  <data name="BatchDispatcherResult_NoExceptions" xml:space="preserve">
+    <value>There must be at least one exception to create an error result.</value>
+  </data>
+</root>

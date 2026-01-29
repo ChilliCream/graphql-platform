@@ -1,5 +1,8 @@
 using System.Globalization;
-using HotChocolate.Execution;
+using System.Text;
+using System.Text.Json;
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using NodaTime;
 using NodaTime.Text;
 
@@ -7,116 +10,82 @@ namespace HotChocolate.Types.NodaTime.Tests;
 
 public class OffsetDateTypeIntegrationTests
 {
-    public static class Schema
-    {
-        public class Query
-        {
-            public OffsetDate Hours
-                => new OffsetDate(
-                    LocalDate.FromDateTime(new DateTime(2020, 12, 31, 18, 30, 13)),
-                    Offset.FromHours(2)).WithCalendar(CalendarSystem.Gregorian);
-
-            public OffsetDate HoursAndMinutes
-                => new OffsetDate(
-                    LocalDate.FromDateTime(new DateTime(2020, 12, 31, 18, 30, 13)),
-                    Offset.FromHoursAndMinutes(2, 35)).WithCalendar(CalendarSystem.Gregorian);
-        }
-
-        public class Mutation
-        {
-            public OffsetDate Test(OffsetDate arg) => arg;
-        }
-    }
-
-    private readonly IRequestExecutor _testExecutor =
-        SchemaBuilder.New()
-            .AddQueryType<Schema.Query>()
-            .AddMutationType<Schema.Mutation>()
-            .AddNodaTime()
-            .Create()
-            .MakeExecutable();
-
     [Fact]
-    public void QueryReturns()
+    public void CoerceInputLiteral()
     {
-        var result = _testExecutor.Execute("query { test: hours }");
-        Assert.Equal("2020-12-31+02", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void QueryReturnsWithMinutes()
-    {
-        var result = _testExecutor.Execute("query { test: hoursAndMinutes }");
-        Assert.Equal("2020-12-31+02:35", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void ParsesVariable()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31+02" } })
-                .Build());
-        Assert.Equal("2020-12-31+02", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void ParsesVariableWithMinutes()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31+02:35" } })
-                .Build());
-        Assert.Equal("2020-12-31+02:35", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void DoesntParseAnIncorrectVariable()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31" } })
-                .Build());
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
-    }
-
-    [Fact]
-    public void ParsesLiteral()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"2020-12-31+02\") }")
-                .Build());
-        Assert.Equal("2020-12-31+02", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void ParsesLiteralWithMinutes()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"2020-12-31+02:35\") }")
-                .Build());
-        Assert.Equal("2020-12-31+02:35", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void DoesntParseIncorrectLiteral()
-    {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"2020-12-31\") }")
-                .Build());
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
-        Assert.Null(result.ExpectOperationResult().Errors![0].Code);
+        var type = new OffsetDateType();
+        var inputValue = new StringValueNode("2020-12-31+02");
+        var runtimeValue = type.CoerceInputLiteral(inputValue);
         Assert.Equal(
-            "Unable to deserialize string to OffsetDate",
-            result.ExpectOperationResult().Errors![0].Message);
+            new OffsetDate(new LocalDate(2020, 12, 31), Offset.FromHours(2)),
+            Assert.IsType<OffsetDate>(runtimeValue));
+    }
+
+    [Fact]
+    public void CoerceInputLiteral_Invalid_Value_Throws()
+    {
+        var type = new OffsetDateType();
+        var valueLiteral = new StringValueNode("2020-12-31");
+        Action error = () => type.CoerceInputLiteral(valueLiteral);
+        Assert.Throws<LeafCoercionException>(error);
+    }
+
+    [Fact]
+    public void CoerceInputValue()
+    {
+        var type = new OffsetDateType();
+        var inputValue = ParseInputValue("\"2020-12-31+02\"");
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+        Assert.Equal(
+            new OffsetDate(new LocalDate(2020, 12, 31), Offset.FromHours(2)),
+            Assert.IsType<OffsetDate>(runtimeValue));
+    }
+
+    [Fact]
+    public void CoerceInputValue_Invalid_Value_Throws()
+    {
+        var type = new OffsetDateType();
+        var inputValue = ParseInputValue("\"2020-12-31\"");
+        Action error = () => type.CoerceInputValue(inputValue, null!);
+        Assert.Throws<LeafCoercionException>(error);
+    }
+
+    [Fact]
+    public void CoerceOutputValue()
+    {
+        var type = new OffsetDateType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(new OffsetDate(new LocalDate(2020, 12, 31), Offset.FromHours(2)), resultValue);
+        Assert.Equal("2020-12-31+02", resultValue.GetString());
+    }
+
+    [Fact]
+    public void CoerceOutputValue_Invalid_Value_Throws()
+    {
+        var type = new OffsetDateType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        Action error = () => type.CoerceOutputValue("2020-12-31+02", resultValue);
+        Assert.Throws<LeafCoercionException>(error);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        var type = new OffsetDateType();
+        var valueLiteral = type.ValueToLiteral(new OffsetDate(new LocalDate(2020, 12, 31), Offset.FromHours(2)));
+        Assert.Equal("\"2020-12-31+02\"", valueLiteral.ToString());
+    }
+
+    [Fact]
+    public void ValueToLiteral_Invalid_Value_Throws()
+    {
+        var type = new OffsetDateType();
+        Action error = () => type.ValueToLiteral("2020-12-31+02");
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
@@ -155,5 +124,11 @@ public class OffsetDateTypeIntegrationTests
 
         offsetDateType.Description.MatchInlineSnapshot(
             "A combination of a LocalDate and an Offset, to represent a date at a specific offset from UTC but without any time-of-day information.");
+    }
+
+    private static JsonElement ParseInputValue(string sourceText)
+    {
+        var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(sourceText));
+        return JsonElement.ParseValue(ref reader);
     }
 }

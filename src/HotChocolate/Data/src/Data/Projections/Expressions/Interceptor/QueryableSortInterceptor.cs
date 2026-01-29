@@ -15,20 +15,20 @@ namespace HotChocolate.Data.Projections.Handlers;
 
 public class QueryableSortInterceptor : IProjectionFieldInterceptor<QueryableProjectionContext>
 {
-    public bool CanHandle(ISelection selection) =>
-        selection.Field.Member is PropertyInfo propertyInfo
-        && propertyInfo.CanWrite
-        && selection.HasSortingFeature();
+    public bool CanHandle(Selection selection)
+        => selection.Field.Member is PropertyInfo propertyInfo
+            && propertyInfo.CanWrite
+            && selection.HasSortingFeature;
 
     public void BeforeProjection(
         QueryableProjectionContext context,
-        ISelection selection)
+        Selection selection)
     {
         var field = selection.Field;
 
         if (field.Features.TryGet(out SortingFeature? feature)
-            && context.Selection.Count > 0
-            && context.Selection.Peek().Arguments.TryCoerceArguments(context.ResolverContext, out var coercedArgs)
+            && context.Selections.Count > 0
+            && context.Selections.Peek().Arguments.TryCoerceArguments(context.ResolverContext, out var coercedArgs)
             && coercedArgs.TryGetValue(feature.ArgumentName, out var argumentValue)
             && argumentValue.Type is ListType lt
             && lt.ElementType is NonNullType nn
@@ -51,7 +51,7 @@ public class QueryableSortInterceptor : IProjectionFieldInterceptor<QueryablePro
         }
     }
 
-    public void AfterProjection(QueryableProjectionContext context, ISelection selection)
+    public void AfterProjection(QueryableProjectionContext context, Selection selection)
     {
     }
 

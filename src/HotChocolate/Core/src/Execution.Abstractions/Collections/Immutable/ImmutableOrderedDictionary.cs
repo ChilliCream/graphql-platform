@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Collections.Immutable;
 
@@ -20,6 +21,7 @@ namespace HotChocolate.Collections.Immutable;
 /// <see cref="ImmutableDictionary{TKey, TValue}"/> which does not guarantee any particular order.
 /// </para>
 /// </remarks>
+[CollectionBuilder(typeof(ImmutableOrderedDictionary), nameof(ImmutableOrderedDictionary.Create))]
 public sealed class ImmutableOrderedDictionary<TKey, TValue> : IImmutableDictionary<TKey, TValue>
     where TKey : IEquatable<TKey>
 {
@@ -472,6 +474,46 @@ public sealed class ImmutableOrderedDictionary<TKey, TValue> : IImmutableDiction
         public ImmutableOrderedDictionary<TKey, TValue> ToImmutable()
             => new([.. _dictionary.Keys], ImmutableDictionary.CreateRange(_dictionary));
     }
+
+    internal static ImmutableOrderedDictionary<TKey, TValue> Create(
+        ReadOnlySpan<KeyValuePair<TKey, TValue>> items)
+    {
+        if (items.Length == 0)
+        {
+            return Empty;
+        }
+
+        var keys = ImmutableList.CreateBuilder<TKey>();
+        var map = ImmutableDictionary.CreateBuilder<TKey, TValue>();
+
+        foreach (var item in items)
+        {
+            keys.Add(item.Key);
+            map.Add(item.Key, item.Value);
+        }
+
+        return new ImmutableOrderedDictionary<TKey, TValue>(keys.ToImmutable(), map.ToImmutable());
+    }
+
+    internal static ImmutableOrderedDictionary<TKey, TValue> Create(
+        OrderedDictionary<TKey, TValue> items)
+    {
+        if (items.Count == 0)
+        {
+            return Empty;
+        }
+
+        var keys = ImmutableList.CreateBuilder<TKey>();
+        var map = ImmutableDictionary.CreateBuilder<TKey, TValue>();
+
+        foreach (var item in items)
+        {
+            keys.Add(item.Key);
+            map.Add(item.Key, item.Value);
+        }
+
+        return new ImmutableOrderedDictionary<TKey, TValue>(keys.ToImmutable(), map.ToImmutable());
+    }
 }
 
 /// <summary>
@@ -488,4 +530,34 @@ public static class ImmutableOrderedDictionary
     public static ImmutableOrderedDictionary<TKey, TValue>.Builder CreateBuilder<TKey, TValue>()
         where TKey : IEquatable<TKey>
         => new();
+
+    /// <summary>
+    /// Creates an immutable ordered dictionary from the specified key-value pairs.
+    /// </summary>
+    /// <typeparam name="TKey">The type of keys in the dictionary.</typeparam>
+    /// <typeparam name="TValue">The type of values in the dictionary.</typeparam>
+    /// <param name="items">The key-value pairs to include in the dictionary.</param>
+    /// <returns>An immutable ordered dictionary containing the specified key-value pairs.</returns>
+    public static ImmutableOrderedDictionary<TKey, TValue> Create<TKey, TValue>(
+        ReadOnlySpan<KeyValuePair<TKey, TValue>> items)
+        where TKey : IEquatable<TKey>
+        => ImmutableOrderedDictionary<TKey, TValue>.Create(items);
+}
+
+/// <summary>
+/// Provides extension methods for immutable ordered dictionaries.
+/// </summary>
+public static class ImmutableOrderedDictionaryExtensions
+{
+    /// <summary>
+    /// Converts the specified ordered dictionary to an immutable ordered dictionary.
+    /// </summary>
+    /// <typeparam name="TKey">The type of keys in the dictionary.</typeparam>
+    /// <typeparam name="TValue">The type of values in the dictionary.</typeparam>
+    /// <param name="dictionary">The ordered dictionary to convert.</param>
+    /// <returns>An immutable ordered dictionary containing the same key-value pairs as the input dictionary.</returns>
+    public static ImmutableOrderedDictionary<TKey, TValue> ToImmutableOrderedDictionary<TKey, TValue>(
+        this OrderedDictionary<TKey, TValue> dictionary)
+        where TKey : IEquatable<TKey>
+        => ImmutableOrderedDictionary<TKey, TValue>.Create(dictionary);
 }

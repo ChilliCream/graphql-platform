@@ -1,0 +1,9 @@
+{
+  "document": "{ foo }",
+  "errorHandlingMode": "Halt",
+  "variableValues": [
+    {
+      "one": "foo"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.WebSockets;
+using System.Text.Json;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using Microsoft.AspNetCore.TestHost;
 
@@ -14,13 +15,13 @@ public class SubscriptionTestBase : ServerTestBase
 
     protected Uri SubscriptionUri { get; } = new("ws://localhost:5000/graphql");
 
-    protected Task<IReadOnlyDictionary<string, object?>?> WaitForMessage(
+    protected Task<JsonDocument?> WaitForMessage(
         WebSocket webSocket,
         string type,
         CancellationToken cancellationToken)
         => WaitForMessage(webSocket, type, TimeSpan.FromMilliseconds(500), cancellationToken);
 
-    protected async Task<IReadOnlyDictionary<string, object?>?> WaitForMessage(
+    protected async Task<JsonDocument?> WaitForMessage(
         WebSocket webSocket,
         string type,
         TimeSpan timeout,
@@ -38,16 +39,17 @@ public class SubscriptionTestBase : ServerTestBase
                 await Task.Delay(50, combinedCts.Token);
 
                 var message = await webSocket.ReceiveServerMessageAsync(combinedCts.Token);
+                var messageType = message?.RootElement.GetProperty(MessageProperties.Type).GetString();
 
-                if (message != null && type.Equals(message[MessageProperties.Type]))
+                if (type.Equals(messageType))
                 {
                     return message;
                 }
 
-                if (message?[MessageProperties.Type]?.Equals("ka") is false)
+                if (!"ka".Equals(messageType))
                 {
                     throw new InvalidOperationException(
-                        $"Unexpected message type: {message[MessageProperties.Type]}");
+                        $"Unexpected message type: {messageType}");
                 }
             }
         }
@@ -97,7 +99,7 @@ public class SubscriptionTestBase : ServerTestBase
         await webSocket.SendConnectionInitializeAsync(cancellationToken);
         var message = await webSocket.ReceiveServerMessageAsync(cancellationToken);
         Assert.NotNull(message);
-        Assert.Equal("connection_ack", message[MessageProperties.Type]);
+        Assert.Equal("connection_ack", message.RootElement.GetProperty(MessageProperties.Type).GetString());
         return webSocket;
     }
 

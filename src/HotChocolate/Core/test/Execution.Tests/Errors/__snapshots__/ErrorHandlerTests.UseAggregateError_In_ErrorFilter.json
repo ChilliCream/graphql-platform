@@ -2,12 +2,6 @@
   "errors": [
     {
       "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
       "path": [
         "foo"
       ],
@@ -17,12 +11,6 @@
     },
     {
       "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
       "path": [
         "foo"
       ],

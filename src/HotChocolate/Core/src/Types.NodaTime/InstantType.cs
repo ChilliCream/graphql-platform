@@ -30,7 +30,6 @@ public class InstantType : StringToStructBaseType<Instant>
             allowedPatterns,
             NodaTimeResources.InstantType_Description,
             NodaTimeResources.InstantType_Description_Extended);
-        SerializationType = ScalarSerializationType.String;
     }
 
     /// <summary>
@@ -42,15 +41,19 @@ public class InstantType : StringToStructBaseType<Instant>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(Instant runtimeValue)
-        => _serializationPattern
-            .Format(runtimeValue);
-
-    /// <inheritdoc />
-    protected override bool TryDeserialize(
+    protected override bool TryCoerceRuntimeValue(
         string resultValue,
         [NotNullWhen(true)] out Instant? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    /// <inheritdoc />
+    protected override bool TryCoerceOutputValue(
+        Instant runtimeValue,
+        [NotNullWhen(true)] out string? resultValue)
+    {
+        resultValue = _serializationPattern.Format(runtimeValue);
+        return true;
+    }
 
     protected override Dictionary<IPattern<Instant>, string> PatternMap => new()
     {

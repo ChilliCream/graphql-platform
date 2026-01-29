@@ -1,5 +1,7 @@
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
@@ -35,7 +37,6 @@ public class DecimalType : FloatTypeBase<decimal>
         : base(name, min, max, bind)
     {
         Description = description;
-        SerializationType = ScalarSerializationType.Float;
     }
 
     /// <summary>
@@ -47,9 +48,19 @@ public class DecimalType : FloatTypeBase<decimal>
     {
     }
 
-    protected override decimal ParseLiteral(IFloatValueLiteral valueSyntax)
-        => valueSyntax.ToDecimal();
+    /// <inheritdoc />
+    protected override decimal OnCoerceInputLiteral(IFloatValueLiteral valueLiteral)
+        => valueLiteral.ToDecimal();
 
-    protected override FloatValueNode ParseValue(decimal runtimeValue)
-        => new(runtimeValue);
+    /// <inheritdoc />
+    protected override decimal OnCoerceInputValue(JsonElement inputValue)
+        => inputValue.GetDecimal();
+
+    /// <inheritdoc />
+    public override void OnCoerceOutputValue(decimal runtimeValue, ResultElement resultValue)
+        => resultValue.SetNumberValue(runtimeValue);
+
+    /// <inheritdoc />
+    public override IValueNode OnValueToLiteral(decimal runtimeValue)
+        => new FloatValueNode(runtimeValue);
 }

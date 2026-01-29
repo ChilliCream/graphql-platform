@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -13,14 +14,14 @@ public sealed class SelectedField : ISelectedField
     /// <summary>
     /// Creates a new instance of <see cref="SelectedField"/>
     /// </summary>
-    internal SelectedField(IResolverContext resolverContext, ISelection selection)
+    internal SelectedField(IResolverContext resolverContext, Selection selection)
     {
         _resolverContext = resolverContext;
         Selection = selection;
     }
 
     /// <inheritdoc />
-    public ISelection Selection { get; }
+    public Selection Selection { get; }
 
     /// <inheritdoc />
     public IOutputFieldDefinition Field => Selection.Field;
@@ -36,21 +37,21 @@ public sealed class SelectedField : ISelectedField
         ObjectType? type = null,
         bool allowInternals = false)
     {
-        var fields = GetFieldSelections(type, allowInternals);
+        var selections = GetSelections(type, allowInternals);
 
-        if (fields is null)
+        if (selections is null)
         {
             return [];
         }
 
-        var finalFields = new SelectedField[fields.Count];
+        var selectedFields = new List<SelectedField>();
 
-        for (var i = 0; i < fields.Count; i++)
+        foreach (var selection in selections)
         {
-            finalFields[i] = new SelectedField(_resolverContext, fields[i]);
+            selectedFields.Add(new SelectedField(_resolverContext, selection));
         }
 
-        return finalFields;
+        return selectedFields;
     }
 
     /// <inheritdoc />
@@ -59,16 +60,16 @@ public sealed class SelectedField : ISelectedField
         ObjectType? type = null,
         bool allowInternals = false)
     {
-        var fields = GetFieldSelections(type, allowInternals);
+        var selections = GetSelections(type, allowInternals);
 
-        if (fields is null)
+        if (selections is null)
         {
             return false;
         }
 
-        for (var i = 0; i < fields.Count; i++)
+        foreach (var selection in selections)
         {
-            if (fields[i].Field.Name == fieldName)
+            if (selection.Field.Name == fieldName)
             {
                 return true;
             }
@@ -77,13 +78,13 @@ public sealed class SelectedField : ISelectedField
         return false;
     }
 
-    private IReadOnlyList<ISelection>? GetFieldSelections(
+    private SelectionEnumerator? GetSelections(
         ObjectType? type = null,
         bool allowInternals = false)
     {
         var namedType = Field.Type.NamedType();
 
-        if (Selection.SelectionSet is null)
+        if (Selection.IsLeaf)
         {
             return null;
         }

@@ -6,6 +6,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <LangVersion>Preview</LangVersion>
+    <AssemblyName>HotChocolate.Fusion.Execution.Benchmarks</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

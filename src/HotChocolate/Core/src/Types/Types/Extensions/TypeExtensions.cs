@@ -11,8 +11,6 @@ public static class TypeExtensions
 {
     internal static IInputType EnsureInputType(this IType type)
     {
-        ArgumentNullException.ThrowIfNull(type);
-
         if (type.NamedType() is not IInputType)
         {
             throw InputTypeExpected(type);
@@ -23,8 +21,6 @@ public static class TypeExtensions
 
     internal static IOutputType EnsureOutputType(this IType type)
     {
-        ArgumentNullException.ThrowIfNull(type);
-
         if (type.NamedType() is not IOutputType)
         {
             throw OutputTypeExpected(type);
@@ -34,16 +30,10 @@ public static class TypeExtensions
     }
 
     public static string TypeName(this IType type)
-    {
-        ArgumentNullException.ThrowIfNull(type);
-
-        return type.NamedType().Name;
-    }
+        => type.NamedType().Name;
 
     public static Type ToRuntimeType(this IType type)
     {
-        ArgumentNullException.ThrowIfNull(type);
-
         if (type.IsListType())
         {
             var elementType = ToRuntimeType(type.ElementType());
@@ -60,7 +50,7 @@ public static class TypeExtensions
             return ToRuntimeType(type.InnerType());
         }
 
-        if (type is IHasRuntimeType t)
+        if (type is IRuntimeTypeProvider t)
         {
             return t.RuntimeType;
         }
@@ -70,7 +60,7 @@ public static class TypeExtensions
 
     private static Type LeafTypeToRuntimeType(IType type)
     {
-        if (type.IsLeafType() && type.NamedType() is IHasRuntimeType t)
+        if (type.IsLeafType() && type.NamedType() is IRuntimeTypeProvider t)
         {
             if (!type.IsNonNullType() && t.RuntimeType.IsValueType)
             {
@@ -94,7 +84,6 @@ public static class TypeExtensions
 
     public static bool IsInstanceOfType(this IInputType type, IValueNode literal)
     {
-        ArgumentNullException.ThrowIfNull(type);
         ArgumentNullException.ThrowIfNull(literal);
 
         while (true)
@@ -130,7 +119,7 @@ public static class TypeExtensions
                     return literal.Kind == SyntaxKind.ObjectValue;
 
                 default:
-                    return ((ILeafType)type).IsInstanceOfType(literal);
+                    return ((ILeafType)type).IsValueCompatible(literal);
             }
         }
     }

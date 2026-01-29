@@ -1,5 +1,8 @@
 using System.Globalization;
-using HotChocolate.Execution;
+using System.Text;
+using System.Text.Json;
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using NodaTime;
 using NodaTime.Text;
 
@@ -7,94 +10,82 @@ namespace HotChocolate.Types.NodaTime.Tests;
 
 public class InstantTypeIntegrationTests
 {
-    public static class Schema
-    {
-        public class Query
-        {
-            public Instant One
-                => Instant.FromUtc(2020, 02, 20, 17, 42, 59).PlusNanoseconds(1234);
-        }
-
-        public class Mutation
-        {
-            public Instant Test(Instant arg)
-            {
-                return arg + Duration.FromMinutes(10);
-            }
-        }
-    }
-
-    private readonly IRequestExecutor _testExecutor = SchemaBuilder.New()
-        .AddQueryType<Schema.Query>()
-        .AddMutationType<Schema.Mutation>()
-        .AddNodaTime()
-        .Create()
-        .MakeExecutable();
-
     [Fact]
-    public void QueryReturnsUtc()
+    public void CoerceInputLiteral()
     {
-        var result = _testExecutor.Execute("query { test: one }");
-
+        var type = new InstantType();
+        var inputValue = new StringValueNode("2020-02-20T17:42:59.000001234Z");
+        var runtimeValue = type.CoerceInputLiteral(inputValue);
         Assert.Equal(
-            "2020-02-20T17:42:59.000001234Z",
-            result.ExpectOperationResult().Data!["test"]);
+            Instant.FromUtc(2020, 02, 20, 17, 42, 59).PlusNanoseconds(1234),
+            Assert.IsType<Instant>(runtimeValue));
     }
 
     [Fact]
-    public void ParsesVariable()
+    public void CoerceInputLiteral_Invalid_Value_Throws()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: Instant!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-21T17:42:59.000001234Z" } })
-                .Build());
+        var type = new InstantType();
+        var valueLiteral = new StringValueNode("2020-02-20T17:42:59");
+        Action error = () => type.CoerceInputLiteral(valueLiteral);
+        Assert.Throws<LeafCoercionException>(error);
+    }
 
+    [Fact]
+    public void CoerceInputValue()
+    {
+        var type = new InstantType();
+        var inputValue = ParseInputValue("\"2020-02-20T17:42:59.000001234Z\"");
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
         Assert.Equal(
-            "2020-02-21T17:52:59.000001234Z",
-            result.ExpectOperationResult().Data!["test"]);
+            Instant.FromUtc(2020, 02, 20, 17, 42, 59).PlusNanoseconds(1234),
+            Assert.IsType<Instant>(runtimeValue));
     }
 
     [Fact]
-    public void DoesntParseAnIncorrectVariable()
+    public void CoerceInputValue_Invalid_Value_Throws()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation($arg: Instant!) { test(arg: $arg) }")
-                .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-20T17:42:59" } })
-                .Build());
-
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
+        var type = new InstantType();
+        var inputValue = ParseInputValue("\"2020-02-20T17:42:59\"");
+        Action error = () => type.CoerceInputValue(inputValue, null!);
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
-    public void ParsesLiteral()
+    public void CoerceOutputValue()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59.000001234Z\") }")
-                .Build());
-
-        Assert.Equal(
-            "2020-02-20T17:52:59.000001234Z",
-            result.ExpectOperationResult().Data!["test"]);
+        var type = new InstantType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(Instant.FromUtc(2020, 02, 20, 17, 42, 59).PlusNanoseconds(1234), resultValue);
+        Assert.Equal("2020-02-20T17:42:59.000001234Z", resultValue.GetString());
     }
 
     [Fact]
-    public void DoesntParseIncorrectLiteral()
+    public void CoerceOutputValue_Invalid_Value_Throws()
     {
-        var result = _testExecutor
-            .Execute(OperationRequestBuilder.New()
-                .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59\") }")
-                .Build());
+        var type = new InstantType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        Action error = () => type.CoerceOutputValue("2020-02-20T17:42:59.000001234Z", resultValue);
+        Assert.Throws<LeafCoercionException>(error);
+    }
 
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
-        Assert.Null(result.ExpectOperationResult().Errors![0].Code);
-        Assert.Equal(
-            "Unable to deserialize string to Instant",
-            result.ExpectOperationResult().Errors![0].Message);
+    [Fact]
+    public void ValueToLiteral()
+    {
+        var type = new InstantType();
+        var valueLiteral = type.ValueToLiteral(Instant.FromUtc(2020, 02, 20, 17, 42, 59).PlusNanoseconds(1234));
+        Assert.Equal("\"2020-02-20T17:42:59.000001234Z\"", valueLiteral.ToString());
+    }
+
+    [Fact]
+    public void ValueToLiteral_Invalid_Value_Throws()
+    {
+        var type = new InstantType();
+        Action error = () => type.ValueToLiteral("2020-02-20T17:42:59.000001234Z");
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
@@ -131,5 +122,11 @@ public class InstantTypeIntegrationTests
 
         instantType.Description.MatchInlineSnapshot(
             "Represents an instant on the global timeline, with nanosecond resolution.");
+    }
+
+    private static JsonElement ParseInputValue(string sourceText)
+    {
+        var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(sourceText));
+        return JsonElement.ParseValue(ref reader);
     }
 }

@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 

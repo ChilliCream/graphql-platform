@@ -32,7 +32,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message["type"]);
+            Assert.Equal("connection_ack", message.RootElement.GetProperty("type").GetString());
         });
 
     [Fact]
@@ -101,7 +101,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message[MessageProperties.Type]);
+            Assert.Equal("connection_ack", message.RootElement.GetProperty(MessageProperties.Type).GetString());
         });
 
     [Fact]
@@ -144,7 +144,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message["type"]);
+            Assert.Equal("connection_ack", message.RootElement.GetProperty("type").GetString());
         });
 
     [Fact]
@@ -164,7 +164,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
             Assert.NotNull(message);
-            Assert.Equal("connection_ack", message["type"]);
+            Assert.Equal("connection_ack", message.RootElement.GetProperty("type").GetString());
         });
 
     [Fact]
@@ -592,11 +592,10 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory)
 
                 var message = await WaitForMessage(webSocket, "data", ct);
                 Assert.NotNull(message);
-                var messagePayload = (Dictionary<string, object?>?)message["payload"];
-                var messageData = (Dictionary<string, object?>?)messagePayload?["data"];
-                var messageOnReview = (Dictionary<string, object?>?)messageData?["onReview"];
-                Assert.NotNull(messageOnReview);
-                Assert.DoesNotContain("commentary", messageOnReview);
+                var messagePayload = message.RootElement.GetProperty("payload");
+                var messageData = messagePayload.GetProperty("data");
+                var messageOnReview = messageData.GetProperty("onReview");
+                Assert.False(messageOnReview.TryGetProperty("commentary", out _));
             });
 
     private class AuthInterceptor : DefaultSocketSessionInterceptor

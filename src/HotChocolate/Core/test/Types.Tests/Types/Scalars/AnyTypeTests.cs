@@ -1,5 +1,8 @@
 using System.Collections.Immutable;
 using System.Dynamic;
+using System.Numerics;
+using System.Text.Json;
+using CookieCrumble.Xunit.Attributes;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
@@ -19,22 +22,23 @@ public class AnyTypeTests
         foo.Bar1 = bar;
         foo.Bar2 = bar;
 
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Resolve(_ => foo))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Resolve(_ => foo))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ foo }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
@@ -46,22 +50,26 @@ public class AnyTypeTests
         fooCyclic.BarCyclic = barCyclic;
         barCyclic.FooCyclic = fooCyclic;
 
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("fooCyclic")
-                    .Type<AnyType>()
-                    .Resolve(_ => fooCyclic))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("fooCyclic")
+                        .Type<AnyType>()
+                        .Resolve(_ => fooCyclic))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectOperationResult();
 
         // assert
-        Assert.Equal("Cycle in object graph detected.", result.Errors?.Single().Exception?.Message);
+        Assert.Equal(
+            "Any cannot coerce the runtime value of type `HotChocolate.Types.AnyTypeTests+FooCyclic` "
+            + "into the result value format.",
+            result.Errors?.Single()?.Message);
     }
 
     [Fact]
@@ -73,16 +81,17 @@ public class AnyTypeTests
         foo.Bar1 = bar;
         foo.Bar2 = bar;
 
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Resolve(_ => new List<Foo> { foo, foo }))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Resolve(_ => new List<Foo> { foo, foo }))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ foo }");
@@ -100,38 +109,44 @@ public class AnyTypeTests
         fooCyclic.BarCyclic = barCyclic;
         barCyclic.FooCyclic = fooCyclic;
 
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("fooCyclic")
-                    .Type<AnyType>()
-                    .Resolve(_ => new List<FooCyclic> { fooCyclic, fooCyclic }))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("fooCyclic")
+                        .Type<AnyType>()
+                        .Resolve(_ => new List<FooCyclic> { fooCyclic, fooCyclic }))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = (await executor.ExecuteAsync("{ fooCyclic }")).ExpectOperationResult();
 
         // assert
-        Assert.Equal("Cycle in object graph detected.", result.Errors?.Single().Exception?.Message);
+        Assert.Equal(
+            "Any cannot coerce the runtime value of type `System.Collections.Generic.List`1"
+            + "[[HotChocolate.Types.AnyTypeTests+FooCyclic, HotChocolate.Types.Tests, Version=0.0.0.0, "
+            + "Culture=neutral, PublicKeyToken=null]]` into the result value format.",
+            result.Errors?.Single()?.Message);
     }
 
     [Fact]
     public async Task Output_Return_RecordList()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Resolve(_ => new List<FooRecord> { new(), new() }))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Resolve(_ => new List<FooRecord> { new(), new() }))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ foo }");
@@ -144,41 +159,50 @@ public class AnyTypeTests
     public async Task Output_Return_DateTime()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Resolve(
-                        _ => new DateTimeOffset(
-                            new DateTime(2016, 01, 01),
-                            TimeSpan.Zero)))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Resolve(
+                            _ => new DateTimeOffset(
+                                new DateTime(2016, 01, 01),
+                                TimeSpan.Zero)))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ foo }");
 
         // assert
-        result.ToJson().MatchSnapshot();
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "foo": "2016-01-01T00:00:00+00:00"
+              }
+            }
+            """);
     }
 
     [Fact]
     public async Task Output_Return_String()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Resolve(_ => "abc"))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Resolve(_ => "abc"))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ foo }");
@@ -191,16 +215,17 @@ public class AnyTypeTests
     public async Task Output_Return_Int()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Resolve(_ => 123))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Resolve(_ => 123))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ foo }");
@@ -213,16 +238,17 @@ public class AnyTypeTests
     public async Task Output_Return_Float()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Resolve(_ => 1.2))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Resolve(_ => 1.2))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ foo }");
@@ -235,16 +261,17 @@ public class AnyTypeTests
     public async Task Output_Return_Boolean()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Resolve(_ => true))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Resolve(_ => true))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ foo }");
@@ -257,17 +284,18 @@ public class AnyTypeTests
     public async Task Input_Object()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -281,17 +309,18 @@ public class AnyTypeTests
     public async Task Input_Value_List()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -305,17 +334,18 @@ public class AnyTypeTests
     public async Task Input_Object_List()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -329,17 +359,18 @@ public class AnyTypeTests
     public async Task Input_Value_Object_To_Foo()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<Foo>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<Foo>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -353,17 +384,18 @@ public class AnyTypeTests
     public async Task Input_Value_String()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -377,17 +409,18 @@ public class AnyTypeTests
     public async Task Input_Value_Int()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -401,17 +434,18 @@ public class AnyTypeTests
     public async Task Input_Value_Float()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -425,17 +459,18 @@ public class AnyTypeTests
     public async Task Input_Value_Boolean()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -449,17 +484,18 @@ public class AnyTypeTests
     public async Task Input_Value_Null()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -473,17 +509,18 @@ public class AnyTypeTests
     public async Task Input_Value_List_As_Variable()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -500,17 +537,18 @@ public class AnyTypeTests
     public async Task Input_Object_List_As_Variable()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -539,17 +577,18 @@ public class AnyTypeTests
     public async Task Input_Value_String_As_Variable()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -566,17 +605,18 @@ public class AnyTypeTests
     public async Task Input_Value_Int_As_Variable()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -593,17 +633,18 @@ public class AnyTypeTests
     public async Task Input_Value_Float_As_Variable()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -620,17 +661,18 @@ public class AnyTypeTests
     public async Task Input_Value_Object_As_Variable()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -647,17 +689,18 @@ public class AnyTypeTests
     public async Task Input_Value_ObjectDict_As_Variable()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -678,17 +721,18 @@ public class AnyTypeTests
     public async Task Input_Value_ArgumentKind()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentKind("input").ToString()))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentKind("input").ToString()))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -709,17 +753,18 @@ public class AnyTypeTests
     public async Task Input_Value_Boolean_As_Variable()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -736,17 +781,18 @@ public class AnyTypeTests
     public async Task Input_Value_Null_As_Variable()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -760,581 +806,605 @@ public class AnyTypeTests
     }
 
     [Fact]
-    public void IsInstanceOfType_EnumValue_False()
+    public async Task IsValueCompatible_EnumValue_False()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new EnumValueNode("foo"));
+        var result = type.IsValueCompatible(new EnumValueNode("foo"));
 
         // assert
         Assert.False(result);
     }
 
     [Fact]
-    public void IsInstanceOfType_ObjectValue_True()
+    public async Task IsValueCompatible_ObjectValue_True()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new ObjectValueNode([]));
+        var result = type.IsValueCompatible(new ObjectValueNode([]));
 
         // assert
         Assert.True(result);
     }
 
     [Fact]
-    public void IsInstanceOfType_ListValue_False()
+    public async Task IsValueCompatible_ListValue_True()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new ListValueNode([]));
+        var result = type.IsValueCompatible(new ListValueNode([]));
 
         // assert
         Assert.True(result);
     }
 
     [Fact]
-    public void IsInstanceOfType_StringValue_False()
+    public async Task IsValueCompatible_StringValue_True()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new StringValueNode("foo"));
+        var result = type.IsValueCompatible(new StringValueNode("foo"));
 
         // assert
         Assert.True(result);
     }
 
     [Fact]
-    public void IsInstanceOfType_IntValue_False()
+    public async Task IsValueCompatible_IntValue_True()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new IntValueNode(123));
+        var result = type.IsValueCompatible(new IntValueNode(123));
 
         // assert
         Assert.True(result);
     }
 
     [Fact]
-    public void IsInstanceOfType_FloatValue_False()
+    public async Task IsValueCompatible_FloatValue_True()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new FloatValueNode(1.2));
+        var result = type.IsValueCompatible(new FloatValueNode(1.2));
 
         // assert
         Assert.True(result);
     }
 
     [Fact]
-    public void IsInstanceOfType_BooleanValue_False()
+    public async Task IsValueCompatible_BooleanValue_True()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(new BooleanValueNode(true));
+        var result = type.IsValueCompatible(new BooleanValueNode(true));
 
         // assert
         Assert.True(result);
     }
 
     [Fact]
-    public void IsInstanceOfType_NullValue_True()
+    public async Task IsValueCompatible_NullValue_False()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var result = type.IsInstanceOfType(NullValueNode.Default);
+        var result = type.IsValueCompatible(NullValueNode.Default);
 
         // assert
-        Assert.True(result);
+        Assert.False(result);
     }
 
     [Fact]
-    public void IsInstanceOfType_Null_ArgumentNullException()
+    public async Task IsValueCompatible_Null_ReturnsFalse()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        void Action() => type.IsInstanceOfType(null!);
+        var result = type.IsValueCompatible(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
-    }
-
-    [InlineData("abc", typeof(StringValueNode))]
-    [InlineData((short)1, typeof(IntValueNode))]
-    [InlineData(1, typeof(IntValueNode))]
-    [InlineData((long)1, typeof(IntValueNode))]
-    [InlineData((float)1, typeof(FloatValueNode))]
-    [InlineData((double)1, typeof(FloatValueNode))]
-    [InlineData(true, typeof(BooleanValueNode))]
-    [InlineData(false, typeof(BooleanValueNode))]
-    [Theory]
-    public void ParseValue_ScalarValues(object value, Type expectedType)
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var type = schema.Types.GetType<AnyType>("Any");
-
-        // act
-        var literal = type.ParseValue(value);
-
-        // assert
-        Assert.IsType(expectedType, literal);
+        Assert.False(result);
     }
 
     [Fact]
-    public void ParseValue_Decimal()
+    public async Task ValueToLiteral_String()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
+        var value = JsonSerializer.SerializeToElement("abc");
 
         // act
-        var literal = type.ParseValue((decimal)1);
+        var literal = type.ValueToLiteral(value);
+
+        // assert
+        Assert.IsType<StringValueNode>(literal);
+    }
+
+    [Fact]
+    public async Task ValueToLiteral_Int()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
+
+        var type = schema.Types.GetType<AnyType>("Any");
+        var value = JsonSerializer.SerializeToElement(123);
+
+        // act
+        var literal = type.ValueToLiteral(value);
+
+        // assert
+        Assert.IsType<IntValueNode>(literal);
+    }
+
+    [Fact]
+    public async Task ValueToLiteral_Float()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
+
+        var type = schema.Types.GetType<AnyType>("Any");
+        var value = JsonSerializer.SerializeToElement(1.5);
+
+        // act
+        var literal = type.ValueToLiteral(value);
 
         // assert
         Assert.IsType<FloatValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_List_Of_Object()
+    public async Task ValueToLiteral_True()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
+        var value = JsonSerializer.SerializeToElement(true);
 
         // act
-        var literal = type.ParseValue(new List<object>());
+        var literal = type.ValueToLiteral(value);
+
+        // assert
+        Assert.IsType<BooleanValueNode>(literal);
+    }
+
+    [Fact]
+    public async Task ValueToLiteral_False()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
+
+        var type = schema.Types.GetType<AnyType>("Any");
+        var value = JsonSerializer.SerializeToElement(false);
+
+        // act
+        var literal = type.ValueToLiteral(value);
+
+        // assert
+        Assert.IsType<BooleanValueNode>(literal);
+    }
+
+    [Fact]
+    public async Task ValueToLiteral_Decimal()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
+
+        var type = schema.Types.GetType<AnyType>("Any");
+        var value = JsonSerializer.SerializeToElement(1.0m);
+
+        // act
+        var literal = type.ValueToLiteral(value);
+
+        // assert
+        Assert.IsType<FloatValueNode>(literal);
+    }
+
+    [Fact]
+    public async Task ValueToLiteral_List_Of_Object()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
+
+        var type = schema.Types.GetType<AnyType>("Any");
+        var value = JsonSerializer.SerializeToElement(new List<object>());
+
+        // act
+        var literal = type.ValueToLiteral(value);
 
         // assert
         Assert.IsType<ListValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_List_Of_String()
+    public async Task ValueToLiteral_List_Of_String()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
+        var value = JsonSerializer.SerializeToElement(new List<string>());
 
         // act
-        var literal = type.ParseValue(new List<string>());
+        var literal = type.ValueToLiteral(value);
 
         // assert
         Assert.IsType<ListValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_List_Of_Foo()
+    public async Task ValueToLiteral_List_Of_Foo()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
         var foo = new Foo();
         var bar = new Bar();
         foo.Bar1 = bar;
         foo.Bar2 = bar;
+        var value = JsonSerializer.SerializeToElement(new List<Foo> { foo, foo });
 
         // act
-        var literal = type.ParseValue(new List<Foo> { foo, foo });
+        var literal = type.ValueToLiteral(value);
 
         // assert
         Assert.IsType<ListValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_List_Of_FooCyclic()
+    public async Task ValueToLiteral_List_Of_FooRecord()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
-        var fooCyclic = new FooCyclic();
-        var barCyclic = new BarCyclic();
-        fooCyclic.BarCyclic = barCyclic;
-        barCyclic.FooCyclic = fooCyclic;
+        var value = JsonSerializer.SerializeToElement(new List<FooRecord> { new(), new() });
 
         // act
-        void Act() => type.ParseValue(new List<FooCyclic> { fooCyclic, fooCyclic });
-
-        // assert
-        Assert.Equal(
-            "Cycle in object graph detected.",
-            Assert.Throws<GraphQLException>(Act).Message);
-    }
-
-    [Fact]
-    public void ParseValue_List_Of_FooRecord()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var type = schema.Types.GetType<AnyType>("Any");
-
-        // act
-        var literal = type.ParseValue(new List<FooRecord> { new(), new() });
+        var literal = type.ValueToLiteral(value);
 
         // assert
         Assert.IsType<ListValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_Foo()
+    public async Task ValueToLiteral_Foo()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
+        var value = JsonSerializer.SerializeToElement(new Foo());
 
         // act
-        var literal = type.ParseValue(new Foo());
+        var literal = type.ValueToLiteral(value);
 
         // assert
         Assert.IsType<ObjectValueNode>(literal);
     }
 
     [Fact]
-    public void ParseValue_FooCyclic()
+    public async Task ValueToLiteral_Dictionary()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
-        var fooCyclic = new FooCyclic();
-        var barCyclic = new BarCyclic();
-        fooCyclic.BarCyclic = barCyclic;
-        barCyclic.FooCyclic = fooCyclic;
+        var value = JsonSerializer.SerializeToElement(new Dictionary<string, object>());
 
         // act
-        void Act() => type.ParseValue(fooCyclic);
-
-        // assert
-        Assert.Equal(
-            "Cycle in object graph detected.",
-            Assert.Throws<GraphQLException>(Act).Message);
-    }
-
-    [Fact]
-    public void ParseValue_Dictionary()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var type = schema.Types.GetType<AnyType>("Any");
-
-        // act
-        var literal = type.ParseValue(
-            new Dictionary<string, object>());
+        var literal = type.ValueToLiteral(value);
 
         // assert
         Assert.IsType<ObjectValueNode>(literal);
     }
 
     [Fact]
-    public void Deserialize_ValueNode()
+    public async Task CoerceInputLiteral_StringValueNode()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Type<AnyType>()
+                        .Argument("input", a => a.Type<AnyType>())
+                        .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+                .AddJsonTypeConverter()
+                .BuildSchemaAsync();
 
         var type = schema.Types.GetType<AnyType>("Any");
 
         // act
-        var value = type.Deserialize(new StringValueNode("Foo"));
+        var value = type.CoerceInputLiteral(new StringValueNode("Foo"));
 
         // assert
-        Assert.Equal("Foo", value);
-    }
-
-    [Fact]
-    public void Deserialize_Dictionary()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var type = schema.Types.GetType<AnyType>("Any");
-
-        var toDeserialize = new Dictionary<string, object>
-        {
-            { "Foo", new StringValueNode("Bar") }
-        };
-
-        // act
-        var value = type.Deserialize(toDeserialize);
-
-        // assert
-        Assert.Equal("Bar", Assert.IsType<Dictionary<string, object>>(value)["Foo"]);
-    }
-
-    [Fact]
-    public void Deserialize_NestedDictionary()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var type = schema.Types.GetType<AnyType>("Any");
-
-        var toDeserialize = new Dictionary<string, object>
-        {
-            { "Foo", new Dictionary<string, object> { { "Bar", new StringValueNode("Baz") } } }
-        };
-
-        // act
-        var value = type.Deserialize(toDeserialize);
-
-        // assert
-        var innerDictionary = Assert.IsType<Dictionary<string, object>>(value)["Foo"];
-        Assert.Equal("Baz", Assert.IsType<Dictionary<string, object>>(innerDictionary)["Bar"]);
-    }
-
-    [Fact]
-    public void Deserialize_List()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Type<AnyType>()
-                    .Argument("input", a => a.Type<AnyType>())
-                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
-            .Create();
-
-        var type = schema.Types.GetType<AnyType>("Any");
-        var toDeserialize =
-            new List<object> { new StringValueNode("Foo"), new StringValueNode("Bar") };
-
-        // act
-        var value = type.Deserialize(toDeserialize);
-
-        // assert
-        Assert.Collection(
-            Assert.IsType<object[]>(value)!,
-            x => Assert.Equal("Foo", x),
-            x => Assert.Equal("Bar", x));
+        Assert.Equal("Foo",  Assert.IsType<JsonElement>(value).GetString());
     }
 
     [Fact]
     public async Task Dictionary_Is_Handled_As_Object()
     {
         await ExpectValid(
-                "{ someObject }",
-                configure: c => c.AddQueryType<QueryWithDictionary>())
+            """
+            {
+              someObject
+            }
+            """,
+            configure: c => c
+                .AddQueryType<QueryWithDictionary>()
+                .AddJsonTypeConverter())
             .MatchSnapshotAsync();
     }
 
@@ -1343,7 +1413,9 @@ public class AnyTypeTests
     {
         await ExpectValid(
                 "{ something }",
-                configure: c => c.AddQueryType<SomeQuery>())
+                configure: c => c
+                    .AddQueryType<SomeQuery>()
+                    .AddJsonTypeConverter())
             .MatchSnapshotAsync();
     }
 
@@ -1352,8 +1424,326 @@ public class AnyTypeTests
     {
         await ExpectValid(
                 "{ somethingImmutable }",
-                configure: c => c.AddQueryType<SomeQuery>())
+                configure: c => c
+                    .AddQueryType<SomeQuery>()
+                    .AddJsonTypeConverter())
             .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task JsonElement_Schema()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryJsonElement>()
+                .BuildSchemaAsync();
+
+        schema.MatchInlineSnapshot(
+            """
+            schema {
+              query: QueryJsonElement
+            }
+
+            type QueryJsonElement {
+              someJson: Any!
+              manyJson: [Any!]!
+              inputJson(input: Any!): Any!
+              jsonFromString: Any!
+            }
+
+            scalar Any
+            """);
+    }
+
+    [Fact]
+    public async Task JsonElement_Output_Json_Object()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryJsonElement>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        someJson
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "someJson": {
+                  "a": {
+                    "b": 123.456
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonElement_Output_Json_Object_List()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryJsonElement>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        manyJson
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "manyJson": [
+                  {
+                    "a": {
+                      "b": 123.456
+                    }
+                  },
+                  {
+                    "x": {
+                      "y": "y"
+                    }
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonElement_Input_Json_Object_Literal()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryJsonElement>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        inputJson(input: { a: "abc" })
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "inputJson": {
+                  "a": "abc"
+                }
+              }
+            }
+            """);
+    }
+
+    [Theory]
+    [UseCulture("en-US")]
+    [InlineData(0)]
+    [InlineData(-15)]
+    [InlineData(-10.5)]
+    [InlineData(1.5)]
+    [InlineData(1e15)]
+    public async Task JsonElement_Input_Json_Number_Literal(decimal value)
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryJsonElement>()
+                .ExecuteRequestAsync(
+                    $$"""
+                    {
+                        inputJson(input: {{value}})
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            $$"""
+            {
+              "data": {
+                "inputJson": {{value}}
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonElement_Input_Json_BigInt_Literal()
+    {
+        var value = BigInteger.Parse("100000000000000000000000050");
+
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryJsonElement>()
+                .ExecuteRequestAsync(
+                    $$"""
+                    {
+                        inputJson(input: {{value}})
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            $$"""
+            {
+              "data": {
+                "inputJson": {{value}}
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonElement_Input_Json_Exponent_Literal()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryJsonElement>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        inputJson(input: 1e1345)
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "inputJson": 1e1345
+              }
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("true")]
+    [InlineData("false")]
+    public async Task JsonElement_Input_Json_Bool_Literal(string value)
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryJsonElement>()
+                .ExecuteRequestAsync(
+                    $$"""
+                    {
+                        inputJson(input: {{value}})
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            $$"""
+            {
+              "data": {
+                "inputJson": {{value}}
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonElement_Input_Json_Object_List()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryJsonElement>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        inputJson(input: { a: ["abc"] })
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "inputJson": {
+                  "a": [
+                    "abc"
+                  ]
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonElement_Input_Json_Object_Variables()
+    {
+        var input = JsonDocument.Parse(
+            """
+            {
+              "a": {
+                "b": 123.456
+              }
+            }
+            """).RootElement;
+
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryJsonElement>()
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
+                            """
+                            query($input: Any!) {
+                                inputJson(input: $input)
+                            }
+                            """)
+                        .SetVariableValues(new Dictionary<string, object?> { { "input", input } })
+                        .Build());
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "inputJson": {
+                  "a": {
+                    "b": 123.456
+                  }
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task JsonElement_Output_Json_From_String()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryJsonElement>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        jsonFromString
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "jsonFromString": {
+                  "a": "b"
+                }
+              }
+            }
+            """);
     }
 
     public class SomeQuery
@@ -1407,8 +1797,49 @@ public class AnyTypeTests
 
     public class QueryWithDictionary
     {
-        [GraphQLType(typeof(AnyType))]
-        public IDictionary<string, object> SomeObject =>
-            new Dictionary<string, object> { { "a", "b" } };
+        [GraphQLType<AnyType>]
+        public Dictionary<string, object> SomeObject
+            => new Dictionary<string, object> { { "a", "b" } };
+    }
+
+    public class QueryJsonElement
+    {
+        public JsonElement GetSomeJson()
+            => JsonDocument.Parse(
+                """
+                {
+                  "a": {
+                    "b": 123.456
+                  }
+                }
+                """).RootElement;
+
+        public IEnumerable<JsonElement> GetManyJson()
+        {
+            yield return JsonDocument.Parse(
+                """
+                {
+                  "a": {
+                    "b": 123.456
+                  }
+                }
+                """).RootElement;
+
+            yield return JsonDocument.Parse(
+                """
+                {
+                  "x": {
+                    "y": "y"
+                  }
+                }
+                """).RootElement;
+        }
+
+        public JsonElement InputJson(JsonElement input)
+            => input;
+
+        [GraphQLType<NonNullType<AnyType>>]
+        public string JsonFromString()
+            => "{ \"a\": \"b\" }";
     }
 }

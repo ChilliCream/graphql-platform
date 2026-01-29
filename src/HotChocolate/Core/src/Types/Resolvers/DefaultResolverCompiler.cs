@@ -86,7 +86,6 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         expressionBuilders.Add(new ResolverContextParameterExpressionBuilder());
         expressionBuilders.Add(new SchemaParameterExpressionBuilder());
         expressionBuilders.Add(new SelectionParameterExpressionBuilder());
-        expressionBuilders.Add(new FieldSyntaxParameterExpressionBuilder());
         expressionBuilders.Add(new ObjectTypeParameterExpressionBuilder());
         expressionBuilders.Add(new OperationDefinitionParameterExpressionBuilder());
         expressionBuilders.Add(new OperationParameterExpressionBuilder());

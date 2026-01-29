@@ -17,9 +17,11 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Pipeline" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Language.Web" />
     <InternalsVisibleTo Include="HotChocolate.Types" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Abstractions" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Benchmarks" />
     <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
   </ItemGroup>
 

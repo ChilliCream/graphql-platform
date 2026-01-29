@@ -669,9 +669,9 @@ public class QueryableFilterVisitorObjectTests
                 .Build());
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(res1).Errors);
-        Assert.Null(Assert.IsType<OperationResult>(res2).Errors);
-        Assert.Null(Assert.IsType<OperationResult>(res3).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(res1).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(res2).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(res3).Errors);
         await Snapshot
             .Create(
                 postFix: TestEnvironment.TargetFramework == "NET10_0"
@@ -712,9 +712,9 @@ public class QueryableFilterVisitorObjectTests
                 .Build());
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(res1).Errors);
-        Assert.Null(Assert.IsType<OperationResult>(res2).Errors);
-        Assert.Null(Assert.IsType<OperationResult>(res3).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(res1).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(res2).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(res3).Errors);
         await Snapshot
             .Create(
                 postFix: TestEnvironment.TargetFramework == "NET10_0"

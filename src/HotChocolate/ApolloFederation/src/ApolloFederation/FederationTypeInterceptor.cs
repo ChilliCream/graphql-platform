@@ -159,7 +159,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             }
         }
 
-        var hasRuntimeType = (IHasRuntimeType)configuration;
+        var hasRuntimeType = (IRuntimeTypeProvider)configuration;
         var type = hasRuntimeType.RuntimeType;
 
         if (type != typeof(object)

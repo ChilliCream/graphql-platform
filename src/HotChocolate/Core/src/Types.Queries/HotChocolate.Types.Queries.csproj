@@ -25,7 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Types.Errors\HotChocolate.Types.Errors.csproj" />
-    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 
 </Project>

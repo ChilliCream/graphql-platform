@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -87,11 +87,21 @@ public partial class TypeConverterTests
             .BuildRequestExecutorAsync();
 
         // act
-        var variableValues =
-            testCase.DisplayName.Contains("VariableInput")
-                ? new Dictionary<string, object?> { ["v"] = "foo" }
-                : [];
-        var result = await executor.ExecuteAsync(testCase.QueryString, variableValues: variableValues);
+        var requestBuilder = OperationRequestBuilder
+            .New()
+            .SetDocument(testCase.QueryString);
+
+        if (testCase.DisplayName.Contains("VariableInput"))
+        {
+            requestBuilder.SetVariableValues(
+                """
+                {
+                  "v": "foo"
+                }
+                """);
+        }
+
+        var result = await executor.ExecuteAsync(requestBuilder.Build());
 
         // assert
         Assert.IsType<CustomIdSerializationException>(caughtException);
@@ -120,13 +130,23 @@ public partial class TypeConverterTests
             .BuildRequestExecutorAsync();
 
         // act
-        var variableValues =
-            testCase.DisplayName.Contains("VariableInput")
-                ? new Dictionary<string, object?> { ["v"] = "foo" }
-                : [];
-
         var mutation = $"mutation{testCase.QueryString.TrimStart("query")}";
-        var result = await executor.ExecuteAsync(mutation, variableValues: variableValues);
+
+        var requestBuilder = OperationRequestBuilder
+            .New()
+            .SetDocument(mutation);
+
+        if (testCase.DisplayName.Contains("VariableInput"))
+        {
+            requestBuilder.SetVariableValues(
+                """
+                {
+                  "v": "foo"
+                }
+                """);
+        }
+
+        var result = await executor.ExecuteAsync(requestBuilder.Build());
 
         // assert
         Assert.IsType<CustomIdSerializationException>(caughtException);
@@ -156,12 +176,21 @@ public partial class TypeConverterTests
             .BuildRequestExecutorAsync();
 
         // act
-        var variableValues =
-            testCase.DisplayName.Contains("VariableInput")
-                ? new Dictionary<string, object?> { ["v"] = "foo" }
-                : [];
+        var requestBuilder = OperationRequestBuilder
+            .New()
+            .SetDocument(testCase.QueryString);
 
-        var result = await executor.ExecuteAsync(testCase.QueryString, variableValues: variableValues);
+        if (testCase.DisplayName.Contains("VariableInput"))
+        {
+            requestBuilder.SetVariableValues(
+                """
+                {
+                  "v": "foo"
+                }
+                """);
+        }
+
+        var result = await executor.ExecuteAsync(requestBuilder.Build());
 
         // assert
         Assert.IsType<CustomIdSerializationException>(caughtException);
@@ -191,12 +220,21 @@ public partial class TypeConverterTests
             .BuildRequestExecutorAsync();
 
         // act
-        var variableValues =
-            testCase.DisplayName.Contains("VariableInput")
-                ? new Dictionary<string, object?> { ["v"] = "foo" }
-                : [];
+        var requestBuilder = OperationRequestBuilder
+            .New()
+            .SetDocument(testCase.QueryString);
 
-        var result = await executor.ExecuteAsync(testCase.QueryString, variableValues: variableValues);
+        if (testCase.DisplayName.Contains("VariableInput"))
+        {
+            requestBuilder.SetVariableValues(
+                """
+                {
+                  "v": "foo"
+                }
+                """);
+        }
+
+        var result = await executor.ExecuteAsync(requestBuilder.Build());
 
         // assert
         Assert.IsType<CustomIdSerializationException>(caughtException);

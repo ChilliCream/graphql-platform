@@ -21,7 +21,7 @@ internal sealed class OperationPlanMiddleware
         IEnumerable<IOperationPlannerInterceptor>? interceptors,
         IFusionExecutionDiagnosticEvents diagnosticsEvents)
     {
-        _documentRewriter = new(schema, removeStaticallyExcludedSelections: true);
+        _documentRewriter = new DocumentRewriter(schema, removeStaticallyExcludedSelections: true);
         _planner = planner;
         _interceptors = interceptors?.ToArray() ?? [];
         _diagnosticsEvents = diagnosticsEvents;

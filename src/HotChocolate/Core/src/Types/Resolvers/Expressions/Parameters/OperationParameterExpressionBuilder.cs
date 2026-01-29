@@ -1,13 +1,14 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Internal;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class OperationParameterExpressionBuilder()
-    : LambdaParameterExpressionBuilder<IOperation>(ctx => ctx.Operation, isPure: true)
+    : LambdaParameterExpressionBuilder<Operation>(ctx => ctx.Operation, isPure: true)
     , IParameterBindingFactory
     , IParameterBinding
 {
@@ -15,10 +16,12 @@ internal sealed class OperationParameterExpressionBuilder()
         => ArgumentKind.Operation;
 
     public override bool CanHandle(ParameterInfo parameter)
-        => typeof(IOperation) == parameter.ParameterType;
+        => typeof(IOperation) == parameter.ParameterType
+            || typeof(Operation) == parameter.ParameterType;
 
     public bool CanHandle(ParameterDescriptor parameter)
-        => typeof(IOperation) == parameter.Type;
+        => typeof(IOperation) == parameter.Type
+            || typeof(Operation) == parameter.Type;
 
     public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
@@ -27,6 +30,6 @@ internal sealed class OperationParameterExpressionBuilder()
     {
         Debug.Assert(typeof(IOperation).IsAssignableFrom(typeof(T)));
         var operation = context.Operation;
-        return Unsafe.As<IOperation, T>(ref operation);
+        return Unsafe.As<Operation, T>(ref operation);
     }
 }

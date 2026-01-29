@@ -32,19 +32,19 @@ internal sealed class ExceptionMiddleware
         catch (OperationCanceledException ex)
         {
             var error = _errorHandler.Handle(ErrorHelper.OperationCanceled(ex));
-            context.Result = OperationResultBuilder.CreateError(error);
+            context.Result = OperationResult.FromError(error);
             _diagnosticEvents.RequestError(context, ex);
         }
         catch (GraphQLException ex)
         {
             var errors = _errorHandler.Handle(ex.Errors);
-            context.Result = OperationResultBuilder.CreateError(errors);
+            context.Result = OperationResult.FromError([..errors]);
             _diagnosticEvents.RequestError(context, ex);
         }
         catch (Exception ex)
         {
             var error = _errorHandler.Handle(ErrorBuilder.FromException(ex).Build());
-            context.Result = OperationResultBuilder.CreateError(error);
+            context.Result = OperationResult.FromError(error);
             _diagnosticEvents.RequestError(context, ex);
         }
     }

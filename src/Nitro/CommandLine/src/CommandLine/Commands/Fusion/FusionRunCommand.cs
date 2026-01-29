@@ -1,4 +1,7 @@
 using System.Diagnostics;
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -8,6 +11,10 @@ using Microsoft.Extensions.Hosting;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 public class FusionRunCommand : Command
 {
     public FusionRunCommand() : base("run")
@@ -31,7 +38,7 @@ public class FusionRunCommand : Command
 
         this.SetHandler(async context =>
         {
-            var archiveFile = context.ParseResult.GetValueForArgument(archiveArgument)!;
+            var archiveFile = context.ParseResult.GetValueForArgument(archiveArgument);
 
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
 
@@ -54,6 +61,8 @@ public class FusionRunCommand : Command
 
         port ??= GetRandomUnusedPort();
 
+        // Type or member is obsolete
+#pragma warning disable ASPDEPR008
         var host = new WebHostBuilder()
             .UseKestrel()
             .UseUrls(new UriBuilder("http", "localhost", port.Value).ToString())
@@ -88,6 +97,7 @@ public class FusionRunCommand : Command
                     }));
             })
             .Build();
+#pragma warning restore ASPDEPR008
 
         var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
 

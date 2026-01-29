@@ -1,15 +1,21 @@
 using System.Diagnostics.CodeAnalysis;
+using System.IO.Pipelines;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 internal sealed class DynamicEndpointMiddleware(
     string schemaName,
     OpenApiEndpointDescriptor endpointDescriptor)
@@ -55,7 +61,7 @@ internal sealed class DynamicEndpointMiddleware(
             var session = await proxy.GetOrCreateSessionAsync(context.RequestAborted);
 
             using var variableBuffer = new PooledArrayWriter();
-            var variables = await BuildVariablesAsync(
+            using var variables = await BuildVariablesAsync(
                 endpointDescriptor,
                 context,
                 variableBuffer,
@@ -72,14 +78,14 @@ internal sealed class DynamicEndpointMiddleware(
                 requestBuilder.Build(),
                 cancellationToken).ConfigureAwait(false);
 
-            // If the request was cancelled, we do not attempt to write a response.
+            // If the request was canceled, we do not attempt to write a response.
             if (cancellationToken.IsCancellationRequested)
             {
                 return;
             }
 
-            // If we do not have an operation result, something went wrong and we return HTTP 500.
-            if (executionResult is not IOperationResult operationResult)
+            // If we do not have an operation result, something went wrong, and we return HTTP 500.
+            if (executionResult is not OperationResult operationResult)
             {
 #if NET9_0_OR_GREATER
                 await Results.InternalServerError().ExecuteAsync(context);
@@ -90,10 +96,10 @@ internal sealed class DynamicEndpointMiddleware(
             }
 
             // If the request had validation errors or execution didn't start, we return HTTP 400.
-            if (operationResult.ContextData?.ContainsKey(ExecutionContextData.ValidationErrors) == true
-                || operationResult is OperationResult { IsDataSet: false })
+            if (operationResult.ContextData.ContainsKey(ExecutionContextData.ValidationErrors)
+                || !operationResult.Data.HasValue)
             {
-                var firstErrorMessage = operationResult.Errors?.FirstOrDefault()?.Message;
+                var firstErrorMessage = operationResult.Errors.FirstOrDefault()?.Message;
 
                 if (!string.IsNullOrEmpty(firstErrorMessage))
                 {
@@ -111,7 +117,7 @@ internal sealed class DynamicEndpointMiddleware(
 
             // If execution started, and we produced GraphQL errors,
             // we return HTTP 500 or 401/403 for authorization errors.
-            if (operationResult.Errors is not null)
+            if (!operationResult.Errors.IsEmpty)
             {
                 var result = GetResultFromErrors(operationResult.Errors);
 
@@ -139,47 +145,70 @@ internal sealed class DynamicEndpointMiddleware(
         }
     }
 
-    private static async Task<IReadOnlyDictionary<string, object?>> BuildVariablesAsync(
+    private static async Task<JsonDocument> BuildVariablesAsync(
         OpenApiEndpointDescriptor endpointDescriptor,
         HttpContext httpContext,
         PooledArrayWriter variableBuffer,
         CancellationToken cancellationToken)
     {
-        var variables = new Dictionary<string, object?>();
+        var variables = new Dictionary<string, IValueNode?>();
 
         if (endpointDescriptor.VariableFilledThroughBody is { } bodyVariable)
         {
-            const int chunkSize = 256;
-            using var writer = new PooledArrayWriter();
-            var body = httpContext.Request.Body;
-            int read;
+            var body = httpContext.Request.BodyReader;
+            ReadResult result;
 
             do
             {
-                var memory = writer.GetMemory(chunkSize);
-                read = await body.ReadAsync(memory, cancellationToken).ConfigureAwait(false);
-                writer.Advance(read);
-            } while (read != 0);
+                result = await body.ReadAsync(cancellationToken);
+                body.AdvanceTo(result.Buffer.Start, result.Buffer.End);
+            } while (result is { IsCompleted: false, IsCanceled: false });
 
-            if (writer.Length == 0)
+            if (result.IsCanceled)
+            {
+                throw new OperationCanceledException();
+            }
+
+            if (result.Buffer.Length == 0)
             {
                 throw new BadRequestException("Expected to have a body");
             }
 
             var jsonValueParser = new JsonValueParser(buffer: variableBuffer);
-
-            var bodyValue = jsonValueParser.Parse(writer.WrittenSpan);
-
+            var bodyValue =  jsonValueParser.Parse(result.Buffer);
             variables[bodyVariable] = bodyValue;
+            body.AdvanceTo(result.Buffer.End);
         }
 
         InsertParametersIntoVariables(variables, endpointDescriptor, httpContext);
 
-        return variables;
+        var start = variableBuffer.Length;
+        await using var writer = new Utf8JsonWriter(variableBuffer, new JsonWriterOptions { Indented = false });
+
+        writer.WriteStartObject();
+
+        foreach (var (key, value) in variables)
+        {
+            writer.WritePropertyName(key);
+
+            if (value is null)
+            {
+                writer.WriteNullValue();
+            }
+            else
+            {
+                ValueJsonFormatter.Format(writer, value);
+            }
+        }
+
+        writer.WriteEndObject();
+        await writer.FlushAsync(cancellationToken);
+
+        return JsonDocument.Parse(variableBuffer.WrittenMemory[start..]);
     }
 
     private static void InsertParametersIntoVariables(
-        Dictionary<string, object?> variables,
+        Dictionary<string, IValueNode?> variables,
         OpenApiEndpointDescriptor endpointDescriptor,
         HttpContext httpContext)
     {
@@ -292,7 +321,7 @@ internal sealed class DynamicEndpointMiddleware(
         IQueryCollection query,
         [NotNullWhen(true)] out IValueNode? parameterValue)
     {
-        parameterValue = default;
+        parameterValue = null;
 
         if (leaf.ParameterType is OpenApiEndpointParameterType.Route)
         {

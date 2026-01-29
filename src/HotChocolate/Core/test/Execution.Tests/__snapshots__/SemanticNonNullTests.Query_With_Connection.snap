@@ -2,12 +2,6 @@
   "errors": [
     {
       "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 4,
-          "column": 7
-        }
-      ],
       "path": [
         "scalarConnection",
         "edges",

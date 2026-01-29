@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,13 +41,13 @@ internal sealed class WritePersistedOperationMiddleware
             && documentInfo.IsValidated
             && documentInfo.Document is not null
             && !documentInfo.Id.IsEmpty
-            && context.Result is IOperationResult result
+            && context.Result is OperationResult result
             && context.Request.Document is { } document
             && context.Request.Extensions is not null
-            && context.Request.Extensions.TryGetValue(PersistedQuery, out var s)
-            && s is IReadOnlyDictionary<string, object> settings)
+            && context.Request.Extensions.Document.RootElement.TryGetProperty(PersistedQuery, out var settings)
+            && settings.ValueKind is JsonValueKind.Object)
         {
-            var resultBuilder = OperationResultBuilder.FromResult(result);
+            var extensions = result.Extensions;
 
             // hash is found and matches the query key -> store the query
             if (DoHashesMatch(settings, documentInfo.Id, _hashProvider.Name, out var userHash))
@@ -55,7 +56,7 @@ internal sealed class WritePersistedOperationMiddleware
                 await _operationDocumentStorage.SaveAsync(documentInfo.Id, document).ConfigureAwait(false);
 
                 // add persistence receipt to the result
-                resultBuilder.SetExtension(
+                extensions = extensions.SetItem(
                     PersistedQuery,
                     new Dictionary<string, object>
                     {
@@ -67,7 +68,7 @@ internal sealed class WritePersistedOperationMiddleware
             }
             else
             {
-                resultBuilder.SetExtension(
+                extensions = extensions.SetItem(
                     PersistedQuery,
                     new Dictionary<string, object?>
                     {
@@ -79,20 +80,21 @@ internal sealed class WritePersistedOperationMiddleware
                     });
             }
 
-            context.Result = resultBuilder.Build();
+            result.Extensions = extensions;
         }
     }
 
     private static bool DoHashesMatch(
-        IReadOnlyDictionary<string, object> settings,
+        JsonElement settings,
         OperationDocumentId expectedHash,
         string hashName,
         [NotNullWhen(true)] out string? userHash)
     {
-        if (settings.TryGetValue(hashName, out var value) && value is string hash)
+        if (settings.TryGetProperty(hashName, out var hash)
+            && hash.ValueKind is JsonValueKind.String)
         {
-            userHash = hash;
-            return hash.Equals(expectedHash.Value, StringComparison.Ordinal);
+            userHash = hash.GetString()!;
+            return userHash.Equals(expectedHash.Value, StringComparison.Ordinal);
         }
 
         userHash = null;

@@ -1,4 +1,6 @@
 using System.Collections;
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
@@ -10,6 +12,46 @@ internal class GeoJsonLineStringSerializer : GeoJsonInputObjectSerializer<LineSt
     private GeoJsonLineStringSerializer()
         : base(GeoJsonGeometryType.LineString)
     {
+    }
+
+    public override void CoerceOutputCoordinates(
+        IType type,
+        object runtimeValue,
+        ResultElement resultElement)
+    {
+        if (runtimeValue is LineString lineString)
+        {
+            var coords = lineString.Coordinates;
+            resultElement.SetArrayValue(coords.Length);
+
+            var index = 0;
+            foreach (var element in resultElement.EnumerateArray())
+            {
+                GeoJsonPositionSerializer.Default.CoerceOutputCoordinates(type, coords[index++], element);
+            }
+
+            return;
+        }
+
+        throw Serializer_CouldNotParseValue(type);
+    }
+
+    public override IValueNode CoordinateToLiteral(IType type, object? runtimeValue)
+    {
+        if (runtimeValue is LineString lineString)
+        {
+            var coords = lineString.Coordinates;
+            var result = new IValueNode[coords.Length];
+
+            for (var i = 0; i < coords.Length; i++)
+            {
+                result[i] = GeoJsonPositionSerializer.Default.ValueToLiteral(type, coords[i]);
+            }
+
+            return new ListValueNode(result);
+        }
+
+        throw Serializer_CouldNotParseValue(type);
     }
 
     public override LineString CreateGeometry(

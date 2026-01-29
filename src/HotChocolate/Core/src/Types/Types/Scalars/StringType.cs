@@ -1,5 +1,8 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
@@ -10,7 +13,6 @@ namespace HotChocolate.Types;
 ///
 /// http://facebook.github.io/graphql/June2018/#sec-String
 /// </summary>
-[SpecScalar]
 public class StringType : ScalarType<string, StringValueNode>
 {
     /// <summary>
@@ -37,12 +39,19 @@ public class StringType : ScalarType<string, StringValueNode>
     {
     }
 
-    protected override string ParseLiteral(StringValueNode valueSyntax) =>
-        valueSyntax.Value;
+    /// <inheritdoc />
+    protected override string OnCoerceInputLiteral(StringValueNode valueLiteral)
+        => valueLiteral.Value;
 
-    protected override StringValueNode ParseValue(string runtimeValue) =>
-        new(runtimeValue);
+    /// <inheritdoc />
+    protected override string OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        => inputValue.GetString()!;
 
-    public override IValueNode ParseResult(object? resultValue) =>
-        ParseValue(resultValue);
+    /// <inheritdoc />
+    protected override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(runtimeValue);
+
+    /// <inheritdoc />
+    protected override StringValueNode OnValueToLiteral(string runtimeValue)
+        => new StringValueNode(runtimeValue);
 }

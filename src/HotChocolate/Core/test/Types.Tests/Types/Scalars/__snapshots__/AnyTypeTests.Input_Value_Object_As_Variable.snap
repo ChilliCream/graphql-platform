@@ -1,4 +1,4 @@
-﻿{
+{
   "data": {
     "foo": {
       "kind": "ObjectValue",
@@ -13,10 +13,9 @@
             "value": "a"
           },
           "value": {
-            "kind": "StringValue",
-            "location": null,
             "value": "b",
-            "block": false
+            "kind": "StringValue",
+            "location": null
           }
         }
       ]

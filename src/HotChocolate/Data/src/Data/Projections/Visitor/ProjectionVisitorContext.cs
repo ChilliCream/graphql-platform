@@ -4,13 +4,14 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Projections;
 
 public abstract class ProjectionVisitorContext<T>
-    : SelectionVisitorContext,
-      IProjectionVisitorContext<T>
+    : SelectionVisitorContext
+    , IProjectionVisitorContext<T>
 {
     protected ProjectionVisitorContext(
         IResolverContext context,
         IOutputType initialType,
-        ProjectionScope<T> projectionScope) : base(context)
+        ProjectionScope<T> projectionScope)
+        : base(context)
     {
         ArgumentNullException.ThrowIfNull(initialType);
 
@@ -21,7 +22,7 @@ public abstract class ProjectionVisitorContext<T>
 
     public Stack<ProjectionScope<T>> Scopes { get; }
 
-    public Stack<IType> Types { get; } = new Stack<IType>();
+    public Stack<IType> Types { get; } = [];
 
     public IList<IError> Errors { get; } = [];
 }

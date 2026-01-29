@@ -275,6 +275,6 @@ public class InputFieldDescriptorTests
     public void Type_Syntax_Descriptor_Null()
     {
         void Error() => default(InputFieldDescriptor)!.Type("foo");
-        Assert.Throws<ArgumentNullException>(Error);
+        Assert.Throws<NullReferenceException>(Error);
     }
 }

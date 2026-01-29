@@ -80,7 +80,7 @@ internal sealed class WebSocketConnection : ISocketConnection
             return default;
         }
 
-        return webSocket.SendAsync(message, Text, true, cancellationToken);
+        return webSocket.SendAsync(message, WebSocketMessageType.Text, true, cancellationToken);
     }
 
     public async Task<bool> ReadMessageAsync(

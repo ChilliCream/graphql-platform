@@ -1,8 +1,9 @@
-using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -13,8 +14,6 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly List<SourceResultDocument> _sources = [];
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
-    private List<IError>? _errors;
-    private Dictionary<string, object?>? _extensions;
     internal MetaDb _metaDb;
     private bool _disposed;
 
@@ -28,18 +27,6 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     public CompositeResultElement Data { get; }
-
-    public List<IError>? Errors
-    {
-        get => _errors;
-        internal set => _errors = value;
-    }
-
-    public Dictionary<string, object?>? Extensions
-    {
-        get => _extensions;
-        internal set => _extensions = value;
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ElementTokenType GetElementTokenType(Cursor cursor)
@@ -337,30 +324,6 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
 
         Debug.Fail("Only objects can be invalidated.");
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteRawValueTo(IBufferWriter<byte> writer, DbRow row, int indentLevel, bool indented)
-    {
-        if ((row.Flags & ElementFlags.SourceResult) == ElementFlags.SourceResult)
-        {
-            var document = _sources[row.SourceDocumentId];
-
-            if (row.TokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
-            {
-                // Reconstruct the source cursor from stored Location (Chunk) and SizeOrLength (Row)
-                var sourceCursor = SourceResultDocument.Cursor.From(row.Location, row.SizeOrLength);
-                var formatter = new SourceResultDocument.RawJsonFormatter(document, writer, indentLevel, indented);
-                formatter.WriteValue(sourceCursor);
-                return;
-            }
-
-            // For simple values, write directly using location and size
-            document.WriteRawValueTo(writer, row.Location, row.SizeOrLength);
-            return;
-        }
-
-        throw new NotSupportedException();
     }
 
     private ReadOnlySpan<byte> ReadRawValue(DbRow row)

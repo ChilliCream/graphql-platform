@@ -59,7 +59,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 
         return result switch
         {
-            IOperationResult operationResult
+            OperationResult operationResult
                 => FormatOperationResultAsync(operationResult, writer, cancellationToken),
             OperationResultBatch resultBatch
                 => FormatResultBatchAsync(resultBatch, writer, cancellationToken),
@@ -70,7 +70,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
     }
 
     private async ValueTask FormatOperationResultAsync(
-        IOperationResult result,
+        OperationResult result,
         PipeWriter writer,
         CancellationToken ct = default)
     {
@@ -98,7 +98,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         {
             switch (result)
             {
-                case IOperationResult operationResult:
+                case OperationResult operationResult:
                     buffer ??= new PooledArrayWriter();
                     MessageHelper.WriteNext(buffer);
                     MessageHelper.WriteResultHeader(buffer);
@@ -186,7 +186,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 
         public static void WritePayload(
             IBufferWriter<byte> writer,
-            IOperationResult result,
+            OperationResult result,
             IOperationResultFormatter payloadFormatter)
             => payloadFormatter.Format(result, writer);
 

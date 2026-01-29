@@ -255,14 +255,14 @@ public class ActivityEnricher
     protected virtual void EnrichRequestExtensions(
         HttpContext context,
         GraphQLRequest request,
-        IReadOnlyDictionary<string, object?> extensions,
+        JsonDocument extensions,
         Activity activity)
     {
         try
         {
             activity.SetTag(
                 "graphql.http.request.extensions",
-                JsonSerializer.Serialize(extensions));
+                extensions.RootElement.ToString());
         }
         catch
         {
@@ -273,7 +273,7 @@ public class ActivityEnricher
     protected virtual void EnrichBatchExtensions(
         HttpContext context,
         GraphQLRequest request,
-        IReadOnlyDictionary<string, object?> extensions,
+        JsonDocument extensions,
         int index,
         Activity activity)
     {
@@ -281,7 +281,7 @@ public class ActivityEnricher
         {
             activity.SetTag(
                 $"graphql.http.request[{index}].extensions",
-                JsonSerializer.Serialize(extensions));
+                extensions.RootElement.ToString());
         }
         catch
         {
@@ -336,7 +336,7 @@ public class ActivityEnricher
         activity.SetTag("graphql.document.hash", documentInfo.Hash.Value);
         activity.SetTag("graphql.document.valid", documentInfo.IsValidated);
         activity.SetTag("graphql.operation.id", operation?.Id);
-        activity.SetTag("graphql.operation.kind", operation?.Type);
+        activity.SetTag("graphql.operation.kind", operation?.Kind);
         activity.SetTag("graphql.operation.name", operation?.Name);
 
         if (_options.IncludeDocument && documentInfo.Document is not null)
@@ -344,14 +344,13 @@ public class ActivityEnricher
             activity.SetTag("graphql.document.body", documentInfo.Document.Print());
         }
 
-        if (context.Result is IOperationResult result)
+        if (context.Result is OperationResult result)
         {
-            var errorCount = result.Errors?.Count ?? 0;
+            var errorCount = result.Errors.Count;
             activity.SetTag("graphql.errors.count", errorCount);
         }
     }
-
-    protected virtual string? CreateOperationDisplayName(RequestContext context, IOperation? operation)
+    protected virtual string? CreateOperationDisplayName(RequestContext context, Operation? operation)
     {
         if (operation is null)
         {
@@ -363,11 +362,12 @@ public class ActivityEnricher
         try
         {
             var rootSelectionSet = operation.RootSelectionSet;
+            var selectionCount = rootSelectionSet.Selections.Length;
 
             displayName.Append('{');
             displayName.Append(' ');
 
-            foreach (var selection in rootSelectionSet.Selections.Take(3))
+            foreach (var selection in rootSelectionSet.Selections[..Math.Min(3, selectionCount)])
             {
                 if (displayName.Length > 2)
                 {
@@ -377,7 +377,7 @@ public class ActivityEnricher
                 displayName.Append(selection.ResponseName);
             }
 
-            if (rootSelectionSet.Selections.Count > 3)
+            if (rootSelectionSet.Selections.Length > 3)
             {
                 displayName.Append(' ');
                 displayName.Append('.');
@@ -621,55 +621,22 @@ public class ActivityEnricher
         activity.AddEvent(new ActivityEvent(AttributeExceptionEventName, default, tags));
     }
 
-    private static ISyntaxNode CreateVariablesNode(
-        IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet)
+    private static ISyntaxNode CreateVariablesNode(JsonDocument? variables)
     {
-        if (variableSet is null or { Count: 0 })
+        if (variables is null)
         {
             return NullValueNode.Default;
         }
 
-        if (variableSet.Count == 1)
+        var root = variables.RootElement;
+
+        if (root.ValueKind is not (JsonValueKind.Object or JsonValueKind.Array))
         {
-            var variables = variableSet[0];
-            var variablesCount = variables.Count;
-            var fields = new ObjectFieldNode[variablesCount];
-            var index = 0;
-
-            foreach (var (name, value) in variables)
-            {
-                // since we are in the HTTP context here we know that it will always be an IValueNode.
-                var valueNode = value is null ? NullValueNode.Default : (IValueNode)value;
-                fields[index++] = new ObjectFieldNode(name, valueNode);
-            }
-
-            return new ObjectValueNode(fields);
+            throw new InvalidOperationException();
         }
 
-        if (variableSet.Count > 0)
-        {
-            var variableSetCount = variableSet.Count;
-            var items = new IValueNode[variableSetCount];
-
-            for (var i = 0; i < variableSetCount; i++)
-            {
-                var variables = variableSet[i];
-                var variablesCount = variables.Count;
-                var fields = new ObjectFieldNode[variablesCount];
-                var index = 0;
-
-                foreach (var (name, value) in variables)
-                {
-                    // since we are in the HTTP context here we know that it will always be an IValueNode.
-                    var valueNode = value is null ? NullValueNode.Default : (IValueNode)value;
-                    fields[index++] = new ObjectFieldNode(name, valueNode);
-                }
-
-                items[i] = new ObjectValueNode(fields);
-            }
-        }
-
-        throw new InvalidOperationException();
+        var parser = new JsonValueParser();
+        return parser.Parse(root);
     }
 }
 

@@ -23,16 +23,11 @@ public static class RequireDescriptorExtensions
     /// <param name="descriptor">The argument descriptor.</param>
     /// <param name="field">The field selection map.</param>
     /// <returns>The argument descriptor with the @require directive applied.</returns>
-    /// <exception cref="ArgumentNullException">
-    /// The <paramref name="descriptor"/> is <c>null</c>.
-    /// </exception>
     /// <exception cref="FieldSelectionMapSyntaxException">
     /// The syntax used in the <paramref name="field"/> parameter is invalid.
     /// </exception>
     public static IArgumentDescriptor Require(this IArgumentDescriptor descriptor, string field)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
         IValueSelectionNode valueSelection;
 
         try

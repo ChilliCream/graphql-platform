@@ -42,6 +42,8 @@ public abstract class MutableComplexTypeDefinition
     /// <inheritdoc cref="ISchemaCoordinateProvider.Coordinate" />
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     /// <summary>
     /// Gets the interfaces that are implemented by this type.
     /// </summary>

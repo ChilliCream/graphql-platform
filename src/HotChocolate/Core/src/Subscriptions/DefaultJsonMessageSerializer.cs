@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using HotChocolate.Text.Json;
 using static HotChocolate.Subscriptions.Properties.Resources;
 
 namespace HotChocolate.Subscriptions;
@@ -13,11 +13,8 @@ public sealed class DefaultJsonMessageSerializer : IMessageSerializer
 {
     private const string Completed = "{\"kind\":1}";
 
-    private readonly JsonSerializerOptions _options =
-        new(JsonSerializerDefaults.Web)
-        {
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
+    private static readonly JsonSerializerOptions s_options =
+        JsonSerializerOptionDefaults.GraphQL;
 
     /// <inheritdoc />
     public string CompleteMessage => Completed;
@@ -27,7 +24,7 @@ public sealed class DefaultJsonMessageSerializer : IMessageSerializer
     [RequiresDynamicCode("JSON message serialization might require types that cannot be statically analyzed and might need runtime code generation.")]
     public string Serialize<TMessage>(TMessage message)
     {
-        return JsonSerializer.Serialize(new MessageEnvelope<TMessage>(message), _options);
+        return JsonSerializer.Serialize(new MessageEnvelope<TMessage>(message), s_options);
     }
 
     /// <inheritdoc />
@@ -37,7 +34,7 @@ public sealed class DefaultJsonMessageSerializer : IMessageSerializer
     {
         var result = JsonSerializer.Deserialize<InternalMessageEnvelope<TMessage>>(
             serializedMessage,
-            _options);
+            s_options);
 
         if (result.Kind is MessageKind.Default && result.Body is null)
         {

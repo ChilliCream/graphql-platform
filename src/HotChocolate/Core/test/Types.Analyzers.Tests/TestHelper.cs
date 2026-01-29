@@ -62,8 +62,8 @@ internal static partial class TestHelper
             // HotChocolate.Execution.Abstractions
             MetadataReference.CreateFromFile(typeof(IRequestExecutorBuilder).Assembly.Location),
 
-            // HotChocolate.Execution.DependencyInjection
-            MetadataReference.CreateFromFile(typeof(RequestExecutorBuilderExtensions).Assembly.Location),
+            // HotChocolate.Execution.Operation.Abstractions
+            MetadataReference.CreateFromFile(typeof(ISelection).Assembly.Location),
 
             // HotChocolate.Types
             MetadataReference.CreateFromFile(typeof(ObjectTypeAttribute).Assembly.Location),

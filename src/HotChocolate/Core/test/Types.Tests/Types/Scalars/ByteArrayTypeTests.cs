@@ -1,289 +1,212 @@
+using System.Text.Json;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
 public class ByteArrayTypeTests
 {
     [Fact]
-    public void IsInstanceOfType_StringLiteral()
+    public void Ensure_Type_Name_Is_Correct()
     {
         // arrange
-        var byteArrayType = new ByteArrayType();
-        var byteArray = "value"u8.ToArray();
+        // act
+        var type = new ByteArrayType();
+
+        // assert
+        Assert.Equal("ByteArray", type.Name);
+    }
+
+    [Fact]
+    public void IsValueCompatible_StringLiteral_True()
+    {
+        // arrange
+        var type = new ByteArrayType();
+        var literal = new StringValueNode("abc");
 
         // act
-        var isOfType = byteArrayType.IsInstanceOfType(byteArray);
+        var isOfType = type.IsValueCompatible(literal);
 
         // assert
         Assert.True(isOfType);
     }
 
     [Fact]
-    public void IsInstanceOfType_NullLiteral()
+    public void IsValueCompatible_IntLiteral_False()
     {
         // arrange
-        var byteArrayType = new ByteArrayType();
-        var literal = new NullValueNode(null);
-
-        // act
-        var isOfType = byteArrayType.IsInstanceOfType(literal);
-
-        // assert
-        Assert.True(isOfType);
-    }
-
-    [Fact]
-    public void IsInstanceOfType_IntLiteral()
-    {
-        // arrange
-        var byteArrayType = new ByteArrayType();
-
+        var type = new ByteArrayType();
         var literal = new IntValueNode(123);
 
         // act
-        var isOfType = byteArrayType.IsInstanceOfType(literal);
+        var isOfType = type.IsValueCompatible(literal);
 
         // assert
         Assert.False(isOfType);
     }
 
     [Fact]
-    public void IsInstanceOfType_Null()
+    public void IsValueCompatible_Null_ReturnsFalse()
     {
         // arrange
-        var byteArrayType = new ByteArrayType();
+        var type = new ByteArrayType();
 
         // act
-        Action action = () => byteArrayType.IsInstanceOfType(null!);
+        var result = type.IsValueCompatible(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.False(result);
     }
 
     [Fact]
-    public void Serialize_Base64()
+    public void CoerceInputLiteral()
     {
         // arrange
-        var byteArrayType = new ByteArrayType();
-
-        var value = "value"u8.ToArray();
-
-        // act
-        var serializedValue = byteArrayType.Serialize(value);
-
-        // assert
-        Assert.Equal(
-            Convert.ToBase64String(value),
-            Assert.IsType<string>(serializedValue));
-    }
-
-    [Fact]
-    public void Serialize_Null()
-    {
-        // arrange
-        var byteArrayType = new ByteArrayType();
-
-        // act
-        var serializedValue = byteArrayType.Serialize(null);
-
-        // assert
-        Assert.Null(serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Int()
-    {
-        // arrange
-        var byteArrayType = new ByteArrayType();
-        const int value = 123;
-
-        // act
-        Action action = () => byteArrayType.Serialize(value);
-
-        // assert
-        Assert.Throws<SerializationException>(action);
-    }
-
-    [Fact]
-    public void Deserialize_Null()
-    {
-        // arrange
-        var byteArrayType = new ByteArrayType();
-
-        // act
-        var success = byteArrayType.TryDeserialize(null, out var o);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(o);
-    }
-
-    [Fact]
-    public void Deserialize_String()
-    {
-        // arrange
-        var byteArrayType = new ByteArrayType();
-        var bytes = "value"u8.ToArray();
-
-        // act
-        var success = byteArrayType.TryDeserialize(
-            Convert.ToBase64String(bytes), out var o);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(bytes, o);
-    }
-
-    [Fact]
-    public void Deserialize_Bytes()
-    {
-        // arrange
-        var byteArrayType = new ByteArrayType();
-        var bytes = "value"u8.ToArray();
-
-        // act
-        var success = byteArrayType.TryDeserialize(
-            bytes, out var o);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(bytes, o);
-    }
-
-    [Fact]
-    public void Deserialize_Guid()
-    {
-        // arrange
-        var byteArrayType = new ByteArrayType();
-        var bytes = "value"u8.ToArray();
-
-        // act
-        var success = byteArrayType.TryDeserialize(bytes, out var o);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(bytes, o);
-    }
-
-    [Fact]
-    public void Deserialize_Int()
-    {
-        // arrange
-        var byteArrayType = new ByteArrayType();
-        const int value = 123;
-
-        // act
-        var success = byteArrayType.TryDeserialize(value, out _);
-
-        // assert
-        Assert.False(success);
-    }
-
-    [Fact]
-    public void ParseLiteral_StringValueNode()
-    {
-        // arrange
-        var byteArrayType = new ByteArrayType();
+        var type = new ByteArrayType();
         var expected = "value"u8.ToArray();
         var literal = new StringValueNode(Convert.ToBase64String(expected));
 
         // act
-        var actual = (byte[]?)byteArrayType
-            .ParseLiteral(literal);
+        var actual = (byte[]?)type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expected, actual);
     }
 
     [Fact]
-    public void ParseLiteral_IntValueNode()
+    public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
-        var byteArrayType = new ByteArrayType();
+        var type = new ByteArrayType();
         var literal = new IntValueNode(123);
 
         // act
-        Action action = () => byteArrayType.ParseLiteral(literal);
+        void Action() => type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Throws<SerializationException>(action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseLiteral_NullValueNode()
+    public void CoerceInputLiteral_Null_Throws()
     {
         // arrange
-        var byteArrayType = new ByteArrayType();
-        var literal = NullValueNode.Default;
+        var type = new ByteArrayType();
 
         // act
-        var value = byteArrayType.ParseLiteral(literal);
+        void Action() => type.CoerceInputLiteral(null!);
 
         // assert
-        Assert.Null(value);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseLiteral_Null()
+    public void CoerceInputValue()
     {
         // arrange
-        var byteArrayType = new ByteArrayType();
+        var type = new ByteArrayType();
+        var bytes = "value"u8.ToArray();
+        var inputValue = JsonDocument.Parse($"\"{Convert.ToBase64String(bytes)}\"").RootElement;
 
         // act
-        Action action = () => byteArrayType.ParseLiteral(null!);
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Equal(bytes, runtimeValue);
     }
 
     [Fact]
-    public void ParseValue_Guid()
+    public void CoerceInputValue_Invalid_Format()
     {
         // arrange
-        var byteArrayType = new ByteArrayType();
+        var type = new ByteArrayType();
+        var inputValue = JsonDocument.Parse("123").RootElement;
+
+        // act
+        void Action() => type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void CoerceOutputValue()
+    {
+        // arrange
+        var type = new ByteArrayType();
+        var value = "value"u8.ToArray();
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(value, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"dmFsdWU=\"");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new ByteArrayType();
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue(123, resultValue);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        // arrange
+        var type = new ByteArrayType();
         var expected = "value"u8.ToArray();
         var expectedLiteralValue = Convert.ToBase64String(expected);
 
         // act
-        var stringLiteral =
-            (StringValueNode)byteArrayType.ParseValue(expected);
+        var stringLiteral = (StringValueNode)type.ValueToLiteral(expected);
 
         // assert
         Assert.Equal(expectedLiteralValue, stringLiteral.Value);
     }
 
     [Fact]
-    public void ParseValue_Null()
+    public void ParseLiteral()
     {
         // arrange
-        var byteArrayType = new ByteArrayType();
-        Guid? guid = null;
+        var type = new ByteArrayType();
+        var expected = "value"u8.ToArray();
+        var literal = new StringValueNode(Convert.ToBase64String(expected));
 
         // act
-        var stringLiteral =
-            byteArrayType.ParseValue(guid);
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.True(stringLiteral is NullValueNode);
-        Assert.Null(((NullValueNode)stringLiteral).Value);
+        Assert.Equal(expected, Assert.IsType<byte[]>(runtimeValue));
     }
 
     [Fact]
-    public void ParseValue_Int()
+    public void ParseLiteral_InvalidValue()
     {
         // arrange
-        var byteArrayType = new ByteArrayType();
-        const int value = 123;
+        var type = new ByteArrayType();
 
         // act
-        Action action = () => byteArrayType.ParseValue(value);
+        void Action() => type.CoerceInputLiteral(new IntValueNode(123));
 
         // assert
-        Assert.Throws<SerializationException>(action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void EnsureDateTypeKindIsCorret()
+    public void Ensure_TypeKind_Is_Scalar()
     {
         // arrange
         var type = new ByteArrayType();

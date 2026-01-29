@@ -2,13 +2,13 @@
 title: "Scalars"
 ---
 
-Scalar types are the primitives of our schema and can hold a specific type of data. They are leaf types, meaning we cannot use e.g. `{ fieldName }` to further drill down into the type. The main purpose of a scalar is to define how a value is serialized and deserialized.
+Scalars are the leaf types of a GraphQL schema — they represent concrete values like strings, numbers, and dates. Unlike object types, scalars cannot be decomposed further; they are where the query ends and actual data is returned.
 
-Besides basic scalars like `String` and `Int`, we can also create custom scalars like `CreditCardNumber` or `SocialSecurityNumber`. These custom scalars can greatly enhance the expressiveness of our schema and help new developers to get a grasp of our API.
+Every scalar defines how values are converted between their GraphQL wire format (JSON) and .NET runtime representation. GraphQL includes five built-in scalars (`String`, `Int`, `Float`, `Boolean`, and `ID`), but you can also define custom scalars like `DateTime`, `Uuid`, or `EmailAddress` to add domain-specific validation and improve the clarity of your API. Hot Chocolate already comes with lots of additional scalars.
 
-# GraphQL scalars
+# Built-in Scalars
 
-The GraphQL specification defines the following scalars.
+The GraphQL specification defines five scalar types that every implementation must support.
 
 ## String
 
@@ -80,13 +80,13 @@ It is **not** automatically inferred and the `IdType` needs to be [explicitly sp
 ```csharp
 public class Product
 {
-    [GraphQLType(typeof(IdType))]
+    [GraphQLType<IdType>]
     public int Id { get; set; }
 }
 
 public class Query
 {
-    public Product GetProduct([GraphQLType(typeof(IdType))] int id)
+    public Product GetProduct([GraphQLType<IdType>] int id)
     {
         // Omitted code for brevity
     }
@@ -204,20 +204,24 @@ scalar LocalDate @specifiedBy(url: "https://scalars.graphql.org/andimarek/local-
 
 In addition to the scalars defined by the specification, Hot Chocolate also supports the following set of scalar types:
 
-| Type            | Description                                                                                      |
-| --------------- | ------------------------------------------------------------------------------------------------ |
-| `Byte`          | Byte                                                                                             |
-| `ByteArray`     | Base64 encoded array of bytes                                                                    |
-| `Short`         | Signed 16-bit numeric non-fractional value                                                       |
-| `Long`          | Signed 64-bit numeric non-fractional value                                                       |
-| `Decimal`       | .NET Floating Point Type                                                                         |
-| `Url`           | Url                                                                                              |
-| `Date`          | ISO-8601 date                                                                                    |
-| `LocalDateTime` | Local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss` |
-| `LocalTime`     | Local time string (i.e., with no associated timezone) in 24-hr `HH:mm:ss`                        |
-| `TimeSpan`      | ISO-8601 duration                                                                                |
-| `Uuid`          | GUID                                                                                             |
-| `Any`           | This type can be anything, string, int, list or object, etc.                                     |
+| Type            | Description                                                                                               |
+| --------------- | --------------------------------------------------------------------------------------------------------- |
+| `Byte`          | Byte                                                                                                      |
+| `ByteArray`     | Base64 encoded array of bytes                                                                             |
+| `Short`         | Signed 16-bit numeric non-fractional value                                                                |
+| `Long`          | Signed 64-bit numeric non-fractional value                                                                |
+| `Decimal`       | .NET Floating Point Type                                                                                  |
+| `Url`           | Url                                                                                                       |
+| `Date`          | ISO-8601 date                                                                                             |
+| `LocalDateTime` | Local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`          |
+| `LocalTime`     | Local time string (i.e., with no associated timezone) in 24-hr `HH:mm:ss`                                 |
+| `TimeSpan`      | ISO-8601 duration                                                                                         |
+| `Uuid`          | GUID                                                                                                      |
+| `Json`          | This type can be anything, string, int, list or object, etc.                                              |
+| `SignedByte`    | Signed 8-bit numeric non‐fractional value greater than or equal to -127 and smaller than or equal to 128. |
+| `UnsignedInt`   | Unsigned 32‐bit numeric non‐fractional value greater than or equal to 0                                   |
+| `UnsignedLong`  | Unsigned 64‐bit numeric non‐fractional value greater than or equal to 0                                   |
+| `UnsignedShort` | Unsigned 16‐bit numeric non‐fractional value greater than or equal to 0 and smaller or equal to 65535.    |
 
 ## Uuid Type
 
@@ -324,25 +328,10 @@ To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 | Isbn             | ISBN-10 or ISBN-13 number as defined [here](https://en.wikipedia.org/wiki/International_Standard_Book_Number)                                            |
 | Latitude         | Decimal degrees latitude number                                                                                                                          |
 | Longitude        | Decimal degrees longitude number                                                                                                                         |
-| LocalCurrency    | Currency string                                                                                                                                          |
 | MacAddress       | IEEE 802 48-bit (MAC-48/EUI-48) and 64-bit (EUI-64) Mac addresses, represented as UTF-8 character sequences, as defined in [RFC7042][3] and [RFC7043][4] |
-| NegativeFloat    | Double‐precision fractional value less than 0                                                                                                            |
-| NegativeInt      | Signed 32-bit numeric non-fractional with a maximum of -1                                                                                                |
-| NonEmptyString   | Non empty textual data, represented as UTF‐8 character sequences with at least one character                                                             |
-| NonNegativeFloat | Double‐precision fractional value greater than or equal to 0                                                                                             |
-| NonNegativeInt   | Unsigned 32-bit numeric non-fractional value greater than or equal to 0                                                                                  |
-| NonPositiveFloat | Double‐precision fractional value less than or equal to 0                                                                                                |
-| NonPositiveInt   | Signed 32-bit numeric non-fractional value less than or equal to 0                                                                                       |
 | PhoneNumber      | A value that conforms to the standard E.164 format as defined [here](https://en.wikipedia.org/wiki/E.164)                                                |
-| PositiveInt      | Signed 32‐bit numeric non‐fractional value of at least the value 1                                                                                       |
-| PostalCode       | Postal code                                                                                                                                              |
-| Port             | TCP port within the range of 0 to 65535                                                                                                                  |
 | Rgb              | CSS RGB color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                       |
 | Rgba             | CSS RGBA color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                      |
-| SignedByte       | Signed 8-bit numeric non‐fractional value greater than or equal to -127 and smaller than or equal to 128.                                                |
-| UnsignedInt      | Unsigned 32‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
-| UnsignedLong     | Unsigned 64‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
-| UnsignedShort    | Unsigned 16‐bit numeric non‐fractional value greater than or equal to 0 and smaller or equal to 65535.                                                   |
 | UtcOffset        | A value of format `±hh:mm`                                                                                                                               |
 
 [2]: https://developer.mozilla.org/docs/Web/CSS/color_value#hsl_colors
@@ -466,9 +455,16 @@ builder.Services
 
 # Custom Scalars
 
-All scalars in Hot Chocolate are defined through a `ScalarType`.
-The easiest way to create a custom scalar is to extend `ScalarType<TRuntimeType, TLiteral>`.
-This base class already includes basic serialization and parsing logic.
+A scalar type converts values between their GraphQL wire format and their .NET runtime representation. Each custom scalar must handle four conversion scenarios:
+
+| Method                   | Direction              | Purpose                                                                    |
+| ------------------------ | ---------------------- | -------------------------------------------------------------------------- |
+| **OnCoerceInputLiteral** | GraphQL literal → .NET | Parses values embedded directly in a query, e.g. `{ field(arg: "value") }` |
+| **OnCoerceInputValue**   | JSON → .NET            | Parses values provided as variables in the request                         |
+| **OnCoerceOutputValue**  | .NET → JSON            | Writes resolver results to the response                                    |
+| **OnValueToLiteral**     | .NET → GraphQL literal | Converts default values for schema introspection                           |
+
+The easiest way to create a custom scalar is to extend `ScalarType<TRuntimeType, TLiteral>`, which provides the basic scaffolding.
 
 ```csharp
 public sealed class CreditCardNumberType : ScalarType<string, StringValueNode>
@@ -485,157 +481,122 @@ public sealed class CreditCardNumberType : ScalarType<string, StringValueNode>
         Description = "Represents a credit card number";
     }
 
-    // is another StringValueNode an instance of this scalar
-    protected override bool IsInstanceOfType(StringValueNode valueSyntax)
-        => IsInstanceOfType(valueSyntax.Value);
-
-    // is another string .NET type an instance of this scalar
-    protected override bool IsInstanceOfType(string runtimeValue)
-        => _validator.ValidateCreditCard(runtimeValue);
-
-    public override IValueNode ParseResult(object? resultValue)
-        => ParseValue(resultValue);
-
-    // define how a value node is parsed to the string .NET type
-    protected override string ParseLiteral(StringValueNode valueSyntax)
-        => valueSyntax.Value;
-
-    // define how the string .NET type is parsed to a value node
-    protected override StringValueNode ParseValue(string runtimeValue)
-        => new StringValueNode(runtimeValue);
-
-    public override bool TryDeserialize(object? resultValue,
-        out object? runtimeValue)
+    protected override string OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        runtimeValue = null;
-
-        if (resultValue is string s && _validator.ValidateCreditCard(s))
-        {
-            runtimeValue = s;
-            return true;
-        }
-
-        return false;
+        AssertCreditCardNumberFormat(valueLiteral.Value);
+        return valueLiteral.Value;
     }
 
-    public override bool TrySerialize(object? runtimeValue,
-        out object? resultValue)
+    protected override string OnCoerceInputValue(
+        JsonElement inputValue,
+        IFeatureProvider context)
     {
-        resultValue = null;
+        var value = inputValue.GetString()!;
+        AssertCreditCardNumberFormat(value);
+        return value;
+    }
 
-        if (runtimeValue is string s && _validator.ValidateCreditCard(s))
+    protected override void OnCoerceOutputValue(
+        string runtimeValue,
+        ResultElement resultValue)
+    {
+        AssertCreditCardNumberFormat(runtimeValue);
+        resultValue.SetStringValue(runtimeValue);
+    }
+
+    protected override StringValueNode OnValueToLiteral(string runtimeValue)
+    {
+        AssertCreditCardNumberFormat(runtimeValue);
+        return new StringValueNode(runtimeValue);
+    }
+
+    private void AssertCreditCardNumberFormat(string number)
+    {
+        if (!_validator.ValidateCreditCard(value))
         {
-            resultValue = s;
-            return true;
+            throw new LeafCoercionException(
+                "The specified value is not a valid credit card number.",
+                this);
         }
-
-        return false;
     }
 }
 ```
 
-By extending `ScalarType` we have full control over serialization and parsing.
+## Specialized Base Classes
+
+Hot Chocolate provides specialized base classes for common scalar patterns that handle much of the boilerplate for you.
+
+### Integer Scalars
+
+Use `IntegerTypeBase<T>` for scalars that represent numeric values with min/max constraints. The base class handles parsing, validation, and range checking automatically.
 
 ```csharp
-public class CreditCardNumberType : ScalarType
+public class TcpPortType : IntegerTypeBase<int>
 {
-    private readonly ICreditCardValidator _validator;
-
-    public CreditCardNumberType(ICreditCardValidator validator)
-        : base("CreditCardNumber")
+    public TcpPortType()
+        : base("TcpPort", min: 1, max: 65535)
     {
-        _validator = validator;
-
-        Description = "Represents a credit card number";
+        Description = "A valid TCP port number (1-65535)";
     }
 
-    // define which .NET type represents your type
-    public override Type RuntimeType { get; } = typeof(string);
+    protected override int OnCoerceInputLiteral(IntValueNode valueLiteral)
+        => valueLiteral.ToInt32();
 
-    // define which value nodes this type can be parsed from
-    public override bool IsInstanceOfType(IValueNode valueSyntax)
+    protected override int OnCoerceInputValue(JsonElement inputValue)
+        => inputValue.GetInt32();
+
+    public override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
+        => resultValue.SetNumberValue(runtimeValue);
+
+    public override IValueNode OnValueToLiteral(int runtimeValue)
+        => new IntValueNode(runtimeValue);
+}
+```
+
+The `IntegerTypeBase` automatically validates that values fall within the specified range and throws a `LeafCoercionException` if they don't. To customize the error message, override the `FormatError` method:
+
+```csharp
+protected override LeafCoercionException FormatError(int runtimeValue)
+    => new LeafCoercionException(
+        $"The value {runtimeValue} is not a valid TCP port. Must be between 1 and 65535.",
+        this);
+```
+
+Hot Chocolate also provides a `FloatTypeBase<T>` for floating-point scalars (`float`, `double`, `decimal`) that need min/max range validation.
+
+### Regex-Based Scalars
+
+Use `RegexType` for string scalars that must match a specific pattern. This is ideal for formats like phone numbers, postal codes, or identifiers.
+
+```csharp
+public class HexColorType : RegexType
+{
+    public HexColorType()
+        : base(
+            "HexColor",
+            @"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+            "A hex color code, e.g. #FF5733 or #F53")
     {
-        ArgumentNullException.ThrowIfNull(valueSyntax);
-
-        return valueSyntax is StringValueNode stringValueNode &&
-            _validator.ValidateCreditCard(stringValueNode.Value);
-    }
-
-    // define how a value node is parsed to the native .NET type
-    public override object ParseLiteral(IValueNode valueSyntax,
-        bool withDefaults = true)
-    {
-        if (valueSyntax is StringValueNode stringLiteral &&
-            _validator.ValidateCreditCard(stringLiteral.Value))
-        {
-            return stringLiteral.Value;
-        }
-
-        throw new SerializationException(
-            "The specified value has to be a credit card number in the format "
-                + "XXXX XXXX XXXX XXXX",
-            this);
-    }
-
-    // define how the .NET type is parsed to a value node
-    public override IValueNode ParseValue(object? runtimeValue)
-    {
-        if (runtimeValue is string s &&
-            _validator.ValidateCreditCard(s))
-        {
-            return new StringValueNode(null, s, false);
-        }
-
-        throw new SerializationException(
-            "The specified value has to be a credit card number in the format "
-                + "XXXX XXXX XXXX XXXX",
-            this);
-    }
-
-    public override IValueNode ParseResult(object? resultValue)
-    {
-        if (resultValue is string s &&
-            _validator.ValidateCreditCard(s))
-        {
-            return new StringValueNode(null, s, false);
-        }
-
-        throw new SerializationException(
-            "The specified value has to be a credit card number in the format "
-                + "XXXX XXXX XXXX XXXX",
-            this);
-    }
-
-    public override bool TrySerialize(object? runtimeValue,
-        out object? resultValue)
-    {
-        resultValue = null;
-
-        if (runtimeValue is string s &&
-            _validator.ValidateCreditCard(s))
-        {
-            resultValue = s;
-            return true;
-        }
-
-        return false;
-    }
-
-    public override bool TryDeserialize(object? resultValue,
-        out object? runtimeValue)
-    {
-        runtimeValue = null;
-
-        if (resultValue is string s &&
-            _validator.ValidateCreditCard(s))
-        {
-            runtimeValue = s;
-            return true;
-        }
-
-        return false;
     }
 }
 ```
 
-The implementation of [Hot Chocolate's own scalars](https://github.com/ChilliCream/graphql-platform/tree/main/src/HotChocolate/Core/src/Types.Scalars) can be used as a reference for writing custom scalars.
+You can also instantiate `RegexType` directly when registering scalars:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddType(new RegexType(
+        "PostalCode",
+        @"^\d{5}(-\d{4})?$",
+        "US postal code in format 12345 or 12345-6789"));
+```
+
+Like `IntegerTypeBase` and `FloatTypeBase`, `RegexType` automatically validates values and throws a `LeafCoercionException` if they don't match the pattern. To customize the error message, override the `FormatException` method:
+
+```csharp
+protected override LeafCoercionException FormatException(string runtimeValue)
+    => new LeafCoercionException(
+        $"'{runtimeValue}' is not a valid hex color. Expected format: #RGB or #RRGGBB.",
+        this);
+```

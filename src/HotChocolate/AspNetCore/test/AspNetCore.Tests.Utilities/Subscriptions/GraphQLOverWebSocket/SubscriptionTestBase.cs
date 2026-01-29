@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.WebSockets;
+using System.Text.Json;
 using HotChocolate.Transport.Sockets;
 using Microsoft.AspNetCore.TestHost;
 
@@ -10,13 +11,13 @@ public class SubscriptionTestBase(TestServerFactory serverFactory)
 {
     protected Uri SubscriptionUri { get; } = new("ws://localhost:5000/graphql");
 
-    protected Task<IReadOnlyDictionary<string, object?>?> WaitForMessage(
+    protected Task<JsonDocument?> WaitForMessage(
         WebSocket webSocket,
         string type,
         CancellationToken cancellationToken)
         => WaitForMessage(webSocket, type, TimeSpan.FromSeconds(1), cancellationToken);
 
-    protected async Task<IReadOnlyDictionary<string, object?>?> WaitForMessage(
+    protected async Task<JsonDocument?> WaitForMessage(
         WebSocket webSocket,
         string type,
         TimeSpan timeout,
@@ -37,12 +38,14 @@ public class SubscriptionTestBase(TestServerFactory serverFactory)
                     continue;
                 }
 
-                if (type.Equals(message["type"]))
+                var messageType = message.RootElement.GetProperty("type").GetString()!;
+
+                if (type.Equals(messageType))
                 {
                     return message;
                 }
 
-                throw new InvalidOperationException($"Unexpected message type: {message["type"]}");
+                throw new InvalidOperationException($"Unexpected message type: {messageType}");
             }
         }
         catch (OperationCanceledException)
@@ -91,7 +94,7 @@ public class SubscriptionTestBase(TestServerFactory serverFactory)
         await webSocket.SendConnectionInitAsync(cancellationToken);
         var message = await webSocket.ReceiveServerMessageAsync(cancellationToken);
         Assert.NotNull(message);
-        Assert.Equal("connection_ack", message["type"]);
+        Assert.Equal("connection_ack", message.RootElement.GetProperty("type").GetString());
         return webSocket;
     }
 

@@ -62,5 +62,71 @@ namespace HotChocolate.Language.Properties {
                 return ResourceManager.GetString("ParseMany_InvalidOpenToken", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_InvalidVariablesValue {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidVariablesValue", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_InvalidExtensionsValue {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidExtensionsValue", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_UnknownRequestProperty {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UnknownRequestProperty", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_InvalidQueryValue {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidQueryValue", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_InvalidDocumentIdValue {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidDocumentIdValue", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_InvalidOperationNameValue {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidOperationNameValue", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_InvalidOnErrorValue {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidOnErrorValue", resourceCulture);
+            }
+        }
+        
+        internal static string Utf8GraphQLRequestParser_Parse_EmptyJSONDocument {
+            get {
+                return ResourceManager.GetString("Utf8GraphQLRequestParser_Parse_EmptyJSONDocument", resourceCulture);
+            }
+        }
+        
+        internal static string Utf8GraphQLRequestParser_Parse_InvalidJSONDocument_ {
+            get {
+                return ResourceManager.GetString("Utf8GraphQLRequestParser_Parse_InvalidJSONDocument_", resourceCulture);
+            }
+        }
+        
+        internal static string Utf8GraphQLRequestParser_Parse_InvalidRequestStructure {
+            get {
+                return ResourceManager.GetString("Utf8GraphQLRequestParser_Parse_InvalidRequestStructure", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_InvalidOperationTypeStructure {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidOperationTypeStructure", resourceCulture);
+            }
+        }
     }
 }

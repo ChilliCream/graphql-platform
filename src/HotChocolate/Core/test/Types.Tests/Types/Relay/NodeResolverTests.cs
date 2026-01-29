@@ -296,7 +296,7 @@ public class NodeResolverTests
             """);
 
         // assert
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(result.ExpectOperationResult().Errors);
     }
 
     public class Query

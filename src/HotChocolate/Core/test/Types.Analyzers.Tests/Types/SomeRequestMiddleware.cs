@@ -1,3 +1,4 @@
+using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Types;
@@ -8,16 +9,10 @@ public class SomeRequestMiddleware(RequestDelegate next, Service1 service1, Serv
     {
         await next(context);
 
-        context.Result =
-            OperationResultBuilder.New()
-                .SetData(
-                    new Dictionary<string, object?>
-                    {
-                        {
-                            $"{service1.Say()} {service3.Hello()} {service2.World()}", true
-                        }
-                    })
-                .Build();
+        var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
+        builder.Add("middleware", $"{service1.Say()} {service3.Hello()} {service2.World()}");
+
+        context.Result = new OperationResult(builder.ToImmutable());
     }
 }
 

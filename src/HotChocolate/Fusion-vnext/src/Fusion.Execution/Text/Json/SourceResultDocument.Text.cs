@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Unicode;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -21,7 +22,7 @@ public sealed partial class SourceResultDocument
 
         CheckExpectedType(expectedType, rowTokenType);
 
-        var segment = ReadRawValue(row);
+        var segment = ReadRawValue(row, includeQuotes: false);
 
         return row.HasComplexChildren
             ? JsonReaderHelper.GetUnescapedString(segment)
@@ -81,7 +82,7 @@ public sealed partial class SourceResultDocument
 
         CheckExpectedType(isPropertyName ? JsonTokenType.PropertyName : JsonTokenType.String, row.TokenType);
 
-        var segment = ReadRawValue(row);
+        var segment = ReadRawValue(row, includeQuotes: false);
 
         if (otherUtf8Text.Length > segment.Length || (!shouldUnescape && otherUtf8Text.Length != segment.Length))
         {
@@ -120,7 +121,7 @@ public sealed partial class SourceResultDocument
         var row = _parsedData.Get(valueCursor - 1);
         Debug.Assert(row.TokenType is JsonTokenType.PropertyName);
 
-        return ReadRawValue(row);
+        return ReadRawValue(row, includeQuotes: false);
     }
 
     internal string GetRawValueAsString(Cursor cursor)
@@ -150,7 +151,7 @@ public sealed partial class SourceResultDocument
                 return ReadRawValue(row.Location - 1, row.SizeOrLength + 2);
             }
 
-            return ReadRawValue(row);
+            return ReadRawValue(row, includeQuotes: false);
         }
 
         var start = row.Location;

@@ -9,7 +9,8 @@ namespace HotChocolate.Fusion.Rewriters;
 public sealed class InlineFragmentOperationRewriter(
     ISchemaDefinition schema,
     bool removeStaticallyExcludedSelections = false,
-    bool ignoreMissingTypeSystemMembers = false)
+    bool ignoreMissingTypeSystemMembers = false,
+    bool includeTypeNameToEmptySelectionSets = true)
 {
     private List<ISelectionNode>? _selections;
 
@@ -80,7 +81,7 @@ public sealed class InlineFragmentOperationRewriter(
 
     internal void RewriteSelections(Context context)
     {
-        if (context.Selections.Count == 0)
+        if (includeTypeNameToEmptySelectionSets && context.Selections.Count == 0)
         {
             context.Selections.Add(s_typeNameField);
             context.Fields.Add(IntrospectionFieldNames.TypeName, [s_typeNameField]);
@@ -569,19 +570,21 @@ public sealed class InlineFragmentOperationRewriter(
 
         static bool IsStaticIncludeCondition(DirectiveNode directive, ref bool skipChecked, ref bool includeChecked)
         {
-            if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal)
-                && directive.Arguments.Count == 1
-                && directive.Arguments[0].Value is BooleanValueNode skipConstant
-                && !skipConstant.Value)
+            if(directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal))
             {
-                return true;
+                skipChecked = true;
+                if (directive.Arguments is [{ Value: BooleanValueNode }])
+                {
+                    return true;
+                }
             }
-            else if (directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal)
-                && (directive.Arguments.Count != 1
-                    || directive.Arguments[0].Value is not BooleanValueNode includeConstant
-                    || includeConstant.Value))
+            else if(directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal))
             {
-                return true;
+                includeChecked = true;
+                if (directive.Arguments is [{ Value: BooleanValueNode }])
+                {
+                    return true;
+                }
             }
 
             return false;

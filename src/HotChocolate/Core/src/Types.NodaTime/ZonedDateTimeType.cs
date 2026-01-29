@@ -37,7 +37,6 @@ public class ZonedDateTimeType : StringToStructBaseType<ZonedDateTime>
             allowedPatterns,
             NodaTimeResources.ZonedDateTimeType_Description,
             NodaTimeResources.ZonedDateTimeType_Description_Extended);
-        SerializationType = ScalarSerializationType.String;
     }
 
     /// <summary>
@@ -49,15 +48,19 @@ public class ZonedDateTimeType : StringToStructBaseType<ZonedDateTime>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(ZonedDateTime runtimeValue)
-        => _serializationPattern
-            .Format(runtimeValue);
-
-    /// <inheritdoc />
-    protected override bool TryDeserialize(
+    protected override bool TryCoerceRuntimeValue(
         string resultValue,
         [NotNullWhen(true)] out ZonedDateTime? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    /// <inheritdoc />
+    protected override bool TryCoerceOutputValue(
+        ZonedDateTime runtimeValue,
+        [NotNullWhen(true)] out string? resultValue)
+    {
+        resultValue = _serializationPattern.Format(runtimeValue);
+        return true;
+    }
 
     protected override Dictionary<IPattern<ZonedDateTime>, string> PatternMap => new()
     {

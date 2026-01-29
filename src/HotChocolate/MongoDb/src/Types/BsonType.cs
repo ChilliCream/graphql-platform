@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Globalization;
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types.MongoDb.Resources;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,29 +47,12 @@ public class BsonType : ScalarType
     public override Type RuntimeType => typeof(BsonValue);
 
     /// <inheritdoc />
-    public override bool IsInstanceOfType(IValueNode valueSyntax)
+    public override ScalarSerializationType SerializationType => ScalarSerializationType.Any;
+
+    /// <inheritdoc />
+    public override object CoerceInputLiteral(IValueNode valueLiteral)
     {
-        ArgumentNullException.ThrowIfNull(valueSyntax);
-
-        switch (valueSyntax)
-        {
-            case StringValueNode:
-            case IntValueNode:
-            case FloatValueNode:
-            case BooleanValueNode:
-            case ListValueNode:
-            case ObjectValueNode:
-            case NullValueNode:
-                return true;
-
-            default:
-                return false;
-        }
-    }
-
-    private BsonValue ParseLiteralToBson(IValueNode literal)
-    {
-        switch (literal)
+        switch (valueLiteral)
         {
             case StringValueNode svn:
                 return new BsonString(svn.Value);
@@ -92,7 +78,7 @@ public class BsonType : ScalarType
                 var values = new BsonValue[lvn.Items.Count];
                 for (var i = 0; i < lvn.Items.Count; i++)
                 {
-                    values[i] = ParseLiteralToBson(lvn.Items[i]);
+                    values[i] = (BsonValue)CoerceInputLiteral(lvn.Items[i]);
                 }
 
                 return new BsonArray(values);
@@ -101,7 +87,7 @@ public class BsonType : ScalarType
                 BsonDocument document = [];
                 foreach (var field in ovn.Fields)
                 {
-                    document.Add(field.Name.Value, ParseLiteralToBson(field.Value));
+                    document.Add(field.Name.Value, (BsonValue)CoerceInputLiteral(field.Value));
                 }
 
                 return document;
@@ -110,18 +96,169 @@ public class BsonType : ScalarType
                 return BsonNull.Value;
 
             default:
-                throw ThrowHelper.Bson_CouldNotParseLiteral(this, literal);
+                throw ThrowHelper.Bson_CouldNotParseLiteral(this, valueLiteral);
         }
     }
 
-    /// <inheritdoc />
-    public override object? ParseLiteral(IValueNode valueSyntax)
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        return ParseLiteralToBson(valueSyntax);
+        switch (inputValue.ValueKind)
+        {
+            case JsonValueKind.String:
+                return new BsonString(inputValue.GetString()!);
+
+            case JsonValueKind.Number:
+                if (inputValue.TryGetInt64(out var longValue))
+                {
+                    return new BsonInt64(longValue);
+                }
+                if (inputValue.TryGetDouble(out var doubleValue))
+                {
+                    return new BsonDouble(doubleValue);
+                }
+                return new BsonDecimal128(inputValue.GetDecimal());
+
+            case JsonValueKind.True:
+                return BsonBoolean.True;
+
+            case JsonValueKind.False:
+                return BsonBoolean.False;
+
+            case JsonValueKind.Array:
+                var arrayLength = inputValue.GetArrayLength();
+                var values = new BsonValue[arrayLength];
+                var index = 0;
+                foreach (var element in inputValue.EnumerateArray())
+                {
+                    values[index++] = (BsonValue)CoerceInputValue(element, context);
+                }
+                return new BsonArray(values);
+
+            case JsonValueKind.Object:
+                var document = new BsonDocument();
+                foreach (var property in inputValue.EnumerateObject())
+                {
+                    document.Add(property.Name, (BsonValue)CoerceInputValue(property.Value, context));
+                }
+                return document;
+
+            case JsonValueKind.Null:
+            case JsonValueKind.Undefined:
+                return BsonNull.Value;
+
+            default:
+                throw ThrowHelper.Bson_CouldNotParseValue(this, inputValue);
+        }
     }
 
-    /// <inheritdoc />
-    public override IValueNode ParseValue(object? runtimeValue)
+    public override void CoerceOutputValue(object? runtimeValue, ResultElement resultValue)
+    {
+        if (runtimeValue is null or BsonNull)
+        {
+            resultValue.SetNullValue();
+            return;
+        }
+
+        switch (runtimeValue)
+        {
+            case BsonString s:
+                resultValue.SetStringValue(s.Value);
+                break;
+
+            case BsonInt32 i:
+                resultValue.SetNumberValue(i.Value);
+                break;
+
+            case BsonInt64 l:
+                resultValue.SetNumberValue(l.Value);
+                break;
+
+            case BsonDouble d:
+                resultValue.SetNumberValue(d.Value);
+                break;
+
+            case BsonDecimal128 dec:
+                // The range of Decimal128 is different. Therefore, we have to serialize
+                // it as a string, or else information loss could occur
+                // see https://jira.mongodb.org/browse/CSHARP-2210
+                resultValue.SetStringValue(dec.Value.ToString());
+                break;
+
+            case BsonBoolean b:
+                resultValue.SetBooleanValue(b.Value);
+                break;
+
+            case BsonObjectId objectId:
+                resultValue.SetStringValue(objectId.Value.ToString());
+                break;
+
+            case BsonDateTime dateTime:
+                var parsedDateTime = dateTime.ToNullableUniversalTime();
+                if (Converter.TryConvert(parsedDateTime, out string? formattedDateTime))
+                {
+                    resultValue.SetStringValue(formattedDateTime);
+                }
+                else
+                {
+                    throw ThrowHelper.Bson_CouldNotParseValue(this, runtimeValue);
+                }
+                break;
+
+            case BsonTimestamp timeStamp:
+                resultValue.SetNumberValue(timeStamp.Value);
+                break;
+
+            case BsonBinaryData bd:
+                resultValue.SetStringValue(Convert.ToBase64String(bd.Bytes));
+                break;
+
+            case BsonArray arr:
+                resultValue.SetArrayValue(arr.Count);
+                using (var enumerator = arr.GetEnumerator())
+                {
+                    foreach (var element in resultValue.EnumerateArray())
+                    {
+                        enumerator.MoveNext();
+                        CoerceOutputValue(enumerator.Current, element);
+                    }
+                }
+                break;
+
+            case BsonDocument doc:
+                resultValue.SetObjectValue(doc.ElementCount);
+                using (var enumerator = doc.GetEnumerator())
+                {
+                    foreach (var property in resultValue.EnumerateObject())
+                    {
+                        enumerator.MoveNext();
+                        property.Value.SetPropertyName(enumerator.Current.Name);
+                        CoerceOutputValue(enumerator.Current.Value, property.Value);
+                    }
+                }
+                break;
+
+            case BsonValue a:
+                var dotNetValue = BsonTypeMapper.MapToDotNetValue(a);
+                var type = dotNetValue.GetType();
+
+                if (type.IsValueType
+                    && Converter.TryConvert(type, typeof(string), dotNetValue, out var c, out _)
+                    && c is string casted)
+                {
+                    resultValue.SetStringValue(casted);
+                }
+                else
+                {
+                    throw ThrowHelper.Bson_CouldNotParseValue(this, runtimeValue);
+                }
+                break;
+
+            default:
+                throw ThrowHelper.Bson_CouldNotParseValue(this, runtimeValue);
+        }
+    }
+
+    public override IValueNode ValueToLiteral(object? runtimeValue)
     {
         if (runtimeValue is null)
         {
@@ -175,7 +312,7 @@ public class BsonType : ScalarType
             List<ObjectFieldNode> fields = [];
             foreach (var field in doc)
             {
-                fields.Add(new ObjectFieldNode(field.Name, ParseValue(field.Value)));
+                fields.Add(new ObjectFieldNode(field.Name, ValueToLiteral(field.Value)));
             }
 
             return new ObjectValueNode(fields);
@@ -186,7 +323,7 @@ public class BsonType : ScalarType
             List<IValueNode> valueList = [];
             foreach (var element in arr)
             {
-                valueList.Add(ParseValue(element));
+                valueList.Add(ValueToLiteral(element));
             }
 
             return new ListValueNode(valueList);
@@ -203,179 +340,5 @@ public class BsonType : ScalarType
         }
 
         throw ThrowHelper.Bson_CouldNotParseValue(this, runtimeValue);
-    }
-
-    /// <inheritdoc />
-    public override IValueNode ParseResult(object? resultValue) =>
-        ParseValue(resultValue);
-
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-    {
-        resultValue = null;
-        if (runtimeValue is null or BsonNull)
-        {
-            return true;
-        }
-
-        switch (runtimeValue)
-        {
-            case BsonArray arr:
-                var res = new object?[arr.Count];
-                for (var i = 0; i < arr.Count; i++)
-                {
-                    if (!TrySerialize(arr[i], out var s))
-                    {
-                        return false;
-                    }
-
-                    res[i] = s;
-                }
-
-                resultValue = res;
-                return true;
-
-            case BsonDocument doc:
-                Dictionary<string, object?> docRes = [];
-                foreach (var element in doc)
-                {
-                    if (!TrySerialize(element.Value, out var s))
-                    {
-                        return false;
-                    }
-
-                    docRes[element.Name] = s;
-                }
-
-                resultValue = docRes;
-                return true;
-
-            case BsonDateTime dateTime:
-                var parsedDateTime = dateTime.ToNullableUniversalTime();
-                if (Converter.TryConvert(parsedDateTime, out string? formattedDateTime))
-                {
-                    resultValue = formattedDateTime;
-                    return true;
-                }
-
-                return false;
-
-            case BsonTimestamp timeStamp:
-                resultValue = timeStamp.Value;
-                return true;
-
-            case BsonObjectId objectId:
-                resultValue = objectId.Value.ToString();
-                return true;
-
-            case BsonString s:
-                resultValue = s.Value;
-                return true;
-
-            case BsonInt32 i:
-                resultValue = i.Value;
-                return true;
-
-            case BsonInt64 l:
-                resultValue = l.Value;
-                return true;
-
-            case BsonDouble f:
-                resultValue = f.Value;
-                return true;
-
-            case BsonBinaryData bd:
-                resultValue = Convert.ToBase64String(bd.Bytes);
-                return true;
-
-            // The range of Decimal128 is different. Therefor we have to serialize
-            // it as a string, or else information loss could occur
-            // see https://jira.mongodb.org/browse/CSHARP-2210
-            case BsonDecimal128 d:
-                resultValue = d.Value.ToString();
-                return true;
-
-            case BsonBoolean b:
-                resultValue = b.Value;
-                return true;
-
-            case BsonValue a:
-                var dotNetValue = BsonTypeMapper.MapToDotNetValue(a);
-
-                var type = dotNetValue.GetType();
-
-                if (type.IsValueType
-                    && Converter.TryConvert(type, typeof(string), dotNetValue, out var c, out _)
-                    && c is string casted)
-                {
-                    resultValue = casted;
-                    return true;
-                }
-
-                resultValue = null;
-                return false;
-
-            case IValueNode literal:
-                resultValue = ParseLiteral(literal);
-                return true;
-
-            default:
-                resultValue = null;
-                return false;
-        }
-    }
-
-    /// <inheritdoc />
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        object? elementValue;
-        runtimeValue = null;
-        switch (resultValue)
-        {
-            case IDictionary<string, object> dictionary:
-            {
-                var result = new BsonDocument();
-                foreach (var element in dictionary)
-                {
-                    if (TryDeserialize(element.Value, out elementValue))
-                    {
-                        result[element.Key] = (BsonValue?)elementValue;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-
-                runtimeValue = result;
-                return true;
-            }
-
-            case IList list:
-            {
-                var result = new BsonValue?[list.Count];
-                for (var i = 0; i < list.Count; i++)
-                {
-                    if (TryDeserialize(list[i], out elementValue))
-                    {
-                        result[i] = (BsonValue?)elementValue;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-
-                runtimeValue = new BsonArray(result);
-                return true;
-            }
-
-            case IValueNode literal:
-                runtimeValue = ParseLiteral(literal);
-                return true;
-
-            default:
-                runtimeValue = BsonTypeMapper.MapToBsonValue(resultValue);
-                return true;
-        }
     }
 }

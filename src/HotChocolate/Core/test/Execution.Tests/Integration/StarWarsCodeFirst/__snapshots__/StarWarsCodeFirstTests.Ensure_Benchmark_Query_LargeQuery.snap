@@ -5938,7 +5938,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "SCALAR",
-                      "name": "JSON",
+                      "name": "Any",
                       "ofType": null
                     }
                   },
@@ -6419,7 +6419,7 @@
               "args": [],
               "type": {
                 "kind": "SCALAR",
-                "name": "JSON",
+                "name": "Any",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -6584,7 +6584,7 @@
               "args": [],
               "type": {
                 "kind": "SCALAR",
-                "name": "JSON",
+                "name": "Any",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -6763,7 +6763,7 @@
               "args": [],
               "type": {
                 "kind": "SCALAR",
-                "name": "JSON",
+                "name": "Any",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -7027,7 +7027,7 @@
         },
         {
           "kind": "SCALAR",
-          "name": "JSON",
+          "name": "Any",
           "description": null,
           "fields": null,
           "inputFields": null,

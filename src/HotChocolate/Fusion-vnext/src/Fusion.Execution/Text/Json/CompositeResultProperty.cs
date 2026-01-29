@@ -28,7 +28,7 @@ public readonly struct CompositeResultProperty
 
     public Selection? Selection => Value.Selection;
 
-    public Selection GetRequiredSelection() => Value.AssertSelection();
+    public Selection AssertSelection() => Value.AssertSelection();
 
     /// <summary>
     ///   Compares <paramref name="text" /> to the name of this property.
@@ -117,7 +117,7 @@ public readonly struct CompositeResultProperty
 
     public void Deconstruct(out Selection selection, out CompositeResultElement value)
     {
-        selection = GetRequiredSelection();
+        selection = AssertSelection();
         value = Value;
     }
 }

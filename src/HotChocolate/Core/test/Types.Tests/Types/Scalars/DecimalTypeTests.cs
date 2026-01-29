@@ -1,137 +1,71 @@
+using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
 public class DecimalTypeTests
 {
     [Fact]
-    public void IsInstanceOfType_FloatLiteral_True()
+    public void Ensure_Type_Name_Is_Correct()
+    {
+        // arrange
+        // act
+        var type = new DecimalType();
+
+        // assert
+        Assert.Equal("Decimal", type.Name);
+    }
+
+    [Fact]
+    public void IsValueCompatible_FloatLiteral_True()
     {
         // arrange
         var type = new DecimalType();
 
         // act
-        var result = type.IsInstanceOfType(CreateExponentialLiteral());
+        var result = type.IsValueCompatible(CreateExponentialLiteral());
 
         // assert
         Assert.True(result);
     }
 
     [Fact]
-    public void IsInstanceOfType_NullLiteral_True()
+    public void IsValueCompatible_IntLiteral_True()
     {
         // arrange
         var type = new DecimalType();
 
         // act
-        var result = type.IsInstanceOfType(NullValueNode.Default);
+        var result = type.IsValueCompatible(new IntValueNode(123));
 
         // assert
         Assert.True(result);
     }
 
     [Fact]
-    public void IsInstanceOfType_IntLiteral_True()
+    public void IsValueCompatible_StringLiteral_False()
     {
         // arrange
         var type = new DecimalType();
 
         // act
-        var result = type.IsInstanceOfType(new IntValueNode(123));
-
-        // assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void IsInstanceOfType_StringLiteral_False()
-    {
-        // arrange
-        var type = new DecimalType();
-
-        // act
-        var result = type.IsInstanceOfType(new StringValueNode("123"));
+        var result = type.IsValueCompatible(new StringValueNode("123"));
 
         // assert
         Assert.False(result);
     }
 
     [Fact]
-    public void IsInstanceOfType_Null_Throws()
-    {
-        // arrange
-        var type = new DecimalType();
-
-        // act
-        // assert
-        Assert.Throws<ArgumentNullException>(
-            () => type.IsInstanceOfType(null!));
-    }
-
-    [Fact]
-    public void Serialize_Type()
-    {
-        // arrange
-        var type = new DecimalType();
-        const decimal value = 123.456M;
-
-        // act
-        var serializedValue = type.Serialize(value);
-
-        // assert
-        Assert.IsType<decimal>(serializedValue);
-        Assert.Equal(value, serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Null()
-    {
-        // arrange
-        var type = new DecimalType();
-
-        // act
-        var serializedValue = type.Serialize(null);
-
-        // assert
-        Assert.Null(serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Wrong_Type_Throws()
-    {
-        // arrange
-        var type = new DecimalType();
-        const string input = "abc";
-
-        // act
-        // assert
-        Assert.Throws<SerializationException>(
-            () => type.Serialize(input));
-    }
-
-    [Fact]
-    public void Serialize_MaxValue_Violation()
-    {
-        // arrange
-        var type = new DecimalType(0, 100);
-        const decimal value = 123.456M;
-
-        // act
-        // assert
-        Assert.Throws<SerializationException>(
-            () => type.Serialize(value));
-    }
-
-    [Fact]
-    public void ParseLiteral_FixedPointLiteral()
+    public void CoerceInputLiteral()
     {
         // arrange
         var type = new DecimalType();
         var literal = CreateFixedPointLiteral();
 
         // act
-        var value = type.ParseLiteral(literal);
+        var value = type.CoerceInputLiteral(literal);
 
         // assert
         Assert.IsType<decimal>(value);
@@ -139,14 +73,14 @@ public class DecimalTypeTests
     }
 
     [Fact]
-    public void ParseLiteral_ExponentialLiteral()
+    public void CoerceInputLiteral_Exponential()
     {
         // arrange
         var type = new DecimalType();
         var literal = CreateExponentialLiteral();
 
         // act
-        var value = type.ParseLiteral(literal);
+        var value = type.CoerceInputLiteral(literal);
 
         // assert
         Assert.IsType<decimal>(value);
@@ -154,14 +88,14 @@ public class DecimalTypeTests
     }
 
     [Fact]
-    public void ParseLiteral_IntLiteral()
+    public void CoerceInputLiteral_IntLiteral()
     {
         // arrange
         var type = new DecimalType();
         var literal = new IntValueNode(123);
 
         // act
-        var value = type.ParseLiteral(literal);
+        var value = type.CoerceInputLiteral(literal);
 
         // assert
         Assert.IsType<decimal>(value);
@@ -169,138 +103,207 @@ public class DecimalTypeTests
     }
 
     [Fact]
-    public void ParseLiteral_NullValueNode()
+    public void CoerceInputLiteral_Invalid_Format()
+    {
+        // arrange
+        var type = new DecimalType();
+        var literal = new StringValueNode("abc");
+
+        // act
+        void Action() => type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void CoerceInputLiteral_Null_Throws()
     {
         // arrange
         var type = new DecimalType();
 
         // act
-        var output = type.ParseLiteral(NullValueNode.Default);
+        void Action() => type.CoerceInputLiteral(null!);
 
         // assert
-        Assert.Null(output);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseLiteral_Wrong_ValueNode_Throws()
+    public void CoerceInputValue()
     {
         // arrange
         var type = new DecimalType();
-        var input = new StringValueNode("abc");
+        var inputValue = JsonDocument.Parse("123.456").RootElement;
 
         // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
         // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseLiteral(input));
+        Assert.Equal(123.456m, runtimeValue);
     }
 
     [Fact]
-    public void ParseLiteral_Null_Throws()
+    public void CoerceInputValue_Invalid_Format()
     {
         // arrange
         var type = new DecimalType();
+        var inputValue = JsonDocument.Parse("\"abc\"").RootElement;
 
         // act
+        void Action() => type.CoerceInputValue(inputValue, null!);
+
         // assert
-        Assert.Throws<ArgumentNullException>(
-            () => type.ParseLiteral(null!));
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseValue_MaxValue()
+    public void CoerceOutputValue()
+    {
+        // arrange
+        var type = new DecimalType();
+        const decimal runtimeValue = 123.456M;
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(runtimeValue, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("123.456");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new DecimalType();
+        const string runtimeValue = "abc";
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue(runtimeValue, resultValue);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void CoerceOutputValue_MaxValue_Violation()
+    {
+        // arrange
+        var type = new DecimalType(0, 100);
+        const decimal runtimeValue = 123.456M;
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue(runtimeValue, resultValue);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        // arrange
+        var type = new DecimalType();
+        const decimal runtimeValue = 123.456M;
+
+        // act
+        var literal = type.ValueToLiteral(runtimeValue);
+
+        // assert
+        var floatLiteral = Assert.IsType<FloatValueNode>(literal);
+        Assert.Equal(runtimeValue, floatLiteral.ToDecimal());
+    }
+
+    [Fact]
+    public void ValueToLiteral_MaxValue()
     {
         // arrange
         var type = new DecimalType(1, 100);
         const decimal input = 100M;
 
         // act
-        var literal = (FloatValueNode)type.ParseValue(input);
+        var literal = type.ValueToLiteral(input);
 
         // assert
-        Assert.Equal(100M, literal.ToDecimal());
+        Assert.Equal(100M, Assert.IsType<FloatValueNode>(literal).ToDecimal());
     }
 
     [Fact]
-    public void ParseValue_MaxValue_Violation()
+    public void ValueToLiteral_MaxValue_Violation()
     {
         // arrange
         var type = new DecimalType(1, 100);
         const decimal input = 101M;
 
         // act
-        Action action = () => type.ParseValue(input);
+        void Action() => type.ValueToLiteral(input);
 
         // assert
-        Assert.Throws<SerializationException>(action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseValue_MinValue()
+    public void ValueToLiteral_MinValue()
     {
         // arrange
         var type = new DecimalType(1, 100);
         const decimal input = 1M;
 
         // act
-        var literal = (FloatValueNode)type.ParseValue(input);
+        var literal = type.ValueToLiteral(input);
 
         // assert
-        Assert.Equal(1M, literal.ToDecimal());
+        Assert.Equal(1M, Assert.IsType<FloatValueNode>(literal).ToDecimal());
     }
 
     [Fact]
-    public void ParseValue_MinValue_Violation()
+    public void ValueToLiteral_MinValue_Violation()
     {
         // arrange
         var type = new DecimalType(1, 100);
         const decimal input = 0M;
 
         // act
-        Action action = () => type.ParseValue(input);
+        void Action() => type.ValueToLiteral(input);
 
         // assert
-        Assert.Throws<SerializationException>(action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseValue_Wrong_Value_Throws()
+    public void ParseLiteral()
     {
         // arrange
         var type = new DecimalType();
-        const string value = "123";
+        var literal = CreateFixedPointLiteral();
 
         // act
+        var runtimeValue = type.CoerceInputLiteral(literal);
+
         // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseValue(value));
+        Assert.Equal(literal.ToDecimal(), Assert.IsType<decimal>(runtimeValue));
     }
 
     [Fact]
-    public void ParseValue_Null()
+    public void ParseLiteral_InvalidValue()
     {
         // arrange
         var type = new DecimalType();
-        object input = null!;
 
         // act
-        object output = type.ParseValue(input);
+        void Action() => type.CoerceInputLiteral(new StringValueNode("abc"));
 
         // assert
-        Assert.IsType<NullValueNode>(output);
-    }
-
-    [Fact]
-    public void ParseValue_Nullable()
-    {
-        // arrange
-        var type = new DecimalType();
-        decimal? input = 123M;
-
-        // act
-        var output = (FloatValueNode)type.ParseValue(input);
-
-        // assert
-        Assert.Equal(123M, output.ToDecimal());
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -317,7 +320,7 @@ public class DecimalTypeTests
     }
 
     [Fact]
-    public void ParseValue_HandlesMoreThan6Digits()
+    public void ValueToLiteral_HandlesMoreThan6Digits()
     {
         // arrange
         var type = new DecimalType();
@@ -325,7 +328,7 @@ public class DecimalTypeTests
         const string output = "1234567.1234567";
 
         // act
-        var result = type.ParseValue(input);
+        var result = type.ValueToLiteral(input);
 
         // assert
         Assert.True(result is FloatValueNode);
@@ -334,7 +337,7 @@ public class DecimalTypeTests
     }
 
     [Fact]
-    public void ParseValue_FormatsToDefaultSignificantDigits()
+    public void ValueToLiteral_FormatsToDefaultSignificantDigits()
     {
         // arrange
         var type = new DecimalType();
@@ -342,7 +345,7 @@ public class DecimalTypeTests
         const string output = "1234567.891123456789";
 
         // act
-        var result = type.ParseValue(input);
+        var result = type.ValueToLiteral(input);
 
         // assert
         Assert.True(result is FloatValueNode);
@@ -351,7 +354,7 @@ public class DecimalTypeTests
     }
 
     [Fact]
-    public void ParseValue_Handle12Digits()
+    public void ValueToLiteral_Handle12Digits()
     {
         // arrange
         var type = new DecimalType();
@@ -359,7 +362,7 @@ public class DecimalTypeTests
         const string output = "1234567.890123456789";
 
         // act
-        var result = type.ParseValue(input);
+        var result = type.ValueToLiteral(input);
 
         // assert
         Assert.True(result is FloatValueNode);
@@ -368,7 +371,7 @@ public class DecimalTypeTests
     }
 
     [Fact]
-    public void ParseValue_FormatsToSpecifiedNumberOfDecimalDigitsLong()
+    public void ValueToLiteral_FormatsToSpecifiedNumberOfDecimalDigitsLong()
     {
         // arrange
         var type = new DecimalType();
@@ -376,7 +379,7 @@ public class DecimalTypeTests
         const string output = "1234567.890123456789";
 
         // act
-        var result = type.ParseValue(input);
+        var result = type.ValueToLiteral(input);
 
         // assert
         Assert.True(result is FloatValueNode);

@@ -34,7 +34,7 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
 
         return result switch
         {
-            IOperationResult operationResult
+            OperationResult operationResult
                 => FormatOperationResultAsync(operationResult, writer, cancellationToken),
             OperationResultBatch resultBatch
                 => FormatResultBatchAsync(resultBatch, writer, cancellationToken),
@@ -45,7 +45,7 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
     }
 
     private async ValueTask FormatOperationResultAsync(
-        IOperationResult operationResult,
+        OperationResult operationResult,
         PipeWriter writer,
         CancellationToken ct)
     {
@@ -83,7 +83,7 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
             {
                 switch (result)
                 {
-                    case IOperationResult operationResult:
+                    case OperationResult operationResult:
                     {
                         using var scope = Log.FormatOperationResultStart();
                         await semaphore.WaitAsync(ct).ConfigureAwait(false);
@@ -364,7 +364,7 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
 
         public static void FormatNextMessage(
             JsonResultFormatter payloadFormatter,
-            IOperationResult result,
+            OperationResult result,
             IBufferWriter<byte> writer)
         {
             // write the SSE event field

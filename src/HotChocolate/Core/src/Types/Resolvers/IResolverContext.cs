@@ -26,13 +26,13 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     /// <summary>
     /// Gets the operation from the query that is being executed.
     /// </summary>
-    IOperation Operation { get; }
+    Operation Operation { get; }
 
     /// <summary>
     /// Gets the field selection for which a field resolver is
     /// being executed.
     /// </summary>
-    ISelection Selection { get; }
+    Selection Selection { get; }
 
     /// <summary>
     /// Gets access to the coerced variable values of the request.
@@ -45,10 +45,15 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     Path Path { get; }
 
     /// <summary>
+    /// Gets the selection include flags.
+    /// </summary>
+    ulong IncludeFlags { get; }
+
+    /// <summary>
     /// Gets the previous (parent) resolver result.
     /// </summary>
     /// <typeparam name="T">
-    /// The type to which the result shall be casted.
+    /// The type to which the result shall be cast.
     /// </typeparam>
     /// <returns>
     /// Returns the previous (parent) resolver result.
@@ -62,7 +67,7 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     /// The argument name.
     /// </param>
     /// <typeparam name="T">
-    /// The type to which the argument shall be casted to.
+    /// The type to which the argument shall be cast to.
     /// </typeparam>
     /// <returns>
     /// Returns the value of the specified field argument as literal.
@@ -76,7 +81,7 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     /// The argument name.
     /// </param>
     /// <typeparam name="TValueNode">
-    /// The type to which the argument shall be casted to.
+    /// The type to which the argument shall be cast to.
     /// </typeparam>
     /// <returns>
     /// Returns the value of the specified field argument as literal.
@@ -90,7 +95,7 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     /// The argument name.
     /// </param>
     /// <typeparam name="T">
-    /// The type to which the argument shall be casted to.
+    /// The type to which the argument shall be cast to.
     /// </typeparam>
     /// <returns>
     /// Returns the value of the specified field argument as optional.
@@ -182,7 +187,7 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
 
     /// <summary>
     /// Notifies when the connection underlying this request is aborted
-    /// and thus request operations should be cancelled.
+    /// and thus request operations should be canceled.
     /// </summary>
     CancellationToken RequestAborted { get; }
 
@@ -249,9 +254,9 @@ public interface IResolverContext : IHasContextData, IFeatureProvider
     /// Returns the pre-compiled selections for the <paramref name="selection" />
     /// with the specified <paramref name="typeContext" />.
     /// </returns>
-    IReadOnlyList<ISelection> GetSelections(
+    SelectionEnumerator GetSelections(
         ObjectType typeContext,
-        ISelection? selection = null,
+        Selection? selection = null,
         bool allowInternals = false);
 
     /// <summary>

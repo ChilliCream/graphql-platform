@@ -152,13 +152,14 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .Create()
             .Add(response)
             .MatchInline(
-                @$"Headers:
-                Content-Type: {expectedContentType}
+                $$$"""
+                Headers:
+                Content-Type: {{{expectedContentType}}}
                 -------------------------->
-                Status Code: {expectedStatusCode}
+                Status Code: {{{expectedStatusCode}}}
                 -------------------------->
-                "
-                + @"{""errors"":[{""message"":""The GraphQL request is empty."",""extensions"":{""code"":""HC0009""}}]}");
+                {"errors":[{"message":"Invalid JSON document.","extensions":{"code":"HC0012"}}]}
+                """);
     }
 
     [Theory]

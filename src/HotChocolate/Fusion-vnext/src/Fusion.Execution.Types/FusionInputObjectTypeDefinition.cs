@@ -54,6 +54,8 @@ public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition
     /// <inheritdoc />
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     /// <summary>
     /// Gets the name of this input object type.
     /// </summary>
@@ -114,7 +116,7 @@ public sealed class FusionInputObjectTypeDefinition : IInputObjectTypeDefinition
 
         if (context.Directives is null || context.Features is null)
         {
-            InvalidCompletionContext();
+            throw InvalidCompletionContext();
         }
 
         Directives = context.Directives;

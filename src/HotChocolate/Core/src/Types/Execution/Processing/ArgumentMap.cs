@@ -1,24 +1,25 @@
 using System.Collections;
+using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
-/// Represents the map of argument values that can be accessed on the <see cref="ISelection"/>.
+/// Represents a read-only map of argument values for a field selection in a GraphQL query.
+/// This map provides efficient access to coerced argument values and tracks coercion errors.
 /// </summary>
-public sealed class ArgumentMap
-    : IReadOnlyDictionary<string, ArgumentValue>
-    , IEnumerable<ArgumentValue>
+public sealed class ArgumentMap : IReadOnlyDictionary<string, ArgumentValue>
 {
-    private readonly Dictionary<string, ArgumentValue> _arguments;
-    private readonly bool _isFinal;
+    private readonly FrozenDictionary<string, ArgumentValue> _arguments;
     private readonly bool _hasErrors;
 
     internal ArgumentMap(Dictionary<string, ArgumentValue> arguments)
     {
-        _arguments = arguments;
-        _isFinal = true;
+        _arguments = arguments.ToFrozenDictionary(StringComparer.Ordinal);
+        IsFullyCoercedNoErrors = true;
 
         if (_arguments.Count > 0)
         {
@@ -26,7 +27,7 @@ public sealed class ArgumentMap
             {
                 if (!argument.IsFullyCoerced)
                 {
-                    _isFinal = false;
+                    IsFullyCoercedNoErrors = false;
                 }
 
                 if (argument.HasError)
@@ -38,49 +39,79 @@ public sealed class ArgumentMap
     }
 
     /// <summary>
-    /// Gets an empty argument map.
+    /// Gets an empty argument map with no arguments.
     /// </summary>
     public static ArgumentMap Empty { get; } = new([]);
 
     /// <summary>
-    /// This indexer allows to access the <see cref="ArgumentValue"/>
-    /// by the argument <paramref name="name"/>.
-    /// </summary>
-    /// <param name="name">
-    /// The argument name.
-    /// </param>
-    public ArgumentValue this[string name] => _arguments[name];
-
-    /// <summary>
-    /// Specifies if the argument map is fully coerced and has no errors.
-    /// </summary>
-    public bool IsFullyCoercedNoErrors => _isFinal && !_hasErrors;
-
-    /// <summary>
-    /// Specifies if this argument map has errors.
-    /// </summary>
-    public bool HasErrors => _hasErrors;
-
-    /// <summary>
-    /// The argument count.
-    /// </summary>
-    public int Count => _arguments.Count;
-
-    IEnumerable<string> IReadOnlyDictionary<string, ArgumentValue>.Keys
-        => _arguments.Keys;
-
-    IEnumerable<ArgumentValue> IReadOnlyDictionary<string, ArgumentValue>.Values
-        => _arguments.Values;
-
-    /// <summary>
-    /// This method allows to check if an argument value with the specified
-    /// argument <paramref name="name"/> exists.
+    /// Gets the <see cref="ArgumentValue"/> for the specified argument name.
     /// </summary>
     /// <param name="name">
     /// The argument name.
     /// </param>
     /// <returns>
-    /// <c>true</c> if the argument exists; otherwise, <c>false</c>.
+    /// The <see cref="ArgumentValue"/> associated with the specified name.
+    /// </returns>
+    /// <exception cref="KeyNotFoundException">
+    /// Thrown when the specified <paramref name="name"/> is not found.
+    /// </exception>
+    public ArgumentValue this[string name] => _arguments[name];
+
+    /// <summary>
+    /// Gets a value indicating whether all arguments in this map are
+    /// fully coerced and no errors occurred during coercion.
+    /// </summary>
+    /// <value>
+    /// <c>true</c> if all arguments are fully coerced without errors; otherwise, <c>false</c>.
+    /// </value>
+    public bool IsFullyCoercedNoErrors => field && !_hasErrors;
+
+    /// <summary>
+    /// Gets a value indicating whether any argument in this map has coercion errors.
+    /// </summary>
+    /// <value>
+    /// <c>true</c> if at least one argument has errors; otherwise, <c>false</c>.
+    /// </value>
+    public bool HasErrors => _hasErrors;
+
+    /// <summary>
+    /// Gets the number of arguments in this map.
+    /// </summary>
+    /// <value>
+    /// The total count of arguments.
+    /// </value>
+    public int Count => _arguments.Count;
+
+    /// <summary>
+    /// Gets an immutable array containing all argument names in this map.
+    /// </summary>
+    /// <value>
+    /// An <see cref="ImmutableArray{T}"/> of argument names.
+    /// </value>
+    public ImmutableArray<string> ArgumentNames => _arguments.Keys;
+
+    IEnumerable<string> IReadOnlyDictionary<string, ArgumentValue>.Keys
+        => _arguments.Keys;
+
+    /// <summary>
+    /// Gets an immutable array containing all argument values in this map.
+    /// </summary>
+    /// <value>
+    /// An <see cref="ImmutableArray{T}"/> of <see cref="ArgumentValue"/> instances.
+    /// </value>
+    public ImmutableArray<ArgumentValue> ArgumentValues => _arguments.Values;
+
+    IEnumerable<ArgumentValue> IReadOnlyDictionary<string, ArgumentValue>.Values
+        => _arguments.Values;
+
+    /// <summary>
+    /// Determines whether this map contains an argument with the specified name.
+    /// </summary>
+    /// <param name="name">
+    /// The argument name to check.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if an argument with the specified <paramref name="name"/> exists; otherwise, <c>false</c>.
     /// </returns>
     public bool ContainsName(string name) => _arguments.ContainsKey(name);
 
@@ -88,17 +119,17 @@ public sealed class ArgumentMap
         => ContainsName(key);
 
     /// <summary>
-    /// Tries to get an <see cref="ArgumentValue"/> by its <paramref name="name"/>.
+    /// Attempts to retrieve the <see cref="ArgumentValue"/> associated with the specified argument name.
     /// </summary>
     /// <param name="name">
-    /// The argument name.
+    /// The argument name to locate.
     /// </param>
     /// <param name="value">
-    /// The argument value.
+    /// When this method returns, contains the <see cref="ArgumentValue"/> associated with the specified
+    /// <paramref name="name"/>, if found; otherwise, <c>null</c>.
     /// </param>
     /// <returns>
-    /// <c>true</c> if an argument value with the specified
-    /// <paramref name="value"/> was retrieved; otherwise, <c>false</c>.
+    /// <c>true</c> if an argument with the specified <paramref name="name"/> was found; otherwise, <c>false</c>.
     /// </returns>
     public bool TryGetValue(string name, [NotNullWhen(true)] out ArgumentValue? value)
         => _arguments.TryGetValue(name, out value);
@@ -108,14 +139,8 @@ public sealed class ArgumentMap
         out ArgumentValue value)
         => TryGetValue(key, out value!);
 
-    /// <summary>
-    /// Gets an enumerator for the argument values.
-    /// </summary>
-    public IEnumerator<ArgumentValue> GetEnumerator()
-        => _arguments.Values.GetEnumerator();
-
-    IEnumerator<KeyValuePair<string, ArgumentValue>>
-        IEnumerable<KeyValuePair<string, ArgumentValue>>.GetEnumerator()
+    /// <inheritdoc />
+    public IEnumerator<KeyValuePair<string, ArgumentValue>> GetEnumerator()
         => _arguments.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()

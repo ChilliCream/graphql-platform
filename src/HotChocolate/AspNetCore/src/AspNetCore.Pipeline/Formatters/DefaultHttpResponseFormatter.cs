@@ -201,22 +201,20 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         switch (result)
         {
-            case IOperationResult operationResult:
+            case OperationResult operationResult:
             {
                 var statusCode = (int)OnDetermineStatusCode(operationResult, format, proposedStatusCode);
 
                 response.ContentType = format.ContentType;
                 response.StatusCode = statusCode;
 
-                if (result.ContextData is not null
-                    && result.ContextData.TryGetValue(ExecutionContextData.CacheControlHeaderValue, out var value)
+                if (result.ContextData.TryGetValue(ExecutionContextData.CacheControlHeaderValue, out var value)
                     && value is CacheControlHeaderValue cacheControlHeaderValue)
                 {
                     response.GetTypedHeaders().CacheControl = cacheControlHeaderValue;
                 }
 
-                if (result.ContextData is not null
-                    && result.ContextData.TryGetValue(ExecutionContextData.VaryHeaderValue, out var varyValue)
+                if (result.ContextData.TryGetValue(ExecutionContextData.VaryHeaderValue, out var varyValue)
                     && varyValue is string varyHeaderValue)
                 {
                     response.Headers.Vary = varyHeaderValue;
@@ -301,7 +299,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// Determines which status code shall be returned for this result.
     /// </summary>
     /// <param name="result">
-    /// The <see cref="IOperationResult"/>.
+    /// The <see cref="OperationResult"/>.
     /// </param>
     /// <param name="format">
     /// Provides information about the transport format that is applied.
@@ -313,7 +311,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// Returns the <see cref="HttpStatusCode"/> that the formatter must use.
     /// </returns>
     protected virtual HttpStatusCode OnDetermineStatusCode(
-        IOperationResult result,
+        OperationResult result,
         FormatInfo format,
         HttpStatusCode? proposedStatusCode)
     {
@@ -346,10 +344,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
             // if the GraphQL result has context data, we will check if some middleware provided
             // a status code or indicated an error that should be interpreted as a status code.
-            if (result.ContextData is not null)
+            if (result.ContextData is { Count: > 0 } contextData)
             {
-                var contextData = result.ContextData;
-
                 // First, we check if there is an explicit HTTP status code override by the user.
                 if (contextData.TryGetValue(ExecutionContextData.HttpStatusCode, out var value))
                 {
@@ -371,7 +367,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     return HttpStatusCode.BadRequest;
                 }
 
-                if (result.ContextData.ContainsKey(ExecutionContextData.OperationNotAllowed))
+                if (contextData.ContainsKey(ExecutionContextData.OperationNotAllowed))
                 {
                     return HttpStatusCode.MethodNotAllowed;
                 }
@@ -384,7 +380,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             // server is still able to produce a well-formed response.
             // Even null represents a valid response, in this case of a non-null propagation
             // that erased the result.
-            if (result.IsDataSet)
+            if (result.Data.HasValue)
             {
                 return HttpStatusCode.OK;
             }
@@ -405,7 +401,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// the formatter starts writing the response body.
     /// </summary>
     /// <param name="result">
-    /// The <see cref="IOperationResult"/>.
+    /// The <see cref="OperationResult"/>.
     /// </param>
     /// <param name="format">
     /// Provides information about the transport format that is applied.
@@ -414,7 +410,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// The header dictionary.
     /// </param>
     protected virtual void OnWriteResponseHeaders(
-        IOperationResult result,
+        OperationResult result,
         FormatInfo format,
         IHeaderDictionary headers)
     {

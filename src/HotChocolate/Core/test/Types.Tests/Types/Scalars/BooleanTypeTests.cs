@@ -1,46 +1,156 @@
+using System.Text.Json;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
 public class BooleanTypeTests
 {
     [Fact]
-    public void ParseLiteral()
+    public void Ensure_Type_Name_Is_Correct()
     {
         // arrange
+        // act
+        var type = new BooleanType();
+
+        // assert
+        Assert.Equal("Boolean", type.Name);
+    }
+
+    [Fact]
+    public void CoerceInputLiteral()
+    {
+        // arrange
+        var type = new BooleanType();
         var literal = new BooleanValueNode(null, true);
 
         // act
-        var booleanType = new BooleanType();
-        var result = booleanType.ParseLiteral(literal);
+        var result = type.CoerceInputLiteral(literal);
 
         // assert
         Assert.IsType<bool>(result);
-        Assert.True((bool)result);
+        Assert.True((bool)result!);
     }
 
     [Fact]
-    public void IsInstanceOfType()
+    public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
-        var boolLiteral = new BooleanValueNode(null, true);
-        var stringLiteral = new StringValueNode(null, "12345", false);
-        var nullLiteral = NullValueNode.Default;
+        var type = new BooleanType();
+        var literal = new StringValueNode("foo");
 
         // act
-        var booleanType = new BooleanType();
-        var isIntLiteralInstanceOf = booleanType.IsInstanceOfType(boolLiteral);
-        var isStringLiteralInstanceOf = booleanType.IsInstanceOfType(stringLiteral);
-        var isNullLiteralInstanceOf = booleanType.IsInstanceOfType(nullLiteral);
+        void Action() => type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.True(isIntLiteralInstanceOf);
-        Assert.False(isStringLiteralInstanceOf);
-        Assert.True(isNullLiteralInstanceOf);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void EnsureBooleanTypeKindIsCorret()
+    public void CoerceInputValue()
+    {
+        // arrange
+        var type = new BooleanType();
+        var inputValue = JsonDocument.Parse("true").RootElement;
+
+        // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Equal(true, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new BooleanType();
+        var inputValue = JsonDocument.Parse("\"foo\"").RootElement;
+
+        // act
+        void Action() => type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void CoerceOutputValue()
+    {
+        // arrange
+        var type = new BooleanType();
+        const bool runtimeValue = true;
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(runtimeValue, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("true");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new BooleanType();
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue("foo", resultValue);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        // arrange
+        var type = new BooleanType();
+        const bool runtimeValue = true;
+
+        // act
+        var literal = type.ValueToLiteral(runtimeValue);
+
+        // assert
+        Assert.True(Assert.IsType<BooleanValueNode>(literal).Value);
+    }
+
+    [Fact]
+    public void IsValueCompatible_BooleanLiteral_True()
+    {
+        // arrange
+        var type = new BooleanType();
+        var literal = new BooleanValueNode(null, true);
+
+        // act
+        var result = type.IsValueCompatible(literal);
+
+        // assert
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void IsValueCompatible_StringLiteral_False()
+    {
+        // arrange
+        var type = new BooleanType();
+        var literal = new StringValueNode(null, "12345", false);
+
+        // act
+        var result = type.IsValueCompatible(literal);
+
+        // assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void Ensure_TypeKind_Is_Scalar()
     {
         // arrange
         var type = new BooleanType();
@@ -53,82 +163,29 @@ public class BooleanTypeTests
     }
 
     [Fact]
-    public void Serialize_Null_Null()
+    public void ParseLiteral()
     {
         // arrange
-        var booleanType = new BooleanType();
+        var type = new BooleanType();
+        var literal = new BooleanValueNode(null, true);
 
         // act
-        var result = booleanType.Serialize(null);
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Null(result);
+        Assert.True(Assert.IsType<bool>(runtimeValue));
     }
 
     [Fact]
-    public void Serialize_True_True()
+    public void ParseLiteral_InvalidValue()
     {
         // arrange
-        var booleanType = new BooleanType();
+        var type = new BooleanType();
 
         // act
-        var result = booleanType.Serialize(true);
+        void Action() => type.CoerceInputLiteral(new StringValueNode("abc"));
 
         // assert
-        Assert.IsType<bool>(result);
-        Assert.True((bool)result);
-    }
-
-    [Fact]
-    public void Serialize_String_Exception()
-    {
-        // arrange
-        var booleanType = new BooleanType();
-
-        // act
-        Action a = () => booleanType.Serialize("foo");
-
-        // assert
-        Assert.Throws<SerializationException>(a);
-    }
-
-    [Fact]
-    public void Deserialize_Null_Null()
-    {
-        // arrange
-        var booleanType = new BooleanType();
-
-        // act
-        var result = booleanType.Serialize(null);
-
-        // assert
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public void Deserialize_True_True()
-    {
-        // arrange
-        var booleanType = new BooleanType();
-
-        // act
-        var result = booleanType.Serialize(true);
-
-        // assert
-        Assert.IsType<bool>(result);
-        Assert.True((bool)result);
-    }
-
-    [Fact]
-    public void Deserialize_String_Exception()
-    {
-        // arrange
-        var booleanType = new BooleanType();
-
-        // act
-        Action a = () => booleanType.Serialize("foo");
-
-        // assert
-        Assert.Throws<SerializationException>(a);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 }

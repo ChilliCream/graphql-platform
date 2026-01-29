@@ -229,7 +229,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     private class CustomFormatter : DefaultHttpResponseFormatter
     {
         protected override void OnWriteResponseHeaders(
-            IOperationResult result,
+            OperationResult result,
             FormatInfo format,
             IHeaderDictionary headers)
         {

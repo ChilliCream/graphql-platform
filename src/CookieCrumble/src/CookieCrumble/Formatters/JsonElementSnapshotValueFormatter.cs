@@ -6,12 +6,11 @@ namespace CookieCrumble.Formatters;
 
 internal sealed class JsonElementSnapshotValueFormatter() : SnapshotValueFormatter<JsonElement>("json")
 {
-    private readonly JsonSerializerOptions _options =
-        new(JsonSerializerDefaults.Web)
-        {
-            WriteIndented = true,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-        };
+    private readonly JsonSerializerOptions _options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        WriteIndented = true
+    };
 
     protected override void Format(IBufferWriter<byte> snapshot, JsonElement value)
     {

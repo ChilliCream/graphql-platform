@@ -104,5 +104,29 @@ namespace HotChocolate {
                 return ResourceManager.GetString("SubscriptionResult_ReadOnlyOnce", resourceCulture);
             }
         }
+        
+        internal static string OperationRequest_Variables_Must_Be_Object {
+            get {
+                return ResourceManager.GetString("OperationRequest_Variables_Must_Be_Object", resourceCulture);
+            }
+        }
+        
+        internal static string OperationRequest_Extensions_Must_Be_Object {
+            get {
+                return ResourceManager.GetString("OperationRequest_Extensions_Must_Be_Object", resourceCulture);
+            }
+        }
+        
+        internal static string VariableBatchRequest_Variables_Must_Be_Array {
+            get {
+                return ResourceManager.GetString("VariableBatchRequest_Variables_Must_Be_Array", resourceCulture);
+            }
+        }
+        
+        internal static string OperationRequestBuilder_SetVariableValues_JSONDocumentMustBeObjectOrArray {
+            get {
+                return ResourceManager.GetString("OperationRequestBuilder_SetVariableValues_JSONDocumentMustBeObjectOrArray", resourceCulture);
+            }
+        }
     }
 }

@@ -2,6 +2,7 @@
 
 using System.Globalization;
 using System.Reflection;
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -12,30 +13,25 @@ namespace HotChocolate.Utilities;
 
 internal static class ThrowHelper
 {
-    public static ArgumentException String_NullOrEmpty(string parameterName) =>
-        new ArgumentException(
-            $"'{parameterName}' cannot be null or empty",
-            parameterName);
-
     public static GraphQLException EventMessage_InvalidCast(
         Type expectedType,
-        Type messageType) =>
-        new GraphQLException(
+        Type messageType)
+        => new GraphQLException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_EventMessage_InvalidCast,
-                    messageType.FullName!,
-                    expectedType.FullName!)
+                    messageType.FullName,
+                    expectedType.FullName)
                 .Build());
 
-    public static GraphQLException EventMessage_NotFound() =>
-        new GraphQLException(
+    public static GraphQLException EventMessage_NotFound()
+        => new GraphQLException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_EventMessage_NotFound)
                 .Build());
 
-    public static SchemaException SubscribeAttribute_MessageTypeUnspecified(MemberInfo member) =>
-        new SchemaException(
+    public static SchemaException SubscribeAttribute_MessageTypeUnspecified(MemberInfo member)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_MessageTypeUnspecified,
@@ -44,8 +40,8 @@ internal static class ThrowHelper
                 .SetExtension("member", member)
                 .Build());
 
-    public static SchemaException SubscribeAttribute_TopicTypeUnspecified(MemberInfo member) =>
-        new SchemaException(
+    public static SchemaException SubscribeAttribute_TopicTypeUnspecified(MemberInfo member)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_TopicTypeUnspecified,
@@ -56,8 +52,8 @@ internal static class ThrowHelper
 
     public static SchemaException SubscribeAttribute_SubscribeResolverNotFound(
         MemberInfo member,
-        string subscribeResolverName) =>
-        new SchemaException(
+        string subscribeResolverName)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound,
@@ -67,16 +63,16 @@ internal static class ThrowHelper
                 .SetExtension("member", member)
                 .Build());
 
-    public static SchemaException Convention_UnableToCreateConvention(Type convention) =>
-        new SchemaException(
+    public static SchemaException Convention_UnableToCreateConvention(Type convention)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_Convention_UnableToCreateConvention,
                     convention.FullName ?? convention.Name)
                 .Build());
 
-    public static SchemaException UsePagingAttribute_NodeTypeUnknown(MemberInfo member) =>
-        new SchemaException(
+    public static SchemaException UsePagingAttribute_NodeTypeUnknown(MemberInfo member)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(ThrowHelper_UsePagingAttribute_NodeTypeUnknown)
                 .SetCode(ErrorCodes.Paging.NodeTypeUnknown)
@@ -143,8 +139,8 @@ internal static class ThrowHelper
 
     public static SchemaException NodeAttribute_IdFieldNotFound(
         Type type,
-        string idField) =>
-        new SchemaException(
+        string idField)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_NodeAttribute_IdFieldNotFound,
@@ -157,8 +153,8 @@ internal static class ThrowHelper
         Type conventionType,
         IConvention first,
         IConvention other,
-        string? scope) =>
-        new SchemaException(
+        string? scope)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_Convention_TwoConventionsRegisteredForScope,
@@ -170,8 +166,8 @@ internal static class ThrowHelper
 
     public static SchemaException Convention_ConventionCouldNotBeCreated(
         Type conventionType,
-        string? scope) =>
-        new SchemaException(
+        string? scope)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_Convention_ConventionCouldNotBeCreated,
@@ -179,36 +175,36 @@ internal static class ThrowHelper
                     scope ?? "default")
                 .Build());
 
-    public static SchemaException DataLoader_InvalidType(Type dataLoaderType) =>
-        new SchemaException(
+    public static SchemaException DataLoader_InvalidType(Type dataLoaderType)
+        => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_DataLoader_InvalidType,
                     dataLoaderType.FullName ?? dataLoaderType.Name)
                 .Build());
 
-    public static SchemaException NonGenericExecutableNotAllowed() =>
-        new SchemaException(
+    public static SchemaException NonGenericExecutableNotAllowed()
+        => new SchemaException(
             SchemaErrorBuilder
                 .New()
                 .SetMessage(ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed)
                 .Build());
 
-    public static SerializationException RequiredInputFieldIsMissing(
+    public static LeafCoercionException RequiredInputFieldIsMissing(
         IInputValueInfo field,
         Path fieldPath)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_RequiredInputFieldIsMissing,
                     field.Name)
-                .SetPath(fieldPath)
+                .SetInputPath(fieldPath)
                 .SetExtension("field", field.Coordinate.ToString())
                 .Build(),
             field.Type,
             fieldPath);
 
-    public static SerializationException InvalidInputFieldNames<T>(
+    public static LeafCoercionException InvalidInputFieldNames<T>(
         T type,
         IReadOnlyList<string> invalidFieldNames,
         Path path)
@@ -216,57 +212,57 @@ internal static class ThrowHelper
     {
         if (invalidFieldNames.Count == 1)
         {
-            throw new SerializationException(
+            throw new LeafCoercionException(
                 ErrorBuilder.New()
                     .SetMessage(
                         ThrowHelper_InvalidInputFieldNames_Single,
                         invalidFieldNames[0],
                         type.Name)
-                    .SetPath(path)
+                    .SetInputPath(path)
                     .SetExtension("type", type.Name)
                     .Build(),
                 type,
                 path);
         }
 
-        throw new SerializationException(
+        throw new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_InvalidInputFieldNames,
                     string.Join(", ", invalidFieldNames.Select(t => $"`{t}`")),
                     type.Name)
-                .SetPath(path)
+                .SetInputPath(path)
                 .SetExtension("type", type.Name)
                 .Build(),
             type,
             path);
     }
 
-    public static SerializationException OneOfNoFieldSet(
+    public static LeafCoercionException OneOfNoFieldSet(
         InputObjectType type,
         Path? path)
     {
         var builder = ErrorBuilder.New()
             .SetMessage(ThrowHelper_OneOfNoFieldSet, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfNoFieldSet)
-            .SetPath(path);
+            .SetInputPath(path);
 
         return new(builder.Build(), type, path);
     }
 
-    public static SerializationException OneOfMoreThanOneFieldSet(
+    public static LeafCoercionException OneOfMoreThanOneFieldSet(
         InputObjectType type,
         Path? path)
     {
         var builder = ErrorBuilder.New()
             .SetMessage(ThrowHelper_OneOfMoreThanOneFieldSet, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfMoreThanOneFieldSet)
-            .SetPath(path);
+            .SetInputPath(path);
 
         return new(builder.Build(), type, path);
     }
 
-    public static SerializationException OneOfFieldIsNull(
+    public static LeafCoercionException OneOfFieldIsNull(
         InputObjectType type,
         Path? path,
         InputField field)
@@ -274,13 +270,13 @@ internal static class ThrowHelper
         var builder = ErrorBuilder.New()
             .SetMessage(ThrowHelper_OneOfFieldIsNull, field.Name, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfFieldIsNull)
-            .SetPath(path)
+            .SetInputPath(path)
             .SetCoordinate(field.Coordinate);
 
         return new(builder.Build(), type, path);
     }
 
-    public static SerializationException NonNullInputViolation(
+    public static LeafCoercionException NonNullInputViolation(
         ITypeSystemMember type,
         Path? path,
         IInputValueInfo? field = null)
@@ -288,7 +284,7 @@ internal static class ThrowHelper
         var builder = ErrorBuilder.New()
             .SetMessage(ThrowHelper_NonNullInputViolation)
             .SetCode(ErrorCodes.Execution.NonNullViolation)
-            .SetPath(path);
+            .SetInputPath(path);
 
         if (field is not null)
         {
@@ -298,49 +294,44 @@ internal static class ThrowHelper
         return new(builder.Build(), type, path);
     }
 
-    public static SerializationException ParseInputObject_InvalidSyntaxKind(
+    public static LeafCoercionException ParseInputObject_InvalidSyntaxKind(
         InputObjectType type,
         SyntaxKind kind,
         Path path)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_ParseInputObject_InvalidSyntaxKind,
                     kind,
                     type.Name)
-                .SetPath(path)
+                .SetInputPath(path)
                 .SetExtension(nameof(type), type.Name)
                 .Build(),
             type,
             path);
 
-    public static SerializationException ParseInputObject_InvalidObjectKind(
+    public static LeafCoercionException ParseInputObject_InvalidValueKind(
         InputObjectType type,
-        Type objectType,
         Path path)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_ParseInputObject_InvalidObjectKind,
-                    objectType.FullName ?? objectType.Name,
-                    type.Name,
-                    type.RuntimeType.FullName ?? type.RuntimeType.Name)
-                .SetPath(path)
+                .SetMessage(ThrowHelper_ParseInputObject_InvalidValueKind)
+                .SetInputPath(path)
                 .SetExtension(nameof(type), type.Name)
                 .Build(),
             type,
             path);
 
-    public static SerializationException ParseNestedList_InvalidSyntaxKind(
+    public static LeafCoercionException ParseNestedList_InvalidSyntaxKind(
         ListType type,
         SyntaxKind kind,
         Path path)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_ParseNestedList_InvalidSyntaxKind,
                     kind)
-                .SetPath(path)
+                .SetInputPath(path)
                 .SetExtension(
                     "specifiedBy",
                     "https://spec.graphql.org/June2018/#sec-Type-System.List")
@@ -348,82 +339,76 @@ internal static class ThrowHelper
             type,
             path);
 
-    public static SerializationException ParseList_InvalidObjectKind(
+    public static LeafCoercionException ParseList_InvalidValueKind(
         ListType type,
-        Type listType,
         Path path)
     {
-        var runtimeType = type.ToRuntimeType();
-        return new SerializationException(
+        return new LeafCoercionException(
             ErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_ParseList_InvalidObjectKind,
-                    listType.FullName ?? listType.Name,
-                    type.Print(),
-                    runtimeType.FullName ?? runtimeType.Name)
+                .SetMessage(ThrowHelper_ParseList_InvalidValueKind)
                 .Build(),
             type,
             path);
     }
 
-    public static SerializationException FormatValueList_InvalidObjectKind(
+    public static LeafCoercionException FormatValueList_InvalidObjectKind(
         ListType type,
         Type listType,
         Path path)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_FormatValueList_InvalidObjectKind,
                     type.Print(),
                     listType.FullName ?? listType.Name)
-                .SetPath(path)
+                .SetInputPath(path)
                 .Build(),
             type,
             path);
 
-    public static SerializationException FormatResultObject_InvalidObjectKind(
+    public static LeafCoercionException FormatResultObject_InvalidObjectKind(
         InputObjectType type,
         Type objectType,
         Path path)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_FormatResultObject_InvalidObjectKind,
                     objectType.FullName ?? objectType.Name,
                     type.Name,
                     type.RuntimeType.FullName ?? type.RuntimeType.Name)
-                .SetPath(path)
+                .SetInputPath(path)
                 .SetExtension(nameof(type), type.Name)
                 .Build(),
             type,
             path);
 
-    public static SerializationException FormatResultList_InvalidObjectKind(
+    public static LeafCoercionException FormatResultList_InvalidObjectKind(
         ListType type,
         Type listType,
         Path path)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_FormatResultList_InvalidObjectKind,
                     type.Print(),
                     listType.FullName ?? listType.Name)
-                .SetPath(path)
+                .SetInputPath(path)
                 .Build(),
             type,
             path);
 
-    public static SerializationException FormatResultLeaf_InvalidSyntaxKind(
+    public static LeafCoercionException FormatResultLeaf_InvalidSyntaxKind(
         IType type,
         SyntaxKind kind,
         Path path)
-        => new SerializationException(
+        => new LeafCoercionException(
             ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_FormatResultLeaf_InvalidSyntaxKind,
                     type.Print(),
                     kind)
-                .SetPath(path)
+                .SetInputPath(path)
                 .Build(),
             type,
             path);
@@ -591,7 +576,7 @@ internal static class ThrowHelper
                 .Build());
     }
 
-    public static SerializationException InvalidTypeConversion(
+    public static LeafCoercionException InvalidTypeConversion(
         ITypeSystemMember type,
         IInputValueInfo inputField,
         Path inputFieldPath,
@@ -611,5 +596,108 @@ internal static class ThrowHelper
         }
 
         return new(builder.Build(), type);
+    }
+
+    public static LeafCoercionException Scalar_Cannot_CoerceInputLiteral(
+        ITypeDefinition scalarType,
+        IValueNode? valueLiteral,
+        Exception? error = null)
+    {
+        valueLiteral ??= NullValueNode.Default;
+
+        var errorBuilder =
+            ErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.Scalar_Cannot_CoerceInputLiteral,
+                    scalarType.Name,
+                    valueLiteral.Kind);
+
+        if (error is not null)
+        {
+            errorBuilder.SetException(error);
+        }
+
+        return new LeafCoercionException(
+            errorBuilder.Build(),
+            scalarType);
+    }
+
+    public static LeafCoercionException Scalar_Cannot_CoerceInputValue(
+        ITypeDefinition scalarType,
+        JsonElement inputValue,
+        Exception? error = null)
+    {
+        var errorBuilder =
+            ErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.Scalar_Cannot_CoerceInputValue,
+                    scalarType.Name,
+                    inputValue.ValueKind);
+
+        if (error is not null)
+        {
+            errorBuilder.SetException(error);
+        }
+
+        return new LeafCoercionException(
+            errorBuilder.Build(),
+            scalarType);
+    }
+
+    public static LeafCoercionException Scalar_FormatIsInvalid(
+        ITypeDefinition scalarType,
+        object runtimeValue)
+    {
+        return new LeafCoercionException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.Scalar_FormatIsInvalid,
+                    runtimeValue,
+                    scalarType.Name)
+                .Build(),
+            scalarType);
+    }
+
+    public static LeafCoercionException Scalar_Cannot_ConvertValueToLiteral(
+        ITypeDefinition scalarType,
+        object runtimeValue)
+    {
+        return new LeafCoercionException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.Scalar_Cannot_ConvertValueToLiteral,
+                    scalarType.Name,
+                    runtimeValue.GetType().FullName)
+                .Build(),
+            scalarType);
+    }
+
+    public static LeafCoercionException Scalar_Cannot_CoerceOutputValue(
+        ITypeDefinition scalarType,
+        object runtimeValue)
+    {
+        return new LeafCoercionException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.Scalar_Cannot_CoerceOutputValue,
+                    scalarType.Name,
+                    runtimeValue.GetType().FullName)
+                .Build(),
+            scalarType);
+    }
+
+    public static LeafCoercionException RegexType_InvalidFormat(
+        IType type,
+        string name)
+    {
+        return new LeafCoercionException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    string.Format(
+                        TypeResources.RegexType_InvalidFormat,
+                        name))
+                .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                .Build(),
+            type);
     }
 }

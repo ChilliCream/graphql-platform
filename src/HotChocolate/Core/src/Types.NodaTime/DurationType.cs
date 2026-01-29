@@ -30,7 +30,6 @@ public class DurationType : StringToStructBaseType<Duration>
             allowedPatterns,
             NodaTimeResources.DurationType_Description,
             NodaTimeResources.DurationType_Description_Extended);
-        SerializationType = ScalarSerializationType.String;
     }
 
     /// <summary>
@@ -42,15 +41,19 @@ public class DurationType : StringToStructBaseType<Duration>
     }
 
     /// <inheritdoc />
-    protected override string Serialize(Duration runtimeValue)
-        => _serializationPattern
-            .Format(runtimeValue);
-
-    /// <inheritdoc />
-    protected override bool TryDeserialize(
+    protected override bool TryCoerceRuntimeValue(
         string resultValue,
         [NotNullWhen(true)] out Duration? runtimeValue)
         => _allowedPatterns.TryParse(resultValue, out runtimeValue);
+
+    /// <inheritdoc />
+    protected override bool TryCoerceOutputValue(
+        Duration runtimeValue,
+        [NotNullWhen(true)] out string? resultValue)
+    {
+        resultValue = _serializationPattern.Format(runtimeValue);
+        return true;
+    }
 
     protected override Dictionary<IPattern<Duration>, string> PatternMap => new()
     {

@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Text.Json;
 #else
 using System.Buffers;
@@ -107,7 +108,7 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
                                 case SseEventType.Complete:
                                     reader.AdvanceTo(buffer.GetPosition(1, position.Value));
 #if FUSION
-                                    JsonMemory.Return(eventBuffers);
+                                    JsonMemory.Return(JsonMemoryKind.Json, eventBuffers);
                                     eventBuffers.Clear();
 #endif
                                     yield break;
@@ -162,7 +163,7 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
             await reader.CompleteAsync().ConfigureAwait(false);
 #if FUSION
             // we return whatever is in here.
-            JsonMemory.Return(eventBuffers);
+            JsonMemory.Return(JsonMemoryKind.Json, eventBuffers);
 #endif
         }
     }
@@ -232,7 +233,7 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
             if (chunks.Count == 0 || currentPosition >= JsonMemory.BufferSize)
             {
                 currentPosition = 0;
-                chunks.Add(JsonMemory.Rent());
+                chunks.Add(JsonMemory.Rent(JsonMemoryKind.Json));
             }
 
             var currentChunk = chunks[^1];

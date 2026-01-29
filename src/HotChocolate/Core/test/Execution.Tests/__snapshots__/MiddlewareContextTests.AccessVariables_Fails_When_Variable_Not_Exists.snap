@@ -2,12 +2,6 @@
   "errors": [
     {
       "message": "The variable with the name `abc` does not exist.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 26
-        }
-      ],
       "path": [
         "foo"
       ]

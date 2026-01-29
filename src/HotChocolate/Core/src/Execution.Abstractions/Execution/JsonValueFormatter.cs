@@ -1,13 +1,16 @@
 using System.Collections;
+using System.Runtime.InteropServices;
 using System.Text.Json;
+using HotChocolate.Text.Json;
 using static HotChocolate.Execution.ResultFieldNames;
 
 namespace HotChocolate.Execution;
 
 public static class JsonValueFormatter
 {
+    // TODO : are the options still needed?
     public static void WriteValue(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         object? value,
         JsonSerializerOptions options,
         JsonNullIgnoreCondition nullIgnoreCondition)
@@ -29,11 +32,7 @@ public static class JsonValueFormatter
                 break;
 
             case RawJsonValue rawJsonValue:
-                writer.WriteRawValue(rawJsonValue.Value.Span, true);
-                break;
-
-            case IResultDataJsonFormatter formatter:
-                formatter.WriteTo(writer, options, nullIgnoreCondition);
+                writer.WriteRawValue(rawJsonValue.Value.Span);
                 break;
 
             case Dictionary<string, object?> dict:
@@ -108,6 +107,10 @@ public static class JsonValueFormatter
                 WritePathValue(writer, p);
                 break;
 
+            case IResultDataJsonFormatter formatter:
+                formatter.WriteTo(writer, options, nullIgnoreCondition);
+                break;
+
             default:
                 writer.WriteStringValue(value.ToString());
                 break;
@@ -116,7 +119,7 @@ public static class JsonValueFormatter
 
     private static void WriteJsonElement(
         JsonElement element,
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         JsonSerializerOptions options,
         JsonNullIgnoreCondition nullIgnoreCondition)
     {
@@ -153,14 +156,39 @@ public static class JsonValueFormatter
                 writer.WriteEndArray();
                 break;
 
-            default:
-                element.WriteTo(writer);
+            case JsonValueKind.String:
+            {
+                var value = JsonMarshal.GetRawUtf8Value(element);
+                writer.WriteStringValue(value, skipEscaping: true);
                 break;
+            }
+
+            case JsonValueKind.Number:
+            {
+                var value = JsonMarshal.GetRawUtf8Value(element);
+                writer.WriteNumberValue(value);
+                break;
+            }
+
+            case JsonValueKind.True:
+                writer.WriteBooleanValue(true);
+                break;
+
+            case JsonValueKind.False:
+                writer.WriteBooleanValue(false);
+                break;
+
+            case JsonValueKind.Null:
+                writer.WriteNullValue();
+                break;
+
+            default:
+                throw new NotSupportedException();
         }
     }
 
     public static void WriteDictionary(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         IReadOnlyDictionary<string, object?> dict,
         JsonSerializerOptions options,
         JsonNullIgnoreCondition nullIgnoreCondition)
@@ -183,7 +211,7 @@ public static class JsonValueFormatter
     }
 
     private static void WriteList(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         IList list,
         JsonSerializerOptions options,
         JsonNullIgnoreCondition nullIgnoreCondition)
@@ -206,30 +234,183 @@ public static class JsonValueFormatter
         writer.WriteEndArray();
     }
 
-    private static void WriteDictionary(
-        Utf8JsonWriter writer,
-        Dictionary<string, object?> dict,
+    public static void WriteErrors(
+        JsonWriter writer,
+        IReadOnlyList<IError> errors,
+        JsonSerializerOptions options,
+        JsonNullIgnoreCondition nullIgnoreCondition)
+    {
+        if (errors is { Count: > 0 })
+        {
+            writer.WritePropertyName(ResultFieldNames.Errors);
+
+            writer.WriteStartArray();
+
+            for (var i = 0; i < errors.Count; i++)
+            {
+                WriteError(writer, errors[i], options, nullIgnoreCondition);
+            }
+
+            writer.WriteEndArray();
+        }
+    }
+
+    public static void WriteError(
+        JsonWriter writer,
+        IError error,
         JsonSerializerOptions options,
         JsonNullIgnoreCondition nullIgnoreCondition)
     {
         writer.WriteStartObject();
 
-        foreach (var item in dict)
+        writer.WritePropertyName(Message);
+        writer.WriteStringValue(error.Message);
+
+        WriteLocations(writer, error.Locations);
+        WritePath(writer, error.Path);
+        WriteExtensions(writer, error.Extensions, options, nullIgnoreCondition);
+
+        writer.WriteEndObject();
+    }
+
+    public static void WriteExtensions(
+        JsonWriter writer,
+        IReadOnlyDictionary<string, object?>? dict,
+        JsonSerializerOptions options,
+        JsonNullIgnoreCondition nullIgnoreCondition)
+    {
+        if (dict is { Count: > 0 })
         {
-            if (item.Value is null
-                && (nullIgnoreCondition & JsonNullIgnoreCondition.Fields) == JsonNullIgnoreCondition.Fields)
+            writer.WritePropertyName(Extensions);
+            WriteDictionary(writer, dict, options, nullIgnoreCondition);
+        }
+    }
+
+    public static void WriteIncremental(
+        JsonWriter writer,
+        OperationResult result,
+        JsonSerializerOptions options,
+        JsonNullIgnoreCondition nullIgnoreCondition)
+    {
+        if (result.Pending is { Count: > 0 } pending)
+        {
+            writer.WritePropertyName(Pending);
+
+            writer.WriteStartArray();
+
+            for (var i = 0; i < pending.Count; i++)
             {
-                continue;
+                WriteIncrementalPendingItem(writer, pending[i]);
             }
 
-            writer.WritePropertyName(item.Key);
-            WriteValue(writer, item.Value, options, nullIgnoreCondition);
+            writer.WriteEndArray();
+        }
+
+        if (result.Incremental is { Count: > 0 } incremental)
+        {
+            writer.WritePropertyName(Incremental);
+
+            writer.WriteStartArray();
+
+            for (var i = 0; i < incremental.Count; i++)
+            {
+                WriteIncrementalItem(writer, incremental[i], options, nullIgnoreCondition);
+            }
+
+            writer.WriteEndArray();
+        }
+
+        if (result.Completed is { Count: > 0 } completed)
+        {
+            writer.WritePropertyName(Completed);
+
+            writer.WriteStartArray();
+
+            for (var i = 0; i < completed.Count; i++)
+            {
+                WriteIncrementalCompletedItem(writer, completed[i]);
+            }
+
+            writer.WriteEndArray();
+        }
+
+        if (result.HasNext.HasValue)
+        {
+            writer.WritePropertyName(HasNext);
+            writer.WriteBooleanValue(result.HasNext.Value);
+        }
+    }
+
+    private static void WriteIncrementalPendingItem(JsonWriter writer, PendingResult item)
+    {
+        writer.WriteStartObject();
+
+        writer.WritePropertyName(Id);
+        writer.WriteNumberValue(item.Id);
+
+        writer.WritePropertyName(ResultFieldNames.Path);
+        WritePathValue(writer, item.Path);
+
+        if (!string.IsNullOrEmpty(item.Label))
+        {
+            writer.WritePropertyName(Label);
+            writer.WriteStringValue(item.Label);
         }
 
         writer.WriteEndObject();
     }
 
-    private static void WriteLocations(Utf8JsonWriter writer, IReadOnlyList<Location>? locations)
+    private static void WriteIncrementalItem(
+        JsonWriter writer,
+        IIncrementalResult item,
+        JsonSerializerOptions options,
+        JsonNullIgnoreCondition nullIgnoreCondition)
+    {
+        writer.WriteStartObject();
+
+        writer.WritePropertyName(Id);
+        writer.WriteNumberValue(item.Id);
+
+        if (item.Errors is { Count: > 0 })
+        {
+            WriteErrors(writer, item.Errors, options, nullIgnoreCondition);
+        }
+
+        if (item is IIncrementalObjectResult objectResult)
+        {
+            writer.WritePropertyName(Data);
+
+            // TODO: Write actual data
+            writer.WriteStartObject();
+            writer.WriteEndObject();
+        }
+        else if (item is IIncrementalListResult listResult)
+        {
+            writer.WritePropertyName(Items);
+
+            // TODO: Write actual data
+            writer.WriteStartArray();
+            writer.WriteEndArray();
+        }
+        else
+        {
+            throw new NotSupportedException();
+        }
+
+        writer.WriteEndObject();
+    }
+
+    private static void WriteIncrementalCompletedItem(JsonWriter writer, CompletedResult item)
+    {
+        writer.WriteStartObject();
+
+        writer.WritePropertyName(Id);
+        writer.WriteNumberValue(item.Id);
+
+        writer.WriteEndObject();
+    }
+
+    private static void WriteLocations(JsonWriter writer, IReadOnlyList<Location>? locations)
     {
         if (locations is { Count: > 0 })
         {
@@ -246,48 +427,17 @@ public static class JsonValueFormatter
         }
     }
 
-    public static void WriteErrors(
-        Utf8JsonWriter writer,
-        IReadOnlyList<IError> error,
-        JsonSerializerOptions options,
-        JsonNullIgnoreCondition nullIgnoreCondition)
-    {
-        writer.WriteStartArray();
-
-        for (var i = 0; i < error.Count; i++)
-        {
-            WriteError(writer, error[i], options, nullIgnoreCondition);
-        }
-
-        writer.WriteEndArray();
-    }
-
-    public static void WriteError(
-        Utf8JsonWriter writer,
-        IError error,
-        JsonSerializerOptions options,
-        JsonNullIgnoreCondition nullIgnoreCondition)
+    private static void WriteLocation(JsonWriter writer, Location location)
     {
         writer.WriteStartObject();
-
-        writer.WriteString(Message, error.Message);
-
-        WriteLocations(writer, error.Locations);
-        WritePath(writer, error.Path);
-        WriteExtensions(writer, error.Extensions, options, nullIgnoreCondition);
-
+        writer.WritePropertyName(Line);
+        writer.WriteNumberValue(location.Line);
+        writer.WritePropertyName(Column);
+        writer.WriteNumberValue(location.Column);
         writer.WriteEndObject();
     }
 
-    private static void WriteLocation(Utf8JsonWriter writer, Location location)
-    {
-        writer.WriteStartObject();
-        writer.WriteNumber(Line, location.Line);
-        writer.WriteNumber(Column, location.Column);
-        writer.WriteEndObject();
-    }
-
-    public static void WritePath(Utf8JsonWriter writer, Path? path)
+    private static void WritePath(JsonWriter writer, Path? path)
     {
         if (path is not null)
         {
@@ -296,7 +446,7 @@ public static class JsonValueFormatter
         }
     }
 
-    private static void WritePathValue(Utf8JsonWriter writer, Path path)
+    private static void WritePathValue(JsonWriter writer, Path path)
     {
         if (path.IsRoot)
         {
@@ -307,47 +457,20 @@ public static class JsonValueFormatter
 
         writer.WriteStartArray();
 
-        var list = path.ToList();
-
-        for (var i = 0; i < list.Count; i++)
+        foreach (var segment in path.EnumerateSegments())
         {
-            switch (list[i])
+            switch (segment)
             {
-                case string s:
-                    writer.WriteStringValue(s);
+                case NamePathSegment n:
+                    writer.WriteStringValue(n.Name);
                     break;
 
-                case int n:
-                    writer.WriteNumberValue(n);
-                    break;
-
-                case short n:
-                    writer.WriteNumberValue(n);
-                    break;
-
-                case long n:
-                    writer.WriteNumberValue(n);
-                    break;
-
-                default:
-                    writer.WriteStringValue(list[i].ToString());
+                case IndexerPathSegment n:
+                    writer.WriteNumberValue(n.Index);
                     break;
             }
         }
 
         writer.WriteEndArray();
-    }
-
-    public static void WriteExtensions(
-        Utf8JsonWriter writer,
-        IReadOnlyDictionary<string, object?>? dict,
-        JsonSerializerOptions options,
-        JsonNullIgnoreCondition nullIgnoreCondition)
-    {
-        if (dict is { Count: > 0 })
-        {
-            writer.WritePropertyName(Extensions);
-            WriteDictionary(writer, dict, options, nullIgnoreCondition);
-        }
     }
 }

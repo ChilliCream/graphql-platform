@@ -1,6 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using static System.Math;
 
 namespace HotChocolate.Types;
@@ -35,80 +38,48 @@ public class LatitudeType : ScalarType<double, StringValueNode>
     }
 
     /// <inheritdoc />
-    protected override bool IsInstanceOfType(double runtimeValue) =>
-        Latitude.IsValid(runtimeValue);
-
-    /// <inheritdoc />
-    public override IValueNode ParseResult(object? resultValue)
+    protected override double OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        return resultValue switch
-        {
-            null => NullValueNode.Default,
-
-            string s when Latitude.TryDeserialize(s, out var runtimeValue) =>
-                ParseValue(runtimeValue),
-
-            int i => ParseValue(i),
-
-            double d => ParseValue(d),
-
-            _ => throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this)
-        };
-    }
-
-    /// <inheritdoc />
-    protected override double ParseLiteral(StringValueNode valueSyntax)
-    {
-        if (Latitude.TryDeserialize(valueSyntax.Value, out var runtimeValue))
+        if (Latitude.TryDeserialize(valueLiteral.Value, out var runtimeValue))
         {
             return runtimeValue.Value;
         }
 
-        throw ThrowHelper.LatitudeType_ParseLiteral_IsInvalid(this);
+        throw ThrowHelper.LatitudeType_InvalidFormat(this);
     }
 
     /// <inheritdoc />
-    protected override StringValueNode ParseValue(double runtimeValue)
+    protected override double OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (Latitude.TrySerialize(runtimeValue, out var s))
+        if (Latitude.TryDeserialize(inputValue.GetString()!, out var runtimeValue))
         {
-            return new StringValueNode(s);
+            return runtimeValue.Value;
         }
 
-        throw ThrowHelper.LatitudeType_ParseLiteral_IsInvalid(this);
+        throw ThrowHelper.LatitudeType_InvalidFormat(this);
     }
 
     /// <inheritdoc />
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    protected override void OnCoerceOutputValue(double runtimeValue, ResultElement resultValue)
     {
-        switch (runtimeValue)
+        if (Latitude.TrySerialize(runtimeValue, out var serialized))
         {
-            case double d when Latitude.TrySerialize(d, out var serializedDouble):
-                resultValue = serializedDouble;
-                return true;
-
-            case int i when Latitude.TrySerialize(i, out var serializedInt):
-                resultValue = serializedInt;
-                return true;
-
-            default:
-                resultValue = null;
-                return false;
+            resultValue.SetStringValue(serialized);
+            return;
         }
+
+        throw ThrowHelper.LatitudeType_InvalidFormat(this);
     }
 
     /// <inheritdoc />
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+    protected override StringValueNode OnValueToLiteral(double runtimeValue)
     {
-        if (resultValue is string s
-            && Latitude.TryDeserialize(s, out var value))
+        if (Latitude.TrySerialize(runtimeValue, out var serialized))
         {
-            runtimeValue = value;
-            return true;
+            return new StringValueNode(serialized);
         }
 
-        runtimeValue = null;
-        return false;
+        throw ThrowHelper.LatitudeType_InvalidFormat(this);
     }
 
     private static class Latitude

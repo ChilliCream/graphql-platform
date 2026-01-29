@@ -105,9 +105,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        /// <summary>
-        ///   Looks up a localized string similar to The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone..
-        /// </summary>
         internal static string DateTimeType_Description {
             get {
                 return ResourceManager.GetString("DateTimeType_Description", resourceCulture);
@@ -534,27 +531,27 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string Scalar_Cannot_Deserialize {
+        internal static string Scalar_Cannot_CoerceInputLiteral {
             get {
-                return ResourceManager.GetString("Scalar_Cannot_Deserialize", resourceCulture);
+                return ResourceManager.GetString("Scalar_Cannot_CoerceInputLiteral", resourceCulture);
             }
         }
         
-        internal static string Scalar_Cannot_ParseLiteral {
+        internal static string Scalar_Cannot_CoerceInputValue {
             get {
-                return ResourceManager.GetString("Scalar_Cannot_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("Scalar_Cannot_CoerceInputValue", resourceCulture);
             }
         }
         
-        internal static string Scalar_Cannot_ParseValue {
+        internal static string Scalar_Cannot_ConvertValueToLiteral {
             get {
-                return ResourceManager.GetString("Scalar_Cannot_ParseValue", resourceCulture);
+                return ResourceManager.GetString("Scalar_Cannot_ConvertValueToLiteral", resourceCulture);
             }
         }
         
-        internal static string Scalar_Cannot_Serialize {
+        internal static string Scalar_Cannot_CoerceOutputValue {
             get {
-                return ResourceManager.GetString("Scalar_Cannot_Serialize", resourceCulture);
+                return ResourceManager.GetString("Scalar_Cannot_CoerceOutputValue", resourceCulture);
             }
         }
         
@@ -1578,9 +1575,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string ThrowHelper_ParseList_InvalidObjectKind {
+        internal static string ThrowHelper_ParseList_InvalidValueKind {
             get {
-                return ResourceManager.GetString("ThrowHelper_ParseList_InvalidObjectKind", resourceCulture);
+                return ResourceManager.GetString("ThrowHelper_ParseList_InvalidValueKind", resourceCulture);
             }
         }
         
@@ -1590,9 +1587,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string ThrowHelper_ParseInputObject_InvalidObjectKind {
+        internal static string ThrowHelper_ParseInputObject_InvalidValueKind {
             get {
-                return ResourceManager.GetString("ThrowHelper_ParseInputObject_InvalidObjectKind", resourceCulture);
+                return ResourceManager.GetString("ThrowHelper_ParseInputObject_InvalidValueKind", resourceCulture);
             }
         }
         
@@ -1995,6 +1992,42 @@ namespace HotChocolate.Properties {
         internal static string ThrowHelper_InvalidTypeConversion {
             get {
                 return ResourceManager.GetString("ThrowHelper_InvalidTypeConversion", resourceCulture);
+            }
+        }
+        
+        internal static string Scalar_FormatIsInvalid {
+            get {
+                return ResourceManager.GetString("Scalar_FormatIsInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string SignedByteType_Description {
+            get {
+                return ResourceManager.GetString("SignedByteType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string UnsignedShortType_Description {
+            get {
+                return ResourceManager.GetString("UnsignedShortType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string UnsignedIntType_Description {
+            get {
+                return ResourceManager.GetString("UnsignedIntType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string UnsignedLongType_Description {
+            get {
+                return ResourceManager.GetString("UnsignedLongType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string RegexType_InvalidFormat {
+            get {
+                return ResourceManager.GetString("RegexType_InvalidFormat", resourceCulture);
             }
         }
     }

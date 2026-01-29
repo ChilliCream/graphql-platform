@@ -1,7 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
@@ -32,7 +35,6 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
         : base(name, bind)
     {
         Description = description;
-        SerializationType = ScalarSerializationType.String;
         Pattern = @"^\d{4}-\d{2}-\d{2}$";
         SpecifiedBy = new Uri(SpecifiedByUri);
         _enforceSpecFormat = !disableFormatCheck;
@@ -61,92 +63,37 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
     {
     }
 
-    public override IValueNode ParseResult(object? resultValue)
+    /// <inheritdoc />
+    protected override DateOnly OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        return resultValue switch
+        if (TryParseStringValue(valueLiteral.Value, out var value))
         {
-            null => NullValueNode.Default,
-            string s => new StringValueNode(s),
-            DateOnly d => ParseValue(d),
-            DateTimeOffset o => ParseValue(DateOnly.FromDateTime(o.DateTime)),
-            DateTime dt => ParseValue(DateOnly.FromDateTime(dt)),
-            _ => throw new SerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()), this)
-        };
-    }
-
-    protected override DateOnly ParseLiteral(StringValueNode valueSyntax)
-    {
-        if (TryDeserializeFromString(valueSyntax.Value, out var value))
-        {
-            return value.Value;
+            return value;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
-            this);
+        throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
     }
 
-    protected override StringValueNode ParseValue(DateOnly runtimeValue)
+    /// <inheritdoc />
+    protected override DateOnly OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        return new(Serialize(runtimeValue));
-    }
-
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-    {
-        switch (runtimeValue)
+        if (TryParseStringValue(inputValue.GetString()!, out var value))
         {
-            case null:
-                resultValue = null;
-                return true;
-            case DateOnly d:
-                resultValue = Serialize(d);
-                return true;
-            case DateTimeOffset o:
-                resultValue = Serialize(o);
-                return true;
-            case DateTime dt:
-                resultValue = Serialize(dt);
-                return true;
-            default:
-                resultValue = null;
-                return false;
+            return value;
         }
+
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
 
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        switch (resultValue)
-        {
-            case null:
-                runtimeValue = null;
-                return true;
-            case string s when TryDeserializeFromString(s, out var d):
-                runtimeValue = d;
-                return true;
-            case DateOnly d:
-                runtimeValue = d;
-                return true;
-            case DateTimeOffset o:
-                runtimeValue = DateOnly.FromDateTime(o.DateTime);
-                return true;
-            case DateTime dt:
-                runtimeValue = DateOnly.FromDateTime(dt);
-                return true;
-            default:
-                runtimeValue = null;
-                return false;
-        }
-    }
+    /// <inheritdoc />
+    protected override void OnCoerceOutputValue(DateOnly runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
 
-    private static string Serialize(IFormattable value)
-    {
-        return value.ToString(LocalFormat, CultureInfo.InvariantCulture);
-    }
+    /// <inheritdoc />
+    protected override StringValueNode OnValueToLiteral(DateOnly runtimeValue)
+        => new StringValueNode(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
 
-    private bool TryDeserializeFromString(
-        string? serialized,
-        [NotNullWhen(true)] out DateOnly? value)
+    private bool TryParseStringValue(string serialized, out DateOnly value)
     {
         if (_enforceSpecFormat)
         {
@@ -170,7 +117,7 @@ public class LocalDateType : ScalarType<DateOnly, StringValueNode>
             return true;
         }
 
-        value = null;
+        value = default;
         return false;
     }
 }

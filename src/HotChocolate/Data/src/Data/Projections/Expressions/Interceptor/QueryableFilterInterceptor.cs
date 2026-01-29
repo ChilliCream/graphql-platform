@@ -14,20 +14,20 @@ namespace HotChocolate.Data.Projections.Handlers;
 
 public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableProjectionContext>
 {
-    public bool CanHandle(ISelection selection) =>
+    public bool CanHandle(Selection selection) =>
         selection.Field.Member is PropertyInfo propertyInfo
         && propertyInfo.CanWrite
         && selection.HasFilterFeature();
 
     public void BeforeProjection(
         QueryableProjectionContext context,
-        ISelection selection)
+        Selection selection)
     {
         var filterFeature = selection.GetFilterFeature();
 
         if (filterFeature is not null
-            && context.Selection.Count > 0
-            && context.Selection.Peek().Arguments.TryCoerceArguments(context.ResolverContext, out var coercedArgs)
+            && context.Selections.Count > 0
+            && context.Selections.Peek().Arguments.TryCoerceArguments(context.ResolverContext, out var coercedArgs)
             && coercedArgs.TryGetValue(filterFeature.ArgumentName, out var argumentValue)
             && argumentValue.Type is IFilterInputType filterInputType
             && argumentValue.ValueLiteral is { } valueNode and not NullValueNode)
@@ -63,7 +63,7 @@ public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableP
         }
     }
 
-    public void AfterProjection(QueryableProjectionContext context, ISelection selection)
+    public void AfterProjection(QueryableProjectionContext context, Selection selection)
     {
     }
 

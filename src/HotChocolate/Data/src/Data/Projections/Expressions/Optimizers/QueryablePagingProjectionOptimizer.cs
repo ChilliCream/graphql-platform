@@ -9,9 +9,8 @@ namespace HotChocolate.Data.Projections.Handlers;
 
 public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
 {
-    public bool CanHandle(ISelection field) =>
-        field.DeclaringType is IPageType
-        && field.Field.Name is "edges" or "items" or "nodes";
+    public bool CanHandle(Selection field)
+        => field is { DeclaringType: IPageType, Field.Name: "edges" or "items" or "nodes" };
 
     public Selection RewriteSelection(
         SelectionSetOptimizerContext context,
@@ -19,17 +18,16 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
     {
         // The selection optimizer will also process the field we just added
         // we have to avoid processing this field twice.
-        if (context.Selections.ContainsKey(CombinedEdgeField))
+        if (context.ContainsResponseName(CombinedEdgeField))
         {
             return selection;
         }
 
-        if (context.Type.NamedType() is not IPageType pageType)
+        if (context.TypeContext is not IPageType pageType)
         {
-            throw ThrowHelper
-                .PagingProjectionOptimizer_NotAPagingField(
-                    selection.DeclaringType,
-                    selection.Field);
+            throw ThrowHelper.PagingProjectionOptimizer_NotAPagingField(
+                selection.DeclaringType,
+                selection.Field);
         }
 
         var selections = CollectSelection(context);
@@ -38,7 +36,6 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             CreateCombinedSelection(
                 context,
                 selection,
-                selection.DeclaringType,
                 pageType,
                 selections);
 
@@ -49,8 +46,7 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
 
     private Selection CreateCombinedSelection(
         SelectionSetOptimizerContext context,
-        ISelection selection,
-        ObjectType declaringType,
+        Selection selection,
         IPageType pageType,
         IReadOnlyList<ISelectionNode> selections)
     {
@@ -68,15 +64,14 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             selection.ResolverPipeline ??
             context.CompileResolverPipeline(nodesField, combinedField);
 
-        return new Selection.Sealed(
-            context.GetNextSelectionId(),
-            declaringType,
-            nodesField,
-            nodesField.Type,
-            combinedField,
+        return new Selection(
+            context.NewSelectionId(),
             CombinedEdgeField,
-            arguments: selection.Arguments,
+            nodesField,
+            [new FieldSelectionNode(combinedField, 0)],
+            [],
             isInternal: true,
+            arguments: selection.Arguments,
             resolverPipeline: nodesPipeline);
     }
 
@@ -111,20 +106,22 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         SelectionSetOptimizerContext context,
         List<ISelectionNode> selections)
     {
-        if (context.Selections.Values.FirstOrDefault(
-                x => x.Field.Name == "edges") is { } edgeSelection)
+        if (context.Selections.FirstOrDefault(t => t.Field.Name == "edges") is { } edgeSelection)
         {
-            foreach (var edgeSubField in edgeSelection.SelectionSet!.Selections)
+            foreach (var fieldNode in edgeSelection.SyntaxNodes)
             {
-                if (edgeSubField is FieldNode edgeSubFieldNode
-                    && edgeSubFieldNode.Name.Value is "node"
-                    && edgeSubFieldNode.SelectionSet?.Selections is not null)
+                foreach (var edgeSubField in fieldNode.Node.SelectionSet!.Selections)
                 {
-                    foreach (var nodeField in edgeSubFieldNode.SelectionSet.Selections)
+                    if (edgeSubField is FieldNode edgeSubFieldNode
+                        && edgeSubFieldNode.Name.Value is "node"
+                        && edgeSubFieldNode.SelectionSet?.Selections is not null)
                     {
-                        selections.Add(
-                            s_cloneSelectionSetRewriter.Rewrite(nodeField) ??
+                        foreach (var nodeField in edgeSubFieldNode.SelectionSet.Selections)
+                        {
+                            selections.Add(
+                                s_cloneSelectionSetRewriter.Rewrite(nodeField) ??
                                 throw new SyntaxNodeCannotBeNullException(nodeField));
+                        }
                     }
                 }
             }
@@ -135,14 +132,16 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         SelectionSetOptimizerContext context,
         List<ISelectionNode> selections)
     {
-        if (context.Selections.Values
-                .FirstOrDefault(x => x.Field.Name == "items") is { } itemSelection)
+        if (context.Selections.FirstOrDefault(x => x.Field.Name == "items") is { } itemSelection)
         {
-            foreach (var nodeField in itemSelection.SelectionSet!.Selections)
+            foreach (var fieldNode in itemSelection.SyntaxNodes)
             {
-                selections.Add(
-                    s_cloneSelectionSetRewriter.Rewrite(nodeField) ??
+                foreach (var nodeField in fieldNode.Node.SelectionSet!.Selections)
+                {
+                    selections.Add(
+                        s_cloneSelectionSetRewriter.Rewrite(nodeField) ??
                         throw new SyntaxNodeCannotBeNullException(nodeField));
+                }
             }
         }
     }
@@ -151,13 +150,16 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         SelectionSetOptimizerContext context,
         List<ISelectionNode> selections)
     {
-        if (context.Selections.Values.FirstOrDefault(x => x.Field.Name == "nodes") is { } nodeSelection)
+        if (context.Selections.FirstOrDefault(x => x.Field.Name == "nodes") is { } nodeSelection)
         {
-            foreach (var nodeField in nodeSelection.SelectionSet!.Selections)
+            foreach (var fieldNode in nodeSelection.SyntaxNodes)
             {
-                selections.Add(
-                    s_cloneSelectionSetRewriter.Rewrite(nodeField) ??
+                foreach (var nodeField in fieldNode.Node.SelectionSet!.Selections)
+                {
+                    selections.Add(
+                        s_cloneSelectionSetRewriter.Rewrite(nodeField) ??
                         throw new SyntaxNodeCannotBeNullException(nodeField));
+                }
             }
         }
     }

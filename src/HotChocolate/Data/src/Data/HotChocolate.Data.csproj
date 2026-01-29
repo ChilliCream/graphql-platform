@@ -12,8 +12,9 @@
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.Abstractions\GreenDonut.Data.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.Primitives\GreenDonut.Data.Primitives.csproj" />
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data\GreenDonut.Data.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Execution.Operation.Abstractions\HotChocolate.Execution.Operation.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Projections\HotChocolate.Execution.Projections.csproj" />
-    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj" />
   </ItemGroup>
 

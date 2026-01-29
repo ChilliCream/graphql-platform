@@ -5,7 +5,7 @@ namespace HotChocolate.Execution;
 /// <summary>
 /// Represents a request to execute a GraphQL operation.
 /// </summary>
-public interface IExecutionRequest : IFeatureProvider
+public interface IExecutionRequest : IFeatureProvider, IDisposable
 {
     /// <summary>
     /// Gets the initial request state.

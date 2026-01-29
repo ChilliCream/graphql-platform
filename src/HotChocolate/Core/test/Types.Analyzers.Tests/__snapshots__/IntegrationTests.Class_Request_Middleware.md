@@ -2,8 +2,8 @@
 
 ```json
 {
-  "data": {
-    "Say Hello World": true
+  "extensions": {
+    "middleware": "Say Hello World"
   }
 }
 ```

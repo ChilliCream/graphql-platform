@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 using static HotChocolate.Utilities.Introspection.CapabilityInspector;
 using static HotChocolate.Utilities.Introspection.IntrospectionQueryHelper;
 

@@ -1,20 +1,25 @@
-using System.Collections;
-using System.Globalization;
-using HotChocolate.Configuration;
+using System.Runtime.InteropServices;
+using System.Text.Json;
+using HotChocolate.Buffers;
+using HotChocolate.Features;
 using HotChocolate.Language;
-using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Configurations;
-using HotChocolate.Utilities;
+using HotChocolate.Language.Visitors;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
-public class AnyType : ScalarType
+/// <summary>
+/// <para>
+/// The JSON scalar type represents a JSON node which can be a string,
+/// a number a boolean, an array, an object or null.
+/// </para>
+/// <para>The runtime representation of the JSON scalar is an <see cref="JsonElement"/>.</para>
+/// </summary>
+public sealed class AnyType : ScalarType<JsonElement>
 {
-    private readonly ObjectValueToDictionaryConverter _objectValueToDictConverter = new();
-    private ObjectToDictionaryConverter _objectToDictConverter = null!;
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="AnyType"/> class.
+    /// Initializes a new instance of <see cref="AnyType"/>.
     /// </summary>
     public AnyType(
         string name,
@@ -23,263 +28,294 @@ public class AnyType : ScalarType
         : base(name, bind)
     {
         Description = description;
-        SerializationType = ScalarSerializationType.Any;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AnyType"/> class.
+    /// Initializes a new instance of <see cref="AnyType"/>.
     /// </summary>
     [ActivatorUtilitiesConstructor]
-    public AnyType() : this(ScalarNames.Any)
+    public AnyType()
+        : this(ScalarNames.Any, bind: BindingBehavior.Implicit)
     {
     }
 
-    public override Type RuntimeType => typeof(object);
+    /// <inheritdoc />
+    public override ScalarSerializationType SerializationType
+        => ScalarSerializationType.Any;
 
-    protected override void OnCompleteType(
-        ITypeCompletionContext context,
-        ScalarTypeConfiguration configuration)
+    /// <inheritdoc />
+    public override bool IsValueCompatible(IValueNode valueLiteral)
+        => valueLiteral is
+        {
+            Kind: SyntaxKind.ObjectValue or
+                SyntaxKind.ListValue or
+                SyntaxKind.StringValue or
+                SyntaxKind.IntValue or
+                SyntaxKind.FloatValue or
+                SyntaxKind.BooleanValue
+        };
+
+    /// <inheritdoc />
+    public override bool IsValueCompatible(JsonElement inputValue)
+        => inputValue.ValueKind is
+            JsonValueKind.Object or
+            JsonValueKind.Array or
+            JsonValueKind.String or
+            JsonValueKind.Number or
+            JsonValueKind.True or
+            JsonValueKind.False;
+
+    /// <inheritdoc />
+    public override object CoerceInputLiteral(IValueNode valueLiteral)
+        => JsonFormatter.Format(valueLiteral);
+
+    /// <inheritdoc />
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        => inputValue.Clone();
+
+    /// <inheritdoc />
+    public override void OnCoerceOutputValue(JsonElement runtimeValue, ResultElement resultValue)
     {
-        base.OnCompleteType(context, configuration);
-        _objectToDictConverter = new ObjectToDictionaryConverter(Converter);
-    }
-
-    public override bool IsInstanceOfType(IValueNode literal)
-    {
-        ArgumentNullException.ThrowIfNull(literal);
-
-        switch (literal)
+        switch (runtimeValue.ValueKind)
         {
-            case StringValueNode:
-            case IntValueNode:
-            case FloatValueNode:
-            case BooleanValueNode:
-            case ListValueNode:
-            case ObjectValueNode:
-            case NullValueNode:
-                return true;
-
-            default:
-                return false;
-        }
-    }
-
-    public override object? ParseLiteral(IValueNode literal)
-    {
-        switch (literal)
-        {
-            case StringValueNode svn:
-                return svn.Value;
-
-            case IntValueNode ivn:
-                return long.Parse(ivn.Value, CultureInfo.InvariantCulture);
-
-            case FloatValueNode fvn:
-                return decimal.Parse(fvn.Value, CultureInfo.InvariantCulture);
-
-            case BooleanValueNode bvn:
-                return bvn.Value;
-
-            case ListValueNode lvn:
-                return _objectValueToDictConverter.Convert(lvn);
-
-            case ObjectValueNode ovn:
-                return _objectValueToDictConverter.Convert(ovn);
-
-            case NullValueNode:
-                return null;
-
-            default:
-                throw new SerializationException(
-                    TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, literal.GetType()),
-                    this);
-        }
-    }
-
-    public override IValueNode ParseValue(object? value)
-    {
-        return value is null
-            ? NullValueNode.Default
-            : ParseValue(value, new HashSet<object>(ReferenceEqualityComparer.Instance));
-    }
-
-    private IValueNode ParseValue(object? value, ISet<object> set)
-    {
-        if (value is null)
-        {
-            return NullValueNode.Default;
-        }
-
-        switch (value)
-        {
-            case string s:
-                return new StringValueNode(s);
-            case short s:
-                return new IntValueNode(s);
-            case int i:
-                return new IntValueNode(i);
-            case long l:
-                return new IntValueNode(l);
-            case float f:
-                return new FloatValueNode(f);
-            case double d:
-                return new FloatValueNode(d);
-            case decimal d:
-                return new FloatValueNode(d);
-            case bool b:
-                return new BooleanValueNode(b);
-            case sbyte s:
-                return new IntValueNode(s);
-            case byte b:
-                return new IntValueNode(b);
-        }
-
-        var type = value.GetType();
-
-        if (type.IsValueType && Converter.TryConvert(
-            type, typeof(string), value, out var converted, out _)
-            && converted is string c)
-        {
-            return new StringValueNode(c);
-        }
-
-        if (set.Add(value))
-        {
-            if (value is IReadOnlyDictionary<string, object> dict)
+            case JsonValueKind.String:
             {
-                var fields = new List<ObjectFieldNode>();
-                foreach (var field in dict)
-                {
-                    fields.Add(new ObjectFieldNode(
-                        field.Key,
-                        ParseValue(field.Value, set)));
-                }
-
-                set.Remove(value);
-
-                return new ObjectValueNode(fields);
+                var value = JsonMarshal.GetRawUtf8Value(runtimeValue);
+                resultValue.SetStringValue(value[1..^1]);
+                break;
             }
 
-            if (value is IReadOnlyList<object> list)
+            case JsonValueKind.Number:
             {
-                var valueList = new List<IValueNode>();
-                foreach (var element in list)
-                {
-                    valueList.Add(ParseValue(element, set));
-                }
-
-                set.Remove(value);
-
-                return new ListValueNode(valueList);
+                var value = JsonMarshal.GetRawUtf8Value(runtimeValue);
+                resultValue.SetNumberValue(value);
+                break;
             }
 
-            var valueNode = ParseValue(_objectToDictConverter.Convert(value), set);
+            case JsonValueKind.True:
+                resultValue.SetBooleanValue(true);
+                break;
 
-            set.Remove(value);
+            case JsonValueKind.False:
+                resultValue.SetBooleanValue(false);
+                break;
 
-            return valueNode;
-        }
+            case JsonValueKind.Null:
+                resultValue.SetNullValue();
+                break;
 
-        throw new SerializationException(
-            TypeResources.AnyType_CycleInObjectGraph,
-            this);
-    }
+            case JsonValueKind.Array:
+            {
+                var length = runtimeValue.GetArrayLength();
+                resultValue.SetArrayValue(length);
 
-    public override IValueNode ParseResult(object? resultValue) =>
-        ParseValue(resultValue);
+                using var enumerator = runtimeValue.EnumerateArray().GetEnumerator();
 
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-    {
-        if (runtimeValue is null)
-        {
-            resultValue = null;
-            return true;
-        }
+                foreach (var element in resultValue.EnumerateArray())
+                {
+                    enumerator.MoveNext();
+                    OnCoerceOutputValue(enumerator.Current, element);
+                }
+                break;
+            }
 
-        switch (runtimeValue)
-        {
-            case string:
-            case short:
-            case int:
-            case long:
-            case float:
-            case double:
-            case decimal:
-            case bool:
-            case sbyte:
-            case byte:
-                resultValue = runtimeValue;
-                return true;
+            case JsonValueKind.Object:
+            {
+#if NET9_0_OR_GREATER
+                var length = runtimeValue.GetPropertyCount();
+#else
+                var length = runtimeValue.EnumerateObject().Count();
+#endif
+                resultValue.SetObjectValue(length);
+
+                using var enumerator = runtimeValue.EnumerateObject().GetEnumerator();
+
+                foreach (var property in resultValue.EnumerateObject())
+                {
+                    enumerator.MoveNext();
+                    property.Value.SetPropertyName(enumerator.Current.Name);
+                    OnCoerceOutputValue(enumerator.Current.Value, property.Value);
+                }
+                break;
+            }
 
             default:
-                var type = runtimeValue.GetType();
-
-                if (type.IsValueType
-                    && Converter.TryConvert(type, typeof(string), runtimeValue, out var c, out _)
-                    && c is string casted)
-                {
-                    resultValue = casted;
-                    return true;
-                }
-
-                resultValue = _objectToDictConverter.Convert(runtimeValue);
-                return true;
+                throw Scalar_Cannot_CoerceOutputValue(this, runtimeValue);
         }
     }
 
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+    /// <inheritdoc />
+    public override IValueNode OnValueToLiteral(JsonElement runtimeValue)
+        => JsonParser.Parse(runtimeValue);
+
+    private static class JsonParser
     {
-        object? elementValue;
-        runtimeValue = null;
-        switch (resultValue)
+        public static IValueNode Parse(JsonElement element)
         {
-            case IDictionary<string, object> dictionary:
+            switch (element.ValueKind)
             {
-                var result = new Dictionary<string, object?>();
-                foreach (var element in dictionary)
-                {
-                    if (TryDeserialize(element.Value, out elementValue))
-                    {
-                        result[element.Key] = elementValue;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
+                case JsonValueKind.Object:
+                    return ParseObject(element);
 
-                runtimeValue = result;
-                return true;
+                case JsonValueKind.Array:
+                    return ParseList(element);
+
+                case JsonValueKind.String:
+                    return ParseString(element);
+
+                case JsonValueKind.Number:
+                    return ParseNumber(element);
+
+                case JsonValueKind.True:
+                    return new BooleanValueNode(true);
+
+                case JsonValueKind.False:
+                    return new BooleanValueNode(false);
+
+                case JsonValueKind.Null:
+                case JsonValueKind.Undefined:
+                    return NullValueNode.Default;
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private static ObjectValueNode ParseObject(JsonElement element)
+        {
+            var properties = new List<ObjectFieldNode>();
+
+            foreach (var property in element.EnumerateObject())
+            {
+                properties.Add(ParseField(property));
             }
 
-            case IList list:
-            {
-                var result = new object?[list.Count];
-                for (var i = 0; i < list.Count; i++)
-                {
-                    if (TryDeserialize(list[i], out elementValue))
-                    {
-                        result[i] = elementValue;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
+            return new ObjectValueNode(properties);
+        }
 
-                runtimeValue = result;
-                return true;
+        private static ListValueNode ParseList(JsonElement element)
+        {
+            var properties = new List<IValueNode>();
+
+            foreach (var item in element.EnumerateArray())
+            {
+                properties.Add(Parse(item));
             }
 
-            // TODO: this is only done for a bug in schema stitching and needs to be removed
-            // once we have release stitching 2.
-            case IValueNode literal:
-                runtimeValue = ParseLiteral(literal);
-                return true;
+            return new ListValueNode(properties);
+        }
 
-            default:
-                runtimeValue = resultValue;
-                return true;
+        private static ObjectFieldNode ParseField(JsonProperty property)
+            => new(property.Name, Parse(property.Value));
+
+        private static StringValueNode ParseString(JsonElement element)
+            => new(element.GetString()!);
+
+        private static IValueNode ParseNumber(JsonElement element)
+        {
+            var sourceText = JsonMarshal.GetRawUtf8Value(element);
+            return Utf8GraphQLParser.Syntax.ParseValueLiteral(sourceText);
+        }
+    }
+
+    private static class JsonFormatter
+    {
+        private static readonly JsonFormatterVisitor s_visitor = new();
+
+        public static JsonElement Format(IValueNode node)
+        {
+            using var bufferWriter = new PooledArrayWriter();
+            using var jsonWriter = new Utf8JsonWriter(bufferWriter);
+            s_visitor.Visit(node, new JsonFormatterContext(jsonWriter));
+            jsonWriter.Flush();
+
+            var jsonReader = new Utf8JsonReader(bufferWriter.WrittenSpan);
+            return JsonElement.ParseValue(ref jsonReader);
+        }
+
+        private sealed class JsonFormatterVisitor : SyntaxWalker<JsonFormatterContext>
+        {
+            protected override ISyntaxVisitorAction Enter(
+                ObjectValueNode node,
+                JsonFormatterContext context)
+            {
+                context.Writer.WriteStartObject();
+                return base.Enter(node, context);
+            }
+
+            protected override ISyntaxVisitorAction Leave(
+                ObjectValueNode node,
+                JsonFormatterContext context)
+            {
+                context.Writer.WriteEndObject();
+                return base.Enter(node, context);
+            }
+
+            protected override ISyntaxVisitorAction Enter(
+                ListValueNode node,
+                JsonFormatterContext context)
+            {
+                context.Writer.WriteStartArray();
+                return base.Enter(node, context);
+            }
+
+            protected override ISyntaxVisitorAction Leave(
+                ListValueNode node,
+                JsonFormatterContext context)
+            {
+                context.Writer.WriteEndArray();
+                return base.Enter(node, context);
+            }
+
+            protected override ISyntaxVisitorAction Enter(
+                ObjectFieldNode node,
+                JsonFormatterContext context)
+            {
+                context.Writer.WritePropertyName(node.Name.Value);
+                return base.Enter(node, context);
+            }
+
+            protected override ISyntaxVisitorAction Enter(
+                IValueNode node,
+                JsonFormatterContext context)
+            {
+                switch (node)
+                {
+                    case EnumValueNode value:
+                        context.Writer.WriteStringValue(value.Value);
+                        break;
+
+                    case FloatValueNode value:
+                        context.Writer.WriteRawValue(value.AsSpan(), true);
+                        break;
+
+                    case IntValueNode value:
+                        context.Writer.WriteRawValue(value.AsSpan(), true);
+                        break;
+
+                    case BooleanValueNode value:
+                        context.Writer.WriteBooleanValue(value.Value);
+                        break;
+
+                    case StringValueNode value:
+                        context.Writer.WriteStringValue(value.Value);
+                        break;
+
+                    case NullValueNode:
+                        context.Writer.WriteNullValue();
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(node));
+                }
+
+                return base.Enter(node, context);
+            }
+        }
+
+        private sealed class JsonFormatterContext(Utf8JsonWriter writer)
+        {
+            public Utf8JsonWriter Writer { get; } = writer;
         }
     }
 }
