@@ -83,7 +83,7 @@ public partial class DefaultTypeConverter
         registry.Register<string, DateOnly>(from => DateOnly.Parse(from, InvariantCulture));
 
         registry.Register<TimeOnly, DateTimeOffset>(from => default(DateOnly).ToDateTime(from));
-        registry.Register<DateTimeOffset, TimeOnly>(from => TimeOnly.FromDateTime(from.Date));
+        registry.Register<DateTimeOffset, TimeOnly>(from => TimeOnly.FromDateTime(from.DateTime));
         registry.Register<TimeOnly, DateTime>(from => default(DateOnly).ToDateTime(from));
         registry.Register<DateTime, TimeOnly>(TimeOnly.FromDateTime);
         registry.Register<TimeOnly, TimeSpan>(from => from.ToTimeSpan());
