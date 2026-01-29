@@ -1,0 +1,177 @@
+title: Requirement_On_Leaf_Field
+request:
+  document: |
+    {
+      productById(id: "1") {
+        fieldWithNullableRequirement
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "productById": {
+          "fieldWithNullableRequirement": "Required field is not null"
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Product {
+        id: ID!
+        nullableField: String
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup @internal
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_b05a9c48_3(
+              $__fusion_3_id: ID!
+            ) {
+              productById(id: $__fusion_3_id) {
+                nullableField
+              }
+            }
+          variables: |
+            {
+              "__fusion_3_id": "1"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "nullableField": "Product: 1"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Product {
+        fieldWithNullableRequirement(nullableArgument: String @require(field: "nullableField")): String!
+        id: ID!
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_b05a9c48_1 {
+              productById(id: "1") {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "id": "1"
+                  }
+                }
+              }
+      - request:
+          document: |
+            query Op_b05a9c48_2(
+              $__fusion_1_nullableArgument: String
+              $__fusion_2_id: ID!
+            ) {
+              productById(id: $__fusion_2_id) {
+                fieldWithNullableRequirement(nullableArgument: $__fusion_1_nullableArgument)
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_nullableArgument": "Product: 1",
+              "__fusion_2_id": "1"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "fieldWithNullableRequirement": "Required field is not null"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          productById(id: "1") {
+            fieldWithNullableRequirement
+            id @fusion__requirement
+            nullableField @fusion__requirement
+          }
+        }
+      hash: b05a9c488c79e334decd9cae59fb7892
+      searchSpace: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query Op_b05a9c48_1 {
+          productById(id: "1") {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_b05a9c48_2(
+          $__fusion_1_nullableArgument: String
+          $__fusion_2_id: ID!
+        ) {
+          productById(id: $__fusion_2_id) {
+            fieldWithNullableRequirement(nullableArgument: $__fusion_1_nullableArgument)
+          }
+        }
+      source: $.productById
+      target: $.productById
+      requirements:
+        - name: __fusion_1_nullableArgument
+          selectionMap: >-
+            nullableField
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query Op_b05a9c48_3(
+          $__fusion_3_id: ID!
+        ) {
+          productById(id: $__fusion_3_id) {
+            nullableField
+          }
+        }
+      source: $.productById
+      target: $.productById
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
