@@ -1,4 +1,4 @@
-title: Requirement_On_Nullable_Field
+title: Requirement_On_Property_Within_Nullable_Object_Returning_Null
 request:
   document: |
     {
@@ -24,11 +24,15 @@ sourceSchemas:
 
       type Product {
         id: ID!
-        nullableField: String @null
+        nullableObject: Wrapper @null
       }
 
       type Query {
         productById(id: ID!): Product @lookup @internal
+      }
+
+      type Wrapper {
+        field: String!
       }
     interactions:
       - request:
@@ -37,7 +41,9 @@ sourceSchemas:
               $__fusion_3_id: ID!
             ) {
               productById(id: $__fusion_3_id) {
-                nullableField
+                nullableObject {
+                  field
+                }
               }
             }
           variables: |
@@ -50,7 +56,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "nullableField": null
+                    "nullableObject": null
                   }
                 }
               }
@@ -61,7 +67,7 @@ sourceSchemas:
       }
 
       type Product {
-        fieldWithNullableRequirement(nullableArgument: String @require(field: "nullableField")): String!
+        fieldWithNullableRequirement(nullableArgument: String @require(field: "nullableObject.field")): String!
         id: ID!
       }
 
@@ -118,7 +124,9 @@ operationPlan:
           productById(id: "1") {
             fieldWithNullableRequirement
             id @fusion__requirement
-            nullableField @fusion__requirement
+            nullableObject @fusion__requirement {
+              field
+            }
           }
         }
       hash: b05a9c488c79e334decd9cae59fb7892
@@ -150,7 +158,7 @@ operationPlan:
       requirements:
         - name: __fusion_1_nullableArgument
           selectionMap: >-
-            nullableField
+            nullableObject.field
         - name: __fusion_2_id
           selectionMap: >-
             id
@@ -164,7 +172,9 @@ operationPlan:
           $__fusion_3_id: ID!
         ) {
           productById(id: $__fusion_3_id) {
-            nullableField
+            nullableObject {
+              field
+            }
           }
         }
       source: $.productById

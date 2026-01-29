@@ -10,7 +10,54 @@ namespace HotChocolate.Fusion;
 public class RequireTests : FusionTestBase
 {
     [Fact]
-    public async Task Requirement_On_Nullable_Field()
+    public async Task Requirement_On_Leaf_Field()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product {
+              id: ID!
+              nullableField: String
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<NullableLeafFieldRequirement.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              productById(id: "1") {
+                fieldWithNullableRequirement
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Requirement_On_Nullable_Leaf_Field_Returning_Null()
     {
         // arrange
         var server1 = CreateSourceSchema(
@@ -28,7 +75,109 @@ public class RequireTests : FusionTestBase
 
         var server2 = CreateSourceSchema(
             "B",
-            b => b.AddQueryType<NullableRequirement.Query>());
+            b => b.AddQueryType<NullableLeafFieldRequirement.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              productById(id: "1") {
+                fieldWithNullableRequirement
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Requirement_On_Property_Within_Nullable_Object()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product {
+              id: ID!
+              nullableObject: Wrapper
+            }
+
+            type Wrapper {
+              field: String!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<NullableObjectFieldRequirement.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              productById(id: "1") {
+                fieldWithNullableRequirement
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Requirement_On_Property_Within_Nullable_Object_Returning_Null()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product {
+              id: ID!
+              nullableObject: Wrapper @null
+            }
+
+            type Wrapper {
+              field: String!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            b => b.AddQueryType<NullableObjectFieldRequirement.Query>());
 
         using var gateway = await CreateCompositeSchemaAsync(
         [
@@ -235,7 +384,7 @@ public class RequireTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    private static class NullableRequirement
+    private static class NullableLeafFieldRequirement
     {
         public class Query
         {
@@ -246,6 +395,23 @@ public class RequireTests : FusionTestBase
         public record Product([property: ID] int Id)
         {
             public string GetFieldWithNullableRequirement([Require("nullableField")] string? nullableArgument)
+            {
+                return nullableArgument is null ? "Required field is null" : "Required field is not null";
+            }
+        }
+    }
+
+    private static class NullableObjectFieldRequirement
+    {
+        public class Query
+        {
+            [Lookup]
+            public Product? GetProductById([ID] int id) => new Product(id);
+        }
+
+        public record Product([property: ID] int Id)
+        {
+            public string GetFieldWithNullableRequirement([Require("nullableObject.field")] string? nullableArgument)
             {
                 return nullableArgument is null ? "Required field is null" : "Required field is not null";
             }

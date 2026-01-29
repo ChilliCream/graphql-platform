@@ -70,15 +70,15 @@ internal static class ResultDataMapper
             return null;
         }
 
+        if (resultValueKind is JsonValueKind.Null)
+        {
+            return NullValueNode.Default;
+        }
+
         // Note: to capture data from the introspection
         // system we would need to also cover raw field results.
         if (result.Selection is { IsLeaf: true })
         {
-            if (resultValueKind is JsonValueKind.Null)
-            {
-                return NullValueNode.Default;
-            }
-
             if (resultValueKind is JsonValueKind.Array)
             {
                 var items = new List<IValueNode>();
@@ -243,14 +243,7 @@ internal static class ResultDataMapper
             var fieldResultValueKind = fieldResult.ValueKind;
             if (fieldResultValueKind is JsonValueKind.Null)
             {
-                // If we get a `null` for a leaf value, we can return it.
-                if (currentSegment.PathSegment is null)
-                {
-                    return fieldResult;
-                }
-
-                // If we get a `null` for an item on the path, we return undefined.
-                return default;
+                return fieldResult;
             }
 
             if (currentSegment.TypeName is not null)
