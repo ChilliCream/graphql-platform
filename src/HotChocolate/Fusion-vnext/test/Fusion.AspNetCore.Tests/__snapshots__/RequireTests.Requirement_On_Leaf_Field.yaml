@@ -1,4 +1,4 @@
-title: Nullable_Require
+title: Requirement_On_Leaf_Field
 request:
   document: |
     {
@@ -11,7 +11,7 @@ response:
     {
       "data": {
         "productById": {
-          "fieldWithNullableRequirement": null
+          "fieldWithNullableRequirement": "Required field is not null"
         }
       }
     }
@@ -24,7 +24,7 @@ sourceSchemas:
 
       type Product {
         id: ID!
-        nullableField: String @null
+        nullableField: String
       }
 
       type Query {
@@ -50,7 +50,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "nullableField": null
+                    "nullableField": "Product: 1"
                   }
                 }
               }
@@ -83,6 +83,31 @@ sourceSchemas:
                 "data": {
                   "productById": {
                     "id": "1"
+                  }
+                }
+              }
+      - request:
+          document: |
+            query Op_b05a9c48_2(
+              $__fusion_1_nullableArgument: String
+              $__fusion_2_id: ID!
+            ) {
+              productById(id: $__fusion_2_id) {
+                fieldWithNullableRequirement(nullableArgument: $__fusion_1_nullableArgument)
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_nullableArgument": "Product: 1",
+              "__fusion_2_id": "1"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "fieldWithNullableRequirement": "Required field is not null"
                   }
                 }
               }

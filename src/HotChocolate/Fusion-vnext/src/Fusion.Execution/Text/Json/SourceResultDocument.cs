@@ -1,10 +1,12 @@
 using System.Buffers;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
+[DebuggerDisplay("{DebuggerDisplay()}")]
 public sealed partial class SourceResultDocument : IDisposable
 {
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
@@ -212,6 +214,30 @@ public sealed partial class SourceResultDocument : IDisposable
         }
 
         return tempArray;
+    }
+
+    private string DebuggerDisplay()
+    {
+        var dataChunksSpan = _dataChunks.AsSpan(0, _usedChunks);
+
+        var totalLength = 0;
+        foreach (var chunk in dataChunksSpan)
+        {
+            totalLength += chunk.Length;
+        }
+
+        var combined = new byte[totalLength];
+        var offset = 0;
+        foreach (var chunk in dataChunksSpan)
+        {
+            chunk.AsSpan().CopyTo(combined.AsSpan(offset));
+            offset += chunk.Length;
+        }
+
+        var str = s_utf8Encoding.GetString(combined);
+
+        var nullIndex = str.IndexOf('\0');
+        return nullIndex >= 0 ? str[..nullIndex] : str;
     }
 
     private static void CheckExpectedType(JsonTokenType expected, JsonTokenType actual)
