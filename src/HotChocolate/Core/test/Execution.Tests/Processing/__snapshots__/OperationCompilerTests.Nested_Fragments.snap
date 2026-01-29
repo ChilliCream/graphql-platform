@@ -15,7 +15,7 @@ fragment Human1 on Human {
   }
 }
 
-fragment FriendEdge1 on CharacterEdge {
+fragment FriendEdge1 on FriendsEdge {
   node {
     __typename
     friends {
@@ -50,25 +50,63 @@ fragment Human3 on Human {
 
 query(
   $if: Boolean!
-) @includeCondition(flag: 2) @includeCondition(flag: 3) {
+) {
   ... on Query {
-    human(id: "1000") @__execute(id: 0, kind: PURE, type: COMPOSITE) {
+    human(id: "1000") @__execute(id: 2, kind: PURE, type: COMPOSITE) {
       ... on Human {
-        friends @conditional @__execute(id: 1, kind: DEFAULT, type: COMPOSITE) {
+        friends @conditional @__execute(id: 4, kind: DEFAULT, type: COMPOSITE) {
           ... on FriendsConnection {
-            edges @conditional @__execute(id: 2, kind: PURE, type: COMPOSITE_LIST) {
+            edges @conditional @__execute(id: 6, kind: PURE, type: COMPOSITE_LIST) {
               ... on FriendsEdge {
-                node @conditional @__execute(id: 3, kind: PURE, type: COMPOSITE) {
-                  ... on Droid {
-                    __typename @conditional @__execute(id: 4, kind: PURE, type: LEAF)
-                  }
+                node @conditional @__execute(id: 8, kind: PURE, type: COMPOSITE) {
                   ... on Human {
-                    __typename @conditional @__execute(id: 5, kind: PURE, type: LEAF)
-                    name @conditional @__execute(id: 6, kind: PURE, type: LEAF)
-                    otherHuman @conditional @__execute(id: 7, kind: PURE, type: COMPOSITE) {
+                    __typename @conditional @__execute(id: 10, kind: PURE, type: LEAF)
+                    friends @conditional @__execute(id: 11, kind: DEFAULT, type: COMPOSITE) {
+                      ... on FriendsConnection {
+                        nodes @conditional @__execute(id: 15, kind: PURE, type: COMPOSITE_LIST) {
+                          ... on Human {
+                            __typename @conditional @__execute(id: 17, kind: PURE, type: LEAF)
+                            name @conditional @__execute(id: 18, kind: PURE, type: LEAF)
+                            otherHuman @conditional @__execute(id: 19, kind: PURE, type: COMPOSITE) {
+                              ... on Human {
+                                __typename @conditional @__execute(id: 21, kind: PURE, type: LEAF)
+                                name @conditional @__execute(id: 22, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                          ... on Droid {
+                            __typename @conditional @__execute(id: 24, kind: PURE, type: LEAF)
+                          }
+                        }
+                      }
+                    }
+                    name @conditional @__execute(id: 12, kind: PURE, type: LEAF)
+                    otherHuman @conditional @__execute(id: 13, kind: PURE, type: COMPOSITE) {
                       ... on Human {
-                        __typename @conditional @__execute(id: 8, kind: PURE, type: LEAF)
-                        name @conditional @__execute(id: 9, kind: PURE, type: LEAF)
+                        __typename @conditional @__execute(id: 26, kind: PURE, type: LEAF)
+                        name @conditional @__execute(id: 27, kind: PURE, type: LEAF)
+                      }
+                    }
+                  }
+                  ... on Droid {
+                    __typename @conditional @__execute(id: 29, kind: PURE, type: LEAF)
+                    friends @conditional @__execute(id: 30, kind: DEFAULT, type: COMPOSITE) {
+                      ... on FriendsConnection {
+                        nodes @conditional @__execute(id: 32, kind: PURE, type: COMPOSITE_LIST) {
+                          ... on Human {
+                            __typename @conditional @__execute(id: 34, kind: PURE, type: LEAF)
+                            name @conditional @__execute(id: 35, kind: PURE, type: LEAF)
+                            otherHuman @conditional @__execute(id: 36, kind: PURE, type: COMPOSITE) {
+                              ... on Human {
+                                __typename @conditional @__execute(id: 38, kind: PURE, type: LEAF)
+                                name @conditional @__execute(id: 39, kind: PURE, type: LEAF)
+                              }
+                            }
+                          }
+                          ... on Droid {
+                            __typename @conditional @__execute(id: 41, kind: PURE, type: LEAF)
+                          }
+                        }
                       }
                     }
                   }

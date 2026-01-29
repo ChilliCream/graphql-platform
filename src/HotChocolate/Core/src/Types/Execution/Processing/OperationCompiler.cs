@@ -317,7 +317,10 @@ public sealed partial class OperationCompiler
                 CollapseIncludeFlags(includeFlags);
             }
 
-            var field = typeContext.Fields[first.Node.Name.Value];
+            if (!typeContext.Fields.TryGetField(first.Node.Name.Value, out var field))
+            {
+                throw ThrowHelper.FieldDoesNotExistOnType(first.Node, typeContext.Name);
+            }
             var fieldDelegate = CreateFieldPipeline(_schema, field, first.Node);
             var pureFieldDelegate = TryCreatePureField(_schema, field, first.Node);
             var arguments = ArgumentMap.Empty;
@@ -393,7 +396,8 @@ public sealed partial class OperationCompiler
 
                 if (optimizers.Length > 0)
                 {
-                    selection.Features.SetSafe(optimizers);
+                    var features = new SelectionFeatureCollection(compilationContext.Features, selection.Id);
+                    features.SetSafe(optimizers);
                 }
 
                 compilationContext.Register(selection, selection.Id);

@@ -457,7 +457,7 @@ public class OperationCompilerTests
                     }
                 }
             }
-            fragment FriendEdge1 on CharacterEdge {
+            fragment FriendEdge1 on FriendsEdge {
                 node {
                     __typename
                     friends {
