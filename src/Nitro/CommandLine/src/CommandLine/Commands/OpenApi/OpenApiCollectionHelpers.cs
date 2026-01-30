@@ -29,8 +29,7 @@ internal static class OpenApiCollectionHelpers
             }
             catch (Exception exception)
             {
-                // TODO: Handle properly
-                throw new ExitException(exception.Message);
+                throw new ExitException($"Encountered an error while trying to parse '{file}': {exception.Message}");
             }
 
             if (definition is OpenApiEndpointDefinition endpoint)

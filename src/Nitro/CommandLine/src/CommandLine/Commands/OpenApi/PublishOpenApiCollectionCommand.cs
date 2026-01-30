@@ -2,6 +2,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
@@ -130,11 +131,10 @@ internal sealed class PublishOpenApiCollectionCommand : Command
 
                     case IWaitForApproval e:
                         if (e.Deployment is
-                            IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_OpenApiCollectionDeployment
+                            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_OpenApiCollectionDeployment
                             deployment)
                         {
-                            // TODO: Print the errors here
-                            // console.PrintErrors(deployment.Errors);
+                            console.PrintErrors(deployment.Errors);
                         }
 
                         ctx?.Status(

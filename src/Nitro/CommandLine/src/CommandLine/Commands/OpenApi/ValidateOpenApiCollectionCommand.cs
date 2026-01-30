@@ -2,6 +2,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
@@ -59,16 +60,21 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
 
         async Task ValidateOpenApiCollection(StatusContext? ctx)
         {
-            // TODO: Print patterns for confirmation
+            console.Log("Searching for OpenAPI documents with the following patterns:");
+            foreach (var pattern in patterns)
+            {
+                console.Log($"- {pattern}");
+            }
 
             var files = GlobMatcher.Match(patterns).ToArray();
 
             if (files.Length < 1)
             {
-                // TODO: Improve this error
-                console.WriteLine("Did not find any matches...");
+                console.WriteLine("Could not find any OpenAPI documents with the provided pattern.");
                 return;
             }
+
+            console.Log($"Found {files.Length} OpenAPI document(s).");
 
             var archiveStream =
                 await OpenApiCollectionHelpers.BuildOpenApiCollectionArchive(files, ct);

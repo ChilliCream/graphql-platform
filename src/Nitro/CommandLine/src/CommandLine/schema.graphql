@@ -1965,12 +1965,6 @@ type Mutation {
   pollClientVersionValidationRequest(
     input: PollClientVersionValidationRequestInput!
   ): PollClientVersionValidationRequestPayload!
-  pollOpenApiCollectionVersionPublishRequest(
-    input: PollOpenApiCollectionVersionPublishRequestInput!
-  ): PollOpenApiCollectionVersionPublishRequestPayload!
-  pollOpenApiCollectionVersionValidationRequest(
-    input: PollOpenApiCollectionVersionValidationRequestInput!
-  ): PollOpenApiCollectionVersionValidationRequestPayload!
   pollSchemaVersionPublishRequest(
     input: PollSchemaVersionPublishRequestInput!
   ): PollSchemaVersionPublishRequestPayload!
@@ -2160,11 +2154,6 @@ type OpenApiCollectionVersionPublishFailed implements OpenApiCollectionVersionPu
 type OpenApiCollectionVersionPublishSuccess implements OpenApiCollectionVersionPublishResult {
   openApiCollectionVersion: OpenApiCollectionVersion
   state: ProcessingState!
-}
-
-type OpenApiCollectionVersionRequestNotFoundError implements Error {
-  message: String!
-  requestId: ID!
 }
 
 type OpenApiCollectionVersionValidationFailed implements OpenApiCollectionVersionValidationResult {
@@ -3047,16 +3036,6 @@ type PollClientVersionPublishRequestPayload {
 type PollClientVersionValidationRequestPayload {
   errors: [PollClientVersionValidationRequestError!]
   result: ClientVersionValidationResult
-}
-
-type PollOpenApiCollectionVersionPublishRequestPayload {
-  errors: [PollOpenApiCollectionVersionPublishRequestError!]
-  result: OpenApiCollectionVersionPublishResult
-}
-
-type PollOpenApiCollectionVersionValidationRequestPayload {
-  errors: [PollOpenApiCollectionVersionValidationRequestError!]
-  result: OpenApiCollectionVersionValidationResult
 }
 
 type PollSchemaVersionPublishRequestPayload {
@@ -4371,14 +4350,6 @@ union PollClientVersionValidationRequestError =
   | ClientVersionRequestNotFoundError
   | UnauthorizedOperation
 
-union PollOpenApiCollectionVersionPublishRequestError =
-  | OpenApiCollectionVersionRequestNotFoundError
-  | UnauthorizedOperation
-
-union PollOpenApiCollectionVersionValidationRequestError =
-  | OpenApiCollectionVersionRequestNotFoundError
-  | UnauthorizedOperation
-
 union PollSchemaVersionPublishRequestError =
   | SchemaVersionRequestNotFoundError
   | UnauthorizedOperation
@@ -4864,14 +4835,6 @@ input PollClientVersionPublishRequestInput {
 }
 
 input PollClientVersionValidationRequestInput {
-  id: ID!
-}
-
-input PollOpenApiCollectionVersionPublishRequestInput {
-  id: ID!
-}
-
-input PollOpenApiCollectionVersionValidationRequestInput {
   id: ID!
 }
 
