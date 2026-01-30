@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
+namespace ChilliCream.Nitro.CommandLine.FusionCompatibility;
 
 /// <summary>
 /// Represents a configuration for an HTTP client that can be used to fetch data from a subgraph.

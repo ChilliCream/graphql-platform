@@ -5,11 +5,11 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using static ChilliCream.Nitro.CommandLine.Fusion.Compatibility.FusionAbstractionResources;
-using static ChilliCream.Nitro.CommandLine.Fusion.Compatibility.FusionGraphPackageConstants;
+using static ChilliCream.Nitro.CommandLine.FusionCompatibility.FusionAbstractionResources;
+using static ChilliCream.Nitro.CommandLine.FusionCompatibility.FusionGraphPackageConstants;
 using static HotChocolate.Language.Utf8GraphQLParser;
 
-namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
+namespace ChilliCream.Nitro.CommandLine.FusionCompatibility;
 
 /// <summary>
 /// <para>

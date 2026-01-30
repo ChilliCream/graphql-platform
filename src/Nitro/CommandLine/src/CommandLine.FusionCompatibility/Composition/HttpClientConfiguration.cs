@@ -1,12 +1,12 @@
-namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
+namespace ChilliCream.Nitro.CommandLine.FusionCompatibility;
 
 /// <summary>
-/// Represents the configuration for a WebSocket client that can be used to subscribe to a subgraph.
+/// Represents the configuration for an HTTP client that can be used to fetch data from a subgraph.
 /// </summary>
-public sealed class WebSocketClientConfiguration : IClientConfiguration
+public sealed class HttpClientConfiguration : IClientConfiguration
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="WebSocketClientConfiguration"/> class.
+    /// Initializes a new instance of the <see cref="HttpClientConfiguration"/> class.
     /// </summary>
     /// <param name="baseAddress">
     /// The base address of the client.
@@ -14,7 +14,7 @@ public sealed class WebSocketClientConfiguration : IClientConfiguration
     /// <param name="clientName">
     /// The name of the client.
     /// </param>
-    public WebSocketClientConfiguration(Uri baseAddress, string? clientName = null)
+    public HttpClientConfiguration(Uri baseAddress, string? clientName = null)
     {
         BaseAddress = baseAddress;
         ClientName = clientName;

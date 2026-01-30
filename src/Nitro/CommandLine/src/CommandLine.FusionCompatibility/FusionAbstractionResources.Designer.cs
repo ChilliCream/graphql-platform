@@ -7,34 +7,34 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility {
+namespace ChilliCream.Nitro.CommandLine.FusionCompatibility {
     using System;
-    
-    
+
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FusionAbstractionResources {
-        
+
         private static System.Resources.ResourceManager resourceMan;
-        
+
         private static System.Globalization.CultureInfo resourceCulture;
-        
+
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal FusionAbstractionResources() {
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("ChilliCream.Nitro.CommandLine.Fusion.Compatibility.FusionAbstractionResources", typeof(FusionAbstractionResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("ChilliCream.Nitro.CommandLine.FusionCompatibility.FusionAbstractionResources", typeof(FusionAbstractionResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
             }
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,25 +44,25 @@ namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility {
                 resourceCulture = value;
             }
         }
-        
+
         internal static string FusionTypeNames_NoSchemaDef {
             get {
                 return ResourceManager.GetString("FusionTypeNames_NoSchemaDef", resourceCulture);
             }
         }
-        
+
         internal static string FusionGraphPackage_CannotRead {
             get {
                 return ResourceManager.GetString("FusionGraphPackage_CannotRead", resourceCulture);
             }
         }
-        
+
         internal static string FusionGraphPackage_NoFusionGraphDoc {
             get {
                 return ResourceManager.GetString("FusionGraphPackage_NoFusionGraphDoc", resourceCulture);
             }
         }
-        
+
         internal static string FusionGraphPackage_CannotWrite {
             get {
                 return ResourceManager.GetString("FusionGraphPackage_CannotWrite", resourceCulture);
