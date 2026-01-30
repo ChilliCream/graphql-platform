@@ -321,7 +321,7 @@ public sealed class FusionComposeCommandTests : IDisposable
         Assert.Equal(1, exitCode);
         Assert.Matches(
             "^❌ Source schema file '[^']*non-existent-1.graphqls' does not exist.$",
-            testConsole.Error.ToString()!.ReplaceLineEndings("\n"));
+            testConsole.Out.ToString()!.ReplaceLineEndings("\n"));
     }
 
     [Fact]
@@ -370,7 +370,7 @@ public sealed class FusionComposeCommandTests : IDisposable
 
         // assert
         Assert.Equal(1, exitCode);
-        testConsole.Error.ToString()!.ReplaceLineEndings("\n").MatchSnapshot();
+        testConsole.Out.ToString()!.ReplaceLineEndings("\n").MatchSnapshot();
     }
 
     [Fact]

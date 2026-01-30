@@ -342,18 +342,16 @@ internal static class FusionPublishHelpers
             compositionSettings,
             cancellationToken);
 
-        var writer = new AnsiStreamWriter(result.IsSuccess ? console.Out : console.Error);
-
         FusionComposeCommand.WriteCompositionLog(
             compositionLog,
-            writer,
+            new AnsiStreamWriter(Console.Out),
             false);
 
         if (result.IsFailure)
         {
             foreach (var error in result.Errors)
             {
-                console.Error.WriteLine(error.Message);
+                console.WriteLine(error.Message);
             }
 
             return false;

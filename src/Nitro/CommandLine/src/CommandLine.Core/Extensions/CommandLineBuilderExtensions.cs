@@ -71,7 +71,7 @@ public static class CommandLineBuilderExtensions
         {
             context.ExitCode = ExitCodes.Error;
 
-            await context.BindingContext.GetRequiredService<IAnsiConsole>().Error.WriteLineAsync(message);
+            context.BindingContext.GetRequiredService<IAnsiConsole>().MarkupLine(message);
         }
         catch (Exception ex) when (ex is OperationCanceledException or TaskCanceledException)
         {
@@ -79,7 +79,7 @@ public static class CommandLineBuilderExtensions
         catch (Exception exception)
         {
             context.ExitCode = ExitCodes.Error;
-            await context.BindingContext.GetRequiredService<IAnsiConsole>().Error.WriteLineAsync(exception.Message);
+            context.BindingContext.GetRequiredService<IAnsiConsole>().WriteLine(exception.Message);
             throw;
         }
     }

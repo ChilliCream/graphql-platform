@@ -223,7 +223,7 @@ internal sealed class FusionComposeCommand : Command
             }
             else
             {
-                console.Error.WriteLine($"❌ The path `{sourceSchemaPath}` does not exist.");
+                console.WriteLine($"❌ The path `{sourceSchemaPath}` does not exist.");
                 return 1;
             }
         }
@@ -369,7 +369,7 @@ internal sealed class FusionComposeCommand : Command
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                console.Error.WriteLine($"❌ Error during recomposition: {ex.Message}");
+                console.WriteLine($"❌ Error during recomposition: {ex.Message}");
             }
             finally
             {
@@ -416,7 +416,7 @@ internal sealed class FusionComposeCommand : Command
                 compositionSettings,
                 cancellationToken);
 
-            var writer = result.IsSuccess ? console.Out : console.Error;
+            var writer = console.Out;
 
             WriteCompositionLog(
                 compositionLog,
@@ -432,7 +432,7 @@ internal sealed class FusionComposeCommand : Command
             {
                 foreach (var error in result.Errors)
                 {
-                    console.Error.WriteLine(error.Message);
+                    console.WriteLine(error.Message);
                 }
 
                 return 1;
@@ -446,7 +446,7 @@ internal sealed class FusionComposeCommand : Command
         }
         catch (Exception e)
         {
-            console.Error.WriteLine(e.Message);
+            console.WriteLine(e.Message);
             return 1;
         }
     }
