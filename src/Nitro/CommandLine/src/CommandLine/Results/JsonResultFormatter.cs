@@ -23,6 +23,6 @@ internal sealed class JsonResultFormatter(IAnsiConsole console) : IResultFormatt
 
         var serializedObj = JsonSerializer.Serialize(obj, obj.GetType(), JsonSourceGenerationContext.Default);
 
-        console.Write(new JsonText(serializedObj));
+        console.Write(serializedObj);
     }
 }
