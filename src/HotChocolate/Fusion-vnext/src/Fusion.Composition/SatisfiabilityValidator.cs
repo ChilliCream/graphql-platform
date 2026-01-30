@@ -162,7 +162,7 @@ internal sealed class SatisfiabilityValidator
                     _requirementsValidator.Validate(
                         requirements,
                         type,
-                        context.Path.Peek(),
+                        previousPathItem,
                         excludeSchemaName: schemaName);
 
                 if (requirementErrors.Length != 0)

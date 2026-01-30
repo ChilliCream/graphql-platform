@@ -342,7 +342,6 @@
   <Folder Name="/Nitro/CommandLine/" />
   <Folder Name="/Nitro/CommandLine/src/">
     <Project Path="Nitro/CommandLine/src/CommandLine/Nitro.CommandLine.csproj" />
-    <Project Path="Nitro/CommandLine/src/CommandLine.Core/Nitro.CommandLine.Core.csproj" />
     <Project Path="Nitro/CommandLine/src/CommandLine.Fusion.Compatibility/Nitro.CommandLine.Fusion.Compatibility.csproj" />
   </Folder>
   <Folder Name="/Nitro/CommandLine/test/">

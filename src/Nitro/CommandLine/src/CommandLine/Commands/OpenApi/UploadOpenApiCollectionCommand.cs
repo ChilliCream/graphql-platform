@@ -59,7 +59,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
             if (files.Length < 1)
             {
                 // TODO: Improve this error
-                console.ErrorLine("Did not find any matches...");
+                console.WriteLine("Did not find any matches...");
                 return;
             }
 

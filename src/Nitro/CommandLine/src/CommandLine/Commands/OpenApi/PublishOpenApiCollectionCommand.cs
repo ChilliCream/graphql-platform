@@ -108,7 +108,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                         break;
 
                     case IOpenApiCollectionVersionPublishFailed { Errors: var openApiCollectionErrors }:
-                        console.ErrorLine("OpenAPI collection publish failed");
+                        console.WriteLine("OpenAPI collection publish failed");
                         console.PrintErrorsAndExit(openApiCollectionErrors);
                         stopSignal.OnNext(Unit.Default);
                         break;

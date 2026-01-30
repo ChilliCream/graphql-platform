@@ -66,7 +66,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
             if (files.Length < 1)
             {
                 // TODO: Improve this error
-                console.ErrorLine("Did not find any matches...");
+                console.WriteLine("Did not find any matches...");
                 return;
             }
 
@@ -101,7 +101,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                 switch (x.Data?.OnOpenApiCollectionVersionValidationUpdate)
                 {
                     case IOpenApiCollectionVersionValidationFailed { Errors: var validationErrors }:
-                        console.ErrorLine("The OpenAPI collection is invalid:");
+                        console.WriteLine("The OpenAPI collection is invalid:");
                         console.PrintErrorsAndExit(validationErrors);
                         stopSignal.OnNext(Unit.Default);
                         break;

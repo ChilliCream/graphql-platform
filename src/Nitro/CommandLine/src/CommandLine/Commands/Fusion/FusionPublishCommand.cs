@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Settings;
 using HotChocolate.Fusion;
@@ -308,7 +309,7 @@ internal sealed class FusionPublishCommand : Command
         }
         catch (Exception exception)
         {
-            console.Error.WriteLine(exception.Message);
+            console.WriteLine(exception.Message);
 
             if (!string.IsNullOrEmpty(requestId))
             {
@@ -445,7 +446,7 @@ internal sealed class FusionPublishCommand : Command
         }
         catch (Exception exception)
         {
-            console.ErrorLine(exception.Message);
+            console.WriteLine(exception.Message);
 
             if (!string.IsNullOrEmpty(requestId))
             {
