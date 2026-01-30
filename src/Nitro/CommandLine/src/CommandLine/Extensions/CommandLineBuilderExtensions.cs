@@ -1,5 +1,6 @@
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
+using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine;
 

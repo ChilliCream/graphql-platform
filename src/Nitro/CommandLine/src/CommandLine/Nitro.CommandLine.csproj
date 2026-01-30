@@ -31,7 +31,6 @@
     <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.SourceSchema.Packaging\HotChocolate.Fusion.SourceSchema.Packaging.csproj" />
     <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Core\StrawberryShake.Core.csproj" />
     <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
-    <ProjectReference Include="..\CommandLine.Core\Nitro.CommandLine.Core.csproj" />
     <ProjectReference Include="..\CommandLine.Fusion.Compatibility\Nitro.CommandLine.Fusion.Compatibility.csproj" />
   </ItemGroup>
 

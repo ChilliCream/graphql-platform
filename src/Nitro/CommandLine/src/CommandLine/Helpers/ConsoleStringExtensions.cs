@@ -33,6 +33,11 @@ internal static class ConsoleRenderExtensions
     {
         return value ? Glyphs.Check : Glyphs.Cross;
     }
+
+    public static string AsQuestion(this string str)
+    {
+        return $"{Glyphs.QuestionMark} [bold]{str}[/]";
+    }
 }
 
 internal static class Glyphs
