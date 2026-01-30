@@ -173,7 +173,7 @@ public sealed class FieldSelectionMapValidator(
 
                     if (disallowNullableFieldsOnPathToNonNullInputType
                         && inputType.IsNonNullType()
-                        && context.LastNullableField is {} nullableFieldOnPath)
+                        && context.LastNullableField is { } nullableFieldOnPath)
                     {
                         var printedInputType = inputType.ToTypeNode().Print(indented: false);
 
