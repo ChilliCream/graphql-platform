@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
+namespace ChilliCream.Nitro.CommandLine.FusionCompatibility;
 
 /// <summary>
 /// Represents the configuration for a subgraph.

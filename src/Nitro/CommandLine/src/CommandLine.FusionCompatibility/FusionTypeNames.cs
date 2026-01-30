@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 
-namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
+namespace ChilliCream.Nitro.CommandLine.FusionCompatibility;
 
 /// <summary>
 /// Helper class that tracks the namespaced fusion types.

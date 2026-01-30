@@ -5,7 +5,7 @@ using System.Reactive.Subjects;
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
+using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Options;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;

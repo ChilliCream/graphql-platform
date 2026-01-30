@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>ChilliCream.Nitro.CommandLine.Fusion.Compatibility</RootNamespace>
-    <AssemblyName>ChilliCream.Nitro.CommandLine.Fusion.Compatibility</AssemblyName>
-    <PackageId>ChilliCream.Nitro.CommandLine.Fusion.Compatibility</PackageId>
+    <RootNamespace>ChilliCream.Nitro.CommandLine.FusionCompatibility</RootNamespace>
+    <AssemblyName>ChilliCream.Nitro.CommandLine.FusionCompatibility</AssemblyName>
+    <PackageId>ChilliCream.Nitro.CommandLine.FusionCompatibility</PackageId>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
 

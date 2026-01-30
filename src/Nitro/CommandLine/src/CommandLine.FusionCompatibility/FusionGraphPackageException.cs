@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Fusion.Compatibility;
+namespace ChilliCream.Nitro.CommandLine.FusionCompatibility;
 
 /// <summary>
 /// Represents an exception that is thrown when a fusion graph package is invalid.
