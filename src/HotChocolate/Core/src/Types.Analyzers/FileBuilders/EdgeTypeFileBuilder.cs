@@ -10,11 +10,17 @@ public sealed class EdgeTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
 
     public override void WriteBeginClass(IOutputTypeInfo type)
     {
+        if (type is not EdgeTypeInfo edgeType)
+        {
+            throw new InvalidOperationException(
+                "The specified type is not an edge type.");
+        }
+
         Writer.WriteIndentedLine(
             "{0} partial class {1} : ObjectType<global::{2}>",
-            type.IsPublic ? "public" : "internal",
-            type.Name,
-            type.RuntimeTypeName?.FullName);
+            edgeType.IsPublic ? "public" : "internal",
+            edgeType.Name,
+            edgeType.RuntimeTypeName.FullName);
         Writer.WriteIndentedLine("{");
         Writer.IncreaseIndent();
     }
