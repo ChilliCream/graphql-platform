@@ -164,6 +164,30 @@ interface Node {
   id: ID!
 }
 
+interface OpenApiCollectionValidationEntity {
+  errors: [OpenApiCollectionValidationEntityError!]!
+}
+
+interface OpenApiCollectionValidationEntityError {
+  message: String!
+}
+
+interface OpenApiCollectionVersionPublishError {
+  message: String!
+}
+
+interface OpenApiCollectionVersionPublishResult {
+  state: ProcessingState!
+}
+
+interface OpenApiCollectionVersionValidationError {
+  message: String!
+}
+
+interface OpenApiCollectionVersionValidationResult {
+  state: ProcessingState!
+}
+
 interface OpenTelemetryAttribute {
   key: String!
 }
@@ -253,7 +277,6 @@ type Api implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): ClientsConnection
-
   createdAt: DateTime!
   createdBy: UserInfo!
   documents(
@@ -262,7 +285,6 @@ type Api implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): ApiDocumentConnection
-
   httpConnection: ApiHttpConnection
   id: ID!
   kind: ApiKind
@@ -276,10 +298,19 @@ type Api implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): MockSchemasConnection
-
   modifiedAt: DateTime!
   modifiedBy: UserInfo!
   name: String!
+  openApiCollections(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the last _n_ elements from the list."
+    last: Int
+  ): ApiOpenApiCollectionsConnection
   operations(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -290,7 +321,6 @@ type Api implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OperationsConnection
-
   path: [String!]!
   schemaVersions(
     "Returns the elements in the list that come after the specified cursor."
@@ -302,7 +332,6 @@ type Api implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): SchemaVersionsConnection
-
   settings: ApiSettings!
   stages: [Stage!]!
   version: Version!
@@ -479,7 +508,6 @@ type ApiKey implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): ApiKeyRoleAssignmentsConnection
-
   scopes: [ApiKeyScope!]!
   workspace: Workspace
 }
@@ -539,6 +567,24 @@ type ApiKeysEdge {
 type ApiNotFoundError implements Error {
   apiId: ID!
   message: String!
+}
+
+"A connection to a list of items."
+type ApiOpenApiCollectionsConnection {
+  "A list of edges."
+  edges: [ApiOpenApiCollectionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [OpenApiCollection!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type ApiOpenApiCollectionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: OpenApiCollection!
 }
 
 type ApiPermissionScope implements PermissionScope {
@@ -685,7 +731,6 @@ type Client implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OperationsConnection
-
   versions(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -766,7 +811,6 @@ type ClientVersion implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): PersistedQueriesConnection
-
   publishedTo: [PublishedClientVersion!]!
   tag: String!
   tags: [String!]! @deprecated(reason: "Use `tag` instead.")
@@ -843,7 +887,7 @@ type CommitFusionConfigurationPublishPayload {
   requestId: ID
 }
 
-type ConcurrentOperationError implements Error & SchemaVersionPublishError & ClientVersionPublishError & FusionConfigurationPublishingError & ProcessingError {
+type ConcurrentOperationError implements Error & SchemaVersionPublishError & ClientVersionPublishError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & ProcessingError {
   message: String!
 }
 
@@ -978,6 +1022,11 @@ type CreateMockSchemaPayload {
   mockSchema: MockSchema
 }
 
+type CreateOpenApiCollectionPayload {
+  errors: [CreateOpenApiCollectionError!]
+  openApiCollection: OpenApiCollection
+}
+
 type CreatePersonalAccessTokenPayload {
   errors: [CreatePersonalAccessTokenError!]
   result: PersonalAccessTokenWithSecret
@@ -1006,6 +1055,11 @@ type DeleteClientByIdPayload {
 type DeleteMockSchemaByIdPayload {
   errors: [DeleteMockSchemaByIdError!]
   mockSchema: MockSchema
+}
+
+type DeleteOpenApiCollectionByIdPayload {
+  errors: [DeleteOpenApiCollectionByIdError!]
+  openApiCollection: OpenApiCollection
 }
 
 type DeploymentApproval {
@@ -1369,7 +1423,6 @@ type FieldCoordinateMetrics implements CoordinateMetrics {
     to: DateTime!
   ): CoordinateClientUsage
   clientUsages(from: DateTime!, to: DateTime!): [CoordinateClientUsage!]!
-
   duration(
     from: DateTime!
     resolution: Int! = 300
@@ -1450,7 +1503,6 @@ type FusionConfigurationDeploymentSchemaChanges {
     last: Int
     severity: SchemaChangeSeverity
   ): SchemaChangesConnection
-
   statistic: SchemaChangeLogStatistic!
 }
 
@@ -1580,7 +1632,6 @@ type GraphQLInterfaceFieldArgumentDefinitionArgumentsConnection implements Graph
 
 type GraphQLInterfaceFieldDefinition implements Node & GraphQLTypeSystemMember & GraphQLOutputFieldDefinition {
   arguments: GraphQLInterfaceFieldArgumentDefinitionArgumentsConnection!
-
   coordinate: String!
   id: ID!
   isDeprecated: Boolean!
@@ -1621,7 +1672,6 @@ type GraphQLObjectFieldArgumentDefinitionArgumentsConnection implements GraphQLO
 
 type GraphQLObjectFieldDefinition implements Node & GraphQLTypeSystemMember & GraphQLOutputFieldDefinition {
   arguments: GraphQLObjectFieldArgumentDefinitionArgumentsConnection!
-
   coordinate: String!
   id: ID!
   isDeprecated: Boolean!
@@ -1681,7 +1731,6 @@ type Group implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): GroupGroupsConnection
-
   id: ID!
   isDefault: Boolean!
   members(
@@ -1694,7 +1743,6 @@ type Group implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): GroupMembersConnection
-
   name: String!
   organization: Organization
   roleAssignments(
@@ -1820,6 +1868,10 @@ type InvalidGraphQLSchemaError implements SchemaVersionValidationError & SchemaV
   message: String!
 }
 
+type InvalidOpenApiCollectionArchiveError implements Error {
+  message: String!
+}
+
 type InvalidPersistedQueryError implements Error {
   content: String!
   hash: String!
@@ -1873,12 +1925,10 @@ type MockSchemasEdge {
 
 type Mutation {
   approveDeployment(input: ApproveDeploymentInput!): ApproveDeploymentPayload!
-
   beginFusionConfigurationPublish(
     input: BeginFusionConfigurationPublishInput!
   ): BeginFusionConfigurationPublishPayload!
   cancelDeployment(input: CancelDeploymentInput!): CancelDeploymentPayload!
-
   cancelFusionConfigurationComposition(
     input: CancelFusionConfigurationCompositionInput!
   ): CancelFusionConfigurationCompositionPayload!
@@ -1887,30 +1937,28 @@ type Mutation {
   ): CommitFusionConfigurationPublishPayload!
   createAccount: CreateAccountPayload!
   createApiKey(input: CreateApiKeyInput!): CreateApiKeyPayload!
-
   createApiKeyForApi(
     input: CreateApiKeyForApiInput!
   ): CreateApiKeyForApiPayload!
   createClient(input: CreateClientInput!): CreateClientPayload!
-
   createMockSchema(input: CreateMockSchemaInput!): CreateMockSchemaPayload!
-
+  createOpenApiCollection(
+    input: CreateOpenApiCollectionInput!
+  ): CreateOpenApiCollectionPayload!
   createPersonalAccessToken(
     input: CreatePersonalAccessTokenInput!
   ): CreatePersonalAccessTokenPayload!
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspacePayload!
-
   deleteApiById(input: DeleteApiByIdInput!): DeleteApiByIdPayload!
-
   deleteApiKey(input: DeleteApiKeyInput!): DeleteApiKeyPayload!
-
   deleteClientById(input: DeleteClientByIdInput!): DeleteClientByIdPayload!
-
   deleteMockSchemaById(
     input: DeleteMockSchemaByIdInput!
   ): DeleteMockSchemaByIdPayload!
+  deleteOpenApiCollectionById(
+    input: DeleteOpenApiCollectionByIdInput!
+  ): DeleteOpenApiCollectionByIdPayload!
   ensureTunnelSession: EnsureTunnelSessionPayload!
-
   pollClientVersionPublishRequest(
     input: PollClientVersionPublishRequestInput!
   ): PollClientVersionPublishRequestPayload!
@@ -1924,58 +1972,53 @@ type Mutation {
     input: PollSchemaVersionValidationRequestInput!
   ): PollSchemaVersionValidationRequestPayload!
   publishClient(input: PublishClientInput!): PublishClientPayload!
-
+  publishOpenApiCollection(
+    input: PublishOpenApiCollectionInput!
+  ): PublishOpenApiCollectionPayload!
   publishSchema(input: PublishSchemaInput!): PublishSchemaPayload!
-
   pushDocumentChanges(
     input: PushDocumentChangeInput!
   ): PushDocumentChangesPayload! @deprecated(reason: "Use pushWorkspaceChanges")
   pushWorkspaceChanges(
     input: PushWorkspaceChangesInput!
   ): PushWorkspaceChangesPayload!
-
   removeWorkspace(input: RemoveWorkspaceInput!): RemoveWorkspacePayload!
-
   renameWorkspace(input: RenameWorkspaceInput!): RenameWorkspacePayload!
-
   revokePersonalAccessToken(
     input: RevokePersonalAccessTokenInput!
   ): RevokePersonalAccessTokenPayload!
   setActiveWorkspace(
     input: SetActiveWorkspaceInput!
   ): SetActiveWorkspacePayload!
-
   startFusionConfigurationComposition(
     input: StartFusionConfigurationCompositionInput!
   ): StartFusionConfigurationCompositionPayload!
   unpublishClient(input: UnpublishClientInput!): UnpublishClientPayload!
-
   updateApiSettings(input: UpdateApiSettingsInput!): UpdateApiSettingsPayload!
-
   updateFeatureFlags(
     input: UpdateFeatureFlagsInput!
   ): UpdateFeatureFlagsPayload!
   updateMockSchema(input: UpdateMockSchemaInput!): UpdateMockSchemaPayload!
-
   updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload!
-
   updateStages(input: UpdateStagesInput!): UpdateStagesPayload!
-
   updateThemeSettings(
     input: UpdateThemeSettingsInput!
   ): UpdateThemeSettingsPayload!
   uploadClient(input: UploadClientInput!): UploadClientPayload!
-
   uploadFusionSubgraph(
     input: UploadFusionSubgraphInput!
   ): UploadFusionSubgraphPayload!
+  uploadOpenApiCollection(
+    input: UploadOpenApiCollectionInput!
+  ): UploadOpenApiCollectionPayload!
   uploadSchema(input: UploadSchemaInput!): UploadSchemaPayload!
-
   validateClient(input: ValidateClientInput!): ValidateClientPayload!
-
   validateFusionConfigurationComposition(
     input: ValidateFusionConfigurationCompositionInput!
   ): ValidateFusionConfigurationCompositionPayload!
+  validateOpenApiCollection(
+    input: ValidateOpenApiCollectionInput!
+  ): ValidateOpenApiCollectionPayload!
   validateSchema(input: ValidateSchemaInput!): ValidateSchemaPayload!
 }
 
@@ -2006,6 +2049,138 @@ type ObjectModifiedChange implements SchemaChange {
   coordinate: String!
   kind: TypeSystemMemberKind!
   severity: SchemaChangeSeverity!
+}
+
+type OpenApiCollection implements Node {
+  api: Api
+  createdAt: DateTime!
+  createdBy: UserInfo!
+  id: ID!
+  name: String!
+  versions(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the last _n_ elements from the list."
+    last: Int
+  ): OpenApiCollectionVersionsConnection
+}
+
+type OpenApiCollectionChangeLog implements StageChangeLog & Node {
+  changedAt: DateTime!
+  id: ID!
+  kind: StageChangeLogKind!
+  tag: String!
+}
+
+type OpenApiCollectionDeployment implements Node & Deployment {
+  approval: DeploymentApproval
+  createdAt: DateTime!
+  errors: [OpenApiCollectionDeploymentError!]!
+  id: ID!
+  logs: [DeploymentLog!]!
+  openApiCollection: OpenApiCollection
+  status: DeploymentStatus!
+  tag: String!
+}
+
+type OpenApiCollectionNotFoundError implements Error {
+  message: String!
+  openApiCollectionId: ID!
+}
+
+type OpenApiCollectionValidationArchiveError implements OpenApiCollectionVersionValidationError & ProcessingError {
+  message: String!
+}
+
+type OpenApiCollectionValidationCollection {
+  entities: [OpenApiCollectionValidationEntity!]!
+  openApiCollection: OpenApiCollection
+}
+
+type OpenApiCollectionValidationDocumentError implements OpenApiCollectionValidationEntityError {
+  code: String
+  locations: [OpenApiCollectionValidationDocumentErrorLocation!]
+  message: String!
+  path: String
+}
+
+type OpenApiCollectionValidationDocumentErrorLocation {
+  column: Int!
+  line: Int!
+}
+
+type OpenApiCollectionValidationEndpoint implements OpenApiCollectionValidationEntity {
+  errors: [OpenApiCollectionValidationEntityError!]!
+  httpMethod: String!
+  route: String!
+}
+
+type OpenApiCollectionValidationEntityValidationError implements OpenApiCollectionValidationEntityError {
+  message: String!
+}
+
+type OpenApiCollectionValidationError implements OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationValidationError & ProcessingError {
+  collections: [OpenApiCollectionValidationCollection!]!
+  message: String!
+}
+
+type OpenApiCollectionValidationModel implements OpenApiCollectionValidationEntity {
+  errors: [OpenApiCollectionValidationEntityError!]!
+  name: String!
+}
+
+type OpenApiCollectionVersion implements Node {
+  createdAt: DateTime!
+  id: ID!
+  openApiCollection: OpenApiCollection
+  tag: String!
+}
+
+type OpenApiCollectionVersionNotFoundError implements Error {
+  message: String!
+  openApiCollectionId: ID!
+  tag: String!
+}
+
+type OpenApiCollectionVersionPublishFailed implements OpenApiCollectionVersionPublishResult {
+  errors: [OpenApiCollectionVersionPublishError!]!
+  state: ProcessingState!
+}
+
+type OpenApiCollectionVersionPublishSuccess implements OpenApiCollectionVersionPublishResult {
+  openApiCollectionVersion: OpenApiCollectionVersion
+  state: ProcessingState!
+}
+
+type OpenApiCollectionVersionValidationFailed implements OpenApiCollectionVersionValidationResult {
+  errors: [OpenApiCollectionVersionValidationError!]!
+  state: ProcessingState!
+}
+
+type OpenApiCollectionVersionValidationSuccess implements OpenApiCollectionVersionValidationResult {
+  state: ProcessingState!
+}
+
+"A connection to a list of items."
+type OpenApiCollectionVersionsConnection {
+  "A list of edges."
+  edges: [OpenApiCollectionVersionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [OpenApiCollectionVersion!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type OpenApiCollectionVersionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: OpenApiCollectionVersion!
 }
 
 type OpenTelemetryBoolAttribute implements OpenTelemetryAttribute {
@@ -2087,13 +2262,11 @@ type OpenTelemetryGraphQLOperationSpan implements OpenTelemetrySpan {
   api: Api
   clockSkew: Float
   document: OpenTelemetryGraphQLOperationSpanDocumentAttributes
-
   duration: Float!
   epoch: Float!
   events: [OpenTelemetryTraceEvent!]!
   links: [OpenTelemetryTraceLink!]!
   operation: OpenTelemetryGraphQLOperationSpanOperationAttributes
-
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
   spanAttributes: [Attribute!]!
@@ -2127,7 +2300,6 @@ type OpenTelemetryGraphQLResolverSpan implements OpenTelemetrySpan {
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
   selection: OpenTelemetryGraphQLResolverSpanSelectionAttributes
-
   spanAttributes: [Attribute!]!
   spanId: String!
   spanKind: String!
@@ -2280,7 +2452,6 @@ type OpenTelemetryTrace {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OpenTelemetryLogsConnection
-
   spans: [OpenTelemetrySpan!]!
   totalDuration: Float!
 }
@@ -2410,7 +2581,7 @@ type Operation {
   name: String
 }
 
-type OperationInProgress implements SchemaVersionValidationResult & SchemaVersionPublishResult & ClientVersionValidationResult & ClientVersionPublishResult & FusionConfigurationPublishingResult {
+type OperationInProgress implements SchemaVersionValidationResult & SchemaVersionPublishResult & ClientVersionValidationResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult & OpenApiCollectionVersionValidationResult {
   state: ProcessingState!
 }
 
@@ -2567,7 +2738,6 @@ type Organization implements Node {
     last: Int
     to: DateTime
   ): OrganizationAuthorizationEventLogsConnection
-
   billingInfo: OrganizationBillingInfo
   displayName: String!
   groups(
@@ -2580,7 +2750,6 @@ type Organization implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OrganizationGroupsConnection
-
   id: ID!
   members(
     "Returns the elements in the list that come after the specified cursor."
@@ -2592,7 +2761,6 @@ type Organization implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OrganizationMembersConnection
-
   name: String!
   plan: OrganizationPlan
   usage(from: DateTime, to: DateTime): OrganizationUsage
@@ -2657,7 +2825,6 @@ type OrganizationMember implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): OrganizationMemberGroupsConnection
-
   id: ID!
   isDisabled: Boolean!
   userName: String
@@ -2717,7 +2884,6 @@ type OrganizationPlan {
 
 type OrganizationUsage {
   cumulativeGigabyteHours: OrganizationUsageCumulativeGigabyteHoursGraph
-
   gigabyteHours: OrganizationUsageGigabyteHoursGraph
   period: OrganizationUsagePeriod!
 }
@@ -2892,25 +3058,30 @@ type PossibleTypeRemoved implements SchemaChange {
   typeName: String!
 }
 
-type ProcessingTaskApproved implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult {
+type ProcessingTaskApproved implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult {
   state: ProcessingState!
 }
 
-type ProcessingTaskIsQueued implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult {
+type ProcessingTaskIsQueued implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult & OpenApiCollectionVersionPublishResult {
   queuePosition: Int!
   state: ProcessingState!
 }
 
-type ProcessingTaskIsReady implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult {
+type ProcessingTaskIsReady implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult & OpenApiCollectionVersionPublishResult {
   state: ProcessingState!
 }
 
-type ProcessingTimeoutError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & ProcessingError {
+type ProcessingTimeoutError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & ProcessingError {
   message: String!
 }
 
 type PublishClientPayload {
   errors: [PublishClientError!]
+  id: ID
+}
+
+type PublishOpenApiCollectionPayload {
+  errors: [PublishOpenApiCollectionError!]
   id: ID
 }
 
@@ -2951,10 +3122,9 @@ type PushWorkspaceChangesPayload {
 type Query {
   apiById(id: ID!): Api
   fusionConfigurationByApiId(id: ID!, stage: String!): FusionConfiguration
-
   me: Viewer
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node
+  node("ID of the object." id: ID!): Node @lookup @shareable
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]!
   organizationById(id: ID!): Organization
@@ -2962,7 +3132,7 @@ type Query {
   workspaceById(workspaceId: ID!): Workspace
 }
 
-type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationPublishingError & ProcessingError {
+type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & ProcessingError {
   message: String!
 }
 
@@ -3089,7 +3259,6 @@ type SchemaChangeLog implements StageChangeLog & Node {
     last: Int
     severity: SchemaChangeSeverity
   ): SchemaChangesConnection
-
   id: ID!
   kind: StageChangeLogKind!
   previousSchema: SchemaVersion
@@ -3134,7 +3303,6 @@ type SchemaCoordinateMetrics implements CoordinateMetrics {
     to: DateTime!
   ): CoordinateClientUsage
   clientUsages(from: DateTime!, to: DateTime!): [CoordinateClientUsage!]!
-
   requests(
     from: DateTime!
     resolution: Int! = 300
@@ -3170,7 +3338,6 @@ type SchemaDeploymentSchemaChanges {
     last: Int
     severity: SchemaChangeSeverity
   ): SchemaChangesConnection
-
   previousSchema: SchemaVersion
   schema: SchemaVersion
   statistic: SchemaChangeLogStatistic!
@@ -3269,7 +3436,6 @@ type Stage implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): StageChangeLogConnection
-
   conditions: [StageCondition!]!
   coordinate(coordinate: String!): GraphQLTypeSystemMember
   coordinates(
@@ -3284,7 +3450,6 @@ type Stage implements Node {
     search: String
     to: DateTime
   ): CoordinatesConnection
-
   deployments(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -3295,7 +3460,6 @@ type Stage implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): DeploymentsConnection
-
   displayName: String!
   essentials: StageEssentials
   id: ID!
@@ -3315,7 +3479,6 @@ type Stage implements Node {
     last: Int
     to: DateTime
   ): OpenTelemetryLogsConnection
-
   metrics: StageMetrics!
   name: String!
   publishedClients: [PublishedClient!]!
@@ -3406,7 +3569,6 @@ type StageNotFoundError implements Error {
 
 type StageOperationMetrics {
   latency(from: DateTime!, to: DateTime!): OperationLatencyGraph
-
   latencyDistribution(
     from: DateTime!
     to: DateTime!
@@ -3442,14 +3604,12 @@ type StageOperationsMetrics {
     search: String
     to: DateTime!
   ): OperationInsightsConnection
-
   latency(
     from: DateTime!
     operationKinds: [OperationKind!]
     to: DateTime!
   ): OperationsLatencyGraph
   summary(from: DateTime!, to: DateTime!): StageOperationMetricsSummary!
-
   throughput(
     from: DateTime!
     operationKinds: [OperationKind!]
@@ -3459,7 +3619,6 @@ type StageOperationsMetrics {
 
 type StageResolverMetrics {
   latency(from: DateTime!, to: DateTime!): ResolverLatencyGraph
-
   throughput(from: DateTime!, to: DateTime!): ResolverThroughputGraph
 }
 
@@ -3498,7 +3657,6 @@ type StageThroughputSummary {
 
 type StageTransactionMetrics {
   latency(from: DateTime!, to: DateTime!): OpenTelemetryTransactionLatencyGraph
-
   latencyDistribution(
     from: DateTime!
     to: DateTime!
@@ -3532,14 +3690,12 @@ type StageTransactionsMetrics {
     spanKinds: [OpenTelemetrySpanKind!]
     to: DateTime!
   ): OpenTelemetryTransactionInsightsConnection
-
   latency(
     from: DateTime!
     spanKinds: [OpenTelemetrySpanKind!]
     to: DateTime!
   ): OpenTelemetryTransactionsLatencyGraph
   summary(from: DateTime!, to: DateTime!): StageTransactionMetricsSummary!
-
   throughput(
     from: DateTime!
     spanKinds: [OpenTelemetrySpanKind!]
@@ -3634,6 +3790,12 @@ type Subscription {
   onFusionConfigurationPublishingTaskChanged(
     requestId: ID!
   ): FusionConfigurationPublishingResult!
+  onOpenApiCollectionVersionPublishingUpdate(
+    requestId: ID!
+  ): OpenApiCollectionVersionPublishResult!
+  onOpenApiCollectionVersionValidationUpdate(
+    requestId: ID!
+  ): OpenApiCollectionVersionValidationResult!
   onPersistedQueriesChanged(
     apiId: ID!
     stageName: String!
@@ -3702,7 +3864,7 @@ type UnexpectedErrorOnDocumentChange implements Error {
   workspaceId: ID!
 }
 
-type UnexpectedProcessingError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & FusionConfigurationValidationError & ProcessingError {
+type UnexpectedProcessingError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & FusionConfigurationValidationError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & ProcessingError {
   message: String!
 }
 
@@ -3768,6 +3930,11 @@ type UploadFusionSubgraphPayload {
   fusionSubgraphVersion: FusionSubgraphVersion
 }
 
+type UploadOpenApiCollectionPayload {
+  errors: [UploadOpenApiCollectionError!]
+  openApiCollectionVersion: OpenApiCollectionVersion
+}
+
 type UploadSchemaPayload {
   errors: [UploadSchemaError!]
   schemaVersion: SchemaVersion
@@ -3798,6 +3965,11 @@ type ValidateFusionConfigurationCompositionPayload {
   requestId: ID
 }
 
+type ValidateOpenApiCollectionPayload {
+  errors: [ValidateOpenApiCollectionError!]
+  id: ID
+}
+
 type ValidateSchemaPayload {
   errors: [ValidateSchemaError!]
   id: ID
@@ -3812,7 +3984,7 @@ type ValidationErrorProperty {
   message: String!
 }
 
-type ValidationInProgress implements FusionConfigurationPublishingResult & ClientVersionValidationResult & SchemaVersionValidationResult {
+type ValidationInProgress implements FusionConfigurationPublishingResult & ClientVersionValidationResult & SchemaVersionValidationResult & OpenApiCollectionVersionValidationResult {
   state: ProcessingState!
 }
 
@@ -3832,7 +4004,6 @@ type Viewer {
     "Returns the last _n_ elements from the list."
     last: Int
   ): PersonalAccessTokensConnection
-
   preferences: Any!
   sessionId: String!
   settings: UserSettings!
@@ -3849,7 +4020,7 @@ type Viewer {
   ): WorkspacesConnection
 }
 
-type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult {
+type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult {
   deployment: Deployment
   state: ProcessingState!
 }
@@ -3861,7 +4032,6 @@ type Workspace implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): ApiDocumentsConnection
-
   apiKeys(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -3872,14 +4042,12 @@ type Workspace implements Node {
     "Returns the last _n_ elements from the list."
     last: Int
   ): ApiKeysConnection
-
   apis(
     "Returns the elements in the list that come after the specified cursor."
     after: Version
     "Returns the first _n_ elements from the list."
     first: Int
   ): ApisConnection
-
   changed(version: Version!): Boolean!
   changes(
     "Returns the elements in the list that come after the specified cursor."
@@ -3887,7 +4055,6 @@ type Workspace implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): ChangesConnection
-
   documentChanges(
     "Returns the elements in the list that come after the specified cursor."
     after: Version
@@ -3900,7 +4067,6 @@ type Workspace implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): DocumentsConnection
-
   documentsChanged(version: Version): Boolean!
     @deprecated(reason: "Use changed")
   environments(
@@ -3909,7 +4075,6 @@ type Workspace implements Node {
     "Returns the first _n_ elements from the list."
     first: Int
   ): EnvironmentsConnection
-
   id: ID!
   members: [WorkspaceMember!]!
   name: String!
@@ -4018,14 +4183,14 @@ type WorkspacesEdge {
 union ApiKeyReference = Api
 
 union ApproveDeploymentError =
-    UnauthorizedOperation
+  | UnauthorizedOperation
   | DeploymentNotFoundError
   | DeploymentIsNotWaitingForApprovalError
 
 union ArgumentChange = DeprecatedChange | DescriptionChanged | TypeChanged
 
 union AuthorizationEventLogPrincipal =
-    UserInfo
+  | UserInfo
   | ApiKey
   | OrganizationMember
   | Group
@@ -4037,33 +4202,33 @@ union AuthorizationEventLogResource = Organization | Workspace | Api
 union AuthorizationEventLogSubject = User | ApiKey
 
 union BeginFusionConfigurationPublishError =
-    UnauthorizedOperation
+  | UnauthorizedOperation
   | ApiNotFoundError
   | StageNotFoundError
   | SubgraphInvalidError
   | InvalidProcessingStateTransitionError
 
 union CancelDeploymentError =
-    UnauthorizedOperation
+  | UnauthorizedOperation
   | DeploymentNotFoundError
   | DeploymentCannotBeCancelledError
 
 union CancelFusionConfigurationCompositionError =
-    UnauthorizedOperation
+  | UnauthorizedOperation
   | FusionConfigurationRequestNotFoundError
   | InvalidProcessingStateTransitionError
 
 union ClientDeploymentError = PersistedQueryValidationError
 
 union CommitFusionConfigurationPublishError =
-    UnauthorizedOperation
+  | UnauthorizedOperation
   | FusionConfigurationRequestNotFoundError
   | InvalidProcessingStateTransitionError
 
 union CreateAccountError = UnauthorizedOperation
 
 union CreateApiKeyError =
-    ApiNotFoundError
+  | ApiNotFoundError
   | WorkspaceNotFound
   | PersonalWorkspaceNotSupportedError
   | ValidationError
@@ -4071,7 +4236,7 @@ union CreateApiKeyError =
   | RoleNotFoundError
 
 union CreateApiKeyForApiError =
-    ApiNotFoundError
+  | ApiNotFoundError
   | PersonalWorkspaceNotSupportedError
   | ValidationError
   | UnauthorizedOperation
@@ -4079,17 +4244,19 @@ union CreateApiKeyForApiError =
 union CreateClientError = ApiNotFoundError | UnauthorizedOperation
 
 union CreateMockSchemaError =
-    ApiNotFoundError
+  | ApiNotFoundError
   | MockSchemaNonUniqueNameError
   | UnauthorizedOperation
   | ValidationError
+
+union CreateOpenApiCollectionError = ApiNotFoundError | UnauthorizedOperation
 
 union CreatePersonalAccessTokenError = ValidationError | UnauthorizedOperation
 
 union CreateWorkspaceError = UnauthorizedOperation | ValidationError
 
 union DeleteApiByIdError =
-    ApiNotFoundError
+  | ApiNotFoundError
   | UnauthorizedOperation
   | ApiDeletionFailedError
 
@@ -4098,13 +4265,17 @@ union DeleteApiKeyError = ApiKeyNotFoundError | UnauthorizedOperation
 union DeleteClientByIdError = ClientNotFoundError | UnauthorizedOperation
 
 union DeleteMockSchemaByIdError =
-    MockSchemaNotFoundError
+  | MockSchemaNotFoundError
+  | UnauthorizedOperation
+
+union DeleteOpenApiCollectionByIdError =
+  | OpenApiCollectionNotFoundError
   | UnauthorizedOperation
 
 union DeploymentEvent = DeploymentCreatedEvent | DeploymentUpdatedEvent
 
 union DirectiveChange =
-    ArgumentAdded
+  | ArgumentAdded
   | ArgumentChanged
   | ArgumentRemoved
   | DescriptionChanged
@@ -4114,7 +4285,7 @@ union DirectiveChange =
 union EnsureTunnelSessionError = UnauthorizedOperation
 
 union EnumChange =
-    DescriptionChanged
+  | DescriptionChanged
   | EnumValueAdded
   | EnumValueChanged
   | EnumValueRemoved
@@ -4122,7 +4293,7 @@ union EnumChange =
 union EnumValueChange = DeprecatedChange | DescriptionChanged
 
 union FieldChange =
-    ArgumentAdded
+  | ArgumentAdded
   | ArgumentChanged
   | ArgumentRemoved
   | DeprecatedChange
@@ -4130,20 +4301,21 @@ union FieldChange =
   | TypeChanged
 
 union FusionConfigurationDeploymentError =
-    PersistedQueryValidationError
+  | PersistedQueryValidationError
   | SchemaChangeViolationError
   | InvalidGraphQLSchemaError
+  | OpenApiCollectionValidationError
 
 union InputFieldChange = DeprecatedChange | DescriptionChanged | TypeChanged
 
 union InputObjectChange =
-    DescriptionChanged
+  | DescriptionChanged
   | FieldAddedChange
   | FieldRemovedChange
   | InputFieldChanged
 
 union InterfaceChange =
-    DescriptionChanged
+  | DescriptionChanged
   | FieldAddedChange
   | FieldRemovedChange
   | InterfaceImplementationAdded
@@ -4153,15 +4325,17 @@ union InterfaceChange =
   | PossibleTypeRemoved
 
 union ObjectChange =
-    DescriptionChanged
+  | DescriptionChanged
   | FieldAddedChange
   | FieldRemovedChange
   | InterfaceImplementationAdded
   | InterfaceImplementationRemoved
   | OutputFieldChanged
 
+union OpenApiCollectionDeploymentError = OpenApiCollectionValidationError
+
 union OutputFieldChange =
-    ArgumentAdded
+  | ArgumentAdded
   | ArgumentChanged
   | ArgumentRemoved
   | DeprecatedChange
@@ -4169,29 +4343,35 @@ union OutputFieldChange =
   | TypeChanged
 
 union PollClientVersionPublishRequestError =
-    ClientVersionRequestNotFoundError
+  | ClientVersionRequestNotFoundError
   | UnauthorizedOperation
 
 union PollClientVersionValidationRequestError =
-    ClientVersionRequestNotFoundError
+  | ClientVersionRequestNotFoundError
   | UnauthorizedOperation
 
 union PollSchemaVersionPublishRequestError =
-    SchemaVersionRequestNotFoundError
+  | SchemaVersionRequestNotFoundError
   | UnauthorizedOperation
 
 union PollSchemaVersionValidationRequestError =
-    SchemaVersionRequestNotFoundError
+  | SchemaVersionRequestNotFoundError
   | UnauthorizedOperation
 
 union PublishClientError =
-    StageNotFoundError
+  | StageNotFoundError
   | ClientNotFoundError
   | UnauthorizedOperation
   | ClientVersionNotFoundError
 
+union PublishOpenApiCollectionError =
+  | StageNotFoundError
+  | OpenApiCollectionNotFoundError
+  | UnauthorizedOperation
+  | OpenApiCollectionVersionNotFoundError
+
 union PublishSchemaError =
-    StageNotFoundError
+  | StageNotFoundError
   | ApiNotFoundError
   | SchemaNotFoundError
   | UnauthorizedOperation
@@ -4201,17 +4381,17 @@ union PushDocumentChangesError = UnauthorizedOperation | ChangeStructureInvalid
 union PushWorkspaceChangesError = UnauthorizedOperation | ChangeStructureInvalid
 
 union RemoveWorkspaceError =
-    UnauthorizedOperation
+  | UnauthorizedOperation
   | WorkspaceNotFound
   | ValidationError
 
 union RenameWorkspaceError =
-    UnauthorizedOperation
+  | UnauthorizedOperation
   | WorkspaceNotFound
   | ValidationError
 
 union RevokePersonalAccessTokenError =
-    UnauthorizedOperation
+  | UnauthorizedOperation
   | PersonalAccessTokenNotFoundError
 
 union RoleAssignmentCondition = RoleAssignmentStageAuthorizationCondition
@@ -4219,7 +4399,7 @@ union RoleAssignmentCondition = RoleAssignmentStageAuthorizationCondition
 union ScalarChange = DescriptionChanged
 
 union SchemaChangeLogEntry =
-    DirectiveModifiedChange
+  | DirectiveModifiedChange
   | EnumModifiedChange
   | InputObjectModifiedChange
   | InterfaceModifiedChange
@@ -4231,14 +4411,15 @@ union SchemaChangeLogEntry =
   | UnionModifiedChange
 
 union SchemaDeploymentError =
-    PersistedQueryValidationError
+  | PersistedQueryValidationError
   | SchemaChangeViolationError
   | OperationsAreNotAllowedError
   | SchemaVersionSyntaxError
   | InvalidGraphQLSchemaError
+  | OpenApiCollectionValidationError
 
 union SchemaMemberChange =
-    ArgumentAdded
+  | ArgumentAdded
   | ArgumentChanged
   | ArgumentRemoved
   | DescriptionChanged
@@ -4263,14 +4444,14 @@ union SetActiveWorkspaceError = UnauthorizedOperation | WorkspaceNotFound
 union StageCondition = AfterStageCondition
 
 union StartFusionConfigurationCompositionError =
-    UnauthorizedOperation
+  | UnauthorizedOperation
   | FusionConfigurationRequestNotFoundError
   | InvalidProcessingStateTransitionError
 
 union UnionChange = DescriptionChanged | UnionMemberAdded | UnionMemberRemoved
 
 union UnpublishClientError =
-    StageNotFoundError
+  | StageNotFoundError
   | ClientNotFoundError
   | UnauthorizedOperation
   | ClientVersionNotFoundError
@@ -4281,7 +4462,7 @@ union UpdateApiSettingsError = ApiNotFoundError | UnauthorizedOperation
 union UpdateFeatureFlagsError = UnauthorizedOperation | ValidationError
 
 union UpdateMockSchemaError =
-    MockSchemaNonUniqueNameError
+  | MockSchemaNonUniqueNameError
   | MockSchemaNotFoundError
   | UnauthorizedOperation
   | ValidationError
@@ -4289,7 +4470,7 @@ union UpdateMockSchemaError =
 union UpdatePreferencesError = UnauthorizedOperation | ValidationError
 
 union UpdateStagesError =
-    ApiNotFoundError
+  | ApiNotFoundError
   | StageNotFoundError
   | StagesHavePublishedDependenciesError
   | StageValidationError
@@ -4297,42 +4478,55 @@ union UpdateStagesError =
 union UpdateThemeSettingsError = UnauthorizedOperation | ValidationError
 
 union UploadClientError =
-    ClientNotFoundError
+  | ClientNotFoundError
   | ConcurrentOperationError
   | InvalidPersistedQueryError
   | UnauthorizedOperation
   | DuplicatedTagError
 
 union UploadFusionSubgraphError =
-    InvalidFusionSourceSchemaArchiveError
+  | InvalidFusionSourceSchemaArchiveError
+  | ApiNotFoundError
   | ConcurrentOperationError
   | UnauthorizedOperation
   | DuplicatedTagError
 
+union UploadOpenApiCollectionError =
+  | OpenApiCollectionNotFoundError
+  | ConcurrentOperationError
+  | UnauthorizedOperation
+  | DuplicatedTagError
+  | InvalidOpenApiCollectionArchiveError
+
 union UploadSchemaError =
-    ApiNotFoundError
+  | ApiNotFoundError
   | ConcurrentOperationError
   | DuplicatedTagError
   | UnauthorizedOperation
 
 union ValidateClientError =
-    StageNotFoundError
+  | StageNotFoundError
   | ClientNotFoundError
   | UnauthorizedOperation
 
 union ValidateFusionConfigurationCompositionError =
-    UnauthorizedOperation
+  | UnauthorizedOperation
   | FusionConfigurationRequestNotFoundError
   | InvalidProcessingStateTransitionError
 
+union ValidateOpenApiCollectionError =
+  | StageNotFoundError
+  | OpenApiCollectionNotFoundError
+  | UnauthorizedOperation
+
 union ValidateSchemaError =
-    StageNotFoundError
+  | StageNotFoundError
   | SchemaNotFoundError
   | ApiNotFoundError
   | UnauthorizedOperation
 
 union WorkspaceChangeError =
-    ChangeValidationFailed
+  | ChangeValidationFailed
   | HasBeenChangedConflict
   | HasBeenDeletedConflict
   | IdentifierCollisionConflict
@@ -4340,13 +4534,13 @@ union WorkspaceChangeError =
   | WorkspaceNotFoundForChange
 
 union WorkspaceChangeResult =
-    ApiDocument
+  | ApiDocument
   | Api
   | WorkspaceDocument
   | Environment
 
 union WorkspaceDocumentChangeError =
-    DocumentChangedConflict
+  | DocumentChangedConflict
   | DocumentNameCollisionConflict
   | DocumentDeletionConflict
   | UnexpectedErrorOnDocumentChange
@@ -4511,6 +4705,11 @@ input CreateMockSchemaInput {
   name: String!
 }
 
+input CreateOpenApiCollectionInput {
+  apiId: ID!
+  name: String!
+}
+
 input CreatePersonalAccessTokenInput {
   description: String!
   expiresAt: DateTime!
@@ -4534,6 +4733,10 @@ input DeleteClientByIdInput {
 
 input DeleteMockSchemaByIdInput {
   mockSchemaId: ID!
+}
+
+input DeleteOpenApiCollectionByIdInput {
+  openApiCollectionId: ID!
 }
 
 input EnvironmentCreateChangeInput {
@@ -4646,6 +4849,14 @@ input PollSchemaVersionValidationRequestInput {
 input PublishClientInput {
   clientId: ID!
   force: Boolean! = false
+  stage: String!
+  tag: String!
+  waitForApproval: Boolean! = false
+}
+
+input PublishOpenApiCollectionInput {
+  force: Boolean! = false
+  openApiCollectionId: ID!
   stage: String!
   tag: String!
   waitForApproval: Boolean! = false
@@ -4806,6 +5017,12 @@ input UploadFusionSubgraphInput {
   tag: String!
 }
 
+input UploadOpenApiCollectionInput {
+  collection: Upload!
+  openApiCollectionId: ID!
+  tag: String!
+}
+
 input UploadSchemaInput {
   apiId: ID!
   schema: Upload!
@@ -4821,6 +5038,12 @@ input ValidateClientInput {
 input ValidateFusionConfigurationCompositionInput {
   configuration: Upload!
   requestId: ID!
+}
+
+input ValidateOpenApiCollectionInput {
+  collection: Upload!
+  openApiCollectionId: ID!
+  stage: String!
 }
 
 input ValidateSchemaInput {
@@ -5061,6 +5284,7 @@ enum StageChangeLogKind {
   SCHEMA
   CLIENT
   FUSION_CONFIGURATION
+  OPEN_API_COLLECTION
 }
 
 enum TypeSystemMemberKind {
@@ -5088,13 +5312,16 @@ directive @defer(
 ) on FRAGMENT_SPREAD | INLINE_FRAGMENT
 
 """
-The `@oneOf` directive is used within the type system definition language
- to indicate:
-
- - an Input Object is a Oneof Input Object, or
- - an Object Type's Field is a Oneof Field.
+The @lookup directive is used within a source schema to specify output fields
+that can be used by the distributed GraphQL executor to resolve an entity by
+a stable key.
 """
+directive @lookup on FIELD_DEFINITION
+
+"The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
 directive @oneOf on INPUT_OBJECT
+
+directive @shareable on OBJECT | FIELD_DEFINITION
 
 "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
 directive @specifiedBy(
@@ -5104,8 +5331,9 @@ directive @specifiedBy(
 
 scalar Any
 
-"The `DateTime` scalar represents an ISO-8601 compliant date time type."
-scalar DateTime @specifiedBy(url: "https://www.graphql-scalars.com/date-time")
+"The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
+scalar DateTime
+  @specifiedBy(url: "https://scalars.graphql.org/andimarek/date-time.html")
 
 "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
 scalar Long

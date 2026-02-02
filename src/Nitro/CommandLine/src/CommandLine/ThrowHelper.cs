@@ -22,6 +22,8 @@ internal static class ThrowHelper
 
     public static Exception NoClientSelected() => Exit("You did not select a client!");
 
+    public static Exception NoOpenApiCollectionSelected() => Exit("You did not select an OpenAPI collection!");
+
     public static Exception ThereWasAnIssueWithTheRequest(string? additional = null)
         => new ExitException(
             $"There was an issue with the request to the server.\n{additional ?? ""}");

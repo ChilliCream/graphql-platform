@@ -74,7 +74,6 @@ internal static class ConsoleHelpers
     {
         var tree = new Tree("");
         tree.AddSchemaChanges(error.Changes.OfType<ISchemaChange>());
-        // TODO: This needs to write to stderr
         console.Write(tree);
     }
 
@@ -84,7 +83,6 @@ internal static class ConsoleHelpers
     {
         var tree = new Tree("");
         tree.AddSchemaChanges(error.Changes.OfType<ISchemaChange>());
-        // TODO: This needs to write to stderr
         console.Write(tree);
     }
 
@@ -99,8 +97,7 @@ internal static class ConsoleHelpers
         {
             if (stage.PublishedSchema?.Version is { Tag: var tag })
             {
-                // TODO: This needs to write to stderr
-                console.ErrorLine(
+                console.WriteLine(
                     $"The schema {tag.AsHighlight()} is still published to {stage.Name.AsHighlight()}");
             }
 
@@ -109,8 +106,7 @@ internal static class ConsoleHelpers
                 var tags = string.Join(
                     ',',
                     publishedClient.PublishedVersions.Select(x => x.Version?.Tag));
-                // TODO: This needs to write to stderr
-                console.ErrorLine(
+                console.WriteLine(
                     $"The client {publishedClient.Client.Name.AsHighlight()} in version {tags.AsHighlight()} is still published to {stage.Name.AsHighlight()}");
             }
         }
@@ -118,7 +114,6 @@ internal static class ConsoleHelpers
 
     private static void PrintError(this IAnsiConsole console, IPersistedQueryValidationError error)
     {
-        // TODO: This needs to write to stderr
         console.WarningLine(
             $"There were errors on client {error.Client?.Name.AsHighlight()} [dim](ID: {error.Client?.Id})[/]");
 
@@ -146,15 +141,75 @@ internal static class ConsoleHelpers
             }
         }
 
-        // TODO: This needs to write to stderr
         console.Write(node);
+    }
+
+    private static void PrintError(this IAnsiConsole console, IOpenApiCollectionValidationError error)
+    {
+        foreach (var collectionError in error.Collections)
+        {
+            var openApiCollection = collectionError.OpenApiCollection;
+
+            console.WarningLine(
+                $"There were errors in the OpenAPI collection '{openApiCollection?.Name.AsHighlight()}' [dim](ID: {openApiCollection?.Id})[/]");
+
+            var node = new Tree("");
+            foreach (var entity in collectionError.Entities)
+            {
+                var entityNode = node.AddNode(GetEntityNodeHeading(entity));
+
+                foreach (var entityError in entity.Errors)
+                {
+                    if (entityError is
+                        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_OpenApiCollectionValidationDocumentError
+                        documentError)
+                    {
+                        var errorLocation = string.Empty;
+                        if (documentError.Locations is { Count: > 0 } locations)
+                        {
+                            errorLocation = $"[grey]({locations[0].Line}:{locations[0].Column})[/]";
+                        }
+
+                        entityNode.AddNode($"{documentError.Message.EscapeMarkup()} {errorLocation}");
+                    }
+                    else if (entityError is
+                        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_OpenApiCollectionValidationEntityValidationError
+                        entityValidationError)
+                    {
+                        entityNode.AddNode(entityValidationError.Message.EscapeMarkup());
+                    }
+                    else
+                    {
+                        entityNode.AddNode("Unknown error type");
+                    }
+                }
+            }
+
+            console.Write(node);
+        }
+
+        static string GetEntityNodeHeading(
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities
+                entity)
+        {
+            var heading = entity switch
+            {
+                IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_OpenApiCollectionValidationEndpoint endpoint
+                    => $"Endpoint '{endpoint.HttpMethod} {endpoint.Route}'",
+                IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_OpenApiCollectionValidationModel model
+                    => $"Model '{model.Name}'",
+                _ => "Unknown entity type"
+            };
+
+            return $"[red]{heading}[/]";
+        }
     }
 
     private static void PrintError(
         this IAnsiConsole console,
         IInvalidGraphQLSchemaError error)
     {
-        console.ErrorLine(
+        console.WriteLine(
             "The schema you are trying to publish is invalid. Please fix the following errors:");
 
         console.WriteLine(error.Message);
@@ -165,8 +220,16 @@ internal static class ConsoleHelpers
             node.AddNode($"[red]{query.Message.EscapeMarkup()}[/] [grey]{query.Code}[/]");
         }
 
-        // TODO: This needs to write to stderr
         console.Write(node);
+    }
+
+    private static void PrintInvalidOpenApiCollectionArchiveError(this IAnsiConsole console, string message)
+    {
+        console.WriteLine(
+            "The server received an invalid archive. "
+            + "This indicates a bug in the tooling. "
+            + "Please notify ChilliCream."
+            + "Error received: " + message);
     }
 
     private static void PrintMutationError(this IAnsiConsole ansiConsole, object error)
@@ -239,6 +302,18 @@ internal static class ConsoleHelpers
                     + "This indicates a bug in the tooling. "
                     + "Please notify ChilliCream."
                     + "Error received: " + err.Message);
+                break;
+
+            case IOpenApiCollectionValidationError err:
+                ansiConsole.PrintError(err);
+                break;
+
+            case IInvalidOpenApiCollectionArchiveError err:
+                ansiConsole.PrintInvalidOpenApiCollectionArchiveError(err.Message);
+                break;
+
+            case IOpenApiCollectionValidationArchiveError err:
+                ansiConsole.PrintInvalidOpenApiCollectionArchiveError(err.Message);
                 break;
 
             case IError err:
