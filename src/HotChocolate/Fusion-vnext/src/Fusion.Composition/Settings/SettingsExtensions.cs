@@ -1,7 +1,6 @@
-using ChilliCream.Nitro.CommandLine.Settings;
 using HotChocolate.Fusion.Options;
 
-namespace ChilliCream.Nitro.CommandLine;
+namespace HotChocolate.Fusion;
 
 internal static class SettingsExtensions
 {
