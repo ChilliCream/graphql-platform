@@ -3,7 +3,7 @@ using System.CommandLine;
 namespace HotChocolate.AspNetCore.CommandLine;
 
 /// <summary>
-/// The schema command
+/// The schema command.
 /// </summary>
 internal sealed class SchemaCommand : Command
 {

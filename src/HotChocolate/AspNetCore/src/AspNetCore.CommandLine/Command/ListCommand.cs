@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 namespace HotChocolate.AspNetCore.CommandLine;
 
 /// <summary>
-/// The export command can be used to export the schema to a file.
+/// The list command can be used to list all registered schemas.
 /// </summary>
 internal sealed class ListCommand : Command
 {

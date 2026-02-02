@@ -6,12 +6,12 @@ using Microsoft.Extensions.Hosting;
 namespace HotChocolate.AspNetCore.CommandLine;
 
 /// <summary>
-/// The print command can be used to print the schema to the console output
+/// The print command can be used to print the schema to the console output.
 /// </summary>
 internal sealed class PrintCommand : Command
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="ExportCommand"/> class.
+    /// Initializes a new instance of the <see cref="PrintCommand"/> class.
     /// </summary>
     public PrintCommand(IHost host) : base("print")
     {
