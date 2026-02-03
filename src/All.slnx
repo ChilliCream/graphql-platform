@@ -194,6 +194,7 @@
     <Project Path="HotChocolate/Adapters/src/Fusion.Adapters.OpenApi/HotChocolate.Fusion.Adapters.OpenApi.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Adapters/test/">
+    <Project Path="HotChocolate/Adapters/test/Adapters.Mcp.Core.Tests/HotChocolate.Adapters.Mcp.Core.Tests.csproj" />
     <Project Path="HotChocolate/Adapters/test/Adapters.Mcp.Packaging.Tests/HotChocolate.Adapters.Mcp.Packaging.Tests.csproj" />
     <Project Path="HotChocolate/Adapters/test/Adapters.Mcp.Tests/HotChocolate.Adapters.Mcp.Tests.csproj" />
     <Project Path="HotChocolate/Adapters/test/Adapters.OpenApi.Packaging.Tests/HotChocolate.Adapters.OpenApi.Packaging.Tests.csproj" />
