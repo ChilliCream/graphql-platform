@@ -1,7 +1,10 @@
+using System.CommandLine.IO;
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Settings;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
@@ -9,7 +12,7 @@ internal sealed class FusionSettingsSetCommand : Command
 {
     public FusionSettingsSetCommand() : base("set")
     {
-        Description = "Sets a Fusion composition setting and publishes the updated Fusion configuration to Nitro";
+        Description = "Sets a Fusion composition setting and performs a composition";
 
         var settingNameArgument = new Argument<string>("SETTING_NAME")
             .FromAmong(SettingNames.GlobalObjectIdentification, SettingNames.ExcludeByTag);
@@ -19,33 +22,24 @@ internal sealed class FusionSettingsSetCommand : Command
         AddArgument(settingNameArgument);
         AddArgument(settingValueArgument);
 
-        AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<ApiIdOption>.Instance);
+        AddOption(Opt<FusionArchiveFileOption>.Instance);
         this.AddNitroCloudDefaultOptions();
 
         this.SetHandler(async context =>
         {
             var settingName = context.ParseResult.GetValueForArgument(settingNameArgument);
             var settingValue = context.ParseResult.GetValueForArgument(settingValueArgument);
-
-            var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
-            var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
-            var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
+            var environment = context.ParseResult.GetValueForOption(Opt<FusionArchiveEnvironmentOption>.Instance);
+            var archiveFile = context.ParseResult.GetValueForOption(Opt<FusionArchiveFileOption>.Instance)!;
 
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
-            var apiClient = context.BindingContext.GetRequiredService<IApiClient>();
-            var httpClientFactory = context.BindingContext.GetRequiredService<IHttpClientFactory>();
 
             context.ExitCode = await ExecuteAsync(
                 settingName,
                 settingValue,
-                apiId,
-                stageName,
-                tag,
+                archiveFile,
+                environment,
                 console,
-                apiClient,
-                httpClientFactory,
                 context.GetCancellationToken());
         });
     }
@@ -53,12 +47,9 @@ internal sealed class FusionSettingsSetCommand : Command
     private static async Task<int> ExecuteAsync(
         string settingName,
         string settingValue,
-        string apiId,
-        string stageName,
-        string tag,
+        string archiveFile,
+        string? environment,
         IAnsiConsole console,
-        IApiClient client,
-        IHttpClientFactory httpClientFactory,
         CancellationToken cancellationToken)
     {
         var compositionSettings = new CompositionSettings();
@@ -82,6 +73,7 @@ internal sealed class FusionSettingsSetCommand : Command
                 compositionSettings.Merger.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
                 break;
 
+            // TODO: Why do we do this? this setting shouldn't be saved in the composition settings...
             case SettingNames.IncludeSatisfiabilityPaths:
                 if (!bool.TryParse(settingValue, out var includeSatisfiabilityPaths))
                 {
@@ -96,16 +88,45 @@ internal sealed class FusionSettingsSetCommand : Command
                 throw new ArgumentOutOfRangeException(nameof(settingName));
         }
 
-        return await FusionPublishCommand.PublishFusionConfigurationAsync(
-            apiId,
-            stageName,
-            tag,
+        var compositionLog = new CompositionLog();
+
+        using var archive = FusionArchive.Open(archiveFile);
+
+        var result = await FusionComposeCommand.ComposeAsync(
+            compositionLog,
             [],
+            archive,
+            environment,
             compositionSettings,
-            console,
-            client,
-            httpClientFactory,
             cancellationToken);
+
+        FusionComposeCommand.WriteCompositionLog(
+            compositionLog,
+            new AnsiStreamWriter(Console.Out),
+            false);
+
+        if (result.IsFailure)
+        {
+            foreach (var error in result.Errors)
+            {
+                console.WriteLine(error.Message);
+            }
+
+            return ExitCodes.Error;
+        }
+
+        return ExitCodes.Success;
+    }
+
+    private sealed class AnsiStreamWriter(TextWriter textWriter) : IStandardStreamWriter
+    {
+        public void Write(string? value)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                textWriter.Write(value);
+            }
+        }
     }
 
     private static class SettingNames
