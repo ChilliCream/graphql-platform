@@ -7,7 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 {
-     /// <summary>
+    /// <summary>
     /// Adds a warmup task that will be executed on each newly created request executor.
     /// </summary>
     /// <param name="builder">
