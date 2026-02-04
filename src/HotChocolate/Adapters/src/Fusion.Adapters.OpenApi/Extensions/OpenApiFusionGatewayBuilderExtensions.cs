@@ -124,7 +124,7 @@ public static class OpenApiFusionGatewayBuilderExtensions
     /// <see cref="ExecutionServiceProviderExtensions.GetRootServiceProvider(IServiceProvider)"/>
     /// to access the application services from within the schema service provider.
     /// <br />
-    /// The <see cref="IServiceProvider"/> passed to the <paramref name="factory"/>
+    /// The <see cref="IServiceProvider"/> passed to the <paramref name="skipIf"/>
     /// is for the application services.
     /// </remarks>
     public static IFusionGatewayBuilder AddOpenApiDefinitionStorage<

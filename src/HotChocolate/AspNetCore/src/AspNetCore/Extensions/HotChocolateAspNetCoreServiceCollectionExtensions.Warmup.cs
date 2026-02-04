@@ -159,9 +159,6 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="factory"/> is <c>null</c>.
     /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// The <paramref name="skipIf"/> is <c>null</c>.
-    /// </exception>
     /// <remarks>
     /// The <see cref="IServiceProvider"/> passed to the <paramref name="factory"/>
     /// is for the schema services. If you need to access application services
