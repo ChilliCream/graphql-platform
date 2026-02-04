@@ -25,12 +25,9 @@ public static partial class RequestExecutorBuilderExtensions
     /// The <typeparamref name="T"/> is not a recognized diagnostic event listener.
     /// </exception>
     /// <remarks>
-    /// The <see cref="IServiceProvider"/> passed to the <paramref name="factory"/>
-    /// is for the schema services. If you need to access application services
-    /// you need to either make the services available in the schema services
-    /// via <see cref="AddApplicationService"/> or use
-    /// <see cref="ExecutionServiceProviderExtensions.GetRootServiceProvider(IServiceProvider)"/>
-    /// to access the application services from within the schema service provider.
+    /// The <typeparamref name="T"/> will be activated with the <see cref="IServiceProvider"/> of the schema services.
+    /// If your <typeparamref name="T"/> needs to access application services you need to
+    /// make the services available in the schema services via <see cref="AddApplicationService"/>.
     /// </remarks>
     public static IRequestExecutorBuilder AddDiagnosticEventListener<T>(
         this IRequestExecutorBuilder builder)
