@@ -25,13 +25,13 @@ jobs:
 
     steps:
       - name: Checkout current repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           show-progress: false
 
       - name: Checkout performance data repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ChilliCream/graphql-platform-performance-data
           token: ${{ secrets.PERFORMANCE_DATA_TOKEN }}
@@ -128,7 +128,7 @@ jobs:
             });
 
       - name: Upload performance data as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: fusion-gateway-performance-data

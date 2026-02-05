@@ -20,7 +20,7 @@ jobs:
       src_changes: ${{ steps.check-src.outputs.src_changes }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 2
           show-progress: false
@@ -63,13 +63,13 @@ jobs:
     needs: check-changes
     if: needs.check-changes.outputs.website_changes == 'true'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         name: Check out the code
         with:
           show-progress: false
 
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
 
@@ -83,11 +83,11 @@ jobs:
     name: "Markdown linting"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         name: Check out the code
         with:
           show-progress: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         name: Setup node
         with:
           node-version: 22
@@ -103,19 +103,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           show-progress: false
 
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
       - name: Cache Yarn Packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             website/.yarn/cache
@@ -143,12 +143,12 @@ jobs:
 
     steps:
       - name: Checkout to repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           show-progress: false
 
       - name: Install .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.x
 
@@ -173,12 +173,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           show-progress: false
 
       - name: Install .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: |
             8.x
@@ -217,13 +217,13 @@ jobs:
           CI_BUILD: true
 
       - name: Upload Test Results as Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-results-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/TestResults/*.trx
 
       - name: Upload Coverage File as Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-${{ matrix.name }}
           # The * matches a single directory that is named with a GUID.
@@ -232,7 +232,7 @@ jobs:
 
       - name: Upload mismatch files as Artifact
         if: steps.run-tests.outcome == 'failure'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: mismatch-files-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/**/__mismatch__/*
@@ -243,7 +243,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all coverage artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: ./output/download
           pattern: coverage-*
