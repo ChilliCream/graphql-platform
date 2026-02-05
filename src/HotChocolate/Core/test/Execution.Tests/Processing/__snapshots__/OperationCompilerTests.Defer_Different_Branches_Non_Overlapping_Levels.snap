@@ -1,0 +1,56 @@
+{
+  a {
+    b {
+      c {
+        d
+      }
+      ... @defer {
+        e {
+          f
+        }
+      }
+    }
+  }
+  ... @defer {
+    a {
+      b {
+        e {
+          f
+        }
+      }
+    }
+    g {
+      h
+    }
+  }
+}
+
+---------------------------------------------------------
+
+{
+  ... on Query {
+    a @__execute(id: 2, kind: DEFAULT, type: COMPOSITE) {
+      ... on A {
+        b @__execute(id: 5, kind: DEFAULT, type: COMPOSITE) {
+          ... on B {
+            c @__execute(id: 7, kind: DEFAULT, type: COMPOSITE) {
+              ... on C {
+                d @__execute(id: 10, kind: DEFAULT, type: LEAF)
+              }
+            }
+            e @__execute(id: 8, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+              ... on E {
+                f @__execute(id: 12, kind: DEFAULT, type: LEAF, isDeferred: true)
+              }
+            }
+          }
+        }
+      }
+    }
+    g @__execute(id: 3, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+      ... on G {
+        h @__execute(id: 14, kind: DEFAULT, type: LEAF, isDeferred: true)
+      }
+    }
+  }
+}

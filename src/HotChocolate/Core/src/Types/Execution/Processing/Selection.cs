@@ -15,6 +15,8 @@ public sealed class Selection : ISelection, IFeatureProvider
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
     private readonly byte[] _utf8ResponseName;
+    private readonly DeferUsage[] _deferUsage;
+    private readonly ulong _deferMask;
     private Flags _flags;
     private SelectionSet? _declaringSelectionSet;
 
@@ -24,6 +26,8 @@ public sealed class Selection : ISelection, IFeatureProvider
         ObjectField field,
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
+        DeferUsage[]? deferUsage = null,
+        ulong deferMask = 0,
         bool isInternal = false,
         ArgumentMap? arguments = null,
         FieldDelegate? resolverPipeline = null,
@@ -50,6 +54,8 @@ public sealed class Selection : ISelection, IFeatureProvider
             hasPureResolver: pureResolver is not null);
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
+        _deferUsage = deferUsage ?? [];
+        _deferMask = deferMask;
         _flags = isInternal ? Flags.Internal : Flags.None;
 
         if (field.Type.NamedType().IsLeafType())
@@ -73,6 +79,8 @@ public sealed class Selection : ISelection, IFeatureProvider
         IType type,
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
+        DeferUsage[] deferUsage,
+        ulong deferMask,
         Flags flags,
         ArgumentMap? arguments,
         SelectionExecutionStrategy strategy,
@@ -89,6 +97,8 @@ public sealed class Selection : ISelection, IFeatureProvider
         Strategy = strategy;
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
+        _deferUsage = deferUsage;
+        _deferMask = deferMask;
         _flags = flags;
         _utf8ResponseName = utf8ResponseName;
     }
@@ -266,6 +276,15 @@ public sealed class Selection : ISelection, IFeatureProvider
         return false;
     }
 
+    /// <summary>
+    /// Gets a value indicating whether this selection has any defer usage.
+    /// </summary>
+    internal bool HasDeferUsage => _deferUsage.Length > 0;
+
+    /// <inheritdoc />
+    public bool IsDeferred(ulong deferFlags)
+        => _deferMask != 0 && (_deferMask & deferFlags) == _deferMask;
+
     public Selection WithField(ObjectField field)
     {
         ArgumentNullException.ThrowIfNull(field);
@@ -278,6 +297,8 @@ public sealed class Selection : ISelection, IFeatureProvider
             field.Type,
             _syntaxNodes,
             _includeFlags,
+            _deferUsage,
+            _deferMask,
             _flags,
             Arguments,
             Strategy,
@@ -301,6 +322,8 @@ public sealed class Selection : ISelection, IFeatureProvider
             type,
             _syntaxNodes,
             _includeFlags,
+            _deferUsage,
+            _deferMask,
             _flags,
             Arguments,
             Strategy,

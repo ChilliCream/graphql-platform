@@ -114,33 +114,51 @@ internal static class OperationPrinter
 
     private static DirectiveNode CreateExecutionInfo(Selection selection)
     {
-        var arguments = new ArgumentNode[selection.IsInternal ? 4 : 3];
-        arguments[0] = new ArgumentNode("id", new IntValueNode(selection.Id));
-        arguments[1] = new ArgumentNode("kind", new EnumValueNode(selection.Strategy.ToString().ToUpperInvariant()));
+        var argumentCount = 3;
+
+        if (selection.IsInternal)
+        {
+            argumentCount++;
+        }
+
+        if (selection.HasDeferUsage)
+        {
+            argumentCount++;
+        }
+
+        var index = 0;
+        var arguments = new ArgumentNode[argumentCount];
+        arguments[index++] = new ArgumentNode("id", new IntValueNode(selection.Id));
+        arguments[index++] = new ArgumentNode("kind", new EnumValueNode(selection.Strategy.ToString().ToUpperInvariant()));
 
         if (selection.IsList)
         {
             if (selection.IsLeaf)
             {
-                arguments[2] = new ArgumentNode("type", new EnumValueNode("LEAF_LIST"));
+                arguments[index++] = new ArgumentNode("type", new EnumValueNode("LEAF_LIST"));
             }
             else
             {
-                arguments[2] = new ArgumentNode("type", new EnumValueNode("COMPOSITE_LIST"));
+                arguments[index++] = new ArgumentNode("type", new EnumValueNode("COMPOSITE_LIST"));
             }
         }
         else if (selection.Type.IsCompositeType())
         {
-            arguments[2] = new ArgumentNode("type", new EnumValueNode("COMPOSITE"));
+            arguments[index++] = new ArgumentNode("type", new EnumValueNode("COMPOSITE"));
         }
         else if (selection.IsLeaf)
         {
-            arguments[2] = new ArgumentNode("type", new EnumValueNode("LEAF"));
+            arguments[index++] = new ArgumentNode("type", new EnumValueNode("LEAF"));
         }
 
         if (selection.IsInternal)
         {
-            arguments[3] = new ArgumentNode("internal", BooleanValueNode.True);
+            arguments[index++] = new ArgumentNode("internal", BooleanValueNode.True);
+        }
+
+        if (selection.HasDeferUsage)
+        {
+            arguments[index++] = new ArgumentNode("isDeferred", BooleanValueNode.True);
         }
 
         return new DirectiveNode("__execute", arguments);

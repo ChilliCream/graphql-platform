@@ -45,6 +45,16 @@ public interface IOperation : IFeatureProvider
     ISelectionSet RootSelectionSet { get; }
 
     /// <summary>
+    /// Gets a value indicating whether any selection set in this operation
+    /// contains selections that may be deferred based on <c>@defer</c> directives.
+    /// </summary>
+    /// <value>
+    /// <c>true</c> if one or more selection sets in this operation contain deferred selections;
+    /// otherwise, <c>false</c>.
+    /// </value>
+    bool HasDeferredSelections { get; }
+
+    /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/> and
     /// <paramref name="typeContext"/>.
     /// </summary>
