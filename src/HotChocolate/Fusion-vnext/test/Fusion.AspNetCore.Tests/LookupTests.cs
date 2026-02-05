@@ -152,16 +152,7 @@ public class LookupTests : FusionTestBase
 
         using var server2 = CreateSourceSchema(
             "b",
-            """
-            type Query {
-              authorById(id: ID!): Author @lookup
-            }
-
-            type Author {
-              id: ID!
-              name: String!
-            }
-            """,
+            b => b.AddQueryType<OneOfLookups.SourceSchema4.Query>(),
             batchingMode: SourceSchemaHttpClientBatchingMode.ApolloRequestBatching,
             batchingAcceptHeaderValues: [new("application/jsonl") { CharSet = "utf-8" }]);
 
@@ -195,7 +186,6 @@ public class LookupTests : FusionTestBase
     }
 
     [Fact]
-    // TODO: Produce large response
     public async Task Fetch_With_Request_Batching_JsonLines_Large_Response()
     {
         // arrange
@@ -205,16 +195,7 @@ public class LookupTests : FusionTestBase
 
         using var server2 = CreateSourceSchema(
             "b",
-            """
-            type Query {
-              authorById(id: ID!): Author @lookup
-            }
-
-            type Author {
-              id: ID!
-              name: String!
-            }
-            """,
+            b => b.AddQueryType<OneOfLookups.SourceSchema4.Query>(),
             batchingMode: SourceSchemaHttpClientBatchingMode.ApolloRequestBatching,
             batchingAcceptHeaderValues: [new("application/jsonl") { CharSet = "utf-8" }]);
 
@@ -233,7 +214,7 @@ public class LookupTests : FusionTestBase
               books {
                 author {
                   id
-                  name
+                  name(large: true)
                 }
               }
             }
@@ -257,16 +238,7 @@ public class LookupTests : FusionTestBase
 
         using var server2 = CreateSourceSchema(
             "b",
-            """
-            type Query {
-              authorById(id: ID!): Author @lookup
-            }
-
-            type Author {
-              id: ID!
-              name: String!
-            }
-            """,
+            b => b.AddQueryType<OneOfLookups.SourceSchema4.Query>(),
             batchingMode: SourceSchemaHttpClientBatchingMode.ApolloRequestBatching,
             batchingAcceptHeaderValues: [new("text/event-stream") { CharSet = "utf-8" }]);
 
@@ -300,7 +272,6 @@ public class LookupTests : FusionTestBase
     }
 
     [Fact]
-    // TODO: Produce large response
     public async Task Fetch_With_Request_Batching_SSE_Large_Response()
     {
         // arrange
@@ -310,16 +281,7 @@ public class LookupTests : FusionTestBase
 
         using var server2 = CreateSourceSchema(
             "b",
-            """
-            type Query {
-              authorById(id: ID!): Author @lookup
-            }
-
-            type Author {
-              id: ID!
-              name: String!
-            }
-            """,
+            b => b.AddQueryType<OneOfLookups.SourceSchema4.Query>(),
             batchingMode: SourceSchemaHttpClientBatchingMode.ApolloRequestBatching,
             batchingAcceptHeaderValues: [new("text/event-stream") { CharSet = "utf-8" }]);
 
@@ -338,7 +300,7 @@ public class LookupTests : FusionTestBase
               books {
                 author {
                   id
-                  name
+                  name(large: true)
                 }
               }
             }
@@ -452,28 +414,28 @@ public class LookupTests : FusionTestBase
               {
                 "data": {
                   "authorById": {
-                    "name": "{{GenerateRandomString(128)}}"
+                    "name": "Author 1 {{GenerateRandomString(128)}}"
                   }
                 }
               },
               {
                 "data": {
                   "authorById": {
-                    "name": "{{GenerateRandomString(128)}}"
+                    "name": "Author 2 {{GenerateRandomString(128)}}"
                   }
                 }
               },
               {
                 "data": {
                   "authorById": {
-                    "name": "{{GenerateRandomString(128)}}"
+                    "name": "Author 2 {{GenerateRandomString(128)}}"
                   }
                 }
               },
               {
                 "data": {
                   "authorById": {
-                    "name": "{{GenerateRandomString(128)}}"
+                    "name": "Author 2 {{GenerateRandomString(128)}}"
                   }
                 }
               }
@@ -660,13 +622,13 @@ public class LookupTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    public static string GenerateRandomString(int kiloBytes)
+    private static string GenerateRandomString(int kiloBytes)
     {
         var targetBytes = kiloBytes * 1024;
         var charsNeeded = targetBytes / 2;
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-        var random = new Random();
+        var random = new Random(0);
         var stringBuilder = new StringBuilder(charsNeeded);
 
         for (int i = 0; i < charsNeeded; i++)
@@ -823,6 +785,31 @@ public class LookupTests : FusionTestBase
             }
 
             public record Author([property: Shareable] string Name);
+        }
+
+        public static class SourceSchema4
+        {
+            public class Query
+            {
+                [Lookup, Internal]
+                public Author? GetAuthorById([ID] int id)
+                    => new(id);
+            }
+
+            public record Author([property: ID] int Id)
+            {
+                public string GetName(bool large = false)
+                {
+                    var name = "Author " + Id;
+
+                    if (large)
+                    {
+                        return name + " " + GenerateRandomString(128);
+                    }
+
+                    return name;
+                }
+            }
         }
     }
 }

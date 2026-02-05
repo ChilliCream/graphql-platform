@@ -75,8 +75,8 @@
     <Compile Include="..\..\..\AspNetCore\src\Transport.Http\OnHttpResponseMessageReceived.cs">
       <Link>Transport\Http\OnHttpResponseMessageReceived.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\JsonArray\JsonResultEnumerable.cs">
-      <Link>Transport\Http\JsonArray\JsonResultEnumerable.cs</Link>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Json\JsonResultEnumerable.cs">
+      <Link>Transport\Http\Json\JsonResultEnumerable.cs</Link>
     </Compile>
     <Compile Include="..\..\..\AspNetCore\src\Transport.Http\JsonLines\JsonLinesReader.cs">
       <Link>Transport\Http\JsonLines\JsonLinesReader.cs</Link>
@@ -195,6 +195,10 @@
     <Compile Update="Planning\OperationPlanner.MergeSelectionSetRewriter.cs">
       <DependentUpon>OperationPlanner.cs</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Update="..\..\..\AspNetCore\src\Transport.Http\JsonArray" />
   </ItemGroup>
 
 </Project>

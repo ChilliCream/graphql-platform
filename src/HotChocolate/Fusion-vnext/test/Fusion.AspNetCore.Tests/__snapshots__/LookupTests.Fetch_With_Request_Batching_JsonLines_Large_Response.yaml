@@ -1,11 +1,11 @@
-title: Fetch_With_Request_Batching_JsonArray_Large_Response
+title: Fetch_With_Request_Batching_JsonLines_Large_Response
 request:
   document: |
     {
       books {
         author {
           id
-          name
+          name(large: true)
         }
       }
     }
@@ -64,7 +64,7 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query Op_fb4f667e_1 {
+            query Op_0e997261_1 {
               books {
                 author {
                   id
@@ -107,23 +107,23 @@ sourceSchemas:
       }
 
       type Author {
+        name(large: Boolean! = false): String!
         id: ID!
-        name: String!
       }
 
       type Query {
-        authorById(id: ID!): Author @lookup
+        authorById(id: ID!): Author @lookup @internal
       }
     interactions:
       - request:
           kind: OperationBatch
           items:
             - document: |
-                query Op_fb4f667e_2(
+                query Op_0e997261_2(
                   $__fusion_1_id: ID!
                 ) {
                   authorById(id: $__fusion_1_id) {
-                    name
+                    name(large: true)
                   }
                 }
               variables: |
@@ -131,11 +131,11 @@ sourceSchemas:
                   "__fusion_1_id": "1"
                 }
             - document: |
-                query Op_fb4f667e_2(
+                query Op_0e997261_2(
                   $__fusion_1_id: ID!
                 ) {
                   authorById(id: $__fusion_1_id) {
-                    name
+                    name(large: true)
                   }
                 }
               variables: |
@@ -143,11 +143,11 @@ sourceSchemas:
                   "__fusion_1_id": "2"
                 }
             - document: |
-                query Op_fb4f667e_2(
+                query Op_0e997261_2(
                   $__fusion_1_id: ID!
                 ) {
                   authorById(id: $__fusion_1_id) {
-                    name
+                    name(large: true)
                   }
                 }
               variables: |
@@ -155,11 +155,11 @@ sourceSchemas:
                   "__fusion_1_id": "2"
                 }
             - document: |
-                query Op_fb4f667e_2(
+                query Op_0e997261_2(
                   $__fusion_1_id: ID!
                 ) {
                   authorById(id: $__fusion_1_id) {
-                    name
+                    name(large: true)
                   }
                 }
               variables: |
@@ -167,7 +167,7 @@ sourceSchemas:
                   "__fusion_1_id": "2"
                 }
         response:
-          contentType: application/json; charset=utf-8
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -209,18 +209,18 @@ operationPlan:
             author {
               id
               id @fusion__requirement
-              name
+              name(large: true)
             }
           }
         }
-      hash: fb4f667e3d4167a23589ae9f3b3f9182
+      hash: 0e997261f5847770ca54194299b00154
       searchSpace: 1
   nodes:
     - id: 1
       type: Operation
       schema: a
       operation: |
-        query Op_fb4f667e_1 {
+        query Op_0e997261_1 {
           books {
             author {
               id
@@ -231,11 +231,11 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_fb4f667e_2(
+        query Op_0e997261_2(
           $__fusion_1_id: ID!
         ) {
           authorById(id: $__fusion_1_id) {
-            name
+            name(large: true)
           }
         }
       source: $.authorById

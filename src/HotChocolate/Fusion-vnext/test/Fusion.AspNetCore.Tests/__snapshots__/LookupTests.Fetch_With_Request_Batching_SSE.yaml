@@ -17,25 +17,25 @@ response:
           {
             "author": {
               "id": "1",
-              "name": "Author: 1"
+              "name": "Author 1"
             }
           },
           {
             "author": {
               "id": "2",
-              "name": "Author: 2"
+              "name": "Author 2"
             }
           },
           {
             "author": {
               "id": "2",
-              "name": "Author: 2"
+              "name": "Author 2"
             }
           },
           {
             "author": {
               "id": "2",
-              "name": "Author: 2"
+              "name": "Author 2"
             }
           }
         ]
@@ -107,12 +107,12 @@ sourceSchemas:
       }
 
       type Author {
+        name(large: Boolean! = false): String!
         id: ID!
-        name: String!
       }
 
       type Query {
-        authorById(id: ID!): Author @lookup
+        authorById(id: ID!): Author @lookup @internal
       }
     interactions:
       - request:
@@ -173,7 +173,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "name": "Author: 1"
+                    "name": "Author 1"
                   }
                 }
               }
@@ -181,7 +181,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "name": "Author: 2"
+                    "name": "Author 2"
                   }
                 }
               }
@@ -189,7 +189,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "name": "Author: 2"
+                    "name": "Author 2"
                   }
                 }
               }
@@ -197,7 +197,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "name": "Author: 2"
+                    "name": "Author 2"
                   }
                 }
               }

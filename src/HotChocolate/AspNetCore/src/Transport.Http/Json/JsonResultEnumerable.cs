@@ -209,21 +209,33 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
 
             if (IsJsonArray(memory.Span))
             {
-                var elementRanges = CollectElementRanges(memory.Span);
+                var jsonReader = new Utf8JsonReader(buffer.WrittenMemory.Span);
+                var documents = new List<JsonDocument>();
 
-                foreach (var (elementStart, elementLength) in elementRanges)
+                if (!jsonReader.Read() || jsonReader.TokenType != JsonTokenType.StartArray)
                 {
-                    var elementBuffer = new PooledArrayWriter(elementLength);
-                    var elementSpan = elementBuffer.GetSpan(elementLength);
-                    memory.Span.Slice(elementStart, elementLength).CopyTo(elementSpan);
-                    elementBuffer.Advance(elementLength);
-
-                    var document = JsonDocument.Parse(elementBuffer.WrittenMemory);
-                    var documentOwner = new JsonDocumentOwner(document, elementBuffer);
-                    yield return OperationResult.Parse(documentOwner);
+                    throw new JsonException("Expected StartArray");
                 }
 
-                buffer.Dispose();
+                while (jsonReader.Read())
+                {
+                    if (jsonReader.TokenType == JsonTokenType.EndArray)
+                    {
+                        break;
+                    }
+
+                    if (jsonReader.TokenType == JsonTokenType.StartObject)
+                    {
+                        var doc = JsonDocument.ParseValue(ref jsonReader);
+                        documents.Add(doc);
+                    }
+                }
+
+                // TODO: Can we get rid of the additional enumeration?
+                foreach (var document in documents)
+                {
+                    yield return OperationResult.Parse(document);
+                }
             }
             else
             {
