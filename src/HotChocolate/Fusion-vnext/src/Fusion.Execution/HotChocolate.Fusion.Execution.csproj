@@ -197,8 +197,4 @@
     </Compile>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Update="..\..\..\AspNetCore\src\Transport.Http\JsonArray" />
-  </ItemGroup>
-
 </Project>

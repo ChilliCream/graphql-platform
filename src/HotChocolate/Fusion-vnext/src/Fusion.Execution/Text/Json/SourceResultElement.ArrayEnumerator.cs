@@ -6,7 +6,6 @@ namespace HotChocolate.Fusion.Text.Json;
 
 public readonly partial struct SourceResultElement
 {
-    // TODO: Use this as an optimization
     /// <summary>
     /// An enumerable and enumerator for the contents of a JSON array.
     /// </summary>

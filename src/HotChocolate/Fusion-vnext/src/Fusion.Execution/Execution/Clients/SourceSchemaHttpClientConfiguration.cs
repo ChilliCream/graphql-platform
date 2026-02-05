@@ -10,6 +10,8 @@ namespace HotChocolate.Fusion.Execution.Clients;
 public class SourceSchemaHttpClientConfiguration
     : ISourceSchemaClientConfiguration
 {
+    public const string DefaultClientName = "fusion";
+
     /// <summary>
     /// Initializes a new instance of <see cref="SourceSchemaHttpClientConfiguration"/>.
     /// </summary>
@@ -30,7 +32,7 @@ public class SourceSchemaHttpClientConfiguration
     /// </param>
     /// <param name="batchingAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a batching request.
-    /// </param>>
+    /// </param>
     /// <param name="subscriptionAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a subscription.
     /// </param>
@@ -56,8 +58,7 @@ public class SourceSchemaHttpClientConfiguration
         Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null)
         : this(
             name,
-            // TODO: This should come from a defaults class
-            "fusion",
+            DefaultClientName,
             baseAddress,
             supportedOperations,
             batchingMode,
@@ -93,7 +94,7 @@ public class SourceSchemaHttpClientConfiguration
     /// </param>
     /// <param name="batchingAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a batching request.
-    /// </param>>
+    /// </param>
     /// <param name="subscriptionAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a subscription.
     /// </param>

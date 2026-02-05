@@ -290,13 +290,19 @@ internal sealed class FusionRequestExecutorManager
                 {
                     if (transports.TryGetProperty("http", out var http))
                     {
-                        var hasClientName = http.TryGetProperty("clientName", out var clientName);
+                        var clientName = SourceSchemaHttpClientConfiguration.DefaultClientName;
 
-                        // TODO: Optionally add contentTypes from the file here
+                        if (http.TryGetProperty("clientName", out var clientNameProperty)
+                            && clientNameProperty.ValueKind is JsonValueKind.String
+                            && clientNameProperty.GetString() is { } customClientName
+                            && !string.IsNullOrEmpty(customClientName))
+                        {
+                            clientName = customClientName;
+                        }
+
                         var httpClient = new SourceSchemaHttpClientConfiguration(
                             name: sourceSchema.Name,
-                            // TODO: This should come from a constants class
-                            httpClientName: hasClientName ? clientName.GetString()! : "fusion",
+                            httpClientName: clientName,
                             baseAddress: new Uri(http.GetProperty("url").GetString()!),
                             batchingMode: GetBatchingMode(http));
 
