@@ -278,7 +278,6 @@ public sealed class GraphQLHttpResponse : IDisposable
                 chunks,
                 lastLength: currentChunkPosition,
                 usedChunks: chunkIndex,
-                options: default,
                 pooledMemory: true);
         }
         finally

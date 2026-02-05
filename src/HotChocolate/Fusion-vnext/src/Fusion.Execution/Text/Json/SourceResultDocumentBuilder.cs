@@ -128,7 +128,7 @@ internal sealed partial class SourceResultDocumentBuilder : IDisposable
             var usedChunks = currentChunkIndex + 1;
             var lastChunkLength = currentChunkOffset;
 
-            return SourceResultDocument.Parse(chunks, lastChunkLength, usedChunks, default, pooledMemory: true);
+            return SourceResultDocument.Parse(chunks, lastChunkLength, usedChunks, pooledMemory: true);
         }
         catch
         {

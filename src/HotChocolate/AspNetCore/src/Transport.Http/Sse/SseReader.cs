@@ -130,7 +130,6 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
                                         eventMessage.Data,
                                         eventMessage.LastChunkSize,
                                         eventMessage.UsedChunks,
-                                        options: default,
                                         pooledMemory: true);
 #else
                                     eventBuffer.Reset();

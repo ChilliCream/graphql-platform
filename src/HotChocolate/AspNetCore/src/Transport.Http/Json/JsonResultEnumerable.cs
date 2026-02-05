@@ -201,6 +201,14 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
                     yield return document;
                 }
             }
+            else
+            {
+                yield return SourceResultDocument.Parse(
+                    chunks,
+                    lastLength: currentChunkPosition,
+                    usedChunks: chunkIndex,
+                    pooledMemory: true);
+            }
 #else
             var memory = buffer.WrittenMemory;
 
