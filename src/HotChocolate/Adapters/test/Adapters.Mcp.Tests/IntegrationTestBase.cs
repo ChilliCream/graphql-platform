@@ -396,7 +396,7 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
-    public async Task ListTools_WithOpenAiComponent_ReturnsExpectedResult()
+    public async Task ListTools_WithMcpAppView_ReturnsExpectedResult()
     {
         // arrange
         var storage = new TestMcpStorage();
@@ -410,13 +410,8 @@ public abstract class IntegrationTestBase
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(document2)
             {
-                OpenAiComponent = new OpenAiComponent(
-                    htmlTemplateText: await File.ReadAllTextAsync("__resources__/OpenAiComponent.html"))
-                {
-                    AllowToolCalls = true,
-                    ToolInvokingStatusText = "Invoking GetWithNonNullableVariables...",
-                    ToolInvokedStatusText = "GetWithNonNullableVariables invoked."
-                }
+                View = new McpAppView(
+                    html: await File.ReadAllTextAsync("__resources__/McpAppView.html"))
             });
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
@@ -912,27 +907,36 @@ public abstract class IntegrationTestBase
         var tool =
             new OperationToolDefinition(documentNode)
             {
-                OpenAiComponent = new OpenAiComponent(
-                    htmlTemplateText: await File.ReadAllTextAsync("__resources__/OpenAiComponent.html"))
+                View = new McpAppView(
+                    html: await File.ReadAllTextAsync("__resources__/McpAppView.html"))
                 {
-                    Description = "GetBooksWithTitle1 OpenAI Component description",
-                    PrefersBorder = true,
-                    AllowToolCalls = true,
                     Csp =
-                        new OpenAiComponentCsp(
-                            ConnectDomains: ["https://example.com"],
-                            ResourceDomains: ["https://*.example.com"]),
+                        new McpAppViewCsp
+                        {
+                            BaseUriDomains = ["https://example.com"],
+                            ConnectDomains = ["https://example.com"],
+                            FrameDomains = ["https://example.com"],
+                            ResourceDomains = ["https://example.com"]
+                        },
                     Domain = "https://example.com",
-                    ToolInvokingStatusText = "Fetching books...",
-                    ToolInvokedStatusText = "Books fetched."
-                }
+                    Permissions =
+                        new McpAppViewPermissions
+                        {
+                            Camera = true,
+                            ClipboardWrite = false,
+                            Geolocation = true,
+                            Microphone = false
+                        },
+                    PrefersBorder = true
+                },
+                Visibility = [McpAppViewVisibility.App]
             };
         await storage.AddOrUpdateToolAsync(tool);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var result = await mcpClient.ReadResourceAsync(tool.OpenAiComponentOutputTemplate!);
+        var result = await mcpClient.ReadResourceAsync(tool.ViewResourceUri!);
 
         // assert
         JsonSerializer.Serialize(result, JsonSerializerOptions)

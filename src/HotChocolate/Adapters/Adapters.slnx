@@ -15,6 +15,7 @@
   </Folder>
   <Folder Name="/test/" />
   <Folder Name="/test/Adapters.Mcp.Tests/">
+    <Project Path="test\Adapters.Mcp.Core.Tests\HotChocolate.Adapters.Mcp.Core.Tests.csproj" />
     <Project Path="test\Adapters.Mcp.Packaging.Tests\HotChocolate.Adapters.Mcp.Packaging.Tests.csproj" />
     <Project Path="test\Adapters.Mcp.Tests\HotChocolate.Adapters.Mcp.Tests.csproj" />
   </Folder>

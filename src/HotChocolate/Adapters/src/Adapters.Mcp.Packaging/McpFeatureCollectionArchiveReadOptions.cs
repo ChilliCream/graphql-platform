@@ -6,7 +6,7 @@ namespace HotChocolate.Adapters.Mcp.Packaging;
 internal readonly record struct McpFeatureCollectionArchiveReadOptions(
     int MaxAllowedDocumentSize,
     int MaxAllowedSettingsSize,
-    int MaxAllowedOpenAiComponentSize)
+    int MaxAllowedViewSize)
 {
     /// <summary>
     /// Gets the default read options.

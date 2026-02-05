@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -12,11 +13,13 @@ public class FusionRunCommand : Command
 {
     public FusionRunCommand() : base("run")
     {
-        base.Description = "Starts a Fusion gateway with the specified configuration";
+        base.Description = "Starts a Fusion gateway with the specified archive."
+            + Environment.NewLine
+            + "This command only supports Fusion v2.";
 
         var archiveArgument = new Argument<FileInfo>("ARCHIVE_FILE")
         {
-            Description = "The path to the Fusion configuration file"
+            Description = "The path to the Fusion archive file"
         };
         archiveArgument.LegalFilePathsOnly();
 

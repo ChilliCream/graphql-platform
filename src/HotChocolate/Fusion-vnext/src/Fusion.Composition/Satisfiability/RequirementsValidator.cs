@@ -16,7 +16,7 @@ internal sealed class RequirementsValidator(
     public ImmutableArray<SatisfiabilityError> Validate(
         SelectionSetNode requirements,
         MutableObjectTypeDefinition contextType,
-        SatisfiabilityPathItem parentPathItem,
+        SatisfiabilityPathItem? parentPathItem,
         string excludeSchemaName,
         SatisfiabilityPath? cycleDetectionPath = null)
     {
@@ -384,12 +384,17 @@ internal sealed class RequirementsValidatorContext
 {
     public RequirementsValidatorContext(
         MutableObjectTypeDefinition contextType,
-        SatisfiabilityPathItem parentPathItem,
+        SatisfiabilityPathItem? parentPathItem,
         string excludeSchemaName,
         SatisfiabilityPath? cycleDetectionPath = null)
     {
         TypeContext.Push(contextType);
-        Path.Push(parentPathItem);
+
+        if (parentPathItem is not null)
+        {
+            Path.Push(parentPathItem);
+        }
+
         ExcludeSchemaName = excludeSchemaName;
         CycleDetectionPath = cycleDetectionPath ?? [];
     }

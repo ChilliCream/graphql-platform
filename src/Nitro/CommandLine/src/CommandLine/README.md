@@ -3,7 +3,7 @@
 ## "Secrets"
 
 Client Ids for the Nitro Backend are inserted during the release, otherwise they're empty string.
-To run commands against the Backend locally, you'll have to create a `Directory.Build.props.user` file in this directory and specify the "secrets" inserted during a local build:
+To run commands against the Backend locally, you'll have to create a `Directory.Build.user.props` file in this directory and specify the "secrets" inserted during a local build:
 
 ```xml
 <Project>

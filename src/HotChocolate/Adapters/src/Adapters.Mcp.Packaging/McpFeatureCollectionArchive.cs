@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.IO.Compression;
 using System.IO.Pipelines;
 using System.Text.Json;
@@ -103,8 +103,8 @@ public sealed class McpFeatureCollectionArchive : IDisposable
                 ?? McpFeatureCollectionArchiveReadOptions.Default.MaxAllowedDocumentSize,
             options.MaxAllowedSettingsSize
                 ?? McpFeatureCollectionArchiveReadOptions.Default.MaxAllowedSettingsSize,
-            options.MaxAllowedOpenAiComponentSize
-                ?? McpFeatureCollectionArchiveReadOptions.Default.MaxAllowedOpenAiComponentSize);
+            options.MaxAllowedViewSize
+                ?? McpFeatureCollectionArchiveReadOptions.Default.MaxAllowedViewSize);
         return new McpFeatureCollectionArchive(stream, mode, leaveOpen, readOptions);
     }
 
@@ -274,7 +274,7 @@ public sealed class McpFeatureCollectionArchive : IDisposable
     /// <param name="name">The unique name for this tool.</param>
     /// <param name="document">The GraphQL document to store.</param>
     /// <param name="settings">The optional settings document for this tool.</param>
-    /// <param name="openAiComponent">The optional OpenAI component for this tool.</param>
+    /// <param name="view">The optional view (HTML) for this tool.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <exception cref="ArgumentException">Thrown when name is invalid.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the GraphQL document is empty.</exception>
@@ -284,7 +284,7 @@ public sealed class McpFeatureCollectionArchive : IDisposable
         string name,
         ReadOnlyMemory<byte> document,
         JsonDocument? settings,
-        ReadOnlyMemory<byte>? openAiComponent,
+        ReadOnlyMemory<byte>? view,
         CancellationToken cancellationToken = default)
     {
         if (!NameValidator.IsValidName(name))
@@ -324,10 +324,10 @@ public sealed class McpFeatureCollectionArchive : IDisposable
             await jsonWriter.FlushAsync(cancellationToken);
         }
 
-        if (openAiComponent is not null)
+        if (view is not null)
         {
-            await using var stream = _session.OpenWrite(FileNames.GetToolOpenAiComponentPath(name));
-            await stream.WriteAsync(openAiComponent.Value, cancellationToken);
+            await using var stream = _session.OpenWrite(FileNames.GetToolViewPath(name));
+            await stream.WriteAsync(view.Value, cancellationToken);
         }
 
         _metadata = metadata with { Tools = metadata.Tools.Add(name) };
@@ -393,22 +393,22 @@ public sealed class McpFeatureCollectionArchive : IDisposable
                 settings = await JsonDocument.ParseAsync(settingsStream, cancellationToken: cancellationToken);
             }
 
-            // OpenAI component.
-            var openAiComponentPath = FileNames.GetToolOpenAiComponentPath(name);
-            ReadOnlyMemory<byte>? openAiComponent = null;
+            // View.
+            var viewPath = FileNames.GetToolViewPath(name);
+            ReadOnlyMemory<byte>? view = null;
 
-            if (_session.Exists(openAiComponentPath))
+            if (_session.Exists(viewPath))
             {
                 await using var componentStream = await _session.OpenReadAsync(
-                    openAiComponentPath,
-                    FileKind.OpenAiComponent,
+                    viewPath,
+                    FileKind.View,
                     cancellationToken);
                 await componentStream.CopyToAsync(buffer, cancellationToken);
-                openAiComponent = buffer.WrittenMemory.ToArray();
+                view = buffer.WrittenMemory.ToArray();
                 buffer.Clear();
             }
 
-            return new McpTool(document, settings, openAiComponent);
+            return new McpTool(document, settings, view);
         }
         finally
         {

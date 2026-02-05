@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Settings;
 
@@ -21,8 +22,7 @@ internal sealed class FusionSettingsSetCommand : Command
         AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<CloudUrlOption>.Instance);
-        AddOption(Opt<ApiKeyOption>.Instance);
+        this.AddNitroCloudDefaultOptions();
 
         this.SetHandler(async context =>
         {
@@ -96,14 +96,12 @@ internal sealed class FusionSettingsSetCommand : Command
                 throw new ArgumentOutOfRangeException(nameof(settingName));
         }
 
-        return await FusionPublishCommand.ExecuteAsync(
-            null,
-            [],
+        return await FusionPublishCommand.PublishFusionConfigurationAsync(
             apiId,
             stageName,
             tag,
+            [],
             compositionSettings,
-            requireExistingConfiguration: true,
             console,
             client,
             httpClientFactory,

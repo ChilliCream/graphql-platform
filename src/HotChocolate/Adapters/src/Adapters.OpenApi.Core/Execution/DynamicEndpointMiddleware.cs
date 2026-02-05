@@ -159,14 +159,9 @@ internal sealed class DynamicEndpointMiddleware(
                 var memory = writer.GetMemory(chunkSize);
                 read = await body.ReadAsync(memory, cancellationToken).ConfigureAwait(false);
                 writer.Advance(read);
+            } while (read != 0);
 
-                // if (_maxRequestSize < writer.Length)
-                // {
-                //     throw DefaultHttpRequestParser_MaxRequestSizeExceeded();
-                // }
-            } while (read == chunkSize);
-
-            if (read == 0)
+            if (writer.Length == 0)
             {
                 throw new BadRequestException("Expected to have a body");
             }

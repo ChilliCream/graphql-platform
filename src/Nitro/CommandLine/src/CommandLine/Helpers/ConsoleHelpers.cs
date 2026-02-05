@@ -1,3 +1,4 @@
+using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Client;
 using StrawberryShake;
 
@@ -12,7 +13,7 @@ internal static class ConsoleHelpers
         if (result.Errors is { Count: > 0 })
         {
             var firstError = result.Errors[0];
-            console.ErrorLine($"{firstError.Message} ({firstError.Code})");
+            console.WriteLine($"{firstError.Message} ({firstError.Code})");
 
             throw new ExitException();
         }
@@ -23,7 +24,7 @@ internal static class ConsoleHelpers
     {
         if (result.Data is null)
         {
-            console.ErrorLine($"{Errors.BA00001Message} ({Errors.BA00001})");
+            console.WriteLine($"{Errors.BA00001Message} ({Errors.BA00001})");
 
             throw new ExitException();
         }
@@ -73,7 +74,6 @@ internal static class ConsoleHelpers
     {
         var tree = new Tree("");
         tree.AddSchemaChanges(error.Changes.OfType<ISchemaChange>());
-        // TODO: This needs to write to stderr
         console.Write(tree);
     }
 
@@ -83,7 +83,6 @@ internal static class ConsoleHelpers
     {
         var tree = new Tree("");
         tree.AddSchemaChanges(error.Changes.OfType<ISchemaChange>());
-        // TODO: This needs to write to stderr
         console.Write(tree);
     }
 
@@ -91,15 +90,14 @@ internal static class ConsoleHelpers
         this IAnsiConsole console,
         IStagesHavePublishedDependenciesError error)
     {
-        console.ErrorLine(error.Message);
+        console.WriteLine(error.Message);
         console.WriteLine();
 
         foreach (var stage in error.Stages)
         {
             if (stage.PublishedSchema?.Version is { Tag: var tag })
             {
-                // TODO: This needs to write to stderr
-                console.ErrorLine(
+                console.WriteLine(
                     $"The schema {tag.AsHighlight()} is still published to {stage.Name.AsHighlight()}");
             }
 
@@ -108,8 +106,7 @@ internal static class ConsoleHelpers
                 var tags = string.Join(
                     ',',
                     publishedClient.PublishedVersions.Select(x => x.Version?.Tag));
-                // TODO: This needs to write to stderr
-                console.ErrorLine(
+                console.WriteLine(
                     $"The client {publishedClient.Client.Name.AsHighlight()} in version {tags.AsHighlight()} is still published to {stage.Name.AsHighlight()}");
             }
         }
@@ -117,11 +114,10 @@ internal static class ConsoleHelpers
 
     private static void PrintError(this IAnsiConsole console, IPersistedQueryValidationError error)
     {
-        // TODO: This needs to write to stderr
         console.WarningLine(
             $"There were errors on client {error.Client?.Name.AsHighlight()} [dim](ID: {error.Client?.Id})[/]");
 
-        console.ErrorLine(error.Message);
+        console.WriteLine(error.Message);
 
         var node = new Tree("");
         foreach (var query in error.Queries)
@@ -145,8 +141,68 @@ internal static class ConsoleHelpers
             }
         }
 
-        // TODO: This needs to write to stderr
         console.Write(node);
+    }
+
+    private static void PrintError(this IAnsiConsole console, IOpenApiCollectionValidationError error)
+    {
+        foreach (var collectionError in error.Collections)
+        {
+            var openApiCollection = collectionError.OpenApiCollection;
+
+            console.WarningLine(
+                $"There were errors in the OpenAPI collection '{openApiCollection?.Name.AsHighlight()}' [dim](ID: {openApiCollection?.Id})[/]");
+
+            var node = new Tree("");
+            foreach (var entity in collectionError.Entities)
+            {
+                var entityNode = node.AddNode(GetEntityNodeHeading(entity));
+
+                foreach (var entityError in entity.Errors)
+                {
+                    if (entityError is
+                        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_OpenApiCollectionValidationDocumentError
+                        documentError)
+                    {
+                        var errorLocation = string.Empty;
+                        if (documentError.Locations is { Count: > 0 } locations)
+                        {
+                            errorLocation = $"[grey]({locations[0].Line}:{locations[0].Column})[/]";
+                        }
+
+                        entityNode.AddNode($"{documentError.Message.EscapeMarkup()} {errorLocation}");
+                    }
+                    else if (entityError is
+                        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_OpenApiCollectionValidationEntityValidationError
+                        entityValidationError)
+                    {
+                        entityNode.AddNode(entityValidationError.Message.EscapeMarkup());
+                    }
+                    else
+                    {
+                        entityNode.AddNode("Unknown error type");
+                    }
+                }
+            }
+
+            console.Write(node);
+        }
+
+        static string GetEntityNodeHeading(
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities
+                entity)
+        {
+            var heading = entity switch
+            {
+                IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_OpenApiCollectionValidationEndpoint endpoint
+                    => $"Endpoint '{endpoint.HttpMethod} {endpoint.Route}'",
+                IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_OpenApiCollectionValidationModel model
+                    => $"Model '{model.Name}'",
+                _ => "Unknown entity type"
+            };
+
+            return $"[red]{heading}[/]";
+        }
     }
 
     private static void PrintError(this IAnsiConsole console, IMcpFeatureCollectionValidationError error)
@@ -155,7 +211,6 @@ internal static class ConsoleHelpers
         {
             var mcpFeatureCollection = collectionError.McpFeatureCollection;
 
-            // TODO: This needs to write to stderr
             console.WarningLine(
                 $"There were errors in the MCP Feature Collection '{mcpFeatureCollection?.Name.AsHighlight()}' [dim](ID: {mcpFeatureCollection?.Id})[/]");
 
@@ -191,12 +246,11 @@ internal static class ConsoleHelpers
                 }
             }
 
-            // TODO: This needs to write to stderr
             console.Write(node);
         }
 
         static string GetEntityNodeHeading(
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_1
                 entity)
         {
             var heading = entity switch
@@ -216,10 +270,10 @@ internal static class ConsoleHelpers
         this IAnsiConsole console,
         IInvalidGraphQLSchemaError error)
     {
-        console.Error.ErrorLine(
+        console.WriteLine(
             "The schema you are trying to publish is invalid. Please fix the following errors:");
 
-        console.ErrorLine(error.Message);
+        console.WriteLine(error.Message);
 
         var node = new Tree("");
         foreach (var query in error.Errors)
@@ -227,13 +281,21 @@ internal static class ConsoleHelpers
             node.AddNode($"[red]{query.Message.EscapeMarkup()}[/] [grey]{query.Code}[/]");
         }
 
-        // TODO: This needs to write to stderr
         console.Write(node);
+    }
+
+    private static void PrintInvalidOpenApiCollectionArchiveError(this IAnsiConsole console, string message)
+    {
+        console.WriteLine(
+            "The server received an invalid archive. "
+            + "This indicates a bug in the tooling. "
+            + "Please notify ChilliCream."
+            + "Error received: " + message);
     }
 
     private static void PrintInvalidMcpFeatureCollectionArchiveError(this IAnsiConsole console, string message)
     {
-        console.Error.WriteLine(
+        console.WriteLine(
             "The server received an invalid archive. "
             + "This indicates a bug in the tooling. "
             + "Please notify ChilliCream."
@@ -245,19 +307,19 @@ internal static class ConsoleHelpers
         switch (error)
         {
             case IOperationsAreNotAllowedError err:
-                ansiConsole.ErrorLine(err.Message);
+                ansiConsole.WriteLine(err.Message);
                 break;
 
             case IConcurrentOperationError err:
-                ansiConsole.ErrorLine(err.Message);
+                ansiConsole.WriteLine(err.Message);
                 break;
 
             case IUnexpectedProcessingError err:
-                ansiConsole.ErrorLine(err.Message);
+                ansiConsole.WriteLine(err.Message);
                 break;
 
             case IProcessingTimeoutError err:
-                ansiConsole.ErrorLine(err.Message);
+                ansiConsole.WriteLine(err.Message);
                 break;
 
             case ISchemaVersionChangeViolationError err:
@@ -265,7 +327,7 @@ internal static class ConsoleHelpers
                 break;
 
             case ISchemaVersionSyntaxError err:
-                ansiConsole.ErrorLine(err.Message);
+                ansiConsole.WriteLine(err.Message);
                 break;
 
             case IPersistedQueryValidationError err:
@@ -277,23 +339,23 @@ internal static class ConsoleHelpers
                 break;
 
             case IApiNotFoundError err:
-                ansiConsole.ErrorLine(err.Message);
+                ansiConsole.WriteLine(err.Message);
                 break;
 
             case IMockSchemaNonUniqueNameError err:
-                ansiConsole.ErrorLine(err.Message);
+                ansiConsole.WriteLine(err.Message);
                 break;
 
             case IMockSchemaNotFoundError err:
-                ansiConsole.ErrorLine(err.Message);
+                ansiConsole.WriteLine(err.Message);
                 break;
 
             case IStageNotFoundError err:
-                ansiConsole.ErrorLine(err.Message);
+                ansiConsole.WriteLine(err.Message);
                 break;
 
             case ISubgraphInvalidError err:
-                ansiConsole.ErrorLine(err.Message);
+                ansiConsole.WriteLine(err.Message);
                 break;
 
             case IInvalidGraphQLSchemaError err:
@@ -302,6 +364,26 @@ internal static class ConsoleHelpers
 
             case ISchemaChangeViolationError err:
                 ansiConsole.PrintError(err);
+                break;
+
+            case IInvalidFusionSourceSchemaArchiveError err:
+                ansiConsole.WriteLine(
+                    "The server received an invalid archive. "
+                    + "This indicates a bug in the tooling. "
+                    + "Please notify ChilliCream."
+                    + "Error received: " + err.Message);
+                break;
+
+            case IOpenApiCollectionValidationError err:
+                ansiConsole.PrintError(err);
+                break;
+
+            case IInvalidOpenApiCollectionArchiveError err:
+                ansiConsole.PrintInvalidOpenApiCollectionArchiveError(err.Message);
+                break;
+
+            case IOpenApiCollectionValidationArchiveError err:
+                ansiConsole.PrintInvalidOpenApiCollectionArchiveError(err.Message);
                 break;
 
             case IMcpFeatureCollectionValidationError err:
@@ -321,8 +403,162 @@ internal static class ConsoleHelpers
                 break;
 
             default:
-                ansiConsole.ErrorLine("Unexpected Error");
+                ansiConsole.WriteLine("Unexpected Error");
                 break;
+        }
+    }
+
+    public static void Log(this IAnsiConsole console, string str)
+    {
+        console.MarkupLine("[grey]LOG: [/]" + str);
+    }
+
+    public static Status DefaultStatus(this IAnsiConsole console)
+    {
+        return console.Status()
+            .Spinner(Spinner.Known.BouncingBar)
+            .SpinnerStyle(Style.Parse("green bold"));
+    }
+
+    public static void Title(this IAnsiConsole console, string str)
+    {
+        console.MarkupLineInterpolated($"[white bold]{str}:[/]");
+        console.WriteLine();
+    }
+
+    public static void Success(this IAnsiConsole console, string message)
+    {
+        console.MarkupLine($"[green bold]{message}[/]");
+    }
+
+    public static void OkLine(this IAnsiConsole console, string message)
+    {
+        console.MarkupLine(Glyphs.Check.Space() + message);
+    }
+
+    public static void ErrorLine(this IAnsiConsole console, string message)
+    {
+        console.MarkupLine(Glyphs.Cross.Space() + message);
+    }
+
+    public static void ErrorLine(this TextWriter textWriter, string message)
+    {
+        textWriter.WriteLine("❌ " + message);
+    }
+
+    public static void OkQuestion(this IAnsiConsole console, string question, string result)
+    {
+        console.MarkupLine(
+            $"{Glyphs.QuestionMark.Space()}[bold]{question}[/]: [darkseagreen4]{result}[/]");
+    }
+
+    public static async Task<string> OptionOrAskAsync(
+        this InvocationContext context,
+        string question,
+        Option<string> option,
+        string? defaultValue,
+        CancellationToken cancellationToken)
+    {
+        var value = context.ParseResult.GetValueForOption(option);
+
+        if (value is not null)
+        {
+            return value;
+        }
+
+        var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+
+        var prompt = new TextPrompt<string>(question.AsQuestion());
+
+        if (defaultValue is not null)
+        {
+            prompt = prompt.DefaultValue(defaultValue);
+        }
+
+        return await prompt.ShowAsync(console, cancellationToken);
+    }
+
+    public static Task<string> OptionOrAskAsync(
+        this InvocationContext context,
+        string question,
+        Option<string> option,
+        CancellationToken cancellationToken)
+        => OptionOrAskAsync(context, question, option, defaultValue: null, cancellationToken);
+
+    public static async Task<string> AskAsync(
+        this IAnsiConsole console,
+        string question,
+        string defaultValue,
+        CancellationToken cancellationToken)
+    {
+        var questionText = $"{question}".AsQuestion();
+        var prompt = new TextPrompt<string>(questionText).DefaultValue(defaultValue);
+        return await prompt.ShowAsync(console, cancellationToken);
+    }
+
+    public static async Task<bool> ConfirmAsync(
+        this IAnsiConsole console,
+        string question,
+        CancellationToken cancellationToken)
+        => await new ConfirmationPrompt(question.AsQuestion())
+            .ShowAsync(console, cancellationToken);
+
+    public static async Task<bool> OptionOrConfirmAsync(
+        this InvocationContext context,
+        string question,
+        Option<bool?> option,
+        CancellationToken cancellationToken)
+    {
+        var value = context.ParseResult.GetValueForOption(option);
+
+        if (value is not null)
+        {
+            return value.Value;
+        }
+
+        var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
+
+        return await new ConfirmationPrompt(question.AsQuestion())
+            .ShowAsync(console, cancellationToken);
+    }
+
+    public static void WarningLine(this IAnsiConsole console, string message)
+    {
+        console.MarkupLine(Glyphs.ExclamationMark.Space() + message);
+    }
+
+    public static bool IsHumanReadable(this IAnsiConsole console)
+    {
+        return console is IExtendedConsole { IsInteractive: true };
+    }
+
+    public static IDisposable UseInteractive(this IAnsiConsole console)
+    {
+        return new InteractiveScope(console);
+    }
+
+    private sealed class InteractiveScope : IDisposable
+    {
+        private readonly IAnsiConsole _console;
+        private readonly bool _originalValue;
+
+        public InteractiveScope(IAnsiConsole console)
+        {
+            _console = console;
+
+            if (_console is IExtendedConsole customConsole)
+            {
+                _originalValue = customConsole.IsInteractive;
+                customConsole.IsInteractive = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_console is IExtendedConsole customConsole)
+            {
+                customConsole.IsInteractive = _originalValue;
+            }
         }
     }
 }

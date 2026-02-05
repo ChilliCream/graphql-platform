@@ -1,6 +1,7 @@
 using System.CommandLine.Invocation;
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Configuration;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
@@ -43,7 +44,7 @@ internal sealed class FusionDownloadCommand : Command
 
         console.Title($"Download the fusion configuration {apiId}/{stageName}");
 
-        await using var stream = await FusionPublishHelpers.DownloadConfigurationAsync(
+        await using var stream = await FusionPublishHelpers.DownloadLatestFusionArchiveAsync(
             apiId,
             stageName,
             client,

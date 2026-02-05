@@ -176,6 +176,30 @@ interface Node {
   id: ID!
 }
 
+interface OpenApiCollectionValidationEntity {
+  errors: [OpenApiCollectionValidationEntityError!]!
+}
+
+interface OpenApiCollectionValidationEntityError {
+  message: String!
+}
+
+interface OpenApiCollectionVersionPublishError {
+  message: String!
+}
+
+interface OpenApiCollectionVersionPublishResult {
+  state: ProcessingState!
+}
+
+interface OpenApiCollectionVersionValidationError {
+  message: String!
+}
+
+interface OpenApiCollectionVersionValidationResult {
+  state: ProcessingState!
+}
+
 interface OpenTelemetryAttribute {
   key: String!
 }
@@ -267,6 +291,7 @@ type Api implements Node {
   modifiedAt: DateTime!
   modifiedBy: UserInfo!
   name: String!
+  openApiCollections("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiOpenApiCollectionsConnection
   operations("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OperationsConnection
   path: [String!]!
   schemaVersions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): SchemaVersionsConnection
@@ -514,6 +539,24 @@ type ApiMcpFeatureCollectionsEdge {
 type ApiNotFoundError implements Error {
   apiId: ID!
   message: String!
+}
+
+"A connection to a list of items."
+type ApiOpenApiCollectionsConnection {
+  "A list of edges."
+  edges: [ApiOpenApiCollectionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [OpenApiCollection!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type ApiOpenApiCollectionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: OpenApiCollection!
 }
 
 type ApiPermissionScope implements PermissionScope {
@@ -789,7 +832,7 @@ type CommitFusionConfigurationPublishPayload {
   requestId: ID
 }
 
-type ConcurrentOperationError implements Error & SchemaVersionPublishError & ClientVersionPublishError & FusionConfigurationPublishingError & McpFeatureCollectionVersionPublishError & ProcessingError {
+type ConcurrentOperationError implements Error & SchemaVersionPublishError & ClientVersionPublishError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & McpFeatureCollectionVersionPublishError & ProcessingError {
   message: String!
 }
 
@@ -920,6 +963,11 @@ type CreateMockSchemaPayload {
   mockSchema: MockSchema
 }
 
+type CreateOpenApiCollectionPayload {
+  errors: [CreateOpenApiCollectionError!]
+  openApiCollection: OpenApiCollection
+}
+
 type CreatePersonalAccessTokenPayload {
   errors: [CreatePersonalAccessTokenError!]
   result: PersonalAccessTokenWithSecret
@@ -953,6 +1001,11 @@ type DeleteMcpFeatureCollectionByIdPayload {
 type DeleteMockSchemaByIdPayload {
   errors: [DeleteMockSchemaByIdError!]
   mockSchema: MockSchema
+}
+
+type DeleteOpenApiCollectionByIdPayload {
+  errors: [DeleteOpenApiCollectionByIdError!]
+  openApiCollection: OpenApiCollection
 }
 
 type DeploymentApproval {
@@ -1403,6 +1456,13 @@ type FusionSubgraph implements Subgraph {
   name: String!
 }
 
+type FusionSubgraphVersion {
+  createdAt: DateTime!
+  fusionSubgraph: FusionSubgraph!
+  id: ID!
+  tag: String!
+}
+
 type GraphQLDirectiveArgumentDefinition implements Node & GraphQLTypeSystemMember & GraphQLInputValueDefinition {
   coordinate: String!
   id: ID!
@@ -1692,12 +1752,20 @@ type InterfaceModifiedChange implements SchemaChange {
   severity: SchemaChangeSeverity!
 }
 
+type InvalidFusionSourceSchemaArchiveError implements Error {
+  message: String!
+}
+
 type InvalidGraphQLSchemaError implements SchemaVersionValidationError & SchemaVersionPublishError & FusionConfigurationPublishingError & FusionConfigurationValidationError & ProcessingError {
   errors: [GraphQLSchemaError!]!
   message: String!
 }
 
 type InvalidMcpFeatureCollectionArchiveError implements Error {
+  message: String!
+}
+
+type InvalidOpenApiCollectionArchiveError implements Error {
   message: String!
 }
 
@@ -1806,11 +1874,6 @@ type McpFeatureCollectionVersionPublishSuccess implements McpFeatureCollectionVe
   state: ProcessingState!
 }
 
-type McpFeatureCollectionVersionRequestNotFoundError implements Error {
-  message: String!
-  requestId: ID!
-}
-
 type McpFeatureCollectionVersionValidationFailed implements McpFeatureCollectionVersionValidationResult {
   errors: [McpFeatureCollectionVersionValidationError!]!
   state: ProcessingState!
@@ -1891,6 +1954,7 @@ type Mutation {
   createClient(input: CreateClientInput!): CreateClientPayload!
   createMcpFeatureCollection(input: CreateMcpFeatureCollectionInput!): CreateMcpFeatureCollectionPayload!
   createMockSchema(input: CreateMockSchemaInput!): CreateMockSchemaPayload!
+  createOpenApiCollection(input: CreateOpenApiCollectionInput!): CreateOpenApiCollectionPayload!
   createPersonalAccessToken(input: CreatePersonalAccessTokenInput!): CreatePersonalAccessTokenPayload!
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspacePayload!
   deleteApiById(input: DeleteApiByIdInput!): DeleteApiByIdPayload!
@@ -1898,15 +1962,15 @@ type Mutation {
   deleteClientById(input: DeleteClientByIdInput!): DeleteClientByIdPayload!
   deleteMcpFeatureCollectionById(input: DeleteMcpFeatureCollectionByIdInput!): DeleteMcpFeatureCollectionByIdPayload!
   deleteMockSchemaById(input: DeleteMockSchemaByIdInput!): DeleteMockSchemaByIdPayload!
+  deleteOpenApiCollectionById(input: DeleteOpenApiCollectionByIdInput!): DeleteOpenApiCollectionByIdPayload!
   ensureTunnelSession: EnsureTunnelSessionPayload!
   pollClientVersionPublishRequest(input: PollClientVersionPublishRequestInput!): PollClientVersionPublishRequestPayload!
   pollClientVersionValidationRequest(input: PollClientVersionValidationRequestInput!): PollClientVersionValidationRequestPayload!
-  pollMcpFeatureCollectionVersionPublishRequest(input: PollMcpFeatureCollectionVersionPublishRequestInput!): PollMcpFeatureCollectionVersionPublishRequestPayload!
-  pollMcpFeatureCollectionVersionValidationRequest(input: PollMcpFeatureCollectionVersionValidationRequestInput!): PollMcpFeatureCollectionVersionValidationRequestPayload!
   pollSchemaVersionPublishRequest(input: PollSchemaVersionPublishRequestInput!): PollSchemaVersionPublishRequestPayload!
   pollSchemaVersionValidationRequest(input: PollSchemaVersionValidationRequestInput!): PollSchemaVersionValidationRequestPayload!
   publishClient(input: PublishClientInput!): PublishClientPayload!
   publishMcpFeatureCollection(input: PublishMcpFeatureCollectionInput!): PublishMcpFeatureCollectionPayload!
+  publishOpenApiCollection(input: PublishOpenApiCollectionInput!): PublishOpenApiCollectionPayload!
   publishSchema(input: PublishSchemaInput!): PublishSchemaPayload!
   pushDocumentChanges(input: PushDocumentChangeInput!): PushDocumentChangesPayload! @deprecated(reason: "Use pushWorkspaceChanges")
   pushWorkspaceChanges(input: PushWorkspaceChangesInput!): PushWorkspaceChangesPayload!
@@ -1923,11 +1987,14 @@ type Mutation {
   updateStages(input: UpdateStagesInput!): UpdateStagesPayload!
   updateThemeSettings(input: UpdateThemeSettingsInput!): UpdateThemeSettingsPayload!
   uploadClient(input: UploadClientInput!): UploadClientPayload!
+  uploadFusionSubgraph(input: UploadFusionSubgraphInput!): UploadFusionSubgraphPayload!
   uploadMcpFeatureCollection(input: UploadMcpFeatureCollectionInput!): UploadMcpFeatureCollectionPayload!
+  uploadOpenApiCollection(input: UploadOpenApiCollectionInput!): UploadOpenApiCollectionPayload!
   uploadSchema(input: UploadSchemaInput!): UploadSchemaPayload!
   validateClient(input: ValidateClientInput!): ValidateClientPayload!
   validateFusionConfigurationComposition(input: ValidateFusionConfigurationCompositionInput!): ValidateFusionConfigurationCompositionPayload!
   validateMcpFeatureCollection(input: ValidateMcpFeatureCollectionInput!): ValidateMcpFeatureCollectionPayload!
+  validateOpenApiCollection(input: ValidateOpenApiCollectionInput!): ValidateOpenApiCollectionPayload!
   validateSchema(input: ValidateSchemaInput!): ValidateSchemaPayload!
 }
 
@@ -1958,6 +2025,129 @@ type ObjectModifiedChange implements SchemaChange {
   coordinate: String!
   kind: TypeSystemMemberKind!
   severity: SchemaChangeSeverity!
+}
+
+type OpenApiCollection implements Node {
+  api: Api
+  createdAt: DateTime!
+  createdBy: UserInfo!
+  id: ID!
+  name: String!
+  versions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OpenApiCollectionVersionsConnection
+}
+
+type OpenApiCollectionChangeLog implements StageChangeLog & Node {
+  changedAt: DateTime!
+  id: ID!
+  kind: StageChangeLogKind!
+  tag: String!
+}
+
+type OpenApiCollectionDeployment implements Node & Deployment {
+  approval: DeploymentApproval
+  createdAt: DateTime!
+  errors: [OpenApiCollectionDeploymentError!]!
+  id: ID!
+  logs: [DeploymentLog!]!
+  openApiCollection: OpenApiCollection
+  status: DeploymentStatus!
+  tag: String!
+}
+
+type OpenApiCollectionNotFoundError implements Error {
+  message: String!
+  openApiCollectionId: ID!
+}
+
+type OpenApiCollectionValidationArchiveError implements OpenApiCollectionVersionValidationError & ProcessingError {
+  message: String!
+}
+
+type OpenApiCollectionValidationCollection {
+  entities: [OpenApiCollectionValidationEntity!]!
+  openApiCollection: OpenApiCollection
+}
+
+type OpenApiCollectionValidationDocumentError implements OpenApiCollectionValidationEntityError {
+  code: String
+  locations: [OpenApiCollectionValidationDocumentErrorLocation!]
+  message: String!
+  path: String
+}
+
+type OpenApiCollectionValidationDocumentErrorLocation {
+  column: Int!
+  line: Int!
+}
+
+type OpenApiCollectionValidationEndpoint implements OpenApiCollectionValidationEntity {
+  errors: [OpenApiCollectionValidationEntityError!]!
+  httpMethod: String!
+  route: String!
+}
+
+type OpenApiCollectionValidationEntityValidationError implements OpenApiCollectionValidationEntityError {
+  message: String!
+}
+
+type OpenApiCollectionValidationError implements OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationValidationError & ProcessingError {
+  collections: [OpenApiCollectionValidationCollection!]!
+  message: String!
+}
+
+type OpenApiCollectionValidationModel implements OpenApiCollectionValidationEntity {
+  errors: [OpenApiCollectionValidationEntityError!]!
+  name: String!
+}
+
+type OpenApiCollectionVersion implements Node {
+  createdAt: DateTime!
+  id: ID!
+  openApiCollection: OpenApiCollection
+  tag: String!
+}
+
+type OpenApiCollectionVersionNotFoundError implements Error {
+  message: String!
+  openApiCollectionId: ID!
+  tag: String!
+}
+
+type OpenApiCollectionVersionPublishFailed implements OpenApiCollectionVersionPublishResult {
+  errors: [OpenApiCollectionVersionPublishError!]!
+  state: ProcessingState!
+}
+
+type OpenApiCollectionVersionPublishSuccess implements OpenApiCollectionVersionPublishResult {
+  openApiCollectionVersion: OpenApiCollectionVersion
+  state: ProcessingState!
+}
+
+type OpenApiCollectionVersionValidationFailed implements OpenApiCollectionVersionValidationResult {
+  errors: [OpenApiCollectionVersionValidationError!]!
+  state: ProcessingState!
+}
+
+type OpenApiCollectionVersionValidationSuccess implements OpenApiCollectionVersionValidationResult {
+  state: ProcessingState!
+}
+
+"A connection to a list of items."
+type OpenApiCollectionVersionsConnection {
+  "A list of edges."
+  edges: [OpenApiCollectionVersionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [OpenApiCollectionVersion!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type OpenApiCollectionVersionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: OpenApiCollectionVersion!
 }
 
 type OpenTelemetryBoolAttribute implements OpenTelemetryAttribute {
@@ -2349,7 +2539,7 @@ type Operation {
   name: String
 }
 
-type OperationInProgress implements SchemaVersionValidationResult & SchemaVersionPublishResult & ClientVersionValidationResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & McpFeatureCollectionVersionPublishResult & McpFeatureCollectionVersionValidationResult {
+type OperationInProgress implements SchemaVersionValidationResult & SchemaVersionPublishResult & ClientVersionValidationResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult & OpenApiCollectionVersionValidationResult & McpFeatureCollectionVersionPublishResult & McpFeatureCollectionVersionValidationResult {
   state: ProcessingState!
 }
 
@@ -2767,16 +2957,6 @@ type PollClientVersionValidationRequestPayload {
   result: ClientVersionValidationResult
 }
 
-type PollMcpFeatureCollectionVersionPublishRequestPayload {
-  errors: [PollMcpFeatureCollectionVersionPublishRequestError!]
-  result: McpFeatureCollectionVersionPublishResult
-}
-
-type PollMcpFeatureCollectionVersionValidationRequestPayload {
-  errors: [PollMcpFeatureCollectionVersionValidationRequestError!]
-  result: McpFeatureCollectionVersionValidationResult
-}
-
 type PollSchemaVersionPublishRequestPayload {
   errors: [PollSchemaVersionPublishRequestError!]
   result: SchemaVersionPublishResult
@@ -2797,20 +2977,20 @@ type PossibleTypeRemoved implements SchemaChange {
   typeName: String!
 }
 
-type ProcessingTaskApproved implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & McpFeatureCollectionVersionPublishResult {
+type ProcessingTaskApproved implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult & McpFeatureCollectionVersionPublishResult {
   state: ProcessingState!
 }
 
-type ProcessingTaskIsQueued implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult & McpFeatureCollectionVersionPublishResult {
+type ProcessingTaskIsQueued implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult & OpenApiCollectionVersionPublishResult & McpFeatureCollectionVersionPublishResult {
   queuePosition: Int!
   state: ProcessingState!
 }
 
-type ProcessingTaskIsReady implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult & McpFeatureCollectionVersionPublishResult {
+type ProcessingTaskIsReady implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult & OpenApiCollectionVersionPublishResult & McpFeatureCollectionVersionPublishResult {
   state: ProcessingState!
 }
 
-type ProcessingTimeoutError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
+type ProcessingTimeoutError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
   message: String!
 }
 
@@ -2821,6 +3001,11 @@ type PublishClientPayload {
 
 type PublishMcpFeatureCollectionPayload {
   errors: [PublishMcpFeatureCollectionError!]
+  id: ID
+}
+
+type PublishOpenApiCollectionPayload {
+  errors: [PublishOpenApiCollectionError!]
   id: ID
 }
 
@@ -2871,7 +3056,7 @@ type Query {
   workspaceById(workspaceId: ID!): Workspace
 }
 
-type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationPublishingError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
+type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
   message: String!
 }
 
@@ -3147,7 +3332,6 @@ type Stage implements Node {
   publishedClients: [PublishedClient!]!
   publishedFusionConfiguration: FusionConfiguration
   publishedSchema: PublishedSchemaVersion
-  subgraphs: [Subgraph!]!
   traceById(seeker: String spanId: String traceId: String!): OpenTelemetryTrace
 }
 
@@ -3356,6 +3540,8 @@ type Subscription {
   onFusionConfigurationPublishingTaskChanged(requestId: ID!): FusionConfigurationPublishingResult!
   onMcpFeatureCollectionVersionPublishingUpdate(requestId: ID!): McpFeatureCollectionVersionPublishResult!
   onMcpFeatureCollectionVersionValidationUpdate(requestId: ID!): McpFeatureCollectionVersionValidationResult!
+  onOpenApiCollectionVersionPublishingUpdate(requestId: ID!): OpenApiCollectionVersionPublishResult!
+  onOpenApiCollectionVersionValidationUpdate(requestId: ID!): OpenApiCollectionVersionValidationResult!
   onPersistedQueriesChanged(apiId: ID! stageName: String!): PersistedQueriesChanged!
   onSchemaVersionPublishingUpdate(requestId: ID!): SchemaVersionPublishResult!
   onSchemaVersionValidationUpdate(requestId: ID!): SchemaVersionValidationResult!
@@ -3415,7 +3601,7 @@ type UnexpectedErrorOnDocumentChange implements Error {
   workspaceId: ID!
 }
 
-type UnexpectedProcessingError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & FusionConfigurationValidationError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
+type UnexpectedProcessingError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & FusionConfigurationValidationError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
   message: String!
 }
 
@@ -3476,9 +3662,19 @@ type UploadClientPayload {
   errors: [UploadClientError!]
 }
 
+type UploadFusionSubgraphPayload {
+  errors: [UploadFusionSubgraphError!]
+  fusionSubgraphVersion: FusionSubgraphVersion
+}
+
 type UploadMcpFeatureCollectionPayload {
   errors: [UploadMcpFeatureCollectionError!]
   mcpFeatureCollectionVersion: McpFeatureCollectionVersion
+}
+
+type UploadOpenApiCollectionPayload {
+  errors: [UploadOpenApiCollectionError!]
+  openApiCollectionVersion: OpenApiCollectionVersion
 }
 
 type UploadSchemaPayload {
@@ -3516,6 +3712,11 @@ type ValidateMcpFeatureCollectionPayload {
   id: ID
 }
 
+type ValidateOpenApiCollectionPayload {
+  errors: [ValidateOpenApiCollectionError!]
+  id: ID
+}
+
 type ValidateSchemaPayload {
   errors: [ValidateSchemaError!]
   id: ID
@@ -3530,7 +3731,7 @@ type ValidationErrorProperty {
   message: String!
 }
 
-type ValidationInProgress implements FusionConfigurationPublishingResult & ClientVersionValidationResult & SchemaVersionValidationResult & McpFeatureCollectionVersionValidationResult {
+type ValidationInProgress implements FusionConfigurationPublishingResult & ClientVersionValidationResult & SchemaVersionValidationResult & OpenApiCollectionVersionValidationResult & McpFeatureCollectionVersionValidationResult {
   state: ProcessingState!
 }
 
@@ -3548,7 +3749,7 @@ type Viewer {
   workspaces("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): WorkspacesConnection
 }
 
-type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & McpFeatureCollectionVersionPublishResult {
+type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult & McpFeatureCollectionVersionPublishResult {
   deployment: Deployment
   state: ProcessingState!
 }
@@ -3704,6 +3905,8 @@ union CreateMcpFeatureCollectionError = ApiNotFoundError | UnauthorizedOperation
 
 union CreateMockSchemaError = ApiNotFoundError | MockSchemaNonUniqueNameError | UnauthorizedOperation | ValidationError
 
+union CreateOpenApiCollectionError = ApiNotFoundError | UnauthorizedOperation
+
 union CreatePersonalAccessTokenError = ValidationError | UnauthorizedOperation
 
 union CreateWorkspaceError = UnauthorizedOperation | ValidationError
@@ -3718,6 +3921,8 @@ union DeleteMcpFeatureCollectionByIdError = McpFeatureCollectionNotFoundError | 
 
 union DeleteMockSchemaByIdError = MockSchemaNotFoundError | UnauthorizedOperation
 
+union DeleteOpenApiCollectionByIdError = OpenApiCollectionNotFoundError | UnauthorizedOperation
+
 union DeploymentEvent = DeploymentCreatedEvent | DeploymentUpdatedEvent
 
 union DirectiveChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DescriptionChanged | DirectiveLocationAdded | DirectiveLocationRemoved
@@ -3730,7 +3935,7 @@ union EnumValueChange = DeprecatedChange | DescriptionChanged
 
 union FieldChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DeprecatedChange | DescriptionChanged | TypeChanged
 
-union FusionConfigurationDeploymentError = PersistedQueryValidationError | SchemaChangeViolationError | InvalidGraphQLSchemaError | McpFeatureCollectionValidationError
+union FusionConfigurationDeploymentError = PersistedQueryValidationError | SchemaChangeViolationError | InvalidGraphQLSchemaError | OpenApiCollectionValidationError | McpFeatureCollectionValidationError
 
 union InputFieldChange = DeprecatedChange | DescriptionChanged | TypeChanged
 
@@ -3742,15 +3947,13 @@ union McpFeatureCollectionDeploymentError = McpFeatureCollectionValidationError
 
 union ObjectChange = DescriptionChanged | FieldAddedChange | FieldRemovedChange | InterfaceImplementationAdded | InterfaceImplementationRemoved | OutputFieldChanged
 
+union OpenApiCollectionDeploymentError = OpenApiCollectionValidationError
+
 union OutputFieldChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DeprecatedChange | DescriptionChanged | TypeChanged
 
 union PollClientVersionPublishRequestError = ClientVersionRequestNotFoundError | UnauthorizedOperation
 
 union PollClientVersionValidationRequestError = ClientVersionRequestNotFoundError | UnauthorizedOperation
-
-union PollMcpFeatureCollectionVersionPublishRequestError = McpFeatureCollectionVersionRequestNotFoundError | UnauthorizedOperation
-
-union PollMcpFeatureCollectionVersionValidationRequestError = McpFeatureCollectionVersionRequestNotFoundError | UnauthorizedOperation
 
 union PollSchemaVersionPublishRequestError = SchemaVersionRequestNotFoundError | UnauthorizedOperation
 
@@ -3759,6 +3962,8 @@ union PollSchemaVersionValidationRequestError = SchemaVersionRequestNotFoundErro
 union PublishClientError = StageNotFoundError | ClientNotFoundError | UnauthorizedOperation | ClientVersionNotFoundError
 
 union PublishMcpFeatureCollectionError = StageNotFoundError | McpFeatureCollectionNotFoundError | UnauthorizedOperation | McpFeatureCollectionVersionNotFoundError
+
+union PublishOpenApiCollectionError = StageNotFoundError | OpenApiCollectionNotFoundError | UnauthorizedOperation | OpenApiCollectionVersionNotFoundError
 
 union PublishSchemaError = StageNotFoundError | ApiNotFoundError | SchemaNotFoundError | UnauthorizedOperation
 
@@ -3778,7 +3983,7 @@ union ScalarChange = DescriptionChanged
 
 union SchemaChangeLogEntry = DirectiveModifiedChange | EnumModifiedChange | InputObjectModifiedChange | InterfaceModifiedChange | ObjectModifiedChange | ScalarModifiedChange | TypeSystemMemberAddedChange | TypeSystemMemberModifiedChange | TypeSystemMemberRemovedChange | UnionModifiedChange
 
-union SchemaDeploymentError = PersistedQueryValidationError | SchemaChangeViolationError | OperationsAreNotAllowedError | SchemaVersionSyntaxError | InvalidGraphQLSchemaError | McpFeatureCollectionValidationError
+union SchemaDeploymentError = PersistedQueryValidationError | SchemaChangeViolationError | OperationsAreNotAllowedError | SchemaVersionSyntaxError | InvalidGraphQLSchemaError | OpenApiCollectionValidationError | McpFeatureCollectionValidationError
 
 union SchemaMemberChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DescriptionChanged | DirectiveLocationAdded | DirectiveLocationRemoved | EnumValueAdded | EnumValueChanged | EnumValueRemoved | FieldAddedChange | FieldRemovedChange | InputFieldChanged | InterfaceImplementationAdded | InterfaceImplementationRemoved | OutputFieldChanged | PossibleTypeAdded | PossibleTypeRemoved | UnionMemberAdded | UnionMemberRemoved
 
@@ -3806,7 +4011,11 @@ union UpdateThemeSettingsError = UnauthorizedOperation | ValidationError
 
 union UploadClientError = ClientNotFoundError | ConcurrentOperationError | InvalidPersistedQueryError | UnauthorizedOperation | DuplicatedTagError
 
+union UploadFusionSubgraphError = InvalidFusionSourceSchemaArchiveError | ApiNotFoundError | ConcurrentOperationError | UnauthorizedOperation | DuplicatedTagError
+
 union UploadMcpFeatureCollectionError = McpFeatureCollectionNotFoundError | ConcurrentOperationError | UnauthorizedOperation | DuplicatedTagError | InvalidMcpFeatureCollectionArchiveError
+
+union UploadOpenApiCollectionError = OpenApiCollectionNotFoundError | ConcurrentOperationError | UnauthorizedOperation | DuplicatedTagError | InvalidOpenApiCollectionArchiveError
 
 union UploadSchemaError = ApiNotFoundError | ConcurrentOperationError | DuplicatedTagError | UnauthorizedOperation
 
@@ -3815,6 +4024,8 @@ union ValidateClientError = StageNotFoundError | ClientNotFoundError | Unauthori
 union ValidateFusionConfigurationCompositionError = UnauthorizedOperation | FusionConfigurationRequestNotFoundError | InvalidProcessingStateTransitionError
 
 union ValidateMcpFeatureCollectionError = StageNotFoundError | McpFeatureCollectionNotFoundError | UnauthorizedOperation
+
+union ValidateOpenApiCollectionError = StageNotFoundError | OpenApiCollectionNotFoundError | UnauthorizedOperation
 
 union ValidateSchemaError = StageNotFoundError | SchemaNotFoundError | ApiNotFoundError | UnauthorizedOperation
 
@@ -3987,6 +4198,11 @@ input CreateMockSchemaInput {
   name: String!
 }
 
+input CreateOpenApiCollectionInput {
+  apiId: ID!
+  name: String!
+}
+
 input CreatePersonalAccessTokenInput {
   description: String!
   expiresAt: DateTime!
@@ -4014,6 +4230,10 @@ input DeleteMcpFeatureCollectionByIdInput {
 
 input DeleteMockSchemaByIdInput {
   mockSchemaId: ID!
+}
+
+input DeleteOpenApiCollectionByIdInput {
+  openApiCollectionId: ID!
 }
 
 input EnvironmentCreateChangeInput {
@@ -4115,14 +4335,6 @@ input PollClientVersionValidationRequestInput {
   id: ID!
 }
 
-input PollMcpFeatureCollectionVersionPublishRequestInput {
-  id: ID!
-}
-
-input PollMcpFeatureCollectionVersionValidationRequestInput {
-  id: ID!
-}
-
 input PollSchemaVersionPublishRequestInput {
   id: ID!
 }
@@ -4142,6 +4354,14 @@ input PublishClientInput {
 input PublishMcpFeatureCollectionInput {
   force: Boolean! = false
   mcpFeatureCollectionId: ID!
+  stage: String!
+  tag: String!
+  waitForApproval: Boolean! = false
+}
+
+input PublishOpenApiCollectionInput {
+  force: Boolean! = false
+  openApiCollectionId: ID!
   stage: String!
   tag: String!
   waitForApproval: Boolean! = false
@@ -4296,9 +4516,21 @@ input UploadClientInput {
   tag: String!
 }
 
+input UploadFusionSubgraphInput {
+  apiId: ID!
+  archive: Upload!
+  tag: String!
+}
+
 input UploadMcpFeatureCollectionInput {
   collection: Upload!
   mcpFeatureCollectionId: ID!
+  tag: String!
+}
+
+input UploadOpenApiCollectionInput {
+  collection: Upload!
+  openApiCollectionId: ID!
   tag: String!
 }
 
@@ -4322,6 +4554,12 @@ input ValidateFusionConfigurationCompositionInput {
 input ValidateMcpFeatureCollectionInput {
   collection: Upload!
   mcpFeatureCollectionId: ID!
+  stage: String!
+}
+
+input ValidateOpenApiCollectionInput {
+  collection: Upload!
+  openApiCollectionId: ID!
   stage: String!
 }
 
@@ -4563,6 +4801,7 @@ enum StageChangeLogKind {
   SCHEMA
   CLIENT
   FUSION_CONFIGURATION
+  OPEN_API_COLLECTION
   MCP_FEATURE_COLLECTION
 }
 
