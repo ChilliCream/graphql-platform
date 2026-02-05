@@ -18,12 +18,12 @@ jobs:
 
     steps:
       - name: 📦 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           show-progress: false
 
       - name: 🛠 Install .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: |
             8.x
@@ -99,10 +99,10 @@ jobs:
 
     steps:
       - name: 📦 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: 🛠 Install .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.x
 
@@ -254,7 +254,7 @@ jobs:
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
 
       - name: 📤 Upload zipped binary as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: nitro-${{ matrix.rid }}
           path: nitro-${{ matrix.rid }}.zip
@@ -277,12 +277,12 @@ jobs:
 
     steps:
       - name: 📦 Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: 🧰 Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: "24.x"
+          node-version: 22
           registry-url: ${{ vars.NPM_REGISTRY_URL }}
           scope: "@chillicream"
 
@@ -290,7 +290,7 @@ jobs:
         run: corepack enable
 
       - name: 📥 Download all zipped nitro binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: nitro-*
           merge-multiple: true
@@ -326,10 +326,8 @@ jobs:
         working-directory: src/Nitro/CommandLine/src/chillicream-nitro
         run: yarn install --immutable
 
-      # Ensure npm 11.5.1 or later for trusted publishing
-      - name: 📥 Download latest npm version
-        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
-        run: npm install -g npm@latest
+      - name: 📥 Install npm@11.9.0
+        run: npm install -g npm@11.9.0
 
       - name: 🏷️ Set version
         working-directory: src/Nitro/CommandLine/src/chillicream-nitro
@@ -354,7 +352,7 @@ jobs:
         shell: bash
 
       - name: 📤 Upload tarball as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: chillicream-nitro-${{ env.GIT_TAG }}.tgz
           path: src/Nitro/CommandLine/src/chillicream-nitro/chillicream-nitro-${{ env.GIT_TAG }}.tgz
@@ -374,7 +372,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout main repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -432,7 +430,7 @@ jobs:
           EOF
 
       - name: 📥 Checkout homebrew repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ChilliCream/homebrew-tools
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
