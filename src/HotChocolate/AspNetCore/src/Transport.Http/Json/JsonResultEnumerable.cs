@@ -164,9 +164,7 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
                 }
                 else
                 {
-                    // TODO: Is there a chance of the bytes not being zero-ed out?
-                    //       Do we want a span from 0 to currentChunkPosition instead?
-                    jsonReader = new Utf8JsonReader(chunks[0], default);
+                    jsonReader = new Utf8JsonReader(chunks[0].AsSpan(0, currentChunkPosition), default);
                 }
 
                 jsonReader.Read();
@@ -198,7 +196,6 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
                     isFirstDocument = false;
                 }
 
-                // TODO: Can we get rid of the additional enumeration?
                 foreach (var document in documents)
                 {
                     yield return document;
@@ -209,12 +206,12 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
 
             if (IsJsonArray(memory.Span))
             {
-                var jsonReader = new Utf8JsonReader(buffer.WrittenMemory.Span);
+                var jsonReader = new Utf8JsonReader(memory.Span);
                 var documents = new List<JsonDocument>();
 
                 if (!jsonReader.Read() || jsonReader.TokenType != JsonTokenType.StartArray)
                 {
-                    throw new JsonException("Expected StartArray");
+                    throw new JsonException("Expected first JSON token to be a StartArray.");
                 }
 
                 while (jsonReader.Read())
@@ -231,15 +228,16 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
                     }
                 }
 
-                // TODO: Can we get rid of the additional enumeration?
                 foreach (var document in documents)
                 {
                     yield return OperationResult.Parse(document);
                 }
+
+                buffer.Dispose();
             }
             else
             {
-                var document = JsonDocument.Parse(buffer.WrittenMemory);
+                var document = JsonDocument.Parse(memory);
                 var documentOwner = new JsonDocumentOwner(document, buffer);
                 yield return OperationResult.Parse(documentOwner);
             }

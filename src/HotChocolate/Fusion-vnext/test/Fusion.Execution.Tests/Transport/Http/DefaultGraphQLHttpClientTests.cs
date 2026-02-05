@@ -69,8 +69,6 @@ public class DefaultGraphQLHttpClientTests
 
             Assert.Equal(count, number);
 
-            document.Dispose();
-
             count++;
         }
 
