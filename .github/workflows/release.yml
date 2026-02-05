@@ -335,8 +335,6 @@ jobs:
 
       - name: 🚀 Publish tarball to npm
         working-directory: src/Nitro/CommandLine/src/chillicream-nitro
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
         run: |
           TARBALL="chillicream-nitro-${GIT_TAG}.tgz"
 
