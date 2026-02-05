@@ -273,6 +273,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
+      id-token: write
 
     steps:
       - name: 📦 Checkout
@@ -281,7 +282,7 @@ jobs:
       - name: 🧰 Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "22.x"
+          node-version: "24.x"
           registry-url: ${{ vars.NPM_REGISTRY_URL }}
           scope: "@chillicream"
 
@@ -324,6 +325,11 @@ jobs:
       - name: 🔍 Install dependencies
         working-directory: src/Nitro/CommandLine/src/chillicream-nitro
         run: yarn install --immutable
+
+      # Ensure npm 11.5.1 or later for trusted publishing
+      - name: 📥 Download latest npm version
+        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
+        run: npm install -g npm@latest
 
       - name: 🏷️ Set version
         working-directory: src/Nitro/CommandLine/src/chillicream-nitro
