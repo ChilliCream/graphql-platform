@@ -81,12 +81,6 @@ namespace ChilliCream.Nitro.CommandLine {
             }
         }
         
-        internal static string ComposeCommand_GlobalObjectIdentification_Enabled {
-            get {
-                return ResourceManager.GetString("ComposeCommand_GlobalObjectIdentification_Enabled", resourceCulture);
-            }
-        }
-        
         internal static string ComposeCommand_EnableGlobalObjectIdentification_Description {
             get {
                 return ResourceManager.GetString("ComposeCommand_EnableGlobalObjectIdentification_Description", resourceCulture);
