@@ -71,15 +71,9 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
             var promptFiles = GlobMatcher.Match(promptPatterns).ToArray();
             var toolFiles = GlobMatcher.Match(toolPatterns).ToArray();
 
-            if (promptFiles.Length < 1)
+            if (promptFiles.Length < 1 && toolFiles.Length < 1)
             {
-                console.WriteLine("Could not find any MCP prompt definition files with the provided pattern.");
-                return;
-            }
-
-            if (toolFiles.Length < 1)
-            {
-                console.WriteLine("Could not find any MCP tool definition files with the provided pattern.");
+                console.WriteLine("Could not find any MCP prompt or tool definition files with the provided pattern.");
                 return;
             }
 

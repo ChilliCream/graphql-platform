@@ -48,7 +48,7 @@ internal static class McpFeatureCollectionHelpers
             if (File.Exists(settingsFile))
             {
                 settings =
-                    await JsonDocument.ParseAsync(File.OpenRead(toolFile), cancellationToken: cancellationToken);
+                    await JsonDocument.ParseAsync(File.OpenRead(settingsFile), cancellationToken: cancellationToken);
             }
 
             byte[]? openAiComponent = null;
