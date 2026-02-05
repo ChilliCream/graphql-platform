@@ -42,7 +42,7 @@ internal static class McpFeatureCollectionHelpers
             var toolName = Path.GetFileNameWithoutExtension(toolFile);
             var documentBytes = Encoding.UTF8.GetBytes(await File.ReadAllTextAsync(toolFile, cancellationToken));
             var settingsFile = Path.ChangeExtension(toolFile, ".json");
-            var openAiComponentFile = Path.ChangeExtension(toolFile, ".open-ai.html");
+            var viewFile = Path.ChangeExtension(toolFile, ".html");
 
             JsonDocument? settings = null;
             if (File.Exists(settingsFile))
@@ -51,17 +51,17 @@ internal static class McpFeatureCollectionHelpers
                     await JsonDocument.ParseAsync(File.OpenRead(settingsFile), cancellationToken: cancellationToken);
             }
 
-            byte[]? openAiComponent = null;
-            if (File.Exists(openAiComponentFile))
+            byte[]? view = null;
+            if (File.Exists(viewFile))
             {
-                openAiComponent = await File.ReadAllBytesAsync(openAiComponentFile, cancellationToken);
+                view = await File.ReadAllBytesAsync(viewFile, cancellationToken);
             }
 
             await collectionArchive.AddToolAsync(
                 toolName,
                 documentBytes,
                 settings,
-                openAiComponent,
+                view,
                 cancellationToken);
         }
 
