@@ -2,6 +2,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
@@ -130,11 +131,10 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
 
                     case IWaitForApproval e:
                         if (e.Deployment is
-                            IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_McpFeatureCollectionDeployment
+                            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_McpFeatureCollectionDeployment
                             deployment)
                         {
-                            // TODO: Print the errors here
-                            // console.PrintErrors(deployment.Errors);
+                            console.PrintErrors(deployment.Errors);
                         }
 
                         ctx?.Status(

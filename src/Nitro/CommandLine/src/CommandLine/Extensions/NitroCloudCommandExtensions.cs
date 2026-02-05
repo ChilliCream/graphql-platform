@@ -45,13 +45,13 @@ public static class NitroCloudCommandExtensions
         command.AddCommand(new LaunchCommand());
         command.AddCommand(new LoginCommand());
         command.AddCommand(new LogoutCommand());
+        command.AddCommand(new McpCommand());
         command.AddCommand(new MockCommand());
         command.AddCommand(new OpenApiCommand());
         command.AddCommand(new PersonalAccessTokenCommand());
         command.AddCommand(new SchemaCommand());
         command.AddCommand(new StageCommand());
         command.AddCommand(new WorkspaceCommand());
-        command.AddCommand(new McpCommand());
     }
 
     internal static void AddNitroCloudDefaultOptions(this Command command)

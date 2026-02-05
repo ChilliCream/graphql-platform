@@ -68,6 +68,8 @@ internal static class McpFeatureCollectionHelpers
         await collectionArchive.CommitAsync(cancellationToken);
         collectionArchive.Dispose();
 
+        archiveStream.Position = 0;
+
         return archiveStream;
     }
 }

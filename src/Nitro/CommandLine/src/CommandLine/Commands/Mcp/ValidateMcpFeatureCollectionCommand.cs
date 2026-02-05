@@ -2,6 +2,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
@@ -62,17 +63,35 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
         async Task ValidateMcpFeatureCollection(StatusContext? ctx)
         {
-            // TODO: Print patterns for confirmation
+            console.Log("Searching for MCP prompt definition files with the following patterns:");
+            foreach (var promptPattern in promptPatterns)
+            {
+                console.Log($"- {promptPattern}");
+            }
+
+            console.Log("Searching for MCP tool definition files with the following patterns:");
+            foreach (var toolPattern in toolPatterns)
+            {
+                console.Log($"- {toolPattern}");
+            }
 
             var promptFiles = GlobMatcher.Match(promptPatterns).ToArray();
             var toolFiles = GlobMatcher.Match(toolPatterns).ToArray();
 
-            if (promptFiles.Length < 1 && toolFiles.Length < 1)
+            if (promptFiles.Length < 1)
             {
-                // TODO: Improve this error
-                console.ErrorLine("Did not find any matches...");
+                console.WriteLine("Could not find any MCP prompt definition files with the provided pattern.");
                 return;
             }
+
+            if (toolFiles.Length < 1)
+            {
+                console.WriteLine("Could not find any MCP tool definition files with the provided pattern.");
+                return;
+            }
+
+            console.Log($"Found {promptFiles.Length} MCP prompt definition file(s).");
+            console.Log($"Found {toolFiles.Length} MCP tool definition file(s).");
 
             var archiveStream =
                 await McpFeatureCollectionHelpers.BuildMcpFeatureCollectionArchive(promptFiles, toolFiles, ct);

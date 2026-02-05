@@ -1,4 +1,6 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Options;
+
+namespace ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 
 internal sealed class McpFeatureCollectionIdOption : Option<string>
 {
