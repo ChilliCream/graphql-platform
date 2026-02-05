@@ -134,56 +134,83 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
             }
             chunks[chunkIndex++] = currentChunk;
 
-            // Determine if this is an array or object by finding the first non-whitespace byte
-            var isArray = IsJsonArray(chunks, chunkIndex, currentChunkPosition);
-
-            if (isArray)
+            if (IsJsonArray(chunks, chunkIndex, currentChunkPosition))
             {
-                // First pass: collect all element ranges
-                var elementRanges = CollectElementRanges(chunks, chunkIndex, currentChunkPosition);
-
-                // Second pass: yield each element
-                foreach (var (elementStart, elementLength) in elementRanges)
+                Utf8JsonReader jsonReader;
+                if (chunkIndex > 1)
                 {
-                    var elementChunks = ExtractElement(chunks, chunkIndex, currentChunkPosition, elementStart, elementLength);
+                    SequenceSegment? first = null;
+                    SequenceSegment? previous = null;
+                    var dataChunksSpan = chunks.AsSpan(0, chunkIndex);
 
-                    yield return SourceResultDocument.Parse(
-                        elementChunks.Chunks,
-                        elementChunks.LastLength,
-                        elementChunks.UsedChunks,
-                        options: default,
-                        pooledMemory: true);
+                    for (var i = 0; i < dataChunksSpan.Length; i++)
+                    {
+                        var chunk = dataChunksSpan[i];
+                        var chunkDataLength = (i == dataChunksSpan.Length - 1) ? currentChunkPosition : JsonMemory.BufferSize;
+                        var current = new SequenceSegment(chunk, chunkDataLength);
+
+                        first ??= current;
+                        previous?.SetNext(current);
+                        previous = current;
+                    }
+
+                    if (first is null || previous is null)
+                    {
+                        throw new InvalidOperationException("Sequence segments cannot be empty.");
+                    }
+
+                    var sequence = new ReadOnlySequence<byte>(first, 0, previous, currentChunkPosition);
+                    jsonReader = new Utf8JsonReader(sequence, default);
+                }
+                else
+                {
+                    // TODO: Is there a chance of the bytes not being zero-ed out?
+                    //       Do we want a span from 0 to currentChunkPosition instead?
+                    jsonReader = new Utf8JsonReader(chunks[0], default);
                 }
 
-                // Clean up the source chunks since elements were extracted
-                for (var i = 0; i < chunkIndex; i++)
+                jsonReader.Read();
+
+                if (jsonReader.TokenType != JsonTokenType.StartArray)
                 {
-                    JsonMemory.Return(chunks[i]);
+                    throw new InvalidOperationException("Expected first JSON token to be a StartArray.");
                 }
-                ArrayPool<byte[]>.Shared.Return(chunks);
-            }
-            else
-            {
-                // Parse as single object - chunks ownership transfers to SourceResultDocument
-                yield return SourceResultDocument.Parse(
-                    chunks,
-                    lastLength: currentChunkPosition,
-                    usedChunks: chunkIndex,
-                    options: default,
-                    pooledMemory: true);
+
+                var documents = new List<SourceResultDocument>();
+
+                var isFirstDocument = true;
+                while (jsonReader.Read())
+                {
+                    if (jsonReader.TokenType == JsonTokenType.EndArray)
+                    {
+                        break;
+                    }
+
+                    var document = SourceResultDocument.Parse(
+                        ref jsonReader,
+                        chunks,
+                        usedChunks: chunkIndex,
+                        skipInitialRead: true,
+                        pooledMemory: isFirstDocument);
+
+                    documents.Add(document);
+
+                    isFirstDocument = false;
+                }
+
+                // TODO: Can we get rid of the additional enumeration?
+                foreach (var document in documents)
+                {
+                    yield return document;
+                }
             }
 #else
             var memory = buffer.WrittenMemory;
 
-            // Determine if this is an array or object
-            var isArray = IsJsonArray(memory.Span);
-
-            if (isArray)
+            if (IsJsonArray(memory.Span))
             {
-                // First pass: collect all element ranges
                 var elementRanges = CollectElementRanges(memory.Span);
 
-                // Second pass: yield each element
                 foreach (var (elementStart, elementLength) in elementRanges)
                 {
                     var elementBuffer = new PooledArrayWriter(elementLength);
@@ -200,7 +227,6 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
             }
             else
             {
-                // Parse as single object - buffer ownership transfers to JsonDocumentOwner
                 var document = JsonDocument.Parse(buffer.WrittenMemory);
                 var documentOwner = new JsonDocumentOwner(document, buffer);
                 yield return OperationResult.Parse(documentOwner);
@@ -224,6 +250,7 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
 
             foreach (var b in chunk)
             {
+                // Skip whitespaces.
                 if (b is (byte)' ' or (byte)'\t' or (byte)'\r' or (byte)'\n')
                 {
                     continue;
@@ -234,35 +261,6 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
         }
 
         return false;
-    }
-
-    private static List<(long Start, int Length)> CollectElementRanges(byte[][] chunks, int usedChunks, int lastChunkLength)
-    {
-        var sequence = CreateSequence(chunks, usedChunks, lastChunkLength);
-        var jsonReader = new Utf8JsonReader(sequence);
-        var ranges = new List<(long Start, int Length)>();
-
-        if (!jsonReader.Read() || jsonReader.TokenType != JsonTokenType.StartArray)
-        {
-            throw new InvalidOperationException("Expected JSON array.");
-        }
-
-        while (jsonReader.Read())
-        {
-            if (jsonReader.TokenType == JsonTokenType.EndArray)
-            {
-                break;
-            }
-
-            var elementStart = jsonReader.TokenStartIndex;
-            SkipCurrentElement(ref jsonReader);
-            var elementEnd = jsonReader.BytesConsumed;
-            var elementLength = (int)(elementEnd - elementStart);
-
-            ranges.Add((elementStart, elementLength));
-        }
-
-        return ranges;
     }
 #else
     private static bool IsJsonArray(ReadOnlySpan<byte> span)
@@ -278,142 +276,6 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
         }
 
         return false;
-    }
-
-    private static List<(int Start, int Length)> CollectElementRanges(ReadOnlySpan<byte> span)
-    {
-        var jsonReader = new Utf8JsonReader(span);
-        var ranges = new List<(int Start, int Length)>();
-
-        if (!jsonReader.Read() || jsonReader.TokenType != JsonTokenType.StartArray)
-        {
-            throw new InvalidOperationException("Expected JSON array.");
-        }
-
-        while (jsonReader.Read())
-        {
-            if (jsonReader.TokenType == JsonTokenType.EndArray)
-            {
-                break;
-            }
-
-            var elementStart = (int)jsonReader.TokenStartIndex;
-            SkipCurrentElement(ref jsonReader);
-            var elementEnd = (int)jsonReader.BytesConsumed;
-            var elementLength = elementEnd - elementStart;
-
-            ranges.Add((elementStart, elementLength));
-        }
-
-        return ranges;
-    }
-#endif
-
-    private static void SkipCurrentElement(ref Utf8JsonReader reader)
-    {
-        if (reader.TokenType is JsonTokenType.StartObject or JsonTokenType.StartArray)
-        {
-            var depth = reader.CurrentDepth;
-            while (reader.Read() && reader.CurrentDepth > depth)
-            {
-                // Keep reading until we exit the current element
-            }
-        }
-    }
-
-#if FUSION
-    private static ReadOnlySequence<byte> CreateSequence(byte[][] chunks, int usedChunks, int lastChunkLength)
-    {
-        if (usedChunks == 1)
-        {
-            return new ReadOnlySequence<byte>(chunks[0].AsMemory(0, lastChunkLength));
-        }
-
-        SequenceSegment? first = null;
-        SequenceSegment? previous = null;
-
-        for (var i = 0; i < usedChunks; i++)
-        {
-            var chunkLength = (i == usedChunks - 1) ? lastChunkLength : JsonMemory.BufferSize;
-            var current = new SequenceSegment(chunks[i], chunkLength);
-
-            first ??= current;
-            previous?.SetNext(current);
-            previous = current;
-        }
-
-        return new ReadOnlySequence<byte>(first!, 0, previous!, lastChunkLength);
-    }
-
-    private static (byte[][] Chunks, int LastLength, int UsedChunks) ExtractElement(
-        byte[][] sourceChunks,
-        int sourceUsedChunks,
-        int sourceLastChunkLength,
-        long startIndex,
-        int length)
-    {
-        var requiredChunks = (length + JsonMemory.BufferSize - 1) / JsonMemory.BufferSize;
-        var elementChunks = JsonMemory.RentRange(requiredChunks);
-        var elementChunkIndex = 0;
-        var elementChunkPosition = 0;
-
-        var sourcePosition = 0L;
-        var bytesRemaining = length;
-
-        for (var i = 0; i < sourceUsedChunks && bytesRemaining > 0; i++)
-        {
-            var chunkLength = (i == sourceUsedChunks - 1) ? sourceLastChunkLength : JsonMemory.BufferSize;
-            var chunkEnd = sourcePosition + chunkLength;
-
-            if (chunkEnd > startIndex)
-            {
-                var offsetInChunk = (int)Math.Max(0, startIndex - sourcePosition);
-                var availableInChunk = chunkLength - offsetInChunk;
-                var bytesToCopy = Math.Min(availableInChunk, bytesRemaining);
-
-                var sourceSpan = sourceChunks[i].AsSpan(offsetInChunk, bytesToCopy);
-                var copyOffset = 0;
-
-                while (copyOffset < bytesToCopy)
-                {
-                    var spaceInElementChunk = JsonMemory.BufferSize - elementChunkPosition;
-                    var copyLength = Math.Min(spaceInElementChunk, bytesToCopy - copyOffset);
-
-                    sourceSpan.Slice(copyOffset, copyLength).CopyTo(elementChunks[elementChunkIndex].AsSpan(elementChunkPosition));
-                    elementChunkPosition += copyLength;
-                    copyOffset += copyLength;
-
-                    if (elementChunkPosition == JsonMemory.BufferSize)
-                    {
-                        elementChunkIndex++;
-                        elementChunkPosition = 0;
-                    }
-                }
-
-                bytesRemaining -= bytesToCopy;
-            }
-
-            sourcePosition = chunkEnd;
-        }
-
-        var usedChunks = elementChunkPosition > 0 ? elementChunkIndex + 1 : elementChunkIndex;
-        var lastLength = elementChunkPosition > 0 ? elementChunkPosition : JsonMemory.BufferSize;
-
-        return (elementChunks, lastLength, usedChunks);
-    }
-
-    private sealed class SequenceSegment : ReadOnlySequenceSegment<byte>
-    {
-        public SequenceSegment(byte[] data, int length)
-        {
-            Memory = data.AsMemory(0, length);
-        }
-
-        public void SetNext(SequenceSegment next)
-        {
-            next.RunningIndex = RunningIndex + Memory.Length;
-            Next = next;
-        }
     }
 #endif
 }

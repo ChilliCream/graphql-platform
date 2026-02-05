@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
@@ -194,7 +195,113 @@ public class LookupTests : FusionTestBase
     }
 
     [Fact]
+    // TODO: Produce large response
+    public async Task Fetch_With_Request_Batching_JsonLines_Large_Response()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<OneOfLookups.SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            """
+            type Query {
+              authorById(id: ID!): Author @lookup
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+            }
+            """,
+            batchingMode: SourceSchemaHttpClientBatchingMode.ApolloRequestBatching,
+            batchingAcceptHeaderValues: [new("application/jsonl") { CharSet = "utf-8" }]);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                author {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
     public async Task Fetch_With_Request_Batching_SSE()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<OneOfLookups.SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            """
+            type Query {
+              authorById(id: ID!): Author @lookup
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+            }
+            """,
+            batchingMode: SourceSchemaHttpClientBatchingMode.ApolloRequestBatching,
+            batchingAcceptHeaderValues: [new("text/event-stream") { CharSet = "utf-8" }]);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                author {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    // TODO: Produce large response
+    public async Task Fetch_With_Request_Batching_SSE_Large_Response()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -281,6 +388,92 @@ public class LookupTests : FusionTestBase
                 "data": {
                   "authorById": {
                     "name": "Author 2"
+                  }
+                }
+              }
+            ]
+            """;
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            """
+            type Query {
+              authorById(id: ID!): Author @lookup
+            }
+
+            type Author {
+              id: ID!
+              name: String!
+            }
+            """,
+            batchingMode: SourceSchemaHttpClientBatchingMode.ApolloRequestBatching,
+            httpClient: new HttpClient(new MockHttpMessageHandler(jsonArrayResponse)));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                author {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+     [Fact]
+    public async Task Fetch_With_Request_Batching_JsonArray_Large_Response()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<OneOfLookups.SourceSchema1.Query>());
+
+        string jsonArrayResponse =
+            $$"""
+            [
+              {
+                "data": {
+                  "authorById": {
+                    "name": "{{GenerateRandomString(128)}}"
+                  }
+                }
+              },
+              {
+                "data": {
+                  "authorById": {
+                    "name": "{{GenerateRandomString(128)}}"
+                  }
+                }
+              },
+              {
+                "data": {
+                  "authorById": {
+                    "name": "{{GenerateRandomString(128)}}"
+                  }
+                }
+              },
+              {
+                "data": {
+                  "authorById": {
+                    "name": "{{GenerateRandomString(128)}}"
                   }
                 }
               }
@@ -465,6 +658,23 @@ public class LookupTests : FusionTestBase
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    public static string GenerateRandomString(int kiloBytes)
+    {
+        var targetBytes = kiloBytes * 1024;
+        var charsNeeded = targetBytes / 2;
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+        var random = new Random();
+        var stringBuilder = new StringBuilder(charsNeeded);
+
+        for (int i = 0; i < charsNeeded; i++)
+        {
+            stringBuilder.Append(chars[random.Next(chars.Length)]);
+        }
+
+        return stringBuilder.ToString();
     }
 
     private sealed class MockHttpMessageHandler(string responseContent) : HttpMessageHandler

@@ -18,6 +18,7 @@ public sealed partial class SourceResultDocument
         JsonReaderOptions options = default)
         => Parse([data], size, usedChunks: 1, options, pooledMemory: true);
 
+    // TODO: Maybe remove options
     internal static SourceResultDocument Parse(
         byte[][] dataChunks,
         int lastLength,
@@ -37,6 +38,29 @@ public sealed partial class SourceResultDocument
         return ParseMultipleSegments(dataChunks, lastLength, usedChunks, options, pooledMemory);
     }
 
+    internal static SourceResultDocument Parse(
+        ref Utf8JsonReader reader,
+        byte[][] dataChunks,
+        int usedChunks,
+        bool skipInitialRead,
+        bool pooledMemory)
+    {
+        var metaDb = MetaDb.CreateForEstimatedRows(1);
+
+        try
+        {
+            ParseJson(ref reader, ref metaDb, skipInitialRead);
+        }
+        catch
+        {
+            metaDb.Dispose();
+
+            throw;
+        }
+
+        return new SourceResultDocument(metaDb, dataChunks, usedChunks, pooledMemory);
+    }
+
     internal static SourceResultDocument ParseSingleSegment(
         byte[][] dataChunks,
         int lastLength,
@@ -52,7 +76,7 @@ public sealed partial class SourceResultDocument
 
         try
         {
-            ParseJson(reader, ref metaDb);
+            ParseJson(ref reader, ref metaDb);
         }
         catch
         {
@@ -111,7 +135,7 @@ public sealed partial class SourceResultDocument
 
         try
         {
-            ParseJson(reader, ref metaDb);
+            ParseJson(ref reader, ref metaDb);
         }
         catch
         {
@@ -134,13 +158,14 @@ public sealed partial class SourceResultDocument
         return new SourceResultDocument(metaDb, dataChunks, usedChunks, pooledMemory);
     }
 
-    private static void ParseJson(Utf8JsonReader reader, ref MetaDb metaDb)
+    private static void ParseJson(ref Utf8JsonReader reader, ref MetaDb metaDb, bool skipInitialRead = false)
     {
         Span<Cursor> containerStart = stackalloc Cursor[64];
         var stackIndex = 0;
 
-        while (reader.Read())
+        while (skipInitialRead || reader.Read())
         {
+            skipInitialRead = false;
             var tokenType = reader.TokenType;
             var location = (int)reader.TokenStartIndex;
             var tokenLength = (int)(reader.BytesConsumed - location);
@@ -164,6 +189,11 @@ public sealed partial class SourceResultDocument
                 {
                     var startCursor = containerStart[--stackIndex];
                     CloseObject(ref metaDb, startCursor, location);
+
+                    if (stackIndex == 0)
+                    {
+                        return;
+                    }
                     break;
                 }
 
