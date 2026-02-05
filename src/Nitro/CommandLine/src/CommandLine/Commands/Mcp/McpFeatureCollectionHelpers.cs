@@ -26,8 +26,8 @@ internal static class McpFeatureCollectionHelpers
             }
 
             var promptName = Path.GetFileNameWithoutExtension(promptFile);
-            var settings =
-                await JsonDocument.ParseAsync(File.OpenRead(promptFile), cancellationToken: cancellationToken);
+            await using var settingsStream = File.OpenRead(promptFile);
+            var settings = await JsonDocument.ParseAsync(settingsStream, cancellationToken: cancellationToken);
 
             await collectionArchive.AddPromptAsync(promptName, settings, cancellationToken);
         }
@@ -47,8 +47,8 @@ internal static class McpFeatureCollectionHelpers
             JsonDocument? settings = null;
             if (File.Exists(settingsFile))
             {
-                settings =
-                    await JsonDocument.ParseAsync(File.OpenRead(settingsFile), cancellationToken: cancellationToken);
+                await using var settingsStream = File.OpenRead(settingsFile);
+                settings = await JsonDocument.ParseAsync(settingsStream, cancellationToken: cancellationToken);
             }
 
             byte[]? view = null;

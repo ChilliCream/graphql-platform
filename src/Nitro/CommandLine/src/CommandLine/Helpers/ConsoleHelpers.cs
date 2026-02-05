@@ -399,7 +399,7 @@ internal static class ConsoleHelpers
                 break;
 
             case IError err:
-                ansiConsole.ErrorLine(err.Message);
+                ansiConsole.WriteLine(err.Message);
                 break;
 
             default:
