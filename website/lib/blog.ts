@@ -9,6 +9,7 @@ export interface BlogPost {
   description?: string;
   author: string;
   authorUrl?: string;
+  authorImageUrl?: string;
   date: string;
   tags: string[];
   featuredImage?: string;
@@ -52,6 +53,7 @@ export function getAllBlogPosts(): BlogPost[] {
       description: frontmatter.description || "",
       author: frontmatter.author || "Unknown",
       authorUrl: frontmatter.authorUrl || "",
+      authorImageUrl: frontmatter.authorImageUrl || "",
       date: frontmatter.date
         ? new Date(frontmatter.date).toISOString()
         : "",
@@ -131,7 +133,7 @@ export function getRecentNitroBlogPostTeasers(count = 3) {
       path: post.path,
       title: post.title,
       author: post.author,
-      authorImageUrl: post.authorUrl,
+      authorImageUrl: post.authorImageUrl,
       date: post.date
         ? new Date(post.date).toLocaleDateString("en-US", {
             year: "numeric",
@@ -156,7 +158,7 @@ export function getRecentBlogPostTeasers(count = 3) {
       path: post.path,
       title: post.title,
       author: post.author,
-      authorImageUrl: post.authorUrl,
+      authorImageUrl: post.authorImageUrl,
       date: post.date
         ? new Date(post.date).toLocaleDateString("en-US", {
             year: "numeric",

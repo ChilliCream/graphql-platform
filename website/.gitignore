@@ -61,7 +61,6 @@ typings/
 
 # gatsby files (legacy)
 .cache/
-public
 /graphql-types.ts
 
 # next.js
