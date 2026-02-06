@@ -1,7 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
-using ChilliCream.Nitro.CommandLine.Settings;
+using HotChocolate.Fusion;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 

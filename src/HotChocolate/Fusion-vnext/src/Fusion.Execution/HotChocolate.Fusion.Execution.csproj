@@ -75,6 +75,9 @@
     <Compile Include="..\..\..\AspNetCore\src\Transport.Http\OnHttpResponseMessageReceived.cs">
       <Link>Transport\Http\OnHttpResponseMessageReceived.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Json\JsonResultEnumerable.cs">
+      <Link>Transport\Http\Json\JsonResultEnumerable.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\AspNetCore\src\Transport.Http\JsonLines\JsonLinesReader.cs">
       <Link>Transport\Http\JsonLines\JsonLinesReader.cs</Link>
     </Compile>

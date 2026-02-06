@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Settings;
+namespace HotChocolate.Fusion;
 
 internal sealed record SourceSchemaSettings
 {

@@ -290,12 +290,21 @@ internal sealed class FusionRequestExecutorManager
                 {
                     if (transports.TryGetProperty("http", out var http))
                     {
-                        var hasClientName = http.TryGetProperty("clientName", out var clientName);
+                        var clientName = SourceSchemaHttpClientConfiguration.DefaultClientName;
+
+                        if (http.TryGetProperty("clientName", out var clientNameProperty)
+                            && clientNameProperty.ValueKind is JsonValueKind.String
+                            && clientNameProperty.GetString() is { } customClientName
+                            && !string.IsNullOrEmpty(customClientName))
+                        {
+                            clientName = customClientName;
+                        }
 
                         var httpClient = new SourceSchemaHttpClientConfiguration(
-                            sourceSchema.Name,
-                            httpClientName: hasClientName ? clientName.GetString()! : "fusion",
-                            new Uri(http.GetProperty("url").GetString()!));
+                            name: sourceSchema.Name,
+                            httpClientName: clientName,
+                            baseAddress: new Uri(http.GetProperty("url").GetString()!),
+                            batchingMode: GetBatchingMode(http));
 
                         configurations.Add(httpClient);
                     }
@@ -309,6 +318,18 @@ internal sealed class FusionRequestExecutorManager
         }
 
         return new SourceSchemaClientConfigurations(configurations);
+    }
+
+    private static SourceSchemaHttpClientBatchingMode GetBatchingMode(JsonElement httpSettings)
+    {
+        if (httpSettings.TryGetProperty("batchingMode", out var batchingMode)
+            && batchingMode.ValueKind == JsonValueKind.String
+            && batchingMode.GetString() == "REQUEST_BATCHING")
+        {
+            return SourceSchemaHttpClientBatchingMode.ApolloRequestBatching;
+        }
+
+        return SourceSchemaHttpClientBatchingMode.VariableBatching;
     }
 
     private FeatureCollection CreateSchemaFeatures(

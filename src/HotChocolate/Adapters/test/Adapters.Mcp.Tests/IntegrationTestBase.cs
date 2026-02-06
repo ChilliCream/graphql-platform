@@ -953,13 +953,13 @@ public abstract class IntegrationTestBase
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        async Task Action() => await mcpClient.ReadResourceAsync("ui://open-ai-components/missing.html");
+        async Task Action() => await mcpClient.ReadResourceAsync("ui://views/missing.html");
 
         // assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(Action);
         Assert.EndsWith("Resource not found.", exception.Message);
         Assert.Equal(-32002, (int)exception.ErrorCode);
-        Assert.Equal("ui://open-ai-components/missing.html", exception.Data["uri"]);
+        Assert.Equal("ui://views/missing.html", exception.Data["uri"]);
     }
 
     [Fact]

@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using HotChocolate.Fusion.Options;
 
-namespace ChilliCream.Nitro.CommandLine.Settings;
+namespace HotChocolate.Fusion;
 
 [JsonSerializable(typeof(CompositionSettings))]
 [JsonSerializable(typeof(CompositionSettings.PreprocessorSettings), TypeInfoPropertyName = "CompositionPreprocessorSettings")]
