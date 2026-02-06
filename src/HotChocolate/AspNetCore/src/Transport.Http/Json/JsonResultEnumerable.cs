@@ -58,6 +58,7 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
         var chunkIndex = 0;
 #else
         var buffer = new PooledArrayWriter();
+        var bufferOwnershipTransferred = false;
 #endif
 
         try
@@ -146,7 +147,8 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
                     for (var i = 0; i < dataChunksSpan.Length; i++)
                     {
                         var chunk = dataChunksSpan[i];
-                        var chunkDataLength = (i == dataChunksSpan.Length - 1) ? currentChunkPosition : JsonMemory.BufferSize;
+                        var chunkDataLength =
+ (i == dataChunksSpan.Length - 1) ? currentChunkPosition : JsonMemory.BufferSize;
                         var current = new SequenceSegment(chunk, chunkDataLength);
 
                         first ??= current;
@@ -240,19 +242,28 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
                 {
                     yield return OperationResult.Parse(document);
                 }
-
-                buffer.Dispose();
             }
             else
             {
                 var document = JsonDocument.Parse(memory);
                 var documentOwner = new JsonDocumentOwner(document, buffer);
                 yield return OperationResult.Parse(documentOwner);
+
+                bufferOwnershipTransferred = true;
             }
 #endif
         }
         finally
         {
+#if !FUSION
+            // If we haven't transferred ownership of the buffer via a JsonDocumentOwner
+            // or we've encountered an exception, we need to free the allocated memory.
+            if (!bufferOwnershipTransferred)
+            {
+                buffer.Dispose();
+            }
+#endif
+
             await cts.CancelAsync().ConfigureAwait(false);
             await reader.CompleteAsync().ConfigureAwait(false);
         }
