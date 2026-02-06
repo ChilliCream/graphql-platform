@@ -73,9 +73,12 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
 
             if (promptFiles.Length < 1 && toolFiles.Length < 1)
             {
-                console.WriteLine("Could not find any MCP prompt or tool definition files with the provided pattern.");
+                console.WriteLine("Could not find any MCP prompt or tool definition files with the provided patterns.");
                 return;
             }
+
+            console.Log($"Found {promptFiles.Length} MCP prompt definition file(s).");
+            console.Log($"Found {toolFiles.Length} MCP tool definition file(s).");
 
             var archiveStream =
                 await McpFeatureCollectionHelpers.BuildMcpFeatureCollectionArchive(
