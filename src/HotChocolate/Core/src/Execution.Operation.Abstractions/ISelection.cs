@@ -119,9 +119,34 @@ public interface ISelection
     /// due to @skip or @include directive evaluation.
     /// </returns>
     /// <remarks>
-    /// This method uses efficient bitwise operations to determine inclusion
-    /// based on the pre-computed flags. For non-conditional selections,
-    /// this always returns <c>true</c>.
+    /// For non-conditional selections, this always returns <c>true</c>.
     /// </remarks>
     bool IsIncluded(ulong includeFlags);
+
+    /// <summary>
+    /// Determines whether this selection is deferred based on the <c>@defer</c> directive flags.
+    /// </summary>
+    /// <param name="deferFlags">
+    /// The defer condition flags representing which <c>@defer</c> directives are active
+    /// for the current request, computed from the runtime variable values of the
+    /// <c>if</c> arguments on <c>@defer</c> directives.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if this selection should be deferred and delivered incrementally
+    /// in a subsequent payload; otherwise, <c>false</c> if it should be included
+    /// in the initial response.
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// For selections without any <c>@defer</c> directive, this always returns <c>false</c>.
+    /// </para>
+    /// <para>
+    /// The <c>@defer</c> directive (as specified in the GraphQL Incremental Delivery
+    /// specification) allows clients to mark fragment spreads or inline fragments
+    /// as lower priority for the initial response. The server may then choose
+    /// to deliver those fragments in subsequent payloads, reducing time-to-first-byte
+    /// for the initial result.
+    /// </para>
+    /// </remarks>
+    bool IsDeferred(ulong deferFlags);
 }

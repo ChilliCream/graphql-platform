@@ -149,42 +149,42 @@ query DashboardContainerQuery {
         }
       }
     }
-    gainers: assets(first: 5, where: { price: { change24Hour: { gt: 0 } } }, order: { price: { change24Hour: DESC } }) @__execute(id: 4, kind: DEFAULT, type: COMPOSITE) {
+    gainers: assets(first: 5, where: { price: { change24Hour: { gt: 0 } } }, order: { price: { change24Hour: DESC } }) @__execute(id: 4, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
       ... on AssetsConnection {
-        nodes @__execute(id: 40, kind: DEFAULT, type: COMPOSITE_LIST) {
+        nodes @__execute(id: 40, kind: DEFAULT, type: COMPOSITE_LIST, isDeferred: true) {
           ... on Asset {
-            id @__execute(id: 42, kind: DEFAULT, type: LEAF)
-            symbol @__execute(id: 43, kind: DEFAULT, type: LEAF)
-            name @__execute(id: 44, kind: DEFAULT, type: LEAF)
-            imageUrl @__execute(id: 45, kind: DEFAULT, type: LEAF)
-            isInWatchlist @__execute(id: 46, kind: DEFAULT, type: LEAF)
-            price @__execute(id: 47, kind: DEFAULT, type: COMPOSITE) {
+            id @__execute(id: 42, kind: DEFAULT, type: LEAF, isDeferred: true)
+            symbol @__execute(id: 43, kind: DEFAULT, type: LEAF, isDeferred: true)
+            name @__execute(id: 44, kind: DEFAULT, type: LEAF, isDeferred: true)
+            imageUrl @__execute(id: 45, kind: DEFAULT, type: LEAF, isDeferred: true)
+            isInWatchlist @__execute(id: 46, kind: DEFAULT, type: LEAF, isDeferred: true)
+            price @__execute(id: 47, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
               ... on AssetPrice {
-                currency @__execute(id: 49, kind: DEFAULT, type: LEAF)
-                lastPrice @__execute(id: 50, kind: DEFAULT, type: LEAF)
-                change24Hour @__execute(id: 51, kind: DEFAULT, type: LEAF)
-                id @__execute(id: 52, kind: DEFAULT, type: LEAF)
+                currency @__execute(id: 49, kind: DEFAULT, type: LEAF, isDeferred: true)
+                lastPrice @__execute(id: 50, kind: DEFAULT, type: LEAF, isDeferred: true)
+                change24Hour @__execute(id: 51, kind: DEFAULT, type: LEAF, isDeferred: true)
+                id @__execute(id: 52, kind: DEFAULT, type: LEAF, isDeferred: true)
               }
             }
           }
         }
       }
     }
-    losers: assets(first: 5, where: { price: { change24Hour: { lt: 0 } } }, order: { price: { change24Hour: ASC } }) @__execute(id: 5, kind: DEFAULT, type: COMPOSITE) {
+    losers: assets(first: 5, where: { price: { change24Hour: { lt: 0 } } }, order: { price: { change24Hour: ASC } }) @__execute(id: 5, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
       ... on AssetsConnection {
-        nodes @__execute(id: 54, kind: DEFAULT, type: COMPOSITE_LIST) {
+        nodes @__execute(id: 54, kind: DEFAULT, type: COMPOSITE_LIST, isDeferred: true) {
           ... on Asset {
-            id @__execute(id: 56, kind: DEFAULT, type: LEAF)
-            symbol @__execute(id: 57, kind: DEFAULT, type: LEAF)
-            name @__execute(id: 58, kind: DEFAULT, type: LEAF)
-            imageUrl @__execute(id: 59, kind: DEFAULT, type: LEAF)
-            isInWatchlist @__execute(id: 60, kind: DEFAULT, type: LEAF)
-            price @__execute(id: 61, kind: DEFAULT, type: COMPOSITE) {
+            id @__execute(id: 56, kind: DEFAULT, type: LEAF, isDeferred: true)
+            symbol @__execute(id: 57, kind: DEFAULT, type: LEAF, isDeferred: true)
+            name @__execute(id: 58, kind: DEFAULT, type: LEAF, isDeferred: true)
+            imageUrl @__execute(id: 59, kind: DEFAULT, type: LEAF, isDeferred: true)
+            isInWatchlist @__execute(id: 60, kind: DEFAULT, type: LEAF, isDeferred: true)
+            price @__execute(id: 61, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
               ... on AssetPrice {
-                currency @__execute(id: 63, kind: DEFAULT, type: LEAF)
-                lastPrice @__execute(id: 64, kind: DEFAULT, type: LEAF)
-                change24Hour @__execute(id: 65, kind: DEFAULT, type: LEAF)
-                id @__execute(id: 66, kind: DEFAULT, type: LEAF)
+                currency @__execute(id: 63, kind: DEFAULT, type: LEAF, isDeferred: true)
+                lastPrice @__execute(id: 64, kind: DEFAULT, type: LEAF, isDeferred: true)
+                change24Hour @__execute(id: 65, kind: DEFAULT, type: LEAF, isDeferred: true)
+                id @__execute(id: 66, kind: DEFAULT, type: LEAF, isDeferred: true)
               }
             }
           }

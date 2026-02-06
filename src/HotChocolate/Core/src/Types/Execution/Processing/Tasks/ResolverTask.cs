@@ -9,7 +9,7 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
 {
     private readonly MiddlewareContext _context = new();
     private readonly List<ResolverTask> _taskBuffer = [];
-    private readonly Dictionary<string, ArgumentValue> _args = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, ArgumentValue> _args = [with(StringComparer.Ordinal)];
     private OperationContext _operationContext = null!;
     private Selection _selection = null!;
     private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
@@ -18,6 +18,8 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     /// Gets or sets the internal execution id.
     /// </summary>
     public uint Id { get; set; }
+
+    public uint DeferGroupId { get; set; }
 
     /// <summary>
     /// Gets access to the resolver context for this task.

@@ -1,10 +1,20 @@
 {
   hero(episode: EMPIRE) {
-    name
     ... @defer {
-      id
+      ... CharFields
+      ... @defer {
+        ... CharFields
+        ... @defer {
+          ... CharFields
+        }
+      }
     }
   }
+}
+
+fragment CharFields on Character {
+  name
+  id
 }
 
 ---------------------------------------------------------
@@ -13,11 +23,11 @@
   ... on Query {
     hero(episode: EMPIRE) @__execute(id: 2, kind: PURE, type: COMPOSITE) {
       ... on Human {
-        name @__execute(id: 4, kind: PURE, type: LEAF)
+        name @__execute(id: 4, kind: PURE, type: LEAF, isDeferred: true)
         id @__execute(id: 5, kind: PURE, type: LEAF, isDeferred: true)
       }
       ... on Droid {
-        name @__execute(id: 7, kind: PURE, type: LEAF)
+        name @__execute(id: 7, kind: PURE, type: LEAF, isDeferred: true)
         id @__execute(id: 8, kind: PURE, type: LEAF, isDeferred: true)
       }
     }
