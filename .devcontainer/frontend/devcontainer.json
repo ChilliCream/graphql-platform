@@ -11,10 +11,14 @@
         "esbenp.prettier-vscode",
         "bradlc.vscode-tailwindcss",
         "dsznajder.es7-react-js-snippets",
-        "csstools.postcss"
+        "csstools.postcss",
+        "graphql.vscode-graphql",
+        "esbenp.prettier-vscode",
+        "anthropic.claude-code",
+        "openai.chatgpt"
       ]
     }
   },
   "forwardPorts": [3000],
-  "postCreateCommand": "node --version && npm --version"
+  "postCreateCommand": "node --version && npm --version && npm i -g @anthropic-ai/claude-code"
 }

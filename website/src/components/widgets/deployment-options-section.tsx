@@ -1,8 +1,7 @@
-import { Link } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
 
-import { ContentSection, IconContainer } from "@/components/misc";
+import { ContentSection, IconContainer, Link } from "@/components/misc";
 import { Icon } from "@/components/sprites";
 import { THEME_COLORS } from "@/style";
 import { Box, Boxes } from "./box-elements";

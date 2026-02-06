@@ -1,12 +1,24 @@
-import { graphql } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
 
-import { BlogArticleTeaserMetadataFragment } from "@/graphql-types";
 import { THEME_COLORS } from "@/style";
 
+interface BlogArticleTeaserMetadataData {
+  fields?: {
+    readingTime?: {
+      text?: string;
+    };
+  };
+  frontmatter?: {
+    author?: string;
+    authorImageUrl?: string;
+    date?: string;
+    title?: string;
+  };
+}
+
 export interface BlogArticleTeaserMetadataProps {
-  readonly data: BlogArticleTeaserMetadataFragment;
+  readonly data: BlogArticleTeaserMetadataData;
 }
 
 export const BlogArticleTeaserMetadata: FC<BlogArticleTeaserMetadataProps> = ({
@@ -15,36 +27,20 @@ export const BlogArticleTeaserMetadata: FC<BlogArticleTeaserMetadataProps> = ({
   return (
     <Metadata>
       <Author>
-        <AuthorImage src={frontmatter!.authorImageUrl!} />
-        {frontmatter!.author!}
+        <AuthorImage src={frontmatter?.authorImageUrl || ""} />
+        {frontmatter?.author || ""}
       </Author>
       <Space>
-        <Title>{frontmatter!.title}</Title>
+        <Title>{frontmatter?.title || ""}</Title>
         <Footer>
-          {frontmatter!.date!}
+          {frontmatter?.date || ""}
           {" ・ "}
-          {fields!.readingTime!.text!}
+          {fields?.readingTime?.text || ""}
         </Footer>
       </Space>
     </Metadata>
   );
 };
-
-export const BlogArticleTeaserMetadataGraphQLFragment = graphql`
-  fragment BlogArticleTeaserMetadata on Mdx {
-    fields {
-      readingTime {
-        text
-      }
-    }
-    frontmatter {
-      author
-      authorImageUrl
-      date(formatString: "MMMM DD, YYYY")
-      title
-    }
-  }
-`;
 
 const Metadata = styled.div`
   display: flex;
