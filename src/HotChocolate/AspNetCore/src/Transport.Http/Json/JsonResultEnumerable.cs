@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Text.Json;
 #else
 using System.Buffers;
@@ -53,7 +54,7 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
 
 #if FUSION
         var chunks = ArrayPool<byte[]>.Shared.Rent(64);
-        var currentChunk = JsonMemory.Rent();
+        var currentChunk = JsonMemory.Rent(JsonMemoryKind.Json);
         var currentChunkPosition = 0;
         var chunkIndex = 0;
 #else
@@ -101,7 +102,7 @@ internal sealed class JsonResultEnumerable(HttpResponseMessage message, string? 
                             }
 
                             chunks[chunkIndex++] = currentChunk;
-                            currentChunk = JsonMemory.Rent();
+                            currentChunk = JsonMemory.Rent(JsonMemoryKind.Json);
                             currentChunkPosition = 0;
                         }
                     }
