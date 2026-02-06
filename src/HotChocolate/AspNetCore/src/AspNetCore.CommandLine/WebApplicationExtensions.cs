@@ -57,7 +57,7 @@ public static class HostBuilderExtensions
     {
         if (args.IsGraphQLCommand())
         {
-            return await new App(host).Build().InvokeAsync(args);
+            return await new App(host).InvokeAsync(args);
         }
 
         await host.RunAsync();
@@ -82,7 +82,7 @@ public static class HostBuilderExtensions
     {
         if (args.IsGraphQLCommand())
         {
-            return new App(host).Build().Invoke(args);
+            return new App(host).Invoke(args);
         }
 
         host.Run();

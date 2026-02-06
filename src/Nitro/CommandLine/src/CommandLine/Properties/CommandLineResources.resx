@@ -36,12 +36,6 @@
   <data name="ComposeCommand_Description" xml:space="preserve">
     <value>Composes multiple source schemas into a single composite schema.</value>
   </data>
-  <data name="ComposeCommand_GlobalObjectIdentification_Disabled" xml:space="preserve">
-    <value>Disabled global object identification.</value>
-  </data>
-  <data name="ComposeCommand_GlobalObjectIdentification_Enabled" xml:space="preserve">
-    <value>Enabled global object identification.</value>
-  </data>
   <data name="ComposeCommand_EnableGlobalObjectIdentification_Description" xml:space="preserve">
     <value>Determines whether the 'Query.node' field shall be added.</value>
   </data>

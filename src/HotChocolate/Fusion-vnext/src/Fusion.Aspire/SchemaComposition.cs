@@ -91,9 +91,19 @@ internal sealed class SchemaComposition(
                 return true;
             }
 
-            var gatewayDirectory = GetProjectPath(compositionResource)!;
-            var archivePath = Path.Combine(Path.GetDirectoryName(gatewayDirectory)!, settings.OutputFileName);
-            return await ComposeSchemaAsync(archivePath, sourceSchemas, settings, cancellationToken);
+            try
+            {
+                var gatewayDirectory = GetProjectPath(compositionResource)!;
+                var archivePath = Path.Combine(Path.GetDirectoryName(gatewayDirectory)!, settings.OutputFileName);
+                return await ComposeSchemaAsync(archivePath, sourceSchemas, settings, cancellationToken);
+            }
+            finally
+            {
+                foreach (var sourceSchema in sourceSchemas)
+                {
+                    sourceSchema.SchemaSettings.Dispose();
+                }
+            }
         }
         catch (OperationCanceledException)
         {
@@ -247,7 +257,7 @@ internal sealed class SchemaComposition(
             ResourceName = resource.Name,
             HttpEndpointUrl = new Uri(schemaUrl),
             Schema = new SourceSchemaText(sourceSchemaName, schemaText),
-            SchemaSettings = schemaSettings.Value
+            SchemaSettings = schemaSettings
         };
     }
 
@@ -281,11 +291,11 @@ internal sealed class SchemaComposition(
             ResourceName = resource.Name,
             HttpEndpointUrl = null, // No HTTP endpoint for file-based schemas
             Schema = new SourceSchemaText(sourceSchemaName, schemaFromFile),
-            SchemaSettings = schemaSettings.Value
+            SchemaSettings = schemaSettings
         };
     }
 
-    private async Task<JsonElement?> GetSourceSchemaSettingsAsync(
+    private async Task<JsonDocument?> GetSourceSchemaSettingsAsync(
         IResourceWithEndpoints resource,
         string settingsFileName,
         CancellationToken cancellationToken)
@@ -309,8 +319,7 @@ internal sealed class SchemaComposition(
             }
 
             var settingsJson = await File.ReadAllTextAsync(settingsFile, cancellationToken);
-            using var document = JsonDocument.Parse(settingsJson);
-            return document.RootElement.Clone();
+            return JsonDocument.Parse(settingsJson);
         }
         catch (Exception ex)
         {
@@ -487,7 +496,7 @@ internal sealed class SchemaComposition(
                 File.Copy(archivePath, tempArchivePath);
             }
 
-            if (await CompositionHelper.TryComposeAsync(
+            if (await AspireCompositionHelper.TryComposeAsync(
                 tempArchivePath,
                 [.. sourceSchemas],
                 settings.Settings,

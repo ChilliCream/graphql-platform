@@ -47,7 +47,7 @@ internal sealed class ListClientCommand : Command
         IApiClient client,
         CancellationToken ct)
     {
-        const string apiMessage = "For which client do you want to list the clients?";
+        const string apiMessage = "For which API do you want to list the clients?";
         var apiId = await context.GetOrSelectApiId(apiMessage);
 
         var container = PaginationContainer

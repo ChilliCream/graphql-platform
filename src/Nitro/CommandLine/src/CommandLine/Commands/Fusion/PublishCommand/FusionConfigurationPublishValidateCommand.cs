@@ -94,7 +94,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
                 return ExitCodes.Success;
             }
 
-            console.Error.WriteLine("The validation failed:");
+            console.WriteLine("The validation failed:");
             if (failed is not null)
             {
                 console.PrintErrorsAndExit(failed.Errors);

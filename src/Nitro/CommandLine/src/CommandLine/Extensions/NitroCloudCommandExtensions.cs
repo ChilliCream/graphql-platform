@@ -11,7 +11,9 @@ using ChilliCream.Nitro.CommandLine.Commands.Fusion;
 using ChilliCream.Nitro.CommandLine.Commands.Launch;
 using ChilliCream.Nitro.CommandLine.Commands.Login;
 using ChilliCream.Nitro.CommandLine.Commands.Logout;
+using ChilliCream.Nitro.CommandLine.Commands.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Mocks;
+using ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.Schemas;
 using ChilliCream.Nitro.CommandLine.Commands.Stages;
@@ -47,14 +49,13 @@ public static class NitroCloudCommandExtensions
         command.AddCommand(new ApiCommand());
         command.AddCommand(new ClientCommand());
         command.AddCommand(new EnvironmentCommand());
-
-        var fusionCommand = new FusionCommand();
-        command.AddCommand(fusionCommand);
-
+        command.AddCommand(new FusionCommand());
         command.AddCommand(new LaunchCommand());
         command.AddCommand(new LoginCommand());
         command.AddCommand(new LogoutCommand());
+        command.AddCommand(new McpCommand());
         command.AddCommand(new MockCommand());
+        command.AddCommand(new OpenApiCommand());
         command.AddCommand(new PersonalAccessTokenCommand());
         command.AddCommand(new SchemaCommand());
         command.AddCommand(new StageCommand());

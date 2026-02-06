@@ -22,6 +22,11 @@ public static partial class RequestExecutorBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="builder"/> is <c>null</c>.
     /// </exception>
+    /// <remarks>
+    /// The <typeparamref name="T"/> will be activated with the <see cref="IServiceProvider"/> of the schema services.
+    /// If your <typeparamref name="T"/> needs to access application services you need to
+    /// make the services available in the schema services via <see cref="RequestExecutorBuilderExtensions.AddApplicationService"/>.
+    /// </remarks>
     public static IRequestExecutorBuilder AddTransactionScopeHandler<T>(
         this IRequestExecutorBuilder builder)
         where T : class, ITransactionScopeHandler
@@ -53,6 +58,14 @@ public static partial class RequestExecutorBuilderExtensions
     /// The request executor builder.
     /// </returns>
     /// <exception cref="ArgumentNullException"></exception>
+    /// <remarks>
+    /// The <see cref="IServiceProvider"/> passed to the <paramref name="factory"/>
+    /// is for the schema services. If you need to access application services
+    /// you need to either make the services available in the schema services
+    /// via <see cref="RequestExecutorBuilderExtensions.AddApplicationService"/> or use
+    /// <see cref="ExecutionServiceProviderExtensions.GetRootServiceProvider(IServiceProvider)"/>
+    /// to access the application services from within the schema service provider.
+    /// </remarks>
     public static IRequestExecutorBuilder AddTransactionScopeHandler(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, ITransactionScopeHandler> factory)

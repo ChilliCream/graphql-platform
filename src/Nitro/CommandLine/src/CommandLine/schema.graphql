@@ -44,22 +44,10 @@ interface ClientVersionValidationResult {
 }
 
 interface CoordinateMetrics {
-  clientUsage(
-    clientId: ID
-    from: DateTime!
-    to: DateTime!
-  ): CoordinateClientUsage
-  clientUsages(from: DateTime!, to: DateTime!): [CoordinateClientUsage!]!
-  requests(
-    from: DateTime!
-    resolution: Int! = 300
-    to: DateTime!
-  ): CoordinateRequestGraph
-  usages(
-    from: DateTime!
-    resolution: Int! = 300
-    to: DateTime!
-  ): CoordinateUsageGraph
+  clientUsage(clientId: ID from: DateTime! to: DateTime!): CoordinateClientUsage
+  clientUsages(from: DateTime! to: DateTime!): [CoordinateClientUsage!]!
+  requests(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateRequestGraph
+  usages(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateUsageGraph
 }
 
 interface Deployment {
@@ -118,7 +106,7 @@ interface GraphQLInputValueDefinition implements GraphQLTypeSystemMember {
   id: ID!
   isDeprecated: Boolean!
   metrics: CoordinateMetrics!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 interface GraphQLOutputFieldArgumentDefinition implements GraphQLTypeSystemMember & GraphQLInputValueDefinition {
@@ -129,7 +117,7 @@ interface GraphQLOutputFieldArgumentDefinition implements GraphQLTypeSystemMembe
   isDeprecated: Boolean!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 interface GraphQLOutputFieldDefinition implements GraphQLTypeSystemMember {
@@ -139,7 +127,7 @@ interface GraphQLOutputFieldDefinition implements GraphQLTypeSystemMember {
   isDeprecated: Boolean!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 interface GraphQLOutputFieldDefinitionArgumentsConnection {
@@ -150,7 +138,7 @@ interface GraphQLTypeSystemMember {
   coordinate: String!
   isDeprecated: Boolean!
   metrics: CoordinateMetrics
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 interface GroupMember {
@@ -159,9 +147,57 @@ interface GroupMember {
   id: ID!
 }
 
+interface McpFeatureCollectionValidationEntity {
+  errors: [McpFeatureCollectionValidationEntityError!]!
+}
+
+interface McpFeatureCollectionValidationEntityError {
+  message: String!
+}
+
+interface McpFeatureCollectionVersionPublishError {
+  message: String!
+}
+
+interface McpFeatureCollectionVersionPublishResult {
+  state: ProcessingState!
+}
+
+interface McpFeatureCollectionVersionValidationError {
+  message: String!
+}
+
+interface McpFeatureCollectionVersionValidationResult {
+  state: ProcessingState!
+}
+
 "The node interface is implemented by entities that have a global unique identifier."
 interface Node {
   id: ID!
+}
+
+interface OpenApiCollectionValidationEntity {
+  errors: [OpenApiCollectionValidationEntityError!]!
+}
+
+interface OpenApiCollectionValidationEntityError {
+  message: String!
+}
+
+interface OpenApiCollectionVersionPublishError {
+  message: String!
+}
+
+interface OpenApiCollectionVersionPublishResult {
+  state: ProcessingState!
+}
+
+interface OpenApiCollectionVersionValidationError {
+  message: String!
+}
+
+interface OpenApiCollectionVersionValidationResult {
+  state: ProcessingState!
 }
 
 interface OpenTelemetryAttribute {
@@ -243,66 +279,22 @@ type AfterStageCondition {
 }
 
 type Api implements Node {
-  clients(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): ClientsConnection
-
+  clients("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ClientsConnection
   createdAt: DateTime!
   createdBy: UserInfo!
-  documents(
-    "Returns the elements in the list that come after the specified cursor."
-    after: Version
-    "Returns the first _n_ elements from the list."
-    first: Int
-  ): ApiDocumentConnection
-
+  documents("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApiDocumentConnection
   httpConnection: ApiHttpConnection
   id: ID!
   kind: ApiKind
-  mockSchemas(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): MockSchemasConnection
-
+  mcpFeatureCollections("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiMcpFeatureCollectionsConnection
+  mockSchemas("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): MockSchemasConnection
   modifiedAt: DateTime!
   modifiedBy: UserInfo!
   name: String!
-  operations(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): OperationsConnection
-
+  openApiCollections("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiOpenApiCollectionsConnection
+  operations("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OperationsConnection
   path: [String!]!
-  schemaVersions(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): SchemaVersionsConnection
-
+  schemaVersions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): SchemaVersionsConnection
   settings: ApiSettings!
   stages: [Stage!]!
   version: Version!
@@ -469,17 +461,7 @@ type ApiKey implements Node {
   createdBy: UserInfo!
   id: ID!
   name: String!
-  roleAssignments(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): ApiKeyRoleAssignmentsConnection
-
+  roleAssignments("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiKeyRoleAssignmentsConnection
   scopes: [ApiKeyScope!]!
   workspace: Workspace
 }
@@ -536,9 +518,45 @@ type ApiKeysEdge {
   node: ApiKey!
 }
 
+"A connection to a list of items."
+type ApiMcpFeatureCollectionsConnection {
+  "A list of edges."
+  edges: [ApiMcpFeatureCollectionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [McpFeatureCollection!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type ApiMcpFeatureCollectionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: McpFeatureCollection!
+}
+
 type ApiNotFoundError implements Error {
   apiId: ID!
   message: String!
+}
+
+"A connection to a list of items."
+type ApiOpenApiCollectionsConnection {
+  "A list of edges."
+  edges: [ApiOpenApiCollectionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [OpenApiCollection!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type ApiOpenApiCollectionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: OpenApiCollection!
 }
 
 type ApiPermissionScope implements PermissionScope {
@@ -675,27 +693,8 @@ type Client implements Node {
   createdBy: UserInfo!
   id: ID!
   name: String!
-  operations(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): OperationsConnection
-
-  versions(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): ClientVersionConnection
+  operations("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OperationsConnection
+  versions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ClientVersionConnection
 }
 
 type ClientChangeLog implements StageChangeLog & Node {
@@ -756,17 +755,7 @@ type ClientVersion implements Node {
   client: Client
   createdAt: DateTime!
   id: ID!
-  persistedQueries(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): PersistedQueriesConnection
-
+  persistedQueries("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): PersistedQueriesConnection
   publishedTo: [PublishedClientVersion!]!
   tag: String!
   tags: [String!]! @deprecated(reason: "Use `tag` instead.")
@@ -843,7 +832,7 @@ type CommitFusionConfigurationPublishPayload {
   requestId: ID
 }
 
-type ConcurrentOperationError implements Error & SchemaVersionPublishError & ClientVersionPublishError & FusionConfigurationPublishingError & ProcessingError {
+type ConcurrentOperationError implements Error & SchemaVersionPublishError & ClientVersionPublishError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & McpFeatureCollectionVersionPublishError & ProcessingError {
   message: String!
 }
 
@@ -858,16 +847,7 @@ type CoordinateClientUsage {
 
 type CoordinateClientUsageMetrics implements Node {
   id: ID!
-  operations(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): CoordinateClientUsageOperationInsightsConnection
+  operations("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): CoordinateClientUsageOperationInsightsConnection
 }
 
 type CoordinateClientUsageOperationInsight {
@@ -973,9 +953,19 @@ type CreateClientPayload {
   errors: [CreateClientError!]
 }
 
+type CreateMcpFeatureCollectionPayload {
+  errors: [CreateMcpFeatureCollectionError!]
+  mcpFeatureCollection: McpFeatureCollection
+}
+
 type CreateMockSchemaPayload {
   errors: [CreateMockSchemaError!]
   mockSchema: MockSchema
+}
+
+type CreateOpenApiCollectionPayload {
+  errors: [CreateOpenApiCollectionError!]
+  openApiCollection: OpenApiCollection
 }
 
 type CreatePersonalAccessTokenPayload {
@@ -1003,9 +993,19 @@ type DeleteClientByIdPayload {
   errors: [DeleteClientByIdError!]
 }
 
+type DeleteMcpFeatureCollectionByIdPayload {
+  errors: [DeleteMcpFeatureCollectionByIdError!]
+  mcpFeatureCollection: McpFeatureCollection
+}
+
 type DeleteMockSchemaByIdPayload {
   errors: [DeleteMockSchemaByIdError!]
   mockSchema: MockSchema
+}
+
+type DeleteOpenApiCollectionByIdPayload {
+  errors: [DeleteOpenApiCollectionByIdError!]
+  openApiCollection: OpenApiCollection
 }
 
 type DeploymentApproval {
@@ -1363,28 +1363,11 @@ type FieldAddedChange implements SchemaChange {
 }
 
 type FieldCoordinateMetrics implements CoordinateMetrics {
-  clientUsage(
-    clientId: ID
-    from: DateTime!
-    to: DateTime!
-  ): CoordinateClientUsage
-  clientUsages(from: DateTime!, to: DateTime!): [CoordinateClientUsage!]!
-
-  duration(
-    from: DateTime!
-    resolution: Int! = 300
-    to: DateTime!
-  ): FieldDurationGraph
-  requests(
-    from: DateTime!
-    resolution: Int! = 300
-    to: DateTime!
-  ): CoordinateRequestGraph
-  usages(
-    from: DateTime!
-    resolution: Int! = 300
-    to: DateTime!
-  ): CoordinateUsageGraph
+  clientUsage(clientId: ID from: DateTime! to: DateTime!): CoordinateClientUsage
+  clientUsages(from: DateTime! to: DateTime!): [CoordinateClientUsage!]!
+  duration(from: DateTime! resolution: Int! = 300 to: DateTime!): FieldDurationGraph
+  requests(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateRequestGraph
+  usages(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateUsageGraph
 }
 
 type FieldDurationGraph {
@@ -1439,18 +1422,7 @@ type FusionConfigurationDeployment implements Node & Deployment {
 }
 
 type FusionConfigurationDeploymentSchemaChanges {
-  changes(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-    severity: SchemaChangeSeverity
-  ): SchemaChangesConnection
-
+  changes("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int severity: SchemaChangeSeverity): SchemaChangesConnection
   statistic: SchemaChangeLogStatistic!
 }
 
@@ -1497,7 +1469,7 @@ type GraphQLDirectiveArgumentDefinition implements Node & GraphQLTypeSystemMembe
   isDeprecated: Boolean!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 type GraphQLDirectiveDefinition implements Node & GraphQLTypeSystemMember {
@@ -1508,7 +1480,7 @@ type GraphQLDirectiveDefinition implements Node & GraphQLTypeSystemMember {
   kind: TypeSystemMemberKind!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 type GraphQLDirectiveDefinitionArgumentsConnection {
@@ -1522,7 +1494,7 @@ type GraphQLEnumTypeDefinition implements Node & GraphQLTypeSystemMember {
   kind: TypeSystemMemberKind!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
   values: GraphQLEnumTypeDefinitionValuesConnection!
 }
 
@@ -1536,7 +1508,7 @@ type GraphQLEnumValueDefinition implements Node & GraphQLTypeSystemMember {
   isDeprecated: Boolean!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 type GraphQLInputObjectFieldDefinition implements Node & GraphQLTypeSystemMember & GraphQLInputValueDefinition {
@@ -1545,7 +1517,7 @@ type GraphQLInputObjectFieldDefinition implements Node & GraphQLTypeSystemMember
   isDeprecated: Boolean!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 type GraphQLInputObjectTypeDefinition implements Node & GraphQLTypeSystemMember {
@@ -1556,7 +1528,7 @@ type GraphQLInputObjectTypeDefinition implements Node & GraphQLTypeSystemMember 
   kind: TypeSystemMemberKind!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 type GraphQLInputObjectTypeDefinitionFieldsConnection {
@@ -1571,7 +1543,7 @@ type GraphQLInterfaceFieldArgumentDefinition implements Node & GraphQLTypeSystem
   isDeprecated: Boolean!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 type GraphQLInterfaceFieldArgumentDefinitionArgumentsConnection implements GraphQLOutputFieldDefinitionArgumentsConnection {
@@ -1580,13 +1552,12 @@ type GraphQLInterfaceFieldArgumentDefinitionArgumentsConnection implements Graph
 
 type GraphQLInterfaceFieldDefinition implements Node & GraphQLTypeSystemMember & GraphQLOutputFieldDefinition {
   arguments: GraphQLInterfaceFieldArgumentDefinitionArgumentsConnection!
-
   coordinate: String!
   id: ID!
   isDeprecated: Boolean!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 type GraphQLInterfaceTypeDefinition implements Node & GraphQLTypeSystemMember {
@@ -1597,7 +1568,7 @@ type GraphQLInterfaceTypeDefinition implements Node & GraphQLTypeSystemMember {
   kind: TypeSystemMemberKind!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 type GraphQLInterfaceTypeDefinitionFieldsConnection {
@@ -1612,7 +1583,7 @@ type GraphQLObjectFieldArgumentDefinition implements Node & GraphQLTypeSystemMem
   isDeprecated: Boolean!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 type GraphQLObjectFieldArgumentDefinitionArgumentsConnection implements GraphQLOutputFieldDefinitionArgumentsConnection {
@@ -1621,13 +1592,12 @@ type GraphQLObjectFieldArgumentDefinitionArgumentsConnection implements GraphQLO
 
 type GraphQLObjectFieldDefinition implements Node & GraphQLTypeSystemMember & GraphQLOutputFieldDefinition {
   arguments: GraphQLObjectFieldArgumentDefinitionArgumentsConnection!
-
   coordinate: String!
   id: ID!
   isDeprecated: Boolean!
   metrics: FieldCoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 type GraphQLObjectTypeDefinition implements GraphQLTypeSystemMember {
@@ -1637,7 +1607,7 @@ type GraphQLObjectTypeDefinition implements GraphQLTypeSystemMember {
   kind: TypeSystemMemberKind!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 type GraphQLObjectTypeDefinitionFieldsConnection {
@@ -1651,7 +1621,7 @@ type GraphQLScalarTypeDefinition implements Node & GraphQLTypeSystemMember {
   kind: TypeSystemMemberKind!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 type GraphQLSchemaError {
@@ -1666,47 +1636,18 @@ type GraphQLUnionTypeDefinition implements Node & GraphQLTypeSystemMember {
   kind: TypeSystemMemberKind!
   metrics: CoordinateMetrics!
   name: String!
-  usage(from: DateTime, to: DateTime): CoordinateUsage!
+  usage(from: DateTime to: DateTime): CoordinateUsage!
 }
 
 type Group implements Node {
   description: String!
-  groups(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): GroupGroupsConnection
-
+  groups("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): GroupGroupsConnection
   id: ID!
   isDefault: Boolean!
-  members(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): GroupMembersConnection
-
+  members("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): GroupMembersConnection
   name: String!
   organization: Organization
-  roleAssignments(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): GroupRoleAssignmentsConnection
+  roleAssignments("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): GroupRoleAssignmentsConnection
 }
 
 type GroupGroupMember implements GroupMember {
@@ -1820,6 +1761,14 @@ type InvalidGraphQLSchemaError implements SchemaVersionValidationError & SchemaV
   message: String!
 }
 
+type InvalidMcpFeatureCollectionArchiveError implements Error {
+  message: String!
+}
+
+type InvalidOpenApiCollectionArchiveError implements Error {
+  message: String!
+}
+
 type InvalidPersistedQueryError implements Error {
   content: String!
   hash: String!
@@ -1828,6 +1777,128 @@ type InvalidPersistedQueryError implements Error {
 
 type InvalidProcessingStateTransitionError implements Error {
   message: String!
+}
+
+type McpFeatureCollection implements Node {
+  api: Api
+  createdAt: DateTime!
+  createdBy: UserInfo!
+  id: ID!
+  name: String!
+  versions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): McpFeatureCollectionVersionsConnection
+}
+
+type McpFeatureCollectionChangeLog implements StageChangeLog & Node {
+  changedAt: DateTime!
+  id: ID!
+  kind: StageChangeLogKind!
+  tag: String!
+}
+
+type McpFeatureCollectionDeployment implements Node & Deployment {
+  approval: DeploymentApproval
+  createdAt: DateTime!
+  errors: [McpFeatureCollectionDeploymentError!]!
+  id: ID!
+  logs: [DeploymentLog!]!
+  mcpFeatureCollection: McpFeatureCollection
+  status: DeploymentStatus!
+  tag: String!
+}
+
+type McpFeatureCollectionNotFoundError implements Error {
+  mcpFeatureCollectionId: ID!
+  message: String!
+}
+
+type McpFeatureCollectionValidationArchiveError implements McpFeatureCollectionVersionValidationError & ProcessingError {
+  message: String!
+}
+
+type McpFeatureCollectionValidationCollection {
+  entities: [McpFeatureCollectionValidationEntity!]!
+  mcpFeatureCollection: McpFeatureCollection
+}
+
+type McpFeatureCollectionValidationDocumentError implements McpFeatureCollectionValidationEntityError {
+  code: String
+  locations: [McpFeatureCollectionValidationDocumentErrorLocation!]
+  message: String!
+  path: String
+}
+
+type McpFeatureCollectionValidationDocumentErrorLocation {
+  column: Int!
+  line: Int!
+}
+
+type McpFeatureCollectionValidationEntityValidationError implements McpFeatureCollectionValidationEntityError {
+  message: String!
+}
+
+type McpFeatureCollectionValidationError implements McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationValidationError & ProcessingError {
+  collections: [McpFeatureCollectionValidationCollection!]!
+  message: String!
+}
+
+type McpFeatureCollectionValidationPrompt implements McpFeatureCollectionValidationEntity {
+  errors: [McpFeatureCollectionValidationEntityError!]!
+  name: String!
+}
+
+type McpFeatureCollectionValidationTool implements McpFeatureCollectionValidationEntity {
+  errors: [McpFeatureCollectionValidationEntityError!]!
+  name: String!
+}
+
+type McpFeatureCollectionVersion implements Node {
+  createdAt: DateTime!
+  id: ID!
+  mcpFeatureCollection: McpFeatureCollection
+  tag: String!
+}
+
+type McpFeatureCollectionVersionNotFoundError implements Error {
+  mcpFeatureCollectionId: ID!
+  message: String!
+  tag: String!
+}
+
+type McpFeatureCollectionVersionPublishFailed implements McpFeatureCollectionVersionPublishResult {
+  errors: [McpFeatureCollectionVersionPublishError!]!
+  state: ProcessingState!
+}
+
+type McpFeatureCollectionVersionPublishSuccess implements McpFeatureCollectionVersionPublishResult {
+  mcpFeatureCollectionVersion: McpFeatureCollectionVersion
+  state: ProcessingState!
+}
+
+type McpFeatureCollectionVersionValidationFailed implements McpFeatureCollectionVersionValidationResult {
+  errors: [McpFeatureCollectionVersionValidationError!]!
+  state: ProcessingState!
+}
+
+type McpFeatureCollectionVersionValidationSuccess implements McpFeatureCollectionVersionValidationResult {
+  state: ProcessingState!
+}
+
+"A connection to a list of items."
+type McpFeatureCollectionVersionsConnection {
+  "A list of edges."
+  edges: [McpFeatureCollectionVersionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [McpFeatureCollectionVersion!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type McpFeatureCollectionVersionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: McpFeatureCollectionVersion!
 }
 
 type MockSchema {
@@ -1873,109 +1944,57 @@ type MockSchemasEdge {
 
 type Mutation {
   approveDeployment(input: ApproveDeploymentInput!): ApproveDeploymentPayload!
-
-  beginFusionConfigurationPublish(
-    input: BeginFusionConfigurationPublishInput!
-  ): BeginFusionConfigurationPublishPayload!
+  beginFusionConfigurationPublish(input: BeginFusionConfigurationPublishInput!): BeginFusionConfigurationPublishPayload!
   cancelDeployment(input: CancelDeploymentInput!): CancelDeploymentPayload!
-
-  cancelFusionConfigurationComposition(
-    input: CancelFusionConfigurationCompositionInput!
-  ): CancelFusionConfigurationCompositionPayload!
-  commitFusionConfigurationPublish(
-    input: CommitFusionConfigurationPublishInput!
-  ): CommitFusionConfigurationPublishPayload!
+  cancelFusionConfigurationComposition(input: CancelFusionConfigurationCompositionInput!): CancelFusionConfigurationCompositionPayload!
+  commitFusionConfigurationPublish(input: CommitFusionConfigurationPublishInput!): CommitFusionConfigurationPublishPayload!
   createAccount: CreateAccountPayload!
   createApiKey(input: CreateApiKeyInput!): CreateApiKeyPayload!
-
-  createApiKeyForApi(
-    input: CreateApiKeyForApiInput!
-  ): CreateApiKeyForApiPayload!
+  createApiKeyForApi(input: CreateApiKeyForApiInput!): CreateApiKeyForApiPayload!
   createClient(input: CreateClientInput!): CreateClientPayload!
-
+  createMcpFeatureCollection(input: CreateMcpFeatureCollectionInput!): CreateMcpFeatureCollectionPayload!
   createMockSchema(input: CreateMockSchemaInput!): CreateMockSchemaPayload!
-
-  createPersonalAccessToken(
-    input: CreatePersonalAccessTokenInput!
-  ): CreatePersonalAccessTokenPayload!
+  createOpenApiCollection(input: CreateOpenApiCollectionInput!): CreateOpenApiCollectionPayload!
+  createPersonalAccessToken(input: CreatePersonalAccessTokenInput!): CreatePersonalAccessTokenPayload!
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspacePayload!
-
   deleteApiById(input: DeleteApiByIdInput!): DeleteApiByIdPayload!
-
   deleteApiKey(input: DeleteApiKeyInput!): DeleteApiKeyPayload!
-
   deleteClientById(input: DeleteClientByIdInput!): DeleteClientByIdPayload!
-
-  deleteMockSchemaById(
-    input: DeleteMockSchemaByIdInput!
-  ): DeleteMockSchemaByIdPayload!
+  deleteMcpFeatureCollectionById(input: DeleteMcpFeatureCollectionByIdInput!): DeleteMcpFeatureCollectionByIdPayload!
+  deleteMockSchemaById(input: DeleteMockSchemaByIdInput!): DeleteMockSchemaByIdPayload!
+  deleteOpenApiCollectionById(input: DeleteOpenApiCollectionByIdInput!): DeleteOpenApiCollectionByIdPayload!
   ensureTunnelSession: EnsureTunnelSessionPayload!
-
-  pollClientVersionPublishRequest(
-    input: PollClientVersionPublishRequestInput!
-  ): PollClientVersionPublishRequestPayload!
-  pollClientVersionValidationRequest(
-    input: PollClientVersionValidationRequestInput!
-  ): PollClientVersionValidationRequestPayload!
-  pollSchemaVersionPublishRequest(
-    input: PollSchemaVersionPublishRequestInput!
-  ): PollSchemaVersionPublishRequestPayload!
-  pollSchemaVersionValidationRequest(
-    input: PollSchemaVersionValidationRequestInput!
-  ): PollSchemaVersionValidationRequestPayload!
+  pollClientVersionPublishRequest(input: PollClientVersionPublishRequestInput!): PollClientVersionPublishRequestPayload!
+  pollClientVersionValidationRequest(input: PollClientVersionValidationRequestInput!): PollClientVersionValidationRequestPayload!
+  pollSchemaVersionPublishRequest(input: PollSchemaVersionPublishRequestInput!): PollSchemaVersionPublishRequestPayload!
+  pollSchemaVersionValidationRequest(input: PollSchemaVersionValidationRequestInput!): PollSchemaVersionValidationRequestPayload!
   publishClient(input: PublishClientInput!): PublishClientPayload!
-
+  publishMcpFeatureCollection(input: PublishMcpFeatureCollectionInput!): PublishMcpFeatureCollectionPayload!
+  publishOpenApiCollection(input: PublishOpenApiCollectionInput!): PublishOpenApiCollectionPayload!
   publishSchema(input: PublishSchemaInput!): PublishSchemaPayload!
-
-  pushDocumentChanges(
-    input: PushDocumentChangeInput!
-  ): PushDocumentChangesPayload! @deprecated(reason: "Use pushWorkspaceChanges")
-  pushWorkspaceChanges(
-    input: PushWorkspaceChangesInput!
-  ): PushWorkspaceChangesPayload!
-
+  pushDocumentChanges(input: PushDocumentChangeInput!): PushDocumentChangesPayload! @deprecated(reason: "Use pushWorkspaceChanges")
+  pushWorkspaceChanges(input: PushWorkspaceChangesInput!): PushWorkspaceChangesPayload!
   removeWorkspace(input: RemoveWorkspaceInput!): RemoveWorkspacePayload!
-
   renameWorkspace(input: RenameWorkspaceInput!): RenameWorkspacePayload!
-
-  revokePersonalAccessToken(
-    input: RevokePersonalAccessTokenInput!
-  ): RevokePersonalAccessTokenPayload!
-  setActiveWorkspace(
-    input: SetActiveWorkspaceInput!
-  ): SetActiveWorkspacePayload!
-
-  startFusionConfigurationComposition(
-    input: StartFusionConfigurationCompositionInput!
-  ): StartFusionConfigurationCompositionPayload!
+  revokePersonalAccessToken(input: RevokePersonalAccessTokenInput!): RevokePersonalAccessTokenPayload!
+  setActiveWorkspace(input: SetActiveWorkspaceInput!): SetActiveWorkspacePayload!
+  startFusionConfigurationComposition(input: StartFusionConfigurationCompositionInput!): StartFusionConfigurationCompositionPayload!
   unpublishClient(input: UnpublishClientInput!): UnpublishClientPayload!
-
   updateApiSettings(input: UpdateApiSettingsInput!): UpdateApiSettingsPayload!
-
-  updateFeatureFlags(
-    input: UpdateFeatureFlagsInput!
-  ): UpdateFeatureFlagsPayload!
+  updateFeatureFlags(input: UpdateFeatureFlagsInput!): UpdateFeatureFlagsPayload!
   updateMockSchema(input: UpdateMockSchemaInput!): UpdateMockSchemaPayload!
-
   updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload!
-
   updateStages(input: UpdateStagesInput!): UpdateStagesPayload!
-
-  updateThemeSettings(
-    input: UpdateThemeSettingsInput!
-  ): UpdateThemeSettingsPayload!
+  updateThemeSettings(input: UpdateThemeSettingsInput!): UpdateThemeSettingsPayload!
   uploadClient(input: UploadClientInput!): UploadClientPayload!
-
-  uploadFusionSubgraph(
-    input: UploadFusionSubgraphInput!
-  ): UploadFusionSubgraphPayload!
+  uploadFusionSubgraph(input: UploadFusionSubgraphInput!): UploadFusionSubgraphPayload!
+  uploadMcpFeatureCollection(input: UploadMcpFeatureCollectionInput!): UploadMcpFeatureCollectionPayload!
+  uploadOpenApiCollection(input: UploadOpenApiCollectionInput!): UploadOpenApiCollectionPayload!
   uploadSchema(input: UploadSchemaInput!): UploadSchemaPayload!
-
   validateClient(input: ValidateClientInput!): ValidateClientPayload!
-
-  validateFusionConfigurationComposition(
-    input: ValidateFusionConfigurationCompositionInput!
-  ): ValidateFusionConfigurationCompositionPayload!
+  validateFusionConfigurationComposition(input: ValidateFusionConfigurationCompositionInput!): ValidateFusionConfigurationCompositionPayload!
+  validateMcpFeatureCollection(input: ValidateMcpFeatureCollectionInput!): ValidateMcpFeatureCollectionPayload!
+  validateOpenApiCollection(input: ValidateOpenApiCollectionInput!): ValidateOpenApiCollectionPayload!
   validateSchema(input: ValidateSchemaInput!): ValidateSchemaPayload!
 }
 
@@ -2006,6 +2025,129 @@ type ObjectModifiedChange implements SchemaChange {
   coordinate: String!
   kind: TypeSystemMemberKind!
   severity: SchemaChangeSeverity!
+}
+
+type OpenApiCollection implements Node {
+  api: Api
+  createdAt: DateTime!
+  createdBy: UserInfo!
+  id: ID!
+  name: String!
+  versions("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OpenApiCollectionVersionsConnection
+}
+
+type OpenApiCollectionChangeLog implements StageChangeLog & Node {
+  changedAt: DateTime!
+  id: ID!
+  kind: StageChangeLogKind!
+  tag: String!
+}
+
+type OpenApiCollectionDeployment implements Node & Deployment {
+  approval: DeploymentApproval
+  createdAt: DateTime!
+  errors: [OpenApiCollectionDeploymentError!]!
+  id: ID!
+  logs: [DeploymentLog!]!
+  openApiCollection: OpenApiCollection
+  status: DeploymentStatus!
+  tag: String!
+}
+
+type OpenApiCollectionNotFoundError implements Error {
+  message: String!
+  openApiCollectionId: ID!
+}
+
+type OpenApiCollectionValidationArchiveError implements OpenApiCollectionVersionValidationError & ProcessingError {
+  message: String!
+}
+
+type OpenApiCollectionValidationCollection {
+  entities: [OpenApiCollectionValidationEntity!]!
+  openApiCollection: OpenApiCollection
+}
+
+type OpenApiCollectionValidationDocumentError implements OpenApiCollectionValidationEntityError {
+  code: String
+  locations: [OpenApiCollectionValidationDocumentErrorLocation!]
+  message: String!
+  path: String
+}
+
+type OpenApiCollectionValidationDocumentErrorLocation {
+  column: Int!
+  line: Int!
+}
+
+type OpenApiCollectionValidationEndpoint implements OpenApiCollectionValidationEntity {
+  errors: [OpenApiCollectionValidationEntityError!]!
+  httpMethod: String!
+  route: String!
+}
+
+type OpenApiCollectionValidationEntityValidationError implements OpenApiCollectionValidationEntityError {
+  message: String!
+}
+
+type OpenApiCollectionValidationError implements OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationValidationError & ProcessingError {
+  collections: [OpenApiCollectionValidationCollection!]!
+  message: String!
+}
+
+type OpenApiCollectionValidationModel implements OpenApiCollectionValidationEntity {
+  errors: [OpenApiCollectionValidationEntityError!]!
+  name: String!
+}
+
+type OpenApiCollectionVersion implements Node {
+  createdAt: DateTime!
+  id: ID!
+  openApiCollection: OpenApiCollection
+  tag: String!
+}
+
+type OpenApiCollectionVersionNotFoundError implements Error {
+  message: String!
+  openApiCollectionId: ID!
+  tag: String!
+}
+
+type OpenApiCollectionVersionPublishFailed implements OpenApiCollectionVersionPublishResult {
+  errors: [OpenApiCollectionVersionPublishError!]!
+  state: ProcessingState!
+}
+
+type OpenApiCollectionVersionPublishSuccess implements OpenApiCollectionVersionPublishResult {
+  openApiCollectionVersion: OpenApiCollectionVersion
+  state: ProcessingState!
+}
+
+type OpenApiCollectionVersionValidationFailed implements OpenApiCollectionVersionValidationResult {
+  errors: [OpenApiCollectionVersionValidationError!]!
+  state: ProcessingState!
+}
+
+type OpenApiCollectionVersionValidationSuccess implements OpenApiCollectionVersionValidationResult {
+  state: ProcessingState!
+}
+
+"A connection to a list of items."
+type OpenApiCollectionVersionsConnection {
+  "A list of edges."
+  edges: [OpenApiCollectionVersionsEdge!]
+  "A flattened list of the nodes."
+  nodes: [OpenApiCollectionVersion!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type OpenApiCollectionVersionsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: OpenApiCollectionVersion!
 }
 
 type OpenTelemetryBoolAttribute implements OpenTelemetryAttribute {
@@ -2087,13 +2229,11 @@ type OpenTelemetryGraphQLOperationSpan implements OpenTelemetrySpan {
   api: Api
   clockSkew: Float
   document: OpenTelemetryGraphQLOperationSpanDocumentAttributes
-
   duration: Float!
   epoch: Float!
   events: [OpenTelemetryTraceEvent!]!
   links: [OpenTelemetryTraceLink!]!
   operation: OpenTelemetryGraphQLOperationSpanOperationAttributes
-
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
   spanAttributes: [Attribute!]!
@@ -2127,7 +2267,6 @@ type OpenTelemetryGraphQLResolverSpan implements OpenTelemetrySpan {
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
   selection: OpenTelemetryGraphQLResolverSpanSelectionAttributes
-
   spanAttributes: [Attribute!]!
   spanId: String!
   spanKind: String!
@@ -2270,17 +2409,7 @@ type OpenTelemetryStringAttribute implements OpenTelemetryAttribute {
 type OpenTelemetryTrace {
   epoch: Float!
   errors: [OpenTelemetryError!]!
-  logs(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): OpenTelemetryLogsConnection
-
+  logs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OpenTelemetryLogsConnection
   spans: [OpenTelemetrySpan!]!
   totalDuration: Float!
 }
@@ -2410,7 +2539,7 @@ type Operation {
   name: String
 }
 
-type OperationInProgress implements SchemaVersionValidationResult & SchemaVersionPublishResult & ClientVersionValidationResult & ClientVersionPublishResult & FusionConfigurationPublishingResult {
+type OperationInProgress implements SchemaVersionValidationResult & SchemaVersionPublishResult & ClientVersionValidationResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult & OpenApiCollectionVersionValidationResult & McpFeatureCollectionVersionPublishResult & McpFeatureCollectionVersionValidationResult {
   state: ProcessingState!
 }
 
@@ -2450,8 +2579,7 @@ type OperationInsightsEdge {
 }
 
 type OperationLatencyDistributionGraph {
-  data: [OperationLatencyDistributionGraphData!]!
-    @deprecated(reason: "Use `Dataset` instead")
+  data: [OperationLatencyDistributionGraphData!]! @deprecated(reason: "Use `Dataset` instead")
   dataset: [OperationLatencyDistributionGraphData!]!
   p95: Float!
   p95DurationInMS: Float! @deprecated(reason: "Use `P95` instead")
@@ -2555,47 +2683,15 @@ type OperationsThroughputGraphData {
 }
 
 type Organization implements Node {
-  authorizationEventLogs(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    from: DateTime
-    "Returns the last _n_ elements from the list."
-    last: Int
-    to: DateTime
-  ): OrganizationAuthorizationEventLogsConnection
-
+  authorizationEventLogs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int from: DateTime "Returns the last _n_ elements from the list." last: Int to: DateTime): OrganizationAuthorizationEventLogsConnection
   billingInfo: OrganizationBillingInfo
   displayName: String!
-  groups(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): OrganizationGroupsConnection
-
+  groups("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OrganizationGroupsConnection
   id: ID!
-  members(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): OrganizationMembersConnection
-
+  members("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OrganizationMembersConnection
   name: String!
   plan: OrganizationPlan
-  usage(from: DateTime, to: DateTime): OrganizationUsage
+  usage(from: DateTime to: DateTime): OrganizationUsage
 }
 
 "A connection to a list of items."
@@ -2647,17 +2743,7 @@ type OrganizationInfo {
 }
 
 type OrganizationMember implements Node {
-  groups(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): OrganizationMemberGroupsConnection
-
+  groups("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): OrganizationMemberGroupsConnection
   id: ID!
   isDisabled: Boolean!
   userName: String
@@ -2717,7 +2803,6 @@ type OrganizationPlan {
 
 type OrganizationUsage {
   cumulativeGigabyteHours: OrganizationUsageCumulativeGigabyteHoursGraph
-
   gigabyteHours: OrganizationUsageGigabyteHoursGraph
   period: OrganizationUsagePeriod!
 }
@@ -2892,25 +2977,35 @@ type PossibleTypeRemoved implements SchemaChange {
   typeName: String!
 }
 
-type ProcessingTaskApproved implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult {
+type ProcessingTaskApproved implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult & McpFeatureCollectionVersionPublishResult {
   state: ProcessingState!
 }
 
-type ProcessingTaskIsQueued implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult {
+type ProcessingTaskIsQueued implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult & OpenApiCollectionVersionPublishResult & McpFeatureCollectionVersionPublishResult {
   queuePosition: Int!
   state: ProcessingState!
 }
 
-type ProcessingTaskIsReady implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult {
+type ProcessingTaskIsReady implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult & OpenApiCollectionVersionPublishResult & McpFeatureCollectionVersionPublishResult {
   state: ProcessingState!
 }
 
-type ProcessingTimeoutError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & ProcessingError {
+type ProcessingTimeoutError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
   message: String!
 }
 
 type PublishClientPayload {
   errors: [PublishClientError!]
+  id: ID
+}
+
+type PublishMcpFeatureCollectionPayload {
+  errors: [PublishMcpFeatureCollectionError!]
+  id: ID
+}
+
+type PublishOpenApiCollectionPayload {
+  errors: [PublishOpenApiCollectionError!]
   id: ID
 }
 
@@ -2950,11 +3045,10 @@ type PushWorkspaceChangesPayload {
 
 type Query {
   apiById(id: ID!): Api
-  fusionConfigurationByApiId(id: ID!, stage: String!): FusionConfiguration
-
+  fusionConfigurationByApiId(id: ID! stage: String!): FusionConfiguration
   me: Viewer
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node
+  node("ID of the object." id: ID!): Node @lookup @shareable
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]!
   organizationById(id: ID!): Organization
@@ -2962,7 +3056,7 @@ type Query {
   workspaceById(workspaceId: ID!): Workspace
 }
 
-type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationPublishingError & ProcessingError {
+type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
   message: String!
 }
 
@@ -3078,18 +3172,7 @@ type ScalarModifiedChange implements SchemaChange {
 
 type SchemaChangeLog implements StageChangeLog & Node {
   changedAt: DateTime!
-  changes(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-    severity: SchemaChangeSeverity
-  ): SchemaChangesConnection
-
+  changes("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int severity: SchemaChangeSeverity): SchemaChangesConnection
   id: ID!
   kind: StageChangeLogKind!
   previousSchema: SchemaVersion
@@ -3128,23 +3211,10 @@ type SchemaChangesEdge {
 }
 
 type SchemaCoordinateMetrics implements CoordinateMetrics {
-  clientUsage(
-    clientId: ID
-    from: DateTime!
-    to: DateTime!
-  ): CoordinateClientUsage
-  clientUsages(from: DateTime!, to: DateTime!): [CoordinateClientUsage!]!
-
-  requests(
-    from: DateTime!
-    resolution: Int! = 300
-    to: DateTime!
-  ): CoordinateRequestGraph
-  usages(
-    from: DateTime!
-    resolution: Int! = 300
-    to: DateTime!
-  ): CoordinateUsageGraph
+  clientUsage(clientId: ID from: DateTime! to: DateTime!): CoordinateClientUsage
+  clientUsages(from: DateTime! to: DateTime!): [CoordinateClientUsage!]!
+  requests(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateRequestGraph
+  usages(from: DateTime! resolution: Int! = 300 to: DateTime!): CoordinateUsageGraph
 }
 
 type SchemaDeployment implements Node & Deployment {
@@ -3159,18 +3229,7 @@ type SchemaDeployment implements Node & Deployment {
 }
 
 type SchemaDeploymentSchemaChanges {
-  changes(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-    severity: SchemaChangeSeverity
-  ): SchemaChangesConnection
-
+  changes("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int severity: SchemaChangeSeverity): SchemaChangesConnection
   previousSchema: SchemaVersion
   schema: SchemaVersion
   statistic: SchemaChangeLogStatistic!
@@ -3258,74 +3317,22 @@ type SetActiveWorkspacePayload {
 
 type Stage implements Node {
   api: Api
-  changeLog(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    kind: [StageChangeLogKind!]
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): StageChangeLogConnection
-
+  changeLog("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int kind: [StageChangeLogKind!] "Returns the last _n_ elements from the list." last: Int): StageChangeLogConnection
   conditions: [StageCondition!]!
   coordinate(coordinate: String!): GraphQLTypeSystemMember
-  coordinates(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    from: DateTime
-    isDeprecated: Boolean
-    kinds: [CoordinateKind!]
-    orderBy: [GraphQLCoordinateOrderByInput!]
-    search: String
-    to: DateTime
-  ): CoordinatesConnection
-
-  deployments(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): DeploymentsConnection
-
+  coordinates("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime isDeprecated: Boolean kinds: [CoordinateKind!] orderBy: [GraphQLCoordinateOrderByInput!] search: String to: DateTime): CoordinatesConnection
+  deployments("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): DeploymentsConnection
   displayName: String!
   essentials: StageEssentials
   id: ID!
-  logDistribution(
-    from: DateTime!
-    to: DateTime!
-  ): OpenTelemetryLogsSeverityGraph
-  logs(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    from: DateTime
-    "Returns the last _n_ elements from the list."
-    last: Int
-    to: DateTime
-  ): OpenTelemetryLogsConnection
-
+  logDistribution(from: DateTime! to: DateTime!): OpenTelemetryLogsSeverityGraph
+  logs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int from: DateTime "Returns the last _n_ elements from the list." last: Int to: DateTime): OpenTelemetryLogsConnection
   metrics: StageMetrics!
   name: String!
   publishedClients: [PublishedClient!]!
   publishedFusionConfiguration: FusionConfiguration
   publishedSchema: PublishedSchemaVersion
-  traceById(
-    seeker: String
-    spanId: String
-    traceId: String!
-  ): OpenTelemetryTrace
+  traceById(seeker: String spanId: String traceId: String!): OpenTelemetryTrace
 }
 
 "A connection to a list of items."
@@ -3347,27 +3354,11 @@ type StageChangeLogEdge {
 }
 
 type StageClientsMetrics {
-  insights(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    from: DateTime!
-    orderBy: [ClientInsightsOrderByInput!]
-    to: DateTime!
-  ): ClientInsightsConnection
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [ClientInsightsOrderByInput!] to: DateTime!): ClientInsightsConnection
 }
 
 type StageErrorsMetrics {
-  insights(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    from: DateTime!
-    search: String
-    to: DateTime!
-  ): ErrorInsightsConnection
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! search: String to: DateTime!): ErrorInsightsConnection
 }
 
 type StageEssentials {
@@ -3389,7 +3380,7 @@ type StageLatencySummary {
 type StageMetrics {
   clients: StageClientsMetrics!
   errors: StageErrorsMetrics!
-  operation(hash: String!, operationName: String!): StageOperationMetrics!
+  operation(hash: String! operationName: String!): StageOperationMetrics!
   operations: StageOperationsMetrics!
   resolver(coordinate: String!): StageResolverMetrics!
   resolvers: StageResolversMetrics!
@@ -3405,24 +3396,11 @@ type StageNotFoundError implements Error {
 }
 
 type StageOperationMetrics {
-  latency(from: DateTime!, to: DateTime!): OperationLatencyGraph
-
-  latencyDistribution(
-    from: DateTime!
-    to: DateTime!
-  ): OperationLatencyDistributionGraph
+  latency(from: DateTime! to: DateTime!): OperationLatencyGraph
+  latencyDistribution(from: DateTime! to: DateTime!): OperationLatencyDistributionGraph
   requestDocument: RequestDocument
-  samples(
-    from: DateTime!
-    maxLatency: Float
-    minLatency: Float
-    to: DateTime!
-  ): [OperationTraceSample!]!
-  throughput(
-    from: DateTime!
-    operationKinds: [OperationKind!] @deprecated(reason: "Not longer in use")
-    to: DateTime!
-  ): OperationThroughputGraph
+  samples(from: DateTime! maxLatency: Float minLatency: Float to: DateTime!): [OperationTraceSample!]!
+  throughput(from: DateTime! operationKinds: [OperationKind!] @deprecated(reason: "Not longer in use") to: DateTime!): OperationThroughputGraph
 }
 
 type StageOperationMetricsSummary {
@@ -3431,61 +3409,23 @@ type StageOperationMetricsSummary {
 }
 
 type StageOperationsMetrics {
-  insights(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    from: DateTime!
-    operationKinds: [OperationKind!]
-    orderBy: [OperationInsightsOrderByInput!]
-    search: String
-    to: DateTime!
-  ): OperationInsightsConnection
-
-  latency(
-    from: DateTime!
-    operationKinds: [OperationKind!]
-    to: DateTime!
-  ): OperationsLatencyGraph
-  summary(from: DateTime!, to: DateTime!): StageOperationMetricsSummary!
-
-  throughput(
-    from: DateTime!
-    operationKinds: [OperationKind!]
-    to: DateTime!
-  ): OperationsThroughputGraph
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! operationKinds: [OperationKind!] orderBy: [OperationInsightsOrderByInput!] search: String to: DateTime!): OperationInsightsConnection
+  latency(from: DateTime! operationKinds: [OperationKind!] to: DateTime!): OperationsLatencyGraph
+  summary(from: DateTime! to: DateTime!): StageOperationMetricsSummary!
+  throughput(from: DateTime! operationKinds: [OperationKind!] to: DateTime!): OperationsThroughputGraph
 }
 
 type StageResolverMetrics {
-  latency(from: DateTime!, to: DateTime!): ResolverLatencyGraph
-
-  throughput(from: DateTime!, to: DateTime!): ResolverThroughputGraph
+  latency(from: DateTime! to: DateTime!): ResolverLatencyGraph
+  throughput(from: DateTime! to: DateTime!): ResolverThroughputGraph
 }
 
 type StageResolversMetrics {
-  insights(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    from: DateTime!
-    orderBy: [ResolverInsightsOrderByInput!]
-    search: String
-    to: DateTime!
-  ): ResolverInsightsConnection
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [ResolverInsightsOrderByInput!] search: String to: DateTime!): ResolverInsightsConnection
 }
 
 type StageSubgraphsMetrics {
-  insights(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    from: DateTime!
-    orderBy: [SubgraphInsightsOrderByInput!]
-    to: DateTime!
-  ): SubgraphInsightsConnection
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [SubgraphInsightsOrderByInput!] to: DateTime!): SubgraphInsightsConnection
 }
 
 type StageThroughputSummary {
@@ -3497,22 +3437,10 @@ type StageThroughputSummary {
 }
 
 type StageTransactionMetrics {
-  latency(from: DateTime!, to: DateTime!): OpenTelemetryTransactionLatencyGraph
-
-  latencyDistribution(
-    from: DateTime!
-    to: DateTime!
-  ): OpenTelemetryTransactionLatencyDistributionGraph
-  samples(
-    from: DateTime!
-    maxLatency: Float
-    minLatency: Float
-    to: DateTime!
-  ): [OpenTelemetryTransactionTraceSample!]!
-  throughput(
-    from: DateTime!
-    to: DateTime!
-  ): OpenTelemetryTransactionThroughputGraph
+  latency(from: DateTime! to: DateTime!): OpenTelemetryTransactionLatencyGraph
+  latencyDistribution(from: DateTime! to: DateTime!): OpenTelemetryTransactionLatencyDistributionGraph
+  samples(from: DateTime! maxLatency: Float minLatency: Float to: DateTime!): [OpenTelemetryTransactionTraceSample!]!
+  throughput(from: DateTime! to: DateTime!): OpenTelemetryTransactionThroughputGraph
 }
 
 type StageTransactionMetricsSummary {
@@ -3521,30 +3449,10 @@ type StageTransactionMetricsSummary {
 }
 
 type StageTransactionsMetrics {
-  insights(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    from: DateTime!
-    orderBy: [OpenTelemetryTransactionInsightsOrderByInput!]
-    search: String
-    spanKinds: [OpenTelemetrySpanKind!]
-    to: DateTime!
-  ): OpenTelemetryTransactionInsightsConnection
-
-  latency(
-    from: DateTime!
-    spanKinds: [OpenTelemetrySpanKind!]
-    to: DateTime!
-  ): OpenTelemetryTransactionsLatencyGraph
-  summary(from: DateTime!, to: DateTime!): StageTransactionMetricsSummary!
-
-  throughput(
-    from: DateTime!
-    spanKinds: [OpenTelemetrySpanKind!]
-    to: DateTime!
-  ): OpenTelemetryTransactionsThroughputGraph
+  insights("Returns the elements in the list that come after the specified cursor." after: String "Returns the first _n_ elements from the list." first: Int from: DateTime! orderBy: [OpenTelemetryTransactionInsightsOrderByInput!] search: String spanKinds: [OpenTelemetrySpanKind!] to: DateTime!): OpenTelemetryTransactionInsightsConnection
+  latency(from: DateTime! spanKinds: [OpenTelemetrySpanKind!] to: DateTime!): OpenTelemetryTransactionsLatencyGraph
+  summary(from: DateTime! to: DateTime!): StageTransactionMetricsSummary!
+  throughput(from: DateTime! spanKinds: [OpenTelemetrySpanKind!] to: DateTime!): OpenTelemetryTransactionsThroughputGraph
 }
 
 type StageValidationError implements Error {
@@ -3628,25 +3536,16 @@ type SubgraphThroughputGraphData {
 
 type Subscription {
   onClientVersionPublishingUpdate(requestId: ID!): ClientVersionPublishResult!
-  onClientVersionValidationUpdate(
-    requestId: ID!
-  ): ClientVersionValidationResult!
-  onFusionConfigurationPublishingTaskChanged(
-    requestId: ID!
-  ): FusionConfigurationPublishingResult!
-  onPersistedQueriesChanged(
-    apiId: ID!
-    stageName: String!
-  ): PersistedQueriesChanged!
+  onClientVersionValidationUpdate(requestId: ID!): ClientVersionValidationResult!
+  onFusionConfigurationPublishingTaskChanged(requestId: ID!): FusionConfigurationPublishingResult!
+  onMcpFeatureCollectionVersionPublishingUpdate(requestId: ID!): McpFeatureCollectionVersionPublishResult!
+  onMcpFeatureCollectionVersionValidationUpdate(requestId: ID!): McpFeatureCollectionVersionValidationResult!
+  onOpenApiCollectionVersionPublishingUpdate(requestId: ID!): OpenApiCollectionVersionPublishResult!
+  onOpenApiCollectionVersionValidationUpdate(requestId: ID!): OpenApiCollectionVersionValidationResult!
+  onPersistedQueriesChanged(apiId: ID! stageName: String!): PersistedQueriesChanged!
   onSchemaVersionPublishingUpdate(requestId: ID!): SchemaVersionPublishResult!
-  onSchemaVersionValidationUpdate(
-    requestId: ID!
-  ): SchemaVersionValidationResult!
-  onStageChangeLogAdded(
-    apiId: ID!
-    kind: [StageChangeLogKind!]
-    stageName: String!
-  ): StageChangeLog!
+  onSchemaVersionValidationUpdate(requestId: ID!): SchemaVersionValidationResult!
+  onStageChangeLogAdded(apiId: ID! kind: [StageChangeLogKind!] stageName: String!): StageChangeLog!
   onStageDeploymentsChanged(stageId: ID!): DeploymentEvent!
 }
 
@@ -3702,7 +3601,7 @@ type UnexpectedErrorOnDocumentChange implements Error {
   workspaceId: ID!
 }
 
-type UnexpectedProcessingError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & FusionConfigurationValidationError & ProcessingError {
+type UnexpectedProcessingError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & FusionConfigurationValidationError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
   message: String!
 }
 
@@ -3768,6 +3667,16 @@ type UploadFusionSubgraphPayload {
   fusionSubgraphVersion: FusionSubgraphVersion
 }
 
+type UploadMcpFeatureCollectionPayload {
+  errors: [UploadMcpFeatureCollectionError!]
+  mcpFeatureCollectionVersion: McpFeatureCollectionVersion
+}
+
+type UploadOpenApiCollectionPayload {
+  errors: [UploadOpenApiCollectionError!]
+  openApiCollectionVersion: OpenApiCollectionVersion
+}
+
 type UploadSchemaPayload {
   errors: [UploadSchemaError!]
   schemaVersion: SchemaVersion
@@ -3798,6 +3707,16 @@ type ValidateFusionConfigurationCompositionPayload {
   requestId: ID
 }
 
+type ValidateMcpFeatureCollectionPayload {
+  errors: [ValidateMcpFeatureCollectionError!]
+  id: ID
+}
+
+type ValidateOpenApiCollectionPayload {
+  errors: [ValidateOpenApiCollectionError!]
+  id: ID
+}
+
 type ValidateSchemaPayload {
   errors: [ValidateSchemaError!]
   id: ID
@@ -3812,7 +3731,7 @@ type ValidationErrorProperty {
   message: String!
 }
 
-type ValidationInProgress implements FusionConfigurationPublishingResult & ClientVersionValidationResult & SchemaVersionValidationResult {
+type ValidationInProgress implements FusionConfigurationPublishingResult & ClientVersionValidationResult & SchemaVersionValidationResult & OpenApiCollectionVersionValidationResult & McpFeatureCollectionVersionValidationResult {
   state: ProcessingState!
 }
 
@@ -3822,94 +3741,29 @@ type Viewer {
   billingUrl: String
   manageTenantUrl: String
   organization: OrganizationInfo
-  personalAccessTokens(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): PersonalAccessTokensConnection
-
+  personalAccessTokens("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): PersonalAccessTokensConnection
   preferences: Any!
   sessionId: String!
   settings: UserSettings!
   user: User
-  workspaces(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): WorkspacesConnection
+  workspaces("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): WorkspacesConnection
 }
 
-type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult {
+type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult & McpFeatureCollectionVersionPublishResult {
   deployment: Deployment
   state: ProcessingState!
 }
 
 type Workspace implements Node {
-  apiDocuments(
-    "Returns the elements in the list that come after the specified cursor."
-    after: Version
-    "Returns the first _n_ elements from the list."
-    first: Int
-  ): ApiDocumentsConnection
-
-  apiKeys(
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the last _n_ elements from the list."
-    last: Int
-  ): ApiKeysConnection
-
-  apis(
-    "Returns the elements in the list that come after the specified cursor."
-    after: Version
-    "Returns the first _n_ elements from the list."
-    first: Int
-  ): ApisConnection
-
+  apiDocuments("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApiDocumentsConnection
+  apiKeys("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): ApiKeysConnection
+  apis("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ApisConnection
   changed(version: Version!): Boolean!
-  changes(
-    "Returns the elements in the list that come after the specified cursor."
-    after: Version
-    "Returns the first _n_ elements from the list."
-    first: Int
-  ): ChangesConnection
-
-  documentChanges(
-    "Returns the elements in the list that come after the specified cursor."
-    after: Version
-    "Returns the first _n_ elements from the list."
-    first: Int
-  ): DocumentChangesConnection @deprecated(reason: "Use changes")
-  documents(
-    "Returns the elements in the list that come after the specified cursor."
-    after: Version
-    "Returns the first _n_ elements from the list."
-    first: Int
-  ): DocumentsConnection
-
-  documentsChanged(version: Version): Boolean!
-    @deprecated(reason: "Use changed")
-  environments(
-    "Returns the elements in the list that come after the specified cursor."
-    after: Version
-    "Returns the first _n_ elements from the list."
-    first: Int
-  ): EnvironmentsConnection
-
+  changes("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): ChangesConnection
+  documentChanges("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): DocumentChangesConnection @deprecated(reason: "Use changes")
+  documents("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): DocumentsConnection
+  documentsChanged(version: Version): Boolean! @deprecated(reason: "Use changed")
+  environments("Returns the elements in the list that come after the specified cursor." after: Version "Returns the first _n_ elements from the list." first: Int): EnvironmentsConnection
   id: ID!
   members: [WorkspaceMember!]!
   name: String!
@@ -4017,18 +3871,11 @@ type WorkspacesEdge {
 
 union ApiKeyReference = Api
 
-union ApproveDeploymentError =
-    UnauthorizedOperation
-  | DeploymentNotFoundError
-  | DeploymentIsNotWaitingForApprovalError
+union ApproveDeploymentError = UnauthorizedOperation | DeploymentNotFoundError | DeploymentIsNotWaitingForApprovalError
 
 union ArgumentChange = DeprecatedChange | DescriptionChanged | TypeChanged
 
-union AuthorizationEventLogPrincipal =
-    UserInfo
-  | ApiKey
-  | OrganizationMember
-  | Group
+union AuthorizationEventLogPrincipal = UserInfo | ApiKey | OrganizationMember | Group
 
 union AuthorizationEventLogRealm = Organization | Workspace | User
 
@@ -4036,322 +3883,157 @@ union AuthorizationEventLogResource = Organization | Workspace | Api
 
 union AuthorizationEventLogSubject = User | ApiKey
 
-union BeginFusionConfigurationPublishError =
-    UnauthorizedOperation
-  | ApiNotFoundError
-  | StageNotFoundError
-  | SubgraphInvalidError
-  | InvalidProcessingStateTransitionError
+union BeginFusionConfigurationPublishError = UnauthorizedOperation | ApiNotFoundError | StageNotFoundError | SubgraphInvalidError | InvalidProcessingStateTransitionError
 
-union CancelDeploymentError =
-    UnauthorizedOperation
-  | DeploymentNotFoundError
-  | DeploymentCannotBeCancelledError
+union CancelDeploymentError = UnauthorizedOperation | DeploymentNotFoundError | DeploymentCannotBeCancelledError
 
-union CancelFusionConfigurationCompositionError =
-    UnauthorizedOperation
-  | FusionConfigurationRequestNotFoundError
-  | InvalidProcessingStateTransitionError
+union CancelFusionConfigurationCompositionError = UnauthorizedOperation | FusionConfigurationRequestNotFoundError | InvalidProcessingStateTransitionError
 
 union ClientDeploymentError = PersistedQueryValidationError
 
-union CommitFusionConfigurationPublishError =
-    UnauthorizedOperation
-  | FusionConfigurationRequestNotFoundError
-  | InvalidProcessingStateTransitionError
+union CommitFusionConfigurationPublishError = UnauthorizedOperation | FusionConfigurationRequestNotFoundError | InvalidProcessingStateTransitionError
 
 union CreateAccountError = UnauthorizedOperation
 
-union CreateApiKeyError =
-    ApiNotFoundError
-  | WorkspaceNotFound
-  | PersonalWorkspaceNotSupportedError
-  | ValidationError
-  | UnauthorizedOperation
-  | RoleNotFoundError
+union CreateApiKeyError = ApiNotFoundError | WorkspaceNotFound | PersonalWorkspaceNotSupportedError | ValidationError | UnauthorizedOperation | RoleNotFoundError
 
-union CreateApiKeyForApiError =
-    ApiNotFoundError
-  | PersonalWorkspaceNotSupportedError
-  | ValidationError
-  | UnauthorizedOperation
+union CreateApiKeyForApiError = ApiNotFoundError | PersonalWorkspaceNotSupportedError | ValidationError | UnauthorizedOperation
 
 union CreateClientError = ApiNotFoundError | UnauthorizedOperation
 
-union CreateMockSchemaError =
-    ApiNotFoundError
-  | MockSchemaNonUniqueNameError
-  | UnauthorizedOperation
-  | ValidationError
+union CreateMcpFeatureCollectionError = ApiNotFoundError | UnauthorizedOperation
+
+union CreateMockSchemaError = ApiNotFoundError | MockSchemaNonUniqueNameError | UnauthorizedOperation | ValidationError
+
+union CreateOpenApiCollectionError = ApiNotFoundError | UnauthorizedOperation
 
 union CreatePersonalAccessTokenError = ValidationError | UnauthorizedOperation
 
 union CreateWorkspaceError = UnauthorizedOperation | ValidationError
 
-union DeleteApiByIdError =
-    ApiNotFoundError
-  | UnauthorizedOperation
-  | ApiDeletionFailedError
+union DeleteApiByIdError = ApiNotFoundError | UnauthorizedOperation | ApiDeletionFailedError
 
 union DeleteApiKeyError = ApiKeyNotFoundError | UnauthorizedOperation
 
 union DeleteClientByIdError = ClientNotFoundError | UnauthorizedOperation
 
-union DeleteMockSchemaByIdError =
-    MockSchemaNotFoundError
-  | UnauthorizedOperation
+union DeleteMcpFeatureCollectionByIdError = McpFeatureCollectionNotFoundError | UnauthorizedOperation
+
+union DeleteMockSchemaByIdError = MockSchemaNotFoundError | UnauthorizedOperation
+
+union DeleteOpenApiCollectionByIdError = OpenApiCollectionNotFoundError | UnauthorizedOperation
 
 union DeploymentEvent = DeploymentCreatedEvent | DeploymentUpdatedEvent
 
-union DirectiveChange =
-    ArgumentAdded
-  | ArgumentChanged
-  | ArgumentRemoved
-  | DescriptionChanged
-  | DirectiveLocationAdded
-  | DirectiveLocationRemoved
+union DirectiveChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DescriptionChanged | DirectiveLocationAdded | DirectiveLocationRemoved
 
 union EnsureTunnelSessionError = UnauthorizedOperation
 
-union EnumChange =
-    DescriptionChanged
-  | EnumValueAdded
-  | EnumValueChanged
-  | EnumValueRemoved
+union EnumChange = DescriptionChanged | EnumValueAdded | EnumValueChanged | EnumValueRemoved
 
 union EnumValueChange = DeprecatedChange | DescriptionChanged
 
-union FieldChange =
-    ArgumentAdded
-  | ArgumentChanged
-  | ArgumentRemoved
-  | DeprecatedChange
-  | DescriptionChanged
-  | TypeChanged
+union FieldChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DeprecatedChange | DescriptionChanged | TypeChanged
 
-union FusionConfigurationDeploymentError =
-    PersistedQueryValidationError
-  | SchemaChangeViolationError
-  | InvalidGraphQLSchemaError
+union FusionConfigurationDeploymentError = PersistedQueryValidationError | SchemaChangeViolationError | InvalidGraphQLSchemaError | OpenApiCollectionValidationError | McpFeatureCollectionValidationError
 
 union InputFieldChange = DeprecatedChange | DescriptionChanged | TypeChanged
 
-union InputObjectChange =
-    DescriptionChanged
-  | FieldAddedChange
-  | FieldRemovedChange
-  | InputFieldChanged
+union InputObjectChange = DescriptionChanged | FieldAddedChange | FieldRemovedChange | InputFieldChanged
 
-union InterfaceChange =
-    DescriptionChanged
-  | FieldAddedChange
-  | FieldRemovedChange
-  | InterfaceImplementationAdded
-  | InterfaceImplementationRemoved
-  | OutputFieldChanged
-  | PossibleTypeAdded
-  | PossibleTypeRemoved
+union InterfaceChange = DescriptionChanged | FieldAddedChange | FieldRemovedChange | InterfaceImplementationAdded | InterfaceImplementationRemoved | OutputFieldChanged | PossibleTypeAdded | PossibleTypeRemoved
 
-union ObjectChange =
-    DescriptionChanged
-  | FieldAddedChange
-  | FieldRemovedChange
-  | InterfaceImplementationAdded
-  | InterfaceImplementationRemoved
-  | OutputFieldChanged
+union McpFeatureCollectionDeploymentError = McpFeatureCollectionValidationError
 
-union OutputFieldChange =
-    ArgumentAdded
-  | ArgumentChanged
-  | ArgumentRemoved
-  | DeprecatedChange
-  | DescriptionChanged
-  | TypeChanged
+union ObjectChange = DescriptionChanged | FieldAddedChange | FieldRemovedChange | InterfaceImplementationAdded | InterfaceImplementationRemoved | OutputFieldChanged
 
-union PollClientVersionPublishRequestError =
-    ClientVersionRequestNotFoundError
-  | UnauthorizedOperation
+union OpenApiCollectionDeploymentError = OpenApiCollectionValidationError
 
-union PollClientVersionValidationRequestError =
-    ClientVersionRequestNotFoundError
-  | UnauthorizedOperation
+union OutputFieldChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DeprecatedChange | DescriptionChanged | TypeChanged
 
-union PollSchemaVersionPublishRequestError =
-    SchemaVersionRequestNotFoundError
-  | UnauthorizedOperation
+union PollClientVersionPublishRequestError = ClientVersionRequestNotFoundError | UnauthorizedOperation
 
-union PollSchemaVersionValidationRequestError =
-    SchemaVersionRequestNotFoundError
-  | UnauthorizedOperation
+union PollClientVersionValidationRequestError = ClientVersionRequestNotFoundError | UnauthorizedOperation
 
-union PublishClientError =
-    StageNotFoundError
-  | ClientNotFoundError
-  | UnauthorizedOperation
-  | ClientVersionNotFoundError
+union PollSchemaVersionPublishRequestError = SchemaVersionRequestNotFoundError | UnauthorizedOperation
 
-union PublishSchemaError =
-    StageNotFoundError
-  | ApiNotFoundError
-  | SchemaNotFoundError
-  | UnauthorizedOperation
+union PollSchemaVersionValidationRequestError = SchemaVersionRequestNotFoundError | UnauthorizedOperation
+
+union PublishClientError = StageNotFoundError | ClientNotFoundError | UnauthorizedOperation | ClientVersionNotFoundError
+
+union PublishMcpFeatureCollectionError = StageNotFoundError | McpFeatureCollectionNotFoundError | UnauthorizedOperation | McpFeatureCollectionVersionNotFoundError
+
+union PublishOpenApiCollectionError = StageNotFoundError | OpenApiCollectionNotFoundError | UnauthorizedOperation | OpenApiCollectionVersionNotFoundError
+
+union PublishSchemaError = StageNotFoundError | ApiNotFoundError | SchemaNotFoundError | UnauthorizedOperation
 
 union PushDocumentChangesError = UnauthorizedOperation | ChangeStructureInvalid
 
 union PushWorkspaceChangesError = UnauthorizedOperation | ChangeStructureInvalid
 
-union RemoveWorkspaceError =
-    UnauthorizedOperation
-  | WorkspaceNotFound
-  | ValidationError
+union RemoveWorkspaceError = UnauthorizedOperation | WorkspaceNotFound | ValidationError
 
-union RenameWorkspaceError =
-    UnauthorizedOperation
-  | WorkspaceNotFound
-  | ValidationError
+union RenameWorkspaceError = UnauthorizedOperation | WorkspaceNotFound | ValidationError
 
-union RevokePersonalAccessTokenError =
-    UnauthorizedOperation
-  | PersonalAccessTokenNotFoundError
+union RevokePersonalAccessTokenError = UnauthorizedOperation | PersonalAccessTokenNotFoundError
 
 union RoleAssignmentCondition = RoleAssignmentStageAuthorizationCondition
 
 union ScalarChange = DescriptionChanged
 
-union SchemaChangeLogEntry =
-    DirectiveModifiedChange
-  | EnumModifiedChange
-  | InputObjectModifiedChange
-  | InterfaceModifiedChange
-  | ObjectModifiedChange
-  | ScalarModifiedChange
-  | TypeSystemMemberAddedChange
-  | TypeSystemMemberModifiedChange
-  | TypeSystemMemberRemovedChange
-  | UnionModifiedChange
+union SchemaChangeLogEntry = DirectiveModifiedChange | EnumModifiedChange | InputObjectModifiedChange | InterfaceModifiedChange | ObjectModifiedChange | ScalarModifiedChange | TypeSystemMemberAddedChange | TypeSystemMemberModifiedChange | TypeSystemMemberRemovedChange | UnionModifiedChange
 
-union SchemaDeploymentError =
-    PersistedQueryValidationError
-  | SchemaChangeViolationError
-  | OperationsAreNotAllowedError
-  | SchemaVersionSyntaxError
-  | InvalidGraphQLSchemaError
+union SchemaDeploymentError = PersistedQueryValidationError | SchemaChangeViolationError | OperationsAreNotAllowedError | SchemaVersionSyntaxError | InvalidGraphQLSchemaError | OpenApiCollectionValidationError | McpFeatureCollectionValidationError
 
-union SchemaMemberChange =
-    ArgumentAdded
-  | ArgumentChanged
-  | ArgumentRemoved
-  | DescriptionChanged
-  | DirectiveLocationAdded
-  | DirectiveLocationRemoved
-  | EnumValueAdded
-  | EnumValueChanged
-  | EnumValueRemoved
-  | FieldAddedChange
-  | FieldRemovedChange
-  | InputFieldChanged
-  | InterfaceImplementationAdded
-  | InterfaceImplementationRemoved
-  | OutputFieldChanged
-  | PossibleTypeAdded
-  | PossibleTypeRemoved
-  | UnionMemberAdded
-  | UnionMemberRemoved
+union SchemaMemberChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DescriptionChanged | DirectiveLocationAdded | DirectiveLocationRemoved | EnumValueAdded | EnumValueChanged | EnumValueRemoved | FieldAddedChange | FieldRemovedChange | InputFieldChanged | InterfaceImplementationAdded | InterfaceImplementationRemoved | OutputFieldChanged | PossibleTypeAdded | PossibleTypeRemoved | UnionMemberAdded | UnionMemberRemoved
 
 union SetActiveWorkspaceError = UnauthorizedOperation | WorkspaceNotFound
 
 union StageCondition = AfterStageCondition
 
-union StartFusionConfigurationCompositionError =
-    UnauthorizedOperation
-  | FusionConfigurationRequestNotFoundError
-  | InvalidProcessingStateTransitionError
+union StartFusionConfigurationCompositionError = UnauthorizedOperation | FusionConfigurationRequestNotFoundError | InvalidProcessingStateTransitionError
 
 union UnionChange = DescriptionChanged | UnionMemberAdded | UnionMemberRemoved
 
-union UnpublishClientError =
-    StageNotFoundError
-  | ClientNotFoundError
-  | UnauthorizedOperation
-  | ClientVersionNotFoundError
-  | ConcurrentOperationError
+union UnpublishClientError = StageNotFoundError | ClientNotFoundError | UnauthorizedOperation | ClientVersionNotFoundError | ConcurrentOperationError
 
 union UpdateApiSettingsError = ApiNotFoundError | UnauthorizedOperation
 
 union UpdateFeatureFlagsError = UnauthorizedOperation | ValidationError
 
-union UpdateMockSchemaError =
-    MockSchemaNonUniqueNameError
-  | MockSchemaNotFoundError
-  | UnauthorizedOperation
-  | ValidationError
+union UpdateMockSchemaError = MockSchemaNonUniqueNameError | MockSchemaNotFoundError | UnauthorizedOperation | ValidationError
 
 union UpdatePreferencesError = UnauthorizedOperation | ValidationError
 
-union UpdateStagesError =
-    ApiNotFoundError
-  | StageNotFoundError
-  | StagesHavePublishedDependenciesError
-  | StageValidationError
+union UpdateStagesError = ApiNotFoundError | StageNotFoundError | StagesHavePublishedDependenciesError | StageValidationError
 
 union UpdateThemeSettingsError = UnauthorizedOperation | ValidationError
 
-union UploadClientError =
-    ClientNotFoundError
-  | ConcurrentOperationError
-  | InvalidPersistedQueryError
-  | UnauthorizedOperation
-  | DuplicatedTagError
+union UploadClientError = ClientNotFoundError | ConcurrentOperationError | InvalidPersistedQueryError | UnauthorizedOperation | DuplicatedTagError
 
-union UploadFusionSubgraphError =
-    InvalidFusionSourceSchemaArchiveError
-  | ConcurrentOperationError
-  | UnauthorizedOperation
-  | DuplicatedTagError
+union UploadFusionSubgraphError = InvalidFusionSourceSchemaArchiveError | ApiNotFoundError | ConcurrentOperationError | UnauthorizedOperation | DuplicatedTagError
 
-union UploadSchemaError =
-    ApiNotFoundError
-  | ConcurrentOperationError
-  | DuplicatedTagError
-  | UnauthorizedOperation
+union UploadMcpFeatureCollectionError = McpFeatureCollectionNotFoundError | ConcurrentOperationError | UnauthorizedOperation | DuplicatedTagError | InvalidMcpFeatureCollectionArchiveError
 
-union ValidateClientError =
-    StageNotFoundError
-  | ClientNotFoundError
-  | UnauthorizedOperation
+union UploadOpenApiCollectionError = OpenApiCollectionNotFoundError | ConcurrentOperationError | UnauthorizedOperation | DuplicatedTagError | InvalidOpenApiCollectionArchiveError
 
-union ValidateFusionConfigurationCompositionError =
-    UnauthorizedOperation
-  | FusionConfigurationRequestNotFoundError
-  | InvalidProcessingStateTransitionError
+union UploadSchemaError = ApiNotFoundError | ConcurrentOperationError | DuplicatedTagError | UnauthorizedOperation
 
-union ValidateSchemaError =
-    StageNotFoundError
-  | SchemaNotFoundError
-  | ApiNotFoundError
-  | UnauthorizedOperation
+union ValidateClientError = StageNotFoundError | ClientNotFoundError | UnauthorizedOperation
 
-union WorkspaceChangeError =
-    ChangeValidationFailed
-  | HasBeenChangedConflict
-  | HasBeenDeletedConflict
-  | IdentifierCollisionConflict
-  | UnexpectedErrorOnChange
-  | WorkspaceNotFoundForChange
+union ValidateFusionConfigurationCompositionError = UnauthorizedOperation | FusionConfigurationRequestNotFoundError | InvalidProcessingStateTransitionError
 
-union WorkspaceChangeResult =
-    ApiDocument
-  | Api
-  | WorkspaceDocument
-  | Environment
+union ValidateMcpFeatureCollectionError = StageNotFoundError | McpFeatureCollectionNotFoundError | UnauthorizedOperation
 
-union WorkspaceDocumentChangeError =
-    DocumentChangedConflict
-  | DocumentNameCollisionConflict
-  | DocumentDeletionConflict
-  | UnexpectedErrorOnDocumentChange
-  | DocumentChangeValidationFailed
-  | WorkspaceNotFoundForDocument
+union ValidateOpenApiCollectionError = StageNotFoundError | OpenApiCollectionNotFoundError | UnauthorizedOperation
+
+union ValidateSchemaError = StageNotFoundError | SchemaNotFoundError | ApiNotFoundError | UnauthorizedOperation
+
+union WorkspaceChangeError = ChangeValidationFailed | HasBeenChangedConflict | HasBeenDeletedConflict | IdentifierCollisionConflict | UnexpectedErrorOnChange | WorkspaceNotFoundForChange
+
+union WorkspaceChangeResult = ApiDocument | Api | WorkspaceDocument | Environment
+
+union WorkspaceDocumentChangeError = DocumentChangedConflict | DocumentNameCollisionConflict | DocumentDeletionConflict | UnexpectedErrorOnDocumentChange | DocumentChangeValidationFailed | WorkspaceNotFoundForDocument
 
 input ApiCreateChangeInput {
   httpConnection: ApiHttpConnectionInput
@@ -4503,11 +4185,21 @@ input CreateClientInput {
   name: String!
 }
 
+input CreateMcpFeatureCollectionInput {
+  apiId: ID!
+  name: String!
+}
+
 input CreateMockSchemaInput {
   apiId: ID!
   baseSchemaFile: Upload!
   downstreamUrl: String!
   extensionsSchemaFile: Upload!
+  name: String!
+}
+
+input CreateOpenApiCollectionInput {
+  apiId: ID!
   name: String!
 }
 
@@ -4532,14 +4224,22 @@ input DeleteClientByIdInput {
   clientId: ID!
 }
 
+input DeleteMcpFeatureCollectionByIdInput {
+  mcpFeatureCollectionId: ID!
+}
+
 input DeleteMockSchemaByIdInput {
   mockSchemaId: ID!
+}
+
+input DeleteOpenApiCollectionByIdInput {
+  openApiCollectionId: ID!
 }
 
 input EnvironmentCreateChangeInput {
   name: String!
   referenceId: String!
-  variables: [EnvironmentVariableInput!]! = []
+  variables: [EnvironmentVariableInput!]! = [  ]
   workspaceId: ID!
 }
 
@@ -4554,7 +4254,7 @@ input EnvironmentUpdateChangeInput {
   id: ID!
   name: String!
   referenceId: String!
-  variables: [EnvironmentVariableInput!]! = []
+  variables: [EnvironmentVariableInput!]! = [  ]
   version: Version!
   workspaceId: ID!
 }
@@ -4651,6 +4351,22 @@ input PublishClientInput {
   waitForApproval: Boolean! = false
 }
 
+input PublishMcpFeatureCollectionInput {
+  force: Boolean! = false
+  mcpFeatureCollectionId: ID!
+  stage: String!
+  tag: String!
+  waitForApproval: Boolean! = false
+}
+
+input PublishOpenApiCollectionInput {
+  force: Boolean! = false
+  openApiCollectionId: ID!
+  stage: String!
+  tag: String!
+  waitForApproval: Boolean! = false
+}
+
 input PublishSchemaInput {
   apiId: ID!
   force: Boolean! = false
@@ -4737,7 +4453,7 @@ input StageConditionUpdateInput {
 }
 
 input StageUpdateInput {
-  conditions: [StageConditionUpdateInput!]! = []
+  conditions: [StageConditionUpdateInput!]! = [  ]
   displayName: String!
   name: String!
 }
@@ -4806,6 +4522,18 @@ input UploadFusionSubgraphInput {
   tag: String!
 }
 
+input UploadMcpFeatureCollectionInput {
+  collection: Upload!
+  mcpFeatureCollectionId: ID!
+  tag: String!
+}
+
+input UploadOpenApiCollectionInput {
+  collection: Upload!
+  openApiCollectionId: ID!
+  tag: String!
+}
+
 input UploadSchemaInput {
   apiId: ID!
   schema: Upload!
@@ -4821,6 +4549,18 @@ input ValidateClientInput {
 input ValidateFusionConfigurationCompositionInput {
   configuration: Upload!
   requestId: ID!
+}
+
+input ValidateMcpFeatureCollectionInput {
+  collection: Upload!
+  mcpFeatureCollectionId: ID!
+  stage: String!
+}
+
+input ValidateOpenApiCollectionInput {
+  collection: Upload!
+  openApiCollectionId: ID!
+  stage: String!
 }
 
 input ValidateSchemaInput {
@@ -5061,6 +4801,8 @@ enum StageChangeLogKind {
   SCHEMA
   CLIENT
   FUSION_CONFIGURATION
+  OPEN_API_COLLECTION
+  MCP_FEATURE_COLLECTION
 }
 
 enum TypeSystemMemberKind {
@@ -5080,39 +4822,34 @@ enum WorkspaceUserRole {
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
-directive @defer(
-  "Deferred when true."
-  if: Boolean
-  "If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to."
-  label: String
-) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+directive @defer("Deferred when true." if: Boolean "If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT
 
 """
-The `@oneOf` directive is used within the type system definition language
- to indicate:
-
- - an Input Object is a Oneof Input Object, or
- - an Object Type's Field is a Oneof Field.
+The @lookup directive is used within a source schema to specify output fields
+that can be used by the distributed GraphQL executor to resolve an entity by
+a stable key.
 """
+directive @lookup on FIELD_DEFINITION
+
+"The `@oneOf` directive is used within the type system definition language to indicate that an Input Object is a OneOf Input Object."
 directive @oneOf on INPUT_OBJECT
 
+directive @shareable on OBJECT | FIELD_DEFINITION
+
 "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
-directive @specifiedBy(
-  "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types."
-  url: String!
-) on SCALAR
+directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
 
 scalar Any
 
-"The `DateTime` scalar represents an ISO-8601 compliant date time type."
-scalar DateTime @specifiedBy(url: "https://www.graphql-scalars.com/date-time")
+"The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
+scalar DateTime @specifiedBy(url: "https:\/\/scalars.graphql.org\/andimarek\/date-time.html")
 
 "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
 scalar Long
 
-scalar URL @specifiedBy(url: "https://tools.ietf.org/html/rfc3986")
+scalar URL @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc3986")
 
-scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
+scalar UUID @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc4122")
 
 "The `Upload` scalar type represents a file upload."
 scalar Upload

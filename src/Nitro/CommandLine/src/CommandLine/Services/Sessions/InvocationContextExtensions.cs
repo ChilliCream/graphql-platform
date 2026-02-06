@@ -1,4 +1,5 @@
 using System.CommandLine.Invocation;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Sessions;

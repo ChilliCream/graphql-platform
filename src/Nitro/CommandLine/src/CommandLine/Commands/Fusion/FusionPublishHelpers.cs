@@ -6,7 +6,6 @@ using System.Reactive.Subjects;
 using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Settings;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
@@ -334,7 +333,7 @@ internal static class FusionPublishHelpers
 
         var compositionLog = new CompositionLog();
 
-        var result = await FusionComposeCommand.ComposeAsync(
+        var result = await CompositionHelper.ComposeAsync(
             compositionLog,
             newSourceSchemas,
             archive,
@@ -342,18 +341,16 @@ internal static class FusionPublishHelpers
             compositionSettings,
             cancellationToken);
 
-        var writer = new AnsiStreamWriter(result.IsSuccess ? console.Out : console.Error);
-
         FusionComposeCommand.WriteCompositionLog(
             compositionLog,
-            writer,
+            new AnsiStreamWriter(Console.Out),
             false);
 
         if (result.IsFailure)
         {
             foreach (var error in result.Errors)
             {
-                console.Error.WriteLine(error.Message);
+                console.WriteLine(error.Message);
             }
 
             return false;
