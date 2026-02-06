@@ -13,7 +13,7 @@ export interface BlogPost {
   date: string;
   tags: string[];
   featuredImage?: string;
-  featuredVideo?: string;
+  featuredVideoId?: string;
   content: string;
   readingTime: string;
   path: string;
@@ -59,7 +59,7 @@ export function getAllBlogPosts(): BlogPost[] {
         : "",
       tags: frontmatter.tags || [],
       featuredImage,
-      featuredVideo: frontmatter.featuredVideo || undefined,
+      featuredVideoId: frontmatter.featuredVideoId || undefined,
       content,
       readingTime: readingTime(content).text,
       path: frontmatter.path,
@@ -119,6 +119,15 @@ export function getPostsByTag(tag: string, page: number) {
 
 export function getPostsPerPage() {
   return POSTS_PER_PAGE;
+}
+
+export function getLatestPostsForNav(count = 10) {
+  return getAllBlogPosts()
+    .slice(0, count)
+    .map((post) => ({
+      fields: { slug: post.slug },
+      frontmatter: { title: post.title },
+    }));
 }
 
 export function getRecentNitroBlogPostTeasers(count = 3) {

@@ -3,10 +3,11 @@ import React from "react";
 import {
   getAllBlogPosts,
   getBlogPostBySlug,
+  getLatestPostsForNav,
   getPaginatedPosts,
   getPostsPerPage,
 } from "@/lib/blog";
-import { compileMdxContent } from "@/lib/mdx";
+import { compileMdxContent, extractHeadings } from "@/lib/mdx";
 import { createMetadata } from "@/lib/metadata";
 import { BlogPostPage } from "@/lib/blog-post-page";
 import { BlogListPage } from "@/lib/blog-list-page";
@@ -89,8 +90,17 @@ export default async function BlogCatchAllPage({ params }: PageProps) {
     }
 
     const { mdxSource } = await compileMdxContent(post.content);
+    const headings = extractHeadings(post.content);
+    const latestPosts = getLatestPostsForNav();
 
-    return <BlogPostPage post={post} mdxSource={mdxSource} />;
+    return (
+      <BlogPostPage
+        post={post}
+        mdxSource={mdxSource}
+        headings={headings}
+        latestPosts={latestPosts}
+      />
+    );
   }
 
   return notFound();

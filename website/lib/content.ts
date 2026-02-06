@@ -42,3 +42,21 @@ export function generateSlug(filePath: string, basePath: string): string {
 export function getContentDir(...segments: string[]): string {
   return path.join(WEBSITE_DIR, "src", ...segments);
 }
+
+interface BasicNavLink {
+  path: string;
+  title: string;
+}
+
+export function getBasicPageNavLinks(): BasicNavLink[] {
+  const jsonPath = path.join(WEBSITE_DIR, "src", "basic", "basic.json");
+
+  if (!fs.existsSync(jsonPath)) return [];
+
+  const data = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+
+  return (data as BasicNavLink[]).map((link) => ({
+    path: "/" + link.path,
+    title: link.title,
+  }));
+}

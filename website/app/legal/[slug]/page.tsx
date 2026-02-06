@@ -2,10 +2,14 @@ import React from "react";
 import fs from "fs";
 import path from "path";
 
-import { compileMdxContent } from "@/lib/mdx";
+import { compileMdxContent, extractHeadings } from "@/lib/mdx";
 import { createMetadata } from "@/lib/metadata";
 import { BasicPageView } from "@/lib/basic-page-view";
-import { readMarkdownFile, getContentDir } from "@/lib/content";
+import {
+  readMarkdownFile,
+  getContentDir,
+  getBasicPageNavLinks,
+} from "@/lib/content";
 import { notFound } from "next/navigation";
 
 interface PageProps {
@@ -47,8 +51,16 @@ export default async function LegalPage({ params }: PageProps) {
 
   const { frontmatter, content: rawContent } = readMarkdownFile(filePath);
   const { mdxSource } = await compileMdxContent(rawContent);
+  const headings = extractHeadings(rawContent);
+  const navigationLinks = getBasicPageNavLinks();
 
   return (
-    <BasicPageView title={frontmatter.title || slug} mdxSource={mdxSource} />
+    <BasicPageView
+      title={frontmatter.title || slug}
+      slug={`/legal/${slug}`}
+      mdxSource={mdxSource}
+      headings={headings}
+      navigationLinks={navigationLinks}
+    />
   );
 }
