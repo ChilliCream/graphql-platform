@@ -18,7 +18,7 @@ export interface DocArticleCommunityProps {
 export const DocArticleCommunity: FC<DocArticleCommunityProps> = ({
   originPath,
 }) => {
-  const docPath = `${siteMetadata.repositoryUrl}/blob/master/website/src/docs/${originPath}`;
+  const docPath = `${siteMetadata.repositoryUrl}/blob/main/website/src/docs/${originPath}`;
 
   return (
     <Container>
