@@ -4,6 +4,7 @@ import { getAllDocPages, getDocPageBySlug, getDocsConfig } from "@/lib/docs";
 import { compileMdxContent, extractHeadings } from "@/lib/mdx";
 import { createMetadata } from "@/lib/metadata";
 import { DocPageView } from "@/lib/doc-page-view";
+import { notFound } from "next/navigation";
 
 interface PageProps {
   params: Promise<{ slug: string[] }>;
@@ -22,7 +23,8 @@ export async function generateMetadata({ params }: PageProps) {
   const fullSlug = "/docs/" + slug.join("/");
   const page = getDocPageBySlug(fullSlug);
 
-  const title = page?.frontmatter?.title || slug[slug.length - 1] || "Documentation";
+  const title =
+    page?.frontmatter?.title || slug[slug.length - 1] || "Documentation";
 
   return createMetadata({
     title,
@@ -36,7 +38,7 @@ export default async function DocPage({ params }: PageProps) {
   const page = getDocPageBySlug(fullSlug);
 
   if (!page) {
-    return <div>Page not found: {fullSlug}</div>;
+    return notFound();
   }
 
   const { mdxSource } = await compileMdxContent(page.content, page.originPath);

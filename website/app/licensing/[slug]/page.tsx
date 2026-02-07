@@ -6,6 +6,7 @@ import { compileMdxContent } from "@/lib/mdx";
 import { createMetadata } from "@/lib/metadata";
 import { BasicPageView } from "@/lib/basic-page-view";
 import { readMarkdownFile, getContentDir } from "@/lib/content";
+import { notFound } from "next/navigation";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -28,6 +29,7 @@ export async function generateMetadata({ params }: PageProps) {
   const filePath = path.join(LICENSING_DIR, `${slug}.md`);
 
   if (!fs.existsSync(filePath)) {
+    // TODO: What about this
     return createMetadata({ title: "Not Found" });
   }
 
@@ -40,16 +42,13 @@ export default async function LicensingPage({ params }: PageProps) {
   const filePath = path.join(LICENSING_DIR, `${slug}.md`);
 
   if (!fs.existsSync(filePath)) {
-    return <div>Not found</div>;
+    return notFound();
   }
 
   const { frontmatter, content: rawContent } = readMarkdownFile(filePath);
   const { mdxSource } = await compileMdxContent(rawContent);
 
   return (
-    <BasicPageView
-      title={frontmatter.title || slug}
-      mdxSource={mdxSource}
-    />
+    <BasicPageView title={frontmatter.title || slug} mdxSource={mdxSource} />
   );
 }

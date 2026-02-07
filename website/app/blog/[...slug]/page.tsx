@@ -10,6 +10,7 @@ import { compileMdxContent } from "@/lib/mdx";
 import { createMetadata } from "@/lib/metadata";
 import { BlogPostPage } from "@/lib/blog-post-page";
 import { BlogListPage } from "@/lib/blog-list-page";
+import { notFound } from "next/navigation";
 
 interface PageProps {
   params: Promise<{ slug: string[] }>;
@@ -84,7 +85,7 @@ export default async function BlogCatchAllPage({ params }: PageProps) {
     const post = getBlogPostBySlug(postSlug);
 
     if (!post) {
-      return <div>Post not found</div>;
+      return notFound();
     }
 
     const { mdxSource } = await compileMdxContent(post.content);
@@ -92,5 +93,5 @@ export default async function BlogCatchAllPage({ params }: PageProps) {
     return <BlogPostPage post={post} mdxSource={mdxSource} />;
   }
 
-  return <div>Not found</div>;
+  return notFound();
 }
