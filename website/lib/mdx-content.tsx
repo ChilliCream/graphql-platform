@@ -41,6 +41,24 @@ const mdxComponents = {
   "InputChoiceTabs-VisualStudio": InputChoiceTabs.VisualStudio,
   "ApiChoiceTabs-MinimalApis": ApiChoiceTabs.MinimalApis,
   "ApiChoiceTabs-Regular": ApiChoiceTabs.Regular,
+  // Lowercase aliases: rehype-raw (used with format:"md") lowercases all HTML
+  // tag names per the HTML spec, so <Video> becomes <video>, etc.
+  video: Video,
+  exampletabs: ExampleTabs,
+  implementation: Implementation,
+  schema: Schema,
+  packageinstallation: PackageInstallation,
+  warning: Warning,
+  apichoicetabs: ApiChoiceTabs,
+  inputchoicetabs: InputChoiceTabs,
+  tabs: Tabs,
+  tab: Tab,
+  list: List,
+  panel: Panel,
+  "inputchoicetabs-cli": InputChoiceTabs.CLI,
+  "inputchoicetabs-visualstudio": InputChoiceTabs.VisualStudio,
+  "apichoicetabs-minimalapis": ApiChoiceTabs.MinimalApis,
+  "apichoicetabs-regular": ApiChoiceTabs.Regular,
 };
 
 interface MdxContentProps {

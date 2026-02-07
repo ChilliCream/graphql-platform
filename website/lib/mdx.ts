@@ -61,6 +61,40 @@ const DOTTED_COMPONENT_MAP: Record<string, string> = {
   "ApiChoiceTabs.Regular": "ApiChoiceTabs-Regular",
 };
 
+// Convert self-closing custom component tags to explicit open+close pairs.
+// HTML parsing (used by rehype-raw in format:"md") doesn't recognize self-closing
+// syntax for non-void elements: <Video videoId="x" /> is parsed as an opening tag,
+// causing all subsequent content to become children. Converting to
+// <Video videoId="x"></Video> fixes this.
+const SELF_CLOSING_COMPONENTS = [
+  "Video",
+  "PackageInstallation",
+  "SurveyPrompt",
+];
+
+function expandSelfClosingTags(source: string): string {
+  let result = source;
+  for (const name of SELF_CLOSING_COMPONENTS) {
+    // Match <ComponentName ... /> with optional attributes
+    // Handles both <Component /> and <Component/>
+    const regex = new RegExp(`<${name}(\\s[^>]*)?\\/\\s*>`, "g");
+    result = result.replace(regex, (_match, attrs) => {
+      return `<${name}${attrs || ""}></${name}>`;
+    });
+  }
+  return result;
+}
+
+// Fix JSX-style attribute values that HTML parser can't handle.
+// In format:"md", rehype-raw parses HTML per spec:
+//   1. defaultValue={"string"} → braces are literal text, not JS expressions
+//   2. Attribute names are lowercased: defaultValue → defaultvalue
+// This function converts e.g. defaultValue={"connection"} → defaultValue="connection"
+function fixJsxAttributes(source: string): string {
+  // Replace attr={"value"} with attr="value" (strip JSX braces around string literals)
+  return source.replace(/(\w+)=\{"([^"]+)"\}/g, '$1="$2"');
+}
+
 function replaceDottedComponents(source: string): string {
   let result = source;
   for (const [dotted, hyphenated] of Object.entries(DOTTED_COMPONENT_MAP)) {
@@ -130,7 +164,9 @@ function resolveImagePaths(source: string, originPath: string): string {
 
 export async function compileMdxContent(source: string, originPath = "") {
   const cleaned = resolveImagePaths(
-    replaceDottedComponents(stripImports(source)),
+    fixJsxAttributes(
+      expandSelfClosingTags(replaceDottedComponents(stripImports(source)))
+    ),
     originPath
   );
 
