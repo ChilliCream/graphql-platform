@@ -123,9 +123,18 @@ export function extractHeadings(
 
     const match = line.match(/^(#{1,6})\s+(.+)$/);
     if (match) {
+      // Strip inline markdown formatting (bold, italic, code, links)
+      let value = match[2].trim();
+      value = value.replace(/\*\*(.+?)\*\*/g, "$1"); // bold
+      value = value.replace(/\*(.+?)\*/g, "$1"); // italic
+      value = value.replace(/__(.+?)__/g, "$1"); // bold alt
+      value = value.replace(/_(.+?)_/g, "$1"); // italic alt
+      value = value.replace(/`(.+?)`/g, "$1"); // inline code
+      value = value.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1"); // links
+
       headings.push({
         depth: match[1].length,
-        value: match[2].trim(),
+        value,
       });
     }
   }

@@ -23,7 +23,7 @@ export function createMetadata({
   const metaType = isArticle ? "article" : "website";
 
   return {
-    title: `${title} - ${siteMetadata.title}`,
+    title,
     description: metaDescription,
     openGraph: {
       url: siteMetadata.siteUrl,

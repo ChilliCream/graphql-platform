@@ -13,7 +13,7 @@
     "url": "https://github.com/ChilliCream/graphql-platform/issues"
   },
   "scripts": {
-    "dev": "next dev --turbopack --host 0.0.0.0 --port 3000",
+    "dev": "next dev --hostname 0.0.0.0 --port 3000",
     "build": "next build",
     "start": "next start",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",

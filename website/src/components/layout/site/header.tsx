@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
+import { useLatestBlogPost } from "@/lib/providers";
 
 import {
   WorkshopNdcCopenhagenImage,
@@ -365,6 +366,8 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
   onTopNavClose,
   onSearchOpen,
 }) => {
+  const latestBlogPost = useLatestBlogPost();
+
   const [subNav, navHandlers, linkHandlers] = useSubNav(
     (hideTopAndSubNav, hideSubNav) => (
       <>
@@ -452,7 +455,30 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
             <DemoAndLaunch tools={tools} />
           </SubNavTools>
         </SubNavMain>
-        <SubNavAdditionalInfo />
+        <SubNavAdditionalInfo>
+          {latestBlogPost && (
+            <>
+              <SubNavTitle>Latest Blog Post</SubNavTitle>
+              <TeaserLink to={latestBlogPost.path}>
+                {latestBlogPost.featuredImage && (
+                  <TeaserImage>
+                    <img
+                      src={latestBlogPost.featuredImage}
+                      alt={latestBlogPost.title}
+                      style={{ width: "100%", borderRadius: "var(--box-border-radius)" }}
+                    />
+                  </TeaserImage>
+                )}
+                <TeaserMetadata>
+                  {latestBlogPost.date}
+                  {latestBlogPost.readingTime &&
+                    " ・ " + latestBlogPost.readingTime}
+                </TeaserMetadata>
+                <TeaserTitle>{latestBlogPost.title}</TeaserTitle>
+              </TeaserLink>
+            </>
+          )}
+        </SubNavAdditionalInfo>
       </>
     ),
     onTopNavClose,

@@ -1,3 +1,4 @@
+import { execSync } from "child_process";
 import path from "path";
 
 import { getContentDir, getFilesRecursively, readMarkdownFile } from "./content";
@@ -10,6 +11,8 @@ export interface DocPage {
   frontmatter: Record<string, any>;
   product?: string;
   version?: string;
+  lastUpdated?: string;
+  lastAuthorName?: string;
 }
 
 export interface DocsProduct {
@@ -36,6 +39,32 @@ export interface DocsNavItem {
 const DOCS_DIR = getContentDir("docs");
 
 let _cachedDocPages: DocPage[] | null = null;
+
+function getGitMetadata(filePath: string): {
+  lastUpdated: string;
+  lastAuthorName: string;
+} {
+  try {
+    const result = execSync(
+      `git log -1 --format="%ai||%an" -- "${filePath}"`,
+      { encoding: "utf-8", timeout: 5000 }
+    ).trim();
+
+    if (result) {
+      const [dateStr, authorName] = result.split("||");
+      const date = new Date(dateStr);
+      const lastUpdated = date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "2-digit",
+      });
+      return { lastUpdated, lastAuthorName: authorName || "" };
+    }
+  } catch {
+    // Git metadata not available
+  }
+  return { lastUpdated: "", lastAuthorName: "" };
+}
 
 export function getDocsConfig(): DocsProduct[] {
   return docsConfig as unknown as DocsProduct[];
@@ -68,6 +97,8 @@ export function getAllDocPages(): DocPage[] {
       version = parts[1];
     }
 
+    const gitMeta = getGitMetadata(file);
+
     pages.push({
       slug,
       originPath,
@@ -75,6 +106,8 @@ export function getAllDocPages(): DocPage[] {
       frontmatter,
       product,
       version,
+      lastUpdated: gitMeta.lastUpdated,
+      lastAuthorName: gitMeta.lastAuthorName,
     });
   }
 

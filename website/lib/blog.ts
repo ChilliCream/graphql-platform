@@ -157,6 +157,26 @@ export function getRecentNitroBlogPostTeasers(count = 3) {
   }));
 }
 
+export function getLatestBlogPostForHeader() {
+  const posts = getAllBlogPosts();
+  if (posts.length === 0) return null;
+
+  const post = posts[0];
+  return {
+    title: post.title,
+    path: post.path,
+    date: post.date
+      ? new Date(post.date).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "2-digit",
+        })
+      : "",
+    readingTime: post.readingTime,
+    featuredImage: post.featuredImage,
+  };
+}
+
 export function getRecentBlogPostTeasers(count = 3) {
   const posts = getAllBlogPosts().slice(0, count);
 
