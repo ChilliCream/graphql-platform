@@ -1,62 +1,53 @@
-import { graphql } from "gatsby";
 import React, { FC } from "react";
 import { LinkedinShareButton, TwitterShareButton } from "react-share";
 import styled from "styled-components";
 
 import { Icon } from "@/components/sprites";
-import { BlogArticleSharebarFragment } from "@/graphql-types";
+import { siteMetadata } from "@/lib/site-config";
 
 // Icons
 import LinkedInIconSvg from "@/images/icons/linkedin-square.svg";
 import XIconSvg from "@/images/icons/x-square.svg";
 
+interface BlogArticleSharebarData {
+  mdx?: {
+    frontmatter?: {
+      path?: string;
+      tags?: Array<string | null>;
+      title?: string;
+    };
+  };
+}
+
 export interface BlogArticleSharebarProps {
-  readonly data: BlogArticleSharebarFragment;
+  readonly data: BlogArticleSharebarData;
   readonly tags: string[];
 }
 
 export const BlogArticleSharebar: FC<BlogArticleSharebarProps> = ({
-  data: { mdx, site },
+  data: { mdx },
   tags,
 }) => {
-  const { frontmatter } = mdx!;
-  const articelUrl = site!.siteMetadata!.siteUrl! + frontmatter!.path!;
-  const title = frontmatter!.title!;
+  const { frontmatter } = mdx || {};
+  const articelUrl = siteMetadata.siteUrl + (frontmatter?.path || "");
+  const title = frontmatter?.title || "";
 
   return (
     <ShareButtons>
       <TwitterShareButton
         url={articelUrl}
         title={title}
-        via={site!.siteMetadata!.author!}
+        via={siteMetadata.author}
         hashtags={tags}
       >
-        <XIcon />
+        <XIcon {...XIconSvg} />
       </TwitterShareButton>
       <LinkedinShareButton url={articelUrl} title={title}>
-        <LinkedinIcon />
+        <LinkedinIcon {...LinkedInIconSvg} />
       </LinkedinShareButton>
     </ShareButtons>
   );
 };
-
-export const BlogArticleSharebarGraphQLFragment = graphql`
-  fragment BlogArticleSharebar on Query {
-    mdx(frontmatter: { path: { eq: $path } }) {
-      frontmatter {
-        path
-        tags
-        title
-      }
-    }
-    site {
-      siteMetadata {
-        author
-        siteUrl
-      }
-    }
-  }
-`;
 
 const ShareButtons = styled.div`
   display: flex;
@@ -77,10 +68,10 @@ const ShareButtons = styled.div`
   }
 `;
 
-const XIcon = styled(Icon).attrs(XIconSvg)`
+const XIcon = styled(Icon)`
   fill: #ffffff;
 `;
 
-const LinkedinIcon = styled(Icon).attrs(LinkedInIconSvg)`
+const LinkedinIcon = styled(Icon)`
   fill: #ffffff;
 `;

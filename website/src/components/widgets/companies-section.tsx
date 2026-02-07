@@ -266,8 +266,8 @@ interface TickerProps {
 const Ticker: FC<TickerProps> = ({ children }) => {
   const width = children.reduce<number>((p, c) => p + c.width + 60, 0);
   const logos = children.map(({ width, url, logo }, index) => (
-    <GenericLogo key={"logo-" + index} width={width}>
-      <Link to={url}>
+    <GenericLogo key={"logo-" + index} $width={width}>
+      <Link href={url}>
         <Company {...logo} />
       </Link>
     </GenericLogo>
@@ -311,11 +311,11 @@ const TickerContainer = styled.div<TickerContainerProps>`
   }
 `;
 
-const GenericLogo = styled.div<{ width?: number }>`
+const GenericLogo = styled.div<{ $width?: number }>`
   flex: 0 0 auto;
   margin-right: 30px;
   margin-left: 30px;
-  width: ${({ width = 160 }) => width}px;
+  width: ${({ $width = 160 }) => $width}px;
 
   & svg {
     fill: ${THEME_COLORS.text};

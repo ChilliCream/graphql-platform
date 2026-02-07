@@ -77,7 +77,7 @@ function Plan({
         ))}
       </PlanFeatures>
       <PlanFooter>
-        <LinkButton to={ctaLink}>{ctaText}</LinkButton>
+        <LinkButton href={ctaLink}>{ctaText}</LinkButton>
       </PlanFooter>
     </>
   );

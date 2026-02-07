@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 
 import { setArticleHeight } from "@/state/common";
 
-export function useCalculateArticleHeight(): RefObject<HTMLDivElement> {
+export function useCalculateArticleHeight(): RefObject<HTMLDivElement | null> {
   const ref = createRef<HTMLDivElement>();
   const dispatch = useDispatch();
 

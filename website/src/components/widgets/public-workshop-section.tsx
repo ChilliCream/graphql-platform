@@ -21,7 +21,7 @@ export const PublicWorkshopSection: FC = () => {
       <Boxes>
         {workshops.map((workshop) => (
           <Box key={`workshop-${workshop.id}`}>
-            <BoxLink to={workshop.url}>
+            <BoxLink href={workshop.url}>
               <Metadata>
                 <Space>
                   <Title>{workshop.title}</Title>

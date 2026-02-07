@@ -1,8 +1,7 @@
-import { Link } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
 
-import { ContentSection, IconContainer } from "@/components/misc";
+import { ContentSection, IconContainer, Link } from "@/components/misc";
 import { Icon } from "@/components/sprites";
 import { THEME_COLORS } from "@/style";
 import { Box, Boxes } from "./box-elements";
@@ -38,7 +37,7 @@ export const DeploymentOptionsSection: FC = () => (
           simple, and cost-effective solution. Get started quickly without the
           hassle of managing hardware.
         </Text>
-        <LinkTextButton to="/pricing">
+        <LinkTextButton href="/pricing">
           Compare
           <IconContainer $size={16}>
             <Icon {...ArrowRightIconSvg} />
@@ -57,7 +56,7 @@ export const DeploymentOptionsSection: FC = () => (
           benefits of your own instance with dedicated performance tailored to
           your needs.
         </Text>
-        <LinkTextButton to="/pricing">
+        <LinkTextButton href="/pricing">
           Compare
           <IconContainer $size={16}>
             <Icon {...ArrowRightIconSvg} />
@@ -76,7 +75,7 @@ export const DeploymentOptionsSection: FC = () => (
           offers no volume limits and full data ownership, perfect for meeting
           stringent security and compliance requirements.
         </Text>
-        <LinkTextButton to="/pricing">
+        <LinkTextButton href="/pricing">
           Compare
           <IconContainer $size={16}>
             <Icon {...ArrowRightIconSvg} />

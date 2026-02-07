@@ -1,4 +1,6 @@
-import { css, keyframes, SimpleInterpolation } from "styled-components";
+import { css, Interpolation, keyframes } from "styled-components";
+
+type SimpleInterpolation = Interpolation<object>;
 
 /** Fix a problem with the interpolation parsing that invalidates the first rule passed. */
 const fixForInterpolation = (style: SimpleInterpolation) => ";" + style;

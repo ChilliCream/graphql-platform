@@ -20,7 +20,7 @@ export const SidePaneHeader: FC<SidePaneHeaderProps> = ({
 }) => (
   <Header $minWidth={showWhenScreenWidthIsSmallerThan}>
     <Title>{title}</Title>
-    <CloseButton onClick={onClose} />
+    <CloseButton {...XmarkIconSvg} onClick={onClose} />
   </Header>
 );
 

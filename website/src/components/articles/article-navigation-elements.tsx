@@ -45,26 +45,26 @@ export const NavigationGroupContent = styled.div`
 `;
 
 export const NavigationGroup = styled.div<{
-  readonly expanded: boolean;
+  readonly $expanded: boolean;
 }>`
   display: flex;
   flex-direction: column;
   cursor: pointer;
 
   > ${NavigationGroupContent} {
-    display: ${({ expanded }) => (expanded ? "initial" : "none")};
+    display: ${({ $expanded }) => ($expanded ? "initial" : "none")};
   }
 
   > ${NavigationGroupToggle} > ${IconContainer} {
     margin-left: auto;
 
     .expand {
-      display: ${({ expanded }) => (expanded ? "none" : "flex")};
+      display: ${({ $expanded }) => ($expanded ? "none" : "flex")};
       fill: ${THEME_COLORS.text};
     }
 
     .collapse {
-      display: ${({ expanded }) => (expanded ? "flex" : "none")};
+      display: ${({ $expanded }) => ($expanded ? "flex" : "none")};
       fill: ${THEME_COLORS.text};
     }
   }
@@ -79,15 +79,15 @@ export const NavigationLink = styled(Link)`
 `;
 
 export const NavigationItem = styled.li<{
-  readonly active: boolean;
+  readonly $active: boolean;
 }>`
   flex: 0 0 auto;
   margin: 5px 0;
   min-height: 20px;
   padding: 0;
 
-  ${({ active }) =>
-    active &&
+  ${({ $active }) =>
+    $active &&
     css`
       > ${NavigationLink}, > ${NavigationGroup} > ${NavigationGroupToggle} {
         font-weight: 600;

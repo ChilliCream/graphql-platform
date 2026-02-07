@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, FC, ReactNode, useContext } from "react";
 
 import { useActiveTab } from "./tab-groups";

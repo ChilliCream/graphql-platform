@@ -1,28 +1,44 @@
-import React, { Children, FC, ReactElement } from "react";
+import React, { Children, FC } from "react";
 
 import { Warning } from "./warning";
 
 const warningText = "Warning: ";
 
-export const BlockQuote: FC = ({ children }) => {
+interface PropsWithChildren {
+  children?: React.ReactNode;
+}
+
+function getChildren(
+  element: React.ReactElement
+): React.ReactNode | undefined {
+  return (element.props as PropsWithChildren).children;
+}
+
+export const BlockQuote: FC<{ children: React.ReactNode }> = ({ children }) => {
   const childArray = Children.toArray(children);
 
-  const isWarning =
-    childArray.length > 0 &&
-    React.isValidElement(childArray[0]) &&
-    ((typeof childArray[0].props["children"] === "string" &&
-      childArray[0].props["children"].startsWith(warningText)) ||
-      (Array.isArray(childArray[0].props["children"]) &&
-        childArray[0].props["children"].length > 0 &&
-        typeof childArray[0].props["children"][0] === "string" &&
-        childArray[0].props["children"][0].startsWith(warningText)));
+  const firstChild = childArray[0];
+
+  let isWarning = false;
+
+  if (React.isValidElement(firstChild)) {
+    const firstChildren = getChildren(firstChild);
+
+    if (typeof firstChildren === "string") {
+      isWarning = firstChildren.startsWith(warningText);
+    } else if (Array.isArray(firstChildren) && firstChildren.length > 0) {
+      const first = firstChildren[0];
+      isWarning =
+        typeof first === "string" && first.startsWith(warningText);
+    }
+  }
 
   if (isWarning) {
     const elements = childArray.filter((child) =>
       React.isValidElement(child)
-    ) as ReactElement[];
+    ) as React.ReactElement[];
     const texts = elements.map((elem) => {
-      const innerChildren = elem.props["children"];
+      const innerChildren = getChildren(elem);
 
       if (
         typeof innerChildren === "string" &&

@@ -1,6 +1,4 @@
 import { useDocSearchKeyboardEvents } from "@docsearch/react";
-import { graphql, useStaticQuery } from "gatsby";
-import { GatsbyImage } from "gatsby-plugin-image";
 import React, {
   FC,
   MouseEventHandler,
@@ -20,12 +18,8 @@ import {
 import { IconContainer, Link, SearchModal } from "@/components/misc";
 import { Icon, Logo } from "@/components/sprites";
 import { GitHubStarButton } from "@/components/widgets";
-import {
-  DocsJson,
-  GetHeaderDataQuery,
-  Maybe,
-  SiteSiteMetadataTools,
-} from "@/graphql-types";
+import { siteMetadata, Tools } from "@/lib/site-config";
+import docsConfig from "@/docs/docs.json";
 import { State, WorkshopsState } from "@/state";
 import {
   ApplyBackdropBlur,
@@ -56,67 +50,16 @@ import XmarkIconSvg from "@/images/icons/xmark.svg";
 import YouTubeIconSvg from "@/images/icons/youtube.svg";
 import LogoIconSvg from "@/images/logo/chillicream-winking.svg";
 
+const tools = siteMetadata.tools;
+const products = docsConfig.map((p) => ({
+  path: p.path,
+  title: p.title,
+  latestStableVersion: p.latestStableVersion,
+}));
+
 export const Header: FC = () => {
   const [topNavOpen, setTopNavOpen] = useState<boolean>(false);
   const [searchOpen, setSearchOpen] = useState<boolean>(false);
-  const data = useStaticQuery<GetHeaderDataQuery>(graphql`
-    query getHeaderData {
-      site {
-        siteMetadata {
-          siteUrl
-          tools {
-            blog
-            github
-            linkedIn
-            nitro
-            shop
-            slack
-            youtube
-            x
-          }
-        }
-      }
-      docNav: file(
-        sourceInstanceName: { eq: "docs" }
-        relativePath: { eq: "docs.json" }
-      ) {
-        products: childrenDocsJson {
-          path
-          title
-          latestStableVersion
-        }
-      }
-      allMdx(
-        limit: 1
-        filter: { frontmatter: { path: { glob: "/blog/**/*" } } }
-        sort: { fields: [frontmatter___date], order: DESC }
-      ) {
-        edges {
-          node {
-            id
-            fields {
-              readingTime {
-                text
-              }
-            }
-            frontmatter {
-              featuredImage {
-                childImageSharp {
-                  gatsbyImageData(layout: CONSTRAINED, width: 400, quality: 100)
-                }
-              }
-              path
-              title
-              date(formatString: "MMMM DD, YYYY")
-            }
-          }
-        }
-      }
-    }
-  `);
-  const { siteUrl, tools } = data.site!.siteMetadata!;
-  const products = data.docNav!.products!;
-  const firstBlogPost = data.allMdx.edges[0].node;
 
   const handleTopNavClose = useCallback(() => {
     setTopNavOpen(false);
@@ -139,17 +82,19 @@ export const Header: FC = () => {
     isOpen: searchOpen,
     onOpen: handleSearchOpen,
     onClose: handleSearchClose,
+    isAskAiActive: false,
+    onAskAiToggle: () => {},
   });
 
   return (
     <Container>
       <ContainerWrapper>
-        <LogoLink to="/">
+        <LogoLink href="/">
           <LogoIcon {...LogoIconSvg} />
         </LogoLink>
-        <Navigation open={topNavOpen}>
+        <Navigation $open={topNavOpen}>
           <NavigationHeader>
-            <LogoLink to="/" onClick={handleTopNavClose}>
+            <LogoLink href="/" onClick={handleTopNavClose}>
               <LogoIcon {...LogoIconSvg} />
             </LogoLink>
             <MobileMenu>
@@ -159,49 +104,48 @@ export const Header: FC = () => {
                 </IconContainer>
               </SearchButton>
               <HamburgerCloseButton onClick={handleTopNavClose}>
-                <HamburgerCloseIcon />
+                <HamburgerCloseIcon {...XmarkIconSvg} />
               </HamburgerCloseButton>
             </MobileMenu>
           </NavigationHeader>
           <Nav>
             <PlatformNavItem
-              firstBlogPost={firstBlogPost}
-              tools={tools!}
+              tools={tools}
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
             />
             <ServicesNavItem
-              tools={tools!}
+              tools={tools}
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
             />
             <DeveloperNavItem
               products={products}
-              tools={tools!}
+              tools={tools}
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
             />
             <CompanyNavItem
-              tools={tools!}
+              tools={tools}
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
             />
             <PricingNavItem />
             <HelpNavItem />
             <NavItemContainer className="mobile-only double-height">
-              <DemoAndLaunch tools={tools!} />
+              <DemoAndLaunch tools={tools} />
             </NavItemContainer>
           </Nav>
         </Navigation>
-        <Tools>
+        <ToolsContainer>
           <GitHubStarButton />
-          <DemoAndLaunch tools={tools!} />
+          <DemoAndLaunch tools={tools} />
           <SearchButton onClick={handleSearchOpen}>
             <IconContainer $size={20}>
               <Icon {...SearchIconSvg} />
             </IconContainer>
           </SearchButton>
-        </Tools>
+        </ToolsContainer>
         <MobileMenu>
           <SearchButton onClick={handleSearchOpen}>
             <IconContainer $size={20}>
@@ -209,13 +153,13 @@ export const Header: FC = () => {
             </IconContainer>
           </SearchButton>
           <HamburgerOpenButton onClick={handleTopNavOpen}>
-            <HamburgerOpenIcon />
+            <HamburgerOpenIcon {...BarsIconSvg} />
           </HamburgerOpenButton>
         </MobileMenu>
       </ContainerWrapper>
       <SearchModal
         open={searchOpen}
-        siteUrl={siteUrl!}
+        siteUrl={siteMetadata.siteUrl}
         onClose={handleSearchClose}
       />
     </Container>
@@ -280,13 +224,13 @@ const HamburgerOpenButton = styled.div`
   }
 `;
 
-const HamburgerOpenIcon = styled(Icon).attrs(BarsIconSvg)`
+const HamburgerOpenIcon = styled(Icon)`
   width: 20px;
   fill: ${THEME_COLORS.textContrast};
 `;
 
 const Navigation = styled.nav<{
-  readonly open: boolean;
+  readonly $open: boolean;
 }>`
   position: fixed;
   top: 0;
@@ -294,11 +238,11 @@ const Navigation = styled.nav<{
   bottom: 0;
   left: 0;
   z-index: 30;
-  display: ${({ open }) => (open ? "flex" : "none")};
+  display: ${({ $open }) => ($open ? "flex" : "none")};
   flex: 1 1 auto;
   flex-direction: column;
   max-height: 100vh;
-  opacity: ${({ open }) => (open ? "1" : "0")};
+  opacity: ${({ $open }) => ($open ? "1" : "0")};
   transition: opacity 0.2s ease-in-out;
 
   @media only screen and (min-width: 992px) {
@@ -312,9 +256,7 @@ const Navigation = styled.nav<{
     flex-direction: row;
     height: 100%;
     max-height: initial;
-    //background-color: initial;
     opacity: initial;
-    //box-shadow: initial;
   }
 `;
 
@@ -380,7 +322,7 @@ const BackButton = styled.div`
   }
 `;
 
-const HamburgerCloseIcon = styled(Icon).attrs(XmarkIconSvg)`
+const HamburgerCloseIcon = styled(Icon)`
   width: 20px;
   fill: ${THEME_COLORS.textContrast};
 `;
@@ -409,21 +351,16 @@ const Nav = styled.ol`
 `;
 
 interface PlatformNavItemProps {
-  readonly firstBlogPost: any;
-  readonly tools: Pick<SiteSiteMetadataTools, "nitro">;
+  readonly tools: Pick<Tools, "nitro">;
   readonly onTopNavClose: () => void;
   readonly onSearchOpen: () => void;
 }
 
 const PlatformNavItem: FC<PlatformNavItemProps> = ({
-  firstBlogPost,
   tools,
   onTopNavClose,
   onSearchOpen,
 }) => {
-  const featuredImage =
-    firstBlogPost.frontmatter!.featuredImage?.childImageSharp?.gatsbyImageData;
-
   const [subNav, navHandlers, linkHandlers] = useSubNav(
     (hideTopAndSubNav, hideSubNav) => (
       <>
@@ -437,7 +374,7 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
           <SubNavGroup>
             <SubNavTitle>Platform</SubNavTitle>
             <SubNavLinkWithDescription
-              to="/platform/analytics"
+              href="/platform/analytics"
               onClick={hideTopAndSubNav}
             >
               <IconContainer $size={24}>
@@ -451,7 +388,7 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
               </SubNavLinkTextGroup>
             </SubNavLinkWithDescription>
             <SubNavLinkWithDescription
-              to="/platform/continuous-integration"
+              href="/platform/continuous-integration"
               onClick={hideTopAndSubNav}
             >
               <IconContainer $size={24}>
@@ -466,7 +403,7 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
             </SubNavLinkWithDescription>
             {false && (
               <SubNavLinkWithDescription
-                to="/platform/collaboration"
+                href="/platform/collaboration"
                 onClick={hideTopAndSubNav}
               >
                 <IconContainer $size={24}>
@@ -479,7 +416,7 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
               </SubNavLinkWithDescription>
             )}
             <SubNavLinkWithDescription
-              to="/platform/ecosystem"
+              href="/platform/ecosystem"
               onClick={hideTopAndSubNav}
             >
               <IconContainer $size={24}>
@@ -495,14 +432,17 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
           <SubNavGroup>
             <SubNavTitle>Products</SubNavTitle>
             <SubNavLinkWithDescription
-              to="/products/nitro"
+              href="/products/nitro"
               onClick={hideTopAndSubNav}
             >
               <IconContainer $size={24}>
                 <Icon {...LollipopIconSvg} />
               </IconContainer>
               <SubNavLinkTextGroup>
-                <div className="title">Nitro (<abbr title="Formerly Known As">fka</abbr> Banana Cake Pop)</div>
+                <div className="title">
+                  Nitro (<abbr title="Formerly Known As">fka</abbr> Banana Cake
+                  Pop)
+                </div>
                 <div className="desc">GraphQL IDE / API Cockpit</div>
               </SubNavLinkTextGroup>
             </SubNavLinkWithDescription>
@@ -511,25 +451,7 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
             <DemoAndLaunch tools={tools} />
           </SubNavTools>
         </SubNavMain>
-        <SubNavAdditionalInfo>
-          <SubNavTitle>Latest Blog Post</SubNavTitle>
-          <TeaserLink to={firstBlogPost.frontmatter!.path!}>
-            {featuredImage && (
-              <TeaserImage>
-                <GatsbyImage
-                  image={featuredImage}
-                  alt={firstBlogPost.frontmatter!.title}
-                />
-              </TeaserImage>
-            )}
-            <TeaserMetadata>
-              {firstBlogPost.frontmatter?.date}
-              {firstBlogPost?.readingTime?.text &&
-                " ・ " + firstBlogPost.readingTime.text}
-            </TeaserMetadata>
-            <TeaserTitle>{firstBlogPost.frontmatter!.title}</TeaserTitle>
-          </TeaserLink>
-        </SubNavAdditionalInfo>
+        <SubNavAdditionalInfo />
       </>
     ),
     onTopNavClose,
@@ -538,7 +460,7 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
 
   return (
     <NavItemContainer {...navHandlers}>
-      <NavLink to="/platform" prefetch={false} {...linkHandlers}>
+      <NavLink href="/platform" prefetch={false} {...linkHandlers}>
         Platform
         <SubNavIndicatorIcon />
       </NavLink>
@@ -548,7 +470,7 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
 };
 
 interface ServicesNavItemProps {
-  readonly tools: Pick<SiteSiteMetadataTools, "nitro">;
+  readonly tools: Pick<Tools, "nitro">;
   readonly onTopNavClose: () => void;
   readonly onSearchOpen: () => void;
 }
@@ -571,7 +493,7 @@ const ServicesNavItem: FC<ServicesNavItemProps> = ({
           <SubNavGroup>
             <SubNavTitle>Services</SubNavTitle>
             <SubNavLinkWithDescription
-              to="/services/advisory"
+              href="/services/advisory"
               onClick={hideTopAndSubNav}
             >
               <IconContainer $size={24}>
@@ -583,7 +505,7 @@ const ServicesNavItem: FC<ServicesNavItemProps> = ({
               </SubNavLinkTextGroup>
             </SubNavLinkWithDescription>
             <SubNavLinkWithDescription
-              to="/services/support"
+              href="/services/support"
               onClick={hideTopAndSubNav}
             >
               <IconContainer $size={24}>
@@ -595,7 +517,7 @@ const ServicesNavItem: FC<ServicesNavItemProps> = ({
               </SubNavLinkTextGroup>
             </SubNavLinkWithDescription>
             <SubNavLinkWithDescription
-              to="/services/training"
+              href="/services/training"
               onClick={hideTopAndSubNav}
             >
               <IconContainer $size={24}>
@@ -603,7 +525,9 @@ const ServicesNavItem: FC<ServicesNavItemProps> = ({
               </IconContainer>
               <SubNavLinkTextGroup>
                 <div className="title">Training</div>
-                <div className="desc">Increase Your Team's Productivity</div>
+                <div className="desc">
+                  Increase Your Team&apos;s Productivity
+                </div>
               </SubNavLinkTextGroup>
             </SubNavLinkWithDescription>
           </SubNavGroup>
@@ -613,7 +537,7 @@ const ServicesNavItem: FC<ServicesNavItemProps> = ({
         </SubNavMain>
         <SubNavAdditionalInfo>
           <SubNavTitle>Get in Touch</SubNavTitle>
-          <TeaserLink to="mailto:contact@chillicream.com?subject=Services">
+          <TeaserLink href="mailto:contact@chillicream.com?subject=Services">
             <TeaserHero>
               Your technology journey.
               <br />
@@ -633,7 +557,7 @@ const ServicesNavItem: FC<ServicesNavItemProps> = ({
 
   return (
     <NavItemContainer {...navHandlers}>
-      <NavLink to="/services" prefetch={false} {...linkHandlers}>
+      <NavLink href="/services" prefetch={false} {...linkHandlers}>
         Services
         <SubNavIndicatorIcon />
       </NavLink>
@@ -643,20 +567,8 @@ const ServicesNavItem: FC<ServicesNavItemProps> = ({
 };
 
 interface DeveloperNavItemProps {
-  readonly products: Maybe<
-    Pick<DocsJson, "path" | "title" | "latestStableVersion">
-  >[];
-  readonly tools: Pick<
-    SiteSiteMetadataTools,
-    | "blog"
-    | "github"
-    | "linkedIn"
-    | "nitro"
-    | "shop"
-    | "slack"
-    | "x"
-    | "youtube"
-  >;
+  readonly products: typeof products;
+  readonly tools: Tools;
   readonly onTopNavClose: () => void;
   readonly onSearchOpen: () => void;
 }
@@ -689,53 +601,54 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({
             {products.map((product, index) => (
               <SubNavLink
                 key={index}
-                to={`/docs/${product!.path!}${product?.latestStableVersion
-                  ? "/" + product?.latestStableVersion
-                  : ""
-                  }`}
+                href={`/docs/${product.path}${
+                  product.latestStableVersion
+                    ? "/" + product.latestStableVersion
+                    : ""
+                }`}
                 onClick={hideTopAndSubNav}
               >
                 <IconContainer $size={16}>
                   <Icon {...AngleRightIconSvg} />
                 </IconContainer>
-                {product!.title}
+                {product.title}
               </SubNavLink>
             ))}
           </SubNavGroup>
           <SubNavSeparator />
           <SubNavGroup>
             <SubNavTitle>Additional Resources</SubNavTitle>
-            <SubNavLink to={tools.blog!} onClick={hideTopAndSubNav}>
+            <SubNavLink href={tools.blog} onClick={hideTopAndSubNav}>
               <IconContainer $size={20}>
                 <Icon {...BlogIconSvg} />
               </IconContainer>
               Blog
             </SubNavLink>
-            <SubNavLink to={tools.github!} onClick={hideTopAndSubNav}>
+            <SubNavLink href={tools.github} onClick={hideTopAndSubNav}>
               <IconContainer $size={20}>
                 <Icon {...GithubIconSvg} />
               </IconContainer>
               GitHub
             </SubNavLink>
-            <SubNavLink to={tools.slack!} onClick={hideTopAndSubNav}>
+            <SubNavLink href={tools.slack} onClick={hideTopAndSubNav}>
               <IconContainer $size={20}>
                 <Icon {...SlackIconSvg} />
               </IconContainer>
               Slack / Community
             </SubNavLink>
-            <SubNavLink to={tools.youtube!} onClick={hideTopAndSubNav}>
+            <SubNavLink href={tools.youtube} onClick={hideTopAndSubNav}>
               <IconContainer $size={20}>
                 <Icon {...YouTubeIconSvg} />
               </IconContainer>
               YouTube Channel
             </SubNavLink>
-            <SubNavLink to={tools.x!} onClick={hideTopAndSubNav}>
+            <SubNavLink href={tools.x} onClick={hideTopAndSubNav}>
               <IconContainer $size={20}>
                 <Icon {...XIconSvg} />
               </IconContainer>
               Formerly Twitter
             </SubNavLink>
-            <SubNavLink to={tools.linkedIn!} onClick={hideTopAndSubNav}>
+            <SubNavLink href={tools.linkedIn} onClick={hideTopAndSubNav}>
               <IconContainer $size={20}>
                 <Icon {...LinkedInIconSvg} />
               </IconContainer>
@@ -750,7 +663,7 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({
           {workshop && (
             <>
               <SubNavTitle>Upcoming Workshop</SubNavTitle>
-              <TeaserLink to={workshop.url}>
+              <TeaserLink href={workshop.url}>
                 <TeaserImage>
                   <WorkshopHero image={workshop.image} />
                 </TeaserImage>
@@ -771,7 +684,7 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({
 
   return (
     <NavItemContainer {...navHandlers}>
-      <NavLink to="/docs" prefetch={false} {...linkHandlers}>
+      <NavLink href="/docs" prefetch={false} {...linkHandlers}>
         Developers
         <SubNavIndicatorIcon />
       </NavLink>
@@ -781,10 +694,7 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({
 };
 
 interface CompanyNavItemProps {
-  readonly tools: Pick<
-    SiteSiteMetadataTools,
-    "github" | "linkedIn" | "nitro" | "shop" | "slack" | "x" | "youtube"
-  >;
+  readonly tools: Tools;
   readonly onTopNavClose: () => void;
   readonly onSearchOpen: () => void;
 }
@@ -808,7 +718,7 @@ const CompanyNavItem: FC<CompanyNavItemProps> = ({
             <SubNavTitle>Company</SubNavTitle>
             <SubNavLink
               prefetch={false}
-              to="mailto:contact@chillicream.com"
+              href="mailto:contact@chillicream.com"
               onClick={hideTopAndSubNav}
             >
               <IconContainer $size={16}>
@@ -818,7 +728,7 @@ const CompanyNavItem: FC<CompanyNavItemProps> = ({
             </SubNavLink>
             <SubNavLink
               prefetch={false}
-              to={tools.shop!}
+              href={tools.shop!}
               onClick={hideTopAndSubNav}
             >
               <IconContainer $size={16}>
@@ -827,7 +737,7 @@ const CompanyNavItem: FC<CompanyNavItemProps> = ({
               Shop
             </SubNavLink>
             <SubNavLink
-              to="/legal/acceptable-use-policy"
+              href="/legal/acceptable-use-policy"
               onClick={hideTopAndSubNav}
             >
               <IconContainer $size={16}>
@@ -835,26 +745,29 @@ const CompanyNavItem: FC<CompanyNavItemProps> = ({
               </IconContainer>
               Acceptable Use Policy
             </SubNavLink>
-            <SubNavLink to="/legal/cookie-policy" onClick={hideTopAndSubNav}>
+            <SubNavLink href="/legal/cookie-policy" onClick={hideTopAndSubNav}>
               <IconContainer $size={16}>
                 <Icon {...AngleRightIconSvg} />
               </IconContainer>
               Cookie Policy
             </SubNavLink>
-            <SubNavLink to="/legal/privacy-policy" onClick={hideTopAndSubNav}>
+            <SubNavLink href="/legal/privacy-policy" onClick={hideTopAndSubNav}>
               <IconContainer $size={16}>
                 <Icon {...AngleRightIconSvg} />
               </IconContainer>
               Privacy Policy
             </SubNavLink>
-            <SubNavLink to="/legal/terms-of-service" onClick={hideTopAndSubNav}>
+            <SubNavLink
+              href="/legal/terms-of-service"
+              onClick={hideTopAndSubNav}
+            >
               <IconContainer $size={16}>
                 <Icon {...AngleRightIconSvg} />
               </IconContainer>
               Terms of Service
             </SubNavLink>
             <SubNavLink
-              to="/licensing/chillicream-license"
+              href="/licensing/chillicream-license"
               onClick={hideTopAndSubNav}
             >
               <IconContainer $size={16}>
@@ -869,7 +782,7 @@ const CompanyNavItem: FC<CompanyNavItemProps> = ({
         </SubNavMain>
         <SubNavAdditionalInfo>
           <SubNavTitle>Get in Touch</SubNavTitle>
-          <TeaserLink to="mailto:contact@chillicream.com?subject=Services">
+          <TeaserLink href="mailto:contact@chillicream.com?subject=Services">
             <TeaserHero>
               Your technology journey.
               <br />
@@ -889,7 +802,7 @@ const CompanyNavItem: FC<CompanyNavItemProps> = ({
 
   return (
     <NavItemContainer {...navHandlers}>
-      <NavLink to="/resources" prefetch={false} {...linkHandlers}>
+      <NavLink href="/resources" prefetch={false} {...linkHandlers}>
         Company
         <SubNavIndicatorIcon />
       </NavLink>
@@ -901,7 +814,7 @@ const CompanyNavItem: FC<CompanyNavItemProps> = ({
 const PricingNavItem: FC = () => {
   return (
     <NavItemContainer>
-      <NavLink to={"/pricing"}>Pricing</NavLink>
+      <NavLink href={"/pricing"}>Pricing</NavLink>
     </NavItemContainer>
   );
 };
@@ -909,25 +822,25 @@ const PricingNavItem: FC = () => {
 const HelpNavItem: FC = () => {
   return (
     <NavItemContainer>
-      <NavLink to={"/help"}>Help</NavLink>
+      <NavLink href={"/help"}>Help</NavLink>
     </NavItemContainer>
   );
 };
 
 interface DemoAndLaunchProps {
-  readonly tools: Pick<SiteSiteMetadataTools, "nitro">;
+  readonly tools: Pick<Tools, "nitro">;
 }
 
 const DemoAndLaunch: FC<DemoAndLaunchProps> = ({ tools }) => {
   return (
     <>
       <RequestDemoLink
-        to="mailto:contact@chillicream.com?subject=Demo"
+        href="mailto:contact@chillicream.com?subject=Demo"
         prefetch={false}
       >
         Request a Demo
       </RequestDemoLink>
-      <LaunchLink to={tools!.nitro!}>Launch</LaunchLink>
+      <LaunchLink href={tools.nitro}>Launch</LaunchLink>
     </>
   );
 };
@@ -984,7 +897,7 @@ function useSubNav(
   const subNav = show && (
     <SubNavContainer>
       <NavigationHeader>
-        <LogoLink to="/" onClick={hideTopAndSubMenu}>
+        <LogoLink href="/" onClick={hideTopAndSubMenu}>
           <LogoIcon {...LogoIconSvg} />
         </LogoLink>
         <MobileMenu>
@@ -994,7 +907,7 @@ function useSubNav(
             </IconContainer>
           </SearchButton>
           <HamburgerCloseButton onClick={hideTopAndSubMenu}>
-            <HamburgerCloseIcon />
+            <HamburgerCloseIcon {...XmarkIconSvg} />
           </HamburgerCloseButton>
         </MobileMenu>
       </NavigationHeader>
@@ -1003,6 +916,7 @@ function useSubNav(
   );
 
   const navHandlers = useMemo<NavHandlers>(
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     () => ({
       onMouseEnter: () => {
         const viewport = window.visualViewport;
@@ -1179,9 +1093,9 @@ const SubNav = styled.div.attrs({
     overflow-y: initial;
 
     ${ApplyBackdropBlur(
-  48,
-  `background-color: ${THEME_COLORS.backgroundMenu};`
-)}
+      48,
+      `background-color: ${THEME_COLORS.backgroundMenu};`
+    )}
   }
 `;
 
@@ -1320,43 +1234,6 @@ const SubNavLinkTextGroup = styled.div`
   }
 `;
 
-const TileLinkTitle = styled.h1`
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 1.6em;
-  letter-spacing: normal;
-  transition: color 0.2s ease-in-out;
-`;
-
-const TileLinkDescription = styled.p`
-  color: ${THEME_COLORS.primary};
-  transition: color 0.2s ease-in-out;
-`;
-
-const TileLink = styled(Link)`
-  display: flex;
-  flex-direction: column;
-  border-radius: var(--box-border-radius);
-  width: auto;
-  min-height: 72px;
-  background-color: ${THEME_COLORS.background};
-  transition: background-color 0.2s ease-in-out;
-
-  &:hover {
-    background-color: ${THEME_COLORS.primary};
-
-    ${TileLinkTitle},
-    ${TileLinkDescription} {
-      color: ${THEME_COLORS.background};
-    }
-  }
-
-  //@media only screen and ((min-width: 600px) and (min-height: 430px)) {
-  //  margin: 5px 20px;
-  //  padding: 10px;
-  //}
-`;
-
 const SubNavAdditionalInfo = styled.div`
   display: none;
   flex: 1 1 45%;
@@ -1386,33 +1263,18 @@ const TeaserHero = styled.h2`
   color: ${THEME_COLORS.textContrast};
   background-color: ${THEME_COLORS.primary};
   background: linear-gradient(180deg, ${THEME_COLORS.primary} 0%, #3d5f9f 100%);
-
-  //@media only screen and ((min-width: 600px) and (min-height: 430px)) {
-  //  max-width: 400px;
-  //}
 `;
 
 const TeaserLink = styled(Link)`
-  .gatsby-image-wrapper {
-    pointer-events: none;
-  }
-
   &:hover {
     > * {
       color: ${THEME_COLORS.menuLinkHover};
-    }
-
-    .gatsby-image-wrapper {
     }
 
     ${TeaserHero} {
       color: ${THEME_COLORS.menuLink};
     }
   }
-
-  //@media only screen and ((min-width: 600px) and (min-height: 430px)) {
-  //  margin: 5px 30px;
-  //}
 `;
 
 interface WorkshopHeroProps {
@@ -1439,14 +1301,6 @@ const TeaserImage = styled.div`
   overflow: visible;
   max-width: fit-content;
   margin-bottom: 16px;
-
-  .gatsby-image-wrapper {
-    border-radius: var(--box-border-radius);
-  }
-
-  //@media only screen and ((min-width: 600px) and (min-height: 430px)) {
-  //  max-width: fit-content;
-  //}
 `;
 
 const TeaserMetadata = styled.div`
@@ -1471,12 +1325,6 @@ const TeaserTitle = styled.h3`
   transition: color 0.2s ease-in-out;
 `;
 
-const TeaserMessage = styled.div`
-  margin-bottom: 16px;
-  color: ${THEME_COLORS.menuLink};
-  transition: color 0.2s ease-in-out;
-`;
-
 const TeaserDescription = styled.div`
   color: ${THEME_COLORS.menuLink};
   transition: color 0.2s ease-in-out;
@@ -1495,7 +1343,7 @@ const MobileMenu = styled.div`
   }
 `;
 
-const Tools = styled.div`
+const ToolsContainer = styled.div`
   display: none;
   flex: 0 0 auto;
   flex-direction: row;
@@ -1543,7 +1391,9 @@ const LaunchLink = styled(Link)`
   font-size: 0.875rem;
   text-decoration: none;
   font-weight: 500;
-  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out,
+  transition:
+    background-color 0.2s ease-in-out,
+    border-color 0.2s ease-in-out,
     color 0.2s ease-in-out;
 
   :hover {

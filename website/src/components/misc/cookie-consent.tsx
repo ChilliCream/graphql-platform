@@ -33,13 +33,13 @@ export const CookieConsent: FC = () => {
       aria-live="polite"
       aria-label="cookieconsent"
       aria-describedby="cookieconsent:desc"
-      show
+      $show
     >
       <Container>
         <Message id="cookieconsent:desc">
           This website uses cookies to ensure you get the best experience on our
           website.{" "}
-          <LearnMoreLink prefetch={false} to="/legal/cookie-policy.html">
+          <LearnMoreLink prefetch={false} href="/legal/cookie-policy.html">
             Learn more
           </LearnMoreLink>
         </Message>

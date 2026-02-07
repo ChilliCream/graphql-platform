@@ -1,4 +1,3 @@
-import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
 
@@ -7,7 +6,8 @@ import { Link } from "@/components/misc/link";
 import { SrOnly } from "@/components/misc/sr-only";
 import { Icon, Logo } from "@/components/sprites";
 import { GitHubStarButton } from "@/components/widgets";
-import { GetFooterDataQuery } from "@/graphql-types";
+import { siteMetadata } from "@/lib/site-config";
+import docsConfig from "@/docs/docs.json";
 import { MAX_CONTENT_WIDTH, THEME_COLORS } from "@/style";
 
 // Icons
@@ -21,44 +21,21 @@ import YouTubeIconSvg from "@/images/icons/youtube.svg";
 // Logos
 import LogoTextSvg from "@/images/logo/chillicream-text.svg";
 
-export const Footer: FC = () => {
-  const data = useStaticQuery<GetFooterDataQuery>(graphql`
-    query getFooterData {
-      site {
-        siteMetadata {
-          tools {
-            blog
-            github
-            linkedIn
-            shop
-            slack
-            youtube
-            x
-          }
-        }
-      }
-      docNav: file(
-        sourceInstanceName: { eq: "docs" }
-        relativePath: { eq: "docs.json" }
-      ) {
-        products: childrenDocsJson {
-          path
-          title
-          latestStableVersion
-        }
-      }
-    }
-  `);
-  const { tools } = data.site!.siteMetadata!;
-  const { products } = data.docNav!;
+const tools = siteMetadata.tools;
+const products = docsConfig.map((p) => ({
+  path: p.path,
+  title: p.title,
+  latestStableVersion: p.latestStableVersion,
+}));
 
+export const Footer: FC = () => {
   return (
     <Container>
       <Section>
         <Company>
           <LogoContainer>
-            <LogoTextLink to="/">
-              <LogoText />
+            <LogoTextLink href="/">
+              <LogoText {...LogoTextSvg} />
             </LogoTextLink>
           </LogoContainer>
           <About>
@@ -76,38 +53,38 @@ export const Footer: FC = () => {
           <Links>
             <Title>Platform</Title>
             <Navigation>
-              <NavLink to="/platform/analytics">Analytics</NavLink>
-              <NavLink to="/platform/continuous-integration">
+              <NavLink href="/platform/analytics">Analytics</NavLink>
+              <NavLink href="/platform/continuous-integration">
                 Continuous Integration
               </NavLink>
               {false && (
-                <NavLink to="/platform/collaboration">Collaboration</NavLink>
+                <NavLink href="/platform/collaboration">Collaboration</NavLink>
               )}
-              <NavLink to="/platform/ecosystem">Ecosystem</NavLink>
-              <NavLink to="/products/nitro">Nitro</NavLink>
+              <NavLink href="/platform/ecosystem">Ecosystem</NavLink>
+              <NavLink href="/products/nitro">Nitro</NavLink>
             </Navigation>
           </Links>
           <Links>
             <Title>Services</Title>
             <Navigation>
-              <NavLink to="/services/advisory">Advisory</NavLink>
-              <NavLink to="/services/support">Support</NavLink>
-              <NavLink to="/services/training">Training</NavLink>
+              <NavLink href="/services/advisory">Advisory</NavLink>
+              <NavLink href="/services/support">Support</NavLink>
+              <NavLink href="/services/training">Training</NavLink>
             </Navigation>
           </Links>
           <Links>
             <Title>Documentation</Title>
             <Navigation>
-              {products!.map((product, index) => (
+              {products.map((product, index: number) => (
                 <NavLink
                   key={`doc-item-${index}`}
-                  to={`/docs/${product!.path!}${
-                    product?.latestStableVersion
+                  href={`/docs/${product.path}${
+                    product.latestStableVersion
                       ? "/" + product.latestStableVersion
                       : ""
                   }`}
                 >
-                  {product!.title}
+                  {product.title}
                 </NavLink>
               ))}
             </Navigation>
@@ -115,17 +92,17 @@ export const Footer: FC = () => {
           <Links>
             <Title>Company</Title>
             <Navigation>
-              <NavLink prefetch={false} to="mailto:contact@chillicream.com">
+              <NavLink prefetch={false} href="mailto:contact@chillicream.com">
                 Contact
               </NavLink>
-              <NavLink to={tools!.shop!}>Shop</NavLink>
-              <NavLink to="/legal/acceptable-use-policy">
+              <NavLink href={tools.shop}>Shop</NavLink>
+              <NavLink href="/legal/acceptable-use-policy">
                 Acceptable Use Policy
               </NavLink>
-              <NavLink to="/legal/cookie-policy">Cookie Policy</NavLink>
-              <NavLink to="/legal/privacy-policy">Privacy Policy</NavLink>
-              <NavLink to="/legal/terms-of-service">Terms of Service</NavLink>
-              <NavLink to="/licensing/chillicream-license">
+              <NavLink href="/legal/cookie-policy">Cookie Policy</NavLink>
+              <NavLink href="/legal/privacy-policy">Privacy Policy</NavLink>
+              <NavLink href="/legal/terms-of-service">Terms of Service</NavLink>
+              <NavLink href="/licensing/chillicream-license">
                 ChilliCream License
               </NavLink>
             </Navigation>
@@ -134,39 +111,39 @@ export const Footer: FC = () => {
       </Section>
       <Section>
         <Connect>
-          <ConnectLink to={tools!.blog!}>
+          <ConnectLink href={tools.blog}>
             <IconContainer>
-              <BlogIcon />
+              <BlogIcon {...BlogIconSvg} />
             </IconContainer>
             <SrOnly>to read the latest stuff</SrOnly>
           </ConnectLink>
-          <ConnectLink to={tools!.github!}>
+          <ConnectLink href={tools.github}>
             <IconContainer>
-              <GithubIcon />
+              <GithubIcon {...GithubIconSvg} />
             </IconContainer>
             <SrOnly>to work with us on the platform</SrOnly>
           </ConnectLink>
-          <ConnectLink to={tools!.slack!}>
+          <ConnectLink href={tools.slack}>
             <IconContainer>
-              <SlackIcon />
+              <SlackIcon {...SlackIconSvg} />
             </IconContainer>
             <SrOnly>to get in touch with us</SrOnly>
           </ConnectLink>
-          <ConnectLink to={tools!.youtube!}>
+          <ConnectLink href={tools.youtube}>
             <IconContainer>
-              <YouTubeIcon />
+              <YouTubeIcon {...YouTubeIconSvg} />
             </IconContainer>
             <SrOnly>to learn new stuff</SrOnly>
           </ConnectLink>
-          <ConnectLink to={tools!.x!}>
+          <ConnectLink href={tools.x}>
             <IconContainer>
-              <XIcon />
+              <XIcon {...XIconSvg} />
             </IconContainer>
             <SrOnly>to stay up-to-date</SrOnly>
           </ConnectLink>
-          <ConnectLink to={tools!.linkedIn!}>
+          <ConnectLink href={tools.linkedIn}>
             <IconContainer>
-              <LinkedInIcon />
+              <LinkedInIcon {...LinkedInIconSvg} />
             </IconContainer>
             <SrOnly>to connect</SrOnly>
           </ConnectLink>
@@ -194,10 +171,6 @@ const Container = styled.footer.attrs({
   padding-bottom: 54px;
   padding-left: 16px;
   width: 100%;
-  /*
-    fixated "font-size" because "text-3" on mobile is "0.75rem" which isn't
-    preferred here
-  */
   font-size: 0.875rem !important;
   backdrop-filter: blur(4px);
   background-color: ${THEME_COLORS.backgroundMenu};
@@ -258,7 +231,7 @@ const LogoTextLink = styled(Link)`
   }
 `;
 
-const LogoText = styled(Logo).attrs(LogoTextSvg)`
+const LogoText = styled(Logo)`
   height: 30px;
   fill: ${THEME_COLORS.heading};
 `;
@@ -298,27 +271,27 @@ const ConnectLink = styled(Link)`
   }
 `;
 
-const BlogIcon = styled(Icon).attrs(BlogIconSvg)`
+const BlogIcon = styled(Icon)`
   height: 22px;
 `;
 
-const GithubIcon = styled(Icon).attrs(GithubIconSvg)`
+const GithubIcon = styled(Icon)`
   height: 26px;
 `;
 
-const SlackIcon = styled(Icon).attrs(SlackIconSvg)`
+const SlackIcon = styled(Icon)`
   height: 22px;
 `;
 
-const YouTubeIcon = styled(Icon).attrs(YouTubeIconSvg)`
+const YouTubeIcon = styled(Icon)`
   height: 22px;
 `;
 
-const XIcon = styled(Icon).attrs(XIconSvg)`
+const XIcon = styled(Icon)`
   height: 22px;
 `;
 
-const LinkedInIcon = styled(Icon).attrs(LinkedInIconSvg)`
+const LinkedInIcon = styled(Icon)`
   height: 22px;
 `;
 

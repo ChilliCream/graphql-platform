@@ -1,3 +1,5 @@
+"use client";
+
 import React, { FC } from "react";
 import styled from "styled-components";
 
@@ -6,6 +8,7 @@ import { useTabs } from "./tabs";
 
 export interface TabProps {
   readonly value: string;
+  readonly children: React.ReactNode;
 }
 
 export const Tab: FC<TabProps> = ({ value, children }) => {

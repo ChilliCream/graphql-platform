@@ -12,16 +12,16 @@ export const Spinner: FC<SpinnerProps> = memo(({ colorSelector }) => {
 
   return (
     <Wrapper>
-      <Quarter color={color} />
-      <Quarter color={color} />
-      <Quarter color={color} />
-      <Quarter color={color} />
+      <Quarter $color={color} />
+      <Quarter $color={color} />
+      <Quarter $color={color} />
+      <Quarter $color={color} />
     </Wrapper>
   );
 });
 
 const Quarter = styled.div<{
-  readonly color?: string;
+  readonly $color?: string;
 }>`
   position: absolute;
   display: block;
@@ -29,7 +29,7 @@ const Quarter = styled.div<{
   width: 40px;
   height: 40px;
   margin: 4px;
-  border-color: ${({ color }) => color || THEME_COLORS.spinner} transparent
+  border-color: ${({ $color }) => $color || THEME_COLORS.spinner} transparent
     transparent transparent;
   border-radius: 100%;
   border-style: solid;

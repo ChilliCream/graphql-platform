@@ -1,5 +1,21 @@
-import Highlight, { Language } from "prism-react-renderer";
+"use client";
+
+import { Highlight, Language } from "prism-react-renderer";
 import Prism from "prismjs";
+
+// Load additional Prism language components
+// Must set Prism globally first - language components modify the global Prism
+(typeof globalThis !== "undefined" ? globalThis : window).Prism = Prism;
+import "prismjs/components/prism-csharp";
+import "prismjs/components/prism-graphql";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-bash";
+import "prismjs/components/prism-sql";
+import "prismjs/components/prism-diff";
+
+// Import Prism syntax highlighting theme
+import "@/style/prism-theme.css";
+
 import React, { FC } from "react";
 import styled, { css } from "styled-components";
 
@@ -16,7 +32,7 @@ export const CodeBlock: FC<CodeBlockProps> = ({
   language: fallbackLanguage,
 }) => {
   const language =
-    (children.props?.className?.replace(/language-/, "") as Language) ||
+    (children.props?.className?.replace(/language-/, "") as Language) ??
     fallbackLanguage;
   const meta = children.props?.metastring;
   const shouldHighlightLine = calculateLinesToHighlight(meta);
@@ -29,7 +45,6 @@ export const CodeBlock: FC<CodeBlockProps> = ({
         <Copy content={code} />
       </CopyPosition>
       <Highlight
-        Prism={Prism as any}
         code={code}
         language={(language as string) === "sdl" ? "graphql" : language}
       >
@@ -37,12 +52,13 @@ export const CodeBlock: FC<CodeBlockProps> = ({
           <Pre className={className} style={style}>
             {tokens.map((line, i) => (
               <Line
-                highlight={shouldHighlightLine(i)}
-                {...getLineProps({ line, key: i })}
+                key={i}
+                $highlight={shouldHighlightLine(i)}
+                {...getLineProps({ line })}
               >
                 <LineContent>
-                  {line.map((token, key) => (
-                    <span key={key} {...getTokenProps({ token, key })} />
+                  {line.map((token, i) => (
+                    <span key={i} {...getTokenProps({ token })} />
                   ))}
                 </LineContent>
               </Line>
@@ -170,14 +186,14 @@ const Pre = styled.pre`
 `;
 
 interface LineProps {
-  highlight: boolean;
+  $highlight: boolean;
 }
 
 const Line = styled.div<LineProps>`
   display: table-row;
 
-  ${({ highlight }) =>
-    highlight &&
+  ${({ $highlight }) =>
+    $highlight &&
     css`
       display: block;
       background-color: #444;

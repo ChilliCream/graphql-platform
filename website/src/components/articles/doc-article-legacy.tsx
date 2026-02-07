@@ -32,13 +32,13 @@ export const DocArticleLegacy: FC = () => {
       aria-live="polite"
       aria-label="legacydoc"
       aria-describedby="legacydoc:desc"
-      show
+      $show
     >
       <Container>
         <Message id="legacydoc:desc">
           <strong>Important:</strong> This documentation covers Hot Chocolate
           11. For version 10 and lower click{" "}
-          <LegacyDocLink to="https://hotchocolate.io">here</LegacyDocLink>.
+          <LegacyDocLink href="https://hotchocolate.io">here</LegacyDocLink>.
         </Message>
         <CloseButton
           aria-label="dismiss cookie message"
@@ -52,8 +52,8 @@ export const DocArticleLegacy: FC = () => {
   ) : null;
 };
 
-const Dialog = styled.div<{ show: boolean }>`
-  display: ${({ show }) => (show ? "initial" : "none")};
+const Dialog = styled.div<{ $show: boolean }>`
+  display: ${({ $show }) => ($show ? "initial" : "none")};
   background-color: #ffb806;
 
   @media only screen and (min-width: 860px) {

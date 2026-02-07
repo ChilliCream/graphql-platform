@@ -29,15 +29,15 @@ export function NextStepsContentSection({
 }: NextStepsContentSectionProps): ReactElement {
   return (
     <ContentSection>
-      <VisibleArea dense={dense}>
+      <VisibleArea $dense={dense}>
         <Content>
           <Title>{title}</Title>
           <Text>{text}</Text>
         </Content>
         <Actions>
-          <LinkButton to={primaryLink}>{primaryLinkText}</LinkButton>
+          <LinkButton href={primaryLink}>{primaryLinkText}</LinkButton>
           {secondaryLink && secondaryLinkText && (
-            <LinkTextButton to={secondaryLink}>
+            <LinkTextButton href={secondaryLink}>
               {secondaryLinkText}
               <IconContainer $size={16}>
                 <Icon {...ArrowRightIconSvg} />
@@ -76,7 +76,7 @@ const ContentSection = styled.section.attrs({
 `;
 
 const VisibleArea = styled.div<{
-  readonly dense?: boolean;
+  readonly $dense?: boolean;
 }>`
   position: relative;
   display: flex;
@@ -90,8 +90,8 @@ const VisibleArea = styled.div<{
   overflow: visible;
   perspective: 1px;
 
-  ${({ dense }) =>
-    dense
+  ${({ $dense }) =>
+    $dense
       ? ""
       : css`
           padding-top: 120px;

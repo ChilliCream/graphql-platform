@@ -28,7 +28,7 @@ export const CommunityVisualization: FC = () => {
             technologies.
           </GraphText>
         </GraphContent>
-        <CommunityIllustration />
+        {/* <CommunityIllustration /> */}
       </Graph>
       <Numbers>
         <Number>

@@ -127,8 +127,8 @@ export const Article = styled.article`
 `;
 
 export interface AsideProps {
-  readonly height: string;
-  readonly show: boolean;
+  readonly $height: string;
+  readonly $show: boolean;
 }
 
 export const Aside = styled.aside<AsideProps>`
@@ -142,13 +142,13 @@ export const Aside = styled.aside<AsideProps>`
     grid-column: 1;
   `)}
 
-  ${({ height, show }) =>
+  ${({ $height, $show }) =>
     IsSmallDesktop(`
       position: fixed;
       top: 72px;
       right: 0;
-      height: ${height};
-      transform: ${show ? "none" : "translateX(100%)"};
+      height: ${$height};
+      transform: ${$show ? "none" : "translateX(100%)"};
     `)}
 
   ${IsDesktop(`

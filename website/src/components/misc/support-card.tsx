@@ -107,7 +107,7 @@ const Perks = styled.ul`
   list-style: none;
 `;
 
-export const Perk: FC = ({ children }) => {
+export const Perk: FC<{ children?: React.ReactNode }> = ({ children }) => {
   return (
     <PerkLayout>
       <Bullet>- </Bullet>

@@ -28,7 +28,7 @@ export const ArticleLayoutAside: FC<ArticleLayoutAsideProps> = ({
   }, []);
 
   return (
-    <Aside height={height} show={showAside}>
+    <Aside $height={height} $show={showAside}>
       <SidePaneHeader
         title="About this article"
         showWhenScreenWidthIsSmallerThan={1280}

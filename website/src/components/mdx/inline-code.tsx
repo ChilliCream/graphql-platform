@@ -3,7 +3,9 @@ import styled from "styled-components";
 
 import { FONT_FAMILY_CODE } from "@/style";
 
-export const InlineCode: FC = ({ children }) => {
+export const InlineCode: FC<{ children?: React.ReactNode }> = ({
+  children,
+}) => {
   return <Container>{children}</Container>;
 };
 

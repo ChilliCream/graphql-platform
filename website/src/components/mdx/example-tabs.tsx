@@ -2,7 +2,9 @@ import React, { FC } from "react";
 
 import { List, Panel, Tab, Tabs } from "./tabs";
 
-export const ExampleTabs: FC = ({ children }) => {
+export const ExampleTabs: FC<{ children?: React.ReactNode }> = ({
+  children,
+}) => {
   return (
     <Tabs defaultValue={"implementation"} groupId="code-style">
       <List>
@@ -15,14 +17,14 @@ export const ExampleTabs: FC = ({ children }) => {
   );
 };
 
-export const Implementation: FC = ({ children }) => (
-  <Panel value="implementation">{children}</Panel>
-);
+export const Implementation: FC<{ children?: React.ReactNode }> = ({
+  children,
+}) => <Panel value="implementation">{children}</Panel>;
 
-export const Code: FC = ({ children }) => (
+export const Code: FC<{ children?: React.ReactNode }> = ({ children }) => (
   <Panel value="code">{children}</Panel>
 );
 
-export const Schema: FC = ({ children }) => (
+export const Schema: FC<{ children?: React.ReactNode }> = ({ children }) => (
   <Panel value="schema">{children}</Panel>
 );

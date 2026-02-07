@@ -1,4 +1,3 @@
-import { graphql } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
 
@@ -16,7 +15,7 @@ export const BlogArticleTags: FC<BlogArticleTagsProps> = ({ tags }) => {
         <Tags>
           {tags.map((tag) => (
             <Tag key={tag}>
-              <TagLink to={`/blog/tags/${tag}`} className="content-tag">
+              <TagLink href={`/blog/tags/${tag}`} className="content-tag">
                 {tag}
               </TagLink>
             </Tag>
@@ -26,12 +25,6 @@ export const BlogArticleTags: FC<BlogArticleTagsProps> = ({ tags }) => {
     </>
   );
 };
-
-export const BlogArticleTagsGraphQLFragment = graphql`
-  fragment BlogArticleTags on MdxFrontmatter {
-    tags
-  }
-`;
 
 const Tags = styled.ul`
   margin: 0 0 24px;

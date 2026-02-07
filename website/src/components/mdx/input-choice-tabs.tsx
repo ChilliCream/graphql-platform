@@ -3,13 +3,12 @@ import React, { FC } from "react";
 import { List, Panel, Tab, Tabs } from "./tabs";
 
 export interface InputChoiceTabsComposition {
-  CLI: FC;
-  VisualStudio: FC;
+  CLI: FC<{ children?: React.ReactNode }>;
+  VisualStudio: FC<{ children?: React.ReactNode }>;
 }
 
-export const InputChoiceTabs: FC & InputChoiceTabsComposition = ({
-  children,
-}) => {
+export const InputChoiceTabs: FC<{ children: React.ReactNode }> &
+  InputChoiceTabsComposition = ({ children }) => {
   return (
     <Tabs defaultValue={"cli"} groupId="input-choice">
       <List>
@@ -21,9 +20,11 @@ export const InputChoiceTabs: FC & InputChoiceTabsComposition = ({
   );
 };
 
-const CLI: FC = ({ children }) => <Panel value="cli">{children}</Panel>;
+const CLI: FC<{ children?: React.ReactNode }> = ({ children }) => (
+  <Panel value="cli">{children}</Panel>
+);
 
-const VisualStudio: FC = ({ children }) => (
+const VisualStudio: FC<{ children?: React.ReactNode }> = ({ children }) => (
   <Panel value="visual-studio">{children}</Panel>
 );
 

@@ -1,9 +1,9 @@
 import "@docsearch/css";
-import { DocSearchModal } from "@docsearch/react";
-import type {
+import {
+  DocSearchModal,
   InternalDocSearchHit,
   StoredDocSearchHit,
-} from "@docsearch/react/dist/esm/types";
+} from "@docsearch/react";
 import React, { FC, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { createGlobalStyle } from "styled-components";
@@ -22,10 +22,13 @@ export const SearchModal: FC<SearchModalProps> = ({
   siteUrl,
   onClose,
 }) => {
-  const resolveHit: (props: HitProps) => JSX.Element = ({ children, hit }) => {
+  const resolveHit: (props: HitProps) => React.JSX.Element = ({
+    children,
+    hit,
+  }) => {
     const slug = hit.url.replace(siteUrl, "");
 
-    return <Link to={slug}>{children}</Link>;
+    return <Link href={slug}>{children}</Link>;
   };
 
   return (
@@ -36,11 +39,13 @@ export const SearchModal: FC<SearchModalProps> = ({
             <DocSearchModal
               appId="WQ7ZRCU9RS"
               apiKey="b40ebfd92eb180185aa52c192e4fbd86"
-              indexName="chillicream"
+              // indexName="chillicream"
+              indices={["chillicream"]}
               placeholder="Search..."
               hitComponent={resolveHit}
               initialScrollY={window ? window.scrollY : 0}
               onClose={onClose}
+              onAskAiToggle={() => {}}
             />,
             document.body
           )

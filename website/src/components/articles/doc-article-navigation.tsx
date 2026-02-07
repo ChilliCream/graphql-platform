@@ -1,4 +1,3 @@
-import { graphql } from "gatsby";
 import React, {
   FC,
   MouseEvent,
@@ -13,7 +12,6 @@ import styled, { css } from "styled-components";
 import { ScrollContainer } from "@/components/article-elements";
 import { IconContainer, Link } from "@/components/misc";
 import { Icon } from "@/components/sprites";
-import { DocArticleNavigationFragment } from "@/graphql-types";
 import { closeTOC } from "@/state/common";
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/style";
 import {
@@ -30,8 +28,34 @@ import ChevronDownIconSvg from "@/images/icons/chevron-down.svg";
 import ChevronUpIconSvg from "@/images/icons/chevron-up.svg";
 import Grid2IconSvg from "@/images/icons/grid-2.svg";
 
+interface DocArticleNavigationProduct {
+  path?: string | null;
+  title?: string | null;
+  description?: string | null;
+  latestStableVersion?: string | null;
+  versions?: Array<{
+    path?: string | null;
+    title?: string | null;
+    items?: Array<{
+      path?: string | null;
+      title?: string | null;
+      items?: Array<{
+        path?: string | null;
+        title?: string | null;
+      } | null> | null;
+    } | null> | null;
+  } | null> | null;
+}
+
+interface DocArticleNavigationData {
+  config?: {
+    products?: Array<DocArticleNavigationProduct | null> | null;
+  } | null;
+  [key: string]: any;
+}
+
 export interface DocArticleNavigationProps {
-  readonly data: DocArticleNavigationFragment;
+  readonly data: DocArticleNavigationData;
   readonly selectedPath: string;
   readonly selectedProduct: string;
   readonly selectedVersion: string;
@@ -110,7 +134,7 @@ export const DocArticleNavigation: FC<DocArticleNavigationProps> = ({
     <>
       <ProductSwitcher>
         <ProductSwitcherButton
-          fullWidth={!hasVersions}
+          $fullWidth={!hasVersions}
           onClick={toggleProductSwitcher}
         >
           {activeProduct?.title}
@@ -132,7 +156,7 @@ export const DocArticleNavigation: FC<DocArticleNavigationProps> = ({
         )}
       </ProductSwitcher>
       <ProductSwitcherDialog
-        open={productSwitcherOpen}
+        $open={productSwitcherOpen}
         onClick={() => dispatch(closeTOC())}
       >
         {products.map((product) => {
@@ -140,15 +164,15 @@ export const DocArticleNavigation: FC<DocArticleNavigationProps> = ({
             return null;
           }
 
+          const link = `/docs/${product.path!}${
+            product.latestStableVersion ? "/" + product.latestStableVersion : ""
+          }`;
+
           return (
             <ProductLink
-              active={product === activeProduct}
+              $active={product === activeProduct}
               key={product.path!}
-              to={`/docs/${product.path!}${
-                product.latestStableVersion
-                  ? "/" + product.latestStableVersion
-                  : ""
-              }`}
+              href={link}
             >
               <ProductTitle>{product.title!}</ProductTitle>
               <ProductDescription>{product.description!}</ProductDescription>
@@ -157,7 +181,7 @@ export const DocArticleNavigation: FC<DocArticleNavigationProps> = ({
         })}
       </ProductSwitcherDialog>
       <ProductVersionDialog
-        open={versionSwitcherOpen}
+        $open={versionSwitcherOpen}
         onClick={() => dispatch(closeTOC())}
       >
         {activeProduct?.versions?.map((version, index) => {
@@ -168,9 +192,9 @@ export const DocArticleNavigation: FC<DocArticleNavigationProps> = ({
 
           return (
             <VersionLink
-              active={version === activeVersion}
+              $active={version === activeVersion}
               key={version!.path! + index}
-              to={newVersionUrl}
+              href={newVersionUrl}
             >
               {version!.title!}
             </VersionLink>
@@ -247,11 +271,11 @@ const NavigationContainer: FC<NavigationContainerProps> = ({
         return (
           <NavigationItem
             key={fullpath}
-            active={isActive(selectedPath, fullpath)}
+            $active={isActive(selectedPath, fullpath)}
             onClick={() => !subItems && dispatch(closeTOC())}
           >
             {subItems ? (
-              <NavigationGroup expanded={expandedPaths.includes(fullpath)}>
+              <NavigationGroup $expanded={expandedPaths.includes(fullpath)}>
                 <NavigationGroupToggle onClick={toggleItem(fullpath)}>
                   {title}
                   <IconContainer $size={16}>
@@ -268,7 +292,7 @@ const NavigationContainer: FC<NavigationContainerProps> = ({
                 </NavigationGroupContent>
               </NavigationGroup>
             ) : (
-              <NavigationLink to={fullpath}>{title}</NavigationLink>
+              <NavigationLink href={fullpath}>{title}</NavigationLink>
             )}
           </NavigationItem>
         );
@@ -285,34 +309,6 @@ function containsActiveItem(selectedPath: string, itemPath: string) {
   return (selectedPath + "/").startsWith(itemPath + "/");
 }
 
-export const DocArticleNavigationGraphQLFragment = graphql`
-  fragment DocArticleNavigation on Query {
-    config: file(
-      sourceInstanceName: { eq: "docs" }
-      relativePath: { eq: "docs.json" }
-    ) {
-      products: childrenDocsJson {
-        path
-        title
-        description
-        latestStableVersion
-        versions {
-          path
-          title
-          items {
-            path
-            title
-            items {
-              path
-              title
-            }
-          }
-        }
-      }
-    }
-  }
-`;
-
 interface Item {
   path: string;
   title: string;
@@ -323,7 +319,7 @@ type EnhancedItem = Item & {
   fullpath: string;
 };
 
-const ProductSwitcherButton = styled.button<{ readonly fullWidth?: boolean }>`
+const ProductSwitcherButton = styled.button<{ readonly $fullWidth?: boolean }>`
   display: flex;
   flex: 0 0 auto;
   flex-direction: row;
@@ -341,8 +337,10 @@ const ProductSwitcherButton = styled.button<{ readonly fullWidth?: boolean }>`
   font-weight: 500;
   color: ${THEME_COLORS.primaryButtonText};
   background-color: ${THEME_COLORS.primaryButton};
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-  ${({ fullWidth }) => fullWidth && `width: 100%;`}
+  transition:
+    background-color 0.2s ease-in-out,
+    color 0.2s ease-in-out;
+  ${({ $fullWidth }) => $fullWidth && `width: 100%;`}
 
   > ${IconContainer} {
     margin-left: auto;
@@ -384,9 +382,9 @@ const ProductSwitcher = styled.div`
 `;
 
 const ProductSwitcherDialog = styled.div<{
-  readonly open: boolean;
+  readonly $open: boolean;
 }>`
-  display: ${({ open }) => (open ? "flex" : "none")};
+  display: ${({ $open }) => ($open ? "flex" : "none")};
   flex: 1 1 100%;
   flex-direction: column;
   gap: 2px;
@@ -417,12 +415,12 @@ const ProductSwitcherDialog = styled.div<{
 `;
 
 const ProductVersionDialog = styled.div<{
-  readonly open: boolean;
+  readonly $open: boolean;
 }>`
   position: absolute;
   top: 110px;
   right: 14px;
-  display: ${({ open }) => (open ? "flex" : "none")};
+  display: ${({ $open }) => ($open ? "flex" : "none")};
   flex-direction: column;
   gap: 2px;
   border: 1px solid ${THEME_COLORS.boxBorder};
@@ -446,24 +444,22 @@ const ProductVersionDialog = styled.div<{
 `;
 
 interface LinkProps {
-  readonly active: boolean;
+  readonly $active: boolean;
 }
 
-const ProductLink = styled(Link).withConfig<LinkProps>({
-  shouldForwardProp(prop, defaultValidatorFn) {
-    return prop === "active" ? false : defaultValidatorFn(prop);
-  },
-})`
+const ProductLink = styled(Link)<LinkProps>`
   flex: 0 0 auto;
   border-radius: var(--button-border-radius);
   width: calc(100% - 18px);
   padding: 6px 9px;
   color: ${THEME_COLORS.text};
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  transition:
+    background-color 0.2s ease-in-out,
+    color 0.2s ease-in-out;
 
-  ${({ active }) =>
-    active &&
+  ${({ $active }) =>
+    $active &&
     css`
       color: ${THEME_COLORS.primaryButtonHoverText};
       background-color: ${THEME_COLORS.primaryButtonHover};
@@ -479,19 +475,17 @@ const ProductLink = styled(Link).withConfig<LinkProps>({
   }
 `;
 
-const VersionLink = styled(Link).withConfig<LinkProps>({
-  shouldForwardProp(prop, defaultValidatorFn) {
-    return prop === "active" ? false : defaultValidatorFn(prop);
-  },
-})`
+const VersionLink = styled(Link)<LinkProps>`
   color: ${THEME_COLORS.text};
   border-radius: var(--button-border-radius);
   padding: 6px 9px;
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  transition:
+    background-color 0.2s ease-in-out,
+    color 0.2s ease-in-out;
 
-  ${({ active }) =>
-    active &&
+  ${({ $active }) =>
+    $active &&
     css`
       color: ${THEME_COLORS.primaryButtonHoverText};
       background-color: ${THEME_COLORS.primaryButtonHover};

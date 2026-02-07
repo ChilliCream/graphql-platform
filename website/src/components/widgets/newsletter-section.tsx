@@ -1,4 +1,3 @@
-import { graphql, useStaticQuery } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
 
@@ -10,7 +9,7 @@ import {
   SrOnly,
 } from "@/components/misc";
 import { Icon } from "@/components/sprites";
-import { GetMediaLinksQuery } from "@/graphql-types";
+import { siteMetadata } from "@/lib/site-config";
 import { MAX_CONTENT_WIDTH, THEME_COLORS } from "@/style";
 
 // Icons
@@ -22,24 +21,7 @@ import XIconSvg from "@/images/icons/x.svg";
 import YouTubeIconSvg from "@/images/icons/youtube.svg";
 
 export const NewsletterSection: FC = () => {
-  const data = useStaticQuery<GetMediaLinksQuery>(graphql`
-    query getMediaLinks {
-      site {
-        siteMetadata {
-          tools {
-            blog
-            github
-            linkedIn
-            shop
-            slack
-            youtube
-            x
-          }
-        }
-      }
-    }
-  `);
-  const tools = data.site!.siteMetadata!.tools;
+  const tools = siteMetadata.tools;
 
   return (
     <ContentSection>
@@ -49,7 +31,7 @@ export const NewsletterSection: FC = () => {
           <NewsletterText>
             Get all the latest ChilliCream updates, news and events.
           </NewsletterText>
-          <LinkButton to="https://cdn.forms-content.sg-form.com/36f84b0b-cf73-11ee-bbc0-aae526684092">
+          <LinkButton href="https://cdn.forms-content.sg-form.com/36f84b0b-cf73-11ee-bbc0-aae526684092">
             Subscribe
           </LinkButton>
         </Newsletter>
@@ -57,49 +39,49 @@ export const NewsletterSection: FC = () => {
           <MediaTitle>Social Media</MediaTitle>
           <MediaContainer>
             <MediaBox>
-              <MediaConnectLink to={tools!.blog!}>
+              <MediaConnectLink href={tools.blog}>
                 <IconContainer>
-                  <BlogIcon />
+                  <BlogIcon {...BlogIconSvg} />
                 </IconContainer>
                 <SrOnly>to read the latest stuff</SrOnly>
               </MediaConnectLink>
             </MediaBox>
             <MediaBox>
-              <MediaConnectLink to={tools!.github!}>
+              <MediaConnectLink href={tools.github}>
                 <IconContainer>
-                  <GithubIcon />
+                  <GithubIcon {...GithubIconSvg} />
                 </IconContainer>
                 <SrOnly>to work with us on the platform</SrOnly>
               </MediaConnectLink>
             </MediaBox>
             <MediaBox>
-              <MediaConnectLink to={tools!.slack!}>
+              <MediaConnectLink href={tools.slack}>
                 <IconContainer>
-                  <SlackIcon />
+                  <SlackIcon {...SlackIconSvg} />
                 </IconContainer>
                 <SrOnly>to get in touch with us</SrOnly>
               </MediaConnectLink>
             </MediaBox>
             <MediaBox>
-              <MediaConnectLink to={tools!.youtube!}>
+              <MediaConnectLink href={tools.youtube}>
                 <IconContainer>
-                  <YouTubeIcon />
+                  <YouTubeIcon {...YouTubeIconSvg} />
                 </IconContainer>
                 <SrOnly>to learn new stuff</SrOnly>
               </MediaConnectLink>
             </MediaBox>
             <MediaBox>
-              <MediaConnectLink to={tools!.x!}>
+              <MediaConnectLink href={tools.x}>
                 <IconContainer>
-                  <XIcon />
+                  <XIcon {...XIconSvg} />
                 </IconContainer>
                 <SrOnly>to stay up-to-date</SrOnly>
               </MediaConnectLink>
             </MediaBox>
             <MediaBox>
-              <MediaConnectLink to={tools!.linkedIn!}>
+              <MediaConnectLink href={tools.linkedIn}>
                 <IconContainer>
-                  <LinkedInIcon />
+                  <LinkedInIcon {...LinkedInIconSvg} />
                 </IconContainer>
                 <SrOnly>to connect</SrOnly>
               </MediaConnectLink>
@@ -247,26 +229,26 @@ const MediaConnectLink = styled(Link)`
   }
 `;
 
-const BlogIcon = styled(Icon).attrs(BlogIconSvg)`
+const BlogIcon = styled(Icon)`
   height: 22px;
 `;
 
-const GithubIcon = styled(Icon).attrs(GithubIconSvg)`
+const GithubIcon = styled(Icon)`
   height: 26px;
 `;
 
-const SlackIcon = styled(Icon).attrs(SlackIconSvg)`
+const SlackIcon = styled(Icon)`
   height: 22px;
 `;
 
-const YouTubeIcon = styled(Icon).attrs(YouTubeIconSvg)`
+const YouTubeIcon = styled(Icon)`
   height: 22px;
 `;
 
-const XIcon = styled(Icon).attrs(XIconSvg)`
+const XIcon = styled(Icon)`
   height: 22px;
 `;
 
-const LinkedInIcon = styled(Icon).attrs(LinkedInIconSvg)`
+const LinkedInIcon = styled(Icon)`
   height: 22px;
 `;
