@@ -239,7 +239,7 @@ ReadNameToken_Next:
         {
             if (_sourceText[_position] is GraphQLConstants.Dot)
             {
-                if (_sourceText[_position + 1] is GraphQLConstants.Dot)
+                if (!IsEndOfStream(_position + 1) && _sourceText[_position + 1] is GraphQLConstants.Dot)
                 {
                     _position += 2;
                     _end = _position;
@@ -349,6 +349,7 @@ ReadNameToken_Next:
 
         if (code is GraphQLConstants.Minus)
         {
+            ThrowIfOutOfStream(_position + 1, TokenKind.Integer);
             code = _sourceText[++_position];
         }
 
@@ -370,6 +371,7 @@ ReadNameToken_Next:
         {
             isFloat = true;
             _floatFormat = Language.FloatFormat.FixedPoint;
+            ThrowIfOutOfStream(_position + 1, TokenKind.Float);
             code = _sourceText[++_position];
             code = ReadDigits(code);
         }
@@ -379,10 +381,12 @@ ReadNameToken_Next:
         {
             isFloat = true;
             _floatFormat = Language.FloatFormat.Exponential;
+            ThrowIfOutOfStream(_position + 1, TokenKind.Float);
             code = _sourceText[++_position];
 
             if (code is GraphQLConstants.Plus or GraphQLConstants.Minus)
             {
+                ThrowIfOutOfStream(_position + 1, TokenKind.Float);
                 code = _sourceText[++_position];
             }
             code = ReadDigits(code);
@@ -543,11 +547,12 @@ ReadNameToken_Next:
                     return;
 
                 case GraphQLConstants.Backslash:
-                    code = _sourceText[++_position];
+                    var hasNext = !IsEndOfStream(_position + 1);
+                    code = hasNext ? _sourceText[++_position] : default;
 
                     if (!code.IsValidEscapeCharacter())
                     {
-                        throw new SyntaxException(this, InvalidCharacterEscapeSequence, code);
+                        throw new SyntaxException(this, InvalidCharacterEscapeSequence, hasNext ? code : string.Empty);
                     }
                     break;
 
@@ -621,7 +626,8 @@ ReadNameToken_Next:
 
                 // Closing Triple-Quote (""")
                 case GraphQLConstants.Quote:
-                    if (_sourceText[_position + 1] is GraphQLConstants.Quote
+                    if (!IsEndOfStream(_position + 2)
+                        && _sourceText[_position + 1] is GraphQLConstants.Quote
                         && _sourceText[_position + 2] is GraphQLConstants.Quote)
                     {
                         _kind = TokenKind.BlockString;
@@ -636,7 +642,8 @@ ReadNameToken_Next:
                     break;
 
                 case GraphQLConstants.Backslash:
-                    if (_sourceText[_position + 1] is GraphQLConstants.Quote
+                    if (!IsEndOfStream(_position + 3)
+                        && _sourceText[_position + 1] is GraphQLConstants.Quote
                         && _sourceText[_position + 2] is GraphQLConstants.Quote
                         && _sourceText[_position + 3] is GraphQLConstants.Quote)
                     {
@@ -731,7 +738,7 @@ ReadNameToken_Next:
 
         if (code is 239)
         {
-            if (_sourceText[_position + 1] is 187 && _sourceText[_position + 2] is 191)
+            if (!IsEndOfStream(_position + 2) &&_sourceText[_position + 1] is 187 && _sourceText[_position + 2] is 191)
             {
                 _position += 3;
             }
@@ -739,7 +746,7 @@ ReadNameToken_Next:
 
         if (code is 254)
         {
-            if (_sourceText[_position + 1] is 255)
+            if (!IsEndOfStream(_position + 1) && _sourceText[_position + 1] is 255)
             {
                 _position += 2;
             }
@@ -794,4 +801,12 @@ ReadNameToken_Next:
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool IsEndOfStream(int position) => position >= _length;
+
+    private void ThrowIfOutOfStream(int position, TokenKind expectedKind)
+    {
+        if (IsEndOfStream(position))
+        {
+            throw new SyntaxException(this, Parser_InvalidToken, expectedKind, TokenKind.EndOfFile);
+        }
+    }
 }
