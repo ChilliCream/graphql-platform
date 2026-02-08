@@ -43,7 +43,7 @@ else
     # install older frameworks for tests
     "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "8.0.416" --no-path
     "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "9.0.308" --no-path
-    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "10.0.100" --no-path
+    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "10.0.102" --no-path
 
     # If global.json exists, load expected version
     if [[ -f "$DOTNET_GLOBAL_FILE" ]]; then
