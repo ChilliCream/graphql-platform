@@ -134,7 +134,7 @@ public sealed class FusionInputFieldDefinition : IInputValueDefinition, IInacces
             || context.Type is null
             || context.Features is null)
         {
-            ThrowHelper.InvalidCompletionContext();
+            throw ThrowHelper.InvalidCompletionContext();
         }
 
         DeclaringMember = context.DeclaringMember;

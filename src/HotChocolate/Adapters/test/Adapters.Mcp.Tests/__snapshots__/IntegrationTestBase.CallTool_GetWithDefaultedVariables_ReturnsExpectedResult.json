@@ -14,9 +14,6 @@
       "float": 1.5,
       "id": "default",
       "int": 1,
-      "json": {
-        "key": "value"
-      },
       "list": [
         "default"
       ],

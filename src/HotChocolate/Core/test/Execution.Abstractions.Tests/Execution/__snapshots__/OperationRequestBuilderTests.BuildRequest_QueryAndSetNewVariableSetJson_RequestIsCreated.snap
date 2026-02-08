@@ -1,40 +1,11 @@
 {
-  "Document": {
-    "SourceText": "{\n  foo\n}"
-  },
-  "DocumentId": {
-    "IsEmpty": true,
-    "Value": null
-  },
-  "DocumentHash": {
-    "Value": null,
-    "AlgorithmName": null,
-    "Format": "Base64",
-    "IsEmpty": true
-  },
-  "OperationName": null,
-  "ErrorHandlingMode": null,
-  "VariableValues": [
+  "document": "{\n  foo\n}",
+  "variableValues": [
     {
-      "one": {
-        "Kind": "StringValue",
-        "Location": null,
-        "Value": "bar",
-        "Block": false
-      }
+      "one": "bar"
     },
     {
-      "one": {
-        "Kind": "StringValue",
-        "Location": null,
-        "Value": "baz",
-        "Block": false
-      }
+      "one": "baz"
     }
-  ],
-  "Extensions": null,
-  "ContextData": null,
-  "Features": [],
-  "Services": null,
-  "Flags": "AllowAll"
+  ]
 }

@@ -13,16 +13,10 @@ internal static class ThrowHelper
         }
     }
 
-    [DoesNotReturn]
-    public static void TypeSystemMemberSealed()
-    {
-        throw new NotSupportedException(
+    public static NotSupportedException TypeSystemMemberSealed()
+        => new NotSupportedException(
             "The type system member is sealed and cannot be modified.");
-    }
 
-    [DoesNotReturn]
-    public static void InvalidCompletionContext()
-    {
-        throw new InvalidOperationException("The context has an invalid state.");
-    }
+    public static InvalidOperationException InvalidCompletionContext()
+        => new("The context has an invalid state.");
 }

@@ -39,12 +39,11 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     await n(c);
 
                     var documentInfo = c.OperationDocumentInfo;
-                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
@@ -73,12 +72,11 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     await n(c);
 
                     var documentInfo = c.OperationDocumentInfo;
-                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
@@ -122,12 +120,11 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     await n(c);
 
                     var documentInfo = c.OperationDocumentInfo;
-                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
@@ -137,7 +134,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
         var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
-        Assert.Null(result.ExpectOperationResult().Errors);
+        Assert.Empty(result.ExpectOperationResult().Errors);
         result.MatchSnapshot();
     }
 
@@ -163,20 +160,18 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     await n(c);
 
                     var documentInfo = c.OperationDocumentInfo;
-                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
-        var result =
-            await executor.ExecuteAsync(OperationRequest.FromId(documentId));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
         result.MatchSnapshot();
@@ -203,20 +198,18 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     await n(c);
 
                     var documentInfo = c.OperationDocumentInfo;
-                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
-        var result =
-            await executor.ExecuteAsync(OperationRequest.FromId(documentId));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
         result.MatchSnapshot();
@@ -240,20 +233,18 @@ public class IntegrationTests : IClassFixture<RedisResource>
                     await n(c);
 
                     var documentInfo = c.OperationDocumentInfo;
-                    if (documentInfo.Id == documentId && c.Result is IOperationResult r)
+                    if (documentInfo.Id == documentId)
                     {
-                        c.Result = OperationResultBuilder
-                            .FromResult(r)
-                            .SetExtension("persistedDocument", true)
-                            .Build();
+                        var result = c.Result.ExpectOperationResult();
+                        var extensions = result.Extensions;
+                        result.Extensions = extensions.SetItem("persistedDocument", true);
                     }
                 })
                 .UsePersistedOperationPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
-        var result =
-            await executor.ExecuteAsync(OperationRequest.FromId("does_not_exist"));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId("does_not_exist"));
 
         // assert
         result.MatchSnapshot();

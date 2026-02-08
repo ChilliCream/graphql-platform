@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           show-progress: false
 
@@ -30,14 +30,14 @@ jobs:
       - run: echo ${{ secrets.CONTAINER_REG_URL }}
 
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
       - name: Cache Yarn Packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             website/.yarn/cache

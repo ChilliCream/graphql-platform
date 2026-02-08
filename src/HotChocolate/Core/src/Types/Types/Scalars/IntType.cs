@@ -1,16 +1,18 @@
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
 /// <summary>
+/// <para>
 /// The Int scalar type represents a signed 32‐bit numeric non‐fractional
 /// value. Response formats that support a 32‐bit integer or a number type
 /// should use that type to represent this scalar.
-///
-/// http://facebook.github.io/graphql/June2018/#sec-Int
+/// </para>
+/// <para>http://facebook.github.io/graphql/June2018/#sec-Int</para>
 /// </summary>
-[SpecScalar]
 public class IntType : IntegerTypeBase<int>
 {
     /// <summary>
@@ -49,9 +51,19 @@ public class IntType : IntegerTypeBase<int>
     {
     }
 
-    protected override int ParseLiteral(IntValueNode valueSyntax)
+    /// <inheritdoc />
+    protected override int OnCoerceInputLiteral(IntValueNode valueSyntax)
         => valueSyntax.ToInt32();
 
-    protected override IntValueNode ParseValue(int runtimeValue)
-        => new(runtimeValue);
+    /// <inheritdoc />
+    protected override int OnCoerceInputValue(JsonElement inputValue)
+        => inputValue.GetInt32();
+
+    /// <inheritdoc />
+    public override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
+        => resultValue.SetNumberValue(runtimeValue);
+
+    /// <inheritdoc />
+    public override IValueNode OnValueToLiteral(int runtimeValue)
+        => new IntValueNode(runtimeValue);
 }

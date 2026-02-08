@@ -71,9 +71,9 @@ public static class SchemaHelper
                     {
                         builder.AddType(new AnyType());
                     }
-                    else if (scalar.Name.Value == ScalarNames.JSON)
+                    else if (scalar.Name.Value == "JSON")
                     {
-                        builder.AddType(new JsonType());
+                        builder.AddType(new AnyType());
                     }
                 }
 
@@ -255,7 +255,7 @@ public static class SchemaHelper
             serializationType: TypeNames.JsonElement);
         TryAddLeafType(
             leafTypes,
-            typeName: ScalarNames.JSON,
+            typeName: "JSON",
             runtimeType: TypeNames.JsonElement,
             serializationType: TypeNames.JsonElement);
         TryAddLeafType(

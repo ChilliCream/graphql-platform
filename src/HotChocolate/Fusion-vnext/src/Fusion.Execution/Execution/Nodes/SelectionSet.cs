@@ -5,6 +5,11 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
+/// <summary>
+/// A selection set is primarily composed of field selections.
+/// When needed a selection set can preserve fragments so that the execution engine
+/// can branch the processing of these fragments.
+/// </summary>
 public sealed class SelectionSet : ISelectionSet
 {
     private readonly Selection[] _selections;
@@ -45,6 +50,13 @@ public sealed class SelectionSet : ISelectionSet
     public IObjectTypeDefinition Type { get; }
 
     /// <summary>
+    /// Gets the declaring operation.
+    /// </summary>
+    public Operation DeclaringOperation { get; private set; } = null!;
+
+    IOperation ISelectionSet.DeclaringOperation => DeclaringOperation;
+
+    /// <summary>
     /// Gets the selections that shall be executed.
     /// </summary>
     public ReadOnlySpan<Selection> Selections => _selections;
@@ -80,13 +92,6 @@ public sealed class SelectionSet : ISelectionSet
     /// </returns>
     public bool TryGetSelection(ReadOnlySpan<byte> utf8ResponseName, [NotNullWhen(true)] out Selection? selection)
         => _utf8ResponseNameLookup.TryGetSelection(utf8ResponseName, out selection);
-
-    /// <summary>
-    /// Gets the declaring operation.
-    /// </summary>
-    public Operation DeclaringOperation { get; private set; } = null!;
-
-    IOperation ISelectionSet.DeclaringOperation => DeclaringOperation;
 
     internal void Seal(Operation operation)
     {

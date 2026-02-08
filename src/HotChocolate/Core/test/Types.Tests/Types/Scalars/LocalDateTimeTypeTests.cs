@@ -1,7 +1,9 @@
 using System.Globalization;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
+using HotChocolate.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
@@ -9,189 +11,26 @@ namespace HotChocolate.Types;
 public class LocalDateTimeTypeTests
 {
     [Fact]
-    public void Serialize_DateTime()
+    public void Ensure_Type_Name_Is_Correct()
     {
         // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-        const string expectedValue = "2018-06-11T08:46:14";
-
         // act
-        var serializedValue = (string?)localDateTimeType.Serialize(dateTime);
+        var type = new LocalDateTimeType();
 
         // assert
-        Assert.Equal(expectedValue, serializedValue);
+        Assert.Equal("LocalDateTime", type.Name);
     }
 
     [Fact]
-    public void Serialize_DateTimeOffset()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        var dateTime = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 2, 46, 14),
-            new TimeSpan(4, 0, 0));
-        const string expectedValue = "2018-06-11T02:46:14";
-
-        // act
-        var serializedValue = (string?)localDateTimeType.Serialize(dateTime);
-
-        // assert
-        Assert.Equal(expectedValue, serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Null()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-
-        // act
-        var serializedValue = localDateTimeType.Serialize(null);
-
-        // assert
-        Assert.Null(serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_String_Exception()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-
-        // act
-        void Action() => localDateTimeType.Serialize("foo");
-
-        // assert
-        Assert.Throws<SerializationException>(Action);
-    }
-
-    [Fact]
-    public void Deserialize_IsoString_DateTime()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
-
-        // act
-        var result = (DateTime)localDateTimeType.Deserialize("2018-06-11T08:46:14")!;
-
-        // assert
-        Assert.Equal(dateTime, result);
-    }
-
-    [Fact]
-    public void Deserialize_InvalidFormat_To_DateTime()
+    public void CoerceInputLiteral()
     {
         // arrange
         var type = new LocalDateTimeType();
-
-        // act
-        var success = type.TryDeserialize("2018/06/11T08:46:14 pm", out _);
-
-        // assert
-        Assert.False(success);
-    }
-
-    [Fact]
-    public void Deserialize_InvalidString_To_DateTime()
-    {
-        // arrange
-        var type = new LocalDateTimeType();
-
-        // act
-        var success = type.TryDeserialize("abc", out _);
-
-        // assert
-        Assert.False(success);
-    }
-
-    [Fact]
-    public void Deserialize_DateTime_To_DateTime()
-    {
-        // arrange
-        var type = new LocalDateTimeType();
-        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
-
-        // act
-        var success = type.TryDeserialize(dateTime, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(dateTime, deserialized);
-    }
-
-    [Fact]
-    public void Deserialize_DateTimeOffset_To_DateTime()
-    {
-        // arrange
-        var type = new LocalDateTimeType();
-        var dateTime = new DateTimeOffset(
-            new DateTime(2018, 6, 11, 2, 46, 14),
-            new TimeSpan(4, 0, 0));
-
-        // act
-        var success = type.TryDeserialize(dateTime, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(dateTime.DateTime, Assert.IsType<DateTime>(deserialized));
-    }
-
-    [Fact]
-    public void Deserialize_NullableDateTime_To_DateTime()
-    {
-        // arrange
-        var type = new LocalDateTimeType();
-        DateTime? dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
-
-        // act
-        var success = type.TryDeserialize(dateTime, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(dateTime, Assert.IsType<DateTime>(deserialized));
-    }
-
-    [Fact]
-    public void Deserialize_NullableDateTime_To_DateTime_2()
-    {
-        // arrange
-        var type = new LocalDateTimeType();
-        DateTime? dateTime = null;
-
-        // act
-        var success = type.TryDeserialize(dateTime, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(deserialized);
-    }
-
-    [Fact]
-    public void Deserialize_Null_To_Null()
-    {
-        // arrange
-        var type = new LocalDateTimeType();
-
-        // act
-        var success = type.TryDeserialize(null, out var deserialized);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(deserialized);
-    }
-
-    [Fact]
-    public void ParseLiteral_StringValueNode()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
         var literal = new StringValueNode("2018-06-29T08:46:14");
         var expectedDateTime = new DateTime(2018, 6, 29, 8, 46, 14);
 
         // act
-        var dateTime = (DateTime)localDateTimeType.ParseLiteral(literal)!;
+        var dateTime = type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
@@ -203,153 +42,140 @@ public class LocalDateTimeTypeTests
     [InlineData("de-CH")]
     [InlineData("de-de")]
     [Theory]
-    public void ParseLiteral_StringValueNode_DifferentCulture(
-        string cultureName)
+    public void CoerceInputLiteral_DifferentCulture(string cultureName)
     {
         // arrange
         Thread.CurrentThread.CurrentCulture =
             CultureInfo.GetCultureInfo(cultureName);
 
-        var localDateTimeType = new LocalDateTimeType();
+        var type = new LocalDateTimeType();
         var literal = new StringValueNode("2018-06-29T08:46:14");
         var expectedDateTime = new DateTime(2018, 6, 29, 8, 46, 14);
 
         // act
-        var dateTime = (DateTime)localDateTimeType.ParseLiteral(literal)!;
+        var dateTime = (DateTime)type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Equal(expectedDateTime, dateTime);
     }
 
     [Fact]
-    public void ParseLiteral_NullValueNode()
+    public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        var literal = NullValueNode.Default;
+        var type = new LocalDateTimeType();
+        var literal = new StringValueNode("abc");
 
         // act
-        var value = localDateTimeType.ParseLiteral(literal);
+        void Action() => type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Null(value);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseValue_DateTime()
+    public void CoerceInputValue()
     {
         // arrange
-        var localDateTimeType = new LocalDateTimeType();
+        var type = new LocalDateTimeType();
+        var inputValue = JsonDocument.Parse("\"2018-06-11T08:46:14\"").RootElement;
+        var expectedDateTime = new DateTime(2018, 6, 11, 8, 46, 14);
+
+        // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Equal(expectedDateTime, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new LocalDateTimeType();
+        var inputValue = JsonDocument.Parse("\"abc\"").RootElement;
+
+        // act
+        void Action() => type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void CoerceOutputValue()
+    {
+        // arrange
+        var type = new LocalDateTimeType();
         var dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
-        const string expectedLiteralValue = "2018-06-11T08:46:14";
 
         // act
-        var stringLiteral =
-            (StringValueNode)localDateTimeType.ParseValue(dateTime);
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(dateTime, resultValue);
 
         // assert
-        Assert.Equal(expectedLiteralValue, stringLiteral.Value);
+        resultValue.MatchInlineSnapshot("\"2018-06-11T08:46:14\"");
     }
 
     [Fact]
-    public void ParseValue_Null()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-
-        // act
-        var literal = localDateTimeType.ParseValue(null);
-
-        // assert
-        Assert.Equal(NullValueNode.Default, literal);
-    }
-
-    [Fact]
-    public void ParseResult_DateTime()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        var resultValue = new DateTime(2023, 6, 19, 11, 24, 0, DateTimeKind.Utc);
-        const string expectedLiteralValue = "2023-06-19T11:24:00";
-
-        // act
-        var literal = localDateTimeType.ParseResult(resultValue);
-
-        // assert
-        Assert.Equal(typeof(StringValueNode), literal.GetType());
-        Assert.Equal(expectedLiteralValue, literal.Value);
-    }
-
-    [Fact]
-    public void ParseResult_DateTimeOffset()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        var resultValue = new DateTimeOffset(2023, 6, 19, 11, 24, 0, new TimeSpan(6, 0, 0));
-        const string expectedLiteralValue = "2023-06-19T11:24:00";
-
-        // act
-        var literal = localDateTimeType.ParseResult(resultValue);
-
-        // assert
-        Assert.Equal(typeof(StringValueNode), literal.GetType());
-        Assert.Equal(expectedLiteralValue, literal.Value);
-    }
-
-    [Fact]
-    public void ParseResult_String()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        const string resultValue = "2023-06-19T11:24:00";
-        const string expectedLiteralValue = "2023-06-19T11:24:00";
-
-        // act
-        var literal = localDateTimeType.ParseResult(resultValue);
-
-        // assert
-        Assert.Equal(typeof(StringValueNode), literal.GetType());
-        Assert.Equal(expectedLiteralValue, literal.Value);
-    }
-
-    [Fact]
-    public void ParseResult_Null()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-
-        // act
-        var literal = localDateTimeType.ParseResult(null);
-
-        // assert
-        Assert.Equal(NullValueNode.Default, literal);
-    }
-
-    [Fact]
-    public void ParseResult_SerializationException()
-    {
-        // arrange
-        var localDateTimeType = new LocalDateTimeType();
-        const int resultValue = 1;
-
-        // act
-        var exception = Record.Exception(() => localDateTimeType.ParseResult(resultValue));
-
-        // assert
-        Assert.IsType<SerializationException>(exception);
-    }
-
-    [Fact]
-    public void EnsureLocalDateTimeTypeKindIsCorrect()
+    public void CoerceOutputValue_Invalid_Format()
     {
         // arrange
         var type = new LocalDateTimeType();
 
         // act
-        var kind = type.Kind;
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue(123, resultValue);
 
         // assert
-        Assert.Equal(TypeKind.Scalar, kind);
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        // arrange
+        var type = new LocalDateTimeType();
+        var dateTime = new DateTime(2018, 6, 11, 8, 46, 14);
+        const string expectedLiteralValue = "2018-06-11T08:46:14";
+
+        // act
+        var stringLiteral = type.ValueToLiteral(dateTime);
+
+        // assert
+        Assert.Equal(expectedLiteralValue, Assert.IsType<StringValueNode>(stringLiteral).Value);
+    }
+
+    [Fact]
+    public void ParseLiteral()
+    {
+        // arrange
+        var type = new LocalDateTimeType();
+        var literal = new StringValueNode("2018-06-29T08:46:14");
+        var expectedDateTime = new DateTime(2018, 6, 29, 8, 46, 14);
+
+        // act
+        var dateTime = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(expectedDateTime, Assert.IsType<DateTime>(dateTime));
+    }
+
+    [Fact]
+    public void ParseLiteral_InvalidValue()
+    {
+        // arrange
+        var type = new LocalDateTimeType();
+
+        // act
+        void Action() => type.CoerceInputLiteral(new IntValueNode(123));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

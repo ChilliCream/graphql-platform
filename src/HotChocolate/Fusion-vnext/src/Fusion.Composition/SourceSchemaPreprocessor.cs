@@ -59,10 +59,13 @@ internal sealed partial class SourceSchemaPreprocessor(
         }
 
         // Additional schema validation will catch issues introduced during preprocessing.
-        var validationLog = new ValidationLog();
-        if (!new SchemaValidator().Validate(schema, validationLog) && validationLog.HasErrors)
+        if (_options.EnableSchemaValidation)
         {
-            log.WriteValidationLog(validationLog, schema);
+            var validationLog = new ValidationLog();
+            if (!new SchemaValidator().Validate(schema, validationLog) && validationLog.HasErrors)
+            {
+                log.WriteValidationLog(validationLog, schema);
+            }
         }
 
         return log.HasErrors
@@ -196,13 +199,13 @@ internal sealed partial class SourceSchemaPreprocessor(
                         continue;
                     }
 
-                    if (field.Directives.ContainsName(Internal) || field.Directives.ContainsName(Inaccessible))
+                    if (field.Directives.ContainsName(WellKnownDirectiveNames.Internal) || field.Directives.ContainsName(Inaccessible))
                     {
                         continue;
                     }
 
                     if (!otherType.Fields.TryGetField(field.Name, out var otherField)
-                        || otherField.Directives.ContainsName(Internal)
+                        || otherField.Directives.ContainsName(WellKnownDirectiveNames.Internal)
                         || otherField.Directives.ContainsName(Inaccessible))
                     {
                         continue;
@@ -237,7 +240,7 @@ internal sealed partial class SourceSchemaPreprocessor(
                 continue;
             }
 
-            if (field.Directives.ContainsName(Internal))
+            if (field.Directives.ContainsName(WellKnownDirectiveNames.Internal))
             {
                 queryType.Fields.Remove(field);
             }

@@ -4,7 +4,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using HotChocolate.Utilities.Introspection;
 
 namespace HotChocolate;
 

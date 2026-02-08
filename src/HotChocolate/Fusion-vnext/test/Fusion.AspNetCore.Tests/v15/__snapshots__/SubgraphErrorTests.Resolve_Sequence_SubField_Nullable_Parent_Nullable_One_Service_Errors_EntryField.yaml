@@ -111,12 +111,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Unexpected Execution Error",
-                    "locations": [
-                      {
-                        "line": 4,
-                        "column": 3
-                      }
-                    ],
                     "path": [
                       "brandById"
                     ]

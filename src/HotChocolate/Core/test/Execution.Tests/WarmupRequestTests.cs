@@ -46,9 +46,8 @@ public class WarmupRequestTests
         var regularOperationResult = regularResult.ExpectOperationResult();
 
         // assert 2
-        Assert.Null(regularOperationResult.Errors);
-        Assert.NotNull(regularOperationResult.Data);
-        Assert.NotEmpty(regularOperationResult.Data);
+        Assert.Empty(regularOperationResult.Errors);
+        Assert.True(regularOperationResult.UnwrapData().EnumerateObject().Any());
 
         Assert.True(documentCache.TryGetDocument(documentId, out _));
         Assert.Equal(1, operationCache.Count);

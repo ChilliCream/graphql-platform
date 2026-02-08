@@ -1,12 +1,37 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Base class for floating-point scalar types with min/max value constraints.
+/// </summary>
+/// <typeparam name="TRuntimeType">
+/// The .NET runtime type that this scalar represents.
+/// </typeparam>
 public abstract class FloatTypeBase<TRuntimeType>
     : ScalarType<TRuntimeType>
     where TRuntimeType : IComparable
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="FloatTypeBase{TRuntimeType}"/>.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the scalar type.
+    /// </param>
+    /// <param name="min">
+    /// The minimum allowed value.
+    /// </param>
+    /// <param name="max">
+    /// The maximum allowed value.
+    /// </param>
+    /// <param name="bind">
+    /// The binding behavior of this scalar.
+    /// </param>
     protected FloatTypeBase(
         string name,
         TRuntimeType min,
@@ -18,212 +43,203 @@ public abstract class FloatTypeBase<TRuntimeType>
         MaxValue = max;
     }
 
+    /// <inheritdoc />
+    public override ScalarSerializationType SerializationType => ScalarSerializationType.Float;
+
+    /// <summary>
+    /// Gets the minimum allowed value for this scalar.
+    /// </summary>
     public TRuntimeType MinValue { get; }
 
+    /// <summary>
+    /// Gets the maximum allowed value for this scalar.
+    /// </summary>
     public TRuntimeType MaxValue { get; }
 
-    public override bool IsInstanceOfType(IValueNode valueSyntax)
+    /// <inheritdoc />
+    public override bool IsValueCompatible(IValueNode valueLiteral)
+        => valueLiteral is { Kind: SyntaxKind.FloatValue or SyntaxKind.IntValue };
+
+    /// <inheritdoc />
+    public override bool IsValueCompatible(JsonElement inputValue)
+        => inputValue.ValueKind is JsonValueKind.Number;
+
+    /// <inheritdoc />
+    public sealed override object CoerceInputLiteral(IValueNode valueLiteral)
     {
-        ArgumentNullException.ThrowIfNull(valueSyntax);
-
-        if (valueSyntax is NullValueNode)
+        if (valueLiteral is FloatValueNode floatLiteral)
         {
-            return true;
-        }
+            TRuntimeType runtimeValue;
 
-        if (valueSyntax is FloatValueNode floatLiteral && IsInstanceOfType(floatLiteral))
-        {
-            return true;
+            try
+            {
+                runtimeValue = OnCoerceInputLiteral(floatLiteral);
+            }
+            catch (Exception ex)
+            {
+                throw CreateCoerceInputLiteralError(valueLiteral, ex);
+            }
+
+            AssertFormat(runtimeValue);
+            return runtimeValue;
         }
 
         // Input coercion rules specify that float values can be coerced
         // from IntValueNode and FloatValueNode:
         // http://facebook.github.io/graphql/June2018/#sec-Float
-        if (valueSyntax is IntValueNode intLiteral && IsInstanceOfType(intLiteral))
+        if (valueLiteral is IntValueNode intLiteral)
         {
-            return true;
+            TRuntimeType runtimeValue;
+
+            try
+            {
+                runtimeValue = OnCoerceInputLiteral(intLiteral);
+            }
+            catch (Exception ex)
+            {
+                throw CreateCoerceInputLiteralError(valueLiteral, ex);
+            }
+
+            AssertFormat(runtimeValue);
+            return runtimeValue;
         }
 
-        return false;
+        throw CreateCoerceInputLiteralError(valueLiteral);
+    }
+
+    /// <summary>
+    /// Coerces a float or int literal into the runtime value.
+    /// </summary>
+    /// <param name="valueLiteral">
+    /// The float or int literal to coerce.
+    /// </param>
+    /// <returns>
+    /// Returns the runtime value representation.
+    /// </returns>
+    protected abstract TRuntimeType OnCoerceInputLiteral(IFloatValueLiteral valueLiteral);
+
+    /// <inheritdoc />
+    public sealed override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    {
+        if (inputValue.ValueKind is JsonValueKind.Number)
+        {
+            TRuntimeType runtimeValue;
+
+            try
+            {
+                runtimeValue = OnCoerceInputValue(inputValue);
+            }
+            catch (Exception ex)
+            {
+                throw CreateCoerceInputValueError(inputValue, ex);
+            }
+
+            AssertFormat(runtimeValue);
+            return runtimeValue;
+        }
+
+        throw CreateCoerceInputValueError(inputValue);
+    }
+
+    /// <summary>
+    /// Coerces a JSON number into the runtime value.
+    /// </summary>
+    /// <param name="inputValue">
+    /// The JSON input value to coerce.
+    /// </param>
+    /// <returns>
+    /// Returns the runtime value representation.
+    /// </returns>
+    protected abstract TRuntimeType OnCoerceInputValue(JsonElement inputValue);
+
+    /// <inheritdoc />
+    public override void CoerceOutputValue(object runtimeValue, ResultElement resultValue)
+    {
+        if (runtimeValue is TRuntimeType castedRuntimeValue)
+        {
+            AssertFormat(castedRuntimeValue);
+            OnCoerceOutputValue(castedRuntimeValue, resultValue);
+            return;
+        }
+
+        throw Scalar_Cannot_CoerceOutputValue(this, runtimeValue);
     }
 
     /// <inheritdoc />
-    public sealed override bool IsInstanceOfType(object? runtimeValue)
+    public override IValueNode ValueToLiteral(object runtimeValue)
     {
-        if (runtimeValue is null)
+        if (runtimeValue is TRuntimeType castedRuntimeValue)
         {
-            return true;
+            AssertFormat(castedRuntimeValue);
+            return OnValueToLiteral(castedRuntimeValue);
         }
 
-        if (runtimeValue is TRuntimeType t)
-        {
-            return IsInstanceOfType(t);
-        }
-
-        return false;
-    }
-
-    protected virtual bool IsInstanceOfType(IFloatValueLiteral valueSyntax)
-    {
-        return IsInstanceOfType(ParseLiteral(valueSyntax));
-    }
-
-    protected virtual bool IsInstanceOfType(TRuntimeType value)
-    {
-        if (value.CompareTo(MinValue) == -1 || value.CompareTo(MaxValue) == 1)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    public override object? ParseLiteral(IValueNode valueSyntax)
-    {
-        ArgumentNullException.ThrowIfNull(valueSyntax);
-
-        if (valueSyntax is NullValueNode)
-        {
-            return null;
-        }
-
-        if (valueSyntax is FloatValueNode floatLiteral && IsInstanceOfType(floatLiteral))
-        {
-            return ParseLiteral(floatLiteral);
-        }
-
-        // Input coercion rules specify that float values can be coerced
-        // from IntValueNode and FloatValueNode:
-        // http://facebook.github.io/graphql/June2018/#sec-Float
-
-        if (valueSyntax is IntValueNode intLiteral && IsInstanceOfType(intLiteral))
-        {
-            return ParseLiteral(intLiteral);
-        }
-
-        throw CreateParseLiteralError(valueSyntax);
-    }
-
-    protected abstract TRuntimeType ParseLiteral(IFloatValueLiteral valueSyntax);
-
-    public override IValueNode ParseValue(object? runtimeValue)
-    {
-        if (runtimeValue is null)
-        {
-            return NullValueNode.Default;
-        }
-
-        if (runtimeValue is TRuntimeType casted && IsInstanceOfType(casted))
-        {
-            return ParseValue(casted);
-        }
-
-        throw CreateParseValueError(runtimeValue);
-    }
-
-    protected abstract FloatValueNode ParseValue(TRuntimeType runtimeValue);
-
-    public sealed override IValueNode ParseResult(object? resultValue)
-    {
-        if (resultValue is null)
-        {
-            return NullValueNode.Default;
-        }
-
-        if (resultValue is TRuntimeType casted && IsInstanceOfType(casted))
-        {
-            return ParseValue(casted);
-        }
-
-        if (TryConvertSerialized(resultValue, ValueKind.Integer, out TRuntimeType c)
-            && IsInstanceOfType(c))
-        {
-            return ParseValue(c);
-        }
-
-        throw CreateParseResultError(resultValue);
-    }
-
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-    {
-        if (runtimeValue is null)
-        {
-            resultValue = null;
-            return true;
-        }
-
-        if (runtimeValue is TRuntimeType casted && IsInstanceOfType(casted))
-        {
-            resultValue = runtimeValue;
-            return true;
-        }
-
-        resultValue = null;
-        return false;
-    }
-
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        if (resultValue is null)
-        {
-            runtimeValue = null;
-            return true;
-        }
-
-        if (resultValue is TRuntimeType casted && IsInstanceOfType(casted))
-        {
-            runtimeValue = resultValue;
-            return true;
-        }
-
-        if ((TryConvertSerialized(resultValue, ValueKind.Float, out TRuntimeType c)
-            || TryConvertSerialized(resultValue, ValueKind.Integer, out c))
-            && IsInstanceOfType(c))
-        {
-            runtimeValue = c;
-            return true;
-        }
-
-        runtimeValue = null;
-        return false;
+        throw CreateValueToLiteralError(runtimeValue);
     }
 
     /// <summary>
-    /// Creates the exception that will be thrown when <see cref="ParseValue(object?)"/>
-    /// encountered an invalid runtime value.
+    /// Creates the exception to throw when <see cref="CoerceInputLiteral(IValueNode)"/>
+    /// encounters an incompatible <see cref="IValueNode"/>.
+    /// </summary>
+    /// <param name="valueLiteral">
+    /// The value syntax that could not be coerced.
+    /// </param>
+    /// <param name="error">
+    /// An optional exception that was thrown during coercion.
+    /// </param>
+    /// <returns>
+    /// Returns the exception to throw.
+    /// </returns>
+    protected virtual LeafCoercionException CreateCoerceInputLiteralError(
+        IValueNode valueLiteral,
+        Exception? error = null)
+        => Scalar_Cannot_CoerceInputLiteral(this, valueLiteral, error);
+
+    /// <summary>
+    /// Creates the exception to throw when <see cref="CoerceInputValue(JsonElement, IFeatureProvider)"/>
+    /// encounters an incompatible <see cref="JsonElement"/>.
+    /// </summary>
+    /// <param name="inputValue">
+    /// The JSON value that could not be coerced.
+    /// </param>
+    /// <param name="error">
+    /// An optional exception that was thrown during coercion.
+    /// </param>
+    /// <returns>
+    /// Returns the exception to throw.
+    /// </returns>
+    protected virtual LeafCoercionException CreateCoerceInputValueError(
+        JsonElement inputValue,
+        Exception? error = null)
+        => Scalar_Cannot_CoerceInputValue(this, inputValue, error);
+
+    /// <summary>
+    /// Creates the exception to throw when a runtime value is outside
+    /// the allowed min/max range.
     /// </summary>
     /// <param name="runtimeValue">
-    /// The runtime value.
+    /// The runtime value that is out of range.
     /// </param>
     /// <returns>
-    /// The created exception that should be thrown
+    /// Returns the exception to throw.
     /// </returns>
-    protected virtual SerializationException CreateParseValueError(object runtimeValue)
-        => new(TypeResourceHelper.Scalar_Cannot_ParseResult(Name, runtimeValue.GetType()), this);
+    protected virtual LeafCoercionException FormatError(TRuntimeType runtimeValue)
+        => Scalar_FormatIsInvalid(this, runtimeValue);
 
     /// <summary>
-    /// Creates the exception that will be thrown when <see cref="ParseLiteral(IValueNode)"/> encountered an
-    /// invalid <see cref="IValueNode "/>
-    /// </summary>
-    /// <param name="valueSyntax">
-    /// The value syntax that should be parsed
-    /// </param>
-    /// <returns>
-    /// The created exception that should be thrown
-    /// </returns>
-    protected virtual SerializationException CreateParseLiteralError(IValueNode valueSyntax)
-        => new(TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()), this);
-
-    /// <summary>
-    /// Creates the exception that will be thrown when <see cref="ParseResult"/> encountered an
-    /// invalid value
+    /// Validates that the runtime value is within the allowed min/max range.
     /// </summary>
     /// <param name="runtimeValue">
-    /// The runtimeValue that should be parsed
+    /// The runtime value to validate.
     /// </param>
-    /// <returns>
-    /// The created exception that should be thrown
-    /// </returns>
-    protected virtual SerializationException CreateParseResultError(object runtimeValue)
-        => new(TypeResourceHelper.Scalar_Cannot_ParseResult(Name, runtimeValue.GetType()), this);
+    /// <exception cref="LeafCoercionException">
+    /// Thrown when the value is less than <see cref="MinValue"/> or greater than <see cref="MaxValue"/>.
+    /// </exception>
+    private void AssertFormat(TRuntimeType runtimeValue)
+    {
+        if (runtimeValue.CompareTo(MinValue) == -1 || runtimeValue.CompareTo(MaxValue) == 1)
+        {
+            throw FormatError(runtimeValue);
+        }
+    }
 }

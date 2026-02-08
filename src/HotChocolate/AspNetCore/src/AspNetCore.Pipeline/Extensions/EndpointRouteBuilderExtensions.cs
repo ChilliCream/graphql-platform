@@ -17,6 +17,10 @@ namespace Microsoft.AspNetCore.Builder;
 /// <summary>
 /// Provides GraphQL extensions to the <see cref="IEndpointConventionBuilder"/>.
 /// </summary>
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 public static class EndpointRouteBuilderExtensions
 {
     private const string GraphQLHttpPath = "/graphql";

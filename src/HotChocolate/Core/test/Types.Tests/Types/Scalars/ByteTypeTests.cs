@@ -1,124 +1,71 @@
+using System.Text.Json;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
 public class ByteTypeTests
 {
     [Fact]
-    public void IsInstanceOfType_FloatLiteral_True()
+    public void Ensure_Type_Name_Is_Correct()
+    {
+        // arrange
+        // act
+        var type = new ByteType();
+
+        // assert
+        Assert.Equal("Byte", type.Name);
+    }
+
+    [Fact]
+    public void IsValueCompatible_IntLiteral_True()
     {
         // arrange
         var type = new ByteType();
         var literal = new IntValueNode(1);
 
         // act
-        var result = type.IsInstanceOfType(literal);
+        var result = type.IsValueCompatible(literal);
 
         // assert
         Assert.True(result);
     }
 
     [Fact]
-    public void IsInstanceOfType_NullLiteral_True()
+    public void IsValueCompatible_FloatLiteral_False()
     {
         // arrange
         var type = new ByteType();
 
         // act
-        var result = type.IsInstanceOfType(NullValueNode.Default);
-
-        // assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void IsInstanceOfType_StringLiteral_False()
-    {
-        // arrange
-        var type = new ByteType();
-
-        // act
-        var result = type.IsInstanceOfType(new FloatValueNode(1M));
+        var result = type.IsValueCompatible(new FloatValueNode(1M));
 
         // assert
         Assert.False(result);
     }
 
     [Fact]
-    public void IsInstanceOfType_Null_Throws()
+    public void IsValueCompatible_Null_False()
     {
         // arrange
         var type = new ByteType();
 
         // act
+        var result = type.IsValueCompatible(null!);
+
         // assert
-        Assert.Throws<ArgumentNullException>(
-            () => type.IsInstanceOfType(null!));
+        Assert.False(result);
     }
 
     [Fact]
-    public void Serialize_Type()
-    {
-        // arrange
-        var type = new ByteType();
-        const byte value = 123;
-
-        // act
-        var serializedValue = type.Serialize(value);
-
-        // assert
-        Assert.IsType<byte>(serializedValue);
-        Assert.Equal(value, serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Null()
-    {
-        // arrange
-        var type = new ByteType();
-
-        // act
-        var serializedValue = type.Serialize(null);
-
-        // assert
-        Assert.Null(serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Wrong_Type_Throws()
-    {
-        // arrange
-        var type = new ByteType();
-        const string input = "abc";
-
-        // act
-        // assert
-        Assert.Throws<SerializationException>(
-            () => type.Serialize(input));
-    }
-
-    [Fact]
-    public void Serialize_MaxValue_Violation()
-    {
-        // arrange
-        var type = new ByteType(0, 100);
-        const byte value = 200;
-
-        // act
-        // assert
-        Assert.Throws<SerializationException>(
-            () => type.Serialize(value));
-    }
-
-    [Fact]
-    public void ParseLiteral_IntLiteral()
+    public void CoerceInputLiteral()
     {
         // arrange
         var type = new ByteType();
         var literal = new IntValueNode(1);
 
         // act
-        var value = type.ParseLiteral(literal);
+        var value = type.CoerceInputLiteral(literal);
 
         // assert
         Assert.IsType<byte>(value);
@@ -126,142 +73,209 @@ public class ByteTypeTests
     }
 
     [Fact]
-    public void ParseLiteral_NullValueNode()
-    {
-        // arrange
-        var type = new ByteType();
-
-        // act
-        var output = type.ParseLiteral(NullValueNode.Default);
-
-        // assert
-        Assert.Null(output);
-    }
-
-    [Fact]
-    public void ParseLiteral_Wrong_ValueNode_Throws()
+    public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
         var type = new ByteType();
         var input = new StringValueNode("abc");
 
         // act
+        void Action() => type.CoerceInputLiteral(input);
+
         // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseLiteral(input));
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseLiteral_Null_Throws()
+    public void CoerceInputLiteral_Null_Throws()
     {
         // arrange
         var type = new ByteType();
 
         // act
+        void Action() => type.CoerceInputLiteral(null!);
+
         // assert
-        Assert.Throws<ArgumentNullException>(
-            () => type.ParseLiteral(null!));
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseValue_MaxValue()
+    public void CoerceInputValue()
+    {
+        // arrange
+        var type = new ByteType();
+        var inputValue = JsonDocument.Parse("123").RootElement;
+
+        // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Equal((byte)123, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new ByteType();
+        var inputValue = JsonDocument.Parse("\"foo\"").RootElement;
+
+        // act
+        void Action() => type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void CoerceOutputValue()
+    {
+        // arrange
+        var type = new ByteType();
+        const byte runtimeValue = 123;
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(runtimeValue, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("123");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new ByteType();
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue("foo", resultValue);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void CoerceOutputValue_MaxValue_Violation()
+    {
+        // arrange
+        var type = new ByteType(0, 100);
+        const byte value = 200;
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue(value, resultValue);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        // arrange
+        var type = new ByteType();
+        const byte runtimeValue = 123;
+
+        // act
+        var literal = type.ValueToLiteral(runtimeValue);
+
+        // assert
+        Assert.Equal(123, Assert.IsType<IntValueNode>(literal).ToByte());
+    }
+
+    [Fact]
+    public void ValueToLiteral_MaxValue()
     {
         // arrange
         var type = new ByteType(1, 100);
         const byte input = 100;
 
         // act
-        var literal = (IntValueNode)type.ParseValue(input);
+        var literal = (IntValueNode)type.ValueToLiteral(input);
 
         // assert
         Assert.Equal(100, literal.ToByte());
     }
 
     [Fact]
-    public void ParseValue_MaxValue_Violation()
+    public void ValueToLiteral_MaxValue_Violation()
     {
         // arrange
         var type = new ByteType(1, 100);
         const byte input = 101;
 
         // act
-        Action action = () => type.ParseValue(input);
+        void Action() => type.ValueToLiteral(input);
 
         // assert
-        Assert.Throws<SerializationException>(action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseValue_MinValue()
+    public void ValueToLiteral_MinValue()
     {
         // arrange
         var type = new ByteType(1, 100);
         const byte input = 1;
 
         // act
-        var literal = (IntValueNode)type.ParseValue(input);
+        var literal = (IntValueNode)type.ValueToLiteral(input);
 
         // assert
         Assert.Equal(1, literal.ToByte());
     }
 
     [Fact]
-    public void ParseValue_MinValue_Violation()
+    public void ValueToLiteral_MinValue_Violation()
     {
         // arrange
         var type = new ByteType(1, 100);
         const byte input = 0;
 
         // act
-        Action action = () => type.ParseValue(input);
+        void Action() => type.ValueToLiteral(input);
 
         // assert
-        Assert.Throws<SerializationException>(action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseValue_Wrong_Value_Throws()
+    public void ParseLiteral()
     {
         // arrange
         var type = new ByteType();
-        const string value = "123";
+        var literal = new IntValueNode(123);
 
         // act
+        var runtimeValue = type.CoerceInputLiteral(literal);
+
         // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseValue(value));
+        Assert.Equal((byte)123, Assert.IsType<byte>(runtimeValue));
     }
 
     [Fact]
-    public void ParseValue_Null()
+    public void ParseLiteral_InvalidValue()
     {
         // arrange
         var type = new ByteType();
-        object input = null!;
 
         // act
-        object output = type.ParseValue(input);
+        void Action() => type.CoerceInputLiteral(new FloatValueNode(1.5));
 
         // assert
-        Assert.IsType<NullValueNode>(output);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseValue_Nullable()
-    {
-        // arrange
-        var type = new ByteType();
-        byte? input = 123;
-
-        // act
-        var output = (IntValueNode)type.ParseValue(input);
-
-        // assert
-        Assert.Equal(123, output.ToDouble());
-    }
-
-    [Fact]
-    public void Ensure_TypeKind_is_Scalar()
+    public void Ensure_TypeKind_Is_Scalar()
     {
         // arrange
         var type = new ByteType();

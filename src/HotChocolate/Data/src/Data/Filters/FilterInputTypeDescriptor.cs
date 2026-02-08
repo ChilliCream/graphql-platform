@@ -59,7 +59,7 @@ public class FilterInputTypeDescriptor
 
     protected BindableList<FilterOperationFieldDescriptor> Operations { get; } = [];
 
-    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
+    Type IRuntimeTypeProvider.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCreateConfiguration(FilterInputTypeConfiguration configuration)
     {

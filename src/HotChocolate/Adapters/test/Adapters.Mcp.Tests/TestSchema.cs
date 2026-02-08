@@ -5,7 +5,9 @@ using System.Security.Claims;
 using System.Text.Json;
 using HotChocolate.Adapters.Mcp.Directives;
 using HotChocolate.Authorization;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 
 namespace HotChocolate.Adapters.Mcp;
@@ -17,7 +19,7 @@ public sealed class TestSchema
         public Book[] GetBooks() => [new("Title")];
 
         public ResultNullable GetWithNullableVariables(
-            [GraphQLType<AnyType>] object? any,
+            JsonElement? any,
             bool? boolean,
             byte? @byte,
             [GraphQLType<ByteArrayType>] byte[]? byteArray,
@@ -28,7 +30,6 @@ public sealed class TestSchema
             float? @float,
             [GraphQLType<IdType>] string? id,
             int? @int,
-            JsonElement? json,
             string?[]? list,
             DateOnly? localDate,
             [GraphQLType<LocalDateTimeType>] DateTime? localDateTime,
@@ -54,7 +55,6 @@ public sealed class TestSchema
                     @float,
                     id,
                     @int,
-                    json,
                     list,
                     localDate,
                     localDateTime,
@@ -69,7 +69,7 @@ public sealed class TestSchema
                     uuid);
 
         public ResultNonNullable GetWithNonNullableVariables(
-            [GraphQLType<NonNullType<AnyType>>] object any,
+            JsonElement any,
             bool boolean,
             byte @byte,
             [GraphQLType<NonNullType<ByteArrayType>>] byte[] byteArray,
@@ -80,7 +80,6 @@ public sealed class TestSchema
             float @float,
             [GraphQLType<NonNullType<IdType>>] string id,
             int @int,
-            JsonElement json,
             string[] list,
             DateOnly localDate,
             [GraphQLType<NonNullType<LocalDateTimeType>>] DateTime localDateTime,
@@ -106,7 +105,6 @@ public sealed class TestSchema
                     @float,
                     id,
                     @int,
-                    json,
                     list,
                     localDate,
                     localDateTime,
@@ -121,7 +119,7 @@ public sealed class TestSchema
                     uuid);
 
         public ResultDefaulted GetWithDefaultedVariables(
-            [GraphQLType<NonNullType<AnyType>>] object any,
+            JsonElement any,
             bool boolean,
             byte @byte,
             [GraphQLType<NonNullType<ByteArrayType>>] byte[] byteArray,
@@ -132,7 +130,6 @@ public sealed class TestSchema
             float @float,
             [GraphQLType<NonNullType<IdType>>] string id,
             int @int,
-            JsonElement json,
             string[] list,
             DateOnly localDate,
             [GraphQLType<NonNullType<LocalDateTimeType>>] DateTime localDateTime,
@@ -158,7 +155,6 @@ public sealed class TestSchema
                     @float,
                     id,
                     @int,
-                    json,
                     list,
                     localDate,
                     localDateTime,
@@ -326,7 +322,7 @@ public sealed class TestSchema
         OneOf Field);
 
     public sealed record ResultNullable(
-        [property: GraphQLType<AnyType>] object? Any,
+        JsonElement? Any,
         bool? Boolean,
         byte? Byte,
         [property: GraphQLType<ByteArrayType>] byte[]? ByteArray,
@@ -337,7 +333,6 @@ public sealed class TestSchema
         float? Float,
         [property: GraphQLType<IdType>] string? Id,
         int? Int,
-        JsonElement? Json,
         string?[]? List,
         DateOnly? LocalDate,
         [property: GraphQLType<LocalDateTimeType>] DateTime? LocalDateTime,
@@ -352,7 +347,7 @@ public sealed class TestSchema
         Guid? Uuid);
 
     public sealed record ResultNonNullable(
-        [property: GraphQLType<NonNullType<AnyType>>] object Any,
+        JsonElement Any,
         bool Boolean,
         byte Byte,
         [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
@@ -363,7 +358,6 @@ public sealed class TestSchema
         float Float,
         [property: GraphQLType<NonNullType<IdType>>] string Id,
         int Int,
-        JsonElement Json,
         string[] List,
         DateOnly LocalDate,
         [property: GraphQLType<NonNullType<LocalDateTimeType>>] DateTime LocalDateTime,
@@ -378,7 +372,7 @@ public sealed class TestSchema
         Guid Uuid);
 
     public sealed record ResultDefaulted(
-        [property: GraphQLType<NonNullType<AnyType>>] object Any,
+        JsonElement Any,
         bool Boolean,
         byte Byte,
         [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
@@ -389,7 +383,6 @@ public sealed class TestSchema
         float Float,
         [property: GraphQLType<NonNullType<IdType>>] string Id,
         int Int,
-        JsonElement Json,
         string[] List,
         DateOnly LocalDate,
         [property: GraphQLType<NonNullType<LocalDateTimeType>>] DateTime LocalDateTime,
@@ -425,14 +418,17 @@ public sealed class TestSchema
 
     private sealed class UnknownType() : ScalarType<string, StringValueNode>("Unknown")
     {
-        public override IValueNode ParseResult(object? resultValue)
-            => throw new NotImplementedException();
+        protected override string OnCoerceInputLiteral(StringValueNode valueLiteral)
+            => valueLiteral.Value;
 
-        protected override string ParseLiteral(StringValueNode valueSyntax)
-            => valueSyntax.Value;
+        protected override string OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+            => inputValue.GetString()!;
 
-        protected override StringValueNode ParseValue(string runtimeValue)
-            => throw new NotImplementedException();
+        protected override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
+            => resultValue.SetStringValue(runtimeValue);
+
+        protected override StringValueNode OnValueToLiteral(string runtimeValue)
+            => new StringValueNode(runtimeValue);
     }
 
     public sealed class ExplicitOpenWorld

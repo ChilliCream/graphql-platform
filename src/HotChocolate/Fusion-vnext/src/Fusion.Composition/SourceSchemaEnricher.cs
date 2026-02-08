@@ -57,7 +57,7 @@ internal sealed class SourceSchemaEnricher(
     {
         var sourceMetadata = objectType.Features.GetOrSet<SourceObjectTypeMetadata>();
         sourceMetadata.HasShareableDirective = objectType.Directives.ContainsName(Shareable);
-        sourceMetadata.IsInternal = objectType.Directives.ContainsName(Internal);
+        sourceMetadata.IsInternal = objectType.Directives.ContainsName(WellKnownDirectiveNames.Internal);
     }
 
     private static void EnrichEnumType(MutableEnumTypeDefinition enumType)
@@ -80,11 +80,11 @@ internal sealed class SourceSchemaEnricher(
             outputField.Directives.ContainsName(Inaccessible)
             || declaringType.Directives.ContainsName(Inaccessible);
         sourceMetadata.IsInternal =
-            outputField.Directives.ContainsName(Internal)
-            || declaringType.Directives.ContainsName(Internal);
+            outputField.Directives.ContainsName(WellKnownDirectiveNames.Internal)
+            || declaringType.Directives.ContainsName(WellKnownDirectiveNames.Internal);
         sourceMetadata.IsLookup = outputField.Directives.ContainsName(Lookup);
         sourceMetadata.HasExternalDirective = outputField.Directives.ContainsName(External);
-        sourceMetadata.HasInternalDirective = outputField.Directives.ContainsName(Internal);
+        sourceMetadata.HasInternalDirective = outputField.Directives.ContainsName(WellKnownDirectiveNames.Internal);
         sourceMetadata.HasOverrideDirective = outputField.Directives.ContainsName(Override);
         sourceMetadata.HasProvidesDirective = outputField.Directives.ContainsName(Provides);
         sourceMetadata.HasShareableDirective = outputField.Directives.ContainsName(Shareable);

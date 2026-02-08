@@ -22,7 +22,7 @@ public class CharacterType : InterfaceType<ICharacter>
             .Type<ListType<EpisodeType>>();
 
         descriptor.Field(f => f.Traits)
-            .Type<JsonType>();
+            .Type<AnyType>();
 
         descriptor.Field(f => f.Height)
             .Type<FloatType>()

@@ -73,9 +73,8 @@ public class InMemoryClientTests
     public async Task ExecuteAsync_Default_ExecuteQuery()
     {
         // arrange
-        var client = new InMemoryClient("Foo");
-        var variables = new Dictionary<string, object?>();
-        var operationRequest = new OperationRequest("foo", new StubDocument(), variables);
+        var client = new InMemoryClient("Foo"); ;
+        var operationRequest = new OperationRequest("foo", new StubDocument(), new Dictionary<string, object?>());
         var executor = new StubExecutor();
         client.Executor = executor;
 
@@ -85,8 +84,8 @@ public class InMemoryClientTests
         // assert
         var request = Assert.IsType<HotChocolate.Execution.OperationRequest>(executor.Request);
         Assert.Equal(operationRequest.Name, request.OperationName);
-        Assert.Equal(variables, request.VariableValues);
         Assert.Equal("{ foo }", Encoding.UTF8.GetString(request.Document!.AsSpan()));
+        request.VariableValues?.Document.MatchInlineSnapshot("{}");
     }
 
     [Fact]

@@ -2,7 +2,7 @@ For more details look at the `Errors` property.
 
 1. For more details look at the `Errors` property.
 
-1. The provided type HotChocolate.Execution.Integration.DataLoader.UseDataLoaderTests+Foo is not a dataloader
+1. The provided type HotChocolate.Execution.Integration.DataLoader.UseDataLoaderTests+Foo is not a DataLoader.
  (HotChocolate.Types.ObjectType<HotChocolate.Execution.Integration.DataLoader.UseDataLoaderTests.Query>)
 
    at HotChocolate.Types.DataLoaderObjectFieldExtensions.UseDataLoader(IObjectFieldDescriptor descriptor, Type dataLoaderType) in ObjectFieldDataLoaderExtensions.cs:line 28

@@ -91,17 +91,6 @@
                 "null"
               ]
             },
-            "json": {
-              "type": [
-                "object",
-                "array",
-                "boolean",
-                "string",
-                "number",
-                "integer",
-                "null"
-              ]
-            },
             "list": {
               "type": [
                 "array",
@@ -239,7 +228,6 @@
             "float",
             "id",
             "int",
-            "json",
             "list",
             "localDate",
             "localDateTime",

@@ -5,7 +5,7 @@ namespace HotChocolate.Adapters.OpenApi.Parsing;
 public class OpenApiDefinitionParserTests
 {
     [Fact]
-    public void Document_No_Endpoint_Or_Model_RaisesError()
+    public void Document_No_Endpoint_Or_Model_ThrowsException()
     {
         // arrange
         var document = Utf8GraphQLParser.Parse(
@@ -16,16 +16,16 @@ public class OpenApiDefinitionParserTests
             """);
 
         // act
-        var result = OpenApiDefinitionParser.Parse(document);
+        var exception = Assert.Throws<OpenApiDefinitionParsingException>(
+            () => OpenApiDefinitionParser.Parse(document));
 
         // assert
-        var error = Assert.Single(result.Errors);
         Assert.Equal("Document must contain either a single operation or at least one fragment definition.",
-            error.Message);
+            exception.Message);
     }
 
     [Fact]
-    public void Document_Multiple_Endpoints_RaisesError()
+    public void Document_Multiple_Endpoints_ThrowsException()
     {
         // arrange
         var document = Utf8GraphQLParser.Parse(
@@ -43,16 +43,16 @@ public class OpenApiDefinitionParserTests
             """);
 
         // act
-        var result = OpenApiDefinitionParser.Parse(document);
+        var exception = Assert.Throws<OpenApiDefinitionParsingException>(
+            () => OpenApiDefinitionParser.Parse(document));
 
         // assert
-        var error = Assert.Single(result.Errors);
         Assert.Equal("Document must contain either a single operation or at least one fragment definition.",
-            error.Message);
+            exception.Message);
     }
 
     [Fact]
-    public void Endpoint_Empty_Route_RaisesError()
+    public void Endpoint_Empty_Route_ThrowsException()
     {
         // arrange
         var document = Utf8GraphQLParser.Parse(
@@ -65,16 +65,16 @@ public class OpenApiDefinitionParserTests
             """);
 
         // act
-        var result = OpenApiDefinitionParser.Parse(document);
+        var exception = Assert.Throws<OpenApiDefinitionParsingException>(
+            () => OpenApiDefinitionParser.Parse(document));
 
         // assert
-        var error = Assert.Single(result.Errors);
         Assert.Equal("'route' argument on @http directive must be a non-empty string.",
-            error.Message);
+            exception.Message);
     }
 
     [Fact]
-    public void Endpoint_Invalid_HttpMethod_RaisesError()
+    public void Endpoint_Invalid_HttpMethod_ThrowsException()
     {
         // arrange
         var document = Utf8GraphQLParser.Parse(
@@ -87,15 +87,15 @@ public class OpenApiDefinitionParserTests
             """);
 
         // act
-        var result = OpenApiDefinitionParser.Parse(document);
+        var exception = Assert.Throws<OpenApiDefinitionParsingException>(
+            () => OpenApiDefinitionParser.Parse(document));
 
         // assert
-        var error = Assert.Single(result.Errors);
-        Assert.Equal("'method' argument on @http directive received an invalid value 'INVALID'.", error.Message);
+        Assert.Equal("'method' argument on @http directive received an invalid value 'INVALID'.", exception.Message);
     }
 
     [Fact]
-    public void Endpoint_Missing_HttpDirective_RaisesError()
+    public void Endpoint_Missing_HttpDirective_ThrowsException()
     {
         // arrange
         var document = Utf8GraphQLParser.Parse(
@@ -108,15 +108,15 @@ public class OpenApiDefinitionParserTests
             """);
 
         // act
-        var result = OpenApiDefinitionParser.Parse(document);
+        var exception = Assert.Throws<OpenApiDefinitionParsingException>(
+            () => OpenApiDefinitionParser.Parse(document));
 
         // assert
-        var error = Assert.Single(result.Errors);
-        Assert.Equal("Operation must be annotated with @http directive.", error.Message);
+        Assert.Equal("Operation must be annotated with @http directive.", exception.Message);
     }
 
     [Fact]
-    public void Endpoint_Missing_Method_Argument_RaisesError()
+    public void Endpoint_Missing_Method_Argument_ThrowsException()
     {
         // arrange
         var document = Utf8GraphQLParser.Parse(
@@ -129,15 +129,15 @@ public class OpenApiDefinitionParserTests
             """);
 
         // act
-        var result = OpenApiDefinitionParser.Parse(document);
+        var exception = Assert.Throws<OpenApiDefinitionParsingException>(
+            () => OpenApiDefinitionParser.Parse(document));
 
         // assert
-        var error = Assert.Single(result.Errors);
-        Assert.Equal("@http directive must have a 'method' argument.", error.Message);
+        Assert.Equal("@http directive must have a 'method' argument.", exception.Message);
     }
 
     [Fact]
-    public void Endpoint_Missing_Route_Argument_RaisesError()
+    public void Endpoint_Missing_Route_Argument_ThrowsException()
     {
         // arrange
         var document = Utf8GraphQLParser.Parse(
@@ -150,15 +150,15 @@ public class OpenApiDefinitionParserTests
             """);
 
         // act
-        var result = OpenApiDefinitionParser.Parse(document);
+        var exception = Assert.Throws<OpenApiDefinitionParsingException>(
+            () => OpenApiDefinitionParser.Parse(document));
 
         // assert
-        var error = Assert.Single(result.Errors);
-        Assert.Equal("@http directive must have a 'route' argument.", error.Message);
+        Assert.Equal("@http directive must have a 'route' argument.", exception.Message);
     }
 
     [Fact]
-    public void Endpoint_Invalid_Route_Parameter_Syntax_RaisesError()
+    public void Endpoint_Invalid_Route_Parameter_Syntax_ThrowsException()
     {
         // arrange
         var document = Utf8GraphQLParser.Parse(
@@ -171,17 +171,17 @@ public class OpenApiDefinitionParserTests
             """);
 
         // act
-        var result = OpenApiDefinitionParser.Parse(document);
+        var exception = Assert.Throws<OpenApiDefinitionParsingException>(
+            () => OpenApiDefinitionParser.Parse(document));
 
         // assert
-        var error = Assert.Single(result.Errors);
         Assert.Equal(
             "Parameter variable mappings must start with '$', got 'userId:invalid'.",
-            error.Message);
+            exception.Message);
     }
 
     [Fact]
-    public void Endpoint_Invalid_QueryParameters_Type_RaisesError()
+    public void Endpoint_Invalid_QueryParameters_Type_ThrowsException()
     {
         // arrange
         var document = Utf8GraphQLParser.Parse(
@@ -194,16 +194,16 @@ public class OpenApiDefinitionParserTests
             """);
 
         // act
-        var result = OpenApiDefinitionParser.Parse(document);
+        var exception = Assert.Throws<OpenApiDefinitionParsingException>(
+            () => OpenApiDefinitionParser.Parse(document));
 
         // assert
-        var error = Assert.Single(result.Errors);
         Assert.Equal("'queryParameters' argument on @http directive must be a list of strings.",
-            error.Message);
+            exception.Message);
     }
 
     [Fact]
-    public void Endpoint_Invalid_QueryParameters_Item_Type_RaisesError()
+    public void Endpoint_Invalid_QueryParameters_Item_Type_ThrowsException()
     {
         // arrange
         var document = Utf8GraphQLParser.Parse(
@@ -216,12 +216,12 @@ public class OpenApiDefinitionParserTests
             """);
 
         // act
-        var result = OpenApiDefinitionParser.Parse(document);
+        var exception = Assert.Throws<OpenApiDefinitionParsingException>(
+            () => OpenApiDefinitionParser.Parse(document));
 
         // assert
-        var error = Assert.Single(result.Errors);
         Assert.Equal(
             "'queryParameters' argument on @http directive must contain only string values.",
-            error.Message);
+            exception.Message);
     }
 }

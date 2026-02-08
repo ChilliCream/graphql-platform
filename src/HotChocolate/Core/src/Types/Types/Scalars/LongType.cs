@@ -1,5 +1,7 @@
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
@@ -35,7 +37,6 @@ public class LongType : IntegerTypeBase<long>
         : base(name, min, max, bind)
     {
         Description = description;
-        SerializationType = ScalarSerializationType.Int;
     }
 
     /// <summary>
@@ -47,9 +48,19 @@ public class LongType : IntegerTypeBase<long>
     {
     }
 
-    protected override long ParseLiteral(IntValueNode valueSyntax) =>
-        valueSyntax.ToInt64();
+    /// <inheritdoc />
+    protected override long OnCoerceInputLiteral(IntValueNode valueSyntax)
+        => valueSyntax.ToInt64();
 
-    protected override IntValueNode ParseValue(long runtimeValue) =>
-        new(runtimeValue);
+    /// <inheritdoc />
+    protected override long OnCoerceInputValue(JsonElement inputValue)
+        => inputValue.GetInt64();
+
+    /// <inheritdoc />
+    public override void OnCoerceOutputValue(long runtimeValue, ResultElement resultValue)
+        => resultValue.SetNumberValue(runtimeValue);
+
+    /// <inheritdoc />
+    public override IValueNode OnValueToLiteral(long runtimeValue)
+        => new IntValueNode(runtimeValue);
 }

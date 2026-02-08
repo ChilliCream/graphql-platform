@@ -13,6 +13,11 @@
     <NoWarn>$(NoWarn);GD0001</NoWarn>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!--Required since otherwise the XML docs won't be inferred by the source generator.-->
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.Abstractions\GreenDonut.Data.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut.Data.EntityFramework\GreenDonut.Data.EntityFramework.csproj" />

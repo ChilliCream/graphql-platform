@@ -94,7 +94,7 @@ internal sealed class ValidateClientCommand : Command
                 switch (x.Data?.OnClientVersionValidationUpdate)
                 {
                     case IClientVersionValidationFailed { Errors: var schemaErrors }:
-                        console.Error.WriteLine("The client is invalid:");
+                        console.WriteLine("The client is invalid:");
                         console.PrintErrorsAndExit(schemaErrors);
                         stopSignal.OnNext(Unit.Default);
                         break;

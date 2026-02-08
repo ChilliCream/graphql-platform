@@ -1,9 +1,22 @@
+using System.Text.Json;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
 public class UrlTypeTests
 {
+    [Fact]
+    public void Ensure_Type_Name_Is_Correct()
+    {
+        // arrange
+        // act
+        var type = new UrlType();
+
+        // assert
+        Assert.Equal("URL", type.Name);
+    }
+
     [Fact]
     public void EnsureUrlTypeKindIsCorrect()
     {
@@ -16,200 +29,267 @@ public class UrlTypeTests
     }
 
     [Fact]
-    public void ParseLiteral_StringValueNode()
+    public void CoerceInputLiteral()
     {
         // arrange
-        var urlType = new UrlType();
+        var type = new UrlType();
         var expected = new Uri("http://domain.test/url");
         var literal = new StringValueNode(expected.AbsoluteUri);
 
         // act
-        var actual = (Uri?)urlType.ParseLiteral(literal);
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, runtimeValue);
     }
 
     [Fact]
-    public void ParseLiteral_NullValueNode()
-    {
-        // arrange
-        var urlType = new UrlType();
-        var literal = NullValueNode.Default;
-
-        // act
-        var value = urlType.ParseLiteral(literal);
-
-        // assert
-        Assert.Null(value);
-    }
-
-    [Fact]
-    public void ParseLiteral_RelativeUrl()
-    {
-        // arrange
-        var urlType = new UrlType();
-        var expected = new Uri("/relative/path", UriKind.Relative);
-        var literal = new StringValueNode($"{expected}");
-
-        // act
-        var actual = (Uri?)urlType.ParseLiteral(literal);
-
-        // Assert
-        Assert.Equal(expected, actual);
-    }
-
-    [Fact]
-    public void ParseLiteral_Invalid_Url_Throws()
+    public void CoerceInputLiteral_RelativeUrl()
     {
         // arrange
         var type = new UrlType();
-        var input = new StringValueNode("$*^domain.test");
+        var expected = new Uri("/relative/path", UriKind.Relative);
+        var literal = new StringValueNode(expected.ToString());
 
         // act
-        // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseLiteral(input));
+        var runtimeValue = type.CoerceInputLiteral(literal);
+
+        // Assert
+        Assert.Equal(expected, runtimeValue);
     }
 
     [Fact]
-    public void ParseValue_Url()
+    public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
-        var urlType = new UrlType();
+        var type = new UrlType();
+        var literal = new StringValueNode("$*^domain.test");
+
+        // act
+        void Action() => type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void CoerceInputValue()
+    {
+        // arrange
+        var type = new UrlType();
+        var expected = new Uri("http://domain.test/url");
+        var inputValue = JsonDocument.Parse($"\"{expected.AbsoluteUri}\"").RootElement;
+
+        // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Equal(expected, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputValue_RelativeUrl()
+    {
+        // arrange
+        var type = new UrlType();
+        var expected = new Uri("/relative/path", UriKind.Relative);
+        var inputValue = JsonDocument.Parse($"\"{expected}\"").RootElement;
+
+        // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
+        // Assert
+        Assert.Equal(expected, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new UrlType();
+        var inputValue = JsonDocument.Parse("\"$*^domain.test\"").RootElement;
+
+        // act
+        void Action() => type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void CoerceOutputValue()
+    {
+        // arrange
+        var type = new UrlType();
+        var uri = new Uri("http://domain.test/url");
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(uri, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"http://domain.test/url\"");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_RelativeUrl()
+    {
+        // arrange
+        var type = new UrlType();
+        var uri = new Uri("/relative/path", UriKind.Relative);
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(uri, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"/relative/path\"");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new UrlType();
+        const int value = 123;
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue(value, resultValue);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        // arrange
+        var type = new UrlType();
         var uri = new Uri("http://domain.test/url");
         var expectedLiteralValue = uri.AbsoluteUri;
 
         // act
-        var stringLiteral =
-            (StringValueNode)urlType.ParseValue(uri);
+        var literal = type.ValueToLiteral(uri);
 
         // assert
-        Assert.Equal(expectedLiteralValue, stringLiteral.Value);
+        Assert.Equal(expectedLiteralValue, Assert.IsType<StringValueNode>(literal).Value);
     }
 
     [Fact]
-    public void ParseValue_Encoded()
+    public void ValueToLiteral_Encoded()
     {
         // arrange
-        var urlType = new UrlType();
+        var type = new UrlType();
         var uri = new Uri("http://domain.test/ä+😄?q=a/α");
         var expectedLiteralValue = uri.AbsoluteUri;
 
         // act
-        var stringLiteral =
-            (StringValueNode)urlType.ParseValue(uri);
+        var literal = type.ValueToLiteral(uri);
 
         // assert
-        Assert.Equal(expectedLiteralValue, stringLiteral.Value);
+        Assert.Equal(expectedLiteralValue, Assert.IsType<StringValueNode>(literal).Value);
     }
 
     [Fact]
-    public void Serialize_Null()
+    public void ValueToLiteral_RelativeUrl()
     {
         // arrange
-        var dateType = new UrlType();
-
-        // act
-        var serializedValue = dateType.Serialize(null);
-
-        // assert
-        Assert.Null(serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Url()
-    {
-        // arrange
-        var urlType = new UrlType();
-        var uri = new Uri("http://domain.test/url");
-
-        // act
-        var serializedValue = urlType.Serialize(uri);
-
-        // assert
-        Assert.Equal(uri.AbsoluteUri, Assert.IsType<string>(serializedValue));
-    }
-
-    [Fact]
-    public void Serialize_RelativeUrl()
-    {
-        // arrange
-        var urlType = new UrlType();
+        var type = new UrlType();
         var uri = new Uri("/relative/path", UriKind.Relative);
 
         // act
-        var serializedValue = urlType.Serialize(uri);
+        var literal = type.ValueToLiteral(uri);
 
         // assert
-        Assert.Equal(uri.ToString(), Assert.IsType<string>(serializedValue));
+        Assert.Equal(uri.ToString(), Assert.IsType<StringValueNode>(literal).Value);
     }
 
     [Fact]
-    public void IsInstanceOfType_GivenUriAsStringValueNode_ReturnsTrue()
+    public void ParseLiteral()
+    {
+        // arrange
+        var type = new UrlType();
+        var expected = new Uri("http://domain.test/url");
+        var literal = new StringValueNode(expected.AbsoluteUri);
+
+        // act
+        var runtimeValue = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(expected, Assert.IsType<Uri>(runtimeValue));
+    }
+
+    [Fact]
+    public void ParseLiteral_InvalidValue()
+    {
+        // arrange
+        var type = new UrlType();
+
+        // act
+        void Action() => type.CoerceInputLiteral(new IntValueNode(123));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void IsValueCompatible_Uri_ReturnsTrue()
     {
         // Arrange
-        var urlType = new UrlType();
+        var type = new UrlType();
         var uri = new Uri("http://domain.test/url");
 
         // Act
-        var isUrlType = urlType.IsInstanceOfType(new StringValueNode(uri.AbsoluteUri));
+        var isCompatible = type.IsValueCompatible(new StringValueNode(uri.AbsoluteUri));
 
         // Assert
-        Assert.True(isUrlType);
+        Assert.True(isCompatible);
     }
 
     [Fact]
-    public void IsInstanceOfType_GivenNullValueNode_ReturnsTrue()
+    public void IsValueCompatible_NullValueNode_ReturnsFalse()
     {
         // arrange
-        var urlType = new UrlType();
+        var type = new UrlType();
 
         // act
-        var isUrlType = urlType.IsInstanceOfType(new NullValueNode(null));
+        var isCompatible = type.IsValueCompatible(NullValueNode.Default);
 
         // assert
-        Assert.True(isUrlType);
+        Assert.False(isCompatible);
     }
 
     [Fact]
-    public void IsInstanceOfType_GivenInvalidUriAsStringLiteral_False()
+    public void IsValueCompatible_Null_ReturnsFalse()
     {
         // arrange
-        var urlType = new UrlType();
+        var type = new UrlType();
 
         // act
-        var isUrlType = urlType.IsInstanceOfType(
-            new StringValueNode("$*^domain.test"));
+        var compatible = type.IsValueCompatible(null!);
 
         // assert
-        Assert.False(isUrlType);
+        Assert.False(compatible);
     }
 
     [Fact]
-    public void IsInstanceOfType_GivenNull_ThrowsArgumentException()
+    public void IsValueCompatible_IntValueNode_ReturnsFalse()
     {
         // arrange
-        var urlType = new UrlType();
-
-        // act
-        Action action = () => urlType.IsInstanceOfType(null!);
-
-        // assert
-        Assert.Throws<ArgumentNullException>(action);
-    }
-
-    [Fact]
-    public void IsInstanceOfType_GivenNonUrlValueNode_ReturnsFalse()
-    {
-        // arrange
-        var urlType = new UrlType();
+        var type = new UrlType();
         var intValue = new IntValueNode(1);
 
         // act
-        var isUrlType = urlType.IsInstanceOfType(intValue);
+        var isCompatible = type.IsValueCompatible(intValue);
 
         // assert
-        Assert.False(isUrlType);
+        Assert.False(isCompatible);
     }
 }

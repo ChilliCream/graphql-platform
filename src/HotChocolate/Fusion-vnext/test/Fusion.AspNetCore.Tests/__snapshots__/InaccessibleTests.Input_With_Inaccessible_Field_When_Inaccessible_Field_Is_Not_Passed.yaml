@@ -21,7 +21,7 @@ response:
           ],
           "extensions": {
             "field": "b",
-            "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
+            "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Object-Field-Names"
           }
         }
       ]

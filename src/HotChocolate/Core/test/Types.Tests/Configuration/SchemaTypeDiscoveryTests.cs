@@ -1,4 +1,7 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration;
@@ -185,42 +188,24 @@ public class SchemaTypeDiscoveryTests
 
         public override Type RuntimeType => typeof(byte[]);
 
-        public override bool IsInstanceOfType(IValueNode literal)
+        public override ScalarSerializationType SerializationType => ScalarSerializationType.String;
+
+        public override object CoerceInputLiteral(IValueNode literal)
         {
             throw new NotSupportedException();
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
         {
             throw new NotSupportedException();
         }
 
-        public override IValueNode ParseValue(object? value)
+        public override void CoerceOutputValue(object runtimeValue, ResultElement resultValue)
         {
             throw new NotSupportedException();
         }
 
-        public override IValueNode ParseResult(object? resultValue)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override object Serialize(object? runtimeValue)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override object Deserialize(object? resultValue)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override bool TryDeserialize(object? resultValue, out object runtimeValue)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override bool TrySerialize(object? runtimeValue, out object resultValue)
+        public override IValueNode ValueToLiteral(object runtimeValue)
         {
             throw new NotSupportedException();
         }

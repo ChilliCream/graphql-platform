@@ -39,7 +39,7 @@ public static class SnapshotExtensions
         IExecutionResult result,
         string? name = null)
     {
-        if (result.ContextData is null)
+        if (result.ContextData.IsEmpty)
         {
             snapshot.Add(result.ToJson(), name);
             return snapshot;

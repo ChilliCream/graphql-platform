@@ -12,7 +12,7 @@ public ref struct JsonValueParser
 {
     private const int DefaultMaxAllowedDepth = 64;
     private readonly int _maxAllowedDepth;
-    private Utf8MemoryBuilder? _memory;
+    internal Utf8MemoryBuilder? _memory;
     private readonly PooledArrayWriter? _externalBuffer;
 
     public JsonValueParser()
@@ -61,7 +61,7 @@ public ref struct JsonValueParser
         }
     }
 
-    private IValueNode Parse(JsonElement element, int depth)
+    internal IValueNode Parse(JsonElement element, int depth)
     {
         if (depth > _maxAllowedDepth)
         {
@@ -178,6 +178,17 @@ public ref struct JsonValueParser
     /// <param name="json">The JSON span to parse.</param>
     /// <returns>The parsed GraphQL value node.</returns>
     public IValueNode Parse(ReadOnlySpan<byte> json)
+    {
+        var reader = new Utf8JsonReader(json, isFinalBlock: true, state: default);
+        return Parse(ref reader);
+    }
+
+    /// <summary>
+    /// Parses a JSON span as a GraphQL value node.
+    /// </summary>
+    /// <param name="json">The JSON span to parse.</param>
+    /// <returns>The parsed GraphQL value node.</returns>
+    public IValueNode Parse(ReadOnlySequence<byte> json)
     {
         var reader = new Utf8JsonReader(json, isFinalBlock: true, state: default);
         return Parse(ref reader);

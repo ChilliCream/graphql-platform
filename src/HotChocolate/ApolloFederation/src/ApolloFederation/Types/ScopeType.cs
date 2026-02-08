@@ -1,5 +1,9 @@
+using System.Text.Json;
 using HotChocolate.ApolloFederation.Properties;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation.Types;
 
@@ -30,12 +34,15 @@ public sealed class ScopeType : ScalarType<Scope, StringValueNode>
         Description = FederationResources.ScopeType_Description;
     }
 
-    protected override Scope ParseLiteral(StringValueNode valueSyntax)
-        => new(valueSyntax.Value);
+    protected override Scope OnCoerceInputLiteral(StringValueNode valueLiteral)
+        => new(valueLiteral.Value);
 
-    public override IValueNode ParseResult(object? resultValue)
-        => ParseValue(resultValue);
+    protected override Scope OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        => new Scope(inputValue.GetString()!);
 
-    protected override StringValueNode ParseValue(Scope runtimeValue)
+    protected override void OnCoerceOutputValue(Scope runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(runtimeValue.Value);
+
+    protected override StringValueNode OnValueToLiteral(Scope runtimeValue)
         => new(runtimeValue.Value);
 }

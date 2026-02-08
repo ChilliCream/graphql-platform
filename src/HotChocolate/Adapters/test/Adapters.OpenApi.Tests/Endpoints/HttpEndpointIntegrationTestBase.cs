@@ -377,7 +377,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
         // arrange
         var storage = new TestOpenApiDefinitionStorage(
             """
-            query TestQuery($input: JSON! @body) @http(method: POST, route: "/example") {
+            query TestQuery($input: Any! @body) @http(method: POST, route: "/example") {
               json(input: $input)
             }
             """);

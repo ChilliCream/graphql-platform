@@ -39,20 +39,14 @@
   <data name="IconDefinition_InvalidIconTheme" xml:space="preserve">
     <value>The icon theme must be 'light' or 'dark'.</value>
   </data>
-  <data name="OpenAiComponent_ToolInvokedStatusTextCannotExceed64Characters" xml:space="preserve">
-    <value>ToolInvokedStatusText cannot exceed 64 characters.</value>
-  </data>
-  <data name="OpenAiComponent_ToolInvokingStatusTextCannotExceed64Characters" xml:space="preserve">
-    <value>ToolInvokingStatusText cannot exceed 64 characters.</value>
-  </data>
   <data name="OperationToolDefinition_DocumentMustContainSingleOperation" xml:space="preserve">
     <value>An operation tool document must have exactly one operation definition.</value>
   </data>
   <data name="OperationToolDefinition_InvalidToolName" xml:space="preserve">
     <value>The tool name '{0}' is invalid. Tool names must match the regular expression '{1}'.</value>
   </data>
-  <data name="OperationToolFactory_OpenAiComponentResourceName" xml:space="preserve">
-    <value>{0} OpenAI Component</value>
+  <data name="OperationToolFactory_McpAppViewResourceName" xml:space="preserve">
+    <value>{0} View</value>
   </data>
   <data name="ReadResourceHandler_ResourceNotFound" xml:space="preserve">
     <value>Resource not found.</value>

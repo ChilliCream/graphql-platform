@@ -111,12 +111,6 @@ namespace HotChocolate.AspNetCore.Properties {
             }
         }
         
-        internal static string ThrowHelper_HttpMultipartMiddleware_VariableNotFound {
-            get {
-                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_VariableNotFound", resourceCulture);
-            }
-        }
-        
         internal static string ThrowHelper_HttpMultipartMiddleware_VariableStructureInvalid {
             get {
                 return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_VariableStructureInvalid", resourceCulture);

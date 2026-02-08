@@ -36,12 +36,6 @@
   <data name="ComposeCommand_Description" xml:space="preserve">
     <value>Composes multiple source schemas into a single composite schema.</value>
   </data>
-  <data name="ComposeCommand_GlobalObjectIdentification_Disabled" xml:space="preserve">
-    <value>Disabled global object identification.</value>
-  </data>
-  <data name="ComposeCommand_GlobalObjectIdentification_Enabled" xml:space="preserve">
-    <value>Enabled global object identification.</value>
-  </data>
   <data name="ComposeCommand_EnableGlobalObjectIdentification_Description" xml:space="preserve">
     <value>Determines whether the 'Query.node' field shall be added.</value>
   </data>
@@ -57,6 +51,9 @@
   <data name="ComposeCommand_Error_WorkingDirectoryDoesNotExist" xml:space="preserve">
     <value>❌ Working directory '{0}' does not exist.</value>
   </data>
+  <data name="ComposeCommand_IncludeSatisfiabilityPaths_Description" xml:space="preserve">
+    <value>Determines whether to include paths in satisfiability error messages.</value>
+  </data>
   <data name="ComposeCommand_SourceSchemaFile_Description" xml:space="preserve">
     <value>Specifies the path to a source schema file (.graphqls) to include in the composition.</value>
   </data>
@@ -65,5 +62,8 @@
   </data>
   <data name="RootCommand_Description" xml:space="preserve">
     <value>Nitro CLI</value>
+  </data>
+  <data name="PublishCommand_SourceSchemaOption_Description" xml:space="preserve">
+    <value>Specifies one or more source schemas that should be included in the composition. Source schemas can either be just a name ('example') or a name and a version ('example@1.0.0'). If no version is specified the value of the '--tag' option is taken as the source schema version.</value>
   </data>
 </root>

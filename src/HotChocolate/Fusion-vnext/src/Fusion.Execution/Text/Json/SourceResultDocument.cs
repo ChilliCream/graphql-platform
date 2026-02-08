@@ -2,6 +2,8 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Buffers;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -103,15 +105,15 @@ public sealed partial class SourceResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteRawValueTo(IBufferWriter<byte> writer, DbRow row)
+    private void WriteRawValueTo(Utf8JsonWriter writer, DbRow row)
     {
         if (row.TokenType is JsonTokenType.String)
         {
-            WriteRawValueTo(writer, row.Location - 1, row.SizeOrLength + 2);
+            writer.WriteRawValue(ReadRawValue(row.Location - 1, row.SizeOrLength + 2), skipInputValidation: true);
             return;
         }
 
-        WriteRawValueTo(writer, row.Location, row.SizeOrLength);
+        writer.WriteRawValue(ReadRawValue(row.Location, row.SizeOrLength), skipInputValidation: true);
     }
 
     internal void WriteRawValueTo(IBufferWriter<byte> writer, int location, int size)
@@ -148,8 +150,17 @@ public sealed partial class SourceResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ReadOnlySpan<byte> ReadRawValue(DbRow row)
-        => ReadRawValue(row.Location, row.SizeOrLength);
+    private ReadOnlySpan<byte> ReadRawValue(DbRow row, bool includeQuotes)
+    {
+        if (row.IsSimpleValue && includeQuotes && row.TokenType == JsonTokenType.String)
+        {
+            // Start one character earlier than the value (the open quote)
+            // End one character after the value (the close quote)
+            return ReadRawValue(row.Location - 1, row.SizeOrLength + 2);
+        }
+
+        return ReadRawValue(row.Location, row.SizeOrLength);
+    }
 
     internal ReadOnlySpan<byte> ReadRawValue(int location, int size)
     {
@@ -205,7 +216,7 @@ public sealed partial class SourceResultDocument : IDisposable
             var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, JsonMemory.BufferSize - offsetInChunk);
 
             chunk.AsSpan(offsetInChunk, bytesToCopyFromThisChunk)
-                 .CopyTo(tempArray.AsSpan(bytesRead));
+                .CopyTo(tempArray.AsSpan(bytesRead));
 
             bytesRead += bytesToCopyFromThisChunk;
             currentLocation += bytesToCopyFromThisChunk;
@@ -228,7 +239,7 @@ public sealed partial class SourceResultDocument : IDisposable
         {
             if (_pooledMemory)
             {
-                JsonMemory.Return(_dataChunks, _usedChunks);
+                JsonMemory.Return(JsonMemoryKind.Json, _dataChunks, _usedChunks);
 
                 if (_dataChunks.Length > 1)
                 {

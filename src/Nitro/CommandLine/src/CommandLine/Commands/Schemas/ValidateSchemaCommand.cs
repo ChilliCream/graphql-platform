@@ -94,7 +94,7 @@ internal sealed class ValidateSchemaCommand : Command
                 switch (x.Data?.OnSchemaVersionValidationUpdate)
                 {
                     case ISchemaVersionValidationFailed { Errors: var schemaErrors }:
-                        console.Error.WriteLine("The schema is invalid:");
+                        console.WriteLine("The schema is invalid:");
                         console.PrintErrorsAndExit(schemaErrors);
                         stopSignal.OnNext(Unit.Default);
                         break;

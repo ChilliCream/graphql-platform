@@ -31,12 +31,6 @@ public class CodeFirstAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 1,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "person"
                       ],
@@ -158,12 +152,6 @@ public class CodeFirstAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "cityOrStreet"
                       ],
@@ -207,12 +195,6 @@ public class CodeFirstAuthorizationTests
                   "errors": [
                     {
                       "message": "The current user is not authorized to access this resource.",
-                      "locations": [
-                        {
-                          "line": 2,
-                          "column": 3
-                        }
-                      ],
                       "path": [
                         "thisIsAuthorized"
                       ],

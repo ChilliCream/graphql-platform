@@ -1,26 +1,46 @@
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
+using System.Runtime.InteropServices;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Parsers;
 using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Buffers;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.Utilities.ErrorHelper;
-using static HotChocolate.AspNetCore.Properties.AspNetCorePipelineResources;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 using ThrowHelper = HotChocolate.AspNetCore.Utilities.ThrowHelper;
 
 namespace HotChocolate.AspNetCore;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 {
     private const string Operations = "operations";
     private const string Map = "map";
+    private static readonly JsonReaderOptions s_variablesReaderOptions =
+        new()
+        {
+            CommentHandling = JsonCommentHandling.Skip
+        };
+    private static readonly JsonWriterOptions s_variableWriterOptions =
+        new()
+        {
+            Indented = false,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
     private readonly FormOptions _formOptions;
-    private readonly IOperationResult _multipartRequestError = MultiPartRequestPreflightRequired();
+    private readonly OperationResult _multipartRequestError = MultiPartRequestPreflightRequired();
 
     public HttpMultipartMiddleware(
         HttpRequestDelegate next,
@@ -61,7 +81,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         }
     }
 
-    protected override async ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestsFromBodyAsync(
+    protected override async ValueTask<GraphQLRequest[]> ParseRequestsFromBodyAsync(
         HttpContext context,
         ExecutorSession session)
     {
@@ -82,9 +102,54 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         var multipartRequest = ParseMultipartRequest(form);
         var requests = session.RequestParser.ParseRequest(multipartRequest.Operations);
 
-        foreach (var graphQLRequest in requests)
+        for (var i = 0; i < requests.Length; i++)
         {
-            InsertFilesIntoRequest(graphQLRequest, multipartRequest.FileMap);
+            var current = requests[i];
+
+            context.Response.RegisterForDispose(current);
+
+            if (!multipartRequest.FileMap.Root.TryGetNode(i.ToString(), out var operationRoot))
+            {
+                continue;
+            }
+
+            if (current.Variables is null)
+            {
+                // the request is invalid as we have files for this request but no variables.
+                throw new InvalidOperationException();
+            }
+
+            var json = JsonMarshal.GetRawUtf8Value(current.Variables.RootElement);
+            var expectedBufferSize = json.Length + (json.Length / 5);
+            var bufferWriter = new PooledArrayWriter(expectedBufferSize);
+            var variablesReader = new Utf8JsonReader(json, s_variablesReaderOptions);
+            await using var variablesWriter = new Utf8JsonWriter(bufferWriter, s_variableWriterOptions);
+
+            try
+            {
+                RewriteVariables(ref variablesReader, variablesWriter, operationRoot);
+                await variablesWriter.FlushAsync();
+
+                current = current with
+                {
+                    Variables = JsonDocument.Parse(bufferWriter.Memory),
+                    VariablesMemoryOwner = bufferWriter
+                };
+                context.Response.RegisterForDispose(current);
+
+                requests[i] = current;
+            }
+            catch
+            {
+                bufferWriter.Dispose();
+
+                foreach (var request in requests)
+                {
+                    request.Dispose();
+                }
+
+                throw;
+            }
         }
 
         return requests;
@@ -134,123 +199,147 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
             throw ThrowHelper.HttpMultipartMiddleware_MapNotSpecified();
         }
 
-        // Validate file mappings and bring them in an easy to use format
-        var pathToFileMap = MapFilesToObjectPaths(map, form.Files);
+        // Validate file mappings and bring them in an easy-to-use format
+        var files = FormFileLookup.Create(map, form.Files);
+        var fileMap = FileMapTrie.Parse(map);
 
-        return new HttpMultipartRequest(operations, pathToFileMap);
+        return new HttpMultipartRequest(operations, files, fileMap);
     }
 
-    private static Dictionary<string, IFile> MapFilesToObjectPaths(
-        IDictionary<string, string[]> map,
-        IFormFileCollection files)
+    private void RewriteVariables(
+        ref Utf8JsonReader originalVariables,
+        Utf8JsonWriter variables,
+        FileMapTrieNode fileMapRoot)
+        => RewriteJsonValue(ref originalVariables, variables, fileMapRoot);
+
+    private static void RewriteJsonValue(
+        ref Utf8JsonReader reader,
+        Utf8JsonWriter writer,
+        FileMapTrieNode currentNode)
     {
-        var pathToFileMap = new Dictionary<string, IFile>();
-
-        foreach (var (filename, objectPaths) in map)
+        switch (reader.TokenType)
         {
-            if (objectPaths is null || objectPaths.Length < 1)
-            {
-                throw ThrowHelper.HttpMultipartMiddleware_NoObjectPath(filename);
-            }
-
-            var file = filename.Length > 0 ? files.GetFile(filename) : null;
-
-            if (file is null)
-            {
-                throw ThrowHelper.HttpMultipartMiddleware_FileMissing(filename);
-            }
-
-            foreach (var objectPath in objectPaths)
-            {
-                pathToFileMap.Add(objectPath, new UploadedFile(file));
-            }
-        }
-
-        return pathToFileMap;
-    }
-
-    private static void InsertFilesIntoRequest(
-        GraphQLRequest request,
-        IDictionary<string, IFile> fileMap)
-    {
-        if (request.Variables is not [Dictionary<string, object?> mutableVariables])
-        {
-            throw new InvalidOperationException(
-                HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable);
-        }
-
-        foreach (var (objectPath, file) in fileMap)
-        {
-            var path = VariablePath.Parse(objectPath);
-
-            if (!mutableVariables.TryGetValue(path.Key.Value, out var value))
-            {
-                throw ThrowHelper.HttpMultipartMiddleware_VariableNotFound(objectPath);
-            }
-
-            if (path.Key.Next is null)
-            {
-                mutableVariables[path.Key.Value] = new FileValueNode(file);
-                continue;
-            }
-
-            if (value is null)
-            {
-                throw ThrowHelper.HttpMultipartMiddleware_VariableStructureInvalid();
-            }
-
-            mutableVariables[path.Key.Value] = RewriteVariable(
-                objectPath,
-                path.Key.Next,
-                value,
-                new FileValueNode(file));
-        }
-    }
-
-    private static IValueNode RewriteVariable(
-        string objectPath,
-        IVariablePathSegment segment,
-        object value,
-        FileValueNode file)
-    {
-        if (segment is KeyPathSegment key && value is ObjectValueNode ov)
-        {
-            var pos = -1;
-
-            for (var i = 0; i < ov.Fields.Count; i++)
-            {
-                if (ov.Fields[i].Name.Value.Equals(key.Value, StringComparison.Ordinal))
+            case JsonTokenType.StartObject:
+                writer.WriteStartObject();
+                while (reader.Read() && reader.TokenType is not JsonTokenType.EndObject)
                 {
-                    pos = i;
-                    break;
+                    // Read property name, we allocate here the string as we have a string as key in our trie.
+                    var propertyName = reader.GetString()!;
+                    writer.WritePropertyName(propertyName);
+
+                    // Try to navigate to the child node in the trie
+                    var hasChildNode = currentNode.TryGetNode(propertyName, out var childNode);
+
+                    // Read the property value
+                    reader.Read();
+
+                    // If this is a null, and we have a file key, replace it
+                    if (reader.TokenType is JsonTokenType.Null
+                        && hasChildNode
+                        && childNode!.FileKey is not null)
+                    {
+                        writer.WriteStringValue(childNode.FileKey);
+                    }
+                    else if (hasChildNode)
+                    {
+                        // Recurse with the child node
+                        RewriteJsonValue(ref reader, writer, childNode!);
+                    }
+                    else
+                    {
+                        // No mapping for this path, copy value as-is
+                        CopyCurrentValue(ref reader, writer);
+                    }
                 }
-            }
+                writer.WriteEndObject();
+                break;
 
-            if (pos == -1)
-            {
-                throw ThrowHelper.HttpMultipartMiddleware_VariableNotFound(objectPath);
-            }
+            case JsonTokenType.StartArray:
+                writer.WriteStartArray();
+                var index = 0;
+                while (reader.Read() && reader.TokenType is not JsonTokenType.EndArray)
+                {
+                    // Try to navigate to the child node by array index
+                    var indexKey = index.ToString();
+                    var hasChildNode = currentNode.TryGetNode(indexKey, out var childNode);
 
-            var fields = ov.Fields.ToArray();
-            var field = fields[pos];
-            fields[pos] = field.WithValue(
-                key.Next is not null
-                    ? RewriteVariable(objectPath, key.Next, field.Value, file)
-                    : file);
-            return ov.WithFields(fields);
+                    // If this is a null, and we have a file key, replace it
+                    if (reader.TokenType is JsonTokenType.Null
+                        && hasChildNode
+                        && childNode!.FileKey is not null)
+                    {
+                        writer.WriteStringValue(childNode.FileKey);
+                    }
+                    else if (hasChildNode)
+                    {
+                        // Recurse with the child node
+                        RewriteJsonValue(ref reader, writer, childNode!);
+                    }
+                    else
+                    {
+                        // No mapping for this path, copy value as-is
+                        CopyCurrentValue(ref reader, writer);
+                    }
+
+                    index++;
+                }
+                writer.WriteEndArray();
+                break;
+
+            default:
+                // For all other token types (strings, numbers, booleans, null), copy as-is
+                CopyCurrentValue(ref reader, writer);
+                break;
         }
+    }
 
-        if (segment is IndexPathSegment index && value is ListValueNode lv)
+    private static void CopyCurrentValue(ref Utf8JsonReader reader, Utf8JsonWriter writer)
+    {
+        switch (reader.TokenType)
         {
-            var items = lv.Items.ToArray();
-            var item = items[index.Value];
-            items[index.Value] = index.Next is not null
-                ? RewriteVariable(objectPath, index.Next, item, file)
-                : file;
-            return lv.WithItems(items);
-        }
+            case JsonTokenType.StartObject:
+                writer.WriteStartObject();
+                while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+                {
+                    if (reader.TokenType == JsonTokenType.PropertyName)
+                    {
+                        writer.WritePropertyName(reader.GetString()!);
+                        reader.Read();
+                        CopyCurrentValue(ref reader, writer);
+                    }
+                }
+                writer.WriteEndObject();
+                break;
 
-        throw ThrowHelper.HttpMultipartMiddleware_VariableNotFound(objectPath);
+            case JsonTokenType.StartArray:
+                writer.WriteStartArray();
+                while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+                {
+                    CopyCurrentValue(ref reader, writer);
+                }
+                writer.WriteEndArray();
+                break;
+
+            case JsonTokenType.String:
+                writer.WriteStringValue(reader.ValueSpan);
+                break;
+
+            case JsonTokenType.Number:
+                writer.WriteRawValue(reader.ValueSpan);
+                break;
+
+            case JsonTokenType.True:
+                writer.WriteBooleanValue(true);
+                break;
+
+            case JsonTokenType.False:
+                writer.WriteBooleanValue(false);
+                break;
+
+            case JsonTokenType.Null:
+                writer.WriteNullValue();
+                break;
+        }
     }
 }
 

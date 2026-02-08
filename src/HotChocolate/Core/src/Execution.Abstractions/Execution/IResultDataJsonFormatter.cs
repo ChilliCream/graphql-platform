@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Execution;
 
@@ -21,7 +22,7 @@ public interface IResultDataJsonFormatter
     /// The null ignore condition.
     /// </param>
     void WriteTo(
-        Utf8JsonWriter writer,
+        JsonWriter writer,
         JsonSerializerOptions? options = null,
         JsonNullIgnoreCondition nullIgnoreCondition = JsonNullIgnoreCondition.None);
 }

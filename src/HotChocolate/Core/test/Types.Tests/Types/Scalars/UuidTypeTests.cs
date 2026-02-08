@@ -1,363 +1,304 @@
+using System.Text.Json;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
 public class UuidTypeTests
 {
     [Fact]
-    public void IsInstanceOfType_StringLiteral()
+    public void Ensure_Type_Name_Is_Correct()
     {
         // arrange
-        var uuidType = new UuidType();
-        var guid = Guid.NewGuid();
-
         // act
-        var isOfType = uuidType.IsInstanceOfType(guid);
+        var type = new UuidType();
 
         // assert
-        Assert.True(isOfType);
+        Assert.Equal("UUID", type.Name);
     }
 
     [Fact]
-    public void IsInstanceOfType_NullLiteral()
+    public void IsValueCompatible_StringLiteral()
     {
         // arrange
-        var uuidType = new UuidType();
+        var type = new UuidType();
+        var guid = Guid.NewGuid();
+        var literal = new StringValueNode(guid.ToString("D"));
+
+        // act
+        var isCompatible = type.IsValueCompatible(literal);
+
+        // assert
+        Assert.True(isCompatible);
+    }
+
+    [Fact]
+    public void IsValueCompatible_NullLiteral()
+    {
+        // arrange
+        var type = new UuidType();
         var literal = new NullValueNode(null);
 
         // act
-        var isOfType = uuidType.IsInstanceOfType(literal);
+        var isCompatible = type.IsValueCompatible(literal);
 
         // assert
-        Assert.True(isOfType);
+        Assert.False(isCompatible);
     }
 
     [Fact]
-    public void IsInstanceOfType_IntLiteral()
+    public void IsValueCompatible_IntLiteral()
     {
         // arrange
-        var uuidType = new UuidType();
+        var type = new UuidType();
         var literal = new IntValueNode(123);
 
         // act
-        var isOfType = uuidType.IsInstanceOfType(literal);
+        var isCompatible = type.IsValueCompatible(literal);
 
         // assert
-        Assert.False(isOfType);
+        Assert.False(isCompatible);
     }
 
     [Fact]
-    public void IsInstanceOfType_Null()
+    public void IsValueCompatible_Null()
     {
         // arrange
-        var uuidType = new UuidType();
+        var type = new UuidType();
 
         // act
-        void Action() => uuidType.IsInstanceOfType(null!);
+        var isCompatible = type.IsValueCompatible(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.False(isCompatible);
     }
 
     [Fact]
-    public void Serialize_Guid()
+    public void CoerceInputLiteral()
     {
         // arrange
-        var uuidType = new UuidType();
-        var guid = Guid.NewGuid();
-
-        // act
-        var serializedValue = uuidType.Serialize(guid);
-
-        // assert
-        Assert.Equal(guid.ToString("D"), Assert.IsType<string>(serializedValue));
-    }
-
-    [Fact]
-    public void Serialize_Null()
-    {
-        // arrange
-        var uuidType = new UuidType();
-
-        // act
-        var serializedValue = uuidType.Serialize(null);
-
-        // assert
-        Assert.Null(serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Int()
-    {
-        // arrange
-        var uuidType = new UuidType();
-        const int value = 123;
-
-        // act
-        void Action() => uuidType.Serialize(value);
-
-        // assert
-        Assert.Throws<SerializationException>(Action);
-    }
-
-    [Fact]
-    public void Deserialize_Null()
-    {
-        // arrange
-        var uuidType = new UuidType();
-
-        // act
-        var success = uuidType.TryDeserialize(null, out var o);
-
-        // assert
-        Assert.True(success);
-        Assert.Null(o);
-    }
-
-    [Fact]
-    public void Deserialize_String()
-    {
-        // arrange
-        var uuidType = new UuidType();
-        var guid = Guid.NewGuid();
-
-        // act
-        var success = uuidType.TryDeserialize(guid.ToString("N"), out var o);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(guid, o);
-    }
-
-    [Fact]
-    public void Deserialize_Guid()
-    {
-        // arrange
-        var uuidType = new UuidType();
-        var guid = Guid.NewGuid();
-
-        // act
-        var success = uuidType.TryDeserialize(guid, out var o);
-
-        // assert
-        Assert.True(success);
-        Assert.Equal(guid, o);
-    }
-
-    [Fact]
-    public void Deserialize_Int()
-    {
-        // arrange
-        var uuidType = new UuidType();
-        const int value = 123;
-
-        // act
-        var success = uuidType.TryDeserialize(value, out _);
-
-        // assert
-        Assert.False(success);
-    }
-
-    [Fact]
-    public void ParseLiteral_StringValueNode()
-    {
-        // arrange
-        var uuidType = new UuidType();
+        var type = new UuidType();
         var expected = Guid.NewGuid();
-        var literalA = new StringValueNode(expected.ToString("N"));
-        var literalB = new StringValueNode(expected.ToString("P"));
+        var literal = new StringValueNode(expected.ToString("D"));
 
         // act
-        var runtimeValueA = (Guid)uuidType.ParseLiteral(literalA)!;
-        var runtimeValueB = (Guid)uuidType.ParseLiteral(literalB)!;
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Equal(expected, runtimeValueA);
-        Assert.Equal(expected, runtimeValueB);
+        Assert.Equal(expected, runtimeValue);
     }
 
     [Fact]
-    public void ParseLiteral_StringValueNode_Enforce_Format()
+    public void CoerceInputLiteral_MultipleFormats()
     {
         // arrange
-        var uuidType = new UuidType(defaultFormat: 'P', enforceFormat: true);
+        var type = new UuidType();
+        var expected = Guid.NewGuid();
+        var literalN = new StringValueNode(expected.ToString("N"));
+        var literalP = new StringValueNode(expected.ToString("P"));
+
+        // act
+        var runtimeValueN = (Guid)type.CoerceInputLiteral(literalN)!;
+        var runtimeValueP = (Guid)type.CoerceInputLiteral(literalP)!;
+
+        // assert
+        Assert.Equal(expected, runtimeValueN);
+        Assert.Equal(expected, runtimeValueP);
+    }
+
+    [Fact]
+    public void CoerceInputLiteral_EnforceFormat()
+    {
+        // arrange
+        var type = new UuidType(defaultFormat: 'P', enforceFormat: true);
         var expected = Guid.NewGuid();
         var literal = new StringValueNode(expected.ToString("N"));
 
         // act
-        void Action() => uuidType.ParseLiteral(literal);
+        void Action() => type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseLiteral_IntValueNode()
+    public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
-        var uuidType = new UuidType();
+        var type = new UuidType();
         var literal = new IntValueNode(123);
 
         // act
-        void Action() => uuidType.ParseLiteral(literal);
+        void Action() => type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseLiteral_NullValueNode()
+    public void CoerceInputLiteral_Invalid_Null()
     {
         // arrange
-        var uuidType = new UuidType();
-        var literal = NullValueNode.Default;
+        var type = new UuidType();
 
         // act
-        var value = uuidType.ParseLiteral(literal);
+        void Action() => type.CoerceInputLiteral(null!);
 
         // assert
-        Assert.Null(value);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseLiteral_Null()
+    public void CoerceInputValue()
     {
         // arrange
-        var uuidType = new UuidType();
+        var type = new UuidType();
+        var guid = Guid.NewGuid();
+        var inputValue = JsonDocument.Parse($"\"{guid:D}\"").RootElement;
 
         // act
-        void Action() => uuidType.ParseLiteral(null!);
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Equal(guid, runtimeValue);
     }
 
-    [Fact]
-    public void ParseValue_Guid()
+    [Theory]
+    [InlineData('N')]
+    [InlineData('D')]
+    [InlineData('B')]
+    [InlineData('P')]
+    public void CoerceInputValue_WithFormat(char format)
     {
         // arrange
-        var uuidType = new UuidType();
-        var expected = Guid.NewGuid();
-        var expectedLiteralValue = expected.ToString("D");
+        var type = new UuidType(defaultFormat: format);
+        var guid = Guid.Empty;
+        var inputValue = JsonDocument.Parse($"\"{guid.ToString(format.ToString())}\"").RootElement;
 
         // act
-        var stringLiteral = (StringValueNode)uuidType.ParseValue(expected);
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.Equal(expectedLiteralValue, stringLiteral.Value);
+        Assert.Equal(guid, runtimeValue);
     }
 
     [Fact]
-    public void ParseValue_Null()
+    public void CoerceInputValue_Invalid_Format()
     {
         // arrange
-        var uuidType = new UuidType();
-        Guid? guid = null;
+        var type = new UuidType();
+        var inputValue = JsonDocument.Parse("\"invalid\"").RootElement;
 
         // act
-        var stringLiteral = uuidType.ParseValue(guid);
+        void Action() => type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.True(stringLiteral is NullValueNode);
-        Assert.Null(((NullValueNode)stringLiteral).Value);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseValue_Int()
+    public void CoerceOutputValue()
     {
         // arrange
-        var uuidType = new UuidType();
+        var type = new UuidType();
+        var guid = Guid.Parse("c8c483be-4319-4903-a064-8a6ba66da99e");
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(guid, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"c8c483be-4319-4903-a064-8a6ba66da99e\"");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new UuidType();
         const int value = 123;
 
         // act
-        void Action() => uuidType.ParseValue(value);
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue(value, resultValue);
 
         // assert
-        Assert.Throws<SerializationException>(Action);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void EnsureDateTypeKindIsCorrect()
+    public void ValueToLiteral()
+    {
+        // arrange
+        var type = new UuidType();
+        var guid = Guid.NewGuid();
+        var expectedLiteralValue = guid.ToString("D");
+
+        // act
+        var literal = type.ValueToLiteral(guid);
+
+        // assert
+        Assert.Equal(expectedLiteralValue, Assert.IsType<StringValueNode>(literal).Value);
+    }
+
+    [Theory]
+    [InlineData('N')]
+    [InlineData('D')]
+    [InlineData('B')]
+    [InlineData('P')]
+    public void ValueToLiteral_WithFormat(char format)
+    {
+        // arrange
+        var type = new UuidType(defaultFormat: format);
+        var guid = Guid.Empty;
+
+        // act
+        var literal = type.ValueToLiteral(guid);
+
+        // assert
+        Assert.Equal(guid.ToString(format.ToString()), Assert.IsType<StringValueNode>(literal).Value);
+    }
+
+    [Fact]
+    public void ParseLiteral()
+    {
+        // arrange
+        var type = new UuidType();
+        var expected = Guid.NewGuid();
+        var literal = new StringValueNode(expected.ToString("D"));
+
+        // act
+        var runtimeValue = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(expected, Assert.IsType<Guid>(runtimeValue));
+    }
+
+    [Fact]
+    public void ParseLiteral_InvalidValue()
+    {
+        // arrange
+        var type = new UuidType();
+
+        // act
+        void Action() => type.CoerceInputLiteral(new IntValueNode(123));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void EnsureUuidTypeKindIsCorrect()
     {
         // arrange
         var type = new UuidType();
 
         // assert
         Assert.Equal(TypeKind.Scalar, type.Kind);
-    }
-
-    [InlineData('N')]
-    [InlineData('D')]
-    [InlineData('B')]
-    [InlineData('P')]
-    [Theory]
-    public void Serialize_With_Format(char format)
-    {
-        // arrange
-        var uuidType = new UuidType(defaultFormat: format);
-        var guid = Guid.Empty;
-
-        // act
-        var s = (string)uuidType.Serialize(guid)!;
-
-        // assert
-        Assert.Equal(guid.ToString(format.ToString()), s);
-    }
-
-    [InlineData('N')]
-    [InlineData('D')]
-    [InlineData('B')]
-    [InlineData('P')]
-    [Theory]
-    public void Deserialize_With_Format(char format)
-    {
-        // arrange
-        var uuidType = new UuidType(defaultFormat: format);
-        var guid = Guid.Empty;
-        var serialized = guid.ToString(format.ToString());
-
-        // act
-        var deserialized = (Guid)uuidType.Deserialize(serialized)!;
-
-        // assert
-        Assert.Equal(guid, deserialized);
-    }
-
-    [InlineData('N')]
-    [InlineData('D')]
-    [InlineData('B')]
-    [InlineData('P')]
-    [Theory]
-    public void ParseValue_With_Format(char format)
-    {
-        // arrange
-        var uuidType = new UuidType(defaultFormat: format);
-        var guid = Guid.Empty;
-
-        // act
-        var s = (StringValueNode)uuidType.ParseValue(guid);
-
-        // assert
-        Assert.Equal(guid.ToString(format.ToString()), s.Value);
-    }
-
-    [InlineData('N')]
-    [InlineData('D')]
-    [InlineData('B')]
-    [InlineData('P')]
-    [Theory]
-    public void ParseLiteral_With_Format(char format)
-    {
-        // arrange
-        var uuidType = new UuidType(defaultFormat: format);
-        var guid = Guid.Empty;
-        var literal = new StringValueNode(guid.ToString(format.ToString()));
-
-        // act
-        var deserialized = (Guid)uuidType.ParseLiteral(literal)!;
-
-        // assert
-        Assert.Equal(guid, deserialized);
     }
 
     [Fact]
@@ -374,30 +315,30 @@ public class UuidTypeTests
     [InlineData(false)]
     [InlineData(true)]
     [Theory]
-    public void Parse_Guid_String_With_Appended_String(bool enforceFormat)
+    public void CoerceInputLiteral_Guid_String_With_Appended_String(bool enforceFormat)
     {
         // arrange
         var input = new StringValueNode("fbdef721-93c5-4267-8f92-ca27b60aa51f-foobar");
-        var uuidType = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
+        var type = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
 
         // act
-        void Fail() => uuidType.ParseLiteral(input);
+        void Fail() => type.CoerceInputLiteral(input);
 
         // assert
-        Assert.Throws<SerializationException>(Fail);
+        Assert.Throws<LeafCoercionException>(Fail);
     }
 
     [InlineData(false)]
     [InlineData(true)]
     [Theory]
-    public void Parse_Guid_Valid_Input(bool enforceFormat)
+    public void CoerceInputLiteral_Guid_Valid_Input(bool enforceFormat)
     {
         // arrange
         var input = new StringValueNode("fbdef721-93c5-4267-8f92-ca27b60aa51f");
-        var uuidType = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
+        var type = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
 
         // act
-        var guid = (Guid)uuidType.ParseLiteral(input)!;
+        var guid = (Guid)type.CoerceInputLiteral(input)!;
 
         // assert
         Assert.Equal(input.Value, guid.ToString("D"));
@@ -406,64 +347,33 @@ public class UuidTypeTests
     [InlineData(false)]
     [InlineData(true)]
     [Theory]
-    public void Deserialize_Guid_String_With_Appended_String(bool enforceFormat)
+    public void CoerceInputValue_Guid_String_With_Appended_String(bool enforceFormat)
     {
         // arrange
-        const string input = "fbdef721-93c5-4267-8f92-ca27b60aa51f-foobar";
-        var uuidType = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
+        var inputValue = JsonDocument.Parse("\"fbdef721-93c5-4267-8f92-ca27b60aa51f-foobar\"").RootElement;
+        var type = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
 
         // act
-        void Fail() => uuidType.Deserialize(input);
+        void Fail() => type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.Throws<SerializationException>(Fail);
+        Assert.Throws<LeafCoercionException>(Fail);
     }
 
     [InlineData(false)]
     [InlineData(true)]
     [Theory]
-    public void Deserialize_Guid_Valid_Format(bool enforceFormat)
+    public void CoerceInputValue_Guid_Valid_Format(bool enforceFormat)
     {
         // arrange
         const string input = "fbdef721-93c5-4267-8f92-ca27b60aa51f";
-        var uuidType = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
+        var inputValue = JsonDocument.Parse($"\"{input}\"").RootElement;
+        var type = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
 
         // act
-        var guid = (Guid)uuidType.Deserialize(input)!;
+        var guid = (Guid)type.CoerceInputValue(inputValue, null!)!;
 
         // assert
         Assert.Equal(input, guid.ToString("D"));
-    }
-
-    [InlineData(false)]
-    [InlineData(true)]
-    [Theory]
-    public void IsInstanceOf_Guid_String_With_Appended_String(bool enforceFormat)
-    {
-        // arrange
-        var input = new StringValueNode("fbdef721-93c5-4267-8f92-ca27b60aa51f-foobar");
-        var uuidType = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
-
-        // act
-        var result = uuidType.IsInstanceOfType(input);
-
-        // assert
-        Assert.False(result);
-    }
-
-    [InlineData(false)]
-    [InlineData(true)]
-    [Theory]
-    public void IsInstanceOf_Guid_Valid_Format(bool enforceFormat)
-    {
-        // arrange
-        var input = new StringValueNode("fbdef721-93c5-4267-8f92-ca27b60aa51f");
-        var uuidType = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
-
-        // act
-        var result = uuidType.IsInstanceOfType(input);
-
-        // assert
-        Assert.True(result);
     }
 }

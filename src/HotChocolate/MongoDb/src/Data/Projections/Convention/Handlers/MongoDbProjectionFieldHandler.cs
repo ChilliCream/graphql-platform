@@ -9,13 +9,13 @@ public class MongoDbProjectionFieldHandler
     : MongoDbProjectionHandlerBase
 {
     /// <inheritdoc/>
-    public override bool CanHandle(ISelection selection) =>
-        selection.SelectionSet is not null;
+    public override bool CanHandle(Selection selection)
+        => !selection.IsLeaf;
 
     /// <inheritdoc/>
     public override bool TryHandleEnter(
         MongoDbProjectionVisitorContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
@@ -27,7 +27,7 @@ public class MongoDbProjectionFieldHandler
     /// <inheritdoc/>
     public override bool TryHandleLeave(
         MongoDbProjectionVisitorContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         context.Path.Pop();

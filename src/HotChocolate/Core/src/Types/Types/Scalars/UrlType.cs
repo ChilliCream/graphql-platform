@@ -1,9 +1,16 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
-using HotChocolate.Properties;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// The URL scalar type represents a valid URL as defined by RFC 3986.
+/// This type accepts both absolute URIs and relative URIs that start with '/'.
+/// The scalar serializes as a string.
+/// </summary>
 public class UrlType : ScalarType<Uri, StringValueNode>
 {
     private const string SpecifiedByUri = "https://tools.ietf.org/html/rfc3986";
@@ -18,7 +25,6 @@ public class UrlType : ScalarType<Uri, StringValueNode>
         : base(name, bind)
     {
         Description = description;
-        SerializationType = ScalarSerializationType.String;
         SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
@@ -31,106 +37,62 @@ public class UrlType : ScalarType<Uri, StringValueNode>
     {
     }
 
-    protected override bool IsInstanceOfType(StringValueNode valueSyntax)
+    /// <inheritdoc />
+    protected override Uri OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        return TryParseUri(valueSyntax.Value, out _);
+        if (TryParseUri(valueLiteral.Value, out var value))
+        {
+            return value;
+        }
+
+        throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
     }
 
-    protected override Uri ParseLiteral(StringValueNode valueSyntax)
+    /// <inheritdoc />
+    protected override Uri OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (TryParseUri(valueSyntax.Value, out var uri))
+        if (TryParseUri(inputValue.GetString()!, out var value))
         {
-            return uri;
+            return value;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
-            this);
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
 
-    protected override StringValueNode ParseValue(Uri runtimeValue)
+    /// <inheritdoc />
+    protected override void OnCoerceOutputValue(Uri runtimeValue, ResultElement resultValue)
     {
-        return new(runtimeValue.AbsoluteUri);
+        var serialized = runtimeValue.IsAbsoluteUri
+            ? runtimeValue.AbsoluteUri
+            : runtimeValue.ToString();
+        resultValue.SetStringValue(serialized);
     }
 
-    public override IValueNode ParseResult(object? resultValue)
+    /// <inheritdoc />
+    protected override StringValueNode OnValueToLiteral(Uri runtimeValue)
     {
-        if (resultValue is null)
-        {
-            return NullValueNode.Default;
-        }
-
-        if (resultValue is string s)
-        {
-            return new StringValueNode(s);
-        }
-
-        if (resultValue is Uri uri)
-        {
-            return ParseValue(uri);
-        }
-
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
-            this);
+        var value = runtimeValue.IsAbsoluteUri
+            ? runtimeValue.AbsoluteUri
+            : runtimeValue.ToString();
+        return new StringValueNode(value);
     }
 
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    private static bool TryParseUri(string value, out Uri uri)
     {
-        if (runtimeValue is null)
+        if (!Uri.TryCreate(value, UriKind.RelativeOrAbsolute, out var parsedUri))
         {
-            resultValue = null;
-            return true;
-        }
-
-        if (runtimeValue is Uri uri)
-        {
-            resultValue = uri.IsAbsoluteUri ? uri.AbsoluteUri : uri.ToString();
-            return true;
-        }
-
-        resultValue = null;
-        return false;
-    }
-
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        if (resultValue is null)
-        {
-            runtimeValue = null;
-            return true;
-        }
-
-        if (resultValue is string s && TryParseUri(s, out var uri))
-        {
-            runtimeValue = uri;
-            return true;
-        }
-
-        if (resultValue is Uri u)
-        {
-            runtimeValue = u;
-            return true;
-        }
-
-        runtimeValue = null;
-        return false;
-    }
-
-    private bool TryParseUri(string value, [NotNullWhen(true)] out Uri? uri)
-    {
-        if (!Uri.TryCreate(value, UriKind.RelativeOrAbsolute, out uri))
-        {
+            uri = default!;
             return false;
         }
 
         // Don't accept a relative URI that does not start with '/'
-        if (!uri.IsAbsoluteUri && !uri.OriginalString.StartsWith("/"))
+        if (!parsedUri.IsAbsoluteUri && !parsedUri.OriginalString.StartsWith('/'))
         {
-            uri = null;
+            uri = default!;
             return false;
         }
 
+        uri = parsedUri;
         return true;
     }
 }

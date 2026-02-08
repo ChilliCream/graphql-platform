@@ -1,6 +1,7 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Text.Json;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Adapters.OpenApi;
@@ -8,21 +9,32 @@ namespace HotChocolate.Adapters.OpenApi;
 internal sealed class OpenApiResultFormatter : IOpenApiResultFormatter
 {
     private static readonly JsonWriterOptions s_jsonWriterOptions =
-        new JsonWriterOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+        new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     private static readonly JsonSerializerOptions s_jsonSerializerOptions =
-        new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+        new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public async Task FormatResultAsync(
-        IOperationResult operationResult,
+        OperationResult operationResult,
         HttpContext httpContext,
         OpenApiEndpointDescriptor endpoint,
         CancellationToken cancellationToken)
     {
-        // If the root field is null and we don't have any errors,
+        if (operationResult.Data?.Value is not ResultDocument resultDocument)
+        {
+            await Results.InternalServerError().ExecuteAsync(httpContext);
+            return;
+        }
+
+        if (!resultDocument.Data.TryGetProperty(endpoint.ResponseNameToExtract, out var rootProperty))
+        {
+            await Results.InternalServerError().ExecuteAsync(httpContext);
+            return;
+        }
+
+        // If the root field is null, and we don't have any errors,
         // we return HTTP 404 for queries and HTTP 500 otherwise.
-        if (operationResult.Data?.TryGetValue(endpoint.ResponseNameToExtract, out var responseData) != true
-            || responseData is null)
+        if (rootProperty.IsNullOrInvalidated)
         {
             var result = endpoint.HttpMethod == HttpMethods.Get
                 ? Results.NotFound()
@@ -35,11 +47,10 @@ internal sealed class OpenApiResultFormatter : IOpenApiResultFormatter
         httpContext.Response.StatusCode = StatusCodes.Status200OK;
         httpContext.Response.ContentType = "application/json";
 
-        var jsonWriter = new Utf8JsonWriter(httpContext.Response.BodyWriter, s_jsonWriterOptions);
+        var bodyWriter = httpContext.Response.BodyWriter;
 
-        JsonValueFormatter.WriteValue(jsonWriter, responseData, s_jsonSerializerOptions,
-            JsonNullIgnoreCondition.None);
+        rootProperty.WriteTo(bodyWriter);
 
-        await jsonWriter.FlushAsync(cancellationToken);
+        await bodyWriter.FlushAsync(cancellationToken);
     }
 }

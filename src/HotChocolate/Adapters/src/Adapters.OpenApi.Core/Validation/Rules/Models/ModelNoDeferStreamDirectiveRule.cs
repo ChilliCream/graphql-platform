@@ -3,13 +3,15 @@ using HotChocolate.Language;
 namespace HotChocolate.Adapters.OpenApi.Validation;
 
 /// <summary>
-/// Validates that model definitions cannot contain @defer or @stream directives.
+/// Validates that a model definition cannot contain @defer or @stream directives.
 /// </summary>
 internal sealed class ModelNoDeferStreamDirectiveRule : IOpenApiModelDefinitionValidationRule
 {
     private static readonly DeferStreamDirectiveFinder s_finder = new();
 
-    public OpenApiDefinitionValidationResult Validate(OpenApiModelDefinition model)
+    public OpenApiDefinitionValidationResult Validate(
+        OpenApiModelDefinition model,
+        IOpenApiDefinitionValidationContext context)
     {
         var documentNode = CreateDocumentNode(model);
         var finderContext = new DeferStreamDirectiveFinder.DeferStreamFinderContext();
@@ -20,7 +22,7 @@ internal sealed class ModelNoDeferStreamDirectiveRule : IOpenApiModelDefinitionV
         {
             return OpenApiDefinitionValidationResult.Failure(
                 new OpenApiDefinitionValidationError(
-                    $"Model '{model.Name}' contains the '@{finderContext.FoundDirective}' directive, which is not allowed in OpenAPI definitions.",
+                    $"Model contains the '@{finderContext.FoundDirective}' directive, which is not supported for OpenAPI models.",
                     model));
         }
 

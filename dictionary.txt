@@ -150,6 +150,7 @@ Rewriters
 Rgba
 Rhai
 Roslynator
+RRGGBB
 runbooks
 Satisfiability
 Senn

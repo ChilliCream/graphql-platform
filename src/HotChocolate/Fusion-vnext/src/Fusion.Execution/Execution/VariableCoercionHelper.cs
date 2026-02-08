@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -7,19 +8,32 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution;
 
+// TODO : File Upload Rewrite
+// return new FileReferenceNode(
+//     fileValueNode.Value.OpenReadStream,
+//     fileValueNode.Value.Name,
+//     fileValueNode.Value.ContentType);
+
 internal static class VariableCoercionHelper
 {
     public static bool TryCoerceVariableValues(
         ISchemaDefinition schema,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
-        IReadOnlyDictionary<string, object?> variableValues,
+        JsonElement variableValues,
         [NotNullWhen(true)] out Dictionary<string, VariableValue>? coercedVariableValues,
         [NotNullWhen(false)] out IError? error)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(variableDefinitions);
-        ArgumentNullException.ThrowIfNull(variableValues);
 
+        if (variableValues.ValueKind is not (JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined))
+        {
+            throw new ArgumentException(
+                "Variable values must be a JSON Object.",
+                nameof(variableValues));
+        }
+
+        var hasVariables = variableValues.ValueKind is JsonValueKind.Object;
         coercedVariableValues = [];
         error = null;
 
@@ -28,16 +42,17 @@ internal static class VariableCoercionHelper
             var variableDefinition = variableDefinitions[i];
             var variableName = variableDefinition.Variable.Name.Value;
             var variableType = AssertInputType(schema, variableDefinition);
+            JsonElement propertyValue = default;
 
-            var hasValue = variableValues.TryGetValue(variableName, out var value);
+            var hasValue = hasVariables && variableValues.TryGetProperty(variableName, out propertyValue);
 
-            if (!hasValue && variableDefinition.DefaultValue is { } defaultValue)
+            if (!hasValue && variableDefinition.DefaultValue is { Kind: not SyntaxKind.NullValue } defaultValue)
             {
-                value = defaultValue.Kind is SyntaxKind.NullValue ? null : defaultValue;
-                hasValue = true;
+                coercedVariableValues[variableName] = new VariableValue(variableName, variableType, defaultValue);
+                continue;
             }
 
-            if (!hasValue || value is null || value is NullValueNode)
+            if (!hasValue)
             {
                 if (variableType.IsNonNullType())
                 {
@@ -52,14 +67,17 @@ internal static class VariableCoercionHelper
                 }
 
                 coercedVariableValues[variableName] =
-                    new VariableValue(variableName, variableType, NullValueNode.Default);
+                    new VariableValue(
+                        variableName,
+                        variableType,
+                        NullValueNode.Default);
             }
-            else if (value is IValueNode valueLiteral)
+            else
             {
                 if (TryCoerceVariableValue(
                     variableDefinition,
                     variableType,
-                    valueLiteral,
+                    propertyValue,
                     out var variableValue,
                     out error))
                 {
@@ -71,11 +89,6 @@ internal static class VariableCoercionHelper
                     return false;
                 }
             }
-            else
-            {
-                throw new NotSupportedException(
-                    $"The variable value of type {value.GetType().Name} is not supported.");
-            }
         }
 
         return true;
@@ -84,15 +97,17 @@ internal static class VariableCoercionHelper
     private static bool TryCoerceVariableValue(
         VariableDefinitionNode variableDefinition,
         IInputType variableType,
-        IValueNode value,
+        JsonElement value,
         [NotNullWhen(true)] out VariableValue? variableValue,
         [NotNullWhen(false)] out IError? error)
     {
         var root = Path.Root.Append(variableDefinition.Variable.Name.Value);
+        var parser = new JsonValueParser();
+        var valueLiteral = parser.Parse(value);
 
         if (!ValidateValue(
             variableType,
-            value,
+            valueLiteral,
             root,
             0,
             out error))
@@ -104,7 +119,7 @@ internal static class VariableCoercionHelper
         variableValue = new VariableValue(
             variableDefinition.Variable.Name.Value,
             variableType,
-            value);
+            valueLiteral);
         return true;
     }
 
@@ -177,6 +192,7 @@ internal static class VariableCoercionHelper
 
             if (oneOf && objectValue.Fields.Count is 0)
             {
+                // TODO : resources
                 error = ErrorBuilder.New()
                     .SetMessage("The OneOf Input Object `{0}` requires that exactly one field is supplied and that field must not be `null`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.", inputObjectType.Name)
                     .SetCode(ErrorCodes.Execution.OneOfNoFieldSet)
@@ -187,6 +203,7 @@ internal static class VariableCoercionHelper
 
             if (oneOf && objectValue.Fields.Count > 1)
             {
+                // TODO : resources
                 error = ErrorBuilder.New()
                     .SetMessage("More than one field of the OneOf Input Object `{0}` is set. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.", inputObjectType.Name)
                     .SetCode(ErrorCodes.Execution.OneOfMoreThanOneFieldSet)
@@ -220,6 +237,7 @@ internal static class VariableCoercionHelper
                     var field = objectValue.Fields[i];
                     if (!inputObjectType.Fields.TryGetField(field.Name.Value, out var fieldDefinition))
                     {
+                        // TODO : resources
                         error = ErrorBuilder.New()
                             .SetMessage(
                                 "The field `{0}` is not defined on the input object type `{1}`.",
@@ -232,6 +250,7 @@ internal static class VariableCoercionHelper
 
                     if (oneOf && field.Value.Kind is SyntaxKind.NullValue)
                     {
+                        // TODO : resources
                         error = ErrorBuilder.New()
                             .SetMessage("`null` was set to the field `{0}`of the OneOf Input Object `{1}`. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.", field.Name, inputObjectType.Name)
                             .SetCode(ErrorCodes.Execution.OneOfFieldIsNull)
@@ -293,8 +312,9 @@ internal static class VariableCoercionHelper
 
         if (type is IScalarTypeDefinition scalarType)
         {
-            if (!scalarType.IsInstanceOfType(value))
+            if (!scalarType.IsValueCompatible(value))
             {
+                // TODO : resources
                 error = ErrorBuilder.New()
                     .SetMessage(
                         "The value `{0}` is not a valid value for the scalar type `{1}`.",
@@ -313,6 +333,7 @@ internal static class VariableCoercionHelper
         {
             if (value is not (StringValueNode or EnumValueNode))
             {
+                // TODO : resources
                 error = ErrorBuilder.New()
                     .SetMessage("The value `{0}` is not an enum value.", value.Value ?? "null")
                     .SetExtension("variable", $"{path}")
@@ -322,6 +343,7 @@ internal static class VariableCoercionHelper
 
             if (!enumType.Values.ContainsName((string)value.Value!))
             {
+                // TODO : resources
                 error = ErrorBuilder.New()
                     .SetMessage("The value `{0}` is not a valid value for the enum type `{1}`.", value.Value ?? "null", enumType.Name)
                     .SetExtension("variable", $"{path}")

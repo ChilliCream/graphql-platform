@@ -18,8 +18,11 @@ public static class ScalarNames
     public const string DateTime = nameof(DateTime);
     public const string Date = nameof(Date);
     public const string TimeSpan = nameof(TimeSpan);
-    public const string JSON = nameof(JSON);
     public const string LocalDate = nameof(LocalDate);
     public const string LocalDateTime = nameof(LocalDateTime);
     public const string LocalTime = nameof(LocalTime);
+    public const string SignedByte = nameof(SignedByte);
+    public const string UnsignedShort = nameof(UnsignedShort);
+    public const string UnsignedInt = nameof(UnsignedInt);
+    public const string UnsignedLong = nameof(UnsignedLong);
 }

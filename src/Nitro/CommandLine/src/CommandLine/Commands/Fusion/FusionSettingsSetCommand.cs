@@ -1,9 +1,18 @@
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
+
 using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
-using ChilliCream.Nitro.CommandLine.Settings;
+using HotChocolate.Fusion;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 internal sealed class FusionSettingsSetCommand : Command
 {
     public FusionSettingsSetCommand() : base("set")
@@ -21,8 +30,7 @@ internal sealed class FusionSettingsSetCommand : Command
         AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<CloudUrlOption>.Instance);
-        AddOption(Opt<ApiKeyOption>.Instance);
+        this.AddNitroCloudDefaultOptions();
 
         this.SetHandler(async context =>
         {
@@ -69,7 +77,7 @@ internal sealed class FusionSettingsSetCommand : Command
                 var tags = settingValue
                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-                compositionSettings.Preprocessor!.ExcludeByTag = tags.ToHashSet();
+                compositionSettings.Preprocessor.ExcludeByTag = tags.ToHashSet();
                 break;
 
             case SettingNames.GlobalObjectIdentification:
@@ -79,21 +87,29 @@ internal sealed class FusionSettingsSetCommand : Command
                     return ExitCodes.Error;
                 }
 
-                compositionSettings.Merger!.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+                compositionSettings.Merger.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+                break;
+
+            case SettingNames.IncludeSatisfiabilityPaths:
+                if (!bool.TryParse(settingValue, out var includeSatisfiabilityPaths))
+                {
+                    console.ErrorLine($"Expected a boolean value for setting '{settingName}'.");
+                    return ExitCodes.Error;
+                }
+
+                compositionSettings.Satisfiability.IncludeSatisfiabilityPaths = includeSatisfiabilityPaths;
                 break;
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(settingName));
         }
 
-        return await FusionPublishCommand.ExecuteAsync(
-            null,
-            [],
+        return await FusionPublishCommand.PublishFusionConfigurationAsync(
             apiId,
             stageName,
             tag,
+            [],
             compositionSettings,
-            requireExistingConfiguration: true,
             console,
             client,
             httpClientFactory,
@@ -104,5 +120,6 @@ internal sealed class FusionSettingsSetCommand : Command
     {
         public const string ExcludeByTag = "exclude-by-tag";
         public const string GlobalObjectIdentification = "global-object-identification";
+        public const string IncludeSatisfiabilityPaths = "include-satisfiability-paths";
     }
 }

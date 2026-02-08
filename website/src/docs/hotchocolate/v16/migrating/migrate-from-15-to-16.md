@@ -278,6 +278,36 @@ If you need the old behavior, use can still use the non-generic `ID`-attribute a
 
 Previously the `TryConfigure` or `OnConfigure` methods carried a non-nullable parameter of the member the descriptor attribute was annotated to. With the new source generator we moved away from pure reflection based APIs. This means that when you use the source generator
 
+## Merged Assemblies HotChocolate.Types, HotChocolate.Execution, HotChocolate.Fetching
+
+With Hot Chocolate 16 we introduced a lot more abstractions, meaning we pulled out abstractions of the type system or the execution into separate libraries. But at the same time we simplified the implementation of the type system and the execution by moving the implementations of HotChocolate.Execution and HotChocolate.Fetching into HotChocolate.Types. This allowed us to simplify the implementation and make it more efficient.
+
+So, if you were referencing HotChocolate.Execution or HotChocolate.Fetching directly make sure to remove references to these libraries and replace them with HotChocolate.Types.
+
+## Simpler Scalar Type
+
+TODO
+
+## Removed Scalars
+
+TODO
+
+NegativeFloat
+NonNegativeFloat
+NegativeInt
+NonPositiveInt
+NonEmptyString
+NonNegativeInt
+
+## OperationRequestBuilder
+
+TODO
+
+## AnyType
+
+TODO
+`JsonElement` is now inferred as `Any` instead of `Json`.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

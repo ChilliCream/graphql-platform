@@ -62,11 +62,6 @@ public partial class IPv6Type : RegexType
     {
     }
 
-    /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
-        => ThrowHelper.IPv6Type_ParseLiteral_IsInvalid(this);
-
-    /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
-        => ThrowHelper.IPv6Type_ParseValue_IsInvalid(this);
+    protected override LeafCoercionException FormatException(string runtimeValue)
+        => ThrowHelper.IPv6Type_InvalidFormat(this);
 }

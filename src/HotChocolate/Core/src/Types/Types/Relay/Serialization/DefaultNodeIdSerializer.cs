@@ -216,6 +216,8 @@ public sealed class DefaultNodeIdSerializer : INodeIdSerializer
                         span[i] = (byte)'_';
                     }
                 }
+
+                span = span.TrimEnd((byte)'=');
             }
 
             return ToString(span);
@@ -352,7 +354,7 @@ public sealed class DefaultNodeIdSerializer : INodeIdSerializer
             var firstPaddingIndex = span.IndexOf((byte)'=');
             var nonPaddedLength = firstPaddingIndex == -1 ? span.Length : firstPaddingIndex;
             var actualPadding = firstPaddingIndex == -1 ? 0 : span.Length - firstPaddingIndex;
-            var expectedPadding = (4 - nonPaddedLength % 4) % 4;
+            var expectedPadding = (4 - (nonPaddedLength % 4)) % 4;
 
             if (actualPadding != expectedPadding)
             {

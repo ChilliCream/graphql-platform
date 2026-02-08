@@ -263,17 +263,17 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="ResolverTypeBindingBuilder_FieldNotComplete" xml:space="preserve">
     <value>The field binding builder is not completed and cannot be added.</value>
   </data>
-  <data name="Scalar_Cannot_Deserialize" xml:space="preserve">
-    <value>{0} cannot deserialize the given value.</value>
+  <data name="Scalar_Cannot_CoerceInputLiteral" xml:space="preserve">
+    <value>{0} cannot coerce the given literal of type `{1}` to a runtime value.</value>
   </data>
-  <data name="Scalar_Cannot_ParseLiteral" xml:space="preserve">
-    <value>{0} cannot parse the given literal of type `{1}`.</value>
+  <data name="Scalar_Cannot_CoerceInputValue" xml:space="preserve">
+    <value>{0} cannot coerce the given value JSON element of type `{1}` to a runtime value.</value>
   </data>
-  <data name="Scalar_Cannot_ParseValue" xml:space="preserve">
-    <value>{0} cannot parse the given value of type `{1}`.</value>
+  <data name="Scalar_Cannot_ConvertValueToLiteral" xml:space="preserve">
+    <value>{0} cannot convert the runtime value of type `{1}` to a GraphQL literal. </value>
   </data>
-  <data name="Scalar_Cannot_Serialize" xml:space="preserve">
-    <value>{0} cannot serialize the given value.</value>
+  <data name="Scalar_Cannot_CoerceOutputValue" xml:space="preserve">
+    <value>{0} cannot coerce the runtime value of type `{1}` into the result value format.</value>
   </data>
   <data name="SchemaBuilderExtensions_DirectiveTypeIsBaseType" xml:space="preserve">
     <value>A directive type mustn't be one of the base classes `DirectiveType` or `DirectiveType&lt;T&gt;` but must be a type inheriting from `DirectiveType` or `DirectiveType&lt;T&gt;`.</value>
@@ -789,14 +789,14 @@ Type: `{0}`</value>
   <data name="ThrowHelper_FormatValueList_InvalidObjectKind" xml:space="preserve">
     <value>The list runtime value of {0} must implement IEnumerable or IList but is of the type {1}.</value>
   </data>
-  <data name="ThrowHelper_ParseList_InvalidObjectKind" xml:space="preserve">
-    <value>The list `{1}` must to be serialized as `{2}` or as `IList` but not as `{0}`.</value>
+  <data name="ThrowHelper_ParseList_InvalidValueKind" xml:space="preserve">
+    <value>The current JSON element is not a list.</value>
   </data>
   <data name="ThrowHelper_ParseNestedList_InvalidSyntaxKind" xml:space="preserve">
     <value>The item syntax node for a nested list must be `ListValue` but the parser found `{0}`.</value>
   </data>
-  <data name="ThrowHelper_ParseInputObject_InvalidObjectKind" xml:space="preserve">
-    <value>The input object `{1}` must to be serialized as `{2}` or as `IReadOnlyDictionary&lt;string. object?&gt;` but not as `{0}`.</value>
+  <data name="ThrowHelper_ParseInputObject_InvalidValueKind" xml:space="preserve">
+    <value>The current JSON element is not an object.</value>
   </data>
   <data name="ThrowHelper_ParseInputObject_InvalidSyntaxKind" xml:space="preserve">
     <value>The syntax node `{0}` is incompatible with the type `{1}`.</value>
@@ -998,5 +998,23 @@ Type: `{0}`</value>
   </data>
   <data name="ThrowHelper_InvalidTypeConversion" xml:space="preserve">
     <value>The value provided for `{0}` is not in a valid format.</value>
+  </data>
+  <data name="Scalar_FormatIsInvalid" xml:space="preserve">
+    <value>The runtime value `{0}` of the scalar `{1}` has an invalid format.</value>
+  </data>
+  <data name="SignedByteType_Description" xml:space="preserve">
+    <value>The SignedByte scalar type represents a numeric non-fractional value greater than or equal to -127.</value>
+  </data>
+  <data name="UnsignedShortType_Description" xml:space="preserve">
+    <value>The UnsignedShort scalar type represents a unsigned 16-bit numeric non-fractional value greater than or equal to 0.</value>
+  </data>
+  <data name="UnsignedIntType_Description" xml:space="preserve">
+    <value>The UnsignedInt scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.</value>
+  </data>
+  <data name="UnsignedLongType_Description" xml:space="preserve">
+    <value>The UnsignedLong scalar type represents a unsigned 64-bit numeric non-fractional value greater than or equal to 0.</value>
+  </data>
+  <data name="RegexType_InvalidFormat" xml:space="preserve">
+    <value>{0}Type cannot parse the provided value. The value does not match the required regular expression pattern.</value>
   </data>
 </root>

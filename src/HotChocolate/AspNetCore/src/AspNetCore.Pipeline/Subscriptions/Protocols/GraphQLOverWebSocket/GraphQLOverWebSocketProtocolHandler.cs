@@ -5,6 +5,7 @@ using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket.MessageProperties;
 using static HotChocolate.AspNetCore.Subscriptions.Protocols.MessageUtilities;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
@@ -209,18 +210,19 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
     public async ValueTask SendResultMessageAsync(
         ISocketSession session,
         string operationSessionId,
-        IOperationResult result,
+        OperationResult result,
         CancellationToken cancellationToken)
     {
         using var arrayWriter = new PooledArrayWriter();
-        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        var jsonWriter = new JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteString(Id, operationSessionId);
-        jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Next);
+        jsonWriter.WritePropertyName(Id);
+        jsonWriter.WriteStringValue(operationSessionId);
+        jsonWriter.WritePropertyName(MessageProperties.Type);
+        jsonWriter.WriteStringValue(Utf8Messages.Next);
         jsonWriter.WritePropertyName(Payload);
-        _formatter.Format(result, jsonWriter);
+        _formatter.Format(result, arrayWriter);
         jsonWriter.WriteEndObject();
-        await jsonWriter.FlushAsync(cancellationToken);
         await session.Connection.SendAsync(arrayWriter.WrittenMemory, cancellationToken);
     }
 
@@ -231,14 +233,15 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         CancellationToken cancellationToken)
     {
         using var arrayWriter = new PooledArrayWriter();
-        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, WriterOptions);
+        var jsonWriter = new JsonWriter(arrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteString(Id, operationSessionId);
-        jsonWriter.WriteString(MessageProperties.Type, Utf8Messages.Error);
+        jsonWriter.WritePropertyName(Id);
+        jsonWriter.WriteStringValue(operationSessionId);
+        jsonWriter.WritePropertyName(MessageProperties.Type);
+        jsonWriter.WriteStringValue(Utf8Messages.Error);
         jsonWriter.WritePropertyName(Payload);
-        _formatter.Format(errors, jsonWriter);
+        _formatter.Format(errors, arrayWriter);
         jsonWriter.WriteEndObject();
-        await jsonWriter.FlushAsync(cancellationToken);
         await session.Connection.SendAsync(arrayWriter.WrittenMemory, cancellationToken);
     }
 
@@ -324,7 +327,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
         var requestData = JsonMarshal.GetRawUtf8Value(payloadProp);
         var request = Parse(requestData);
 
-        if (request.Count == 0)
+        if (request.Length == 0)
         {
             message = null;
             return false;

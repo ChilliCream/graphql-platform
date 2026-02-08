@@ -22,6 +22,7 @@
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Authorization" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests.Utilities" />
     <InternalsVisibleTo Include="HotChocolate.Authorization" />
     <InternalsVisibleTo Include="HotChocolate.Caching.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Caching" />
@@ -34,10 +35,8 @@
     <InternalsVisibleTo Include="HotChocolate.Data.Sorting.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Data" />
     <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Execution.Projections" />
-    <InternalsVisibleTo Include="HotChocolate.Fetching" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.CommandLine" />
     <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination" />
     <InternalsVisibleTo Include="HotChocolate.Types.Errors" />
     <InternalsVisibleTo Include="HotChocolate.Types.Filters.Tests" />
@@ -47,25 +46,304 @@
     <InternalsVisibleTo Include="HotChocolate.Types.Sorting.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.Validation" />
     <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="System.IO.Pipelines" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Formatters\HotChocolate.Transport.Formatters.csproj" />
+    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\Json\src\Json\HotChocolate.Text.Json.csproj" />
+    <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Abstractions\HotChocolate.PersistedOperations.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Pipeline\HotChocolate.PersistedOperations.Pipeline.csproj" />
+    <ProjectReference Include="..\Execution.Pipeline\HotChocolate.Execution.Pipeline.csproj" />
     <ProjectReference Include="..\..\..\..\GreenDonut\src\GreenDonut\GreenDonut.csproj" />
     <ProjectReference Include="..\..\..\Caching\src\Caching.Memory\HotChocolate.Caching.Memory.csproj" />
     <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.Language\HotChocolate.Fusion.Language.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.Base36\HotChocolate.Utilities.Base36.csproj" />
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities.DependencyInjection\HotChocolate.Utilities.DependencyInjection.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
-    <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Features\HotChocolate.Features.csproj" />
+    <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
+    <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+    <ProjectReference Include="..\Execution.Configuration.Abstractions\HotChocolate.Execution.Configuration.Abstractions.csproj" />
+    <ProjectReference Include="..\Execution.Operation.Abstractions\HotChocolate.Execution.Operation.Abstractions.csproj" />
     <ProjectReference Include="..\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
-    <ProjectReference Include="..\Types.Shared\HotChocolate.Types.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonHelpers.cs">
+      <Link>Text\Json\JsonHelpers.cs</Link>
+    </Compile>
+
+    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\JsonReaderHelper.cs">
+      <Link>Text\Json\JsonReaderHelper.cs</Link>
+    </Compile>
+
+    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\MetaDbEventSource.cs">
+      <Link>Text\Json\MetaDbEventSource.cs</Link>
+    </Compile>
+
+    <Compile Include="..\..\..\Fusion-vnext\src\Fusion.Execution\Text\Json\ThrowHelper.cs">
+      <Link>Text\Json\ThrowHelper.cs</Link>
+    </Compile>
+
+    <Compile Update="Text\Json\ResultDocument.Cursor.cs">
+      <DependentUpon>ResultDocument.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Text\Json\ResultDocument.DbRow.cs">
+      <DependentUpon>ResultDocument.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Text\Json\ResultDocument.MetaDb.cs">
+      <DependentUpon>ResultDocument.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Text\Json\ResultDocument.Text.cs">
+      <DependentUpon>ResultDocument.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Text\Json\ResultDocument.TryGetProperty.cs">
+      <DependentUpon>ResultDocument.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Text\Json\ResultDocument.TryGetValue.cs">
+      <DependentUpon>ResultDocument.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Text\Json\ResultDocument.WriteTo.cs">
+      <DependentUpon>ResultDocument.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Text\Json\ResultElement.ArrayEnumerator.cs">
+      <DependentUpon>ResultElement.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Text\Json\ResultElement.ObjectEnumerator.cs">
+      <DependentUpon>ResultElement.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Properties\TextJsonResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TextJsonResources.resx</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\MiddlewareContext.Arguments.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\MiddlewareContext.Pooling.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\MiddlewareContext.Pure.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\MiddlewareContext.Selection.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\MiddlewareContext.State.cs">
+      <DependentUpon>MiddlewareContext.Global.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\OperationCompiler.CoerceArgumentValues.cs">
+      <DependentUpon>OperationCompiler.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\OperationCompiler.CompileResolver.cs">
+      <DependentUpon>OperationCompiler.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\OperationContext.Execution.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\OperationContext.IExecutionTaskContext.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\OperationContext.Operation.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\OperationContext.Pooling.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\OperationContext.Services.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\OperationContext.Utilities.cs">
+      <DependentUpon>OperationContext.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\Tasks\ResolverTask.CompleteValue.cs">
+      <DependentUpon>ResolverTask.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\Tasks\ResolverTask.Execute.cs">
+      <DependentUpon>ResolverTask.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\Tasks\ResolverTask.Pooling.cs">
+      <DependentUpon>ResolverTask.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\ValueCompletion.Leaf.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\ValueCompletion.List.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\ValueCompletion.Object.cs">
+      <DependentUpon>ValueCompletion.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\OperationFeatureCollection.Selections.cs">
+      <DependentUpon>OperationFeatureCollection.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\RequestExecutorManager.Events.cs">
+      <DependentUpon>RequestExecutorManager.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\RequestExecutorManager.Hooks.cs">
+      <DependentUpon>RequestExecutorManager.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\RequestExecutorManager.Warmup.cs">
+      <DependentUpon>RequestExecutorManager.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Properties\FetchingResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FetchingResources.resx</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\SubscriptionExecutor.Subscription.cs">
+      <DependentUpon>SubscriptionExecutor.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\WorkScheduler.Execute.cs">
+      <DependentUpon>WorkScheduler.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\Processing\WorkScheduler.Pooling.cs">
+      <DependentUpon>WorkScheduler.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.Caches.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.Composite.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.DataLoader.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.ErrorFilter.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.Hashing.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.IdSerializer.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.InputParser.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.Instrumentation.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.Optimizer.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.Services.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.TransactionScope.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.TypeConversion.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.TypeDiscovery.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.UseRequest.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\RequestExecutorBuilderExtensions.Validation.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.Convention.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.Document.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.Middleware.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.Paging.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.Relay.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.Resolvers.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.TypeInterceptor.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.TypeModules.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="Execution\DependencyInjection\SchemaRequestExecutorBuilderExtensions.Types.cs">
+      <DependentUpon>SchemaRequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -135,20 +413,42 @@
     <Compile Update="Types\Descriptors\Conventions\DescriptorContext.Services.cs">
       <DependentUpon>DescriptorContext.cs</DependentUpon>
     </Compile>
-    <Compile Update="Properties\TypeResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TypeResources.resx</DependentUpon>
-    </Compile>
     <Compile Update="Types\InterfaceType.Initialization.cs">
       <DependentUpon>InterfaceType.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Properties\TypeResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TypeResources.resx</DependentUpon>
+    </Compile>
+
     <EmbeddedResource Update="Properties\TypeResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TypeResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+
+    <EmbeddedResource Update="Properties\TextJsonResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TextJsonResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+
+    <EmbeddedResource Update="Properties\FetchingResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FetchingResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

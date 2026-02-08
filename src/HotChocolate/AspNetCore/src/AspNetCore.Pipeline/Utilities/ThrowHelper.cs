@@ -80,13 +80,6 @@ internal static class ThrowHelper
                 .SetCode(ErrorCodes.Server.MultiPartFileMissing)
                 .Build());
 
-    public static GraphQLException HttpMultipartMiddleware_VariableNotFound(string path) =>
-        new GraphQLRequestException(
-            ErrorBuilder.New()
-                .SetMessage(ThrowHelper_HttpMultipartMiddleware_VariableNotFound, path)
-                .SetCode(ErrorCodes.Server.MultiPartVariableNotFound)
-                .Build());
-
     public static GraphQLException HttpMultipartMiddleware_VariableStructureInvalid() =>
         new GraphQLRequestException(
             ErrorBuilder.New()

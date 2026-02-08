@@ -138,18 +138,13 @@ sourceSchemas:
               }
             ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "errors": [
                   {
                     "message": "Could not resolve Product.name",
-                    "locations": [
-                      {
-                        "line": 5,
-                        "column": 5
-                      }
-                    ],
                     "path": [
                       "productById",
                       "name"
@@ -167,12 +162,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Could not resolve Product.name",
-                    "locations": [
-                      {
-                        "line": 5,
-                        "column": 5
-                      }
-                    ],
                     "path": [
                       "productById",
                       "name"
@@ -190,12 +179,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Could not resolve Product.name",
-                    "locations": [
-                      {
-                        "line": 5,
-                        "column": 5
-                      }
-                    ],
                     "path": [
                       "productById",
                       "name"

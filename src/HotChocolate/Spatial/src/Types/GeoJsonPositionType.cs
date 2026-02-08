@@ -1,4 +1,7 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types.Spatial.Properties;
 using HotChocolate.Types.Spatial.Serialization;
 using NetTopologySuite.Geometries;
@@ -14,28 +17,22 @@ namespace HotChocolate.Types.Spatial;
 /// </para>
 /// <para>https://tools.ietf.org/html/rfc7946#section-3.1.1</para>
 /// </summary>
-public sealed class GeoJsonPositionType : ScalarType<Coordinate>
+public sealed class GeoJsonPositionType : ScalarType<Coordinate, ListValueNode>
 {
     public GeoJsonPositionType() : base(PositionTypeName)
     {
         Description = Resources.GeoJsonPositionScalar_Description;
     }
 
-    public override bool IsInstanceOfType(IValueNode valueSyntax)
-        => GeoJsonPositionSerializer.Default.IsInstanceOfType(this, valueSyntax);
+    protected override Coordinate OnCoerceInputLiteral(ListValueNode valueLiteral)
+        => (Coordinate)GeoJsonPositionSerializer.Default.CoerceInputLiteral(this, valueLiteral)!;
 
-    public override object? ParseLiteral(IValueNode valueSyntax)
-        => GeoJsonPositionSerializer.Default.ParseLiteral(this, valueSyntax);
+    protected override Coordinate OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        => (Coordinate)GeoJsonPositionSerializer.Default.CoerceInputValue(this, inputValue, context)!;
 
-    public override IValueNode ParseValue(object? value)
-        => GeoJsonPositionSerializer.Default.ParseValue(this, value);
+    protected override void OnCoerceOutputValue(Coordinate runtimeValue, ResultElement resultValue)
+        => GeoJsonPositionSerializer.Default.CoerceOutputCoordinates(this, runtimeValue, resultValue);
 
-    public override IValueNode ParseResult(object? resultValue)
-        => GeoJsonPositionSerializer.Default.ParseResult(this, resultValue);
-
-    public override bool TryDeserialize(object? serialized, out object? value)
-        => GeoJsonPositionSerializer.Default.TryDeserialize(this, serialized, out value);
-
-    public override bool TrySerialize(object? value, out object? serialized)
-        => GeoJsonPositionSerializer.Default.TrySerialize(this, value, out serialized);
+    protected override ListValueNode OnValueToLiteral(Coordinate runtimeValue)
+        => (ListValueNode)GeoJsonPositionSerializer.Default.ValueToLiteral(this, runtimeValue);
 }

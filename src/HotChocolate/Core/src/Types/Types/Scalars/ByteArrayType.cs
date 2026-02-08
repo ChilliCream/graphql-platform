@@ -1,5 +1,10 @@
+using System.Buffers;
+using System.Buffers.Text;
+using System.Text.Json;
+using HotChocolate.Buffers;
+using HotChocolate.Features;
 using HotChocolate.Language;
-using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
@@ -19,7 +24,6 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
         : base(name, bind)
     {
         Description = description;
-        SerializationType = ScalarSerializationType.String;
         Pattern = @"^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$";
     }
 
@@ -32,77 +36,77 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
     {
     }
 
-    protected override byte[] ParseLiteral(StringValueNode valueSyntax)
+    protected override byte[] OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        return Convert.FromBase64String(valueSyntax.Value);
+        byte[]? rented = null;
+        var valueSpan = valueLiteral.AsSpan();
+        var length = Base64.GetMaxDecodedFromUtf8Length(valueSpan.Length);
+        var buffer = length <= 256 ? stackalloc byte[length] : rented = ArrayPool<byte>.Shared.Rent(length);
+
+        try
+        {
+            Base64.DecodeFromUtf8(valueSpan, buffer, out _, out var bytesWritten);
+            return buffer[..bytesWritten].ToArray();
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
     }
 
-    protected override StringValueNode ParseValue(byte[] runtimeValue)
+    protected override byte[] OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        => inputValue.GetBytesFromBase64();
+
+    protected override void OnCoerceOutputValue(byte[] runtimeValue, ResultElement resultValue)
     {
-        return new(Convert.ToBase64String(runtimeValue));
+        byte[]? rented = null;
+        var length = Base64.GetMaxEncodedToUtf8Length(runtimeValue.Length);
+        var buffer = length <= 256 ? stackalloc byte[length] : rented = ArrayPool<byte>.Shared.Rent(length);
+
+        try
+        {
+            Base64.EncodeToUtf8(
+                runtimeValue,
+                buffer,
+                out _,
+                out var bytesWritten);
+            resultValue.SetStringValue(buffer[..bytesWritten]);
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
     }
 
-    public override IValueNode ParseResult(object? resultValue)
+    protected override StringValueNode OnValueToLiteral(byte[] runtimeValue)
     {
-        if (resultValue is null)
+        byte[]? rented = null;
+        var length = Base64.GetMaxEncodedToUtf8Length(runtimeValue.Length);
+        var buffer = length <= 256 ? stackalloc byte[length] : rented = ArrayPool<byte>.Shared.Rent(length);
+
+        try
         {
-            return NullValueNode.Default;
+            Base64.EncodeToUtf8(
+                runtimeValue,
+                buffer,
+                out _,
+                out var bytesWritten);
+            var encodedBuffer = buffer[..bytesWritten].ToArray();
+            var segment = new ReadOnlyMemorySegment(encodedBuffer);
+            return new StringValueNode(null, segment, false);
         }
-
-        if (resultValue is string s)
+        finally
         {
-            return new StringValueNode(s);
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
         }
-
-        if (resultValue is byte[] b)
-        {
-            return ParseValue(b);
-        }
-
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
-            this);
-    }
-
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-    {
-        if (runtimeValue is null)
-        {
-            resultValue = null;
-            return true;
-        }
-
-        if (runtimeValue is byte[] b)
-        {
-            resultValue = Convert.ToBase64String(b);
-            return true;
-        }
-
-        resultValue = null;
-        return false;
-    }
-
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        if (resultValue is null)
-        {
-            runtimeValue = null;
-            return true;
-        }
-
-        if (resultValue is string s)
-        {
-            runtimeValue = Convert.FromBase64String(s);
-            return true;
-        }
-
-        if (resultValue is byte[] b)
-        {
-            runtimeValue = b;
-            return true;
-        }
-
-        runtimeValue = null;
-        return false;
     }
 }

@@ -69,6 +69,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The @cost directive must have a &apos;weight&apos; argument of type String..
+        /// </summary>
+        internal static string CostDirective_WeightArgument_Invalid {
+            get {
+                return ResourceManager.GetString("CostDirective_WeightArgument_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Post-merge validation failed..
         /// </summary>
         internal static string ErrorHelper_PostMergeValidationFailed {
@@ -128,6 +137,33 @@ namespace HotChocolate.Fusion.Properties {
         internal static string ExternalMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("ExternalMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema that defined the cost metadata..
+        /// </summary>
+        internal static string FusionCostMutableDirectiveDefinition_Argument_Schema_Description {
+            get {
+                return ResourceManager.GetString("FusionCostMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The weight defined in the source schema..
+        /// </summary>
+        internal static string FusionCostMutableDirectiveDefinition_Argument_Weight_Description {
+            get {
+                return ResourceManager.GetString("FusionCostMutableDirectiveDefinition_Argument_Weight_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__cost directive specifies cost metadata for each source schema..
+        /// </summary>
+        internal static string FusionCostMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionCostMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
         
@@ -290,6 +326,71 @@ namespace HotChocolate.Fusion.Properties {
         internal static string FusionInputFieldMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("FusionInputFieldMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The assumed size of the list as defined in the source schema..
+        /// </summary>
+        internal static string FusionListSizeMutableDirectiveDefinition_Argument_AssumedSize_Description {
+            get {
+                return ResourceManager.GetString("FusionListSizeMutableDirectiveDefinition_Argument_AssumedSize_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The single slicing argument requirement of the list as defined in the source schema..
+        /// </summary>
+        internal static string FusionListSizeMutableDirectiveDefinition_Argument_RequireOneSlicingArgument_Description {
+            get {
+                return ResourceManager.GetString(("FusionListSizeMutableDirectiveDefinition_Argument_RequireOneSlicingArgument_Descr" +
+                        "iption"), resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema that defined the list size metadata..
+        /// </summary>
+        internal static string FusionListSizeMutableDirectiveDefinition_Argument_Schema_Description {
+            get {
+                return ResourceManager.GetString("FusionListSizeMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The sized fields of the list as defined in the source schema..
+        /// </summary>
+        internal static string FusionListSizeMutableDirectiveDefinition_Argument_SizedFields_Description {
+            get {
+                return ResourceManager.GetString("FusionListSizeMutableDirectiveDefinition_Argument_SizedFields_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The slicing argument default value of the list as defined in the source schema..
+        /// </summary>
+        internal static string FusionListSizeMutableDirectiveDefinition_Argument_SlicingArgumentDefaultValue_Description {
+            get {
+                return ResourceManager.GetString(("FusionListSizeMutableDirectiveDefinition_Argument_SlicingArgumentDefaultValue_Des" +
+                        "cription"), resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The slicing arguments of the list as defined in the source schema..
+        /// </summary>
+        internal static string FusionListSizeMutableDirectiveDefinition_Argument_SlicingArguments_Description {
+            get {
+                return ResourceManager.GetString("FusionListSizeMutableDirectiveDefinition_Argument_SlicingArguments_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__listSize directive specifies list size metadata for each source schema..
+        /// </summary>
+        internal static string FusionListSizeMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionListSizeMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
         
@@ -524,6 +625,51 @@ namespace HotChocolate.Fusion.Properties {
         internal static string KeyMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("KeyMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @listSize directive argument &apos;assumedSize&apos; must be of type Int..
+        /// </summary>
+        internal static string ListSizeDirective_AssumedSizeArgument_Invalid {
+            get {
+                return ResourceManager.GetString("ListSizeDirective_AssumedSizeArgument_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @listSize directive argument &apos;requireOneSlicingArgument&apos; must be of type Boolean..
+        /// </summary>
+        internal static string ListSizeDirective_RequireOneSlicingArgumentArgument_Invalid {
+            get {
+                return ResourceManager.GetString("ListSizeDirective_RequireOneSlicingArgumentArgument_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @listSize directive argument &apos;sizedFields&apos; must be of type [String]..
+        /// </summary>
+        internal static string ListSizeDirective_SizedFieldsArgument_Invalid {
+            get {
+                return ResourceManager.GetString("ListSizeDirective_SizedFieldsArgument_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @listSize directive argument &apos;slicingArgumentDefaultValue&apos; must be of type Int..
+        /// </summary>
+        internal static string ListSizeDirective_SlicingArgumentDefaultValueArgument_Invalid {
+            get {
+                return ResourceManager.GetString("ListSizeDirective_SlicingArgumentDefaultValueArgument_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @listSize directive argument &apos;slicingArguments&apos; must be of type [String]..
+        /// </summary>
+        internal static string ListSizeDirective_SlicingArgumentsArgument_Invalid {
+            get {
+                return ResourceManager.GetString("ListSizeDirective_SlicingArgumentsArgument_Invalid", resourceCulture);
             }
         }
         
@@ -1239,6 +1385,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to access the required field &apos;{0}.{1}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_UnableToAccessField {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_UnableToAccessField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to access the required field &apos;{0}.{1}&apos; on path &apos;{2}&apos;..
         /// </summary>
         internal static string RequirementsValidator_UnableToAccessFieldOnPath {
@@ -1316,6 +1471,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string SatisfiabilityValidator_NoLookupsFoundForType {
             get {
                 return ResourceManager.GetString("SatisfiabilityValidator_NoLookupsFoundForType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to access the field &apos;{0}.{1}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_UnableToAccessField {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_UnableToAccessField", resourceCulture);
             }
         }
         

@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Buffers;
+using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Diagnostics;
@@ -261,7 +262,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal IOperationResult Complete(bool reusable = false)
+    internal OperationResult Complete(bool reusable = false)
     {
         var environment = Schema.TryGetEnvironment();
 
@@ -276,8 +277,14 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             }
             : null;
 
-        var result = _resultStore.Result;
-        var operationResult = new RawOperationResult(result, contextData: null);
+        var resultDocument = _resultStore.Result;
+        var operationResult = new OperationResult(
+            new OperationResultData(
+                resultDocument,
+                resultDocument.Data.IsNullOrInvalidated,
+                resultDocument,
+                resultDocument),
+            _resultStore.Errors?.ToImmutableList());
 
         // we take over the memory owners from the result context
         // and store them on the response so that the server can
@@ -294,8 +301,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             var writer = new PooledArrayWriter();
             s_planFormatter.Format(writer, OperationPlan, trace);
             var value = new RawJsonValue(writer.WrittenMemory);
-            result.Extensions ??= [];
-            result.Extensions.Add("fusion", new Dictionary<string, object?> { { "operationPlan", value } });
+            operationResult.Extensions = operationResult.Extensions.SetItem(
+                "fusion",
+                new Dictionary<string, object?> { { "operationPlan", value } });
             operationResult.RegisterForCleanup(writer);
         }
 
@@ -305,8 +313,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
 
         Debug.Assert(
-            !result.Data.IsInvalidated
-                || result.Errors?.Count > 0,
+            !resultDocument.Data.IsInvalidated
+                || operationResult.Errors.Count > 0,
             "Expected to either valid data or errors");
 
         // resets the store and client scope for another execution.

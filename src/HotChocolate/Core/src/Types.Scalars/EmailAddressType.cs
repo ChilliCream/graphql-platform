@@ -44,11 +44,6 @@ public partial class EmailAddressType : RegexType
             ScalarResources.EmailAddressType_Description)
     { }
 
-    /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
-        => ThrowHelper.EmailAddressType_ParseLiteral_IsInvalid(this);
-
-    /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
-        => ThrowHelper.EmailAddressType_ParseValue_IsInvalid(this);
+    protected override LeafCoercionException FormatException(string runtimeValue)
+        => ThrowHelper.EmailAddressType_InvalidFormat(this);
 }

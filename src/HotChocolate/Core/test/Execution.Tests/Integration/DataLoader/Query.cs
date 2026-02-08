@@ -7,7 +7,6 @@ public class Query
 {
     public Task<string?> GetWithDataLoader(
         string key,
-        FieldNode fieldSelection,
         TestDataLoader testDataLoader,
         CancellationToken cancellationToken)
     {
@@ -18,7 +17,6 @@ public class Query
 
     public async Task<string?> GetWithDataLoader2(
         string key,
-        FieldNode fieldSelection,
         TestDataLoader testDataLoader,
         CancellationToken cancellationToken)
     {
@@ -27,7 +25,6 @@ public class Query
 
     public Task<string?> GetDataLoaderWithInterface(
         string key,
-        FieldNode fieldSelection,
         ITestDataLoader testDataLoader,
         CancellationToken cancellationToken)
     {
@@ -57,7 +54,6 @@ public class Bar
 {
     public Task<string?> GetWithDataLoader(
         string key,
-        FieldNode fieldSelection,
         TestDataLoader testDataLoader,
         CancellationToken cancellationToken)
     {

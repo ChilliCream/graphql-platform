@@ -828,7 +828,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
         /// <summary>
         /// Provides a fast way to get all FieldNodes for the same response name.
-        /// The key is the respones name.
+        /// The key is the response name.
         /// </summary>
         public Dictionary<string, Dictionary<FieldNode, Context?>>? Fields { get; private set; }
 

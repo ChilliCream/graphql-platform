@@ -67,12 +67,12 @@ public interface ISocketSessionInterceptor
     /// The cancellation token.
     /// </param>
     /// <returns>
-    /// Returns the result that shall be send to the client.
+    /// Returns the result that shall be sent to the client.
     /// </returns>
-    ValueTask<IOperationResult> OnResultAsync(
+    ValueTask<OperationResult> OnResultAsync(
         ISocketSession session,
         string operationSessionId,
-        IOperationResult result,
+        OperationResult result,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -80,7 +80,7 @@ public interface ISocketSessionInterceptor
     /// This interception method is guaranteed to be invoked even if the operation
     /// fails or the connection is closed.
     ///
-    /// The cancellation token might be cancelled if the connection is closed.
+    /// The cancellation token might be canceled if the connection is closed.
     /// </summary>
     /// <param name="session">
     /// The socket session.

@@ -20,15 +20,11 @@ response:
               "column": 7
             }
           ],
-          "path": [
-            "bookById",
-            "author"
-          ],
           "extensions": {
             "type": "Author",
             "field": "id",
             "responseName": "id",
-            "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+            "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
           }
         }
       ]

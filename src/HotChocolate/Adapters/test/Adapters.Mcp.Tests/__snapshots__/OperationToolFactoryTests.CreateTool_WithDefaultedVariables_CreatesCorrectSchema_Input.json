@@ -76,20 +76,6 @@
       "description": "Int description",
       "default": 1
     },
-    "json": {
-      "type": [
-        "object",
-        "array",
-        "boolean",
-        "string",
-        "number",
-        "integer"
-      ],
-      "description": "JSON description",
-      "default": {
-        "key": "value"
-      }
-    },
     "list": {
       "type": "array",
       "items": {

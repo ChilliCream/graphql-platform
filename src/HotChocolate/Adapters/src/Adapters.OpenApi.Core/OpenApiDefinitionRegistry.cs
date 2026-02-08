@@ -1,9 +1,16 @@
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
 {
     private static readonly OpenApiDefinitionValidator s_validator = new();
@@ -112,17 +119,23 @@ internal sealed class OpenApiDefinitionRegistry : IAsyncDisposable
         ISchemaDefinition schema,
         IOpenApiDiagnosticEvents events)
     {
+        var validDefinitions = new List<IOpenApiDefinition>();
+        var validationContext = new OpenApiDefinitionValidationContext(schema);
+
         foreach (var definition in definitions)
         {
-            var validationResult = s_validator.Validate(definition);
+            var validationResult = s_validator.Validate(definition, validationContext);
 
             if (!validationResult.IsValid)
             {
                 events.ValidationErrors(validationResult.Errors.Value);
+                continue;
             }
+
+            validDefinitions.Add(definition);
         }
 
-        UpdateEndpointsAndOpenApiDefinitions(definitions, schema);
+        UpdateEndpointsAndOpenApiDefinitions(validDefinitions, schema);
     }
 
     private void UpdateEndpointsAndOpenApiDefinitions(

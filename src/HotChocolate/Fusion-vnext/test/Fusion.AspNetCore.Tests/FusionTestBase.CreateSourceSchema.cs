@@ -1,5 +1,9 @@
+using System.Collections.Immutable;
+using System.Net.Http.Headers;
+using HotChocolate.AspNetCore;
 using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Types.Descriptors;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
@@ -16,6 +20,8 @@ public abstract partial class FusionTestBase
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
         Action<HttpClient>? configureHttpClient = null,
+        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         bool isOffline = false,
         bool isTimingOut = false)
     {
@@ -24,7 +30,9 @@ public abstract partial class FusionTestBase
             {
                 app.UseWebSockets();
                 app.UseRouting();
-                app.UseEndpoints(endpoint => endpoint.MapGraphQL(schemaName: schemaName));
+                app.UseEndpoints(endpoint =>
+                    endpoint.MapGraphQL(schemaName: schemaName)
+                        .WithOptions(new GraphQLServerOptions { EnableBatching = true }));
             };
 
         return _testServerSession.CreateServer(
@@ -41,6 +49,8 @@ public abstract partial class FusionTestBase
                     opt.IsOffline = isOffline;
                     opt.IsTimingOut = isTimingOut;
                     opt.ConfigureHttpClient = configureHttpClient;
+                    opt.BatchingMode = batchingMode;
+                    opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;
                 });
             },
             configureApplication);
@@ -50,31 +60,43 @@ public abstract partial class FusionTestBase
         string schemaName,
         string schemaText,
         bool isOffline = false,
-        bool isTimingOut = false)
+        bool isTimingOut = false,
+        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
+        Action<HttpClient>? configureHttpClient = null,
+        HttpClient? httpClient = null)
     {
         return _testServerSession.CreateServer(services =>
-        {
-            services.AddRouting();
-
-            services.AddGraphQLServer(schemaName, disableDefaultSecurity: true)
-                .AddType<Composite.FieldSelectionSetType>()
-                .AddType<Composite.FieldSelectionMapType>()
-                .TryAddTypeInterceptor<RegisterFusionDirectivesTypeInterceptor>()
-                .AddDocumentFromString(schemaText)
-                .AddResolverMocking()
-                .AddTestDirectives();
-
-            services.Configure<SourceSchemaOptions>(opt =>
             {
-                opt.IsOffline = isOffline;
-                opt.IsTimingOut = isTimingOut;
+                services.AddRouting();
+
+                services.AddGraphQLServer(schemaName, disableDefaultSecurity: true)
+                    .AddType<Composite.FieldSelectionSetType>()
+                    .AddType<Composite.FieldSelectionMapType>()
+                    .TryAddTypeInterceptor<RegisterFusionDirectivesTypeInterceptor>()
+                    .AddDocumentFromString(schemaText)
+                    .AddResolverMocking()
+                    .AddTestDirectives();
+
+                services.Configure<SourceSchemaOptions>(opt =>
+                {
+                    opt.IsOffline = isOffline;
+                    opt.IsTimingOut = isTimingOut;
+                    opt.ConfigureHttpClient = configureHttpClient;
+                    opt.HttpClient = httpClient;
+                    opt.BatchingMode = batchingMode;
+                    opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;
+                });
+            },
+            app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoint =>
+                {
+                    endpoint.MapGraphQL(schemaName: schemaName)
+                        .WithOptions(new GraphQLServerOptions { EnableBatching = true });
+                });
             });
-        },
-        app =>
-        {
-            app.UseRouting();
-            app.UseEndpoints(endpoint => endpoint.MapGraphQL(schemaName: schemaName));
-        });
     }
 
     // ReSharper disable once ClassNeverInstantiated.Local

@@ -54,6 +54,7 @@ sourceSchemas:
               }
             }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -68,12 +69,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Could not produce review",
-                    "locations": [
-                      {
-                        "line": 2,
-                        "column": 3
-                      }
-                    ],
                     "path": [
                       "onReviewCreated"
                     ]
