@@ -497,7 +497,7 @@ type BlacklistPermissions {
   canMakeDecisions: Boolean!
   "The user is allowed to remove clients, providers, claim contacts or custom entries from the blacklist."
   canRemove: Boolean!
-  "The user is allowed to view the history of manual addition\/removal to\/from the blacklist, and the history of match decision changes."
+  "The user is allowed to view the history of manual addition/removal to/from the blacklist, and the history of match decision changes."
   canViewHistory: Boolean!
 }
 
@@ -603,7 +603,7 @@ type CalculationResultItem {
   questionnaires: [CalculationQuestionnaire!]!
 }
 
-"An error that occurs when the product selections and\/or questionnaire answers given to a calculation caused a stalemate while being applied.\nMeaning that the quote\/policy never ended up in a state where selection could be applied."
+"An error that occurs when the product selections and/or questionnaire answers given to a calculation caused a stalemate while being applied.\nMeaning that the quote/policy never ended up in a state where selection could be applied."
 type CalculationStalemateError {
   "The specific stalemate errors."
   errors: [StalemateError!]!
@@ -1666,7 +1666,7 @@ type CommunicationTemplateResource {
   subject: String!
 }
 
-"This class represents the ongoing creation of a new Communication in NIS. The communication token is created by NIS before\nthe generation\/editing of template output is handed off to an external service."
+"This class represents the ongoing creation of a new Communication in NIS. The communication token is created by NIS before\nthe generation/editing of template output is handed off to an external service."
 type CommunicationToken {
   "The list of ids of temporary files that should be attached to the final communication."
   attachedFileIds: [Int!]
@@ -2481,8 +2481,8 @@ type Mutation @authorize(apply: BEFORE_RESOLVER, policy: "authorized") {
   denyClaim(denyReasonId: Int denyRemark: String id: Int!): UpdateClaimStatusResult
   "Hangs up a PhoneCall in NIS. This will trigger the creation of any PhoneNote communications resulting from the call."
   endPhoneCall(input: EndPhoneCallInput!): PhoneCallResult!
-  "Creates a questionnaire. This can be used to build a set of valid answers to a questionnaire.\nThe answers are not saved. The answers are meant to be given elsewhere that would save them, i.e. saving a task, or creating a quote\/policy."
-  evaluateQuestionnaire("The answers to apply." answers: [QuestionnaireAnswerInput!] "The identifier of the questionnaire definition." definitionId: Int! "An optional list of tags that can be used to control which sections and elements are shown.\nThis is relevant for questionnaires used in policy\/quote calculation, where tags output by the product can influence the questionnaire." tags: [String!]): QuestionnaireEvaluationResult
+  "Creates a questionnaire. This can be used to build a set of valid answers to a questionnaire.\nThe answers are not saved. The answers are meant to be given elsewhere that would save them, i.e. saving a task, or creating a quote/policy."
+  evaluateQuestionnaire("The answers to apply." answers: [QuestionnaireAnswerInput!] "The identifier of the questionnaire definition." definitionId: Int! "An optional list of tags that can be used to control which sections and elements are shown.\nThis is relevant for questionnaires used in policy/quote calculation, where tags output by the product can influence the questionnaire." tags: [String!]): QuestionnaireEvaluationResult
   "Marks the given payments as exported, but does not generate a payment export file."
   exportPayments("A guid identifying the payment export format." exportFormatUid: UUID! "A list of payment identifiers." paymentIds: [Int!]!): ExportPaymentsResult!
   generateClaimDocument(claimId: Int! templateId: Int!): GenerateDocumentResult
@@ -4478,13 +4478,13 @@ input CalculationCategoryInput {
 }
 
 input CalculationClientSelectionInput {
-  "Use an existing company client, and optionally update it. The changes aren't saved unless given as part of a mutation that creates or alters a policy\/quote."
+  "Use an existing company client, and optionally update it. The changes aren't saved unless given as part of a mutation that creates or alters a policy/quote."
   company: UpdateCompanyClientInput
   "Creates a new company client."
   newCompany: CreateCompanyClientInput
   "Creates a new person client."
   newPerson: CreatePersonClientInput
-  "Use an existing person client, and optionally update it. The changes aren't saved unless given as part of a mutation that creates or alters a policy\/quote."
+  "Use an existing person client, and optionally update it. The changes aren't saved unless given as part of a mutation that creates or alters a policy/quote."
   person: UpdatePersonClientInput
 }
 
@@ -4943,27 +4943,27 @@ input CreateClaimPaymentGuaranteeLineInput {
 }
 
 input CreateClaimPolicyInput {
-  "Specifies the insured categories of the policy\/quote. This is only used for collective products."
+  "Specifies the insured categories of the policy/quote. This is only used for collective products."
   categories: [CalculationCategoryInput!]
-  "The cover period of the policy\/quote."
+  "The cover period of the policy/quote."
   coverage: DateRangeInput!
   "The currency code to use. Must be provided if the product specifies more than one currency."
   currencyCode: String
   "Specifies which non-individual elements are selected."
   elementSelection: [ProductElementSelectionInput!]
-  "The index of the holder client of the policy\/quote.\nThe value is the zero-based index of a client added to the calculation.\nIn the context of creating a claim, it is the zero-based index of a claimant."
+  "The index of the holder client of the policy/quote.\nThe value is the zero-based index of a client added to the calculation.\nIn the context of creating a claim, it is the zero-based index of a claimant."
   holderClientIndex: Int! = 0
-  "Specifies the insured clients\/items\/groups of the policy\/quote."
+  "Specifies the insured clients/items/groups of the policy/quote."
   insured: [CalculationInsuredInput!]!
-  "The date the policy\/quote is issued on. When omitted, the policy will be issued today."
+  "The date the policy/quote is issued on. When omitted, the policy will be issued today."
   issueOn: Date
-  "The identifier of the organisation the policy\/quote should be issued under. When omitted, the organisation of the current user is used."
+  "The identifier of the organisation the policy/quote should be issued under. When omitted, the organisation of the current user is used."
   organisationId: Int
-  "The identifier of the product to issue\/quote."
+  "The identifier of the product to issue/quote."
   productId: Int!
   "Assigns values to product properties that are not assigned individually."
   propertyValues: [ProductPropertyAssignmentInput!]
-  "Specifies answers to questionnaires that apply to the policy\/quote."
+  "Specifies answers to questionnaires that apply to the policy/quote."
   questionnaires: [CalculationQuestionnaireAnswersInput!]
   reference: String
 }
@@ -5704,33 +5704,33 @@ input PaymentOrderInput {
 }
 
 input PolicyCreateItemInput {
-  "Specifies the insured categories of the policy\/quote. This is only used for collective products."
+  "Specifies the insured categories of the policy/quote. This is only used for collective products."
   categories: [CalculationCategoryInput!]
-  "The cover period of the policy\/quote."
+  "The cover period of the policy/quote."
   coverage: DateRangeInput!
   "The currency code to use. Must be provided if the product specifies more than one currency."
   currencyCode: String
   "Specifies which non-individual elements are selected."
   elementSelection: [ProductElementSelectionInput!]
-  "The index of the holder client of the policy\/quote.\nThe value is the zero-based index of a client added to the calculation.\nIn the context of creating a claim, it is the zero-based index of a claimant."
+  "The index of the holder client of the policy/quote.\nThe value is the zero-based index of a client added to the calculation.\nIn the context of creating a claim, it is the zero-based index of a claimant."
   holderClientIndex: Int! = 0
-  "Specifies the insured clients\/items\/groups of the policy\/quote."
+  "Specifies the insured clients/items/groups of the policy/quote."
   insured: [CalculationInsuredInput!]!
   "Specifies that the policy should be marked as being created from an external source. This can for example be useful when a policy is created from an external web shop or portal."
   isExternal: Boolean
-  "The date the policy\/quote is issued on. When omitted, the policy will be issued today."
+  "The date the policy/quote is issued on. When omitted, the policy will be issued today."
   issueOn: Date
-  "The identifier of the organisation the policy\/quote should be issued under. When omitted, the organisation of the current user is used."
+  "The identifier of the organisation the policy/quote should be issued under. When omitted, the organisation of the current user is used."
   organisationId: Int
-  "The index of the owner client of the policy\/quote. The owner is not part of the policy\/quote, but can be used to associate a policy\/quote with a client (i.e. a company)"
+  "The index of the owner client of the policy/quote. The owner is not part of the policy/quote, but can be used to associate a policy/quote with a client (i.e. a company)"
   ownerClientIndex: Int
   "Specifies how payment of the policy should happen."
   payment: PolicyPaymentInput!
-  "The identifier of the product to issue\/quote."
+  "The identifier of the product to issue/quote."
   productId: Int!
   "Assigns values to product properties that are not assigned individually."
   propertyValues: [ProductPropertyAssignmentInput!]
-  "Specifies answers to questionnaires that apply to the policy\/quote."
+  "Specifies answers to questionnaires that apply to the policy/quote."
   questionnaires: [CalculationQuestionnaireAnswersInput!]
   salesChannelNumber: Int
 }
@@ -5796,31 +5796,31 @@ input QuestionnaireAnswerValueInput {
 }
 
 input QuoteCalculationItemInput {
-  "Specifies the insured categories of the policy\/quote. This is only used for collective products."
+  "Specifies the insured categories of the policy/quote. This is only used for collective products."
   categories: [CalculationCategoryInput!]
-  "The cover period of the policy\/quote."
+  "The cover period of the policy/quote."
   coverage: DateRangeInput!
   "The currency code to use. Must be provided if the product specifies more than one currency."
   currencyCode: String
   "Specifies which non-individual elements are selected."
   elementSelection: [ProductElementSelectionInput!]
-  "The index of the holder client of the policy\/quote.\nThe value is the zero-based index of a client added to the calculation.\nIn the context of creating a claim, it is the zero-based index of a claimant."
+  "The index of the holder client of the policy/quote.\nThe value is the zero-based index of a client added to the calculation.\nIn the context of creating a claim, it is the zero-based index of a claimant."
   holderClientIndex: Int! = 0
-  "Specifies the insured clients\/items\/groups of the policy\/quote."
+  "Specifies the insured clients/items/groups of the policy/quote."
   insured: [CalculationInsuredInput!]!
-  "The date the policy\/quote is issued on. When omitted, the policy will be issued today."
+  "The date the policy/quote is issued on. When omitted, the policy will be issued today."
   issueOn: Date
-  "The identifier of the organisation the policy\/quote should be issued under. When omitted, the organisation of the current user is used."
+  "The identifier of the organisation the policy/quote should be issued under. When omitted, the organisation of the current user is used."
   organisationId: Int
-  "The index of the owner client of the policy\/quote. The owner is not part of the policy\/quote, but can be used to associate a policy\/quote with a client (i.e. a company)"
+  "The index of the owner client of the policy/quote. The owner is not part of the policy/quote, but can be used to associate a policy/quote with a client (i.e. a company)"
   ownerClientIndex: Int
   "Specifies how payment of the eventual policy should happen. When specified, the result will include a payment schedule."
   payment: PolicyPaymentInput
-  "The identifier of the product to issue\/quote."
+  "The identifier of the product to issue/quote."
   productId: Int!
   "Assigns values to product properties that are not assigned individually."
   propertyValues: [ProductPropertyAssignmentInput!]
-  "Specifies answers to questionnaires that apply to the policy\/quote."
+  "Specifies answers to questionnaires that apply to the policy/quote."
   questionnaires: [CalculationQuestionnaireAnswersInput!]
   salesChannelNumber: Int
 }
@@ -6849,7 +6849,7 @@ input UserOrderInput {
 
 "Specifies what should happen based on the validity of an address."
 enum AddressValidityAction {
-  "The address is valid and\/or invalid addresses are ignored."
+  "The address is valid and/or invalid addresses are ignored."
   NONE
   "The address is invalid, and a warning should be shown."
   WARN
@@ -7540,7 +7540,7 @@ enum PurchaseInvoiceBatchingMethod {
 enum QuestionnaireType {
   "The questionnaire is used to determine the eligibility of insured, which means the questionnaire should be shown during calculation."
   ELIGIBILITY
-  "The questionnaire is a survey, which means it does not affect the quote\/policy, and can be shown after calculation."
+  "The questionnaire is a survey, which means it does not affect the quote/policy, and can be shown after calculation."
   SURVEY
 }
 
@@ -7653,11 +7653,11 @@ enum ViewRegistrationObjectType {
   COMMUNICATION
 }
 
-"Specifies the mode to use to limit the visibility of entities based on department\/organisation access."
+"Specifies the mode to use to limit the visibility of entities based on department/organisation access."
 enum VisibilityLimitMode {
   "The visibility is not limited for this user."
   NONE
-  "The user can only see entities linked to the departments\/organisations the user has access to."
+  "The user can only see entities linked to the departments/organisations the user has access to."
   SELECTED_ONLY
 }
 
@@ -7676,7 +7676,7 @@ directive @stream("Streamed when true." if: Boolean "The initial elements that s
 scalar Date
 
 "The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
-scalar DateTime @specifiedBy(url: "https:\/\/scalars.graphql.org\/andimarek\/date-time.html")
+scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/andimarek/date-time.html")
 
 "The `Decimal` scalar type represents a decimal floating-point number."
 scalar Decimal
@@ -7687,4 +7687,4 @@ scalar LocalDateTime
 "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
 scalar Long
 
-scalar UUID @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc4122")
+scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")

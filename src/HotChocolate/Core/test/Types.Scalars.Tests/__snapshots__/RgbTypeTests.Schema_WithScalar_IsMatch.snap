@@ -6,5 +6,5 @@ type Query {
   scalar: Rgb
 }
 
-"The Rgb scalar type represents a valid CSS RGB color as defined in https:\/\/developer.mozilla.org\/en-US\/docs\/Web\/CSS\/color_value#rgb()_and_rgba()."
+"The Rgb scalar type represents a valid CSS RGB color as defined in https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()."
 scalar Rgb
