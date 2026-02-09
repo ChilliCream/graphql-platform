@@ -51,10 +51,10 @@ internal static class ResolverTaskFactory
                             continue;
                         }
 
-                        if (!branches.TryGetValue(deferUsage, out var lastDeferBranchId))
+                        if (!branches.TryGetValue(deferUsage, out var branchId))
                         {
-                            lastDeferBranchId = coordinator.Branch(MainBranchId, Path.Root, deferUsage);
-                            branches = branches.Add(deferUsage, lastDeferBranchId);
+                            branchId = coordinator.Branch(MainBranchId, Path.Root, deferUsage);
+                            branches = branches.Add(deferUsage, branchId);
                         }
 
                         lastDeferUsage = deferUsage;
@@ -155,6 +155,8 @@ internal static class ResolverTaskFactory
             DeferUsage? lastDeferUsage = null;
             Path? currentPath = null;
 
+            var parentBranchId = context.ParentBranchId;
+
             foreach (var field in resultValue.EnumerateObject())
             {
                 var selection = field.AssertSelection();
@@ -173,11 +175,19 @@ internal static class ResolverTaskFactory
                         continue;
                     }
 
-                    if (!branches.TryGetValue(deferUsage, out var lastDeferBranchId))
+                    if (!branches.TryGetValue(deferUsage, out var branchId))
                     {
                         currentPath ??= resultValue.Path;
-                        lastDeferBranchId = coordinator.Branch(MainBranchId, currentPath, deferUsage);
-                        branches = branches.Add(deferUsage, lastDeferBranchId);
+                        branchId = coordinator.Branch(parentBranchId, currentPath, deferUsage);
+                        branches = branches.Add(deferUsage, branchId);
+                        context.Tasks.Add(
+                            operationContext.CreateDeferTask(
+                                selectionSet,
+                                currentPath,
+                                parent,
+                                context.ResolverContext.ScopedContextData,
+                                branchId,
+                                deferUsage));
                     }
 
                     lastDeferUsage = deferUsage;
