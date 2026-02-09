@@ -1390,7 +1390,7 @@ public class AnyTypeTests
         var value = type.CoerceInputLiteral(new StringValueNode("Foo"));
 
         // assert
-        Assert.Equal("Foo",  Assert.IsType<JsonElement>(value).GetString());
+        Assert.Equal("Foo", Assert.IsType<JsonElement>(value).GetString());
     }
 
     [Fact]

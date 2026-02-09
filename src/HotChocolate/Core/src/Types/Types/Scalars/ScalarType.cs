@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;

@@ -27,7 +27,7 @@ internal sealed class ListOpenApiCollectionCommand : Command
             Bind.FromServiceProvider<CancellationToken>());
     }
 
-   private static async Task<int> ExecuteAsync(
+    private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
         IApiClient client,

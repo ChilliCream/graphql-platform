@@ -3,7 +3,6 @@ using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
-using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation.Types;
 

@@ -5,7 +5,8 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal static class GlobMatcher
 {
-    public static IEnumerable<string> Match(IEnumerable<string> patterns)    {
+    public static IEnumerable<string> Match(IEnumerable<string> patterns)
+    {
         var results = new List<string>();
         var relativePatterns = new List<string>();
 

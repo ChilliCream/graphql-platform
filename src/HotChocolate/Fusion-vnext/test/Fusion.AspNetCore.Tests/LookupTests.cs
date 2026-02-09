@@ -400,7 +400,7 @@ public class LookupTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-     [Fact]
+    [Fact]
     public async Task Fetch_With_Request_Batching_JsonArray_Large_Response()
     {
         // arrange
@@ -408,7 +408,7 @@ public class LookupTests : FusionTestBase
             "a",
             b => b.AddQueryType<OneOfLookups.SourceSchema1.Query>());
 
-        string jsonArrayResponse =
+        var jsonArrayResponse =
             $$"""
             [
               {
@@ -631,7 +631,7 @@ public class LookupTests : FusionTestBase
         var random = new Random(0);
         var stringBuilder = new StringBuilder(charsNeeded);
 
-        for (int i = 0; i < charsNeeded; i++)
+        for (var i = 0; i < charsNeeded; i++)
         {
             stringBuilder.Append(chars[random.Next(chars.Length)]);
         }
@@ -647,7 +647,7 @@ public class LookupTests : FusionTestBase
         {
             var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent(responseContent, System.Text.Encoding.UTF8, "application/json")
+                Content = new StringContent(responseContent, Encoding.UTF8, "application/json")
             };
             return Task.FromResult(response);
         }

@@ -570,7 +570,7 @@ public sealed class InlineFragmentOperationRewriter(
 
         static bool IsStaticIncludeCondition(DirectiveNode directive, ref bool skipChecked, ref bool includeChecked)
         {
-            if(directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal))
+            if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal))
             {
                 skipChecked = true;
                 if (directive.Arguments is [{ Value: BooleanValueNode }])
@@ -578,7 +578,7 @@ public sealed class InlineFragmentOperationRewriter(
                     return true;
                 }
             }
-            else if(directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal))
+            else if (directive.Name.Value.Equals(DirectiveNames.Include.Name, StringComparison.Ordinal))
             {
                 includeChecked = true;
                 if (directive.Arguments is [{ Value: BooleanValueNode }])

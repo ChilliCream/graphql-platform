@@ -14,7 +14,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
 internal sealed class DeleteMcpFeatureCollectionCommand : Command
 {
-   public DeleteMcpFeatureCollectionCommand() : base("delete")
+    public DeleteMcpFeatureCollectionCommand() : base("delete")
     {
         Description = "Deletes an MCP Feature Collection";
 

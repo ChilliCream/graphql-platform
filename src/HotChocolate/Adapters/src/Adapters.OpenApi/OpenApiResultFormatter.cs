@@ -1,5 +1,3 @@
-using System.Text.Encodings.Web;
-using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Text.Json;
 using Microsoft.AspNetCore.Http;
@@ -8,12 +6,6 @@ namespace HotChocolate.Adapters.OpenApi;
 
 internal sealed class OpenApiResultFormatter : IOpenApiResultFormatter
 {
-    private static readonly JsonWriterOptions s_jsonWriterOptions =
-        new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
-
-    private static readonly JsonSerializerOptions s_jsonSerializerOptions =
-        new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
-
     public async Task FormatResultAsync(
         OperationResult operationResult,
         HttpContext httpContext,

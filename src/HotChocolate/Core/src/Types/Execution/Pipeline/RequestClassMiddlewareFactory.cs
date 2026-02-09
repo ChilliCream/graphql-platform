@@ -6,7 +6,6 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.PersistedOperations;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 

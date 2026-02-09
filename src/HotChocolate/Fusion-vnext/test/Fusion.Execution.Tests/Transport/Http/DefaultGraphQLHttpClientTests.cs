@@ -14,7 +14,7 @@ public class DefaultGraphQLHttpClientTests
         await using var app = context.Item2;
         using var client = new DefaultGraphQLHttpClient(server.CreateClient(), disposeInnerClient: true);
 
-        var operationRequest = new HotChocolate.Transport.OperationRequest("{ items }");
+        var operationRequest = new OperationRequest("{ items }");
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -43,7 +43,7 @@ public class DefaultGraphQLHttpClientTests
             "application/graphql-response+json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }");
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -71,7 +71,7 @@ public class DefaultGraphQLHttpClientTests
             "application/json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }");
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -99,7 +99,7 @@ public class DefaultGraphQLHttpClientTests
             "application/graphql-response+json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }");
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -136,7 +136,7 @@ public class DefaultGraphQLHttpClientTests
             "application/json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }");
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -175,7 +175,7 @@ public class DefaultGraphQLHttpClientTests
             "application/json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationBatchRequest(
+        var operationRequest = new OperationBatchRequest(
         [
             new OperationRequest("{ number }")
         ]);
@@ -222,7 +222,7 @@ public class DefaultGraphQLHttpClientTests
             "application/json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationBatchRequest(
+        var operationRequest = new OperationBatchRequest(
             [
                 new OperationRequest("{ number }"),
                 new OperationRequest("{ number }")
@@ -264,7 +264,7 @@ public class DefaultGraphQLHttpClientTests
             "application/jsonl");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.VariableBatchRequest(
+        var operationRequest = new VariableBatchRequest(
             "{ number }",
             variables: [
                 new Dictionary<string, object?>()
@@ -308,7 +308,7 @@ public class DefaultGraphQLHttpClientTests
             "application/jsonl");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.VariableBatchRequest(
+        var operationRequest = new VariableBatchRequest(
             "{ number }",
             variables: [
               new Dictionary<string, object?>(),
@@ -357,7 +357,7 @@ public class DefaultGraphQLHttpClientTests
             "text/event-stream");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }");
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -406,7 +406,7 @@ public class DefaultGraphQLHttpClientTests
             "text/event-stream");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new HotChocolate.Transport.OperationRequest("{ number }");
+        var operationRequest = new OperationRequest("{ number }");
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act

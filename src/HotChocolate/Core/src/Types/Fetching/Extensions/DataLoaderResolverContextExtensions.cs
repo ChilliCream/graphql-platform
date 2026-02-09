@@ -1,7 +1,6 @@
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Resolvers;
-using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;

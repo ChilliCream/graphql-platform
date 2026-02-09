@@ -1,6 +1,6 @@
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
 
-public class OpenApiCollectionFilePatternOption: Option<List<string>>
+public class OpenApiCollectionFilePatternOption : Option<List<string>>
 {
     public OpenApiCollectionFilePatternOption() : base("--pattern")
     {

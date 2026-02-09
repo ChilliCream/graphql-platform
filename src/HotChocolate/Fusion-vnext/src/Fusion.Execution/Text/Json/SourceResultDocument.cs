@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
-using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
