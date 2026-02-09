@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 public partial class RgbType : RegexType
 {
     private const string ValidationPattern =
-        "(rgb\\((?:[0-9]+%?(?:,|\\s)+){2}[0-9]+%?\\))";
+        "rgb\\((?:[0-9]+%?(?:,|\\s)+){2}[0-9]+%?\\)";
 
     [GeneratedRegex(ValidationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
