@@ -3,12 +3,12 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data;
 
-public class ByteOperationFilterInputType
-    : ComparableOperationFilterInputType<ByteType>
+public class UnsignedByteOperationFilterInputType
+    : ComparableOperationFilterInputType<UnsignedByteType>
 {
     protected override void Configure(IFilterInputTypeDescriptor descriptor)
     {
-        descriptor.Name("ByteOperationFilterInput");
+        descriptor.Name("UnsignedByteOperationFilterInput");
         base.Configure(descriptor);
     }
 }

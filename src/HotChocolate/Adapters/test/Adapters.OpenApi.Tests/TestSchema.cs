@@ -179,7 +179,7 @@ public sealed class TestSchema
     public sealed record ComplexObject(
         [property: GraphQLType<AnyType>] object? Any,
         bool? Boolean,
-        byte? Byte,
+        sbyte? Byte,
         [property: GraphQLType<ByteArrayType>] byte[]? ByteArray,
         [property: GraphQLType<DateType>] DateOnly? Date,
         DateTimeOffset? DateTime,
@@ -205,7 +205,7 @@ public sealed class TestSchema
     public sealed record ComplexObjectInput(
         [property: GraphQLType<NonNullType<AnyType>>] object Any,
         bool Boolean,
-        byte Byte,
+        sbyte Byte,
         [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
         [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
         DateTimeOffset DateTime,

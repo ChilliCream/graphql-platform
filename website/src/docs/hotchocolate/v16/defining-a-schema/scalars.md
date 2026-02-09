@@ -206,7 +206,7 @@ In addition to the scalars defined by the specification, Hot Chocolate also supp
 
 | Type            | Description                                                                                               |
 | --------------- | --------------------------------------------------------------------------------------------------------- |
-| `Byte`          | Byte                                                                                                      |
+| `Byte`          | Signed 8-bit numeric non‐fractional value greater than or equal to -127 and smaller than or equal to 128. |
 | `ByteArray`     | Base64 encoded array of bytes                                                                             |
 | `Short`         | Signed 16-bit numeric non-fractional value                                                                |
 | `Long`          | Signed 64-bit numeric non-fractional value                                                                |
@@ -218,7 +218,7 @@ In addition to the scalars defined by the specification, Hot Chocolate also supp
 | `TimeSpan`      | ISO-8601 duration                                                                                         |
 | `Uuid`          | GUID                                                                                                      |
 | `Json`          | This type can be anything, string, int, list or object, etc.                                              |
-| `SignedByte`    | Signed 8-bit numeric non‐fractional value greater than or equal to -127 and smaller than or equal to 128. |
+| `UnsignedByte`  | Byte                                                                                                      |
 | `UnsignedInt`   | Unsigned 32‐bit numeric non‐fractional value greater than or equal to 0                                   |
 | `UnsignedLong`  | Unsigned 64‐bit numeric non‐fractional value greater than or equal to 0                                   |
 | `UnsignedShort` | Unsigned 16‐bit numeric non‐fractional value greater than or equal to 0 and smaller or equal to 65535.    |

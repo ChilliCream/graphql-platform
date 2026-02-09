@@ -224,7 +224,7 @@ public static class SchemaHelper
         TryAddLeafType(leafTypes, ScalarNames.String, TypeNames.String);
         TryAddLeafType(leafTypes, ScalarNames.ID, TypeNames.String);
         TryAddLeafType(leafTypes, ScalarNames.Boolean, TypeNames.Boolean, TypeNames.Boolean);
-        TryAddLeafType(leafTypes, ScalarNames.Byte, TypeNames.Byte, TypeNames.Byte);
+        TryAddLeafType(leafTypes, ScalarNames.UnsignedByte, TypeNames.Byte, TypeNames.Byte);
         TryAddLeafType(leafTypes, ScalarNames.Short, TypeNames.Int16, TypeNames.Int16);
         TryAddLeafType(leafTypes, ScalarNames.Int, TypeNames.Int32, TypeNames.Int32);
         TryAddLeafType(leafTypes, ScalarNames.Long, TypeNames.Int64, TypeNames.Int64);

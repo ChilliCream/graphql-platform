@@ -9,7 +9,7 @@ public static class BuiltInScalarNames
         ScalarNames.String,
         ScalarNames.ID,
         ScalarNames.Boolean,
-        ScalarNames.Byte,
+        ScalarNames.UnsignedByte,
         ScalarNames.Short,
         ScalarNames.Int,
         ScalarNames.Long,
