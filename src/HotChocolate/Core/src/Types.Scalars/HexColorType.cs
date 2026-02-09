@@ -10,7 +10,7 @@ namespace HotChocolate.Types;
 public partial class HexColorType : RegexType
 {
     private const string ValidationPattern =
-        "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$";
+        @"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})\z";
 
     [GeneratedRegex(ValidationPattern, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
