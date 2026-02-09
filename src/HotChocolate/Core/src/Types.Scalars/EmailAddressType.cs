@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
@@ -13,8 +12,8 @@ namespace HotChocolate.Types;
 public partial class EmailAddressType : RegexType
 {
     private const string ValidationPattern =
-        "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?"
-        + "(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
+        @"^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?"
+        + @"(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\z";
 
     [GeneratedRegex(ValidationPattern, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();

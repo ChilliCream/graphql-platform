@@ -89,8 +89,8 @@ public class LongitudeType : ScalarType<double, StringValueNode>
         private const int MaxPrecision = 8;
 
         private const string SexagesimalRegex =
-            "^([0-9]{1,3})°\\s*([0-9]{1,3}(?:\\.(?:[0-9]{1,}))?)['′]\\s*(([0-9]{1,3}"
-            + "(\\.([0-9]{1,}))?)[\"″]\\s*)?([NEOSW]?)$";
+            @"^([0-9]{1,3})°\s*([0-9]{1,3}(?:\.(?:[0-9]{1,}))?)['′]\s*(([0-9]{1,3}"
+            + @"(\.([0-9]{1,}))?)[""″]\s*)?([NEOSW]?)\z";
 
         private static readonly Regex s_validationPattern =
             new(SexagesimalRegex, RegexOptions.Compiled | RegexOptions.IgnoreCase);

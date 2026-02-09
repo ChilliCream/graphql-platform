@@ -73,7 +73,7 @@ public class InMemoryClientTests
     public async Task ExecuteAsync_Default_ExecuteQuery()
     {
         // arrange
-        var client = new InMemoryClient("Foo"); ;
+        var client = new InMemoryClient("Foo");
         var operationRequest = new OperationRequest("foo", new StubDocument(), new Dictionary<string, object?>());
         var executor = new StubExecutor();
         client.Executor = executor;

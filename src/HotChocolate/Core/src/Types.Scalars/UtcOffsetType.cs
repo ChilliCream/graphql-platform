@@ -142,7 +142,7 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
             [NotNullWhen(true)] out string? result)
             => s_timeSpanToOffset.TryGetValue(value, out result);
 
-        public static bool TryDeserialize( string value, out TimeSpan result)
+        public static bool TryDeserialize(string value, out TimeSpan result)
             => s_offsetToTimeSpan.TryGetValue(value, out result);
     }
 }

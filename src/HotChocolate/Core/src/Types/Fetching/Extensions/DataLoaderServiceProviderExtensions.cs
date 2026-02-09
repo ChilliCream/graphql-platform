@@ -1,5 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-
 namespace HotChocolate.Fetching;
 
 internal static class DataLoaderServiceProviderExtensions

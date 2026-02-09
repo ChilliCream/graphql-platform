@@ -21,7 +21,7 @@ internal static class JsonMemory
 #if NET8_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(factory);
 #else
-        if(factory is null)
+        if (factory is null)
         {
             throw new ArgumentNullException(nameof(factory));
         }

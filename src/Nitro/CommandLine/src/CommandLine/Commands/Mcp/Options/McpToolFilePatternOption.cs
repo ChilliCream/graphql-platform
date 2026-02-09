@@ -1,6 +1,6 @@
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 
-public class McpToolFilePatternOption: Option<List<string>>
+public class McpToolFilePatternOption : Option<List<string>>
 {
     public McpToolFilePatternOption() : base("--tool-pattern")
     {

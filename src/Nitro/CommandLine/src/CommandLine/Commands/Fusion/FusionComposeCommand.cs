@@ -496,7 +496,7 @@ internal sealed class FusionComposeCommand : Command
 
         foreach (var sourceSchemaFile in sourceSchemaFiles)
         {
-            var (schemaName, sourceText, settings ) = await ReadSourceSchemaAsync(sourceSchemaFile, cancellationToken);
+            var (schemaName, sourceText, settings) = await ReadSourceSchemaAsync(sourceSchemaFile, cancellationToken);
 
             sourceSchemas.Add(schemaName, (sourceText, settings));
         }

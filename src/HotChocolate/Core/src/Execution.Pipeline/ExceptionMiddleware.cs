@@ -38,7 +38,7 @@ internal sealed class ExceptionMiddleware
         catch (GraphQLException ex)
         {
             var errors = _errorHandler.Handle(ex.Errors);
-            context.Result = OperationResult.FromError([..errors]);
+            context.Result = OperationResult.FromError([.. errors]);
             _diagnosticEvents.RequestError(context, ex);
         }
         catch (Exception ex)

@@ -339,7 +339,7 @@ scalar Byte
 scalar Decimal
 
 "The `LocalDate` scalar represents a date without a time-zone in the ISO-8601 calendar system."
-scalar LocalDate @specifiedBy(url: "https:\/\/scalars.graphql.org\/andimarek\/local-date.html")
+scalar LocalDate @specifiedBy(url: "https://scalars.graphql.org/andimarek/local-date.html")
 
 "The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss."
 scalar LocalTime
@@ -350,4 +350,4 @@ scalar Long
 "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
 scalar Short
 
-scalar URL @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc3986")
+scalar URL @specifiedBy(url: "https://tools.ietf.org/html/rfc3986")

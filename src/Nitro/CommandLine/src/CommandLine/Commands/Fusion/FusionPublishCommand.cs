@@ -241,7 +241,7 @@ internal sealed class FusionPublishCommand : Command
                                 context,
                                 console,
                                 client,
-                                cancellationToken);;
+                                cancellationToken);
                         });
 
                 // start

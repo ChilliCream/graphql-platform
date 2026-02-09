@@ -1,5 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-
 namespace HotChocolate.Execution;
 
 internal sealed partial class RequestExecutorManager

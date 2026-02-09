@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Buffers;
-using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Diagnostics;

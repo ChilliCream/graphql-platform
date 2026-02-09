@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
@@ -12,7 +11,7 @@ public partial class PhoneNumberType : RegexType
     /// <summary>
     /// Regex that validates the standard E.164 format
     /// </summary>
-    private const string ValidationPattern = "^\\+[1-9][0-9]{2,14}$";
+    private const string ValidationPattern = @"^\+[1-9][0-9]{2,14}\z";
 
     [GeneratedRegex(ValidationPattern, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();

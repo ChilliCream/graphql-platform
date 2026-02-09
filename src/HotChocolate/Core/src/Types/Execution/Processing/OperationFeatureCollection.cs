@@ -88,7 +88,7 @@ public sealed partial class OperationFeatureCollection : IFeatureCollection
     }
 
     public TFeature GetOrSetSafe<TFeature>() where TFeature : new()
-        => GetOrSetSafe<TFeature>(static () => new TFeature());
+        => GetOrSetSafe(static () => new TFeature());
 
     public TFeature GetOrSetSafe<TFeature>(Func<TFeature> factory)
     {

@@ -175,7 +175,7 @@ internal sealed class DynamicEndpointMiddleware(
             }
 
             var jsonValueParser = new JsonValueParser(buffer: variableBuffer);
-            var bodyValue =  jsonValueParser.Parse(result.Buffer);
+            var bodyValue = jsonValueParser.Parse(result.Buffer);
             variables[bodyVariable] = bodyValue;
             body.AdvanceTo(result.Buffer.End);
         }

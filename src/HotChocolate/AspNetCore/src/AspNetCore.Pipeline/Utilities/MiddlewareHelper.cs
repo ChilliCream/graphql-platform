@@ -234,7 +234,7 @@ internal static class MiddlewareHelper
             }
 
             return new ExecuteRequestResult(
-                OperationResult.FromError([..ex.Errors]));
+                OperationResult.FromError([.. ex.Errors]));
         }
         catch (Exception ex)
         {
@@ -352,7 +352,7 @@ internal static class MiddlewareHelper
         public ParseRequestResult(IReadOnlyList<IError> errors, HttpStatusCode statusCode)
         {
             IsValid = false;
-            Error = OperationResult.FromError([..errors]);
+            Error = OperationResult.FromError([.. errors]);
             StatusCode = statusCode;
             Request = null;
         }

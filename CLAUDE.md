@@ -77,7 +77,7 @@ templates/                     # Project templates
 
 ## Technology Stack
 
-- **.NET**: SDK 10.0.100 (supports .NET 8, 9, 10)
+- **.NET**: SDK 10.0.102 (supports .NET 8, 9, 10)
 - **Build System**: Nuke.Build
 - **Testing**: xUnit with CookieCrumble for snapshots
 - **Documentation**: Gatsby + React + TypeScript

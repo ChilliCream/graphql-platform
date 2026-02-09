@@ -14,7 +14,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
 internal sealed class DeleteOpenApiCollectionCommand : Command
 {
-   public DeleteOpenApiCollectionCommand() : base("delete")
+    public DeleteOpenApiCollectionCommand() : base("delete")
     {
         Description = "Deletes an OpenAPI collection";
 

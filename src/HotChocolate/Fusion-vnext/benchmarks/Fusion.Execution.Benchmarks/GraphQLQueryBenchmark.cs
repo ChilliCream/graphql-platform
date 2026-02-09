@@ -9,7 +9,6 @@ using BenchmarkDotNet.Jobs;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using HotChocolate.Fusion.Text.Json;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Exporters.Csv;

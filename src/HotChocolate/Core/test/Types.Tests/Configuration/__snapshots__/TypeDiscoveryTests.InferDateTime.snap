@@ -11,4 +11,4 @@ type QueryWithDateTime {
 directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
 
 "The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
-scalar DateTime @specifiedBy(url: "https:\/\/scalars.graphql.org\/andimarek\/date-time.html")
+scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/andimarek/date-time.html")
