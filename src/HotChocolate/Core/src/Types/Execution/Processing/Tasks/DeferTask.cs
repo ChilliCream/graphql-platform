@@ -10,11 +10,14 @@ internal sealed class DeferTask : ExecutionTask
     private OperationContext _parentContext = null!;
     private DeferExecutionCoordinator _coordinator = null!;
     private object? _parent;
-    private ImmutableDictionary<string, object?> _scopedContext = null!;
+    private IImmutableDictionary<string, object?> _scopedContext = null!;
     private SelectionSet _selectionSet = null!;
     private Path _selectionPath = null!;
     private int _executionBranchId;
     private DeferUsage _deferUsage = null!;
+
+    // the defer tasks runs in the system branch as its just an orchestration task.
+    public override int BranchId => BranchTracker.SystemBranchId;
 
     public override bool IsDeferred => true;
 
@@ -31,6 +34,7 @@ internal sealed class DeferTask : ExecutionTask
             _parentContext,
             _selectionSet,
             _selectionPath,
+            _executionBranchId,
             _deferUsage);
 
         var data = deferContext.Result.Data.Data;
@@ -65,7 +69,7 @@ internal sealed class DeferTask : ExecutionTask
         }
 
         // ... and then wait for the scheduler to complete the deferred tasks.
-        await deferContext.Scheduler.WaitForCompletionAsync(_executionBranchId, cancellationToken);
+        await deferContext.Scheduler.WaitForCompletionAsync(_executionBranchId);
 
         // once the execution branch has completed we enqueue the completed
         // result with the defer coordinator so it can be delivered.
@@ -75,7 +79,7 @@ internal sealed class DeferTask : ExecutionTask
     public void Initialize(
         OperationContext parentContext,
         object? parent,
-        ImmutableDictionary<string, object?> scopedContext,
+        IImmutableDictionary<string, object?> scopedContext,
         SelectionSet selectionSet,
         Path selectionPath,
         int executionBranchId,

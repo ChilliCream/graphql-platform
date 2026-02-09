@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics;
 using HotChocolate.Text.Json;
 
 namespace HotChocolate.Execution.Processing.Tasks;
@@ -18,12 +17,6 @@ internal sealed partial class ResolverTask
         int executionBranchId,
         DeferUsage? deferUsage)
     {
-        // defer usage must be set if the executionBranchId is not the main branch id.
-        // defer usage must not be set if the executionBranchId is the main branch id.
-        Debug.Assert(
-            (executionBranchId == DeferExecutionCoordinator.MainBranchId && deferUsage is null)
-                || (executionBranchId > DeferExecutionCoordinator.MainBranchId && deferUsage is not null));
-
         _operationContext = operationContext;
         _selection = selection;
         _context.Initialize(parent, selection, resultValue, operationContext, scopedContextData);
@@ -44,7 +37,7 @@ internal sealed partial class ResolverTask
         _context.Clean();
         Status = ExecutionTaskStatus.WaitingToRun;
         IsSerial = false;
-        BranchId = DeferExecutionCoordinator.MainBranchId;
+        BranchId = int.MinValue;
         DeferUsage = null;
         IsRegistered = false;
         Next = null;

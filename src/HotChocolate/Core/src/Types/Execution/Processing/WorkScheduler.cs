@@ -5,6 +5,8 @@ namespace HotChocolate.Execution.Processing;
 /// </summary>
 internal sealed partial class WorkScheduler
 {
+    private readonly Dictionary<int, Branch> _activeBranches = [];
+
     /// <summary>
     /// Defines if the execution is completed.
     /// </summary>
@@ -36,6 +38,14 @@ internal sealed partial class WorkScheduler
         lock (_sync)
         {
             work.Push(task);
+
+            if (!_activeBranches.TryGetValue(task.BranchId, out var branch))
+            {
+                branch = new Branch(task.BranchId);
+                _activeBranches.Add(task.BranchId, branch);
+            }
+
+            branch.RegisterTask();
         }
 
         _signal.Set();
@@ -50,7 +60,7 @@ internal sealed partial class WorkScheduler
 
         lock (_sync)
         {
-            for (var i = tasks.Length; i >= 0; i--)
+            for (var i = tasks.Length - 1; i >= 0; i--)
             {
                 var task = tasks[i];
                 task.Id = Interlocked.Increment(ref _nextId);
@@ -64,6 +74,14 @@ internal sealed partial class WorkScheduler
                 {
                     _work.Push(task);
                 }
+
+                if (!_activeBranches.TryGetValue(task.BranchId, out var branch))
+                {
+                    branch = new Branch(task.BranchId);
+                    _activeBranches.Add(task.BranchId, branch);
+                }
+
+                branch.RegisterTask();
             }
         }
 
@@ -88,9 +106,39 @@ internal sealed partial class WorkScheduler
 
                 lock (_sync)
                 {
+                    if (_activeBranches.TryGetValue(task.BranchId, out var branch)
+                        && branch.CompleteTask())
+                    {
+                        _activeBranches.Remove(task.BranchId);
+                        branch.Complete();
+                    }
+
                     _signal.Set();
                 }
             }
+        }
+    }
+
+    private sealed class Branch(int id)
+    {
+        private readonly AsyncManualResetEvent _signal = new();
+        private int _runningTasks;
+
+        public int Id { get; } = id;
+
+        public int RunningTasks => _runningTasks;
+
+        public void RegisterTask() => _runningTasks++;
+
+        public bool CompleteTask() => --_runningTasks == 0;
+
+        public void Complete() => _signal.Set();
+
+        public async ValueTask WaitForCompletionAsync(CancellationToken cancellationToken)
+        {
+            await using var registration = cancellationToken.Register(_signal.Set);
+            await _signal;
+            cancellationToken.ThrowIfCancellationRequested();
         }
     }
 }

@@ -27,8 +27,9 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
     private bool _isCompleted;
     private bool _isInitialized;
 
-    public void Initialize(IBatchDispatcher batchDispatcher)
+    public void Initialize(RequestContext requestContext, IBatchDispatcher batchDispatcher)
     {
+        _requestContext = requestContext;
         _batchDispatcher = batchDispatcher;
         _batchDispatcherSession = _batchDispatcher.Subscribe(this);
 
@@ -44,9 +45,10 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
 
     public void Reset()
     {
+        var requestContext = _requestContext;
         var batchDispatcher = _batchDispatcher;
         Clear();
-        Initialize(batchDispatcher);
+        Initialize(requestContext, batchDispatcher);
     }
 
     public void Clear()
@@ -54,6 +56,7 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
         _work.Clear();
         _serial.Clear();
         _completed.Clear();
+        _activeBranches.Clear();
         _signal.Reset();
 
         _result = null!;

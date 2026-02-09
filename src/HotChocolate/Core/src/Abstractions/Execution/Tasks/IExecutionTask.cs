@@ -11,6 +11,11 @@ public interface IExecutionTask
     uint Id { get; set; }
 
     /// <summary>
+    /// Gets the execution branch id.
+    /// </summary>
+    int BranchId { get; }
+
+    /// <summary>
     /// Defines the kind of task.
     /// The task kind is used to apply the correct execution strategy.
     /// </summary>

@@ -10,7 +10,7 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
     /// <summary>
     /// Execute the work.
     /// </summary>
-    public async Task ExecuteAsync()
+    public async Task ExecuteAsync1()
     {
         AssertNotPooled();
 
@@ -25,10 +25,17 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
     }
 
     /// <summary>
-    /// Execute the work.
+    /// Waits for all tasks in the specified execution branch to complete.
+    /// Returns immediately if the branch has already completed or was never registered.
     /// </summary>
-    public Task WaitForCompletionAsync(int executionBranchId, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
+    public ValueTask WaitForCompletionAsync(int executionBranchId)
+    {
+        AssertNotPooled();
+
+        return _activeBranches.TryGetValue(executionBranchId, out var branch)
+            ? branch.WaitForCompletionAsync(operationContext.RequestAborted)
+            : ValueTask.CompletedTask;
+    }
 
     private async Task ExecuteInternalAsync(IExecutionTask?[] buffer)
     {

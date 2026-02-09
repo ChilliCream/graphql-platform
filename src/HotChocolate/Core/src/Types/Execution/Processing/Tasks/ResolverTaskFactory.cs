@@ -1,10 +1,9 @@
 using System.Collections.Immutable;
+using System.Buffers;
 using System.Diagnostics;
 using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Processing.ValueCompletion;
-using static HotChocolate.Execution.Processing.DeferExecutionCoordinator;
-using System.Buffers;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
@@ -21,6 +20,7 @@ internal static class ResolverTaskFactory
         var selectionSet = resultValue.AssertSelectionSet();
         var scheduler = operationContext.Scheduler;
         var bufferedTasks = s_pool.Rent(resultValue.GetPropertyCount());
+        var mainBranchId = operationContext.ExecutionBranchId;
         var data = resultValue.EnumerateObject();
         var i = 0;
 
@@ -53,7 +53,7 @@ internal static class ResolverTaskFactory
 
                         if (!branches.TryGetValue(deferUsage, out var branchId))
                         {
-                            branchId = coordinator.Branch(MainBranchId, Path.Root, deferUsage);
+                            branchId = coordinator.Branch(mainBranchId, Path.Root, deferUsage);
                             branches = branches.Add(deferUsage, branchId);
                         }
 
@@ -309,6 +309,8 @@ internal static class ResolverTaskFactory
 
     private sealed class NoOpExecutionTask(OperationContext context) : ExecutionTask
     {
+        public override int BranchId => context.ExecutionBranchId;
+
         public override bool IsDeferred => false;
 
         protected override IExecutionTaskContext Context { get; } = context;

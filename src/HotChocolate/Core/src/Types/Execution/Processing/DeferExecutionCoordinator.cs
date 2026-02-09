@@ -3,15 +3,16 @@ using System.Threading.Channels;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed class DeferExecutionCoordinator
+internal sealed partial class DeferExecutionCoordinator
 {
-    public const int MainBranchId = -1;
     private readonly object _sync = new();
     private readonly Dictionary<DeferredBranchInfo, int> _branchIdLookup = [];
     private readonly Dictionary<int, DeferredBranchInfo> _branchInfoLookup = [];
     private readonly Dictionary<int, HashSet<int>> _branches = [];
     private readonly Dictionary<int, OperationResult> _completed = [];
     private readonly HashSet<int> _delivered = [];
+    private BranchTracker _branchTracker = null!;
+    private int _mainBranchId;
     private ImmutableList<PendingResult>.Builder? _pendingBuilder;
     private ImmutableList<IIncrementalResult>.Builder? _incrementalBuilder;
     private ImmutableList<CompletedResult>.Builder? _completedBuilder;
@@ -19,7 +20,6 @@ internal sealed class DeferExecutionCoordinator
     private Channel<OperationResult> _resultChannel = null!;
     private volatile bool _hasBranches;
     private int _pendingBranches;
-    private int _nextId;
 
     /// <summary>
     /// Gets whether any deferred execution branches have been registered.
@@ -39,7 +39,7 @@ internal sealed class DeferExecutionCoordinator
         {
             if (!_branchIdLookup.TryGetValue(branchInfo, out var newBranchId))
             {
-                newBranchId = _nextId++;
+                newBranchId = _branchTracker.CreateNewBranchId();
                 GetBranchesUnsafe(currentBranchId).Add(newBranchId);
                 _branchInfoLookup.Add(newBranchId, branchInfo);
                 _branchIdLookup.Add(branchInfo, newBranchId);
@@ -59,7 +59,7 @@ internal sealed class DeferExecutionCoordinator
     {
         lock (_sync)
         {
-            ComposeAndDeliverUnsafe(MainBranchId, result);
+            ComposeAndDeliverUnsafe(_mainBranchId, result);
         }
     }
 
@@ -89,40 +89,6 @@ internal sealed class DeferExecutionCoordinator
     public IAsyncEnumerable<OperationResult> ReadResultsAsync(
         CancellationToken cancellationToken = default)
         => _resultChannel.Reader.ReadAllAsync(cancellationToken);
-
-    /// <summary>
-    /// Initializes the coordinator for a new execution cycle.
-    /// Must be called before any other operations when leased from a pool.
-    /// </summary>
-    public void Initialize()
-    {
-        _resultChannel = Channel.CreateUnbounded<OperationResult>(
-            new UnboundedChannelOptions
-            {
-                SingleWriter = true,
-                SingleReader = true
-            });
-    }
-
-    /// <summary>
-    /// Resets the coordinator to its initial state so it can be reused.
-    /// </summary>
-    public void Reset()
-    {
-        _branchIdLookup.Clear();
-        _branchInfoLookup.Clear();
-        _branches.Clear();
-        _completed.Clear();
-        _delivered.Clear();
-        _resultChannel = null!;
-        _pendingBuilder = null;
-        _incrementalBuilder = null;
-        _completedBuilder = null;
-        _processQueue = null;
-        _hasBranches = false;
-        _pendingBranches = 0;
-        _nextId = 0;
-    }
 
     private void ComposeAndDeliverUnsafe(int branchId, OperationResult result)
     {
@@ -202,14 +168,14 @@ internal sealed class DeferExecutionCoordinator
 
         _delivered.Add(branchId);
 
-        if (branchId != MainBranchId)
+        if (branchId != _mainBranchId)
         {
             _pendingBranches--;
         }
 
         _resultChannel.Writer.TryWrite(result);
 
-        if (_delivered.Contains(MainBranchId) && _pendingBranches == 0)
+        if (_delivered.Contains(_mainBranchId) && _pendingBranches == 0)
         {
             _resultChannel.Writer.TryComplete();
         }

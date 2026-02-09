@@ -16,6 +16,9 @@ public abstract class ExecutionTask : IExecutionTask
     /// </summary>
     public uint Id { get; set; }
 
+    /// <inheritdoc />
+    public abstract int BranchId { get; }
+
     /// <summary>
     /// Gets the execution engine task context.
     /// </summary>

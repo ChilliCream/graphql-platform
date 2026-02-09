@@ -24,7 +24,7 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     /// Used by the defer coordinator to track which deferred execution branch
     /// this task contributes results to.
     /// </summary>
-    internal int BranchId { get; private set; }
+    public int BranchId { get; private set; }
 
     /// <summary>
     /// Gets the primary defer usage that caused this execution branch to be created.
@@ -77,7 +77,7 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     public bool IsRegistered { get; set; }
 
     /// <inheritdoc />
-    public bool IsDeferred => BranchId != DeferExecutionCoordinator.MainBranchId;
+    public bool IsDeferred => DeferUsage is not null;
 
     /// <inheritdoc />
     public void BeginExecute(CancellationToken cancellationToken)
