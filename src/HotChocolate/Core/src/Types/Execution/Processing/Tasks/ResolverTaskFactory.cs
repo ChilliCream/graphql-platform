@@ -1,122 +1,137 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Processing.ValueCompletion;
+using static HotChocolate.Execution.Processing.DeferExecutionCoordinator;
+using System.Buffers;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
 internal static class ResolverTaskFactory
 {
-    private static List<ResolverTask>? s_pooled = [];
+    private static readonly ArrayPool<IExecutionTask> s_pool = ArrayPool<IExecutionTask>.Shared;
 
-    static ResolverTaskFactory() { }
-
-    public static void EnqueueResolverTasks(
+    public static void EnqueueRootResolverTasks(
         OperationContext operationContext,
         object? parent,
         ResultElement resultValue,
-        IImmutableDictionary<string, object?> scopedContext,
-        Path path)
+        IImmutableDictionary<string, object?> scopedContext)
     {
         var selectionSet = resultValue.AssertSelectionSet();
-        var selections = selectionSet.Selections;
-
         var scheduler = operationContext.Scheduler;
-        var bufferedTasks = Interlocked.Exchange(ref s_pooled, null) ?? [];
-        Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
+        var bufferedTasks = s_pool.Rent(resultValue.GetPropertyCount());
+        var data = resultValue.EnumerateObject();
+        var i = 0;
 
         try
         {
-            // we are iterating reverse so that in the case of a mutation the first
-            // synchronous root selection is executed first, since the work scheduler
-            // is using two stacks one for parallel work and one for synchronous work.
-            // the scheduler tries to schedule new work first.
-            // coincidentally we can use that to schedule a mutation so that we honor the spec
-            // guarantees while executing efficient.
-            var fieldValues = selections.Length == 1
-                ? resultValue.EnumerateObject()
-                : resultValue.EnumerateObject().Reverse();
-            foreach (var field in fieldValues)
+            if (selectionSet.HasDeferredSelections)
             {
-                bufferedTasks.Add(
-                    operationContext.CreateResolverTask(
-                        parent,
-                        field.AssertSelection(),
-                        field.Value,
-                        scopedContext));
-            }
+                var coordinator = operationContext.DeferExecutionCoordinator;
+                var deferFlags = operationContext.DeferFlags;
+                var branches = ImmutableDictionary<DeferUsage, int>.Empty;
+                DeferUsage? lastDeferUsage = null;
 
-            if (bufferedTasks.Count == 0)
-            {
-                // in the case all root fields are skipped we execute a dummy task in order
-                // to not have extra logic for this case.
-                scheduler.Register(new NoOpExecutionTask(operationContext));
+                foreach (var field in data)
+                {
+                    var selection = field.AssertSelection();
+
+                    if (selection.IsDeferred(deferFlags))
+                    {
+                        // if IsDeferred is true then GetPrimaryDeferUsage will be guaranteed
+                        // to return a defer usage for the same deferFlags
+                        var deferUsage = selection.GetPrimaryDeferUsage(deferFlags);
+                        Debug.Assert(deferUsage is not null);
+
+                        field.Value.MarkAsDeferred();
+
+                        if (lastDeferUsage == deferUsage)
+                        {
+                            continue;
+                        }
+
+                        if (!branches.TryGetValue(deferUsage, out var lastDeferBranchId))
+                        {
+                            lastDeferBranchId = coordinator.Branch(MainBranchId, Path.Root, deferUsage);
+                            branches = branches.Add(deferUsage, lastDeferBranchId);
+                        }
+
+                        lastDeferUsage = deferUsage;
+                        continue;
+                    }
+
+                    bufferedTasks[i++] =
+                        operationContext.CreateResolverTask(
+                            parent,
+                            selection,
+                            field.Value,
+                            scopedContext);
+                }
+
+                if (i == 0 && branches.IsEmpty)
+                {
+                    // in the case all root fields are skipped we execute a dummy task in order
+                    // to not have extra logic for this case.
+                    scheduler.Register(new NoOpExecutionTask(operationContext));
+                }
+                else
+                {
+                    if (i > 0)
+                    {
+                        scheduler.Register(bufferedTasks.AsSpan(0, i));
+                    }
+
+                    if (!branches.IsEmpty)
+                    {
+                        foreach (var (deferUsage, branchId) in branches)
+                        {
+                            scheduler.Register(
+                                operationContext.CreateDeferTask(
+                                    selectionSet,
+                                    Path.Root,
+                                    parent,
+                                    scopedContext,
+                                    branchId,
+                                    deferUsage));
+                        }
+                    }
+                }
             }
             else
             {
-                scheduler.Register(CollectionsMarshal.AsSpan(bufferedTasks));
+                foreach (var field in data)
+                {
+                    bufferedTasks[i++] =
+                        operationContext.CreateResolverTask(
+                            parent,
+                            field.AssertSelection(),
+                            field.Value,
+                            scopedContext);
+                }
+
+                if (i == 0)
+                {
+                    // in the case all root fields are skipped we execute a dummy task in order
+                    // to not have extra logic for this case.
+                    scheduler.Register(new NoOpExecutionTask(operationContext));
+                }
+                else
+                {
+                    scheduler.Register(bufferedTasks.AsSpan(0, i));
+                }
             }
         }
         finally
         {
-            bufferedTasks.Clear();
-            Interlocked.Exchange(ref s_pooled!, bufferedTasks);
-        }
-    }
-
-    // TODO : remove ? defer?
-    /*
-    public static ResolverTask EnqueueElementTasks(
-        OperationContext operationContext,
-        Selection selection,
-        object? parent,
-        Path path,
-        int index,
-        IAsyncEnumerator<object?> value,
-        IImmutableDictionary<string, object?> scopedContext)
-    {
-        var parentResult = operationContext.Result.RentObject(1);
-        var bufferedTasks = Interlocked.Exchange(ref s_pooled, null) ?? [];
-        Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
-
-        var resolverTask =
-            operationContext.CreateResolverTask(
-                selection,
-                parent,
-                parentResult,
-                0,
-                scopedContext,
-                path.Append(index));
-
-        try
-        {
-            CompleteInline(
-                operationContext,
-                resolverTask.Context,
-                selection,
-                selection.Type.ElementType(),
-                0,
-                parentResult,
-                value.Current,
-                bufferedTasks);
-
-            // if we have child tasks we need to register them.
-            if (bufferedTasks.Count > 0)
+            if (i > 0)
             {
-                operationContext.Scheduler.Register(CollectionsMarshal.AsSpan(bufferedTasks));
+                bufferedTasks.AsSpan(0, i).Clear();
             }
-        }
-        finally
-        {
-            bufferedTasks.Clear();
-            Interlocked.Exchange(ref s_pooled, bufferedTasks);
-        }
 
-        return resolverTask;
+            s_pool.Return(bufferedTasks);
+        }
     }
-    */
 
     public static void EnqueueOrInlineResolverTasks(
         ValueCompletionContext context,
@@ -132,27 +147,85 @@ internal static class ResolverTaskFactory
 
         resultValue.SetObjectValue(selectionSet);
 
-        foreach (var field in resultValue.EnumerateObject())
+        if (selectionSet.HasDeferredSelections)
         {
-            var selection = field.AssertSelection();
+            var coordinator = operationContext.DeferExecutionCoordinator;
+            var deferFlags = operationContext.DeferFlags;
+            var branches = ImmutableDictionary<DeferUsage, int>.Empty;
+            DeferUsage? lastDeferUsage = null;
+            Path? currentPath = null;
 
-            if (selection.Strategy is SelectionExecutionStrategy.Pure)
+            foreach (var field in resultValue.EnumerateObject())
             {
-                ResolveAndCompleteInline(
-                    context,
-                    selection,
-                    selectionSetType,
-                    field.Value,
-                    parent);
-            }
-            else
-            {
-                context.Tasks.Add(
-                    operationContext.CreateResolverTask(
-                        parent,
+                var selection = field.AssertSelection();
+
+                if (selection.IsDeferred(deferFlags))
+                {
+                    // if IsDeferred is true then GetPrimaryDeferUsage will be guaranteed
+                    // to return a defer usage for the same deferFlags
+                    var deferUsage = selection.GetPrimaryDeferUsage(deferFlags);
+                    Debug.Assert(deferUsage is not null);
+
+                    field.Value.MarkAsDeferred();
+
+                    if (lastDeferUsage == deferUsage)
+                    {
+                        continue;
+                    }
+
+                    if (!branches.TryGetValue(deferUsage, out var lastDeferBranchId))
+                    {
+                        currentPath ??= resultValue.Path;
+                        lastDeferBranchId = coordinator.Branch(MainBranchId, currentPath, deferUsage);
+                        branches = branches.Add(deferUsage, lastDeferBranchId);
+                    }
+
+                    lastDeferUsage = deferUsage;
+                }
+                else if (selection.Strategy is SelectionExecutionStrategy.Pure)
+                {
+                    ResolveAndCompleteInline(
+                        context,
                         selection,
+                        selectionSetType,
                         field.Value,
-                        context.ResolverContext.ScopedContextData));
+                        parent);
+                }
+                else
+                {
+                    context.Tasks.Add(
+                        operationContext.CreateResolverTask(
+                            parent,
+                            selection,
+                            field.Value,
+                            context.ResolverContext.ScopedContextData));
+                }
+            }
+        }
+        else
+        {
+            foreach (var field in resultValue.EnumerateObject())
+            {
+                var selection = field.AssertSelection();
+
+                if (selection.Strategy is SelectionExecutionStrategy.Pure)
+                {
+                    ResolveAndCompleteInline(
+                        context,
+                        selection,
+                        selectionSetType,
+                        field.Value,
+                        parent);
+                }
+                else
+                {
+                    context.Tasks.Add(
+                        operationContext.CreateResolverTask(
+                            parent,
+                            selection,
+                            field.Value,
+                            context.ResolverContext.ScopedContextData));
+                }
             }
         }
     }
@@ -226,6 +299,8 @@ internal static class ResolverTaskFactory
 
     private sealed class NoOpExecutionTask(OperationContext context) : ExecutionTask
     {
+        public override bool IsDeferred => false;
+
         protected override IExecutionTaskContext Context { get; } = context;
 
         protected override ValueTask ExecuteAsync(CancellationToken cancellationToken)

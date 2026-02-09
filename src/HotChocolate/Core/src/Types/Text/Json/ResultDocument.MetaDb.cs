@@ -244,19 +244,19 @@ public sealed partial class ResultDocument
             var span = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + 16);
 
             var value = MemoryMarshal.Read<int>(span);
-            return (ElementFlags)((value >> 15) & 0xFF);
+            return (ElementFlags)((value >> 15) & 0x1FF);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void SetFlags(Cursor cursor, ElementFlags flags)
         {
             AssertValidCursor(cursor);
-            Debug.Assert((byte)flags <= 255, "Flags value exceeds 8-bit limit");
+            Debug.Assert((short)flags <= 511, "Flags value exceeds 9-bit limit");
 
             var fieldSpan = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + 16);
             var currentValue = MemoryMarshal.Read<int>(fieldSpan);
 
-            var clearedValue = currentValue & unchecked((int)0xFF807FFF); // ~(0xFF << 15)
+            var clearedValue = currentValue & unchecked((int)0xFF007FFF); // ~(0x1FF << 15)
             var newValue = clearedValue | ((int)flags << 15);
 
             MemoryMarshal.Write(fieldSpan, newValue);

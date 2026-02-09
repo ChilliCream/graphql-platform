@@ -22,6 +22,8 @@ internal sealed partial class OperationContext
         }
     }
 
+    public DeferExecutionCoordinator DeferExecutionCoordinator => throw new NotImplementedException();
+
     public OperationResultBuilder Result { get; } = new();
 
     public RequestContext RequestContext
@@ -38,7 +40,8 @@ internal sealed partial class OperationContext
         Selection selection,
         ResultElement resultValue,
         IImmutableDictionary<string, object?> scopedContextData,
-        Path? path = null)
+        int executionBranchId = DeferExecutionCoordinator.MainBranchId,
+        DeferUsage? deferUsage = null)
     {
         AssertInitialized();
 
@@ -50,8 +53,34 @@ internal sealed partial class OperationContext
             resultValue,
             this,
             scopedContextData,
-            path);
+            executionBranchId,
+            deferUsage);
 
         return resolverTask;
+    }
+
+    public DeferTask CreateDeferTask(
+        SelectionSet selectionSet,
+        Path selectionPath,
+        object? parent,
+        IImmutableDictionary<string, object?> scopedContextData,
+        int executionBranchId,
+        DeferUsage deferUsage)
+    {
+        AssertInitialized();
+
+        // TODO : we need to pool this still
+        var deferTask = new DeferTask();
+
+        deferTask.Initialize(
+            this,
+            parent,
+            scopedContextData,
+            selectionSet,
+            selectionPath,
+            executionBranchId,
+            deferUsage);
+
+        return deferTask;
     }
 }

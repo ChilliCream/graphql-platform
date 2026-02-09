@@ -45,6 +45,11 @@ public interface IExecutionTask
     bool IsSerial { get; set; }
 
     /// <summary>
+    /// Gets a value indicating whether this task is deprioritized.
+    /// </summary>
+    bool IsDeferred { get; }
+
+    /// <summary>
     /// Specifies if the task was fully registered with the scheduler.
     /// </summary>
     bool IsRegistered { get; set; }

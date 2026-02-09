@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Processing.Tasks;
 internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) : IExecutionTask
 {
     private readonly MiddlewareContext _context = new();
-    private readonly List<ResolverTask> _taskBuffer = [];
+    private readonly List<IExecutionTask> _taskBuffer = [];
     private readonly Dictionary<string, ArgumentValue> _args = [with(StringComparer.Ordinal)];
     private OperationContext _operationContext = null!;
     private Selection _selection = null!;
@@ -19,7 +19,19 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     /// </summary>
     public uint Id { get; set; }
 
-    public uint DeferGroupId { get; set; }
+    /// <summary>
+    /// Gets the execution branch identifier this task belongs to.
+    /// Used by the defer coordinator to track which deferred execution branch
+    /// this task contributes results to.
+    /// </summary>
+    internal int BranchId { get; private set; }
+
+    /// <summary>
+    /// Gets the primary defer usage that caused this execution branch to be created.
+    /// Used to determine whether child tasks should create new branches when their
+    /// primary defer usage differs from this one.
+    /// </summary>
+    internal DeferUsage? DeferUsage { get; private set; }
 
     /// <summary>
     /// Gets access to the resolver context for this task.
@@ -63,6 +75,9 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
 
     /// <inheritdoc />
     public bool IsRegistered { get; set; }
+
+    /// <inheritdoc />
+    public bool IsDeferred => BranchId != DeferExecutionCoordinator.MainBranchId;
 
     /// <inheritdoc />
     public void BeginExecute(CancellationToken cancellationToken)

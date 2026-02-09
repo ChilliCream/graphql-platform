@@ -24,6 +24,12 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
         }
     }
 
+    /// <summary>
+    /// Execute the work.
+    /// </summary>
+    public Task WaitForCompletionAsync(int executionBranchId, CancellationToken cancellationToken)
+        => throw new NotImplementedException();
+
     private async Task ExecuteInternalAsync(IExecutionTask?[] buffer)
     {
 RESTART:

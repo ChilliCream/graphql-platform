@@ -22,14 +22,12 @@ internal partial class MiddlewareContext
         Selection selection,
         ResultElement resultValue,
         OperationContext operationContext,
-        IImmutableDictionary<string, object?> scopedContextData,
-        Path? path)
+        IImmutableDictionary<string, object?> scopedContextData)
     {
         _operationContext = operationContext;
         _operationResultBuilder.Context = _operationContext;
         _services = operationContext.Services;
         _selection = selection;
-        _path = path;
         ResultValue = resultValue;
         _parent = parent;
         _parser = operationContext.InputParser;

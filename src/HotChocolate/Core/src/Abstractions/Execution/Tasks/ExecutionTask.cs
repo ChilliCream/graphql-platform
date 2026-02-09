@@ -43,6 +43,9 @@ public abstract class ExecutionTask : IExecutionTask
     public bool IsRegistered { get; set; }
 
     /// <inheritdoc />
+    public abstract bool IsDeferred { get; }
+
+    /// <inheritdoc />
     public void BeginExecute(CancellationToken cancellationToken)
     {
         Status = ExecutionTaskStatus.Running;

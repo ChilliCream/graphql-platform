@@ -78,6 +78,7 @@ internal sealed partial class OperationContext
         _isInitialized = true;
 
         IncludeFlags = operation.CreateIncludeFlags(variables);
+        DeferFlags = operation.CreateDeferFlags(variables);
         Result.Data = new ResultDocument(operation, IncludeFlags);
         Result.RequestIndex = _requestContext.RequestIndex;
         Result.VariableIndex = variableIndex;
@@ -86,7 +87,11 @@ internal sealed partial class OperationContext
         _currentWorkScheduler = _workScheduler;
     }
 
-    public void InitializeFrom(OperationContext context)
+    public void InitializeDeferContext(
+        OperationContext context,
+        SelectionSet selectionSet,
+        Path selectionPath,
+        DeferUsage deferUsage)
     {
         _requestContext = context._requestContext;
         _schema = context._schema;
@@ -102,15 +107,20 @@ internal sealed partial class OperationContext
         _rootValue = context._rootValue;
         _resolveQueryRootValue = context._resolveQueryRootValue;
         _batchDispatcher = context._batchDispatcher;
+        _currentWorkScheduler = context._currentWorkScheduler;
         _isInitialized = true;
 
-        IncludeFlags = _operation.CreateIncludeFlags(_variables);
-        Result.Data = new ResultDocument(_operation, IncludeFlags);
+        IncludeFlags = context.IncludeFlags;
+        DeferFlags = context.DeferFlags;
+        Result.Data = new ResultDocument(
+            context.Operation,
+            selectionSet,
+            selectionPath,
+            context.IncludeFlags,
+            context.DeferFlags,
+            deferUsage);
         Result.RequestIndex = _requestContext.RequestIndex;
         Result.VariableIndex = context._variableIndex;
-
-        _workScheduler.Initialize(_batchDispatcher);
-        _currentWorkScheduler = _workScheduler;
     }
 
     public void Clean()

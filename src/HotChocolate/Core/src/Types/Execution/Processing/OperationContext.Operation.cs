@@ -47,6 +47,11 @@ internal sealed partial class OperationContext
     public ulong IncludeFlags { get; private set; }
 
     /// <summary>
+    /// Gets the include flags for the current request.
+    /// </summary>
+    public ulong DeferFlags { get; private set; }
+
+    /// <summary>
     /// Gets the value representing the instance of the
     /// <see cref="IOperation.RootType" />
     /// </summary>

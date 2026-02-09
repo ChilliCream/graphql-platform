@@ -376,7 +376,7 @@ public static class JsonValueFormatter
             WriteErrors(writer, item.Errors, options, nullIgnoreCondition);
         }
 
-        if (item is IIncrementalObjectResult objectResult)
+        if (item is IncrementalObjectResult)
         {
             writer.WritePropertyName(Data);
 
@@ -384,7 +384,7 @@ public static class JsonValueFormatter
             writer.WriteStartObject();
             writer.WriteEndObject();
         }
-        else if (item is IIncrementalListResult listResult)
+        else if (item is IIncrementalListResult)
         {
             writer.WritePropertyName(Items);
 

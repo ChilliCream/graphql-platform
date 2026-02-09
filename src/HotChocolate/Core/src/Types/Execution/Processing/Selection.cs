@@ -285,6 +285,106 @@ public sealed class Selection : ISelection, IFeatureProvider
     public bool IsDeferred(ulong deferFlags)
         => _deferMask != 0 && (_deferMask & deferFlags) == _deferMask;
 
+    /// <summary>
+    /// Gets all defer usages that are active for the specified defer flags.
+    /// </summary>
+    /// <param name="deferFlags">The active defer flags.</param>
+    /// <returns>A struct enumerator over active defer usages.</returns>
+    public DeferUsageEnumerator GetActiveDeferUsages(ulong deferFlags)
+        => new(_deferUsage, deferFlags);
+
+    /// <summary>
+    /// Gets the primary defer usage for this selection given the active defer flags.
+    /// The primary defer usage determines which execution branch the selection belongs to.
+    /// If multiple defer usages are active and one is a parent of another, the parent takes precedence.
+    /// </summary>
+    /// <param name="deferFlags">The active defer flags.</param>
+    /// <returns>
+    /// The primary defer usage, or <c>null</c> if the selection is not deferred or has no active defer usages.
+    /// </returns>
+    public DeferUsage? GetPrimaryDeferUsage(ulong deferFlags)
+    {
+        if (_deferUsage.Length == 0)
+        {
+            return null;
+        }
+
+        // Fast path for single defer usage (most common case).
+        if (_deferUsage.Length == 1)
+        {
+            var usage = _deferUsage[0];
+
+            // Walk up the parent chain to find the nearest active defer.
+            // A defer is inactive when its condition evaluates to false at runtime
+            // (e.g. @defer(if: $var) with $var = false). When inactive, the fragment
+            // is not deferred and its content folds into the parent scope — but the
+            // parent scope may itself be deferred.
+            while (usage is not null)
+            {
+                if ((deferFlags & (1UL << usage.DeferConditionIndex)) != 0)
+                {
+                    return usage;
+                }
+
+                usage = usage.Parent;
+            }
+
+            // No active defer in the chain — field is not deferred.
+            return null;
+        }
+
+        // Multiple defer usages: the field was collected from multiple deferred
+        // fragments. Resolve each to its nearest active ancestor, then find the
+        // outermost (primary) among them.
+        DeferUsage? primary = null;
+
+        for (var i = 0; i < _deferUsage.Length; i++)
+        {
+            // Walk up the parent chain to find the nearest active defer.
+            var effective = _deferUsage[i];
+
+            while (effective is not null)
+            {
+                if ((deferFlags & (1UL << effective.DeferConditionIndex)) != 0)
+                {
+                    break;
+                }
+
+                effective = effective.Parent;
+            }
+
+            if (effective is null)
+            {
+                // This occurrence has no active defer in its chain —
+                // the field appears non-deferred and belongs in the initial response.
+                return null;
+            }
+
+            if (primary is null || primary == effective)
+            {
+                primary = effective;
+                continue;
+            }
+
+            // Two different active defers. Keep the outermost: check if
+            // effective is an ancestor of primary.
+            var ancestor = primary.Parent;
+
+            while (ancestor is not null)
+            {
+                if (ancestor == effective)
+                {
+                    primary = effective;
+                    break;
+                }
+
+                ancestor = ancestor.Parent;
+            }
+        }
+
+        return primary;
+    }
+
     public Selection WithField(ObjectField field)
     {
         ArgumentNullException.ThrowIfNull(field);

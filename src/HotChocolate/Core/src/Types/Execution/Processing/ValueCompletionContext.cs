@@ -1,5 +1,3 @@
-using HotChocolate.Execution.Processing.Tasks;
-
 namespace HotChocolate.Execution.Processing;
 
 internal readonly ref struct ValueCompletionContext
@@ -7,7 +5,7 @@ internal readonly ref struct ValueCompletionContext
     public ValueCompletionContext(
         OperationContext operationContext,
         MiddlewareContext resolverContext,
-        List<ResolverTask> tasks)
+        List<IExecutionTask> tasks)
     {
         OperationContext = operationContext;
         ResolverContext = resolverContext;
@@ -18,5 +16,5 @@ internal readonly ref struct ValueCompletionContext
 
     public MiddlewareContext ResolverContext { get; }
 
-    public List<ResolverTask> Tasks { get; }
+    public List<IExecutionTask> Tasks { get; }
 }

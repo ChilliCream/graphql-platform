@@ -1,5 +1,3 @@
-using HotChocolate.Execution.Processing.Tasks;
-
 namespace HotChocolate.Execution.Processing;
 
 /// <summary>
@@ -46,14 +44,15 @@ internal sealed partial class WorkScheduler
     /// <summary>
     /// Registers work with the task backlog.
     /// </summary>
-    public void Register(ReadOnlySpan<ResolverTask> tasks)
+    public void Register(ReadOnlySpan<IExecutionTask> tasks)
     {
         AssertNotPooled();
 
         lock (_sync)
         {
-            foreach (var task in tasks)
+            for (var i = tasks.Length; i >= 0; i--)
             {
+                var task = tasks[i];
                 task.Id = Interlocked.Increment(ref _nextId);
                 task.IsRegistered = true;
 
