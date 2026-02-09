@@ -17,7 +17,6 @@ internal sealed class OperationExecutionMiddleware
     private readonly IFactory<OperationContextOwner> _contextFactory;
     private readonly QueryExecutor _queryExecutor;
     private readonly SubscriptionExecutor _subscriptionExecutor;
-    private readonly ITransactionScopeHandler _transactionScopeHandler;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
     private object? _cachedQuery;
     private object? _cachedMutation;
@@ -27,20 +26,17 @@ internal sealed class OperationExecutionMiddleware
         IFactory<OperationContextOwner> contextFactory,
         QueryExecutor queryExecutor,
         SubscriptionExecutor subscriptionExecutor,
-        ITransactionScopeHandler transactionScopeHandler,
         IExecutionDiagnosticEvents diagnosticEvents)
     {
         ArgumentNullException.ThrowIfNull(next);
         ArgumentNullException.ThrowIfNull(contextFactory);
         ArgumentNullException.ThrowIfNull(queryExecutor);
         ArgumentNullException.ThrowIfNull(subscriptionExecutor);
-        ArgumentNullException.ThrowIfNull(transactionScopeHandler);
 
         _next = next;
         _contextFactory = contextFactory;
         _queryExecutor = queryExecutor;
         _subscriptionExecutor = subscriptionExecutor;
-        _transactionScopeHandler = transactionScopeHandler;
         _diagnosticEvents = diagnosticEvents;
     }
 
@@ -302,7 +298,7 @@ internal sealed class OperationExecutionMiddleware
 
         try
         {
-            return await ExecuteQueryOrMutationAsync(
+            return (OperationResult)await ExecuteQueryOrMutationAsync(
                     context,
                     batchDispatcher,
                     operation,
@@ -326,7 +322,7 @@ internal sealed class OperationExecutionMiddleware
         }
     }
 
-    private async Task<OperationResult> ExecuteQueryOrMutationAsync(
+    private async Task<IExecutionResult> ExecuteQueryOrMutationAsync(
         RequestContext context,
         IBatchDispatcher batchDispatcher,
         Operation operation,
@@ -334,27 +330,8 @@ internal sealed class OperationExecutionMiddleware
         IVariableValueCollection variables,
         int variableIndex = -1)
     {
-        if (operation.Definition.Operation is OperationType.Query)
-        {
-            var query = GetQueryRootValue(context);
-
-            operationContext.Initialize(
-                context,
-                context.RequestServices,
-                batchDispatcher,
-                operation,
-                variables,
-                query,
-                () => query,
-                variableIndex);
-
-            return await _queryExecutor.ExecuteAsync(operationContext).ConfigureAwait(false);
-        }
-
         if (operation.Definition.Operation is OperationType.Mutation)
         {
-            using var transactionScope = _transactionScopeHandler.Create(context);
-
             var mutation = GetMutationRootValue(context);
 
             operationContext.Initialize(
@@ -367,17 +344,22 @@ internal sealed class OperationExecutionMiddleware
                 () => GetQueryRootValue(context),
                 variableIndex);
 
-            var result = await _queryExecutor.ExecuteAsync(operationContext).ConfigureAwait(false);
-
-            // we capture the result here so that we can capture it in the transaction scope.
-            context.Result = result;
-
-            // we complete the transaction scope and are done.
-            transactionScope.Complete();
-            return result;
+            return await _queryExecutor.ExecuteAsync(operationContext).ConfigureAwait(false);
         }
 
-        throw new InvalidOperationException();
+        var query = GetQueryRootValue(context);
+
+        operationContext.Initialize(
+            context,
+            context.RequestServices,
+            batchDispatcher,
+            operation,
+            variables,
+            query,
+            () => query,
+            variableIndex);
+
+        return await _queryExecutor.ExecuteAsync(operationContext).ConfigureAwait(false);
     }
 
     private object? GetQueryRootValue(RequestContext context)
@@ -439,15 +421,12 @@ internal sealed class OperationExecutionMiddleware
                 var contextFactory = factoryContext.Services.GetRequiredService<IFactory<OperationContextOwner>>();
                 var queryExecutor = factoryContext.SchemaServices.GetRequiredService<QueryExecutor>();
                 var subscriptionExecutor = factoryContext.SchemaServices.GetRequiredService<SubscriptionExecutor>();
-                var transactionScopeHandler =
-                    factoryContext.SchemaServices.GetRequiredService<ITransactionScopeHandler>();
                 var diagnosticEvents = factoryContext.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
                 var middleware = new OperationExecutionMiddleware(
                     next,
                     contextFactory,
                     queryExecutor,
                     subscriptionExecutor,
-                    transactionScopeHandler,
                     diagnosticEvents);
 
                 return async context =>
