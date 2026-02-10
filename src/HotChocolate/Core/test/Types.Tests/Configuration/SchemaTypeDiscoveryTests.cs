@@ -179,4 +179,35 @@ public class SchemaTypeDiscoveryTests
         Foo,
         Bar
     }
+
+    public class Base64StringType : ScalarType
+    {
+        public Base64StringType() : base("Base64String", BindingBehavior.Implicit)
+        {
+        }
+
+        public override Type RuntimeType => typeof(byte[]);
+
+        public override ScalarSerializationType SerializationType => ScalarSerializationType.String;
+
+        public override object CoerceInputLiteral(IValueNode literal)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void CoerceOutputValue(object runtimeValue, ResultElement resultValue)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override IValueNode ValueToLiteral(object runtimeValue)
+        {
+            throw new NotSupportedException();
+        }
+    }
 }
