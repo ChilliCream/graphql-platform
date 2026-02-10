@@ -60,7 +60,7 @@ internal sealed class DeferTask : ExecutionTask
         }
         finally
         {
-            if (i > 1)
+            if (i > 0)
             {
                 bufferedTasks.AsSpan(0, i).Clear();
             }

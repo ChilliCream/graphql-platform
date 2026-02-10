@@ -143,7 +143,7 @@ public sealed class OperationResult : ExecutionResult
     /// <summary>
     /// Gets the data that is being delivered in this operation result.
     /// </summary>
-    public OperationResultData? Data { get; }
+    public OperationResultData? Data { get; internal set; }
 
     /// <summary>
     /// Gets the GraphQL errors that occurred during execution.
@@ -153,7 +153,10 @@ public sealed class OperationResult : ExecutionResult
         get => _errors;
         set
         {
-            if (!Data.HasValue && Errors is null or { Count: 0 } && Extensions is null or { Count: 0 })
+            if (!Data.HasValue
+                && Errors is null or { Count: 0 }
+                && Extensions is null or { Count: 0 }
+                && Features.Get<IncrementalDataFeature>() is null)
             {
                 throw new ArgumentException("Either data, errors or extensions must be provided.");
             }
@@ -173,7 +176,10 @@ public sealed class OperationResult : ExecutionResult
         get => _extensions;
         set
         {
-            if (!Data.HasValue && Errors is null or { Count: 0 } && Extensions is null or { Count: 0 })
+            if (!Data.HasValue
+                && Errors is null or { Count: 0 }
+                && Extensions is null or { Count: 0 }
+                && Features.Get<IncrementalDataFeature>() is null)
             {
                 throw new ArgumentException("Either data, errors or extensions must be provided.");
             }

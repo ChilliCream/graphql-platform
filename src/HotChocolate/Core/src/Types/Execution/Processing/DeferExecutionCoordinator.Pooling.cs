@@ -1,5 +1,3 @@
-using System.Threading.Channels;
-
 namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class DeferExecutionCoordinator
@@ -12,12 +10,6 @@ internal sealed partial class DeferExecutionCoordinator
     {
         _branchTracker = branchTracker;
         _mainBranchId = mainBranchId;
-        _resultChannel = Channel.CreateUnbounded<OperationResult>(
-            new UnboundedChannelOptions
-            {
-                SingleWriter = true,
-                SingleReader = true
-            });
     }
 
     /// <summary>
@@ -26,18 +18,24 @@ internal sealed partial class DeferExecutionCoordinator
     public void Reset()
     {
         _branchIdLookup.Clear();
-        _branchInfoLookup.Clear();
-        _branches.Clear();
+        _branchLookup.Clear();
+        _mainBranchChildren?.Clear();
         _completed.Clear();
         _delivered.Clear();
+        _results.Clear();
         _branchTracker = null!;
-        _resultChannel = null!;
         _pendingBuilder = null;
         _incrementalBuilder = null;
         _completedBuilder = null;
         _processQueue = null;
         _hasBranches = false;
+        _isComplete = false;
         _mainBranchId = 0;
         _pendingBranches = 0;
+
+        if (_results.Capacity > 64)
+        {
+            _results.Capacity = 64;
+        }
     }
 }

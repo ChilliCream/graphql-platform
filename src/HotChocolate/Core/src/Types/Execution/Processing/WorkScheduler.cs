@@ -38,14 +38,7 @@ internal sealed partial class WorkScheduler
         lock (_sync)
         {
             work.Push(task);
-
-            if (!_activeBranches.TryGetValue(task.BranchId, out var branch))
-            {
-                branch = new Branch(task.BranchId);
-                _activeBranches.Add(task.BranchId, branch);
-            }
-
-            branch.RegisterTask();
+            RegisterBranchTaskUnsafe(task.BranchId);
         }
 
         _signal.Set();
@@ -75,13 +68,7 @@ internal sealed partial class WorkScheduler
                     _work.Push(task);
                 }
 
-                if (!_activeBranches.TryGetValue(task.BranchId, out var branch))
-                {
-                    branch = new Branch(task.BranchId);
-                    _activeBranches.Add(task.BranchId, branch);
-                }
-
-                branch.RegisterTask();
+                RegisterBranchTaskUnsafe(task.BranchId);
             }
         }
 
@@ -97,24 +84,49 @@ internal sealed partial class WorkScheduler
 
         if (task.IsRegistered)
         {
-            // complete is thread-safe
             var work = task.IsSerial ? _serial : _work;
 
+            CompleteBranchTask(task.BranchId);
+
+            // complete is thread-safe
             if (work.Complete())
             {
                 _completed.TryAdd(task.Id, true);
+                _signal.Set();
+            }
+        }
+    }
 
-                lock (_sync)
-                {
-                    if (_activeBranches.TryGetValue(task.BranchId, out var branch)
-                        && branch.CompleteTask())
-                    {
-                        _activeBranches.Remove(task.BranchId);
-                        branch.Complete();
-                    }
+    private void RegisterBranchTaskUnsafe(int branchId)
+    {
+        if (branchId == BranchTracker.SystemBranchId)
+        {
+            return;
+        }
 
-                    _signal.Set();
-                }
+        if (!_activeBranches.TryGetValue(branchId, out var branch))
+        {
+            branch = new Branch(branchId);
+            _activeBranches.Add(branchId, branch);
+        }
+
+        branch.RegisterTask();
+    }
+
+    private void CompleteBranchTask(int branchId)
+    {
+        if (branchId == BranchTracker.SystemBranchId)
+        {
+            return;
+        }
+
+        lock (_sync)
+        {
+            if (_activeBranches.TryGetValue(branchId, out var branch)
+                && branch.CompleteTask())
+            {
+                _activeBranches.Remove(branchId);
+                branch.Complete();
             }
         }
     }

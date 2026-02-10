@@ -134,6 +134,10 @@ public class WorkQueueTests
         public bool IsSerial { get; set; }
         public bool IsRegistered { get; set; }
 
+        public int BranchId => throw new NotImplementedException();
+
+        public bool IsDeferred => throw new NotImplementedException();
+
         public void BeginExecute(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();

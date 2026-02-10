@@ -1,24 +1,28 @@
 using System.Collections.Immutable;
-using System.Threading.Channels;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class DeferExecutionCoordinator
 {
     private readonly object _sync = new();
-    private readonly Dictionary<DeferredBranchInfo, int> _branchIdLookup = [];
-    private readonly Dictionary<int, DeferredBranchInfo> _branchInfoLookup = [];
-    private readonly Dictionary<int, HashSet<int>> _branches = [];
+    private readonly Dictionary<DeferredBranchKey, int> _branchIdLookup = [];
+    private readonly Dictionary<int, DeferredBranch> _branchLookup = [];
+    private HashSet<int>? _mainBranchChildren;
     private readonly Dictionary<int, OperationResult> _completed = [];
     private readonly HashSet<int> _delivered = [];
+    private readonly List<OperationResult> _results = [];
+    private readonly AsyncAutoResetEvent _signal = new();
     private BranchTracker _branchTracker = null!;
     private int _mainBranchId;
     private ImmutableList<PendingResult>.Builder? _pendingBuilder;
     private ImmutableList<IIncrementalResult>.Builder? _incrementalBuilder;
     private ImmutableList<CompletedResult>.Builder? _completedBuilder;
     private Queue<int>? _processQueue;
-    private Channel<OperationResult> _resultChannel = null!;
     private volatile bool _hasBranches;
+    private volatile bool _isComplete;
     private int _pendingBranches;
 
     /// <summary>
@@ -33,16 +37,16 @@ internal sealed partial class DeferExecutionCoordinator
     /// </summary>
     public int Branch(int currentBranchId, Path path, DeferUsage deferUsage)
     {
-        var branchInfo = new DeferredBranchInfo(path, deferUsage, currentBranchId);
+        var key = new DeferredBranchKey(path, deferUsage, currentBranchId);
 
         lock (_sync)
         {
-            if (!_branchIdLookup.TryGetValue(branchInfo, out var newBranchId))
+            if (!_branchIdLookup.TryGetValue(key, out var newBranchId))
             {
                 newBranchId = _branchTracker.CreateNewBranchId();
-                GetBranchesUnsafe(currentBranchId).Add(newBranchId);
-                _branchInfoLookup.Add(newBranchId, branchInfo);
-                _branchIdLookup.Add(branchInfo, newBranchId);
+                GetChildrenUnsafe(currentBranchId).Add(newBranchId);
+                _branchLookup.Add(newBranchId, new DeferredBranch(path, deferUsage, currentBranchId));
+                _branchIdLookup.Add(key, newBranchId);
                 _hasBranches = true;
                 _pendingBranches++;
             }
@@ -86,15 +90,42 @@ internal sealed partial class DeferExecutionCoordinator
     /// Returns an async stream of composed operation results in delivery order.
     /// The stream completes automatically when all branches have been delivered.
     /// </summary>
-    public IAsyncEnumerable<OperationResult> ReadResultsAsync(
-        CancellationToken cancellationToken = default)
-        => _resultChannel.Reader.ReadAllAsync(cancellationToken);
+    public async IAsyncEnumerable<OperationResult> ReadResultsAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        List<OperationResult>? snapshot = null;
+        await using var registration = cancellationToken.Register(_signal.Set);
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            await _signal;
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            lock (_sync)
+            {
+                snapshot ??= [];
+                snapshot.AddRange(_results);
+                _results.Clear();
+            }
+
+            foreach (var result in snapshot)
+            {
+                yield return result;
+            }
+
+            if (_isComplete)
+            {
+                yield break;
+            }
+        }
+    }
 
     private void ComposeAndDeliverUnsafe(int branchId, OperationResult result)
     {
-        var childBranches = GetBranchesUnsafe(branchId);
+        var children = GetChildrenUnsafe(branchId);
 
-        if (childBranches.Count > 0)
+        if (children.Count > 0)
         {
             var pendingBuilder = _pendingBuilder ??= ImmutableList.CreateBuilder<PendingResult>();
             var incrementalBuilder = _incrementalBuilder ??= ImmutableList.CreateBuilder<IIncrementalResult>();
@@ -106,15 +137,15 @@ internal sealed partial class DeferExecutionCoordinator
             completedBuilder.Clear();
             processQueue.Clear();
 
-            foreach (var childId in childBranches)
+            foreach (var childId in children)
             {
-                var childInfo = _branchInfoLookup[childId];
+                var child = _branchLookup[childId];
 
                 pendingBuilder.Add(
                     new PendingResult(
                         childId,
-                        childInfo.Path,
-                        childInfo.Group.Label));
+                        child.Path,
+                        child.Group.Label));
 
                 if (_completed.Remove(childId, out var childResult))
                 {
@@ -127,15 +158,15 @@ internal sealed partial class DeferExecutionCoordinator
 
             while (processQueue.TryDequeue(out var parentId))
             {
-                foreach (var grandchildId in GetBranchesUnsafe(parentId))
+                foreach (var grandchildId in GetChildrenUnsafe(parentId))
                 {
-                    var info = _branchInfoLookup[grandchildId];
+                    var branch = _branchLookup[grandchildId];
 
                     pendingBuilder.Add(
                         new PendingResult(
                             grandchildId,
-                            info.Path,
-                            info.Group.Label));
+                            branch.Path,
+                            branch.Group.Label));
 
                     if (_completed.Remove(grandchildId, out var gcResult))
                     {
@@ -152,6 +183,27 @@ internal sealed partial class DeferExecutionCoordinator
             result.Completed = completedBuilder.ToImmutable();
         }
 
+        // For deferred branches (not main branch), transform the result's data into an incremental result.
+        // Per spec: only the initial payload has root "data"; subsequent payloads use "incremental" array.
+        if (branchId != _mainBranchId)
+        {
+            var incrementalBuilder = _incrementalBuilder ??= ImmutableList.CreateBuilder<IIncrementalResult>();
+            var completedBuilder = _completedBuilder ??= ImmutableList.CreateBuilder<CompletedResult>();
+
+            if (children.Count == 0)
+            {
+                incrementalBuilder.Clear();
+                completedBuilder.Clear();
+            }
+
+            AddCompletedBranch(branchId, result, incrementalBuilder, completedBuilder);
+
+            result.Incremental = incrementalBuilder.ToImmutable();
+            result.Completed = completedBuilder.ToImmutable();
+            result.Data = null;
+            result.Errors = [];
+        }
+
         _delivered.Add(branchId);
 
         if (branchId != _mainBranchId)
@@ -162,12 +214,9 @@ internal sealed partial class DeferExecutionCoordinator
         var isComplete = _delivered.Contains(_mainBranchId) && _pendingBranches == 0;
         result.HasNext = !isComplete;
 
-        _resultChannel.Writer.TryWrite(result);
-
-        if (isComplete)
-        {
-            _resultChannel.Writer.TryComplete();
-        }
+        _results.Add(result);
+        _isComplete = isComplete;
+        _signal.Set();
     }
 
     /// <summary>
@@ -175,8 +224,8 @@ internal sealed partial class DeferExecutionCoordinator
     /// delivered its result to the response stream.
     /// </summary>
     private bool IsParentDeliveredUnsafe(int branchId)
-        => _branchInfoLookup.TryGetValue(branchId, out var info)
-            && _delivered.Contains(info.ParentBranchId);
+        => _branchLookup.TryGetValue(branchId, out var branch)
+            && _delivered.Contains(branch.ParentBranchId);
 
     private static void AddCompletedBranch(
         int branchId,
@@ -203,19 +252,34 @@ internal sealed partial class DeferExecutionCoordinator
     }
 
     /// <summary>
-    /// Gets the child branches that were created from the execution branch
-    /// represented by the specified <paramref name="branchId"/>.
+    /// Gets the child branches for the specified branch.
+    /// For the main branch, uses the dedicated field; for deferred branches,
+    /// uses the children set stored in the branch lookup.
     /// </summary>
-    private HashSet<int> GetBranchesUnsafe(int branchId)
+    private HashSet<int> GetChildrenUnsafe(int branchId)
     {
-        if (!_branches.TryGetValue(branchId, out var branches))
+        if (branchId == _mainBranchId)
         {
-            branches = [];
-            _branches.Add(branchId, branches);
+            return _mainBranchChildren ??= [];
         }
 
-        return branches;
+        ref var branch = ref CollectionsMarshal.GetValueRefOrNullRef(_branchLookup, branchId);
+
+        if (Unsafe.IsNullRef(ref branch))
+        {
+            return [];
+        }
+
+        return branch.Children ??= [];
     }
 
-    private readonly record struct DeferredBranchInfo(Path Path, DeferUsage Group, int ParentBranchId);
+    private readonly record struct DeferredBranchKey(Path Path, DeferUsage Group, int ParentBranchId);
+
+    private struct DeferredBranch(Path path, DeferUsage group, int parentBranchId)
+    {
+        public Path Path { get; } = path;
+        public DeferUsage Group { get; } = group;
+        public int ParentBranchId { get; } = parentBranchId;
+        public HashSet<int>? Children { get; set; }
+    }
 }

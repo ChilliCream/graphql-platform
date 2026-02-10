@@ -328,11 +328,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"data":{},"hasNext":true}
-                ---
-                Content-Type: application/json; charset=utf-8
-
-                {"incremental":[{"data":{"__typename":"Query"},"path":[]}],"hasNext":false}
+                {"data":{"__typename":null},"pending":[{"id":2,"path":[]}],"incremental":[{"id":2,"data":{"__typename":"Query"}}],"completed":[{"id":2}],"hasNext":false}
                 -----
 
                 """);
@@ -371,10 +367,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 Status Code: OK
                 -------------------------->
                 event: next
-                data: {"data":{},"hasNext":true}
+                data: {"data":{"__typename":null},"pending":[{"id":2,"path":[]}],"hasNext":true}
 
                 event: next
-                data: {"incremental":[{"data":{"__typename":"Query"},"path":[]}],"hasNext":false}
+                data: {"incremental":[{"id":2,"data":{"__typename":"Query"}}],"completed":[{"id":2}],"hasNext":false}
 
                 event: complete
 

@@ -87,14 +87,14 @@ internal sealed partial class OperationContext
         Result.RequestIndex = _requestContext.RequestIndex;
         Result.VariableIndex = variableIndex;
 
+        _currentBranchTracker = _branchTracker;
+        _currentWorkScheduler = _workScheduler;
+        _isInitialized = true;
+
+        // once the operation context is marked as initialized we can initialize sub components.
         _branchId = _currentBranchTracker.CreateNewBranchId();
         _workScheduler.Initialize(_requestContext, batchDispatcher);
         _deferExecutionCoordinator.Initialize(_currentBranchTracker, _branchId);
-
-        _currentBranchTracker = _branchTracker;
-        _currentWorkScheduler = _workScheduler;
-
-        _isInitialized = true;
     }
 
     public void InitializeDeferContext(
