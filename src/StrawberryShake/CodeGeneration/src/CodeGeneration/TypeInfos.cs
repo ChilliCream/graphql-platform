@@ -396,6 +396,10 @@ public sealed class TypeInfos
             new RuntimeTypeInfo(TypeNames.LocalTimeSerializer)
         },
         {
+            TypeNames.Base64StringSerializer,
+            new RuntimeTypeInfo(TypeNames.Base64StringSerializer)
+        },
+        {
             TypeNames.ByteArraySerializer,
             new RuntimeTypeInfo(TypeNames.ByteArraySerializer)
         },

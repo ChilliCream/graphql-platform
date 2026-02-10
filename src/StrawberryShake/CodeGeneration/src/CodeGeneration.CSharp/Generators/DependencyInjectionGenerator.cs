@@ -24,25 +24,26 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
     private static readonly string[] s_builtInSerializers =
     [
-        StringSerializer,
+        Base64StringSerializer,
         BooleanSerializer,
+        ByteArraySerializer,
         ByteSerializer,
-        ShortSerializer,
-        IntSerializer,
-        LongSerializer,
-        FloatSerializer,
-        DecimalSerializer,
-        UrlSerializer,
-        UUIDSerializer,
-        IdSerializer,
-        DateTimeSerializer,
         DateSerializer,
+        DateTimeSerializer,
+        DecimalSerializer,
+        FloatSerializer,
+        IdSerializer,
+        IntSerializer,
+        JsonSerializer,
         LocalDateSerializer,
         LocalDateTimeSerializer,
         LocalTimeSerializer,
-        ByteArraySerializer,
+        LongSerializer,
+        ShortSerializer,
+        StringSerializer,
         TimeSpanSerializer,
-        JsonSerializer
+        UrlSerializer,
+        UUIDSerializer
     ];
 
     private static readonly Dictionary<string, string> s_alternativeTypeNames = new()
