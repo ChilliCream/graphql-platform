@@ -14,7 +14,7 @@ internal sealed class QueryExecutor
         OperationContext operationContext,
         IImmutableDictionary<string, object?> scopedContext)
     {
-        if (operationContext.Operation.HasDeferredSelections)
+        if (operationContext.Operation.HasIncrementalParts)
         {
             return ExecuteIncrementalAsync(operationContext, scopedContext);
         }
@@ -77,7 +77,7 @@ internal sealed class QueryExecutor
         Debug.Assert(length > operationContexts.Length);
         Debug.Assert(length > results.Length);
 
-        if (operationContexts[0].OperationContext.Operation.HasDeferredSelections)
+        if (operationContexts[0].OperationContext.Operation.HasIncrementalParts)
         {
             return ExecuteBatchIncrementalAsync(operationContexts, results, length);
         }

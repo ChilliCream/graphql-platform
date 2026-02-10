@@ -105,6 +105,7 @@ internal sealed partial class DeferExecutionCoordinator
             lock (_sync)
             {
                 snapshot ??= [];
+                snapshot.Clear();
                 snapshot.AddRange(_results);
                 _results.Clear();
             }
@@ -149,6 +150,7 @@ internal sealed partial class DeferExecutionCoordinator
 
                 if (_completed.Remove(childId, out var childResult))
                 {
+                    result.RegisterForCleanup(childResult);
                     AddCompletedBranch(childId, childResult, incrementalBuilder, completedBuilder);
                     _delivered.Add(childId);
                     _pendingBranches--;
@@ -170,6 +172,7 @@ internal sealed partial class DeferExecutionCoordinator
 
                     if (_completed.Remove(grandchildId, out var gcResult))
                     {
+                        result.RegisterForCleanup(gcResult);
                         AddCompletedBranch(grandchildId, gcResult, incrementalBuilder, completedBuilder);
                         _delivered.Add(grandchildId);
                         _pendingBranches--;

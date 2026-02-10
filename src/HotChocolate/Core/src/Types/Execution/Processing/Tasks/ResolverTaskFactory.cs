@@ -26,7 +26,7 @@ internal static class ResolverTaskFactory
 
         try
         {
-            if (selectionSet.HasDeferredSelections)
+            if (selectionSet.HasIncrementalParts)
             {
                 var coordinator = operationContext.DeferExecutionCoordinator;
                 var deferFlags = operationContext.DeferFlags;
@@ -147,7 +147,7 @@ internal static class ResolverTaskFactory
 
         resultValue.SetObjectValue(selectionSet);
 
-        if (selectionSet.HasDeferredSelections)
+        if (selectionSet.HasIncrementalParts)
         {
             var coordinator = operationContext.DeferExecutionCoordinator;
             var deferFlags = operationContext.DeferFlags;

@@ -289,7 +289,7 @@ internal sealed class OperationExecutionMiddleware
             _ => true
         };
 
-        if (allowed && operation.HasDeferredSelections)
+        if (allowed && operation.HasIncrementalParts)
         {
             return (request.Flags & AllowStreams) == AllowStreams;
         }

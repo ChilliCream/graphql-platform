@@ -59,7 +59,7 @@ public sealed class SelectionSet : ISelectionSet
     public bool IsConditional => (_flags & Flags.Conditional) == Flags.Conditional;
 
     /// <inheritdoc />
-    public bool HasDeferredSelections => (_flags & Flags.HasDeferredSelections) == Flags.HasDeferredSelections;
+    public bool HasIncrementalParts => (_flags & Flags.HasDeferredSelections) == Flags.HasDeferredSelections;
 
     /// <summary>
     /// Gets the type context of this selection set.

@@ -105,7 +105,7 @@ public sealed class Operation : IOperation
     /// <inheritdoc cref="IFeatureProvider"/>
     public IFeatureCollection Features => _features;
 
-    public bool HasDeferredSelections => throw new NotImplementedException();
+    public bool HasIncrementalParts => throw new NotImplementedException();
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/>

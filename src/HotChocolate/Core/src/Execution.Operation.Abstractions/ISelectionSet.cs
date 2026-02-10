@@ -32,7 +32,7 @@ public interface ISelectionSet
     /// <c>true</c> if one or more selections in this set can be deferred;
     /// otherwise, <c>false</c>.
     /// </value>
-    bool HasDeferredSelections { get; }
+    bool HasIncrementalParts { get; }
 
     /// <summary>
     /// Gets the type that declares this selection set.

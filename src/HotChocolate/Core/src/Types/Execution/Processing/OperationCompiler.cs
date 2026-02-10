@@ -79,7 +79,8 @@ public sealed partial class OperationCompiler
         ArgumentNullException.ThrowIfNull(document);
 
         // Before we can plan an operation, we must de-fragmentize it and remove static include conditions.
-        document = _documentRewriter.RewriteDocument(document, operationName);
+        var result = _documentRewriter.RewriteDocument(document, operationName);
+        document = result.Document;
         var operationDefinition = document.GetOperation(operationName);
 
         var includeConditions = new IncludeConditionCollection();
@@ -129,7 +130,7 @@ public sealed partial class OperationCompiler
                 compilationContext.Features,
                 lastId,
                 compilationContext.ElementsById,
-                hasDeferredSelections: selectionSet.HasDeferredSelections);
+                hasIncrementalParts: result.HasIncrementalParts);
 
             selectionSet.Complete(operation);
 

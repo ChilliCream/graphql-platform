@@ -6,6 +6,21 @@ using static HotChocolate.Fusion.FusionUtilitiesResources;
 
 namespace HotChocolate.Fusion.Rewriters;
 
+/// <summary>
+/// Rewrites GraphQL operation documents by inlining all fragment spreads and merging inline fragments
+/// into a single flattened selection set. This eliminates fragment definitions and produces an operation
+/// with all selections explicitly expanded, making it suitable for execution planning and optimization.
+/// </summary>
+/// <remarks>
+/// The rewriter performs the following transformations:
+/// <list type="bullet">
+/// <item>Expands all fragment spreads by substituting them with their fragment definition's selection set</item>
+/// <item>Merges inline fragments that share the same type condition</item>
+/// <item>Combines duplicate field selections</item>
+/// <item>Optionally removes selections with static @skip/@include directives</item>
+/// <item>Detects @defer and @stream directives for incremental delivery support</item>
+/// </list>
+/// </remarks>
 public sealed class InlineFragmentOperationRewriter(
     ISchemaDefinition schema,
     bool removeStaticallyExcludedSelections = false,
@@ -23,12 +38,29 @@ public sealed class InlineFragmentOperationRewriter(
             ImmutableArray<ArgumentNode>.Empty,
             null);
 
-    public DocumentNode RewriteDocument(DocumentNode document, string? operationName = null)
+    /// <summary>
+    /// Rewrites a GraphQL document by inlining all fragments and flattening the operation's selection set.
+    /// </summary>
+    /// <param name="document">The GraphQL document to rewrite.</param>
+    /// <param name="operationName">
+    /// The name of the operation to rewrite. If <c>null</c>, the first or only operation in the document is used.
+    /// </param>
+    /// <returns>
+    /// A result containing the rewritten document with all fragments inlined and a flag indicating
+    /// whether the document contains @defer or @stream directives for incremental delivery.
+    /// </returns>
+    /// <exception cref="RewriterException">
+    /// Thrown when the document references undefined fragments or invalid type conditions.
+    /// </exception>
+    public InlineFragmentOperationRewriterResult RewriteDocument(
+        DocumentNode document,
+        string? operationName = null)
     {
+        var hasIncrementalParts = false;
         var operation = document.GetOperation(operationName);
         var operationType = schema.GetOperationType(operation.Operation);
         var fragmentLookup = CreateFragmentLookup(document);
-        var context = new Context(operationType, fragmentLookup);
+        var context = new Context(operationType, fragmentLookup, ref hasIncrementalParts);
 
         CollectSelections(operation.SelectionSet, context);
         RewriteSelections(context);
@@ -46,7 +78,8 @@ public sealed class InlineFragmentOperationRewriter(
             RewriteDirectives(operation.Directives),
             newSelectionSet);
 
-        return new DocumentNode(ImmutableArray<IDefinitionNode>.Empty.Add(newOperation));
+        var rewrittenDocument = new DocumentNode(ImmutableArray<IDefinitionNode>.Empty.Add(newOperation));
+        return new InlineFragmentOperationRewriterResult(rewrittenDocument, hasIncrementalParts);
     }
 
     internal void CollectSelections(SelectionSetNode selectionSet, Context context)
@@ -56,6 +89,12 @@ public sealed class InlineFragmentOperationRewriter(
             switch (selection)
             {
                 case FieldNode field:
+                    // Check for @stream directive (only valid on fields)
+                    if (HasStreamDirective(field.Directives))
+                    {
+                        context.MarkAsIncremental();
+                    }
+
                     if (!removeStaticallyExcludedSelections || IsIncluded(field.Directives))
                     {
                         context.AddField(field);
@@ -198,6 +237,12 @@ public sealed class InlineFragmentOperationRewriter(
 
     private void CollectInlineFragment(InlineFragmentNode inlineFragment, Context context)
     {
+        // Check for @defer directive (only valid on inline fragments)
+        if (HasDeferDirective(inlineFragment.Directives))
+        {
+            context.MarkAsIncremental();
+        }
+
         if ((inlineFragment.TypeCondition is null
                 || inlineFragment.TypeCondition.Name.Value.Equals(context.Type.Name, StringComparison.Ordinal))
             && inlineFragment.Directives.Count == 0)
@@ -259,6 +304,12 @@ public sealed class InlineFragmentOperationRewriter(
         FragmentSpreadNode fragmentSpread,
         Context context)
     {
+        // Check for @defer directive (only valid on fragment spreads)
+        if (HasDeferDirective(fragmentSpread.Directives))
+        {
+            context.MarkAsIncremental();
+        }
+
         var fragmentDefinition = context.GetFragmentDefinition(fragmentSpread.Name.Value);
         var typeName = fragmentDefinition.TypeCondition.Name.Value;
 
@@ -568,7 +619,10 @@ public sealed class InlineFragmentOperationRewriter(
 
         return result.Count == 0 ? [] : result;
 
-        static bool IsStaticIncludeCondition(DirectiveNode directive, ref bool skipChecked, ref bool includeChecked)
+        static bool IsStaticIncludeCondition(
+            DirectiveNode directive,
+            ref bool skipChecked,
+            ref bool includeChecked)
         {
             if (directive.Name.Value.Equals(DirectiveNames.Skip.Name, StringComparison.Ordinal))
             {
@@ -591,15 +645,72 @@ public sealed class InlineFragmentOperationRewriter(
         }
     }
 
-    public readonly ref struct Context(
-        ITypeDefinition type,
-        Dictionary<string, FragmentDefinitionNode> fragments,
-        ISelectionSetMergeObserver? mergeObserver = null)
+    private static bool HasDeferDirective(IReadOnlyList<DirectiveNode> directives)
     {
-        public ITypeDefinition Type { get; } = type;
+        if (directives.Count == 0)
+        {
+            return false;
+        }
 
-        public ISelectionSetMergeObserver Observer { get; } =
-            mergeObserver ?? NoopSelectionSetMergeObserver.Instance;
+        if (directives.Count == 1)
+        {
+            return directives[0].Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal);
+        }
+
+        for (var i = 0; i < directives.Count; i++)
+        {
+            if (directives[i].Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool HasStreamDirective(IReadOnlyList<DirectiveNode> directives)
+    {
+        if (directives.Count == 0)
+        {
+            return false;
+        }
+
+        if (directives.Count == 1)
+        {
+            return directives[0].Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal);
+        }
+
+        for (var i = 0; i < directives.Count; i++)
+        {
+            if (directives[i].Name.Value.Equals(DirectiveNames.Stream.Name, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public readonly ref struct Context
+    {
+        private readonly Dictionary<string, FragmentDefinitionNode> _fragments;
+        private readonly ref bool _hasIncrementalParts;
+
+        public Context(
+            ITypeDefinition type,
+            Dictionary<string, FragmentDefinitionNode> fragments,
+            ref bool hasIncrementalParts,
+            ISelectionSetMergeObserver? mergeObserver = null)
+        {
+            _fragments = fragments;
+            _hasIncrementalParts = ref hasIncrementalParts;
+            Type = type;
+            Observer = mergeObserver ?? NoopSelectionSetMergeObserver.Instance;
+        }
+
+        public ITypeDefinition Type { get; }
+
+        public ISelectionSetMergeObserver Observer { get; }
 
         public ImmutableArray<ISelectionNode>.Builder Selections { get; } =
             ImmutableArray.CreateBuilder<ISelectionNode>();
@@ -610,7 +721,7 @@ public sealed class InlineFragmentOperationRewriter(
 
         public FragmentDefinitionNode GetFragmentDefinition(string name)
         {
-            if (!fragments.TryGetValue(name, out var fragment))
+            if (!_fragments.TryGetValue(name, out var fragment))
             {
                 throw new RewriterException(string.Format(
                     InlineFragmentOperationRewriter_FragmentDoesNotExist,
@@ -643,8 +754,11 @@ public sealed class InlineFragmentOperationRewriter(
             Selections.Add(fragmentSpread);
         }
 
+        public void MarkAsIncremental()
+            => _hasIncrementalParts = true;
+
         public Context Branch(ITypeDefinition type)
-            => new(type, fragments, Observer);
+            => new(type, _fragments, ref _hasIncrementalParts, Observer);
     }
 
     private sealed class FieldComparer : IEqualityComparer<FieldNode>

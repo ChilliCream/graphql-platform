@@ -45,14 +45,14 @@ public interface IOperation : IFeatureProvider
     ISelectionSet RootSelectionSet { get; }
 
     /// <summary>
-    /// Gets a value indicating whether any selection set in this operation
-    /// contains selections that may be deferred based on <c>@defer</c> directives.
+    /// Gets a value indicating whether this operation contains incremental delivery directives
+    /// such as <c>@defer</c> or <c>@stream</c>.
     /// </summary>
     /// <value>
-    /// <c>true</c> if one or more selection sets in this operation contain deferred selections;
+    /// <c>true</c> if the operation contains <c>@defer</c> or <c>@stream</c> directives;
     /// otherwise, <c>false</c>.
     /// </value>
-    bool HasDeferredSelections { get; }
+    bool HasIncrementalParts { get; }
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/> and

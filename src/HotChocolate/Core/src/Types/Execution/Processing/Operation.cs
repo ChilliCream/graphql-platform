@@ -37,7 +37,7 @@ public sealed class Operation : IOperation
         OperationFeatureCollection features,
         int lastId,
         object[] elementsById,
-        bool hasDeferredSelections)
+        bool hasIncrementalParts)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(hash);
@@ -64,7 +64,7 @@ public sealed class Operation : IOperation
         _lastId = lastId;
         _elementsById = elementsById;
         _features = features;
-        HasDeferredSelections = hasDeferredSelections;
+        HasIncrementalParts = hasIncrementalParts;
     }
 
     /// <summary>
@@ -125,7 +125,7 @@ public sealed class Operation : IOperation
     IFeatureCollection IFeatureProvider.Features => Features;
 
     /// <inheritdoc />
-    public bool HasDeferredSelections { get; }
+    public bool HasIncrementalParts { get; }
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/>

@@ -61,7 +61,7 @@ public sealed class SelectionSet : ISelectionSet
     /// </summary>
     public ReadOnlySpan<Selection> Selections => _selections;
 
-    public bool HasDeferredSelections => throw new NotImplementedException();
+    public bool HasIncrementalParts => throw new NotImplementedException();
 
     IEnumerable<ISelection> ISelectionSet.GetSelections() => _selections;
 

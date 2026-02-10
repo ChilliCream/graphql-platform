@@ -43,14 +43,6 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
         _isInitialized = true;
     }
 
-    public void Reset()
-    {
-        var requestContext = _requestContext;
-        var batchDispatcher = _batchDispatcher;
-        Clear();
-        Initialize(requestContext, batchDispatcher);
-    }
-
     public void Clear()
     {
         _work.Clear();
@@ -60,7 +52,7 @@ internal sealed partial class WorkScheduler(OperationContext operationContext)
         _signal.Reset();
 
         _result = null!;
-        _batchDispatcherSession.Dispose();
+        _batchDispatcherSession?.Dispose();
         _batchDispatcherSession = null!;
         _batchDispatcher = null!;
 
