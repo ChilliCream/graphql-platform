@@ -38,7 +38,19 @@ internal sealed class QueryExecutor
 
         var execution = scheduler.ExecuteAsync1();
         await scheduler.WaitForCompletionAsync(branchId).ConfigureAwait(false);
-        coordinator.EnqueueResult(operationContext.BuildResult());
+        var initialResult = operationContext.BuildResult();
+
+        if (!coordinator.HasBranches)
+        {
+            if (!execution.IsCompletedSuccessfully)
+            {
+                await execution.ConfigureAwait(false);
+            }
+
+            return initialResult;
+        }
+
+        coordinator.EnqueueResult(initialResult);
         return new ResponseStream(CreateStream, ExecutionResultKind.DeferredResult);
 
         async IAsyncEnumerable<OperationResult> CreateStream()
