@@ -9,7 +9,8 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
 {
     private readonly MiddlewareContext _context = new();
     private readonly List<IExecutionTask> _taskBuffer = [];
-    private readonly Dictionary<string, ArgumentValue> _args = [with(StringComparer.Ordinal)];
+    private readonly Dictionary<string, ArgumentValue> _args =
+        new Dictionary<string, ArgumentValue>(StringComparer.Ordinal);
     private OperationContext _operationContext = null!;
     private Selection _selection = null!;
     private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;

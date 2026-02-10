@@ -173,7 +173,7 @@ internal partial class MiddlewareContext
         // copy the argument state.
         else
         {
-            mutableArguments = [with(Arguments)];
+            mutableArguments = new Dictionary<string, ArgumentValue>(Arguments);
             Arguments = mutableArguments;
         }
 

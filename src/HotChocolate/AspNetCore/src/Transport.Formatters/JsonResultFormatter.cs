@@ -15,7 +15,6 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 {
     private readonly JsonWriterOptions _options;
     private readonly JsonSerializerOptions _serializerOptions;
-    private readonly JsonNullIgnoreCondition _nullIgnoreCondition;
 
     /// <summary>
     /// Initializes a new instance of <see cref="JsonResultFormatter"/> with default options.
@@ -38,7 +37,6 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     {
         _options = options.CreateWriterOptions() with { SkipValidation = true };
         _serializerOptions = options.CreateSerializerOptions();
-        _nullIgnoreCondition = options.NullIgnoreCondition;
     }
 
     /// <summary>

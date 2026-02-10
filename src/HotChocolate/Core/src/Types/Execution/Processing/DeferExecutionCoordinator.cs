@@ -118,14 +118,7 @@ internal sealed partial class DeferExecutionCoordinator
 
                 if (_completed.Remove(childId, out var childResult))
                 {
-                    incrementalBuilder.Add(
-                        new IncrementalObjectResult(
-                            childId,
-                            childResult.Errors,
-                            subPath: null,
-                            childResult.Data));
-
-                    completedBuilder.Add(new CompletedResult(childId));
+                    AddCompletedBranch(childId, childResult, incrementalBuilder, completedBuilder);
                     _delivered.Add(childId);
                     _pendingBranches--;
                     processQueue.Enqueue(childId);
@@ -146,14 +139,7 @@ internal sealed partial class DeferExecutionCoordinator
 
                     if (_completed.Remove(grandchildId, out var gcResult))
                     {
-                        incrementalBuilder.Add(
-                            new IncrementalObjectResult(
-                                grandchildId,
-                                gcResult.Errors,
-                                subPath: null,
-                                gcResult.Data));
-
-                        completedBuilder.Add(new CompletedResult(grandchildId));
+                        AddCompletedBranch(grandchildId, gcResult, incrementalBuilder, completedBuilder);
                         _delivered.Add(grandchildId);
                         _pendingBranches--;
                         processQueue.Enqueue(grandchildId);
@@ -173,9 +159,12 @@ internal sealed partial class DeferExecutionCoordinator
             _pendingBranches--;
         }
 
+        var isComplete = _delivered.Contains(_mainBranchId) && _pendingBranches == 0;
+        result.HasNext = !isComplete;
+
         _resultChannel.Writer.TryWrite(result);
 
-        if (_delivered.Contains(_mainBranchId) && _pendingBranches == 0)
+        if (isComplete)
         {
             _resultChannel.Writer.TryComplete();
         }
@@ -188,6 +177,30 @@ internal sealed partial class DeferExecutionCoordinator
     private bool IsParentDeliveredUnsafe(int branchId)
         => _branchInfoLookup.TryGetValue(branchId, out var info)
             && _delivered.Contains(info.ParentBranchId);
+
+    private static void AddCompletedBranch(
+        int branchId,
+        OperationResult branchResult,
+        ImmutableList<IIncrementalResult>.Builder incrementalBuilder,
+        ImmutableList<CompletedResult>.Builder completedBuilder)
+    {
+        if (branchResult.Data.HasValue && !branchResult.Data.Value.IsValueNull)
+        {
+            // data is valid (possibly with contained errors) — deliver incremental data
+            incrementalBuilder.Add(
+                new IncrementalObjectResult(
+                    branchId,
+                    branchResult.Errors,
+                    subPath: null,
+                    branchResult.Data));
+            completedBuilder.Add(new CompletedResult(branchId));
+        }
+        else
+        {
+            // errors bubbled above the incremental result's path — no data to deliver
+            completedBuilder.Add(new CompletedResult(branchId, branchResult.Errors));
+        }
+    }
 
     /// <summary>
     /// Gets the child branches that were created from the execution branch

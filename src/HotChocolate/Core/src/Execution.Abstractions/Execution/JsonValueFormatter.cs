@@ -328,7 +328,7 @@ public static class JsonValueFormatter
 
             for (var i = 0; i < completed.Count; i++)
             {
-                WriteIncrementalCompletedItem(writer, completed[i]);
+                WriteIncrementalCompletedItem(writer, completed[i], options, nullIgnoreCondition);
             }
 
             writer.WriteEndArray();
@@ -376,13 +376,24 @@ public static class JsonValueFormatter
             WriteErrors(writer, item.Errors, options, nullIgnoreCondition);
         }
 
-        if (item is IncrementalObjectResult)
+        if (item is IncrementalObjectResult objectResult)
         {
+            if (objectResult.SubPath is not null)
+            {
+                writer.WritePropertyName(SubPath);
+                WritePathValue(writer, objectResult.SubPath);
+            }
+
             writer.WritePropertyName(Data);
 
-            // TODO: Write actual data
-            writer.WriteStartObject();
-            writer.WriteEndObject();
+            if (objectResult.Data.HasValue)
+            {
+                objectResult.Data.Value.Formatter.WriteDataTo(writer);
+            }
+            else
+            {
+                writer.WriteNullValue();
+            }
         }
         else if (item is IIncrementalListResult)
         {
@@ -400,12 +411,21 @@ public static class JsonValueFormatter
         writer.WriteEndObject();
     }
 
-    private static void WriteIncrementalCompletedItem(JsonWriter writer, CompletedResult item)
+    private static void WriteIncrementalCompletedItem(
+        JsonWriter writer,
+        CompletedResult item,
+        JsonSerializerOptions options,
+        JsonNullIgnoreCondition nullIgnoreCondition)
     {
         writer.WriteStartObject();
 
         writer.WritePropertyName(Id);
         writer.WriteNumberValue(item.Id);
+
+        if (item.Errors is { Count: > 0 })
+        {
+            WriteErrors(writer, item.Errors, options, nullIgnoreCondition);
+        }
 
         writer.WriteEndObject();
     }

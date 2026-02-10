@@ -158,6 +158,11 @@ public sealed class Selection : ISelection
         DeclaringSelectionSet = selectionSet;
     }
 
+    public bool IsDeferred(ulong deferFlags)
+    {
+        throw new NotImplementedException();
+    }
+
     [Flags]
     private enum Flags
     {
