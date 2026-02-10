@@ -7,7 +7,7 @@ namespace HotChocolate.Types;
 
 /// <summary>
 /// The Byte scalar type represents a signed numeric non‐fractional
-/// value greater than or equal to -127 and smaller than or equal to 128.
+/// value greater than or equal to -128 and smaller than or equal to 127.
 /// </summary>
 public class ByteType : IntegerTypeBase<sbyte>
 {

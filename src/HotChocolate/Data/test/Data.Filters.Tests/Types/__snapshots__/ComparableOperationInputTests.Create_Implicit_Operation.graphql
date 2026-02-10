@@ -349,5 +349,5 @@ scalar Short
 
 scalar URL @specifiedBy(url: "https://tools.ietf.org/html/rfc3986")
 
-"The `UnsignedByte` scalar type represents non-fractional whole numeric values. UnsignedByte can represent values between 0 and 255."
+"The UnsignedByte scalar type represents an unsigned 8-bit numeric non-fractional value greater than or equal to 0."
 scalar UnsignedByte

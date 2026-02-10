@@ -144,6 +144,7 @@ public static class TypeNames
 
     public const string String = "global::System.String";
     public const string Byte = "global::System.Byte";
+    public const string SByte = "global::System.SByte";
     public const string ByteArray = "global::System.Byte[]";
     public const string Array = "global::System.Array";
     public const string Int16 = "global::System.Int16";

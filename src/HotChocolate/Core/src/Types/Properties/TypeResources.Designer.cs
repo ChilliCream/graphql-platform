@@ -123,7 +123,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Byte scalar type represents a numeric non-fractional value greater than or equal to -127..
+        ///   Looks up a localized string similar to The Byte scalar type represents an 8-bit signed integer with a minimum value of -128 and a maximum value of 127..
         /// </summary>
         internal static string ByteType_Description {
             get {
@@ -2945,7 +2945,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `UnsignedByte` scalar type represents non-fractional whole numeric values. UnsignedByte can represent values between 0 and 255..
+        ///   Looks up a localized string similar to The UnsignedByte scalar type represents an unsigned 8-bit numeric non-fractional value greater than or equal to 0..
         /// </summary>
         internal static string UnsignedByteType_Description {
             get {
@@ -2954,7 +2954,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The UnsignedInt scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0..
+        ///   Looks up a localized string similar to The UnsignedInt scalar type represents an unsigned 32-bit numeric non-fractional value greater than or equal to 0..
         /// </summary>
         internal static string UnsignedIntType_Description {
             get {
@@ -2963,7 +2963,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The UnsignedLong scalar type represents a unsigned 64-bit numeric non-fractional value greater than or equal to 0..
+        ///   Looks up a localized string similar to The UnsignedLong scalar type represents an unsigned 64-bit numeric non-fractional value greater than or equal to 0..
         /// </summary>
         internal static string UnsignedLongType_Description {
             get {
@@ -2972,7 +2972,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The UnsignedShort scalar type represents a unsigned 16-bit numeric non-fractional value greater than or equal to 0..
+        ///   Looks up a localized string similar to The UnsignedShort scalar type represents an unsigned 16-bit numeric non-fractional value greater than or equal to 0..
         /// </summary>
         internal static string UnsignedShortType_Description {
             get {

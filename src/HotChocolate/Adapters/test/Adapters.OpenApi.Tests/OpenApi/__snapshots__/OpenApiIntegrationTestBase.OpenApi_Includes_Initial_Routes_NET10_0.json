@@ -72,7 +72,7 @@
                   },
                   "byte": {
                     "type": "integer",
-                    "description": "The Byte scalar type represents a numeric non-fractional value greater than or equal to -127.",
+                    "description": "The Byte scalar type represents an 8-bit signed integer with a minimum value of -128 and a maximum value of 127.",
                     "format": "int32"
                   },
                   "byteArray": {
@@ -296,7 +296,7 @@
                         "null",
                         "integer"
                       ],
-                      "description": "The Byte scalar type represents a numeric non-fractional value greater than or equal to -127.",
+                      "description": "The Byte scalar type represents an 8-bit signed integer with a minimum value of -128 and a maximum value of 127.",
                       "format": "int32"
                     },
                     "byteArray": {
