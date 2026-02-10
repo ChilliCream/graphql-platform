@@ -197,7 +197,7 @@ public static class JsonObjectTypeExtensions
                 };
                 return;
 
-            case ScalarNames.Byte:
+            case ScalarNames.UnsignedByte:
                 def.PureResolver = ctx =>
                 {
                     var property = ctx.GetProperty(propertyName);
@@ -205,6 +205,17 @@ public static class JsonObjectTypeExtensions
                     return property is null or { ValueKind: JsonValueKind.Null }
                         ? null
                         : property.Value.GetByte();
+                };
+                return;
+
+            case ScalarNames.Byte:
+                def.PureResolver = ctx =>
+                {
+                    var property = ctx.GetProperty(propertyName);
+
+                    return property is null or { ValueKind: JsonValueKind.Null }
+                        ? null
+                        : property.Value.GetSByte();
                 };
                 return;
 

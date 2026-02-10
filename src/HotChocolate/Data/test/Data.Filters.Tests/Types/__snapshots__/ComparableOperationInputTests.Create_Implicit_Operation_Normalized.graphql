@@ -6,21 +6,6 @@ type Query {
   foo(test: FooFilterInput): String
 }
 
-input ByteOperationFilterInput {
-  eq: Byte
-  neq: Byte
-  in: [Byte]
-  nin: [Byte]
-  gt: Byte
-  ngt: Byte
-  gte: Byte
-  ngte: Byte
-  lt: Byte
-  nlt: Byte
-  lte: Byte
-  nlte: Byte
-}
-
 input DecimalOperationFilterInput {
   eq: Decimal
   neq: Decimal
@@ -68,7 +53,7 @@ input FooFilterInput {
   barDouble: FloatOperationFilterInput
   barDecimal: DecimalOperationFilterInput
   barUri: UrlOperationFilterInput
-  barByte: ByteOperationFilterInput
+  barByte: UnsignedByteOperationFilterInput
   barUriNullable: UrlOperationFilterInput
   barShortNullable: ShortOperationFilterInput
   barIntNullable: IntOperationFilterInput
@@ -76,7 +61,7 @@ input FooFilterInput {
   barFloatNullable: FloatOperationFilterInput
   barDoubleNullable: FloatOperationFilterInput
   barDecimalNullable: DecimalOperationFilterInput
-  barByteNullable: ByteOperationFilterInput
+  barByteNullable: UnsignedByteOperationFilterInput
   fooBar: FooBarOperationFilterInput
   dateOnly: LocalDateOperationFilterInput
   dateOnlyNullable: LocalDateOperationFilterInput
@@ -159,6 +144,21 @@ input ShortOperationFilterInput {
   nlte: Short
 }
 
+input UnsignedByteOperationFilterInput {
+  eq: UnsignedByte
+  neq: UnsignedByte
+  in: [UnsignedByte]
+  nin: [UnsignedByte]
+  gt: UnsignedByte
+  ngt: UnsignedByte
+  gte: UnsignedByte
+  ngte: UnsignedByte
+  lt: UnsignedByte
+  nlt: UnsignedByte
+  lte: UnsignedByte
+  nlte: UnsignedByte
+}
+
 input UrlOperationFilterInput {
   eq: URL
   neq: URL
@@ -182,9 +182,6 @@ enum FooBar {
 "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
 directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
 
-"The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255."
-scalar Byte
-
 "The `Decimal` scalar type represents a decimal floating-point number."
 scalar Decimal
 
@@ -201,3 +198,6 @@ scalar Long
 scalar Short
 
 scalar URL @specifiedBy(url: "https://tools.ietf.org/html/rfc3986")
+
+"The UnsignedByte scalar type represents an unsigned 8-bit numeric non-fractional value greater than or equal to 0."
+scalar UnsignedByte

@@ -206,22 +206,22 @@ In addition to the scalars defined by the specification, Hot Chocolate also supp
 
 | Type            | Description                                                                                               |
 | --------------- | --------------------------------------------------------------------------------------------------------- |
-| `Byte`          | Byte                                                                                                      |
+| `Byte`          | Signed 8-bit numeric non‐fractional value greater than or equal to -128 and smaller than or equal to 127. |
 | `ByteArray`     | Base64 encoded array of bytes                                                                             |
-| `Short`         | Signed 16-bit numeric non-fractional value                                                                |
-| `Long`          | Signed 64-bit numeric non-fractional value                                                                |
-| `Decimal`       | .NET Floating Point Type                                                                                  |
-| `Url`           | Url                                                                                                       |
 | `Date`          | ISO-8601 date                                                                                             |
+| `Decimal`       | .NET Floating Point Type                                                                                  |
+| `Json`          | This type can be anything, string, int, list or object, etc.                                              |
 | `LocalDateTime` | Local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`          |
 | `LocalTime`     | Local time string (i.e., with no associated timezone) in 24-hr `HH:mm:ss`                                 |
+| `Long`          | Signed 64-bit numeric non-fractional value                                                                |
+| `Short`         | Signed 16-bit numeric non-fractional value                                                                |
 | `TimeSpan`      | ISO-8601 duration                                                                                         |
-| `Uuid`          | GUID                                                                                                      |
-| `Json`          | This type can be anything, string, int, list or object, etc.                                              |
-| `SignedByte`    | Signed 8-bit numeric non‐fractional value greater than or equal to -127 and smaller than or equal to 128. |
+| `UnsignedByte`  | Unsigned 8-bit numeric non-fractional value greater than or equal to 0                                    |
 | `UnsignedInt`   | Unsigned 32‐bit numeric non‐fractional value greater than or equal to 0                                   |
 | `UnsignedLong`  | Unsigned 64‐bit numeric non‐fractional value greater than or equal to 0                                   |
 | `UnsignedShort` | Unsigned 16‐bit numeric non‐fractional value greater than or equal to 0 and smaller or equal to 65535.    |
+| `Url`           | Url                                                                                                       |
+| `Uuid`          | GUID                                                                                                      |
 
 ## Uuid Type
 

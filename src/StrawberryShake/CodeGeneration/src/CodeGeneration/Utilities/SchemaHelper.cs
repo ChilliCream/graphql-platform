@@ -221,28 +221,21 @@ public static class SchemaHelper
         ISchemaBuilder schemaBuilder,
         Dictionary<string, LeafTypeInfo> leafTypes)
     {
-        TryAddLeafType(leafTypes, ScalarNames.String, TypeNames.String);
-        TryAddLeafType(leafTypes, ScalarNames.ID, TypeNames.String);
-        TryAddLeafType(leafTypes, ScalarNames.Boolean, TypeNames.Boolean, TypeNames.Boolean);
-        TryAddLeafType(leafTypes, ScalarNames.Byte, TypeNames.Byte, TypeNames.Byte);
-        TryAddLeafType(leafTypes, ScalarNames.Short, TypeNames.Int16, TypeNames.Int16);
-        TryAddLeafType(leafTypes, ScalarNames.Int, TypeNames.Int32, TypeNames.Int32);
-        TryAddLeafType(leafTypes, ScalarNames.Long, TypeNames.Int64, TypeNames.Int64);
-        TryAddLeafType(leafTypes, ScalarNames.Float, TypeNames.Double, TypeNames.Double);
-        TryAddLeafType(leafTypes, ScalarNames.Decimal, TypeNames.Decimal, TypeNames.Decimal);
-        TryAddLeafType(leafTypes, ScalarNames.URL, TypeNames.Uri);
-        TryAddLeafType(leafTypes, "URI", TypeNames.Uri);
-        TryAddLeafType(leafTypes, "Url", TypeNames.Uri);
-        TryAddLeafType(leafTypes, "Uri", TypeNames.Uri);
-        TryAddLeafType(leafTypes, ScalarNames.UUID, TypeNames.Guid, TypeNames.String);
-        TryAddLeafType(leafTypes, "Uuid", TypeNames.Guid, TypeNames.String);
-        TryAddLeafType(leafTypes, "Guid", TypeNames.Guid, TypeNames.String);
-        TryAddLeafType(leafTypes, ScalarNames.DateTime, TypeNames.DateTimeOffset);
-        TryAddLeafType(leafTypes, ScalarNames.Date, TypeNames.DateOnly);
-        TryAddLeafType(leafTypes, ScalarNames.LocalDate, TypeNames.DateOnly);
-        TryAddLeafType(leafTypes, ScalarNames.LocalDateTime, TypeNames.DateTime);
-        TryAddLeafType(leafTypes, ScalarNames.LocalTime, TypeNames.TimeOnly);
-        TryAddLeafType(leafTypes, ScalarNames.TimeSpan, TypeNames.TimeSpan);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.Any,
+            runtimeType: TypeNames.JsonElement,
+            serializationType: TypeNames.JsonElement);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.Boolean,
+            runtimeType: TypeNames.Boolean,
+            serializationType: TypeNames.Boolean);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.Byte,
+            runtimeType: TypeNames.SByte,
+            serializationType: TypeNames.SByte);
         TryAddLeafType(
             leafTypes,
             typeName: ScalarNames.ByteArray,
@@ -250,7 +243,39 @@ public static class SchemaHelper
             serializationType: TypeNames.ByteArray);
         TryAddLeafType(
             leafTypes,
-            typeName: ScalarNames.Any,
+            typeName: ScalarNames.Date,
+            runtimeType: TypeNames.DateOnly);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.DateTime,
+            runtimeType: TypeNames.DateTimeOffset);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.Decimal,
+            runtimeType: TypeNames.Decimal,
+            serializationType: TypeNames.Decimal);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.Float,
+            runtimeType: TypeNames.Double,
+            serializationType: TypeNames.Double);
+        TryAddLeafType(
+            leafTypes,
+            typeName: "Guid",
+            runtimeType: TypeNames.Guid,
+            serializationType: TypeNames.String);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.ID,
+            runtimeType: TypeNames.String);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.Int,
+            runtimeType: TypeNames.Int32,
+            serializationType: TypeNames.Int32);
+        TryAddLeafType(
+            leafTypes,
+            typeName: "Json",
             runtimeType: TypeNames.JsonElement,
             serializationType: TypeNames.JsonElement);
         TryAddLeafType(
@@ -260,23 +285,94 @@ public static class SchemaHelper
             serializationType: TypeNames.JsonElement);
         TryAddLeafType(
             leafTypes,
-            typeName: "Json",
-            runtimeType: TypeNames.JsonElement,
-            serializationType: TypeNames.JsonElement);
+            typeName: ScalarNames.LocalDate,
+            runtimeType: TypeNames.DateOnly);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.LocalDateTime,
+            runtimeType: TypeNames.DateTime);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.LocalTime,
+            runtimeType: TypeNames.TimeOnly);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.Long,
+            runtimeType: TypeNames.Int64,
+            serializationType: TypeNames.Int64);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.Short,
+            runtimeType: TypeNames.Int16,
+            serializationType: TypeNames.Int16);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.String,
+            runtimeType: TypeNames.String);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.TimeSpan,
+            runtimeType: TypeNames.TimeSpan);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.UnsignedByte,
+            runtimeType: TypeNames.Byte,
+            serializationType: TypeNames.Byte);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.UnsignedInt,
+            runtimeType: TypeNames.UInt32,
+            serializationType: TypeNames.UInt32);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.UnsignedLong,
+            runtimeType: TypeNames.UInt64,
+            serializationType: TypeNames.UInt64);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.UnsignedShort,
+            runtimeType: TypeNames.UInt16,
+            serializationType: TypeNames.UInt16);
         TryAddLeafType(
             leafTypes,
             typeName: "Upload",
             runtimeType: TypeNames.Upload,
             serializationType: TypeNames.String);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.URL,
+            runtimeType: TypeNames.Uri);
+        TryAddLeafType(
+            leafTypes,
+            typeName: "Uri",
+            runtimeType: TypeNames.Uri);
+        TryAddLeafType(
+            leafTypes,
+            typeName: "URI",
+            runtimeType: TypeNames.Uri);
+        TryAddLeafType(
+            leafTypes,
+            typeName: "Url",
+            runtimeType: TypeNames.Uri);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.UUID,
+            runtimeType: TypeNames.Guid,
+            serializationType: TypeNames.String);
+        TryAddLeafType(
+            leafTypes,
+            typeName: "Uuid",
+            runtimeType: TypeNames.Guid,
+            serializationType: TypeNames.String);
 
         // register aliases
         schemaBuilder.AddType(new UrlType());
+        schemaBuilder.AddType(new UrlType("Uri"));
         schemaBuilder.AddType(new UrlType("URI"));
         schemaBuilder.AddType(new UrlType("Url"));
-        schemaBuilder.AddType(new UrlType("Uri"));
         schemaBuilder.AddType(new UuidType());
-        schemaBuilder.AddType(new UuidType("Uuid"));
         schemaBuilder.AddType(new UuidType("Guid"));
+        schemaBuilder.AddType(new UuidType("Uuid"));
     }
 
     private static bool TryGetKeys(

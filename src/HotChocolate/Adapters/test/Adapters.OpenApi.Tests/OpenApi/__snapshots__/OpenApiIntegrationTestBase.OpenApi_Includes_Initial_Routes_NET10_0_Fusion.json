@@ -53,7 +53,7 @@
                   },
                   "byte": {
                     "type": "string",
-                    "description": "The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255."
+                    "description": "The Byte scalar type represents an 8-bit signed integer with a minimum value of -128 and a maximum value of 127."
                   },
                   "byteArray": {
                     "type": "string"
@@ -227,7 +227,7 @@
                         "null",
                         "string"
                       ],
-                      "description": "The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255."
+                      "description": "The Byte scalar type represents an 8-bit signed integer with a minimum value of -128 and a maximum value of 127."
                     },
                     "byteArray": {
                       "type": [

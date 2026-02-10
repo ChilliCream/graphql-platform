@@ -13,10 +13,11 @@ public static class Scalars
     {
         { typeof(string), typeof(StringType) },
         { typeof(bool), typeof(BooleanType) },
-        { typeof(byte), typeof(ByteType) },
+        { typeof(byte), typeof(UnsignedByteType) },
         { typeof(short), typeof(ShortType) },
         { typeof(int), typeof(IntType) },
         { typeof(long), typeof(LongType) },
+        { typeof(sbyte), typeof(ByteType) },
 
         { typeof(float), typeof(FloatType) },
         { typeof(double), typeof(FloatType) },
@@ -40,6 +41,7 @@ public static class Scalars
         { ScalarNames.ID, typeof(IdType) },
         { ScalarNames.Boolean, typeof(BooleanType) },
         { ScalarNames.Byte, typeof(ByteType) },
+        { ScalarNames.UnsignedByte, typeof(UnsignedByteType) },
         { ScalarNames.Short, typeof(ShortType) },
         { ScalarNames.Int, typeof(IntType) },
         { ScalarNames.Long, typeof(LongType) },

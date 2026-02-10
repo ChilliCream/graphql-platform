@@ -21,7 +21,7 @@ public sealed class TestSchema
         public ResultNullable GetWithNullableVariables(
             JsonElement? any,
             bool? boolean,
-            byte? @byte,
+            sbyte? @byte,
             [GraphQLType<ByteArrayType>] byte[]? byteArray,
             [GraphQLType<DateType>] DateOnly? date,
             DateTimeOffset? dateTime,
@@ -71,7 +71,7 @@ public sealed class TestSchema
         public ResultNonNullable GetWithNonNullableVariables(
             JsonElement any,
             bool boolean,
-            byte @byte,
+            sbyte @byte,
             [GraphQLType<NonNullType<ByteArrayType>>] byte[] byteArray,
             [GraphQLType<NonNullType<DateType>>] DateOnly date,
             DateTimeOffset dateTime,
@@ -121,7 +121,7 @@ public sealed class TestSchema
         public ResultDefaulted GetWithDefaultedVariables(
             JsonElement any,
             bool boolean,
-            byte @byte,
+            sbyte @byte,
             [GraphQLType<NonNullType<ByteArrayType>>] byte[] byteArray,
             [GraphQLType<NonNullType<DateType>>] DateOnly date,
             DateTimeOffset dateTime,
@@ -324,7 +324,7 @@ public sealed class TestSchema
     public sealed record ResultNullable(
         JsonElement? Any,
         bool? Boolean,
-        byte? Byte,
+        sbyte? Byte,
         [property: GraphQLType<ByteArrayType>] byte[]? ByteArray,
         [property: GraphQLType<DateType>] DateOnly? Date,
         DateTimeOffset? DateTime,
@@ -349,7 +349,7 @@ public sealed class TestSchema
     public sealed record ResultNonNullable(
         JsonElement Any,
         bool Boolean,
-        byte Byte,
+        sbyte Byte,
         [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
         [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
         DateTimeOffset DateTime,
@@ -374,7 +374,7 @@ public sealed class TestSchema
     public sealed record ResultDefaulted(
         JsonElement Any,
         bool Boolean,
-        byte Byte,
+        sbyte Byte,
         [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
         [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
         DateTimeOffset DateTime,

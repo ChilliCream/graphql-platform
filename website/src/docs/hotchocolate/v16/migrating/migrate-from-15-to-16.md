@@ -308,6 +308,13 @@ TODO
 TODO
 `JsonElement` is now inferred as `Any` instead of `Json`.
 
+## `Byte` and `SignedByte` types renamed
+
+- The GraphQL type `Byte` has been renamed to `UnsignedByte` (CLR type: `byte`).
+- The GraphQL type `SignedByte` has been renamed to `Byte` (CLR type: `sbyte`).
+
+This is to align the GraphQL type names with the core types (`Int`, etc.), which are signed.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
