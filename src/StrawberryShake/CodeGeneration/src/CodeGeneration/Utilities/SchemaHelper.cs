@@ -228,6 +228,11 @@ public static class SchemaHelper
             serializationType: TypeNames.JsonElement);
         TryAddLeafType(
             leafTypes,
+            typeName: ScalarNames.Base64String,
+            runtimeType: TypeNames.ByteArray,
+            serializationType: TypeNames.ByteArray);
+        TryAddLeafType(
+            leafTypes,
             typeName: ScalarNames.Boolean,
             runtimeType: TypeNames.Boolean,
             serializationType: TypeNames.Boolean);

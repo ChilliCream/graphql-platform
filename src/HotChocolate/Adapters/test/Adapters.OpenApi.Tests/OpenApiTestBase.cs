@@ -122,9 +122,9 @@ public abstract class OpenApiTestBase : IAsyncLifetime
             query ComplexObjectQuery($input: ComplexObjectInput! @body) @http(method: POST, route: "/complex") {
               complexObject(input: $input) {
                 any
+                base64String
                 boolean
                 byte
-                byteArray
                 date
                 dateTime
                 decimal

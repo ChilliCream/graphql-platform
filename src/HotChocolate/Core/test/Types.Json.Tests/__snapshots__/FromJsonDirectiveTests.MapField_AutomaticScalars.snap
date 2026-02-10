@@ -1,20 +1,21 @@
-﻿{
+{
   "data": {
     "foo": {
-      "string": "string",
-      "id": "id",
+      "base64String": "Zm9v",
       "boolean": true,
-      "short": 1,
-      "int": 2,
-      "long": 3,
-      "float": 1.2,
-      "decimal": 3.4,
-      "url": "http://abc/",
-      "uuid": "2d25e877-aecc-4a9e-a191-cf75def49e42",
       "byte": 1,
       "byteArray": "Zm9v",
       "date": "1979-12-20",
-      "dateTime": "1979-12-20T15:00:00.000Z"
+      "dateTime": "1979-12-20T15:00:00.000Z",
+      "decimal": 3.4,
+      "float": 1.2,
+      "id": "id",
+      "int": 2,
+      "long": 3,
+      "short": 1,
+      "string": "string",
+      "url": "https://abc/",
+      "uuid": "2d25e877-aecc-4a9e-a191-cf75def49e42"
     }
   }
 }

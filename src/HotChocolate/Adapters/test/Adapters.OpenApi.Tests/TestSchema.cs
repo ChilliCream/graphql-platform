@@ -62,9 +62,9 @@ public sealed class TestSchema
         {
             return new ComplexObject(
                 input.Any,
+                input.Base64String,
                 input.Boolean,
                 input.Byte,
-                input.ByteArray,
                 input.Date,
                 input.DateTime,
                 input.Decimal,
@@ -178,9 +178,9 @@ public sealed class TestSchema
 
     public sealed record ComplexObject(
         [property: GraphQLType<AnyType>] object? Any,
+        [property: GraphQLType<Base64StringType>] byte[]? Base64String,
         bool? Boolean,
         sbyte? Byte,
-        [property: GraphQLType<ByteArrayType>] byte[]? ByteArray,
         [property: GraphQLType<DateType>] DateOnly? Date,
         DateTimeOffset? DateTime,
         decimal? Decimal,
@@ -204,9 +204,9 @@ public sealed class TestSchema
 
     public sealed record ComplexObjectInput(
         [property: GraphQLType<NonNullType<AnyType>>] object Any,
+        [property: GraphQLType<NonNullType<Base64StringType>>] byte[] Base64String,
         bool Boolean,
         sbyte Byte,
-        [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
         [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
         DateTimeOffset DateTime,
         decimal Decimal,

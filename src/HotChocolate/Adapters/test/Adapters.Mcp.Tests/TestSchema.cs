@@ -20,9 +20,9 @@ public sealed class TestSchema
 
         public ResultNullable GetWithNullableVariables(
             JsonElement? any,
+            [GraphQLType<Base64StringType>] byte[]? base64String,
             bool? boolean,
             sbyte? @byte,
-            [GraphQLType<ByteArrayType>] byte[]? byteArray,
             [GraphQLType<DateType>] DateOnly? date,
             DateTimeOffset? dateTime,
             decimal? @decimal,
@@ -45,9 +45,9 @@ public sealed class TestSchema
             =>
                 new(
                     any,
+                    base64String,
                     boolean,
                     @byte,
-                    byteArray,
                     date,
                     dateTime,
                     @decimal,
@@ -70,9 +70,9 @@ public sealed class TestSchema
 
         public ResultNonNullable GetWithNonNullableVariables(
             JsonElement any,
+            [GraphQLType<NonNullType<Base64StringType>>] byte[] base64String,
             bool boolean,
             sbyte @byte,
-            [GraphQLType<NonNullType<ByteArrayType>>] byte[] byteArray,
             [GraphQLType<NonNullType<DateType>>] DateOnly date,
             DateTimeOffset dateTime,
             decimal @decimal,
@@ -95,9 +95,9 @@ public sealed class TestSchema
             =>
                 new(
                     any,
+                    base64String,
                     boolean,
                     @byte,
-                    byteArray,
                     date,
                     dateTime,
                     @decimal,
@@ -120,9 +120,9 @@ public sealed class TestSchema
 
         public ResultDefaulted GetWithDefaultedVariables(
             JsonElement any,
+            [GraphQLType<NonNullType<Base64StringType>>] byte[] base64String,
             bool boolean,
             sbyte @byte,
-            [GraphQLType<NonNullType<ByteArrayType>>] byte[] byteArray,
             [GraphQLType<NonNullType<DateType>>] DateOnly date,
             DateTimeOffset dateTime,
             decimal @decimal,
@@ -145,9 +145,9 @@ public sealed class TestSchema
             =>
                 new(
                     any,
+                    base64String,
                     boolean,
                     @byte,
-                    byteArray,
                     date,
                     dateTime,
                     @decimal,
@@ -323,9 +323,9 @@ public sealed class TestSchema
 
     public sealed record ResultNullable(
         JsonElement? Any,
+        [property: GraphQLType<Base64StringType>] byte[]? Base64String,
         bool? Boolean,
         sbyte? Byte,
-        [property: GraphQLType<ByteArrayType>] byte[]? ByteArray,
         [property: GraphQLType<DateType>] DateOnly? Date,
         DateTimeOffset? DateTime,
         decimal? Decimal,
@@ -348,9 +348,9 @@ public sealed class TestSchema
 
     public sealed record ResultNonNullable(
         JsonElement Any,
+        [property: GraphQLType<NonNullType<Base64StringType>>] byte[] Base64String,
         bool Boolean,
         sbyte Byte,
-        [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
         [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
         DateTimeOffset DateTime,
         decimal Decimal,
@@ -373,9 +373,9 @@ public sealed class TestSchema
 
     public sealed record ResultDefaulted(
         JsonElement Any,
+        [property: GraphQLType<NonNullType<Base64StringType>>] byte[] Base64String,
         bool Boolean,
         sbyte Byte,
-        [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
         [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
         DateTimeOffset DateTime,
         decimal Decimal,

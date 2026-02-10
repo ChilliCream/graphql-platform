@@ -315,9 +315,17 @@ TODO
 
 This is to align the GraphQL type names with the core types (`Int`, etc.), which are signed.
 
+## Byte arrays now mapped to `Base64String`
+
+C# byte arrays (`byte[]`) are now mapped to the GraphQL `Base64String` type by default, as the `ByteArray` type has been deprecated.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
+
+## `ByteArray`
+
+The GraphQL `ByteArray` type has been deprecated. Use the `Base64String` type instead.
 
 # Noteworthy changes
 

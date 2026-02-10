@@ -653,9 +653,9 @@ public abstract class IntegrationTestBase
             new Dictionary<string, object?>
             {
                 { "any", null },
+                { "base64String", null },
                 { "boolean", null },
                 { "byte", null },
-                { "byteArray", null },
                 { "date", null },
                 { "dateTime", null },
                 { "decimal", null },
@@ -705,9 +705,9 @@ public abstract class IntegrationTestBase
             new Dictionary<string, object?>
             {
                 { "any", new { key = "value" } },
+                { "base64String", "dGVzdA==" },
                 { "boolean", true },
                 { "byte", 1 },
-                { "byteArray", "dGVzdA==" },
                 { "date", "2000-01-01" },
                 { "dateTime", "2000-01-01T12:00:00Z" },
                 { "decimal", 79228162514264337593543950335m },

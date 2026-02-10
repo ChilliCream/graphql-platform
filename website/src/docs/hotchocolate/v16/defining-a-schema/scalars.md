@@ -206,8 +206,8 @@ In addition to the scalars defined by the specification, Hot Chocolate also supp
 
 | Type            | Description                                                                                               |
 | --------------- | --------------------------------------------------------------------------------------------------------- |
+| `Base64String`  | Base64 encoded array of bytes                                                                             |
 | `Byte`          | Signed 8-bit numeric non‐fractional value greater than or equal to -128 and smaller than or equal to 127. |
-| `ByteArray`     | Base64 encoded array of bytes                                                                             |
 | `Date`          | ISO-8601 date                                                                                             |
 | `Decimal`       | .NET Floating Point Type                                                                                  |
 | `Json`          | This type can be anything, string, int, list or object, etc.                                              |
@@ -409,7 +409,7 @@ Furthermore, we can also bind scalars to arrays or type structures:
 ```csharp
 builder.Services
     .AddGraphQLServer()
-    .BindRuntimeType<byte[], ByteArrayType>();
+    .BindRuntimeType<byte[], Base64StringType>();
 ```
 
 Hot Chocolate only exposes the used scalars in the generated schema, keeping it simple and clean.

@@ -12,13 +12,12 @@ namespace HotChocolate.Types;
 /// Represents a scalar type for byte arrays that are serialized as Base64-encoded strings in GraphQL.
 /// This type handles the conversion between byte arrays in .NET and string representations in GraphQL schemas.
 /// </summary>
-[Obsolete("Use Base64StringType instead.")]
-public class ByteArrayType : ScalarType<byte[], StringValueNode>
+public class Base64StringType : ScalarType<byte[], StringValueNode>
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="ByteArrayType"/> class.
+    /// Initializes a new instance of the <see cref="Base64StringType"/> class.
     /// </summary>
-    public ByteArrayType(
+    public Base64StringType(
         string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
@@ -29,11 +28,11 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ByteArrayType"/> class.
+    /// Initializes a new instance of the <see cref="Base64StringType"/> class.
     /// </summary>
     [ActivatorUtilitiesConstructor]
-    public ByteArrayType()
-        : this(ScalarNames.ByteArray, bind: BindingBehavior.Implicit)
+    public Base64StringType()
+        : this(ScalarNames.Base64String, bind: BindingBehavior.Implicit)
     {
     }
 

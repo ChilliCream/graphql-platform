@@ -1,29 +1,27 @@
-#pragma warning disable CS0618 // Type or member is obsolete
-
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
-public class ByteArrayTypeTests
+public class Base64StringTypeTests
 {
     [Fact]
     public void Ensure_Type_Name_Is_Correct()
     {
         // arrange
         // act
-        var type = new ByteArrayType();
+        var type = new Base64StringType();
 
         // assert
-        Assert.Equal("ByteArray", type.Name);
+        Assert.Equal("Base64String", type.Name);
     }
 
     [Fact]
     public void IsValueCompatible_StringLiteral_True()
     {
         // arrange
-        var type = new ByteArrayType();
+        var type = new Base64StringType();
         var literal = new StringValueNode("abc");
 
         // act
@@ -37,7 +35,7 @@ public class ByteArrayTypeTests
     public void IsValueCompatible_IntLiteral_False()
     {
         // arrange
-        var type = new ByteArrayType();
+        var type = new Base64StringType();
         var literal = new IntValueNode(123);
 
         // act
@@ -51,7 +49,7 @@ public class ByteArrayTypeTests
     public void IsValueCompatible_Null_ReturnsFalse()
     {
         // arrange
-        var type = new ByteArrayType();
+        var type = new Base64StringType();
 
         // act
         var result = type.IsValueCompatible(null!);
@@ -64,7 +62,7 @@ public class ByteArrayTypeTests
     public void CoerceInputLiteral()
     {
         // arrange
-        var type = new ByteArrayType();
+        var type = new Base64StringType();
         var expected = "value"u8.ToArray();
         var literal = new StringValueNode(Convert.ToBase64String(expected));
 
@@ -79,7 +77,7 @@ public class ByteArrayTypeTests
     public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
-        var type = new ByteArrayType();
+        var type = new Base64StringType();
         var literal = new IntValueNode(123);
 
         // act
@@ -93,7 +91,7 @@ public class ByteArrayTypeTests
     public void CoerceInputLiteral_Null_Throws()
     {
         // arrange
-        var type = new ByteArrayType();
+        var type = new Base64StringType();
 
         // act
         void Action() => type.CoerceInputLiteral(null!);
@@ -106,7 +104,7 @@ public class ByteArrayTypeTests
     public void CoerceInputValue()
     {
         // arrange
-        var type = new ByteArrayType();
+        var type = new Base64StringType();
         var bytes = "value"u8.ToArray();
         var inputValue = JsonDocument.Parse($"\"{Convert.ToBase64String(bytes)}\"").RootElement;
 
@@ -121,7 +119,7 @@ public class ByteArrayTypeTests
     public void CoerceInputValue_Invalid_Format()
     {
         // arrange
-        var type = new ByteArrayType();
+        var type = new Base64StringType();
         var inputValue = JsonDocument.Parse("123").RootElement;
 
         // act
@@ -135,7 +133,7 @@ public class ByteArrayTypeTests
     public void CoerceOutputValue()
     {
         // arrange
-        var type = new ByteArrayType();
+        var type = new Base64StringType();
         var value = "value"u8.ToArray();
 
         // act
@@ -152,7 +150,7 @@ public class ByteArrayTypeTests
     public void CoerceOutputValue_Invalid_Format()
     {
         // arrange
-        var type = new ByteArrayType();
+        var type = new Base64StringType();
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
@@ -168,7 +166,7 @@ public class ByteArrayTypeTests
     public void ValueToLiteral()
     {
         // arrange
-        var type = new ByteArrayType();
+        var type = new Base64StringType();
         var expected = "value"u8.ToArray();
         var expectedLiteralValue = Convert.ToBase64String(expected);
 
@@ -183,7 +181,7 @@ public class ByteArrayTypeTests
     public void ParseLiteral()
     {
         // arrange
-        var type = new ByteArrayType();
+        var type = new Base64StringType();
         var expected = "value"u8.ToArray();
         var literal = new StringValueNode(Convert.ToBase64String(expected));
 
@@ -198,7 +196,7 @@ public class ByteArrayTypeTests
     public void ParseLiteral_InvalidValue()
     {
         // arrange
-        var type = new ByteArrayType();
+        var type = new Base64StringType();
 
         // act
         void Action() => type.CoerceInputLiteral(new IntValueNode(123));
@@ -211,7 +209,7 @@ public class ByteArrayTypeTests
     public void Ensure_TypeKind_Is_Scalar()
     {
         // arrange
-        var type = new ByteArrayType();
+        var type = new Base64StringType();
 
         // assert
         Assert.Equal(TypeKind.Scalar, type.Kind);

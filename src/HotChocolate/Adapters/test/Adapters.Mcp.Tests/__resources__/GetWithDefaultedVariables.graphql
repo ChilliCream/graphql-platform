@@ -2,12 +2,12 @@
 query GetWithDefaultedVariables(
   "Any description"
   $any: Any! = { key: "value" }
+  "Base64String description"
+  $base64String: Base64String! = "ZGVmYXVsdA=="
   "Boolean description"
   $boolean: Boolean! = true
   "Byte description"
   $byte: Byte! = 1
-  "ByteArray description"
-  $byteArray: ByteArray! = "ZGVmYXVsdA=="
   "Date description"
   $date: Date! = "2000-01-01"
   "DateTime description"
@@ -49,9 +49,9 @@ query GetWithDefaultedVariables(
 ) {
   withDefaultedVariables(
     any: $any
+    base64String: $base64String
     boolean: $boolean
     byte: $byte
-    byteArray: $byteArray
     date: $date
     dateTime: $dateTime
     decimal: $decimal
@@ -73,9 +73,9 @@ query GetWithDefaultedVariables(
     uuid: $uuid
   ) {
     any
+    base64String
     boolean
     byte
-    byteArray
     date
     dateTime
     decimal

@@ -219,7 +219,7 @@ public static class JsonObjectTypeExtensions
                 };
                 return;
 
-            case ScalarNames.ByteArray:
+            case ScalarNames.Base64String or ScalarNames.ByteArray:
                 def.PureResolver = ctx =>
                 {
                     var property = ctx.GetProperty(propertyName);

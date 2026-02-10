@@ -4,9 +4,9 @@
       "any": {
         "key": "value"
       },
+      "base64String": "dGVzdA==",
       "boolean": true,
       "byte": 1,
-      "byteArray": "dGVzdA==",
       "date": "2000-01-01",
       "dateTime": "2000-01-01T12:00:00.000Z",
       "decimal": 79228162514264337593543950335,

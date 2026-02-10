@@ -27,7 +27,7 @@ public static class Scalars
         { typeof(Guid), typeof(UuidType) },
         { typeof(DateTime), typeof(DateTimeType) },
         { typeof(DateTimeOffset), typeof(DateTimeType) },
-        { typeof(byte[]), typeof(ByteArrayType) },
+        { typeof(byte[]), typeof(Base64StringType) },
         { typeof(TimeSpan), typeof(TimeSpanType) },
 
         { typeof(DateOnly), typeof(LocalDateType) },
@@ -59,7 +59,10 @@ public static class Scalars
         { ScalarNames.LocalDateTime, typeof(LocalDateTimeType) },
         { ScalarNames.LocalTime, typeof(LocalTimeType) },
 
+        { ScalarNames.Base64String, typeof(Base64StringType) },
+#pragma warning disable CS0618 // Type or member is obsolete
         { ScalarNames.ByteArray, typeof(ByteArrayType) }
+#pragma warning restore CS0618 // Type or member is obsolete
     };
 
     private static readonly Dictionary<Type, ValueKind> s_scalarKinds = new()

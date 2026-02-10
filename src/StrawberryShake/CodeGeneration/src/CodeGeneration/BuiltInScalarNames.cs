@@ -12,6 +12,7 @@ public static class BuiltInScalarNames
         "Url",
         "Uuid",
         ScalarNames.Any,
+        ScalarNames.Base64String,
         ScalarNames.Boolean,
         ScalarNames.Byte,
         ScalarNames.ByteArray,

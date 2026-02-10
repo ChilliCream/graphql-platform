@@ -2,9 +2,9 @@
   "data": {
     "withNullableVariables": {
       "any": null,
+      "base64String": null,
       "boolean": null,
       "byte": null,
-      "byteArray": null,
       "date": null,
       "dateTime": null,
       "decimal": null,
