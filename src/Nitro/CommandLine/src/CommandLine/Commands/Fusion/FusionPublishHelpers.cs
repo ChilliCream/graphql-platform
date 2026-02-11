@@ -306,7 +306,7 @@ internal static class FusionPublishHelpers
     public static async Task<bool> ComposeAsync(
         Stream archiveStream,
         Stream? existingArchiveStream,
-        string stageName,
+        string environment,
         Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
         CompositionSettings? compositionSettings,
         IAnsiConsole console,
@@ -331,13 +331,34 @@ internal static class FusionPublishHelpers
             archive = FusionArchive.Create(archiveStream, leaveOpen: true);
         }
 
+        var result = await ComposeAsync(
+            archive,
+            environment,
+            newSourceSchemas,
+            compositionSettings,
+            console,
+            cancellationToken);
+
+        archiveStream.Seek(0, SeekOrigin.Begin);
+
+        return result;
+    }
+
+    public static async Task<bool> ComposeAsync(
+        FusionArchive archive,
+        string environment,
+        Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
+        CompositionSettings? compositionSettings,
+        IAnsiConsole console,
+        CancellationToken cancellationToken)
+    {
         var compositionLog = new CompositionLog();
 
         var result = await CompositionHelper.ComposeAsync(
             compositionLog,
             newSourceSchemas,
             archive,
-            environment: stageName,
+            environment,
             compositionSettings,
             cancellationToken);
 
@@ -355,8 +376,6 @@ internal static class FusionPublishHelpers
 
             return false;
         }
-
-        archiveStream.Seek(0, SeekOrigin.Begin);
 
         return true;
     }
