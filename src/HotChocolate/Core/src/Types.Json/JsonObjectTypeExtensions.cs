@@ -172,6 +172,20 @@ public static class JsonObjectTypeExtensions
                 };
                 return;
 
+            case ScalarNames.URI:
+                def.PureResolver = ctx =>
+                {
+                    var property = ctx.GetProperty(propertyName);
+
+                    if (property is null or { ValueKind: JsonValueKind.Null })
+                    {
+                        return null;
+                    }
+
+                    return new Uri(property.Value.GetString()!, UriKind.RelativeOrAbsolute);
+                };
+                return;
+
             case ScalarNames.URL:
                 def.PureResolver = ctx =>
                 {

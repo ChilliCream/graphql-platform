@@ -14,6 +14,7 @@
       "long": 3,
       "short": 1,
       "string": "string",
+      "uri": "https://abc/",
       "url": "https://abc/",
       "uuid": "2d25e877-aecc-4a9e-a191-cf75def49e42"
     }
