@@ -63,7 +63,7 @@ public class UrlTypeTests
     {
         // arrange
         var type = new UrlType(allowRelativeUris: false);
-        var expected = new Uri("/relative/path", UriKind.Relative);
+        var expected = new Uri("$/relative/path", UriKind.Relative);
         var literal = new StringValueNode(expected.ToString());
 
         // act
@@ -122,7 +122,7 @@ public class UrlTypeTests
     {
         // arrange
         var type = new UrlType(allowRelativeUris: false);
-        var expected = new Uri("/relative/path", UriKind.Relative);
+        var expected = new Uri("$/relative/path", UriKind.Relative);
         var inputValue = JsonDocument.Parse($"\"{expected}\"").RootElement;
 
         // act
