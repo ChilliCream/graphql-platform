@@ -34,7 +34,7 @@ public class UrlType : ScalarType<Uri, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="UrlType"/> class.
     /// </summary>
-    public UrlType(bool allowRelativeUris = false) : base(ScalarNames.URL)
+    public UrlType(bool allowRelativeUris = false) : this(ScalarNames.URL)
     {
         _allowRelativeUris = allowRelativeUris;
     }

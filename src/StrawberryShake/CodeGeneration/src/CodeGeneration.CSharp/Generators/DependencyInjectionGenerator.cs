@@ -53,8 +53,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         ["Json"] = JsonSerializer,
         ["JSON"] = JsonSerializer,
         ["Uri"] = UriSerializer,
-        ["URI"] = UriSerializer,
-        ["URL"] = UrlSerializer,
+        ["Url"] = UrlSerializer,
         ["Uuid"] = UUIDSerializer
     };
 
