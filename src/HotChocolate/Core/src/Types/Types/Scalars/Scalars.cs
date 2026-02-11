@@ -23,7 +23,7 @@ public static class Scalars
         { typeof(double), typeof(FloatType) },
         { typeof(decimal), typeof(DecimalType) },
 
-        { typeof(Uri), typeof(UrlType) },
+        { typeof(Uri), typeof(UriType) },
         { typeof(Guid), typeof(UuidType) },
         { typeof(DateTime), typeof(DateTimeType) },
         { typeof(DateTimeOffset), typeof(DateTimeType) },
@@ -49,6 +49,7 @@ public static class Scalars
         { ScalarNames.Float, typeof(FloatType) },
         { ScalarNames.Decimal, typeof(DecimalType) },
 
+        { ScalarNames.URI, typeof(UriType) },
         { ScalarNames.URL, typeof(UrlType) },
         { ScalarNames.UUID, typeof(UuidType) },
         { ScalarNames.DateTime, typeof(DateTimeType) },

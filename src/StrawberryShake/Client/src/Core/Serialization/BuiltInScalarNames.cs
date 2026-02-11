@@ -25,6 +25,7 @@ public static class BuiltInScalarNames
     public const string String = nameof(String);
     public const string TimeSpan = nameof(TimeSpan);
     public const string Upload = nameof(Upload);
-    public const string Url = nameof(Url);
+    public const string URI = nameof(URI);
+    public const string URL = nameof(URL);
     public const string UUID = nameof(UUID);
 }

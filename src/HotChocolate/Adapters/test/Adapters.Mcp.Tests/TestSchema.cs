@@ -40,7 +40,8 @@ public sealed class TestSchema
             string? @string,
             TimeSpan? timeSpan,
             [GraphQLType<UnknownType>] string? unknown,
-            Uri? url,
+            Uri? uri,
+            [GraphQLType<UrlType>] Uri? url,
             Guid? uuid)
             =>
                 new(
@@ -65,6 +66,7 @@ public sealed class TestSchema
                     @string,
                     timeSpan,
                     unknown,
+                    uri,
                     url,
                     uuid);
 
@@ -90,7 +92,8 @@ public sealed class TestSchema
             string @string,
             TimeSpan timeSpan,
             [GraphQLType<NonNullType<UnknownType>>] string unknown,
-            Uri url,
+            Uri uri,
+            [GraphQLType<NonNullType<UrlType>>] Uri url,
             Guid uuid)
             =>
                 new(
@@ -115,6 +118,7 @@ public sealed class TestSchema
                     @string,
                     timeSpan,
                     unknown,
+                    uri,
                     url,
                     uuid);
 
@@ -140,7 +144,8 @@ public sealed class TestSchema
             string @string,
             TimeSpan timeSpan,
             [GraphQLType<NonNullType<UnknownType>>] string unknown,
-            Uri url,
+            Uri uri,
+            [GraphQLType<NonNullType<UrlType>>] Uri url,
             Guid uuid)
             =>
                 new(
@@ -165,6 +170,7 @@ public sealed class TestSchema
                     @string,
                     timeSpan,
                     unknown,
+                    uri,
                     url,
                     uuid);
 
@@ -343,7 +349,8 @@ public sealed class TestSchema
         string? String,
         TimeSpan? TimeSpan,
         [property: GraphQLType<UnknownType>] string? Unknown,
-        Uri? Url,
+        Uri? Uri,
+        [property: GraphQLType<UrlType>] Uri? Url,
         Guid? Uuid);
 
     public sealed record ResultNonNullable(
@@ -368,7 +375,8 @@ public sealed class TestSchema
         string String,
         TimeSpan TimeSpan,
         [property: GraphQLType<NonNullType<UnknownType>>] string Unknown,
-        Uri Url,
+        Uri Uri,
+        [property: GraphQLType<NonNullType<UrlType>>] Uri Url,
         Guid Uuid);
 
     public sealed record ResultDefaulted(
@@ -393,7 +401,8 @@ public sealed class TestSchema
         string String,
         TimeSpan TimeSpan,
         [property: GraphQLType<NonNullType<UnknownType>>] string Unknown,
-        Uri Url,
+        Uri Uri,
+        [property: GraphQLType<NonNullType<UrlType>>] Uri Url,
         Guid Uuid);
 
     public sealed record ResultComplex(

@@ -83,6 +83,7 @@ public sealed class TestSchema
                 input.String,
                 input.TimeSpan,
                 input.Unknown,
+                input.Uri,
                 input.Url,
                 input.Uuid);
         }
@@ -199,7 +200,8 @@ public sealed class TestSchema
         string? String,
         TimeSpan? TimeSpan,
         [property: GraphQLType<UnknownType>] string? Unknown,
-        Uri? Url,
+        Uri? Uri,
+        [property: GraphQLType<UrlType>] Uri? Url,
         Guid? Uuid);
 
     public sealed record ComplexObjectInput(
@@ -225,7 +227,8 @@ public sealed class TestSchema
         string String,
         TimeSpan TimeSpan,
         [property: GraphQLType<NonNullType<UnknownType>>] string Unknown,
-        Uri Url,
+        Uri Uri,
+        [property: GraphQLType<NonNullType<UrlType>>] Uri Url,
         Guid Uuid);
 
     [UnionType(name: "PetUnion")]

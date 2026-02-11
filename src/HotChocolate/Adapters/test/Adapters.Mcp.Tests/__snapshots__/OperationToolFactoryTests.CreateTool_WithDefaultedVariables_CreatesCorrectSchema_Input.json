@@ -173,6 +173,11 @@
       "description": "Unknown description",
       "default": "default"
     },
+    "uri": {
+      "type": "string",
+      "description": "URI description",
+      "default": "https://example.com"
+    },
     "url": {
       "type": "string",
       "description": "URL description",

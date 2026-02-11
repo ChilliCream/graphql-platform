@@ -21,6 +21,7 @@ query GetWithNonNullableVariables(
   "String description" $string: String!
   "TimeSpan description" $timeSpan: TimeSpan!
   "Unknown description" $unknown: Unknown!
+  "URI description" $uri: URI!
   "URL description" $url: URL!
   "UUID description" $uuid: UUID!
 ) {
@@ -46,6 +47,7 @@ query GetWithNonNullableVariables(
     string: $string
     timeSpan: $timeSpan
     unknown: $unknown
+    uri: $uri
     url: $url
     uuid: $uuid
   ) {
@@ -76,6 +78,7 @@ query GetWithNonNullableVariables(
     string
     timeSpan
     unknown
+    uri
     url
     uuid
   }

@@ -139,6 +139,10 @@
       "type": "string",
       "description": "Unknown description"
     },
+    "uri": {
+      "type": "string",
+      "description": "URI description"
+    },
     "url": {
       "type": "string",
       "description": "URL description"
@@ -171,6 +175,7 @@
     "string",
     "timeSpan",
     "unknown",
+    "uri",
     "url",
     "uuid"
   ]

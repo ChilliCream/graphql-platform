@@ -40,6 +40,7 @@
                   "string",
                   "timeSpan",
                   "unknown",
+                  "uri",
                   "url",
                   "uuid"
                 ],
@@ -162,6 +163,9 @@
                     "description": "The `TimeSpan` scalar represents an ISO-8601 compliant duration type."
                   },
                   "unknown": {
+                    "type": "string"
+                  },
+                  "uri": {
                     "type": "string"
                   },
                   "url": {

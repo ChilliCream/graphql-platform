@@ -73,6 +73,7 @@ public class FromJsonDirectiveTests
                     long: Long @fromJson
                     short: Short @fromJson
                     string: String @fromJson
+                    uri: URI @fromJson
                     url: URL @fromJson
                     uuid: UUID @fromJson
                 }
@@ -93,6 +94,7 @@ public class FromJsonDirectiveTests
                     "long": 3,
                     "short": 1,
                     "string": "string",
+                    "uri": "https://abc",
                     "url": "https://abc",
                     "uuid":"2d25e877-aecc-4a9e-a191-cf75def49e42"
                 }
@@ -115,6 +117,7 @@ public class FromJsonDirectiveTests
                         long
                         short
                         string
+                        uri
                         url
                         uuid
                     }

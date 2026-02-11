@@ -345,7 +345,7 @@ public static class SchemaHelper
             serializationType: TypeNames.String);
         TryAddLeafType(
             leafTypes,
-            typeName: ScalarNames.URL,
+            typeName: ScalarNames.URI,
             runtimeType: TypeNames.Uri);
         TryAddLeafType(
             leafTypes,
@@ -353,7 +353,7 @@ public static class SchemaHelper
             runtimeType: TypeNames.Uri);
         TryAddLeafType(
             leafTypes,
-            typeName: "URI",
+            typeName: ScalarNames.URL,
             runtimeType: TypeNames.Uri);
         TryAddLeafType(
             leafTypes,
@@ -371,9 +371,9 @@ public static class SchemaHelper
             serializationType: TypeNames.String);
 
         // register aliases
+        schemaBuilder.AddType(new UriType());
+        schemaBuilder.AddType(new UriType("Uri"));
         schemaBuilder.AddType(new UrlType());
-        schemaBuilder.AddType(new UrlType("Uri"));
-        schemaBuilder.AddType(new UrlType("URI"));
         schemaBuilder.AddType(new UrlType("Url"));
         schemaBuilder.AddType(new UuidType());
         schemaBuilder.AddType(new UuidType("Guid"));

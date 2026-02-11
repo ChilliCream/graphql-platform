@@ -150,8 +150,8 @@ public static class FilterConventionDescriptorExtensions
                 .BindRuntimeType<uint?, UnsignedIntOperationFilterInputType>()
                 .BindRuntimeType<ulong, UnsignedLongOperationFilterInputType>()
                 .BindRuntimeType<ulong?, UnsignedLongOperationFilterInputType>()
-                .BindRuntimeType<Uri, UrlOperationFilterInputType>()
-                .BindRuntimeType<Uri?, UrlOperationFilterInputType>()
+                .BindRuntimeType<Uri, UriOperationFilterInputType>()
+                .BindRuntimeType<Uri?, UriOperationFilterInputType>()
                 .BindRuntimeType<ushort, UnsignedShortOperationFilterInputType>()
                 .BindRuntimeType<ushort?, UnsignedShortOperationFilterInputType>();
         }

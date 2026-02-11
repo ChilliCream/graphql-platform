@@ -130,6 +130,9 @@
             "unknown": {
               "type": "string"
             },
+            "uri": {
+              "type": "string"
+            },
             "url": {
               "type": "string"
             },
@@ -160,6 +163,7 @@
             "string",
             "timeSpan",
             "unknown",
+            "uri",
             "url",
             "uuid"
           ],

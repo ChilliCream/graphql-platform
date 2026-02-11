@@ -24,6 +24,7 @@ public static class ScalarNames
     public const string UnsignedInt = nameof(UnsignedInt);
     public const string UnsignedLong = nameof(UnsignedLong);
     public const string UnsignedShort = nameof(UnsignedShort);
+    public const string URI = nameof(URI);
     public const string URL = nameof(URL);
     public const string UUID = nameof(UUID);
 }

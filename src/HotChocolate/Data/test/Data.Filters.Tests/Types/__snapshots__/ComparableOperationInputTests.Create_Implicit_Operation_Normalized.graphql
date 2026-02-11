@@ -52,9 +52,9 @@ input FooFilterInput {
   barFloat: FloatOperationFilterInput
   barDouble: FloatOperationFilterInput
   barDecimal: DecimalOperationFilterInput
-  barUri: UrlOperationFilterInput
+  barUri: UriOperationFilterInput
   barByte: UnsignedByteOperationFilterInput
-  barUriNullable: UrlOperationFilterInput
+  barUriNullable: UriOperationFilterInput
   barShortNullable: ShortOperationFilterInput
   barIntNullable: IntOperationFilterInput
   barLongNullable: LongOperationFilterInput
@@ -159,19 +159,19 @@ input UnsignedByteOperationFilterInput {
   nlte: UnsignedByte
 }
 
-input UrlOperationFilterInput {
-  eq: URL
-  neq: URL
-  in: [URL]
-  nin: [URL]
-  gt: URL
-  ngt: URL
-  gte: URL
-  ngte: URL
-  lt: URL
-  nlt: URL
-  lte: URL
-  nlte: URL
+input UriOperationFilterInput {
+  eq: URI
+  neq: URI
+  in: [URI]
+  nin: [URI]
+  gt: URI
+  ngt: URI
+  gte: URI
+  ngte: URI
+  lt: URI
+  nlt: URI
+  lte: URI
+  nlte: URI
 }
 
 enum FooBar {
@@ -197,7 +197,7 @@ scalar Long
 "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
 scalar Short
 
-scalar URL @specifiedBy(url: "https://tools.ietf.org/html/rfc3986")
+scalar URI @specifiedBy(url: "https://tools.ietf.org/html/rfc3986")
 
 "The UnsignedByte scalar type represents an unsigned 8-bit numeric non-fractional value greater than or equal to 0."
 scalar UnsignedByte

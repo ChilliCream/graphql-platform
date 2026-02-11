@@ -674,6 +674,7 @@ public abstract class IntegrationTestBase
                 { "string", null },
                 { "timeSpan", null },
                 { "unknown", null },
+                { "uri", null },
                 { "url", null },
                 { "uuid", null }
             },
@@ -726,6 +727,7 @@ public abstract class IntegrationTestBase
                 { "string", "test" },
                 { "timeSpan", "PT5M" },
                 { "unknown", "test" },
+                { "uri", "https://example.com" },
                 { "url", "https://example.com" },
                 { "uuid", "00000000-0000-0000-0000-000000000000" }
             },

@@ -220,6 +220,7 @@ In addition to the scalars defined by the specification, Hot Chocolate also supp
 | `UnsignedInt`   | Unsigned 32‐bit numeric non‐fractional value greater than or equal to 0                                   |
 | `UnsignedLong`  | Unsigned 64‐bit numeric non‐fractional value greater than or equal to 0                                   |
 | `UnsignedShort` | Unsigned 16‐bit numeric non‐fractional value greater than or equal to 0 and smaller or equal to 65535.    |
+| `Uri`           | Uri                                                                                                       |
 | `Url`           | Url                                                                                                       |
 | `Uuid`          | GUID                                                                                                      |
 

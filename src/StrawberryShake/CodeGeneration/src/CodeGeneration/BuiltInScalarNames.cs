@@ -8,7 +8,6 @@ public static class BuiltInScalarNames
     [
         "Guid",
         "Uri",
-        "URI",
         "Url",
         "Uuid",
         ScalarNames.Any,
@@ -33,6 +32,7 @@ public static class BuiltInScalarNames
         ScalarNames.UnsignedInt,
         ScalarNames.UnsignedLong,
         ScalarNames.UnsignedShort,
+        ScalarNames.URI,
         ScalarNames.URL,
         ScalarNames.UUID
     ];

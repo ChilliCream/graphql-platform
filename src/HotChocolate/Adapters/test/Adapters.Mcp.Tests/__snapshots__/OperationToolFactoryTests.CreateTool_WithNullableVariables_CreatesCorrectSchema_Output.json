@@ -202,6 +202,12 @@
                 "null"
               ]
             },
+            "uri": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "url": {
               "type": [
                 "string",
@@ -238,6 +244,7 @@
             "string",
             "timeSpan",
             "unknown",
+            "uri",
             "url",
             "uuid"
           ],

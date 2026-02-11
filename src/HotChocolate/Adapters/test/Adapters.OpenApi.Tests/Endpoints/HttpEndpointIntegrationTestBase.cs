@@ -331,6 +331,7 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
                 "string": "test",
                 "timeSpan": "PT5M",
                 "unknown": "test",
+                "uri": "https://example.com/",
                 "url": "https://example.com/",
                 "uuid": "00000000-0000-0000-0000-000000000000"
             }

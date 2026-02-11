@@ -364,6 +364,10 @@ public sealed class TypeInfos
             new RuntimeTypeInfo(TypeNames.DecimalSerializer)
         },
         {
+            TypeNames.UriSerializer,
+            new RuntimeTypeInfo(TypeNames.UriSerializer)
+        },
+        {
             TypeNames.UrlSerializer,
             new RuntimeTypeInfo(TypeNames.UrlSerializer)
         },

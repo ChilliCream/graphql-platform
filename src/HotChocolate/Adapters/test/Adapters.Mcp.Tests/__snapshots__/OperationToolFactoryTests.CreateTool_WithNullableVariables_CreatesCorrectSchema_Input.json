@@ -205,6 +205,13 @@
       ],
       "description": "Unknown description"
     },
+    "uri": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "URI description"
+    },
     "url": {
       "type": [
         "string",

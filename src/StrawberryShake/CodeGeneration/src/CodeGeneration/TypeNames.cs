@@ -269,6 +269,9 @@ public static class TypeNames
     public const string DecimalSerializer =
         StrawberryShakeNamespace + "Serialization.DecimalSerializer";
 
+    public const string UriSerializer =
+        StrawberryShakeNamespace + "Serialization.UriSerializer";
+
     public const string UrlSerializer =
         StrawberryShakeNamespace + "Serialization.UrlSerializer";
 

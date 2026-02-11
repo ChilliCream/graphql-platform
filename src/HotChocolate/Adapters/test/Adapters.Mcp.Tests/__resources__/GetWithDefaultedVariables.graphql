@@ -42,6 +42,8 @@ query GetWithDefaultedVariables(
   $timeSpan: TimeSpan! = "PT5M"
   "Unknown description"
   $unknown: Unknown! = "default"
+  "URI description"
+  $uri: URI! = "https://example.com"
   "URL description"
   $url: URL! = "https://example.com"
   "UUID description"
@@ -69,6 +71,7 @@ query GetWithDefaultedVariables(
     string: $string
     timeSpan: $timeSpan
     unknown: $unknown
+    uri: $uri
     url: $url
     uuid: $uuid
   ) {
@@ -99,6 +102,7 @@ query GetWithDefaultedVariables(
     string
     timeSpan
     unknown
+    uri
     url
     uuid
   }
