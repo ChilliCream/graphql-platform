@@ -61,7 +61,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"data":{"product":{"name":"Abc","description":null}},"pending":[{"id":2,"path":["product"]}],"hasNext":true}
+                {"data":{"product":{"name":"Abc"}},"pending":[{"id":2,"path":["product"]}],"hasNext":true}
                 ---
                 Content-Type: application/json; charset=utf-8
 
@@ -111,7 +111,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             .MatchInline(
                 """
                 event: next
-                data: {"data":{"product":{"name":"Abc","description":null}},"pending":[{"id":2,"path":["product"]}],"hasNext":true}
+                data: {"data":{"product":{"name":"Abc"}},"pending":[{"id":2,"path":["product"]}],"hasNext":true}
 
                 event: next
                 data: {"incremental":[{"id":2,"data":{"description":"Abc desc"}}],"completed":[{"id":2}],"hasNext":false}
@@ -173,7 +173,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"data":{"product":{"name":"Abc","description":null}},"pending":[{"id":2,"path":["product"],"label":"productDescription"}],"hasNext":true}
+                {"data":{"product":{"name":"Abc"}},"pending":[{"id":2,"path":["product"],"label":"productDescription"}],"hasNext":true}
                 ---
                 Content-Type: application/json; charset=utf-8
 

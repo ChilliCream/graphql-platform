@@ -42,7 +42,7 @@ internal static class ThrowHelper
             .SetCode(ErrorCodes.Server.MaxRequestSize)
             .Build());
 
-    public static GraphQLException HttpMultipartMiddleware_Invalid_Form(
+    public static GraphQLRequestException HttpMultipartMiddleware_Invalid_Form(
         Exception ex) =>
          new GraphQLRequestException(
              ErrorBuilder.New()
@@ -52,63 +52,63 @@ internal static class ThrowHelper
                 .SetExtension("underlyingError", ex.Message)
                 .Build());
 
-    public static GraphQLException HttpMultipartMiddleware_No_Operations_Specified() =>
+    public static GraphQLRequestException HttpMultipartMiddleware_No_Operations_Specified() =>
         new GraphQLRequestException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_HttpMultipartMiddleware_No_Operations_Specified)
                 .SetCode(ErrorCodes.Server.MultiPartNoOperationsSpecified)
                 .Build());
 
-    public static GraphQLException HttpMultipartMiddleware_Fields_Misordered() =>
+    public static GraphQLRequestException HttpMultipartMiddleware_Fields_Misordered() =>
         new GraphQLRequestException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_HttpMultipartMiddleware_Fields_Misordered)
                 .SetCode(ErrorCodes.Server.MultiPartFieldsMisordered)
                 .Build());
 
-    public static GraphQLException HttpMultipartMiddleware_NoObjectPath(string filename) =>
+    public static GraphQLRequestException HttpMultipartMiddleware_NoObjectPath(string filename) =>
         new GraphQLRequestException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_HttpMultipartMiddleware_NoObjectPath, filename)
                 .SetCode(ErrorCodes.Server.MultiPartNoObjectPath)
                 .Build());
 
-    public static GraphQLException HttpMultipartMiddleware_FileMissing(string filename) =>
+    public static GraphQLRequestException HttpMultipartMiddleware_FileMissing(string filename) =>
         new GraphQLRequestException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_HttpMultipartMiddleware_FileMissing, filename)
                 .SetCode(ErrorCodes.Server.MultiPartFileMissing)
                 .Build());
 
-    public static GraphQLException HttpMultipartMiddleware_VariableStructureInvalid() =>
+    public static GraphQLRequestException HttpMultipartMiddleware_VariableStructureInvalid() =>
         new GraphQLRequestException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_HttpMultipartMiddleware_VariableStructureInvalid)
                 .SetCode(ErrorCodes.Server.MultiPartVariableStructureInvalid)
                 .Build());
 
-    public static GraphQLException HttpMultipartMiddleware_InvalidPath(string path) =>
+    public static GraphQLRequestException HttpMultipartMiddleware_InvalidPath(string path) =>
         new GraphQLRequestException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_HttpMultipartMiddleware_InvalidPath, path)
                 .SetCode(ErrorCodes.Server.MultiPartInvalidPath)
                 .Build());
 
-    public static GraphQLException HttpMultipartMiddleware_PathMustStartWithVariable() =>
+    public static GraphQLRequestException HttpMultipartMiddleware_PathMustStartWithVariable() =>
         new GraphQLRequestException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_HttpMultipartMiddleware_PathMustStartWithVariable)
                 .SetCode(ErrorCodes.Server.MultiPartPathMustStartWithVariable)
                 .Build());
 
-    public static GraphQLException HttpMultipartMiddleware_InvalidMapJson() =>
+    public static GraphQLRequestException HttpMultipartMiddleware_InvalidMapJson() =>
         new GraphQLRequestException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_HttpMultipartMiddleware_InvalidMapJson)
                 .SetCode(ErrorCodes.Server.MultiPartInvalidMapJson)
                 .Build());
 
-    public static GraphQLException HttpMultipartMiddleware_MapNotSpecified() =>
+    public static GraphQLRequestException HttpMultipartMiddleware_MapNotSpecified() =>
         new GraphQLRequestException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_HttpMultipartMiddleware_MapNotSpecified)

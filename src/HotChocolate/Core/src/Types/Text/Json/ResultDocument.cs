@@ -627,8 +627,14 @@ public sealed partial class ResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal void MarkAsDeferred(ResultElement target)
     {
-        var cursor = target.Cursor;
-        _metaDb.SetFlags(cursor, _metaDb.GetFlags(cursor) | ElementFlags.IsDeferred);
+        // Selection metadata and write filters are tracked on the property row.
+        var propertyCursor = target.Cursor.AddRows(-1);
+        var elementTokenType = _metaDb.GetElementTokenType(propertyCursor, resolveReferences: false);
+
+        CheckExpectedType(ElementTokenType.PropertyName, elementTokenType);
+
+        var flags = _metaDb.GetFlags(propertyCursor);
+        _metaDb.SetFlags(propertyCursor, flags | ElementFlags.IsDeferred);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

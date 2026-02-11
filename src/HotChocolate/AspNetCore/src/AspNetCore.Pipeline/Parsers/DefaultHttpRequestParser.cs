@@ -352,9 +352,9 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             s_utf8.GetBytes(sourceText, span);
             return Parse(span, _parserOptions, _documentCache, _documentHashProvider);
         }
-        catch (OperationIdFormatException)
+        catch (InvalidGraphQLRequestException ex)
         {
-            throw ErrorHelper.InvalidOperationIdFormat();
+            throw ErrorHelper.InvalidRequest(ex);
         }
         finally
         {
