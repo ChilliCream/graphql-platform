@@ -86,8 +86,8 @@ internal sealed class QueryExecutor
         int length)
     {
         Debug.Assert(length > 0);
-        Debug.Assert(length > operationContexts.Length);
-        Debug.Assert(length > results.Length);
+        Debug.Assert(length <= operationContexts.Length);
+        Debug.Assert(length <= results.Length);
 
         if (operationContexts[0].OperationContext.Operation.HasIncrementalParts)
         {
