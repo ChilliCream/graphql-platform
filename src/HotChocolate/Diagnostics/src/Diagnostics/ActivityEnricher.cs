@@ -238,9 +238,7 @@ public class ActivityEnricher
         GraphQLRequest request,
         ISyntaxNode variables,
         Activity activity)
-    {
-        activity.SetTag("graphql.http.request.variables", variables.Print());
-    }
+        => activity.SetTag("graphql.http.request.variables", variables.Print(indented: false));
 
     protected virtual void EnrichBatchVariables(
         HttpContext context,
@@ -248,9 +246,7 @@ public class ActivityEnricher
         ISyntaxNode variables,
         int index,
         Activity activity)
-    {
-        activity.SetTag($"graphql.http.request[{index}].variables", variables.Print());
-    }
+        => activity.SetTag($"graphql.http.request[{index}].variables", variables.Print(indented: false));
 
     protected virtual void EnrichRequestExtensions(
         HttpContext context,
