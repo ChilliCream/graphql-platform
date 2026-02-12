@@ -174,7 +174,7 @@ Notice how our code uses `int` for the `Id`, but in a request / response it woul
 
 # GraphQL Community Scalars
 
-The website <https://www.graphql-scalars.com/> hosts specifications for GraphQL scalars defined by the community. The community scalars use the `@specifiedBy` directive to point to the spec that is implemented.
+The website <https://scalars.graphql.org/> hosts specifications for GraphQL scalars defined by the community. The community scalars use the `@specifiedBy` directive to point to the spec that is implemented.
 
 ```sdl
 scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
@@ -187,7 +187,7 @@ A custom GraphQL scalar which represents an exact point in time. This point in t
 The DateTime scalar is based RFC3339.
 
 ```sdl
-scalar DateTime @specifiedBy(url: "https://www.graphql-scalars.com/date-time/")
+scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/andimarek/date-time")
 ```
 
 <Video videoId="gO3bNKBmXZM" />
