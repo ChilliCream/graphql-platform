@@ -330,13 +330,15 @@ public class VariableCoercionHelperTests
             .ToList()
             .MatchInlineSnapshot(
                 """
-                [
+                "errors": [
                   {
-                    "Message": "Cannot accept null for non-nullable input.",
-                    "Code": null,
-                    "Path": null,
-                    "Locations": null,
-                    "Extensions": null
+                    "message": "Cannot accept null for non-nullable input.",
+                    "extensions": {
+                      "code": "HC0018",
+                      "inputPath": [
+                        "abc"
+                      ]
+                    }
                   }
                 ]
                 """);
@@ -374,15 +376,12 @@ public class VariableCoercionHelperTests
             .ToList()
             .MatchInlineSnapshot(
                 """
-                [
+                "errors": [
                   {
-                    "Message": "The value `1` is not compatible with the type `String`.",
-                    "Code": null,
-                    "Path": null,
-                    "Locations": null,
-                    "Extensions": {
-                      "variable": "abc"
-                    }
+                    "message": "String cannot coerce the given value JSON element of type `Number` to a runtime value.",
+                    "path": [
+                      "abc"
+                    ]
                   }
                 ]
                 """);
@@ -416,13 +415,14 @@ public class VariableCoercionHelperTests
         // assert
         Assert.Throws<GraphQLException>(Action).Errors.MatchInlineSnapshot(
             """
-            [
+            "errors": [
               {
-                "Message": "Variable `abc` has an invalid type `Human`.",
-                "Code": null,
-                "Path": null,
-                "Locations": null,
-                "Extensions": null
+                "message": "Variable `abc` is not an input type.",
+                "extensions": {
+                  "code": "HC0017",
+                  "variable": "abc",
+                  "type": "Human"
+                }
               }
             ]
             """);
@@ -459,16 +459,15 @@ public class VariableCoercionHelperTests
             .ToList()
             .MatchInlineSnapshot(
                 """
-                [
+                "errors": [
                   {
-                    "Message": "`stars` is a required field of `ReviewInput`.",
-                    "Code": null,
-                    "Path": null,
-                    "Locations": null,
-                    "Extensions": {
-                      "field": "stars",
-                      "type": "ReviewInput",
-                      "variable": "abc"
+                    "message": "The required input field `stars` is missing.",
+                    "extensions": {
+                      "inputPath": [
+                        "abc",
+                        "stars"
+                      ],
+                      "field": "ReviewInput.stars"
                     }
                   }
                 ]

@@ -27,4 +27,7 @@ public static class SnapshotValueFormatters
 
     public static ISnapshotValueFormatter ResultElement { get; } =
         new ResultElementSnapshotValueFormatter();
+
+    public static ISnapshotValueFormatter ErrorList { get; } =
+        new ErrorListSnapshotValueFormatter();
 }
