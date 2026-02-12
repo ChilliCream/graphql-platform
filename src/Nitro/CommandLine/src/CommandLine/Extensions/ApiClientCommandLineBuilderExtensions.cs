@@ -45,6 +45,13 @@ internal static class ApiClientCommandLineBuilderExtensions
                 {
                     if (Uri.TryCreate(cloudUrl, Absolute, out var uri))
                     {
+                        var uriBuilder = new UriBuilder(uri)
+                        {
+                            Path = "/graphql"
+                        };
+
+                        uri = uriBuilder.Uri;
+
                         client.BaseAddress = uri;
                     }
                     else if (Uri.TryCreate($"https://{cloudUrl}/graphql", Absolute, out uri))
