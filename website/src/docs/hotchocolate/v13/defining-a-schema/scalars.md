@@ -187,7 +187,7 @@ A custom GraphQL scalar which represents an exact point in time. This point in t
 The DateTime scalar is based RFC3339.
 
 ```sdl
-scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/andimarek/date-time")
+scalar DateTime @specifiedBy(url: "https://www.graphql-scalars.com/date-time/")
 ```
 
 <Video videoId="gO3bNKBmXZM" />
