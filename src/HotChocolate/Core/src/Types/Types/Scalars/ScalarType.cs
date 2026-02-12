@@ -239,8 +239,18 @@ public abstract partial class ScalarType
         }
 
         var utf8MemoryBuilder = context.Features.Get<Utf8MemoryBuilder>();
-        var jsonValueParser = new JsonValueParser(ref utf8MemoryBuilder);
-        return jsonValueParser.Parse(inputValue);
+        var builderExists = utf8MemoryBuilder is not null;
+
+        var jsonValueParser = new JsonValueParser(doNotSeal: true);
+        jsonValueParser._memory = utf8MemoryBuilder;
+        var literal = jsonValueParser.Parse(inputValue);
+
+        if (!builderExists)
+        {
+            context.Features.Set(utf8MemoryBuilder);
+        }
+
+        return literal;
     }
 
     /// <summary>

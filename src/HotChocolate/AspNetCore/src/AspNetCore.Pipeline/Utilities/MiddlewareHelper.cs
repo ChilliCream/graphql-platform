@@ -132,6 +132,16 @@ internal static class MiddlewareHelper
                         context.RequestAborted);
                 context.Response.RegisterForDispose(request);
             }
+            catch (InvalidGraphQLRequestException ex)
+            {
+                // A GraphQL request exception is thrown if the HTTP request body couldn't be
+                // parsed. In this case, we will return HTTP status code 400 and return a
+                // GraphQL error result.
+                IError error = new Error { Message = ex.Message };
+                error = executorSession.Handle(error);
+                executorSession.DiagnosticEvents.ParserErrors(context, [error]);
+                return new ParseRequestResult([error], HttpStatusCode.BadRequest);
+            }
             catch (GraphQLRequestException ex)
             {
                 // A GraphQL request exception is thrown if the HTTP request body couldn't be
