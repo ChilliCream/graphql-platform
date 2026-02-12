@@ -76,7 +76,10 @@ public partial class TypeConverterTests
             .AddGraphQLServer()
             .AddQueryType<SomeQuery>()
             .AddDirectiveType<BoomDirectiveType>()
-            .AddTypeConverter<string, BrokenType>(x => x == "ok" ? new BrokenType(1) : throw new CustomIdSerializationException("Boom"))
+            .AddTypeConverter<string, BrokenType>(
+                x => x == "ok"
+                    ? new BrokenType(1)
+                    : throw new CustomIdSerializationException("Boom"))
             .BindRuntimeType<BrokenType, StringType>()
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
             .AddErrorFilter(x =>
@@ -116,9 +119,13 @@ public partial class TypeConverterTests
         Exception? caughtException = null;
         var executor = await new ServiceCollection()
             .AddGraphQLServer()
+            .AddQueryType()
             .AddMutationType<SomeQuery>()
             .AddDirectiveType<BoomDirectiveType>()
-            .AddTypeConverter<string, BrokenType>(x => x == "ok" ? new BrokenType(1) : throw new CustomIdSerializationException("Boom"))
+            .AddTypeConverter<string, BrokenType>(
+                x => x == "ok"
+                    ? new BrokenType(1)
+                    : throw new CustomIdSerializationException("Boom"))
             .BindRuntimeType<BrokenType, StringType>()
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
             .ModifyOptions(x => x.StrictValidation = false)
@@ -161,6 +168,7 @@ public partial class TypeConverterTests
         Exception? caughtException = null;
         var executor = await new ServiceCollection()
             .AddGraphQLServer()
+            .AddQueryType()
             .AddMutationType<SomeQuery>()
             .AddMutationConventions()
             .AddDirectiveType<BoomDirectiveType>()
@@ -174,6 +182,8 @@ public partial class TypeConverterTests
                 return x;
             })
             .BuildRequestExecutorAsync();
+
+        var s = executor.Schema.ToString();
 
         // act
         var requestBuilder = OperationRequestBuilder
@@ -280,11 +290,10 @@ public partial class TypeConverterTests
         public string? FieldWithListOfScalarsInput(List<BrokenType> arg) => null;
         public string? FieldWithObjectWithListOfScalarsInput(ObjectWithListOfIds arg) => null;
         public string? FieldWithNestedObjectInput(NestedObject arg) => null;
-        // ReSharper disable once MemberHidesStaticFromOuterClass
         public string? FieldWithListOfObjectsInput(ListOfObjectsInput arg) => null;
         public string? FieldWithNonNullScalarInput([GraphQLNonNullType] BrokenType arg) => null;
         public string? Echo(string arg) => null;
-        public NestedObject? NestedObjectOutput => null;
+        public NestedObject? NestedObjectOutput => new NestedObject(new ObjectWithId(new BrokenType(1)));
     }
 
     public class SomeQueryConventionFriendlyQueryType
@@ -307,7 +316,7 @@ public partial class TypeConverterTests
         [Error<CustomIdSerializationException>]
         public ObjectWithId? Echo(string arg) => null;
         [Error<CustomIdSerializationException>]
-        public NestedObject? NestedObjectOutput => null;
+        public NestedObject? NestedObjectOutput => new NestedObject(new ObjectWithId(new BrokenType(1)));
     }
 
     public class CustomIdSerializationException(string message) : Exception(message)
