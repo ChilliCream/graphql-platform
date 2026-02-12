@@ -30,9 +30,9 @@ internal static class SettingsExtensions
                 },
                 Preprocessor = new CompositionSettings.PreprocessorSettings
                 {
-                    ExcludeByTag  =
-                      compositionSettings.Preprocessor.ExcludeByTag
-                      ?? settings.Preprocessor.ExcludeByTag
+                    ExcludeByTag =
+                        compositionSettings.Preprocessor.ExcludeByTag
+                        ?? settings.Preprocessor.ExcludeByTag
                 },
                 Satisfiability = new CompositionSettings.SatisfiabilitySettings
                 {

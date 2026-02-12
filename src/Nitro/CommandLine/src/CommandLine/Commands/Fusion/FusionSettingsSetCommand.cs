@@ -148,7 +148,7 @@ internal sealed class FusionSettingsSetCommand : Command
         public const string CacheControlMergeBehavior = "cache-control-merge-behavior";
         public const string ExcludeByTag = "exclude-by-tag";
         public const string GlobalObjectIdentification = "global-object-identification";
-        public const string TagMergeBehavior =  "tag-merge-behavior";
+        public const string TagMergeBehavior = "tag-merge-behavior";
 
         public static readonly string[] All =
         [
@@ -163,7 +163,7 @@ internal sealed class FusionSettingsSetCommand : Command
     {
         public const string Ignore = "ignore";
         public const string Include = "include";
-        public const string IncludePrivate =  "include-private";
+        public const string IncludePrivate = "include-private";
 
         public static readonly string[] All =
         [
