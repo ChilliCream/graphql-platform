@@ -5,7 +5,6 @@ using HotChocolate.StarWars;
 using HotChocolate.StarWars.Models;
 using HotChocolate.StarWars.Types;
 using HotChocolate.Types;
-using Moq;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -26,12 +25,12 @@ public class VariableCoercionHelperTests
         };
 
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         void Action() => helper.CoerceVariableValues(
-            null!, variableDefinitions, default, coercedValues, featureProvider.Object);
+            null!, variableDefinitions, default, coercedValues, featureProvider);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -43,12 +42,12 @@ public class VariableCoercionHelperTests
         // arrange
         var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         void Action()
-            => helper.CoerceVariableValues(schema, null!, default, coercedValues, featureProvider.Object);
+            => helper.CoerceVariableValues(schema, null!, default, coercedValues, featureProvider);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -71,12 +70,12 @@ public class VariableCoercionHelperTests
                 Array.Empty<DirectiveNode>())
         };
 
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         void Action() => helper.CoerceVariableValues(
-            schema, variableDefinitions, default, null!, featureProvider.Object);
+            schema, variableDefinitions, default, null!, featureProvider);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -100,12 +99,12 @@ public class VariableCoercionHelperTests
         };
 
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, default, coercedValues, featureProvider.Object);
+            schema, variableDefinitions, default, coercedValues, featureProvider);
 
         // assert
         Assert.Collection(coercedValues,
@@ -136,12 +135,12 @@ public class VariableCoercionHelperTests
         };
 
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, default, coercedValues, featureProvider.Object);
+            schema, variableDefinitions, default, coercedValues, featureProvider);
 
         // assert
         Assert.Empty(coercedValues);
@@ -166,12 +165,12 @@ public class VariableCoercionHelperTests
 
         var variableValues = JsonDocument.Parse("""{"abc": "xyz"}""");
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
 
         // assert
         Assert.Collection(coercedValues,
@@ -203,12 +202,12 @@ public class VariableCoercionHelperTests
 
         var variableValues = JsonDocument.Parse("""{"abc": "xyz"}""");
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
 
         // assert
         Assert.Collection(coercedValues,
@@ -240,12 +239,12 @@ public class VariableCoercionHelperTests
 
         var variableValues = JsonDocument.Parse("""{"abc": null}""");
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
 
         // assert
         Assert.Collection(coercedValues,
@@ -277,12 +276,16 @@ public class VariableCoercionHelperTests
 
         var variableValues = JsonDocument.Parse("""{"abc": {"stars": 5}}""");
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
+            schema,
+            variableDefinitions,
+            variableValues.RootElement,
+            coercedValues,
+            featureProvider);
 
         // assert
         Assert.Collection(coercedValues,
@@ -314,12 +317,12 @@ public class VariableCoercionHelperTests
 
         var variableValues = JsonDocument.Parse("""{"abc": null}""");
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         void Action() => helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
 
         // assert
         Assert.Throws<LeafCoercionException>(Action)
@@ -358,12 +361,12 @@ public class VariableCoercionHelperTests
 
         var variableValues = JsonDocument.Parse("""{"abc": 1}""");
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         void Action() => helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
 
         // assert
         Assert.Throws<LeafCoercionException>(Action)
@@ -403,12 +406,12 @@ public class VariableCoercionHelperTests
 
         var variableValues = JsonDocument.Parse("""{"abc": 1}""");
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         void Action() => helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
 
         // assert
         Assert.Throws<GraphQLException>(Action).Errors.MatchInlineSnapshot(
@@ -443,12 +446,12 @@ public class VariableCoercionHelperTests
 
         var variableValues = JsonDocument.Parse("""{"abc": {"abc": "def"}}""");
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         void Action() => helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
 
         // assert
         Assert.Throws<LeafCoercionException>(Action)
@@ -515,12 +518,12 @@ public class VariableCoercionHelperTests
             """);
 
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
 
         // assert
         var entry = Assert.Single(coercedValues);
@@ -581,12 +584,12 @@ public class VariableCoercionHelperTests
             """);
 
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
 
         // assert
         var entry = Assert.Single(coercedValues);
@@ -645,12 +648,12 @@ public class VariableCoercionHelperTests
             """);
 
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
 
         // assert
         var entry = Assert.Single(coercedValues);
@@ -705,12 +708,12 @@ public class VariableCoercionHelperTests
             """);
 
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
 
         // assert
         var entry = Assert.Single(coercedValues);
@@ -765,12 +768,12 @@ public class VariableCoercionHelperTests
             """);
 
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
         var helper = new VariableCoercionHelper(new());
 
         // act
         helper.CoerceVariableValues(
-            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider.Object);
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
 
         // assert
         var entry = Assert.Single(coercedValues);
@@ -832,7 +835,7 @@ public class VariableCoercionHelperTests
             """);
 
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
 
         var helper = new VariableCoercionHelper(new());
 
@@ -842,7 +845,7 @@ public class VariableCoercionHelperTests
             variableDefinitions,
             variableValues.RootElement,
             coercedValues,
-            featureProvider.Object);
+            featureProvider);
 
         // assert
         var entry = Assert.Single(coercedValues);
@@ -877,7 +880,7 @@ public class VariableCoercionHelperTests
         };
 
         var coercedValues = new Dictionary<string, VariableValue>();
-        var featureProvider = new Mock<IFeatureProvider>();
+        var featureProvider = new MockFeatureProvider();
 
         var helper = new VariableCoercionHelper(new());
 
@@ -887,9 +890,14 @@ public class VariableCoercionHelperTests
             variableDefinitions,
             default,
             coercedValues,
-            featureProvider.Object);
+            featureProvider);
 
         // assert
         Assert.Empty(coercedValues);
+    }
+
+    private class MockFeatureProvider : IFeatureProvider
+    {
+        public IFeatureCollection Features { get; } = new FeatureCollection();
     }
 }

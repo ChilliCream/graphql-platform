@@ -25,11 +25,17 @@ public static class SyntaxWriterExtensions
     {
         if (items.Count > 0)
         {
+            var hasNewLine = separator.IndexOf('\n') >= 0 || separator.IndexOf('\r') >= 0;
+
             action(items[0], writer);
 
             for (var i = 1; i < items.Count; i++)
             {
                 writer.Write(separator);
+                if (hasNewLine)
+                {
+                    writer.WriteIndent();
+                }
                 action(items[i], writer);
             }
         }
@@ -56,6 +62,14 @@ public static class SyntaxWriterExtensions
     public static void WriteValue(
         this ISyntaxWriter writer,
         IValueNode? node)
+    {
+        WriteValue(writer, node, indented: false);
+    }
+
+    public static void WriteValue(
+        this ISyntaxWriter writer,
+        IValueNode? node,
+        bool indented)
     {
         if (node is null)
         {
@@ -103,11 +117,11 @@ public static class SyntaxWriterExtensions
                 break;
 
             case SyntaxKind.ListValue:
-                WriteListValue(writer, (ListValueNode)node);
+                WriteListValue(writer, (ListValueNode)node, indented);
                 break;
 
             case SyntaxKind.ObjectValue:
-                WriteObjectValue(writer, (ObjectValueNode)node);
+                WriteObjectValue(writer, (ObjectValueNode)node, indented);
                 break;
 
             case SyntaxKind.Variable:
@@ -247,21 +261,70 @@ public static class SyntaxWriterExtensions
 
     public static void WriteListValue(this ISyntaxWriter writer, ListValueNode node)
     {
-        writer.Write("[ ");
-        writer.WriteMany(node.Items, (n, w) => w.WriteValue(n));
-        writer.Write(" ]");
+        WriteListValue(writer, node, indented: false);
+    }
+
+    public static void WriteListValue(this ISyntaxWriter writer, ListValueNode node, bool indented)
+    {
+        writer.Write('[');
+
+        if (indented && node.Items.Count > 0)
+        {
+            writer.WriteLine();
+            writer.Indent();
+            writer.WriteIndent();
+            writer.WriteMany(node.Items, (n, w) => w.WriteValue(n, indented), "," + Environment.NewLine);
+            writer.WriteLine();
+            writer.Unindent();
+            writer.WriteIndent();
+        }
+        else
+        {
+            writer.WriteSpace();
+            writer.WriteMany(node.Items, (n, w) => w.WriteValue(n, indented));
+            writer.WriteSpace();
+        }
+
+        writer.Write(']');
     }
 
     public static void WriteObjectValue(this ISyntaxWriter writer, ObjectValueNode node)
     {
-        writer.Write("{ ");
-        writer.WriteMany(node.Fields, (n, w) => w.WriteObjectField(n));
-        writer.Write(" }");
+        WriteObjectValue(writer, node, indented: false);
+    }
+
+    public static void WriteObjectValue(this ISyntaxWriter writer, ObjectValueNode node, bool indented)
+    {
+        writer.Write('{');
+
+        if (indented && node.Fields.Count > 0)
+        {
+            writer.WriteLine();
+            writer.Indent();
+            writer.WriteIndent();
+            writer.WriteMany(node.Fields, (n, w) => w.WriteObjectField(n, indented), "," + Environment.NewLine);
+            writer.WriteLine();
+            writer.Unindent();
+            writer.WriteIndent();
+        }
+        else
+        {
+            writer.WriteSpace();
+            writer.WriteMany(node.Fields, (n, w) => w.WriteObjectField(n, indented));
+            writer.WriteSpace();
+        }
+
+        writer.Write('}');
     }
 
     public static void WriteObjectField(this ISyntaxWriter writer, ObjectFieldNode node)
     {
-        writer.WriteField(node.Name, node.Value);
+        WriteObjectField(writer, node, indented: false);
+    }
+
+    public static void WriteObjectField(this ISyntaxWriter writer, ObjectFieldNode node, bool indented)
+    {
+        writer.WriteField(node.Name, node.Value, indented);
     }
 
     public static void WriteVariable(this ISyntaxWriter writer, VariableNode node)
@@ -272,9 +335,14 @@ public static class SyntaxWriterExtensions
 
     public static void WriteField(this ISyntaxWriter writer, NameNode name, IValueNode value)
     {
+        WriteField(writer, name, value, indented: false);
+    }
+
+    public static void WriteField(this ISyntaxWriter writer, NameNode name, IValueNode value, bool indented)
+    {
         writer.Write(name.Value);
         writer.Write(": ");
-        writer.WriteValue(value);
+        writer.WriteValue(value, indented);
     }
 
     public static void WriteArgument(this ISyntaxWriter writer, ArgumentNode node)
