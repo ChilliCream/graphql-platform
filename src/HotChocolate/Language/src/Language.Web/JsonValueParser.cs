@@ -12,7 +12,12 @@ public ref struct JsonValueParser
 {
     private const int DefaultMaxAllowedDepth = 64;
     private readonly int _maxAllowedDepth;
+#if NET8_0_OR_GREATER
+    private readonly bool _doNotSeal;
+    internal ref Utf8MemoryBuilder? _memory;
+#else
     internal Utf8MemoryBuilder? _memory;
+#endif
     private readonly PooledArrayWriter? _externalBuffer;
 
     public JsonValueParser()
@@ -36,6 +41,15 @@ public ref struct JsonValueParser
         _maxAllowedDepth = DefaultMaxAllowedDepth;
         _externalBuffer = buffer;
     }
+
+#if NET8_0_OR_GREATER
+    internal JsonValueParser(ref Utf8MemoryBuilder? memoryBuilder)
+    {
+        _maxAllowedDepth = DefaultMaxAllowedDepth;
+        _memory = ref memoryBuilder;
+        _doNotSeal = true;
+    }
+#endif
 
     public IValueNode Parse(JsonElement element)
     {
@@ -213,8 +227,15 @@ public ref struct JsonValueParser
         }
         finally
         {
-            _memory?.Seal();
-            _memory = null;
+#if NET8_0_OR_GREATER
+            if (!_doNotSeal)
+            {
+#endif
+                _memory?.Seal();
+                _memory = null;
+#if NET8_0_OR_GREATER
+            }
+#endif
         }
     }
 

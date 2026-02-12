@@ -1,4 +1,5 @@
 using System.Buffers;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.AspNetCore.Formatters;
 
@@ -14,9 +15,9 @@ public interface IWebSocketPayloadFormatter
     /// The GraphQL operation result.
     /// </param>
     /// <param name="writer">
-    /// The buffer writer that is used to write the payload.
+    /// The JSON writer that is used to write the payload.
     /// </param>
-    void Format(OperationResult result, IBufferWriter<byte> writer);
+    void Format(OperationResult result, JsonWriter writer);
 
     /// <summary>
     /// Formats the <paramref name="error"/> into a WebSocket payload.
@@ -25,9 +26,9 @@ public interface IWebSocketPayloadFormatter
     /// The GraphQL execution error.
     /// </param>
     /// <param name="writer">
-    /// The buffer writer that is used to write the error.
+    /// The JSON writer that is used to write the error.
     /// </param>
-    void Format(IError error, IBufferWriter<byte> writer);
+    void Format(IError error, JsonWriter writer);
 
     /// <summary>
     /// Formats the <paramref name="errors"/> into a WebSocket payload.
@@ -36,9 +37,9 @@ public interface IWebSocketPayloadFormatter
     /// The GraphQL execution errors.
     /// </param>
     /// <param name="writer">
-    /// The buffer writer that is used to write the errors.
+    /// The JSON writer that is used to write the errors.
     /// </param>
-    void Format(IReadOnlyList<IError> errors, IBufferWriter<byte> writer);
+    void Format(IReadOnlyList<IError> errors, JsonWriter writer);
 
     /// <summary>
     /// Formats the <paramref name="extensions"/> into a WebSocket payload.
@@ -47,7 +48,7 @@ public interface IWebSocketPayloadFormatter
     /// The GraphQL extensions.
     /// </param>
     /// <param name="writer">
-    /// The buffer writer that is used to write the extensions.
+    /// The JSON writer that is used to write the extensions.
     /// </param>
-    void Format(IReadOnlyDictionary<string, object?> extensions, IBufferWriter<byte> writer);
+    void Format(IReadOnlyDictionary<string, object?> extensions, JsonWriter writer);
 }

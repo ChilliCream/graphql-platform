@@ -98,7 +98,9 @@ internal sealed class Utf8MemoryBuilder : IWritableMemory
             throw new InvalidOperationException("Memory is sealed.");
         }
 
-        var finalArray = _buffer.AsSpan().Slice(0, _written).ToArray();
+        var finalArray = _written > 0
+            ? _buffer.AsSpan().Slice(0, _written).ToArray()
+            : [];
         ArrayPool<byte>.Shared.Return(_buffer);
         _buffer = finalArray;
     }

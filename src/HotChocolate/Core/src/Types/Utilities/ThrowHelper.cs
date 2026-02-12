@@ -672,6 +672,20 @@ internal static class ThrowHelper
             scalarType);
     }
 
+    public static LeafCoercionException Scalar_Cannot_ConvertInputValueToLiteral(
+        ITypeDefinition scalarType,
+        JsonElement inputValue)
+    {
+        return new LeafCoercionException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.Scalar_Cannot_ConvertValueToLiteral,
+                    scalarType.Name,
+                    inputValue.ValueKind)
+                .Build(),
+            scalarType);
+    }
+
     public static LeafCoercionException Scalar_Cannot_CoerceOutputValue(
         ITypeDefinition scalarType,
         object runtimeValue)

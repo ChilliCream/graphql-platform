@@ -33,7 +33,7 @@ internal static class MessageUtilities
         if (payload is not null)
         {
             jsonWriter.WritePropertyName("payload"u8);
-            formatter.Format(payload, pooledArrayWriter);
+            formatter.Format(payload, jsonWriter);
         }
 
         jsonWriter.WriteEndObject();

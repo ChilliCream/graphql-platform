@@ -5,6 +5,7 @@ using HotChocolate.Properties;
 using HotChocolate.Text.Json;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
+using static HotChocolate.Utilities.ThrowHelper;
 using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types;
@@ -182,7 +183,7 @@ public abstract partial class ScalarType
         }
 
         if ((SerializationType & ScalarSerializationType.Boolean) == ScalarSerializationType.Boolean
-            && inputValue.ValueKind == JsonValueKind.True)
+            && (inputValue.ValueKind == JsonValueKind.True || inputValue.ValueKind == JsonValueKind.False))
         {
             return true;
         }
@@ -213,6 +214,52 @@ public abstract partial class ScalarType
 
     /// <inheritdoc />
     public abstract IValueNode ValueToLiteral(object runtimeValue);
+
+    /// <summary>
+    /// Converts a JSON input value into a GraphQL literal (AST value node).
+    /// </summary>
+    /// <param name="inputValue">
+    /// The JSON input value to convert.
+    /// </param>
+    /// <param name="context">
+    /// Provides access to the coercion context, including features like memory builders
+    /// for efficient JSON parsing.
+    /// </param>
+    /// <returns>
+    /// Returns a GraphQL literal representation (AST value node) of the input value.
+    /// </returns>
+    /// <exception cref="LeafCoercionException">
+    /// Unable to convert the given <paramref name="inputValue"/> into a literal.
+    /// </exception>
+    public virtual IValueNode InputValueToLiteral(JsonElement inputValue, IFeatureProvider context)
+    {
+        if (!IsValueCompatible(inputValue))
+        {
+            throw CreateInputValueToLiteralError(inputValue, context);
+        }
+
+        var utf8MemoryBuilder = context.Features.Get<Utf8MemoryBuilder>();
+        var jsonValueParser = new JsonValueParser(ref utf8MemoryBuilder);
+        return jsonValueParser.Parse(inputValue);
+    }
+
+    /// <summary>
+    /// Creates the exception to throw when <see cref="InputValueToLiteral"/>
+    /// encounters an incompatible input value.
+    /// </summary>
+    /// <param name="inputValue">
+    /// The incompatible input value.
+    /// </param>
+    /// <param name="context">
+    /// The coercion context.
+    /// </param>
+    /// <returns>
+    /// A <see cref="LeafCoercionException"/> describing the coercion failure.
+    /// </returns>
+    protected virtual LeafCoercionException CreateInputValueToLiteralError(
+        JsonElement inputValue,
+        IFeatureProvider context)
+        => Scalar_Cannot_ConvertValueToLiteral(this, inputValue);
 
     /// <summary>
     /// Returns a string that represents the current <see cref="ScalarType"/>.

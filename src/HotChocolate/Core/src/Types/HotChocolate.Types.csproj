@@ -45,7 +45,6 @@
     <InternalsVisibleTo Include="HotChocolate.Types.Queries" />
     <InternalsVisibleTo Include="HotChocolate.Types.Sorting.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.Types.Tests" />
     <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
   </ItemGroup>
 
