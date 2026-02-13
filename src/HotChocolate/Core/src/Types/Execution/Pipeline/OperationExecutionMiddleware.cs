@@ -261,18 +261,36 @@ internal sealed class OperationExecutionMiddleware
     }
 
     private object? GetQueryRootValue(RequestContext context)
-        => RootValueResolver.Resolve(
+    {
+        var queryType = context.Schema.QueryType;
+
+        if (queryType is null)
+        {
+            return null;
+        }
+
+        return RootValueResolver.Resolve(
             context,
             context.RequestServices,
-            Unsafe.As<ObjectType>(context.Schema.QueryType),
+            Unsafe.As<ObjectType>(queryType),
             ref _cachedQuery);
+    }
 
     private object? GetMutationRootValue(RequestContext context)
-        => RootValueResolver.Resolve(
+    {
+        var mutationType = context.Schema.MutationType;
+
+        if (mutationType is null)
+        {
+            return null;
+        }
+
+        return RootValueResolver.Resolve(
             context,
             context.RequestServices,
-            Unsafe.As<ObjectType>(context.Schema.MutationType)!,
+            Unsafe.As<IObjectTypeDefinition, ObjectType>(ref mutationType),
             ref _cachedMutation);
+    }
 
     private static bool IsOperationAllowed(Operation operation, IOperationRequest request)
     {

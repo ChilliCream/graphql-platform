@@ -1,22 +1,11 @@
-[
+"errors": [
   {
-    "Message": "More than one field of the OneOf Input Object `OneOfInput` is set. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.",
-    "Code": "HC0055",
-    "Path": null,
-    "Locations": null,
-    "Extensions": {
+    "message": "More than one field of the OneOf Input Object `OneOfInput` is set. OneOf Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.",
+    "extensions": {
       "code": "HC0055",
-      "inputPath": {
-        "Name": "root",
-        "Parent": {
-          "Parent": null,
-          "Length": 0,
-          "IsRoot": true
-        },
-        "Length": 1,
-        "IsRoot": false
-      }
-    },
-    "Exception": null
+      "inputPath": [
+        "root"
+      ]
+    }
   }
 ]
