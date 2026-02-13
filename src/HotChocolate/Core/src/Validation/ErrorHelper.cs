@@ -183,7 +183,7 @@ internal static class ErrorHelper
                 .AddLocation(value)
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("argument", node.Name.Value)
-                .SetExtension("argumentValue", value.ToString())
+                .SetExtension("argumentValue", value.ToString(indented: false))
                 .SetExtension("locationType", locationType.FullTypeName())
                 .SpecifiedBy("sec-Values-of-Correct-Type")
                 .Build();
