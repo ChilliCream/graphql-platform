@@ -63,8 +63,11 @@ public ref struct JsonValueParser
         }
         finally
         {
-            _memory?.Seal();
-            _memory = null;
+            if (!_doNotSeal)
+            {
+                _memory?.Seal();
+                _memory = null;
+            }
         }
     }
 
@@ -220,15 +223,11 @@ public ref struct JsonValueParser
         }
         finally
         {
-#if NET8_0_OR_GREATER
             if (!_doNotSeal)
             {
-#endif
                 _memory?.Seal();
                 _memory = null;
-#if NET8_0_OR_GREATER
             }
-#endif
         }
     }
 

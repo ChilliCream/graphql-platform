@@ -45,9 +45,7 @@ internal sealed class Utf8MemoryBuilder : IWritableMemory
     }
 
     public ReadOnlyMemorySegment GetMemorySegment(int start, int length)
-    {
-        return new ReadOnlyMemorySegment(this, start, length);
-    }
+        => new(this, start, length);
 
     public Memory<byte> GetMemory(int sizeHint = 0)
     {

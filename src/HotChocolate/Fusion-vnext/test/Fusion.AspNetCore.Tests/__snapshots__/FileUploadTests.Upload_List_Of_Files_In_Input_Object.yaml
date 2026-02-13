@@ -69,8 +69,26 @@ sourceSchemas:
         files: [Upload!]!
       }
 
+      "Defines the possible serialization types for GraphQL scalar values."
+      enum ScalarSerializationType {
+        "The scalar serializes to a string value."
+        STRING
+        "The scalar serializes to a boolean value."
+        BOOLEAN
+        "The scalar serializes to an integer value."
+        INT
+        "The scalar serializes to a floating-point value."
+        FLOAT
+        "The scalar serializes to an object value."
+        OBJECT
+        "The scalar serializes to a list value."
+        LIST
+      }
+
+      directive @serializeAs("The primitive type a scalar is serialized to." type: [ScalarSerializationType!]! "The ECMA-262 regex pattern that the serialized scalar value conforms to." pattern: String) on SCALAR
+
       "The `Upload` scalar type represents a file upload."
-      scalar Upload
+      scalar Upload @serializeAs(type: STRING)
     interactions:
       - request:
           contentType: multipart/form-data; boundary="f56524ab-5626-4955-b296-234a097b44f6"

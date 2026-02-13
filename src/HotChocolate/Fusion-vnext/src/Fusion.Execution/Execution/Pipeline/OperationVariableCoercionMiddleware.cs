@@ -59,6 +59,7 @@ internal sealed class OperationVariableCoercionMiddleware
             using (diagnosticEvents.CoerceVariables(context))
             {
                 if (VariableCoercionHelper.TryCoerceVariableValues(
+                    context,
                     context.Schema,
                     variableDefinitions,
                     operationRequest.VariableValues?.Document.RootElement ?? default,
@@ -85,6 +86,7 @@ internal sealed class OperationVariableCoercionMiddleware
                 foreach (var variableValuesInput in variableValuesSetInput.EnumerateArray())
                 {
                     if (VariableCoercionHelper.TryCoerceVariableValues(
+                        context,
                         context.Schema,
                         variableDefinitions,
                         variableValuesInput,

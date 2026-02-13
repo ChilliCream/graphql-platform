@@ -92,14 +92,16 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     return new GraphQLHttpRequest(CreateOperationBatchRequest(operationSourceText, originalRequest))
                     {
                         Uri = _configuration.BaseAddress,
-                        Accept = _configuration.BatchingAcceptHeaderValues
+                        Accept = _configuration.BatchingAcceptHeaderValues,
+                        EnableFileUploads = originalRequest.RequiresFileUpload
                     };
                 }
 
                 return new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, originalRequest))
                 {
                     Uri = _configuration.BaseAddress,
-                    Accept = _configuration.BatchingAcceptHeaderValues
+                    Accept = _configuration.BatchingAcceptHeaderValues,
+                    EnableFileUploads = originalRequest.RequiresFileUpload
                 };
         }
     }

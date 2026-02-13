@@ -32,6 +32,7 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
         Name = name;
         Description = description;
         IsInaccessible = isInaccessible;
+        IsUpload = name.Equals("Upload");
 
         // these properties are initialized
         // in the type complete step.
@@ -64,6 +65,11 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
     /// Gets a value indicating whether this scalar type is marked as inaccessible.
     /// </summary>
     public bool IsInaccessible { get; }
+
+    /// <summary>
+    /// Specifies if this scalar is the file upload scalar.
+    /// </summary>
+    public bool IsUpload { get; }
 
     /// <summary>
     /// Gets the directives applied to this scalar type.
