@@ -374,7 +374,6 @@ public sealed partial class ResultDocument : IDisposable
                 writer.WriteRawValue(ReadRawValue(row), skipInputValidation: true);
                 return;
 
-            // TODO : We need to handle any types.
             default:
                 throw new NotSupportedException();
         }
@@ -449,19 +448,34 @@ public sealed partial class ResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ReadOnlySpan<byte> ReadLocalData(int location, int size)
     {
-        var chunkIndex = location / JsonMemory.BufferSize;
-        var offset = location % JsonMemory.BufferSize;
+        var startChunkIndex = location / JsonMemory.BufferSize;
+        var offsetInStartChunk = location % JsonMemory.BufferSize;
 
         // Fast path: data fits in a single chunk
-        if (offset + size <= JsonMemory.BufferSize)
+        if (offsetInStartChunk + size <= JsonMemory.BufferSize)
         {
-            return _data[chunkIndex].AsSpan(offset, size);
+            return _data[startChunkIndex].AsSpan(offsetInStartChunk, size);
         }
 
-        // Data spans chunk boundaries - this should be rare for typical JSON values
-        throw new NotSupportedException(
-            "Reading data that spans chunk boundaries as a span is not supported. "
-            + "Use WriteLocalDataTo for writing to an IBufferWriter instead.");
+        Span<byte> buffer = new byte[size];
+        var bytesRead = 0;
+        var currentLocation = location;
+
+        while (bytesRead < size)
+        {
+            var chunkIndex = currentLocation / JsonMemory.BufferSize;
+            var offsetInChunk = currentLocation % JsonMemory.BufferSize;
+            var chunk = _data[chunkIndex];
+
+            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, JsonMemory.BufferSize - offsetInChunk);
+            var chunkSpan = chunk.AsSpan(offsetInChunk, bytesToCopyFromThisChunk);
+
+            chunkSpan.CopyTo(buffer[bytesRead..]);
+            bytesRead += bytesToCopyFromThisChunk;
+            currentLocation += bytesToCopyFromThisChunk;
+        }
+
+        return buffer;
     }
 
     internal ResultElement CreateObject(Cursor parent, SelectionSet selectionSet)
