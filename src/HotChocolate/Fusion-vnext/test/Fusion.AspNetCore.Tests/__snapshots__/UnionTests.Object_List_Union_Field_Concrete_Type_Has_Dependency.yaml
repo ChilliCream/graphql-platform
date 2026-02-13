@@ -20,7 +20,7 @@ response:
         "postEdges": [
           {
             "node": {
-              "subgraph2": "Photo: UGhvdG86Ng=="
+              "subgraph2": "Photo: UGhvdG86NA=="
             }
           },
           {
@@ -30,7 +30,7 @@ response:
           },
           {
             "node": {
-              "subgraph2": "Photo: UGhvdG86NA=="
+              "subgraph2": "Photo: UGhvdG86Ng=="
             }
           }
         ]
@@ -86,7 +86,7 @@ sourceSchemas:
                     {
                       "node": {
                         "__typename": "Photo",
-                        "id": "UGhvdG86Ng=="
+                        "id": "UGhvdG86NA=="
                       }
                     },
                     {
@@ -98,7 +98,7 @@ sourceSchemas:
                     {
                       "node": {
                         "__typename": "Photo",
-                        "id": "UGhvdG86NA=="
+                        "id": "UGhvdG86Ng=="
                       }
                     }
                   ]
@@ -131,13 +131,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UGhvdG86Ng=="
+                "__fusion_1_id": "UGhvdG86NA=="
               },
               {
                 "__fusion_1_id": "UGhvdG86NQ=="
               },
               {
-                "__fusion_1_id": "UGhvdG86NA=="
+                "__fusion_1_id": "UGhvdG86Ng=="
               }
             ]
         response:
@@ -147,7 +147,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86Ng=="
+                    "subgraph2": "Photo: UGhvdG86NA=="
                   }
                 }
               }
@@ -163,7 +163,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86NA=="
+                    "subgraph2": "Photo: UGhvdG86Ng=="
                   }
                 }
               }

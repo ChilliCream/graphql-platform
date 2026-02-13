@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Fetching;
@@ -25,6 +26,16 @@ internal sealed partial class DeferExecutionCoordinator
     private volatile bool _isComplete;
     private int _pendingBranches;
 
+#pragma warning disable IDE0052 // Remove unread private members
+    private static int s_nextId;
+    private readonly int _id;
+#pragma warning restore IDE0052 // Remove unread private members
+
+    public DeferExecutionCoordinator()
+    {
+        _id = Interlocked.Increment(ref s_nextId);
+    }
+
     /// <summary>
     /// Gets whether any deferred execution branches have been registered.
     /// </summary>
@@ -37,6 +48,8 @@ internal sealed partial class DeferExecutionCoordinator
     /// </summary>
     public int Branch(int currentBranchId, Path path, DeferUsage deferUsage)
     {
+        Debug.Assert(_isInitialized);
+
         var key = new DeferredBranchKey(path, deferUsage, currentBranchId);
 
         lock (_sync)
@@ -61,6 +74,8 @@ internal sealed partial class DeferExecutionCoordinator
     /// </summary>
     public void EnqueueResult(OperationResult result)
     {
+        Debug.Assert(_isInitialized);
+
         lock (_sync)
         {
             ComposeAndDeliverUnsafe(_mainBranchId, result);
@@ -74,6 +89,8 @@ internal sealed partial class DeferExecutionCoordinator
     /// </summary>
     public void EnqueueResult(OperationResult result, int branchId)
     {
+        Debug.Assert(_isInitialized);
+
         lock (_sync)
         {
             _completed[branchId] = result;
@@ -93,6 +110,8 @@ internal sealed partial class DeferExecutionCoordinator
     public async IAsyncEnumerable<OperationResult> ReadResultsAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        Debug.Assert(_isInitialized);
+
         List<OperationResult>? snapshot = null;
         await using var registration = cancellationToken.Register(_signal.Set);
 

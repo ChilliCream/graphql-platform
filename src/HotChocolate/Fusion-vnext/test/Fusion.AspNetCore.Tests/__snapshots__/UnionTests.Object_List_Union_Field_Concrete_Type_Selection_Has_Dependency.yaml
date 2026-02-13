@@ -25,7 +25,7 @@ response:
           {
             "node": {
               "product": {
-                "subgraph2": "Product: UHJvZHVjdDo3"
+                "subgraph2": "Product: UHJvZHVjdDo5"
               }
             }
           },
@@ -39,7 +39,7 @@ response:
           {
             "node": {
               "product": {
-                "subgraph2": "Product: UHJvZHVjdDo5"
+                "subgraph2": "Product: UHJvZHVjdDo3"
               }
             }
           }
@@ -110,7 +110,7 @@ sourceSchemas:
                       "node": {
                         "__typename": "Photo",
                         "product": {
-                          "id": "UHJvZHVjdDo3"
+                          "id": "UHJvZHVjdDo5"
                         }
                       }
                     },
@@ -126,7 +126,7 @@ sourceSchemas:
                       "node": {
                         "__typename": "Photo",
                         "product": {
-                          "id": "UHJvZHVjdDo5"
+                          "id": "UHJvZHVjdDo3"
                         }
                       }
                     }
@@ -160,13 +160,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "UHJvZHVjdDo3"
+                "__fusion_2_id": "UHJvZHVjdDo5"
               },
               {
                 "__fusion_2_id": "UHJvZHVjdDo4"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDo5"
+                "__fusion_2_id": "UHJvZHVjdDo3"
               }
             ]
         response:
@@ -176,7 +176,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo3"
+                    "subgraph2": "Product: UHJvZHVjdDo5"
                   }
                 }
               }
@@ -192,7 +192,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo5"
+                    "subgraph2": "Product: UHJvZHVjdDo3"
                   }
                 }
               }

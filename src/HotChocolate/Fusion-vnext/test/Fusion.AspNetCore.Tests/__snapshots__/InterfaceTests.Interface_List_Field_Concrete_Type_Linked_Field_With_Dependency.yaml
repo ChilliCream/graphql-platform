@@ -19,7 +19,7 @@ response:
           {
             "viewerCanVote": true,
             "author": {
-              "displayName": "Author: QXV0aG9yOjU="
+              "displayName": "Author: QXV0aG9yOjQ="
             }
           },
           {
@@ -28,7 +28,7 @@ response:
           {
             "viewerCanVote": true,
             "author": {
-              "displayName": "Author: QXV0aG9yOjQ="
+              "displayName": "Author: QXV0aG9yOjU="
             }
           }
         ]
@@ -87,7 +87,7 @@ sourceSchemas:
                       "__typename": "Discussion",
                       "viewerCanVote": true,
                       "author": {
-                        "id": "QXV0aG9yOjU="
+                        "id": "QXV0aG9yOjQ="
                       }
                     },
                     {
@@ -98,7 +98,7 @@ sourceSchemas:
                       "__typename": "Discussion",
                       "viewerCanVote": true,
                       "author": {
-                        "id": "QXV0aG9yOjQ="
+                        "id": "QXV0aG9yOjU="
                       }
                     }
                   ]
@@ -131,10 +131,10 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "QXV0aG9yOjU="
+                "__fusion_1_id": "QXV0aG9yOjQ="
               },
               {
-                "__fusion_1_id": "QXV0aG9yOjQ="
+                "__fusion_1_id": "QXV0aG9yOjU="
               }
             ]
         response:
@@ -144,7 +144,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjU="
+                    "displayName": "Author: QXV0aG9yOjQ="
                   }
                 }
               }
@@ -152,7 +152,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjQ="
+                    "displayName": "Author: QXV0aG9yOjU="
                   }
                 }
               }

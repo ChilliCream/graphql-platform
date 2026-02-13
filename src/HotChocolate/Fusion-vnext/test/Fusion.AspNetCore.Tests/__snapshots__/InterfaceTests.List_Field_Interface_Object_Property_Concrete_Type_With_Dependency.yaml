@@ -90,7 +90,7 @@ sourceSchemas:
                       "votable": {
                         "__typename": "Discussion",
                         "viewerCanVote": true,
-                        "id": "RGlzY3Vzc2lvbjo2"
+                        "id": "RGlzY3Vzc2lvbjo0"
                       }
                     },
                     {
@@ -104,7 +104,7 @@ sourceSchemas:
                       "votable": {
                         "__typename": "Discussion",
                         "viewerCanVote": true,
-                        "id": "RGlzY3Vzc2lvbjo0"
+                        "id": "RGlzY3Vzc2lvbjo2"
                       }
                     }
                   ]
@@ -137,13 +137,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "RGlzY3Vzc2lvbjo2"
+                "__fusion_1_id": "RGlzY3Vzc2lvbjo0"
               },
               {
                 "__fusion_1_id": "RGlzY3Vzc2lvbjo1"
               },
               {
-                "__fusion_1_id": "RGlzY3Vzc2lvbjo0"
+                "__fusion_1_id": "RGlzY3Vzc2lvbjo2"
               }
             ]
         response:

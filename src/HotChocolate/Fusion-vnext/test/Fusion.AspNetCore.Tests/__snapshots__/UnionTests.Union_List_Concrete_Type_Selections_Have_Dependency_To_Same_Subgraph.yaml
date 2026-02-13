@@ -22,7 +22,7 @@ response:
         "posts": [
           {
             "product": {
-              "subgraph2": "Product: UHJvZHVjdDo2"
+              "subgraph2": "Product: UHJvZHVjdDo0"
             }
           },
           {
@@ -32,7 +32,7 @@ response:
           },
           {
             "product": {
-              "subgraph2": "Product: UHJvZHVjdDo0"
+              "subgraph2": "Product: UHJvZHVjdDo2"
             }
           }
         ]
@@ -95,7 +95,7 @@ sourceSchemas:
                     {
                       "__typename": "Photo",
                       "product": {
-                        "id": "UHJvZHVjdDo2"
+                        "id": "UHJvZHVjdDo0"
                       }
                     },
                     {
@@ -107,7 +107,7 @@ sourceSchemas:
                     {
                       "__typename": "Photo",
                       "product": {
-                        "id": "UHJvZHVjdDo0"
+                        "id": "UHJvZHVjdDo2"
                       }
                     }
                   ]
@@ -169,10 +169,10 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "UHJvZHVjdDo2"
+                "__fusion_2_id": "UHJvZHVjdDo0"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDo0"
+                "__fusion_2_id": "UHJvZHVjdDo2"
               }
             ]
         response:
@@ -182,7 +182,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo2"
+                    "subgraph2": "Product: UHJvZHVjdDo0"
                   }
                 }
               }
@@ -190,7 +190,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo0"
+                    "subgraph2": "Product: UHJvZHVjdDo2"
                   }
                 }
               }

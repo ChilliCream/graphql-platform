@@ -1,15 +1,28 @@
+using System.Diagnostics;
+
 namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class DeferExecutionCoordinator
 {
+#if DEBUG
+    private bool _isInitialized;
+#endif
+
     /// <summary>
     /// Initializes the coordinator for a new execution cycle.
     /// Must be called before any other operations when leased from a pool.
     /// </summary>
     public void Initialize(BranchTracker branchTracker, int mainBranchId)
     {
+        Debug.Assert(branchTracker is not null);
+        Debug.Assert(mainBranchId > 0);
+
         _branchTracker = branchTracker;
         _mainBranchId = mainBranchId;
+
+#if DEBUG
+        _isInitialized = true;
+#endif
     }
 
     /// <summary>
@@ -32,6 +45,10 @@ internal sealed partial class DeferExecutionCoordinator
         _isComplete = false;
         _mainBranchId = 0;
         _pendingBranches = 0;
+
+#if DEBUG
+        _isInitialized = false;
+#endif
 
         if (_results.Capacity > 64)
         {

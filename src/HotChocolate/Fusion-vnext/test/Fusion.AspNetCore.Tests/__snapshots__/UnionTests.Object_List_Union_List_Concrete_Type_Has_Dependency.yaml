@@ -21,13 +21,13 @@ response:
           {
             "posts": [
               {
-                "subgraph2": "Photo: UGhvdG86MTA="
+                "subgraph2": "Photo: UGhvdG86NA=="
               },
               {
-                "subgraph1": "Discussion: RGlzY3Vzc2lvbjoxMQ=="
+                "subgraph1": "Discussion: RGlzY3Vzc2lvbjo1"
               },
               {
-                "subgraph2": "Photo: UGhvdG86MTI="
+                "subgraph2": "Photo: UGhvdG86Ng=="
               }
             ]
           },
@@ -47,13 +47,13 @@ response:
           {
             "posts": [
               {
-                "subgraph2": "Photo: UGhvdG86NA=="
+                "subgraph2": "Photo: UGhvdG86MTA="
               },
               {
-                "subgraph1": "Discussion: RGlzY3Vzc2lvbjo1"
+                "subgraph1": "Discussion: RGlzY3Vzc2lvbjoxMQ=="
               },
               {
-                "subgraph2": "Photo: UGhvdG86Ng=="
+                "subgraph2": "Photo: UGhvdG86MTI="
               }
             ]
           }
@@ -111,15 +111,15 @@ sourceSchemas:
                       "posts": [
                         {
                           "__typename": "Photo",
-                          "id": "UGhvdG86MTA="
+                          "id": "UGhvdG86NA=="
                         },
                         {
                           "__typename": "Discussion",
-                          "subgraph1": "Discussion: RGlzY3Vzc2lvbjoxMQ=="
+                          "subgraph1": "Discussion: RGlzY3Vzc2lvbjo1"
                         },
                         {
                           "__typename": "Photo",
-                          "id": "UGhvdG86MTI="
+                          "id": "UGhvdG86Ng=="
                         }
                       ]
                     },
@@ -143,15 +143,15 @@ sourceSchemas:
                       "posts": [
                         {
                           "__typename": "Photo",
-                          "id": "UGhvdG86NA=="
+                          "id": "UGhvdG86MTA="
                         },
                         {
                           "__typename": "Discussion",
-                          "subgraph1": "Discussion: RGlzY3Vzc2lvbjo1"
+                          "subgraph1": "Discussion: RGlzY3Vzc2lvbjoxMQ=="
                         },
                         {
                           "__typename": "Photo",
-                          "id": "UGhvdG86Ng=="
+                          "id": "UGhvdG86MTI="
                         }
                       ]
                     }
@@ -185,10 +185,10 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UGhvdG86MTA="
+                "__fusion_1_id": "UGhvdG86NA=="
               },
               {
-                "__fusion_1_id": "UGhvdG86MTI="
+                "__fusion_1_id": "UGhvdG86Ng=="
               },
               {
                 "__fusion_1_id": "UGhvdG86Nw=="
@@ -197,10 +197,10 @@ sourceSchemas:
                 "__fusion_1_id": "UGhvdG86OQ=="
               },
               {
-                "__fusion_1_id": "UGhvdG86NA=="
+                "__fusion_1_id": "UGhvdG86MTA="
               },
               {
-                "__fusion_1_id": "UGhvdG86Ng=="
+                "__fusion_1_id": "UGhvdG86MTI="
               }
             ]
         response:
@@ -210,7 +210,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86MTA="
+                    "subgraph2": "Photo: UGhvdG86NA=="
                   }
                 }
               }
@@ -218,7 +218,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86MTI="
+                    "subgraph2": "Photo: UGhvdG86Ng=="
                   }
                 }
               }
@@ -242,7 +242,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86NA=="
+                    "subgraph2": "Photo: UGhvdG86MTA="
                   }
                 }
               }
@@ -250,7 +250,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86Ng=="
+                    "subgraph2": "Photo: UGhvdG86MTI="
                   }
                 }
               }

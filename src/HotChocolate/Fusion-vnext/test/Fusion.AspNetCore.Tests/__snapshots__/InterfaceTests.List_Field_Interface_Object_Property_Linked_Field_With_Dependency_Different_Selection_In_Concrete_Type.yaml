@@ -23,8 +23,8 @@ response:
           {
             "authorable": {
               "author": {
-                "displayName": "Author: QXV0aG9yOjc=",
-                "email": "Author: QXV0aG9yOjc="
+                "displayName": "Author: QXV0aG9yOjk=",
+                "email": "Author: QXV0aG9yOjk="
               }
             }
           },
@@ -39,8 +39,8 @@ response:
           {
             "authorable": {
               "author": {
-                "displayName": "Author: QXV0aG9yOjk=",
-                "email": "Author: QXV0aG9yOjk="
+                "displayName": "Author: QXV0aG9yOjc=",
+                "email": "Author: QXV0aG9yOjc="
               }
             }
           }
@@ -105,7 +105,7 @@ sourceSchemas:
                       "authorable": {
                         "__typename": "Discussion",
                         "author": {
-                          "id": "QXV0aG9yOjc="
+                          "id": "QXV0aG9yOjk="
                         }
                       }
                     },
@@ -121,7 +121,7 @@ sourceSchemas:
                       "authorable": {
                         "__typename": "Discussion",
                         "author": {
-                          "id": "QXV0aG9yOjk="
+                          "id": "QXV0aG9yOjc="
                         }
                       }
                     }
@@ -156,13 +156,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "QXV0aG9yOjc="
+                "__fusion_1_id": "QXV0aG9yOjk="
               },
               {
                 "__fusion_1_id": "QXV0aG9yOjg="
               },
               {
-                "__fusion_1_id": "QXV0aG9yOjk="
+                "__fusion_1_id": "QXV0aG9yOjc="
               }
             ]
         response:
@@ -172,7 +172,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "email": "Author: QXV0aG9yOjc="
+                    "email": "Author: QXV0aG9yOjk="
                   }
                 }
               }
@@ -188,7 +188,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "email": "Author: QXV0aG9yOjk="
+                    "email": "Author: QXV0aG9yOjc="
                   }
                 }
               }
@@ -204,13 +204,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "QXV0aG9yOjc="
+                "__fusion_2_id": "QXV0aG9yOjk="
               },
               {
                 "__fusion_2_id": "QXV0aG9yOjg="
               },
               {
-                "__fusion_2_id": "QXV0aG9yOjk="
+                "__fusion_2_id": "QXV0aG9yOjc="
               }
             ]
         response:
@@ -220,7 +220,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjc="
+                    "displayName": "Author: QXV0aG9yOjk="
                   }
                 }
               }
@@ -236,7 +236,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjk="
+                    "displayName": "Author: QXV0aG9yOjc="
                   }
                 }
               }

@@ -26,45 +26,7 @@ response:
             "posts": [
               {
                 "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxNQ=="
-                }
-              },
-              {
-                "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxNA=="
-                }
-              },
-              {
-                "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxMw=="
-                }
-              }
-            ]
-          },
-          {
-            "posts": [
-              {
-                "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxOA=="
-                }
-              },
-              {
-                "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxNw=="
-                }
-              },
-              {
-                "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxNg=="
-                }
-              }
-            ]
-          },
-          {
-            "posts": [
-              {
-                "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoyMQ=="
+                  "subgraph2": "Product: UHJvZHVjdDoxOQ=="
                 }
               },
               {
@@ -74,7 +36,45 @@ response:
               },
               {
                 "product": {
-                  "subgraph2": "Product: UHJvZHVjdDoxOQ=="
+                  "subgraph2": "Product: UHJvZHVjdDoyMQ=="
+                }
+              }
+            ]
+          },
+          {
+            "posts": [
+              {
+                "product": {
+                  "subgraph2": "Product: UHJvZHVjdDoxNg=="
+                }
+              },
+              {
+                "product": {
+                  "subgraph2": "Product: UHJvZHVjdDoxNw=="
+                }
+              },
+              {
+                "product": {
+                  "subgraph2": "Product: UHJvZHVjdDoxOA=="
+                }
+              }
+            ]
+          },
+          {
+            "posts": [
+              {
+                "product": {
+                  "subgraph2": "Product: UHJvZHVjdDoxMw=="
+                }
+              },
+              {
+                "product": {
+                  "subgraph2": "Product: UHJvZHVjdDoxNA=="
+                }
+              },
+              {
+                "product": {
+                  "subgraph2": "Product: UHJvZHVjdDoxNQ=="
                 }
               }
             ]
@@ -143,51 +143,7 @@ sourceSchemas:
                         {
                           "__typename": "Photo",
                           "product": {
-                            "id": "UHJvZHVjdDoxNQ=="
-                          }
-                        },
-                        {
-                          "__typename": "Discussion",
-                          "product": {
-                            "id": "UHJvZHVjdDoxNA=="
-                          }
-                        },
-                        {
-                          "__typename": "Photo",
-                          "product": {
-                            "id": "UHJvZHVjdDoxMw=="
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "posts": [
-                        {
-                          "__typename": "Photo",
-                          "product": {
-                            "id": "UHJvZHVjdDoxOA=="
-                          }
-                        },
-                        {
-                          "__typename": "Discussion",
-                          "product": {
-                            "id": "UHJvZHVjdDoxNw=="
-                          }
-                        },
-                        {
-                          "__typename": "Photo",
-                          "product": {
-                            "id": "UHJvZHVjdDoxNg=="
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "posts": [
-                        {
-                          "__typename": "Photo",
-                          "product": {
-                            "id": "UHJvZHVjdDoyMQ=="
+                            "id": "UHJvZHVjdDoxOQ=="
                           }
                         },
                         {
@@ -199,7 +155,51 @@ sourceSchemas:
                         {
                           "__typename": "Photo",
                           "product": {
-                            "id": "UHJvZHVjdDoxOQ=="
+                            "id": "UHJvZHVjdDoyMQ=="
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "posts": [
+                        {
+                          "__typename": "Photo",
+                          "product": {
+                            "id": "UHJvZHVjdDoxNg=="
+                          }
+                        },
+                        {
+                          "__typename": "Discussion",
+                          "product": {
+                            "id": "UHJvZHVjdDoxNw=="
+                          }
+                        },
+                        {
+                          "__typename": "Photo",
+                          "product": {
+                            "id": "UHJvZHVjdDoxOA=="
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "posts": [
+                        {
+                          "__typename": "Photo",
+                          "product": {
+                            "id": "UHJvZHVjdDoxMw=="
+                          }
+                        },
+                        {
+                          "__typename": "Discussion",
+                          "product": {
+                            "id": "UHJvZHVjdDoxNA=="
+                          }
+                        },
+                        {
+                          "__typename": "Photo",
+                          "product": {
+                            "id": "UHJvZHVjdDoxNQ=="
                           }
                         }
                       ]
@@ -234,13 +234,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UHJvZHVjdDoxNA=="
+                "__fusion_1_id": "UHJvZHVjdDoyMA=="
               },
               {
                 "__fusion_1_id": "UHJvZHVjdDoxNw=="
               },
               {
-                "__fusion_1_id": "UHJvZHVjdDoyMA=="
+                "__fusion_1_id": "UHJvZHVjdDoxNA=="
               }
             ]
         response:
@@ -250,7 +250,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxNA=="
+                    "subgraph2": "Product: UHJvZHVjdDoyMA=="
                   }
                 }
               }
@@ -266,7 +266,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoyMA=="
+                    "subgraph2": "Product: UHJvZHVjdDoxNA=="
                   }
                 }
               }
@@ -282,22 +282,22 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "UHJvZHVjdDoxNQ=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxMw=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxOA=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxNg=="
+                "__fusion_2_id": "UHJvZHVjdDoxOQ=="
               },
               {
                 "__fusion_2_id": "UHJvZHVjdDoyMQ=="
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDoxOQ=="
+                "__fusion_2_id": "UHJvZHVjdDoxNg=="
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoxOA=="
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoxMw=="
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoxNQ=="
               }
             ]
         response:
@@ -307,31 +307,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxNQ=="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxMw=="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxOA=="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxNg=="
+                    "subgraph2": "Product: UHJvZHVjdDoxOQ=="
                   }
                 }
               }
@@ -347,7 +323,31 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDoxOQ=="
+                    "subgraph2": "Product: UHJvZHVjdDoxNg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDoxOA=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDoxMw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "subgraph2": "Product: UHJvZHVjdDoxNQ=="
                   }
                 }
               }

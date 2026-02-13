@@ -22,7 +22,7 @@ response:
             "votable": {
               "viewerCanVote": true,
               "author": {
-                "displayName": "Author: QXV0aG9yOjc="
+                "displayName": "Author: QXV0aG9yOjk="
               }
             }
           },
@@ -38,7 +38,7 @@ response:
             "votable": {
               "viewerCanVote": true,
               "author": {
-                "displayName": "Author: QXV0aG9yOjk="
+                "displayName": "Author: QXV0aG9yOjc="
               }
             }
           }
@@ -105,7 +105,7 @@ sourceSchemas:
                         "__typename": "Discussion",
                         "viewerCanVote": true,
                         "author": {
-                          "id": "QXV0aG9yOjc="
+                          "id": "QXV0aG9yOjk="
                         }
                       }
                     },
@@ -123,7 +123,7 @@ sourceSchemas:
                         "__typename": "Discussion",
                         "viewerCanVote": true,
                         "author": {
-                          "id": "QXV0aG9yOjk="
+                          "id": "QXV0aG9yOjc="
                         }
                       }
                     }
@@ -157,13 +157,13 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "QXV0aG9yOjc="
+                "__fusion_1_id": "QXV0aG9yOjk="
               },
               {
                 "__fusion_1_id": "QXV0aG9yOjg="
               },
               {
-                "__fusion_1_id": "QXV0aG9yOjk="
+                "__fusion_1_id": "QXV0aG9yOjc="
               }
             ]
         response:
@@ -173,7 +173,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjc="
+                    "displayName": "Author: QXV0aG9yOjk="
                   }
                 }
               }
@@ -189,7 +189,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjk="
+                    "displayName": "Author: QXV0aG9yOjc="
                   }
                 }
               }

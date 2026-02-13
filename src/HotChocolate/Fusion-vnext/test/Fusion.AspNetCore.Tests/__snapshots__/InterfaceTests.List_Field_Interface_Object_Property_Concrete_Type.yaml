@@ -19,7 +19,7 @@ response:
           {
             "votable": {
               "viewerCanVote": true,
-              "title": "Discussion: RGlzY3Vzc2lvbjo2"
+              "title": "Discussion: RGlzY3Vzc2lvbjo0"
             }
           },
           {
@@ -31,7 +31,7 @@ response:
           {
             "votable": {
               "viewerCanVote": true,
-              "title": "Discussion: RGlzY3Vzc2lvbjo0"
+              "title": "Discussion: RGlzY3Vzc2lvbjo2"
             }
           }
         ]
@@ -90,7 +90,7 @@ sourceSchemas:
                       "votable": {
                         "__typename": "Discussion",
                         "viewerCanVote": true,
-                        "title": "Discussion: RGlzY3Vzc2lvbjo2"
+                        "title": "Discussion: RGlzY3Vzc2lvbjo0"
                       }
                     },
                     {
@@ -104,7 +104,7 @@ sourceSchemas:
                       "votable": {
                         "__typename": "Discussion",
                         "viewerCanVote": true,
-                        "title": "Discussion: RGlzY3Vzc2lvbjo0"
+                        "title": "Discussion: RGlzY3Vzc2lvbjo2"
                       }
                     }
                   ]

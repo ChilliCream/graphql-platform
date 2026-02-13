@@ -23,7 +23,7 @@ internal sealed partial class OperationContext
         get
         {
             AssertInitialized();
-            return _deferExecutionCoordinator;
+            return _currentDeferExecutionCoordinator;
         }
     }
 
