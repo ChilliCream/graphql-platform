@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
 
 namespace HotChocolate.Execution;
 
@@ -276,9 +277,8 @@ public class SchemaFirstTests
             ChangeChannelParameterInput input,
             CancellationToken _)
         {
-            var message = Assert.IsType<string>(
-                Assert.IsType<Dictionary<string, object>>(
-                    input.ParameterChangeInfo[0].Value)["a"]);
+            var value = Assert.IsType<JsonElement>(input.ParameterChangeInfo[0].Value);
+            var message = Assert.IsType<string>(value.GetProperty("a").GetString());
 
             return Task.FromResult(new ChangeChannelParameterPayload { Message = message });
         }
