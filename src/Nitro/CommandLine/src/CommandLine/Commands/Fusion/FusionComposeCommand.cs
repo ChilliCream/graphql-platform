@@ -16,10 +16,6 @@ internal sealed class FusionComposeCommand : Command
     {
         Description = ComposeCommand_Description;
 
-        var environmentOption = new Option<string?>("--environment");
-        environmentOption.AddAlias("--env");
-        environmentOption.AddAlias("-e");
-
         var enableGlobalIdsOption = new Option<bool?>("--enable-global-object-identification")
         {
             Description = ComposeCommand_EnableGlobalObjectIdentification_Description
@@ -38,7 +34,7 @@ internal sealed class FusionComposeCommand : Command
 
         AddOption(Opt<SourceSchemaFileListOption>.Instance);
         AddOption(archiveOption);
-        AddOption(environmentOption);
+        AddOption(Opt<FusionEnvironmentOption>.Instance);
         AddOption(enableGlobalIdsOption);
         AddOption(includeSatisfiabilityPathsOption);
         AddOption(watchModeOption);
@@ -50,7 +46,7 @@ internal sealed class FusionComposeCommand : Command
             var workingDirectory = context.ParseResult.GetValueForOption(Opt<WorkingDirectoryOption>.Instance)!;
             var sourceSchemaFiles = context.ParseResult.GetValueForOption(Opt<SourceSchemaFileListOption>.Instance)!;
             var archive = context.ParseResult.GetValueForOption(archiveOption)!;
-            var environment = context.ParseResult.GetValueForOption(environmentOption);
+            var environment = context.ParseResult.GetValueForOption(Opt<FusionEnvironmentOption>.Instance);
             var enableGlobalIds = context.ParseResult.GetValueForOption(enableGlobalIdsOption);
             var includeSatisfiabilityPaths = context.ParseResult.GetValueForOption(includeSatisfiabilityPathsOption);
             var watchMode = context.ParseResult.GetValueForOption(watchModeOption);
@@ -394,12 +390,13 @@ internal sealed class FusionComposeCommand : Command
             ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
             : FusionArchive.Create(archiveFile);
 
+        environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
         try
         {
             var sourceSchemas = await ReadSourceSchemasAsync(sourceSchemaFiles, cancellationToken);
 
             var compositionLog = new CompositionLog();
-            environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
             var result = await CompositionHelper.ComposeAsync(
                 compositionLog,

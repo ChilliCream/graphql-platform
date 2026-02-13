@@ -365,21 +365,21 @@ internal sealed class FusionPublishCommand : Command
                         async _ => await ClaimDeploymentSlotAsync());
 
                 // download
-                Stream? exitingArchiveStream = null;
+                Stream? existingArchiveStream = null;
                 await console
                     .Status()
                     .Spinner(Spinner.Known.BouncingBar)
                     .SpinnerStyle(Style.Parse("green bold"))
                     .StartAsync(
                         $"Downloading existing configuration from '{stageName}'...",
-                        async _ => exitingArchiveStream = await DownloadConfigurationAsync());
+                        async _ => existingArchiveStream = await DownloadConfigurationAsync());
 
                 // compose
                 await using Stream archiveStream = new MemoryStream();
 
                 var success = await FusionPublishHelpers.ComposeAsync(
                     archiveStream,
-                    exitingArchiveStream,
+                    existingArchiveStream,
                     stageName,
                     newSourceSchemas,
                     compositionSettings,
@@ -419,14 +419,14 @@ internal sealed class FusionPublishCommand : Command
 
                 // download
                 console.WriteLine($"Downloading existing configuration from '{stageName}'...");
-                var exitingArchiveStream = await DownloadConfigurationAsync();
+                var existingArchiveStream = await DownloadConfigurationAsync();
 
                 // compose
                 await using Stream archiveStream = new MemoryStream();
 
                 var success = await FusionPublishHelpers.ComposeAsync(
                     archiveStream,
-                    exitingArchiveStream,
+                    existingArchiveStream,
                     stageName,
                     newSourceSchemas,
                     compositionSettings,
