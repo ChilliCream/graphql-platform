@@ -1,9 +1,9 @@
 "GetWithNonNullableVariables description"
 query GetWithNonNullableVariables(
   "Any description" $any: Any!
+  "Base64String description" $base64String: Base64String!
   "Boolean description" $boolean: Boolean!
   "Byte description" $byte: Byte!
-  "ByteArray description" $byteArray: ByteArray!
   "Date description" $date: Date!
   "DateTime description" $dateTime: DateTime!
   "Decimal description" $decimal: Decimal!
@@ -21,14 +21,15 @@ query GetWithNonNullableVariables(
   "String description" $string: String!
   "TimeSpan description" $timeSpan: TimeSpan!
   "Unknown description" $unknown: Unknown!
+  "URI description" $uri: URI!
   "URL description" $url: URL!
   "UUID description" $uuid: UUID!
 ) {
   withNonNullableVariables(
     any: $any
+    base64String: $base64String
     boolean: $boolean
     byte: $byte
-    byteArray: $byteArray
     date: $date
     dateTime: $dateTime
     decimal: $decimal
@@ -46,13 +47,14 @@ query GetWithNonNullableVariables(
     string: $string
     timeSpan: $timeSpan
     unknown: $unknown
+    uri: $uri
     url: $url
     uuid: $uuid
   ) {
     any
+    base64String
     boolean
     byte
-    byteArray
     date
     dateTime
     decimal
@@ -76,6 +78,7 @@ query GetWithNonNullableVariables(
     string
     timeSpan
     unknown
+    uri
     url
     uuid
   }

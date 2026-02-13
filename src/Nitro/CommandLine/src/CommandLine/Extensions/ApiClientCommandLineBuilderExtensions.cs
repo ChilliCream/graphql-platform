@@ -43,18 +43,23 @@ internal static class ApiClientCommandLineBuilderExtensions
                 }
                 else if (!string.IsNullOrWhiteSpace(cloudUrl))
                 {
-                    if (Uri.TryCreate(cloudUrl, Absolute, out var uri))
-                    {
-                        client.BaseAddress = uri;
-                    }
-                    else if (Uri.TryCreate($"https://{cloudUrl}/graphql", Absolute, out uri))
-                    {
-                        client.BaseAddress = uri;
-                    }
-                    else
+                    if (!Uri.TryCreate(cloudUrl, Absolute, out var uri)
+                        && !Uri.TryCreate($"https://{cloudUrl}", Absolute, out uri))
                     {
                         throw new ExitException($"Could not parse cloud URL: {cloudUrl}");
                     }
+
+                    // Ensure that Uri is always <host>/graphql
+                    var uriBuilder = new UriBuilder(uri)
+                    {
+                        Path = "/graphql",
+                        Query = string.Empty,
+                        Fragment = string.Empty,
+                        UserName = string.Empty,
+                        Password = string.Empty
+                    };
+
+                    client.BaseAddress = uriBuilder.Uri;
                 }
                 else
                 {

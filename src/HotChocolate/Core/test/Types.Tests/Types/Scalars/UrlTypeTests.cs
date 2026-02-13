@@ -47,7 +47,7 @@ public class UrlTypeTests
     public void CoerceInputLiteral_RelativeUrl()
     {
         // arrange
-        var type = new UrlType();
+        var type = new UrlType(allowRelativeUris: true);
         var expected = new Uri("/relative/path", UriKind.Relative);
         var literal = new StringValueNode(expected.ToString());
 
@@ -56,6 +56,21 @@ public class UrlTypeTests
 
         // Assert
         Assert.Equal(expected, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputLiteral_Invalid_RelativeUrl()
+    {
+        // arrange
+        var type = new UrlType(allowRelativeUris: false);
+        var expected = new Uri("$/relative/path", UriKind.Relative);
+        var literal = new StringValueNode(expected.ToString());
+
+        // act
+        void Action() => type.CoerceInputLiteral(literal);
+
+        // Assert
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
@@ -91,7 +106,7 @@ public class UrlTypeTests
     public void CoerceInputValue_RelativeUrl()
     {
         // arrange
-        var type = new UrlType();
+        var type = new UrlType(allowRelativeUris: true);
         var expected = new Uri("/relative/path", UriKind.Relative);
         var inputValue = JsonDocument.Parse($"\"{expected}\"").RootElement;
 
@@ -100,6 +115,21 @@ public class UrlTypeTests
 
         // Assert
         Assert.Equal(expected, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputValue_Invalid_RelativeUrl()
+    {
+        // arrange
+        var type = new UrlType(allowRelativeUris: false);
+        var expected = new Uri("$/relative/path", UriKind.Relative);
+        var inputValue = JsonDocument.Parse($"\"{expected}\"").RootElement;
+
+        // act
+        void Action() => type.CoerceInputValue(inputValue, null!);
+
+        // Assert
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

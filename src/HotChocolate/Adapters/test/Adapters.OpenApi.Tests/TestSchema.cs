@@ -62,9 +62,9 @@ public sealed class TestSchema
         {
             return new ComplexObject(
                 input.Any,
+                input.Base64String,
                 input.Boolean,
                 input.Byte,
-                input.ByteArray,
                 input.Date,
                 input.DateTime,
                 input.Decimal,
@@ -83,6 +83,7 @@ public sealed class TestSchema
                 input.String,
                 input.TimeSpan,
                 input.Unknown,
+                input.Uri,
                 input.Url,
                 input.Uuid);
         }
@@ -178,9 +179,9 @@ public sealed class TestSchema
 
     public sealed record ComplexObject(
         [property: GraphQLType<AnyType>] object? Any,
+        [property: GraphQLType<Base64StringType>] byte[]? Base64String,
         bool? Boolean,
         sbyte? Byte,
-        [property: GraphQLType<ByteArrayType>] byte[]? ByteArray,
         [property: GraphQLType<DateType>] DateOnly? Date,
         DateTimeOffset? DateTime,
         decimal? Decimal,
@@ -199,14 +200,15 @@ public sealed class TestSchema
         string? String,
         TimeSpan? TimeSpan,
         [property: GraphQLType<UnknownType>] string? Unknown,
-        Uri? Url,
+        Uri? Uri,
+        [property: GraphQLType<UrlType>] Uri? Url,
         Guid? Uuid);
 
     public sealed record ComplexObjectInput(
         [property: GraphQLType<NonNullType<AnyType>>] object Any,
+        [property: GraphQLType<NonNullType<Base64StringType>>] byte[] Base64String,
         bool Boolean,
         sbyte Byte,
-        [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
         [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
         DateTimeOffset DateTime,
         decimal Decimal,
@@ -225,7 +227,8 @@ public sealed class TestSchema
         string String,
         TimeSpan TimeSpan,
         [property: GraphQLType<NonNullType<UnknownType>>] string Unknown,
-        Uri Url,
+        Uri Uri,
+        [property: GraphQLType<NonNullType<UrlType>>] Uri Url,
         Guid Uuid);
 
     [UnionType(name: "PetUnion")]

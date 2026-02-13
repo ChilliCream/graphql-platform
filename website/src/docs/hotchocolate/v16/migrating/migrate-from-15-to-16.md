@@ -315,9 +315,32 @@ TODO
 
 This is to align the GraphQL type names with the core types (`Int`, etc.), which are signed.
 
+## Byte arrays now mapped to `Base64String`
+
+C# byte arrays (`byte[]`) are now mapped to the GraphQL `Base64String` type by default, as the `ByteArray` type has been deprecated.
+
+## `Uri` now mapped to `URI` scalar instead of `URL`
+
+The CLR type `Uri` is now mapped to a new `URI` scalar, instead of the `URL` scalar.
+
+- The `URI` scalar should be used for absolute or relative URIs.
+- The `URL` scalar should be used for absolute URIs/URLs only.
+
+For backwards compatibility, you can set `allowRelativeUris` to `true`:
+
+```csharp
+AddGraphQL().AddType(new UrlType(allowRelativeUris: true))
+```
+
+Note that this option is likely to be removed in a later release, so it's recommended that you switch types as soon as possible.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
+
+## `ByteArray`
+
+The GraphQL `ByteArray` type has been deprecated. Use the `Base64String` type instead.
 
 # Noteworthy changes
 

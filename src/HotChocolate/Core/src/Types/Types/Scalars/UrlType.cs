@@ -8,12 +8,13 @@ namespace HotChocolate.Types;
 
 /// <summary>
 /// The URL scalar type represents a valid URL as defined by RFC 3986.
-/// This type accepts both absolute URIs and relative URIs that start with '/'.
 /// The scalar serializes as a string.
 /// </summary>
 public class UrlType : ScalarType<Uri, StringValueNode>
 {
     private const string SpecifiedByUri = "https://tools.ietf.org/html/rfc3986";
+    // TODO: This is for backwards compatibility. The UriType should be used for relative URIs.
+    private readonly bool _allowRelativeUris;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UrlType"/> class.
@@ -21,19 +22,28 @@ public class UrlType : ScalarType<Uri, StringValueNode>
     public UrlType(
         string name,
         string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
+        BindingBehavior bind = BindingBehavior.Explicit,
+        bool allowRelativeUris = false)
         : base(name, bind)
     {
         Description = description;
         SpecifiedBy = new Uri(SpecifiedByUri);
+        _allowRelativeUris = allowRelativeUris;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UrlType"/> class.
+    /// </summary>
+    public UrlType(bool allowRelativeUris = false) : this(ScalarNames.URL)
+    {
+        _allowRelativeUris = allowRelativeUris;
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UrlType"/> class.
     /// </summary>
     [ActivatorUtilitiesConstructor]
-    public UrlType()
-        : this(ScalarNames.URL, bind: BindingBehavior.Implicit)
+    public UrlType() : this(ScalarNames.URL)
     {
     }
 
@@ -77,18 +87,20 @@ public class UrlType : ScalarType<Uri, StringValueNode>
         return new StringValueNode(value);
     }
 
-    private static bool TryParseUri(string value, out Uri uri)
+    private bool TryParseUri(string value, out Uri uri)
     {
-        if (!Uri.TryCreate(value, UriKind.RelativeOrAbsolute, out var parsedUri))
+        var uriKind = _allowRelativeUris ? UriKind.RelativeOrAbsolute : UriKind.Absolute;
+
+        if (!Uri.TryCreate(value, uriKind, out var parsedUri))
         {
-            uri = default!;
+            uri = null!;
             return false;
         }
 
         // Don't accept a relative URI that does not start with '/'
         if (!parsedUri.IsAbsoluteUri && !parsedUri.OriginalString.StartsWith('/'))
         {
-            uri = default!;
+            uri = null!;
             return false;
         }
 

@@ -28,6 +28,12 @@ internal static class SettingsExtensions
                         compositionSettings.Merger.TagMergeBehavior
                         ?? settings.Merger.TagMergeBehavior
                 },
+                Preprocessor = new CompositionSettings.PreprocessorSettings
+                {
+                    ExcludeByTag =
+                        compositionSettings.Preprocessor.ExcludeByTag
+                        ?? settings.Preprocessor.ExcludeByTag
+                },
                 Satisfiability = new CompositionSettings.SatisfiabilitySettings
                 {
                     IncludeSatisfiabilityPaths =
