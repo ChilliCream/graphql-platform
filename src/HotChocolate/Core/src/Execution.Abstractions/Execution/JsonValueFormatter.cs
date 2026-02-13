@@ -246,9 +246,12 @@ public static class JsonValueFormatter
 
             writer.WriteStartArray();
 
-            for (var i = 0; i < errors.Count; i++)
+            // We sort errors by path to ensure a stable output:
+            // - Errors without paths (null) come first
+            // - Then errors sorted by path
+            foreach (var error in errors.OrderBy(e => e.Path, PathComparer.Instance))
             {
-                WriteError(writer, errors[i], options, nullIgnoreCondition);
+                WriteError(writer, error, options, nullIgnoreCondition);
             }
 
             writer.WriteEndArray();
@@ -438,9 +441,10 @@ public static class JsonValueFormatter
 
             writer.WriteStartArray();
 
-            for (var i = 0; i < locations.Count; i++)
+            // We sort locations to ensure a stable output.
+            foreach (var location in locations.Order())
             {
-                WriteLocation(writer, locations[i]);
+                WriteLocation(writer, location);
             }
 
             writer.WriteEndArray();
@@ -492,5 +496,31 @@ public static class JsonValueFormatter
         }
 
         writer.WriteEndArray();
+    }
+}
+
+file sealed class PathComparer : IComparer<Path?>
+{
+    public static readonly PathComparer Instance = new();
+
+    public int Compare(Path? x, Path? y)
+    {
+        // Null paths should come first
+        if (x is null && y is null)
+        {
+            return 0;
+        }
+
+        if (x is null)
+        {
+            return -1;
+        }
+
+        if (y is null)
+        {
+            return 1;
+        }
+
+        return x.CompareTo(y);
     }
 }
