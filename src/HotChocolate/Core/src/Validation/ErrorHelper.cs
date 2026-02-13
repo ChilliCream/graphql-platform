@@ -19,7 +19,7 @@ internal static class ErrorHelper
         => ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot)
             .AddLocation(selection)
-            .SpecifiedBy("sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field")
+            .SpecifiedBy("sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field", rfc: 1110)
             .Build();
 
     extension(DocumentValidatorContext context)
