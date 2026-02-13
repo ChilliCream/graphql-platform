@@ -22,7 +22,7 @@ public static class ConnectionFlagsHelper
 
     private static ConnectionFlags CreateConnectionFlags(IResolverContext context)
     {
-        if (context.Selection.Field.Flags.HasFlag(CoreFieldFlags.Connection))
+        if (!context.Selection.Field.Flags.HasFlag(CoreFieldFlags.Connection))
         {
             return ConnectionFlags.None;
         }
