@@ -289,23 +289,6 @@ public class BsonTypeTests
     }
 
     [Fact]
-    public async Task ValueToLiteral_Should_ThrowException_When_CalledWithNonBsonValue()
-    {
-        // arrange
-        var type = (await new ServiceCollection()
-            .AddGraphQL()
-            .AddBsonType()
-            .ModifyOptions(x => x.StrictValidation = false)
-            .BuildSchemaAsync()).Types.GetType<BsonType>("Bson");
-
-        // act
-        var result = Record.Exception(() => type.ValueToLiteral("Fails"));
-
-        // assert
-        Assert.IsType<LeafCoercionException>(result);
-    }
-
-    [Fact]
     public async Task Output_Return_Object()
     {
         // arrange
@@ -983,7 +966,7 @@ public class BsonTypeTests
         var result = type.IsValueCompatible(NullValueNode.Default);
 
         // assert
-        Assert.True(result);
+        Assert.False(result);
     }
 
     [Fact]

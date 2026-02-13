@@ -122,6 +122,8 @@ public abstract partial class ScalarType
     /// <inheritdoc cref="IScalarTypeDefinition.IsValueCompatible" />
     public virtual bool IsValueCompatible(IValueNode valueLiteral)
     {
+        ArgumentNullException.ThrowIfNull(valueLiteral);
+
         if ((SerializationType & ScalarSerializationType.String) == ScalarSerializationType.String
             && valueLiteral is { Kind: SyntaxKind.StringValue })
         {
@@ -164,6 +166,11 @@ public abstract partial class ScalarType
     /// <inheritdoc />
     public virtual bool IsValueCompatible(JsonElement inputValue)
     {
+        if (inputValue.ValueKind is JsonValueKind.Undefined)
+        {
+            throw new ArgumentException("Undefined JSON value kind.", nameof(inputValue));
+        }
+
         if ((SerializationType & ScalarSerializationType.String) == ScalarSerializationType.String
             && inputValue.ValueKind == JsonValueKind.String)
         {
