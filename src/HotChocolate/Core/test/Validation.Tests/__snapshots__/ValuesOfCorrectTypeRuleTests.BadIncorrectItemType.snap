@@ -12,7 +12,7 @@
   ],
   "extensions": {
     "argument": "stringListArg",
-    "argumentValue": "[ \u0022one\u0022, 2 ]",
+    "argumentValue": "[\n  \u0022one\u0022,\n  2\n]",
     "locationType": "[String]",
     "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
   }
