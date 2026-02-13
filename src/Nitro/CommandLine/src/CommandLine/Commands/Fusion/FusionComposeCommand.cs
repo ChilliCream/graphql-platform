@@ -52,7 +52,7 @@ internal sealed class FusionComposeCommand : Command
             var includeSatisfiabilityPaths = context.ParseResult.GetValueForOption(includeSatisfiabilityPathsOption);
             var watchMode = context.ParseResult.GetValueForOption(watchModeOption);
             var printSchema = context.ParseResult.GetValueForOption(printSchemaOption);
-            var tagsToExclude = context.ParseResult.GetValueForOption(Opt<ExcludeTagListOption>.Instance)!;
+            var tagsToExclude = context.ParseResult.GetValueForOption(Opt<ExcludeTagListOption>.Instance);
 
             context.ExitCode = await ExecuteAsync(
                 context.Console,
@@ -79,7 +79,7 @@ internal sealed class FusionComposeCommand : Command
         bool? includeSatisfiabilityPaths,
         bool watchMode,
         bool printSchema,
-        List<string> tagsToExclude,
+        List<string>? tagsToExclude,
         CancellationToken cancellationToken)
     {
         archiveFile ??= workingDirectory;
@@ -144,7 +144,7 @@ internal sealed class FusionComposeCommand : Command
                 },
                 Preprocessor = new CompositionSettings.PreprocessorSettings
                 {
-                    ExcludeByTag = tagsToExclude.ToHashSet()
+                    ExcludeByTag = tagsToExclude?.ToHashSet()
                 }
             },
             printSchema,
@@ -159,7 +159,7 @@ internal sealed class FusionComposeCommand : Command
         string? environment,
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
-        List<string> tagsToExclude,
+        List<string>? tagsToExclude,
         CancellationToken cancellationToken)
     {
         console.Out.WriteLine("🔍 Starting watch mode...");
@@ -182,7 +182,7 @@ internal sealed class FusionComposeCommand : Command
                 },
                 Preprocessor = new CompositionSettings.PreprocessorSettings
                 {
-                    ExcludeByTag = tagsToExclude.ToHashSet()
+                    ExcludeByTag = tagsToExclude?.ToHashSet()
                 }
             },
             false,
@@ -326,7 +326,7 @@ internal sealed class FusionComposeCommand : Command
         string? environment,
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
-        List<string> tagsToExclude,
+        List<string>? tagsToExclude,
         CancellationToken cancellationToken)
     {
         var lastComposition = DateTime.MinValue;
@@ -369,7 +369,7 @@ internal sealed class FusionComposeCommand : Command
                         },
                         Preprocessor = new CompositionSettings.PreprocessorSettings
                         {
-                            ExcludeByTag = tagsToExclude.ToHashSet()
+                            ExcludeByTag = tagsToExclude?.ToHashSet()
                         }
                     },
                     false,
