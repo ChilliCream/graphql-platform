@@ -27,6 +27,8 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public Operation Operation => _operationContext.Operation;
 
+    public DeferUsage? DeferUsage { get; private set; }
+
     public IOperationResultBuilder OperationResult => _operationResultBuilder;
 
     public IDictionary<string, object?> ContextData => _operationContext.ContextData;

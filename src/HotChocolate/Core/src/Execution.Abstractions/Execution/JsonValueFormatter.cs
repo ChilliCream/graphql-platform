@@ -349,7 +349,7 @@ public static class JsonValueFormatter
         writer.WriteStartObject();
 
         writer.WritePropertyName(Id);
-        writer.WriteNumberValue(item.Id);
+        writer.WriteStringValue(item.Id.ToString());
 
         writer.WritePropertyName(ResultFieldNames.Path);
         WritePathValue(writer, item.Path);
@@ -372,7 +372,7 @@ public static class JsonValueFormatter
         writer.WriteStartObject();
 
         writer.WritePropertyName(Id);
-        writer.WriteNumberValue(item.Id);
+        writer.WriteStringValue(item.Id.ToString());
 
         if (item.Errors is { Count: > 0 })
         {
@@ -423,7 +423,7 @@ public static class JsonValueFormatter
         writer.WriteStartObject();
 
         writer.WritePropertyName(Id);
-        writer.WriteNumberValue(item.Id);
+        writer.WriteStringValue(item.Id.ToString());
 
         if (item.Errors is { Count: > 0 })
         {

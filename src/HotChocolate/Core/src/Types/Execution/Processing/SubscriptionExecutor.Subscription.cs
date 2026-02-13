@@ -257,6 +257,7 @@ internal sealed partial class SubscriptionExecutor
                     rootSelection,
                     resultMap,
                     operationContext,
+                    deferUsage: null,
                     _scopedContextData);
 
                 // it is important that we correctly coerce the arguments before

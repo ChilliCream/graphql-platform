@@ -286,12 +286,45 @@ public sealed class Selection : ISelection, IFeatureProvider
         => _deferMask != 0 && (_deferMask & deferFlags) == _deferMask;
 
     /// <summary>
-    /// Gets all defer usages that are active for the specified defer flags.
+    /// Determines whether this selection is deferred relative to a parent defer usage.
     /// </summary>
-    /// <param name="deferFlags">The active defer flags.</param>
-    /// <returns>A struct enumerator over active defer usages.</returns>
-    public DeferUsageEnumerator GetActiveDeferUsages(ulong deferFlags)
-        => new(_deferUsage, deferFlags);
+    /// <param name="deferFlags">
+    /// The defer condition flags representing which <c>@defer</c> directives are active
+    /// for the current request, computed from the runtime variable values of the
+    /// <c>if</c> arguments on <c>@defer</c> directives.
+    /// </param>
+    /// <param name="parentDeferUsage">
+    /// The defer usage of the parent context, or <c>null</c> if the parent is not deferred.
+    /// When provided, this selection is only considered deferred if its primary defer usage
+    /// matches the given parent, ensuring that the selection is delivered in the correct
+    /// incremental payload.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if this selection is deferred and belongs to the specified parent
+    /// defer context; otherwise, <c>false</c>.
+    /// </returns>
+    public bool IsDeferred(ulong deferFlags, DeferUsage? parentDeferUsage)
+    {
+        if (_deferMask != 0 && (_deferMask & deferFlags) == _deferMask)
+        {
+            if (parentDeferUsage is null)
+            {
+                return true;
+            }
+
+            // If the primary defer usage matches the parent's defer context,
+            // this selection is already being delivered in that context
+            // and does not need to be deferred separately.
+            if (ReferenceEquals(GetPrimaryDeferUsage(deferFlags), parentDeferUsage))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Gets the primary defer usage for this selection given the active defer flags.
@@ -315,7 +348,7 @@ public sealed class Selection : ISelection, IFeatureProvider
             var usage = _deferUsage[0];
 
             // Walk up the parent chain to find the nearest active defer.
-            // A defer is inactive when its condition evaluates to false at runtime
+            // A defer directive is inactive when its condition evaluates to false at runtime
             // (e.g. @defer(if: $var) with $var = false). When inactive, the fragment
             // is not deferred and its content folds into the parent scope — but the
             // parent scope may itself be deferred.

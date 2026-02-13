@@ -19,7 +19,7 @@ internal sealed partial class ResolverTask
     {
         _operationContext = operationContext;
         _selection = selection;
-        _context.Initialize(parent, selection, resultValue, operationContext, scopedContextData);
+        _context.Initialize(parent, selection, resultValue, operationContext, deferUsage, scopedContextData);
         IsSerial = selection.Strategy is SelectionExecutionStrategy.Serial;
         BranchId = executionBranchId;
         DeferUsage = deferUsage;

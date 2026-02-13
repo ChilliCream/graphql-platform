@@ -81,7 +81,6 @@ internal sealed partial class OperationContext
     {
         AssertInitialized();
 
-        // TODO : we need to pool this still
         var deferTask = new DeferTask();
 
         deferTask.Initialize(

@@ -101,17 +101,33 @@ internal sealed class ExecutionResultSnapshotValueFormatter
 
 internal sealed class JsonResultPatcher
 {
-    private const string Data = "data";
-    private const string Items = "items";
-    private const string Incremental = "incremental";
-    private const string Path = "path";
+    private const string DataProp = "data";
+    private const string ItemsProp = "items";
+    private const string IncrementalProp = "incremental";
+    private const string PendingProp = "pending";
+    private const string PathProp = "path";
+    private const string SubPathProp = "subPath";
+    private const string IdProp = "id";
     private JsonObject? _json;
+    private readonly Dictionary<string, JsonElement> _pendingPaths = new();
 
     public void SetResponse(JsonDocument response)
     {
         ArgumentNullException.ThrowIfNull(response);
 
         _json = JsonObject.Create(response.RootElement);
+        ProcessPayload(response.RootElement);
+    }
+
+    public void ApplyPatch(JsonDocument patch)
+    {
+        if (_json is null)
+        {
+            throw new InvalidOperationException(
+                "You must first set the initial response before you can apply patches.");
+        }
+
+        ProcessPayload(patch.RootElement);
     }
 
     public void WriteResponse(IBufferWriter<byte> snapshot)
@@ -125,139 +141,98 @@ internal sealed class JsonResultPatcher
         using var writer = new Utf8JsonWriter(snapshot, new JsonWriterOptions { Indented = true });
 
         _json.Remove("hasNext");
+        _json.Remove("pending");
+        _json.Remove("incremental");
+        _json.Remove("completed");
 
         _json.WriteTo(writer);
         writer.Flush();
     }
 
-    public void ApplyPatch(JsonDocument patch)
+    private void ProcessPayload(JsonElement root)
     {
-        if (_json is null)
+        if (root.TryGetProperty(PendingProp, out var pending))
         {
-            throw new InvalidOperationException(
-                "You must first set the initial response before you can apply patches.");
-        }
-
-        if (!patch.RootElement.TryGetProperty(Incremental, out var incremental))
-        {
-            throw new ArgumentException("A patch result must contain a property `incremental`.");
-        }
-
-        foreach (var element in incremental.EnumerateArray())
-        {
-            if (element.TryGetProperty(Data, out var data))
+            foreach (var entry in pending.EnumerateArray())
             {
-                PatchIncrementalData(element, JsonObject.Create(data)!);
-            }
-            else if (element.TryGetProperty(Items, out var items))
-            {
-                PatchIncrementalItems(element, JsonArray.Create(items)!);
-            }
-        }
-    }
-
-    private void PatchIncrementalData(JsonElement incremental, JsonObject data)
-    {
-        if (incremental.TryGetProperty(Path, out var pathProp))
-        {
-            var (current, last) = SelectNodeToPatch(_json![Data]!, pathProp);
-            ApplyPatch(current, last, data);
-        }
-    }
-
-    private void PatchIncrementalItems(JsonElement incremental, JsonArray items)
-    {
-        if (incremental.TryGetProperty(Path, out var pathProp))
-        {
-            var (current, last) = SelectNodeToPatch(_json![Data]!, pathProp);
-            var i = last.GetInt32();
-            var target = current.AsArray();
-
-            while (items.Count > 0)
-            {
-                var item = items[0];
-                items.RemoveAt(0);
-                target.Insert(i++, item);
-            }
-        }
-    }
-
-    private static void ApplyPatch(JsonNode current, JsonElement last, JsonObject patchData)
-    {
-        if (last.ValueKind is JsonValueKind.Undefined)
-        {
-            foreach (var prop in patchData.ToArray())
-            {
-                patchData.Remove(prop.Key);
-                current[prop.Key] = prop.Value;
-            }
-        }
-        else if (last.ValueKind is JsonValueKind.String)
-        {
-            current = current[last.GetString()!]!;
-
-            foreach (var prop in patchData.ToArray())
-            {
-                patchData.Remove(prop.Key);
-                current[prop.Key] = prop.Value;
-            }
-        }
-        else if (last.ValueKind is JsonValueKind.Number)
-        {
-            var index = last.GetInt32();
-            var element = current[index];
-
-            if (element is null)
-            {
-                current[index] = patchData;
-            }
-            else
-            {
-                foreach (var prop in patchData.ToArray())
+                if (entry.TryGetProperty(IdProp, out var id)
+                    && entry.TryGetProperty(PathProp, out var path))
                 {
-                    patchData.Remove(prop.Key);
-                    element[prop.Key] = prop.Value;
+                    _pendingPaths[id.GetString()!] = path.Clone();
                 }
             }
         }
-        else
+
+        if (root.TryGetProperty(IncrementalProp, out var incremental))
         {
-            throw new NotSupportedException("Path segment must be int or string.");
+            foreach (var element in incremental.EnumerateArray())
+            {
+                if (!element.TryGetProperty(IdProp, out var idElement))
+                {
+                    continue;
+                }
+
+                var id = idElement.GetString()!;
+
+                if (!_pendingPaths.TryGetValue(id, out var basePath))
+                {
+                    continue;
+                }
+
+                if (element.TryGetProperty(DataProp, out var data))
+                {
+                    PatchData(basePath, element, JsonObject.Create(data)!);
+                }
+                else if (element.TryGetProperty(ItemsProp, out var items))
+                {
+                    PatchItems(basePath, JsonArray.Create(items)!);
+                }
+            }
         }
     }
 
-    private static (JsonNode Node, JsonElement PathSegment) SelectNodeToPatch(
-        JsonNode root,
-        JsonElement path)
+    private void PatchData(JsonElement basePath, JsonElement incremental, JsonObject data)
     {
-        if (path.GetArrayLength() == 0)
+        var current = NavigatePath(_json![DataProp]!, basePath);
+
+        if (incremental.TryGetProperty(SubPathProp, out var subPath))
         {
-            return (root, default);
+            current = NavigatePath(current, subPath);
         }
 
+        foreach (var prop in data.ToArray())
+        {
+            data.Remove(prop.Key);
+            current[prop.Key] = prop.Value;
+        }
+    }
+
+    private void PatchItems(JsonElement basePath, JsonArray items)
+    {
+        var target = NavigatePath(_json![DataProp]!, basePath).AsArray();
+
+        while (items.Count > 0)
+        {
+            var item = items[0];
+            items.RemoveAt(0);
+            target.Add(item);
+        }
+    }
+
+    private static JsonNode NavigatePath(JsonNode root, JsonElement path)
+    {
         var current = root;
-        JsonElement? last = null;
 
-        foreach (var element in path.EnumerateArray())
+        foreach (var segment in path.EnumerateArray())
         {
-            if (last is not null)
+            current = segment.ValueKind switch
             {
-                current = last.Value.ValueKind switch
-                {
-                    JsonValueKind.String => current[last.Value.GetString()!]!,
-                    JsonValueKind.Number => current[last.Value.GetInt32()]!,
-                    _ => throw new NotSupportedException("Path segment must be int or string.")
-                };
-            }
-
-            last = element;
+                JsonValueKind.String => current[segment.GetString()!]!,
+                JsonValueKind.Number => current[segment.GetInt32()]!,
+                _ => throw new NotSupportedException("Path segment must be int or string.")
+            };
         }
 
-        if (current is null || last is null)
-        {
-            throw new InvalidOperationException("Patch had invalid structure.");
-        }
-
-        return (current, last.Value);
+        return current;
     }
 }

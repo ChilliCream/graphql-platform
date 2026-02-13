@@ -144,6 +144,7 @@ internal static class ResolverTaskFactory
         Debug.Assert(resultValue.Type?.NamedType()?.IsAssignableFrom(selectionSetType) ?? false);
 
         var operationContext = context.OperationContext;
+        var parentDeferUsage = context.ResolverContext.DeferUsage;
 
         resultValue.SetObjectValue(selectionSet);
 
@@ -161,7 +162,7 @@ internal static class ResolverTaskFactory
             {
                 var selection = field.AssertSelection();
 
-                if (selection.IsDeferred(deferFlags))
+                if (selection.IsDeferred(deferFlags, parentDeferUsage))
                 {
                     // if IsDeferred is true then GetPrimaryDeferUsage will be guaranteed
                     // to return a defer usage for the same deferFlags

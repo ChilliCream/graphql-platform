@@ -84,9 +84,13 @@ public abstract class ExecutionTask : IExecutionTask
                 Context.ReportError(this, ex);
             }
         }
+        finally
+        {
+            Status = _completionStatus;
+            Context.Completed(this);
 
-        Status = _completionStatus;
-        Context.Completed(this);
+            await OnAfterCompletedAsync(cancellationToken).ConfigureAwait(false);
+        }
     }
 
     /// <summary>
@@ -96,6 +100,16 @@ public abstract class ExecutionTask : IExecutionTask
     /// The cancellation token.
     /// </param>
     protected abstract ValueTask ExecuteAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Called after the task has completed, regardless of whether it succeeded or faulted.
+    /// Override this method to perform post-completion logic such as cleanup or notifications.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>A <see cref="ValueTask"/> representing the asynchronous operation.</returns>
+    protected virtual ValueTask OnAfterCompletedAsync(CancellationToken cancellationToken) => ValueTask.CompletedTask;
 
     /// <summary>
     /// Completes the task as faulted.

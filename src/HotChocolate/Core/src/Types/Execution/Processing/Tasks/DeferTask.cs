@@ -7,36 +7,22 @@ namespace HotChocolate.Execution.Processing.Tasks;
 internal sealed class DeferTask : ExecutionTask
 {
     private static readonly ArrayPool<IExecutionTask> s_pool = ArrayPool<IExecutionTask>.Shared;
-    private OperationContext _parentContext = null!;
-    private DeferExecutionCoordinator _coordinator = null!;
+    private OperationContextOwner _deferContextOwner = null!;
     private object? _parent;
     private IImmutableDictionary<string, object?> _scopedContext = null!;
-    private SelectionSet _selectionSet = null!;
-    private Path _selectionPath = null!;
     private int _executionBranchId;
     private DeferUsage _deferUsage = null!;
 
-    // the defer tasks runs in the system branch as its just an orchestration task.
+    // the defer tasks runs in the system branch as it's just an orchestration task.
     public override int BranchId => BranchTracker.SystemBranchId;
 
     public override bool IsDeferred => true;
 
-    protected override IExecutionTaskContext Context => _parentContext;
+    protected override IExecutionTaskContext Context => _deferContextOwner.OperationContext;
 
     protected override async ValueTask ExecuteAsync(CancellationToken cancellationToken)
     {
-        var contextFactory = _parentContext.Services.GetRequiredService<IFactory<OperationContextOwner>>();
-        using var deferContextOwner = contextFactory.Create();
-        var deferContext = deferContextOwner.OperationContext;
-
-        // we first need to initialize the rented context for this defer operation.
-        deferContext.InitializeDeferContext(
-            _parentContext,
-            _selectionSet,
-            _selectionPath,
-            _executionBranchId,
-            _deferUsage);
-
+        var deferContext = _deferContextOwner.OperationContext;
         var data = deferContext.Result.Data.Data;
         var bufferedTasks = s_pool.Rent(data.GetPropertyCount());
         var i = 0;
@@ -73,7 +59,14 @@ internal sealed class DeferTask : ExecutionTask
 
         // once the execution branch has completed we enqueue the completed
         // result with the defer coordinator so it can be delivered.
-        _coordinator.EnqueueResult(deferContext.BuildResult(), _executionBranchId);
+        deferContext.DeferExecutionCoordinator.EnqueueResult(deferContext.BuildResult(), _executionBranchId);
+    }
+
+    protected override ValueTask OnAfterCompletedAsync(CancellationToken cancellationToken)
+    {
+        // TODO : we need to give the context back here and not rest once we have a pool.
+        Reset();
+        return ValueTask.CompletedTask;
     }
 
     public void Initialize(
@@ -85,26 +78,31 @@ internal sealed class DeferTask : ExecutionTask
         int executionBranchId,
         DeferUsage deferUsage)
     {
-        _parentContext = parentContext;
-        _coordinator = parentContext.DeferExecutionCoordinator;
+        var contextFactory = parentContext.Services.GetRequiredService<IFactory<OperationContextOwner>>();
+        _deferContextOwner = contextFactory.Create();
+
+        // we first need to initialize the rented context for this defer operation.
+        _deferContextOwner.OperationContext.InitializeDeferContext(
+            parentContext,
+            selectionSet,
+            selectionPath,
+            executionBranchId,
+            deferUsage);
+
         _parent = parent;
         _scopedContext = scopedContext;
-        _selectionSet = selectionSet;
         _executionBranchId = executionBranchId;
         _deferUsage = deferUsage;
-        _selectionPath = selectionPath;
     }
 
     public new void Reset()
     {
-        _parentContext = null!;
-        _coordinator = null!;
+        _deferContextOwner.Dispose();
+        _deferContextOwner = null!;
         _parent = null!;
         _scopedContext = null!;
-        _selectionSet = null!;
         _executionBranchId = 0;
         _deferUsage = null!;
-        _selectionPath = null!;
 
         base.Reset();
     }
