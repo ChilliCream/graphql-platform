@@ -14,9 +14,9 @@
               "schema": {
                 "required": [
                   "any",
+                  "base64String",
                   "boolean",
                   "byte",
-                  "byteArray",
                   "date",
                   "dateTime",
                   "decimal",
@@ -35,6 +35,7 @@
                   "string",
                   "timeSpan",
                   "unknown",
+                  "uri",
                   "url",
                   "uuid"
                 ],
@@ -43,15 +44,15 @@
                   "any": {
                     "type": "string"
                   },
+                  "base64String": {
+                    "type": "string"
+                  },
                   "boolean": {
                     "type": "boolean"
                   },
                   "byte": {
                     "type": "string",
                     "description": "The Byte scalar type represents an 8-bit signed integer with a minimum value of -128 and a maximum value of 127."
-                  },
-                  "byteArray": {
-                    "type": "string"
                   },
                   "date": {
                     "type": "string",
@@ -159,6 +160,9 @@
                   "unknown": {
                     "type": "string"
                   },
+                  "uri": {
+                    "type": "string"
+                  },
                   "url": {
                     "type": "string"
                   },
@@ -179,9 +183,9 @@
                 "schema": {
                   "required": [
                     "any",
+                    "base64String",
                     "boolean",
                     "byte",
-                    "byteArray",
                     "date",
                     "dateTime",
                     "decimal",
@@ -209,6 +213,10 @@
                       "type": "string",
                       "nullable": true
                     },
+                    "base64String": {
+                      "type": "string",
+                      "nullable": true
+                    },
                     "boolean": {
                       "type": "boolean",
                       "nullable": true
@@ -216,10 +224,6 @@
                     "byte": {
                       "type": "string",
                       "description": "The Byte scalar type represents an 8-bit signed integer with a minimum value of -128 and a maximum value of 127.",
-                      "nullable": true
-                    },
-                    "byteArray": {
-                      "type": "string",
                       "nullable": true
                     },
                     "date": {
