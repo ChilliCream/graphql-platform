@@ -161,7 +161,7 @@ internal ref struct JsonVariableCoercion
         // Handle Scalar types
         if (type is FusionScalarTypeDefinition scalarType)
         {
-            return TryParseScalar(scalarType, element, path, out value, out error);
+            return TryParseScalar(scalarType, element, path, depth, out value, out error);
         }
 
         // Handle Enum types
@@ -338,6 +338,7 @@ internal ref struct JsonVariableCoercion
         FusionScalarTypeDefinition scalarType,
         JsonElement element,
         Path path,
+        int depth,
         [NotNullWhen(true)] out IValueNode? value,
         [NotNullWhen(false)] out IError? error)
     {
@@ -361,7 +362,7 @@ internal ref struct JsonVariableCoercion
         }
         else
         {
-            value = ParseLiteral(element);
+            value = ParseLiteral(element, depth);
 
             if (!scalarType.IsValueCompatible(value))
             {
@@ -415,8 +416,13 @@ internal ref struct JsonVariableCoercion
         return true;
     }
 
-    private readonly IValueNode ParseLiteral(JsonElement element)
+    private readonly IValueNode ParseLiteral(JsonElement element, int depth)
     {
+        if (depth > MaxAllowedDepth)
+        {
+            throw new InvalidOperationException("Max allowed depth reached.");
+        }
+
         switch (element.ValueKind)
         {
             case JsonValueKind.Null:
@@ -456,6 +462,70 @@ internal ref struct JsonVariableCoercion
                 }
 
                 return new IntValueNode(segment);
+            }
+
+            case JsonValueKind.Array:
+            {
+                var buffer = ArrayPool<IValueNode>.Shared.Rent(64);
+                var count = 0;
+
+                try
+                {
+                    foreach (var item in element.EnumerateArray())
+                    {
+                        if (count == buffer.Length)
+                        {
+                            var temp = buffer;
+                            var tempSpan = temp.AsSpan();
+                            buffer = ArrayPool<IValueNode>.Shared.Rent(count * 2);
+                            tempSpan.CopyTo(buffer);
+                            tempSpan.Clear();
+                            ArrayPool<IValueNode>.Shared.Return(temp);
+                        }
+
+                        buffer[count++] = ParseLiteral(item, depth + 1);
+                    }
+
+                    return new ListValueNode(buffer.AsSpan(0, count).ToArray());
+                }
+                finally
+                {
+                    buffer.AsSpan(0, count).Clear();
+                    ArrayPool<IValueNode>.Shared.Return(buffer);
+                }
+            }
+
+            case JsonValueKind.Object:
+            {
+                var buffer = ArrayPool<ObjectFieldNode>.Shared.Rent(64);
+                var count = 0;
+
+                try
+                {
+                    foreach (var item in element.EnumerateObject())
+                    {
+                        if (count == buffer.Length)
+                        {
+                            var temp = buffer;
+                            var tempSpan = temp.AsSpan();
+                            buffer = ArrayPool<ObjectFieldNode>.Shared.Rent(count * 2);
+                            tempSpan.CopyTo(buffer);
+                            tempSpan.Clear();
+                            ArrayPool<ObjectFieldNode>.Shared.Return(temp);
+                        }
+
+                        buffer[count++] = new ObjectFieldNode(
+                            item.Name,
+                            ParseLiteral(item.Value, depth + 1));
+                    }
+
+                    return new ObjectValueNode(buffer.AsSpan(0, count).ToArray());
+                }
+                finally
+                {
+                    buffer.AsSpan(0, count).Clear();
+                    ArrayPool<ObjectFieldNode>.Shared.Return(buffer);
+                }
             }
 
             default:
