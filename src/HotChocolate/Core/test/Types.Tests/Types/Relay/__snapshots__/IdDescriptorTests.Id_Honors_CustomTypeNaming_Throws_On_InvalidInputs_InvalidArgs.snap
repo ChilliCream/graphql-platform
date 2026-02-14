@@ -1,9 +1,9 @@
 {
   "errors": [
     {
-      "message": "The node id type name `FooFoo` does not match the expected type name `RenamedUser`.",
+      "message": "The node id type name `FooFooFluentSingle` does not match the expected type name `FooFooFluent`.",
       "path": [
-        "validUserIdInput"
+        "validFluentFooIdInput"
       ]
     },
     {
@@ -13,15 +13,15 @@
       ]
     },
     {
-      "message": "The node id type name `FooFooFluentSingle` does not match the expected type name `FooFooFluent`.",
-      "path": [
-        "validFluentFooIdInput"
-      ]
-    },
-    {
       "message": "The node id type name `RenamedUser` does not match the expected type name `FooFooFluentSingle`.",
       "path": [
         "validSingleTypeFluentFooIdInput"
+      ]
+    },
+    {
+      "message": "The node id type name `FooFoo` does not match the expected type name `RenamedUser`.",
+      "path": [
+        "validUserIdInput"
       ]
     }
   ],

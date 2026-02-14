@@ -345,7 +345,7 @@ namespace Foo.Bar
     /// <code>
     /// query GetFeatsPage(
     ///   $skip: Int
-    ///   $take: Int
+    ///     $take: Int
     /// ) {
     ///   feats(skip: $skip, take: $take) {
     ///     __typename
@@ -397,7 +397,7 @@ namespace Foo.Bar
     /// <code>
     /// query GetFeatsPage(
     ///   $skip: Int
-    ///   $take: Int
+    ///     $take: Int
     /// ) {
     ///   feats(skip: $skip, take: $take) {
     ///     __typename
@@ -523,7 +523,7 @@ namespace Foo.Bar
     /// <code>
     /// query GetFeatsPage(
     ///   $skip: Int
-    ///   $take: Int
+    ///     $take: Int
     /// ) {
     ///   feats(skip: $skip, take: $take) {
     ///     __typename

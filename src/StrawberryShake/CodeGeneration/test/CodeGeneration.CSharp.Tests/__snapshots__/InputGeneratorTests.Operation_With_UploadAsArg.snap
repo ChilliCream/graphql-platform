@@ -98,11 +98,11 @@ namespace Foo.Bar
     /// <code>
     /// query Test(
     ///   $upload: Upload!
-    ///   $uploadNullable: Upload
-    ///   $list: [Upload!]!
-    ///   $listNullable: [Upload!]
-    ///   $nestedList: [[Upload!]!]!
-    ///   $nestedListNullable: [[Upload!]]
+    ///     $uploadNullable: Upload
+    ///     $list: [Upload!]!
+    ///     $listNullable: [Upload!]
+    ///     $nestedList: [[Upload!]!]!
+    ///     $nestedListNullable: [[Upload!]]
     /// ) {
     ///   foo(upload: $upload, uploadNullable: $uploadNullable, list: $list, listNullable: $listNullable, nestedList: $nestedList, nestedListNullable: $nestedListNullable)
     /// }
@@ -136,11 +136,11 @@ namespace Foo.Bar
     /// <code>
     /// query Test(
     ///   $upload: Upload!
-    ///   $uploadNullable: Upload
-    ///   $list: [Upload!]!
-    ///   $listNullable: [Upload!]
-    ///   $nestedList: [[Upload!]!]!
-    ///   $nestedListNullable: [[Upload!]]
+    ///     $uploadNullable: Upload
+    ///     $list: [Upload!]!
+    ///     $listNullable: [Upload!]
+    ///     $nestedList: [[Upload!]!]!
+    ///     $nestedListNullable: [[Upload!]]
     /// ) {
     ///   foo(upload: $upload, uploadNullable: $uploadNullable, list: $list, listNullable: $listNullable, nestedList: $nestedList, nestedListNullable: $nestedListNullable)
     /// }
@@ -407,11 +407,11 @@ namespace Foo.Bar
     /// <code>
     /// query Test(
     ///   $upload: Upload!
-    ///   $uploadNullable: Upload
-    ///   $list: [Upload!]!
-    ///   $listNullable: [Upload!]
-    ///   $nestedList: [[Upload!]!]!
-    ///   $nestedListNullable: [[Upload!]]
+    ///     $uploadNullable: Upload
+    ///     $list: [Upload!]!
+    ///     $listNullable: [Upload!]
+    ///     $nestedList: [[Upload!]!]!
+    ///     $nestedListNullable: [[Upload!]]
     /// ) {
     ///   foo(upload: $upload, uploadNullable: $uploadNullable, list: $list, listNullable: $listNullable, nestedList: $nestedList, nestedListNullable: $nestedListNullable)
     /// }

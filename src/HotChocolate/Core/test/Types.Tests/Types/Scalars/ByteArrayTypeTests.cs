@@ -54,10 +54,10 @@ public class ByteArrayTypeTests
         var type = new ByteArrayType();
 
         // act
-        var result = type.IsValueCompatible(null!);
+        void Error() => type.IsValueCompatible(null!);
 
         // assert
-        Assert.False(result);
+        Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]

@@ -412,8 +412,8 @@ namespace Foo.Bar
     /// <code>
     /// query Test(
     ///   $single: Bar!
-    ///   $list: [Bar!]!
-    ///   $nestedList: [[Bar!]]
+    ///     $list: [Bar!]!
+    ///     $nestedList: [[Bar!]]
     /// ) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
@@ -447,8 +447,8 @@ namespace Foo.Bar
     /// <code>
     /// query Test(
     ///   $single: Bar!
-    ///   $list: [Bar!]!
-    ///   $nestedList: [[Bar!]]
+    ///     $list: [Bar!]!
+    ///     $nestedList: [[Bar!]]
     /// ) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
@@ -600,8 +600,8 @@ namespace Foo.Bar
     /// <code>
     /// query Test(
     ///   $single: Bar!
-    ///   $list: [Bar!]!
-    ///   $nestedList: [[Bar!]]
+    ///     $list: [Bar!]!
+    ///     $nestedList: [[Bar!]]
     /// ) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }

@@ -343,7 +343,7 @@ namespace Foo.Bar
     /// <code>
     /// query GetBars(
     ///   $a: String!
-    ///   $b: String
+    ///     $b: String
     /// ) {
     ///   bars(a: $a, b: $b) {
     ///     __typename
@@ -384,7 +384,7 @@ namespace Foo.Bar
     /// <code>
     /// query GetBars(
     ///   $a: String!
-    ///   $b: String
+    ///     $b: String
     /// ) {
     ///   bars(a: $a, b: $b) {
     ///     __typename
@@ -497,7 +497,7 @@ namespace Foo.Bar
     /// <code>
     /// query GetBars(
     ///   $a: String!
-    ///   $b: String
+    ///     $b: String
     /// ) {
     ///   bars(a: $a, b: $b) {
     ///     __typename
@@ -526,7 +526,7 @@ namespace Foo.Bar
     /// <code>
     /// mutation SaveBars(
     ///   $a: String!
-    ///   $b: String
+    ///     $b: String
     /// ) {
     ///   saveBar(a: $a, b: $b) {
     ///     __typename
@@ -567,7 +567,7 @@ namespace Foo.Bar
     /// <code>
     /// mutation SaveBars(
     ///   $a: String!
-    ///   $b: String
+    ///     $b: String
     /// ) {
     ///   saveBar(a: $a, b: $b) {
     ///     __typename
@@ -680,7 +680,7 @@ namespace Foo.Bar
     /// <code>
     /// mutation SaveBars(
     ///   $a: String!
-    ///   $b: String
+    ///     $b: String
     /// ) {
     ///   saveBar(a: $a, b: $b) {
     ///     __typename

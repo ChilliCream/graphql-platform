@@ -1485,7 +1485,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// <code>
     /// mutation CreateReviewMut(
     ///   $episode: Episode!
-    ///   $review: ReviewInput!
+    ///     $review: ReviewInput!
     /// ) {
     ///   createReview(episode: $episode, review: $review) {
     ///     __typename
@@ -1523,7 +1523,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// <code>
     /// mutation CreateReviewMut(
     ///   $episode: Episode!
-    ///   $review: ReviewInput!
+    ///     $review: ReviewInput!
     /// ) {
     ///   createReview(episode: $episode, review: $review) {
     ///     __typename
@@ -1629,7 +1629,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// <code>
     /// mutation CreateReviewMut(
     ///   $episode: Episode!
-    ///   $review: ReviewInput!
+    ///     $review: ReviewInput!
     /// ) {
     ///   createReview(episode: $episode, review: $review) {
     ///     __typename

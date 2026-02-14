@@ -266,8 +266,8 @@ namespace Foo.Bar
     /// <code>
     /// query SearchNewsItems(
     ///   $query: String!
-    ///   $skip: Int
-    ///   $take: Int
+    ///     $skip: Int
+    ///     $take: Int
     /// ) {
     ///   newsItems(skip: $skip, take: $take, query: $query) {
     ///     __typename
@@ -312,8 +312,8 @@ namespace Foo.Bar
     /// <code>
     /// query SearchNewsItems(
     ///   $query: String!
-    ///   $skip: Int
-    ///   $take: Int
+    ///     $skip: Int
+    ///     $take: Int
     /// ) {
     ///   newsItems(skip: $skip, take: $take, query: $query) {
     ///     __typename
@@ -446,8 +446,8 @@ namespace Foo.Bar
     /// <code>
     /// query SearchNewsItems(
     ///   $query: String!
-    ///   $skip: Int
-    ///   $take: Int
+    ///     $skip: Int
+    ///     $take: Int
     /// ) {
     ///   newsItems(skip: $skip, take: $take, query: $query) {
     ///     __typename

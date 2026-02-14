@@ -1194,7 +1194,7 @@ namespace Foo.Bar
     /// <code>
     /// mutation WriteMessage(
     ///   $text: String!
-    ///   $address: String!
+    ///     $address: String!
     /// ) {
     ///   sendMessage(input: { text: $text, recipientEmail: $address }) {
     ///     __typename
@@ -1252,7 +1252,7 @@ namespace Foo.Bar
     /// <code>
     /// mutation WriteMessage(
     ///   $text: String!
-    ///   $address: String!
+    ///     $address: String!
     /// ) {
     ///   sendMessage(input: { text: $text, recipientEmail: $address }) {
     ///     __typename
@@ -1380,7 +1380,7 @@ namespace Foo.Bar
     /// <code>
     /// mutation WriteMessage(
     ///   $text: String!
-    ///   $address: String!
+    ///     $address: String!
     /// ) {
     ///   sendMessage(input: { text: $text, recipientEmail: $address }) {
     ///     __typename

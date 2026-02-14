@@ -2226,9 +2226,13 @@ namespace Foo.Bar
     /// <code>
     /// query GetFeatsPage(
     ///   $skip: Int!
-    ///   $take: Int!
-    ///   $searchTerm: String! = ""
-    ///   $order: [FeatSortInput!] = [ { name: ASC } ]
+    ///     $take: Int!
+    ///     $searchTerm: String! = ""
+    ///     $order: [FeatSortInput!] = [
+    ///     {
+    ///       name: ASC
+    ///     }
+    ///   ]
     /// ) {
     ///   feats(skip: $skip, take: $take, order: $order, where: { or: [ { name: { contains: $searchTerm } }, { traits: { some: { name: { contains: $searchTerm } } } } ] }) {
     ///     __typename
@@ -2286,9 +2290,13 @@ namespace Foo.Bar
     /// <code>
     /// query GetFeatsPage(
     ///   $skip: Int!
-    ///   $take: Int!
-    ///   $searchTerm: String! = ""
-    ///   $order: [FeatSortInput!] = [ { name: ASC } ]
+    ///     $take: Int!
+    ///     $searchTerm: String! = ""
+    ///     $order: [FeatSortInput!] = [
+    ///     {
+    ///       name: ASC
+    ///     }
+    ///   ]
     /// ) {
     ///   feats(skip: $skip, take: $take, order: $order, where: { or: [ { name: { contains: $searchTerm } }, { traits: { some: { name: { contains: $searchTerm } } } } ] }) {
     ///     __typename
@@ -2447,9 +2455,13 @@ namespace Foo.Bar
     /// <code>
     /// query GetFeatsPage(
     ///   $skip: Int!
-    ///   $take: Int!
-    ///   $searchTerm: String! = ""
-    ///   $order: [FeatSortInput!] = [ { name: ASC } ]
+    ///     $take: Int!
+    ///     $searchTerm: String! = ""
+    ///     $order: [FeatSortInput!] = [
+    ///     {
+    ///       name: ASC
+    ///     }
+    ///   ]
     /// ) {
     ///   feats(skip: $skip, take: $take, order: $order, where: { or: [ { name: { contains: $searchTerm } }, { traits: { some: { name: { contains: $searchTerm } } } } ] }) {
     ///     __typename

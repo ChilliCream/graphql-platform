@@ -556,12 +556,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
     /// <code>
     /// query TestUpload(
     ///   $nonUpload: String
-    ///   $single: Upload
-    ///   $list: [Upload]
-    ///   $nested: [[Upload]]
-    ///   $object: TestInput
-    ///   $objectList: [TestInput]
-    ///   $objectNested: [[TestInput]]
+    ///     $single: Upload
+    ///     $list: [Upload]
+    ///     $nested: [[Upload]]
+    ///     $object: TestInput
+    ///     $objectList: [TestInput]
+    ///     $objectNested: [[TestInput]]
     /// ) {
     ///   upload(nonUpload: $nonUpload, single: $single, list: $list, nested: $nested, object: $object, objectList: $objectList, objectNested: $objectNested)
     /// }
@@ -595,12 +595,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
     /// <code>
     /// query TestUpload(
     ///   $nonUpload: String
-    ///   $single: Upload
-    ///   $list: [Upload]
-    ///   $nested: [[Upload]]
-    ///   $object: TestInput
-    ///   $objectList: [TestInput]
-    ///   $objectNested: [[TestInput]]
+    ///     $single: Upload
+    ///     $list: [Upload]
+    ///     $nested: [[Upload]]
+    ///     $object: TestInput
+    ///     $objectList: [TestInput]
+    ///     $objectNested: [[TestInput]]
     /// ) {
     ///   upload(nonUpload: $nonUpload, single: $single, list: $list, nested: $nested, object: $object, objectList: $objectList, objectNested: $objectNested)
     /// }
@@ -978,12 +978,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
     /// <code>
     /// query TestUpload(
     ///   $nonUpload: String
-    ///   $single: Upload
-    ///   $list: [Upload]
-    ///   $nested: [[Upload]]
-    ///   $object: TestInput
-    ///   $objectList: [TestInput]
-    ///   $objectNested: [[TestInput]]
+    ///     $single: Upload
+    ///     $list: [Upload]
+    ///     $nested: [[Upload]]
+    ///     $object: TestInput
+    ///     $objectList: [TestInput]
+    ///     $objectNested: [[TestInput]]
     /// ) {
     ///   upload(nonUpload: $nonUpload, single: $single, list: $list, nested: $nested, object: $object, objectList: $objectList, objectNested: $objectNested)
     /// }

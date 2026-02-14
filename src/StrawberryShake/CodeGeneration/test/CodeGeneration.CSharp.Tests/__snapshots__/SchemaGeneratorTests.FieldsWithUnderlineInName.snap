@@ -2961,7 +2961,7 @@ namespace Foo.Bar
     /// <code>
     /// query GetBwr_TimeSeries(
     ///   $where: bwr_TimeSeriesFilterInput
-    ///   $readDataInput: ReadDataInput!
+    ///     $readDataInput: ReadDataInput!
     /// ) {
     ///   bwr_TimeSeries(where: $where) {
     ///     __typename
@@ -3050,7 +3050,7 @@ namespace Foo.Bar
     /// <code>
     /// query GetBwr_TimeSeries(
     ///   $where: bwr_TimeSeriesFilterInput
-    ///   $readDataInput: ReadDataInput!
+    ///     $readDataInput: ReadDataInput!
     /// ) {
     ///   bwr_TimeSeries(where: $where) {
     ///     __typename
@@ -3214,7 +3214,7 @@ namespace Foo.Bar
     /// <code>
     /// query GetBwr_TimeSeries(
     ///   $where: bwr_TimeSeriesFilterInput
-    ///   $readDataInput: ReadDataInput!
+    ///     $readDataInput: ReadDataInput!
     /// ) {
     ///   bwr_TimeSeries(where: $where) {
     ///     __typename

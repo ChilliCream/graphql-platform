@@ -52,10 +52,10 @@ public class Base64StringTypeTests
         var type = new Base64StringType();
 
         // act
-        var result = type.IsValueCompatible(null!);
+        void Error() => type.IsValueCompatible(null!);
 
         // assert
-        Assert.False(result);
+        Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]

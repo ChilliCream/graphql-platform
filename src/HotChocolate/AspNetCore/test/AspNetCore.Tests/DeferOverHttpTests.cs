@@ -62,11 +62,11 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"data":{"product":{"name":"Abc"}},"pending":[{"id":2,"path":["product"]}],"hasNext":true}
+                {"data":{"product":{"name":"Abc"}},"pending":[{"id":"2","path":["product"]}],"hasNext":true}
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"incremental":[{"id":2,"data":{"description":"Abc desc"}}],"completed":[{"id":2}],"hasNext":false}
+                {"incremental":[{"id":"2","data":{"description":"Abc desc"}}],"completed":[{"id":"2"}],"hasNext":false}
                 -----
 
                 """);
@@ -112,10 +112,10 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             .MatchInline(
                 """
                 event: next
-                data: {"data":{"product":{"name":"Abc"}},"pending":[{"id":2,"path":["product"]}],"hasNext":true}
+                data: {"data":{"product":{"name":"Abc"}},"pending":[{"id":"2","path":["product"]}],"hasNext":true}
 
                 event: next
-                data: {"incremental":[{"id":2,"data":{"description":"Abc desc"}}],"completed":[{"id":2}],"hasNext":false}
+                data: {"incremental":[{"id":"2","data":{"description":"Abc desc"}}],"completed":[{"id":"2"}],"hasNext":false}
 
                 event: complete
 
@@ -174,11 +174,11 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"data":{"product":{"name":"Abc"}},"pending":[{"id":2,"path":["product"],"label":"productDescription"}],"hasNext":true}
+                {"data":{"product":{"name":"Abc"}},"pending":[{"id":"2","path":["product"],"label":"productDescription"}],"hasNext":true}
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"incremental":[{"id":2,"data":{"description":"Abc desc"}}],"completed":[{"id":2}],"hasNext":false}
+                {"incremental":[{"id":"2","data":{"description":"Abc desc"}}],"completed":[{"id":"2"}],"hasNext":false}
                 -----
 
                 """);
@@ -331,11 +331,11 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"data":{"hero":{"name":"R2-D2"}},"pending":[{"id":2,"path":["hero"],"label":"droid_details"}],"hasNext":true}
+                {"data":{"hero":{"name":"R2-D2"}},"pending":[{"id":"2","path":["hero"],"label":"droid_details"}],"hasNext":true}
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"incremental":[{"id":2,"data":{"primaryFunction":"Astromech"}}],"completed":[{"id":2}],"hasNext":false}
+                {"incremental":[{"id":"2","data":{"primaryFunction":"Astromech"}}],"completed":[{"id":"2"}],"hasNext":false}
                 -----
 
                 """);
@@ -393,11 +393,11 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"data":{"hero":{"name":"R2-D2"}},"pending":[{"id":2,"path":["hero"],"label":"droid_details"}],"hasNext":true}
+                {"data":{"hero":{"name":"R2-D2"}},"pending":[{"id":"2","path":["hero"],"label":"droid_details"}],"hasNext":true}
                 ---
                 Content-Type: application/json; charset=utf-8
 
-                {"incremental":[{"id":2,"data":{"primaryFunction":"Astromech"}}],"completed":[{"id":2}],"hasNext":false}
+                {"incremental":[{"id":"2","data":{"primaryFunction":"Astromech"}}],"completed":[{"id":"2"}],"hasNext":false}
                 -----
 
                 """);

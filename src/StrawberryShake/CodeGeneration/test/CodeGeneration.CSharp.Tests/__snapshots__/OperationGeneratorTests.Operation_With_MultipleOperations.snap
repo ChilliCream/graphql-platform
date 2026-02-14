@@ -552,8 +552,8 @@ namespace Foo.Bar
     /// <code>
     /// query TestOperation(
     ///   $single: Bar!
-    ///   $list: [Bar!]!
-    ///   $nestedList: [[Bar!]]
+    ///     $list: [Bar!]!
+    ///     $nestedList: [[Bar!]]
     /// ) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
@@ -587,8 +587,8 @@ namespace Foo.Bar
     /// <code>
     /// query TestOperation(
     ///   $single: Bar!
-    ///   $list: [Bar!]!
-    ///   $nestedList: [[Bar!]]
+    ///     $list: [Bar!]!
+    ///     $nestedList: [[Bar!]]
     /// ) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
@@ -740,8 +740,8 @@ namespace Foo.Bar
     /// <code>
     /// query TestOperation(
     ///   $single: Bar!
-    ///   $list: [Bar!]!
-    ///   $nestedList: [[Bar!]]
+    ///     $list: [Bar!]!
+    ///     $nestedList: [[Bar!]]
     /// ) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
@@ -763,8 +763,8 @@ namespace Foo.Bar
     /// <code>
     /// query TestOperation2(
     ///   $single: Bar!
-    ///   $list: [Bar!]!
-    ///   $nestedList: [[Bar!]]
+    ///     $list: [Bar!]!
+    ///     $nestedList: [[Bar!]]
     /// ) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
@@ -798,8 +798,8 @@ namespace Foo.Bar
     /// <code>
     /// query TestOperation2(
     ///   $single: Bar!
-    ///   $list: [Bar!]!
-    ///   $nestedList: [[Bar!]]
+    ///     $list: [Bar!]!
+    ///     $nestedList: [[Bar!]]
     /// ) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
@@ -951,8 +951,8 @@ namespace Foo.Bar
     /// <code>
     /// query TestOperation2(
     ///   $single: Bar!
-    ///   $list: [Bar!]!
-    ///   $nestedList: [[Bar!]]
+    ///     $list: [Bar!]!
+    ///     $nestedList: [[Bar!]]
     /// ) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
@@ -974,8 +974,8 @@ namespace Foo.Bar
     /// <code>
     /// query TestOperation3(
     ///   $single: Bar!
-    ///   $list: [Bar!]!
-    ///   $nestedList: [[Bar!]]
+    ///     $list: [Bar!]!
+    ///     $nestedList: [[Bar!]]
     /// ) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
@@ -1009,8 +1009,8 @@ namespace Foo.Bar
     /// <code>
     /// query TestOperation3(
     ///   $single: Bar!
-    ///   $list: [Bar!]!
-    ///   $nestedList: [[Bar!]]
+    ///     $list: [Bar!]!
+    ///     $nestedList: [[Bar!]]
     /// ) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }
@@ -1162,8 +1162,8 @@ namespace Foo.Bar
     /// <code>
     /// query TestOperation3(
     ///   $single: Bar!
-    ///   $list: [Bar!]!
-    ///   $nestedList: [[Bar!]]
+    ///     $list: [Bar!]!
+    ///     $nestedList: [[Bar!]]
     /// ) {
     ///   foo(single: $single, list: $list, nestedList: $nestedList)
     /// }

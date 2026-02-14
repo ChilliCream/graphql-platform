@@ -651,9 +651,9 @@ namespace Foo.Bar
     /// <code>
     /// query PeopleSearch(
     ///   $term: String!
-    ///   $skip: Int
-    ///   $take: Int
-    ///   $inactive: Boolean
+    ///     $skip: Int
+    ///     $take: Int
+    ///     $inactive: Boolean
     /// ) {
     ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
     ///     __typename
@@ -728,9 +728,9 @@ namespace Foo.Bar
     /// <code>
     /// query PeopleSearch(
     ///   $term: String!
-    ///   $skip: Int
-    ///   $take: Int
-    ///   $inactive: Boolean
+    ///     $skip: Int
+    ///     $take: Int
+    ///     $inactive: Boolean
     /// ) {
     ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
     ///     __typename
@@ -909,9 +909,9 @@ namespace Foo.Bar
     /// <code>
     /// query PeopleSearch(
     ///   $term: String!
-    ///   $skip: Int
-    ///   $take: Int
-    ///   $inactive: Boolean
+    ///     $skip: Int
+    ///     $take: Int
+    ///     $inactive: Boolean
     /// ) {
     ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
     ///     __typename
@@ -1751,6 +1751,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UriSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UUIDSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer>(services, new global::StrawberryShake.Serialization.UrlSerializer("Url"));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IPeopleSearchQueryResult>, global::Foo.Bar.State.PeopleSearchResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IPeopleSearchQueryResult>>(sp));

@@ -525,8 +525,8 @@ namespace Foo.Bar
     /// <code>
     /// mutation StoreUserSettingFor(
     ///   $userId: Int!
-    ///   $customerId: Int!
-    ///   $input: StoreUserSettingForInput!
+    ///     $customerId: Int!
+    ///     $input: StoreUserSettingForInput!
     /// ) {
     ///   storeUserSettingFor(userId: $userId, customerId: $customerId, input: $input) {
     ///     __typename
@@ -575,8 +575,8 @@ namespace Foo.Bar
     /// <code>
     /// mutation StoreUserSettingFor(
     ///   $userId: Int!
-    ///   $customerId: Int!
-    ///   $input: StoreUserSettingForInput!
+    ///     $customerId: Int!
+    ///     $input: StoreUserSettingForInput!
     /// ) {
     ///   storeUserSettingFor(userId: $userId, customerId: $customerId, input: $input) {
     ///     __typename
@@ -699,8 +699,8 @@ namespace Foo.Bar
     /// <code>
     /// mutation StoreUserSettingFor(
     ///   $userId: Int!
-    ///   $customerId: Int!
-    ///   $input: StoreUserSettingForInput!
+    ///     $customerId: Int!
+    ///     $input: StoreUserSettingForInput!
     /// ) {
     ///   storeUserSettingFor(userId: $userId, customerId: $customerId, input: $input) {
     ///     __typename

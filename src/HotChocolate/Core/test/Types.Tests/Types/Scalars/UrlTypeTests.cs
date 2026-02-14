@@ -303,10 +303,10 @@ public class UrlTypeTests
         var type = new UrlType();
 
         // act
-        var compatible = type.IsValueCompatible(null!);
+        void Error() => type.IsValueCompatible(null!);
 
         // assert
-        Assert.False(compatible);
+        Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]

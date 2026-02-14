@@ -245,10 +245,10 @@ public class UriTypeTests
         var type = new UriType();
 
         // act
-        var compatible = type.IsValueCompatible(null!);
+        void Error() => type.IsValueCompatible(null!);
 
         // assert
-        Assert.False(compatible);
+        Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]
