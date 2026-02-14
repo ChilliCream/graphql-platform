@@ -2008,6 +2008,7 @@ operationPlan:
       name: IntrospectionQuery
       hash: a1ed729bdd8eeff7c48797c59222c723
       searchSpace: 1
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

@@ -90,11 +90,11 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query Op_b1ca18eb_4(
+            query Op_b1ca18eb_3(
               $arg2: String
-                $__fusion_3_id: ID!
+                $__fusion_2_id: ID!
             ) {
-              node(id: $__fusion_3_id) {
+              node(id: $__fusion_2_id) {
                 __typename
                 ... on User {
                   displayName(arg: $arg2)
@@ -105,15 +105,15 @@ sourceSchemas:
             [
               {
                 "arg2": "def",
-                "__fusion_3_id": "VXNlcjoxMQ=="
+                "__fusion_2_id": "VXNlcjoxMQ=="
               },
               {
                 "arg2": "def",
-                "__fusion_3_id": "VXNlcjoxMg=="
+                "__fusion_2_id": "VXNlcjoxMg=="
               },
               {
                 "arg2": "def",
-                "__fusion_3_id": "VXNlcjoxMw=="
+                "__fusion_2_id": "VXNlcjoxMw=="
               }
             ]
         response:
@@ -186,11 +186,11 @@ sourceSchemas:
               }
       - request:
           document: |
-            query Op_b1ca18eb_3(
+            query Op_b1ca18eb_4(
               $arg1: String
-                $__fusion_2_id: ID!
+                $__fusion_3_id: ID!
             ) {
-              node(id: $__fusion_2_id) {
+              node(id: $__fusion_3_id) {
                 __typename
                 ... on User {
                   relativeUrl(arg: $arg1)
@@ -201,15 +201,15 @@ sourceSchemas:
             [
               {
                 "arg1": "abc",
-                "__fusion_2_id": "VXNlcjoxMQ=="
+                "__fusion_3_id": "VXNlcjoxMQ=="
               },
               {
                 "arg1": "abc",
-                "__fusion_2_id": "VXNlcjoxMg=="
+                "__fusion_3_id": "VXNlcjoxMg=="
               },
               {
                 "arg1": "abc",
-                "__fusion_2_id": "VXNlcjoxMw=="
+                "__fusion_3_id": "VXNlcjoxMw=="
               }
             ]
         response:
@@ -372,6 +372,7 @@ operationPlan:
         }
       hash: b1ca18ebff5564cc20147d0129664e5d
       searchSpace: 1
+      expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
@@ -416,16 +417,16 @@ operationPlan:
         - id: 1
     - id: 3
       type: Operation
-      schema: B
+      schema: A
       operation: |
         query Op_b1ca18eb_3(
-          $arg1: String
+          $arg2: String
             $__fusion_2_id: ID!
         ) {
           node(id: $__fusion_2_id) {
             __typename
             ... on User {
-              relativeUrl(arg: $arg1)
+              displayName(arg: $arg2)
             }
           }
         }
@@ -436,21 +437,21 @@ operationPlan:
           selectionMap: >-
             id
       forwardedVariables:
-        - arg1
+        - arg2
       dependencies:
         - id: 2
     - id: 4
       type: Operation
-      schema: A
+      schema: B
       operation: |
         query Op_b1ca18eb_4(
-          $arg2: String
+          $arg1: String
             $__fusion_3_id: ID!
         ) {
           node(id: $__fusion_3_id) {
             __typename
             ... on User {
-              displayName(arg: $arg2)
+              relativeUrl(arg: $arg1)
             }
           }
         }
@@ -461,6 +462,6 @@ operationPlan:
           selectionMap: >-
             id
       forwardedVariables:
-        - arg2
+        - arg1
       dependencies:
         - id: 2
