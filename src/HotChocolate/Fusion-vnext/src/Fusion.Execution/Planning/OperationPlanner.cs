@@ -132,7 +132,8 @@ public sealed partial class OperationPlanner
                 operation,
                 operationDefinition,
                 planSteps,
-                searchSpace);
+                searchSpace,
+                expandedNodes);
 
             if (eventSourceEnabled)
             {
@@ -310,6 +311,13 @@ public sealed partial class OperationPlanner
         var searchSpace = (uint)possiblePlans.Count;
         var expandedNodes = 0;
 
+        // Seed branch-and-bound with a greedy complete path so we can prune early.
+        var bestCompleteNode = TryBuildGreedyCompletePlan(possiblePlans);
+        var bestCompleteCost =
+            bestCompleteNode is null
+                ? double.PositiveInfinity
+                : GetCompleteCost(bestCompleteNode);
+
         while (possiblePlans.TryDequeue(out var current, out _))
         {
             expandedNodes++;
@@ -329,16 +337,25 @@ public sealed partial class OperationPlanner
                     current.SchemaName);
             }
 
+            if (GetOptimisticLowerBound(current) >= bestCompleteCost)
+            {
+                continue;
+            }
+
             if (backlog.IsEmpty)
             {
-                // If the backlog is empty, the planning process is complete, and we can return the
-                // steps to build the actual execution plan.
-                return new PlanResult(
-                    current.InternalOperationDefinition,
-                    current.Steps,
-                    searchSpace,
-                    expandedNodes,
-                    current.OperationStepCount);
+                var completeCost = GetCompleteCost(current);
+
+                if (completeCost < bestCompleteCost
+                    || (completeCost.Equals(bestCompleteCost)
+                        && bestCompleteNode is not null
+                        && ComparePlanDeterministically(current, bestCompleteNode) < 0))
+                {
+                    bestCompleteNode = current;
+                    bestCompleteCost = completeCost;
+                }
+
+                continue;
             }
 
             // The backlog represents the tasks we have to complete to build out
@@ -389,7 +406,17 @@ public sealed partial class OperationPlanner
             }
         }
 
-        return null;
+        if (bestCompleteNode is null)
+        {
+            return null;
+        }
+
+        return new PlanResult(
+            bestCompleteNode.InternalOperationDefinition,
+            bestCompleteNode.Steps,
+            searchSpace,
+            expandedNodes,
+            bestCompleteNode.OperationStepCount);
 
         static uint MaxSearchSpace(uint val1, uint val2)
             => (val1 >= val2) ? val1 : val2;
@@ -406,6 +433,162 @@ public sealed partial class OperationPlanner
                 NodeLookupWorkItem => "NodeLookupBound",
                 _ => "Unknown"
             };
+    }
+
+    private PlanNode? TryBuildGreedyCompletePlan(PriorityQueue<PlanNode, double> possiblePlans)
+    {
+        if (!possiblePlans.TryPeek(out var current, out _))
+        {
+            return null;
+        }
+
+        var candidates = new PriorityQueue<PlanNode, double>();
+
+        while (true)
+        {
+            var backlog = current.Backlog;
+            var backlogLowerBound = current.BacklogLowerBound;
+
+            if (backlog.IsEmpty)
+            {
+                return current;
+            }
+
+            backlog = backlog.PopWithLowerBound(out var workItem, ref backlogLowerBound);
+
+            switch (workItem)
+            {
+                case OperationWorkItem { Kind: OperationWorkItemKind.Root } wi:
+                    PlanRootSelections(wi, current, backlog, backlogLowerBound, candidates);
+                    break;
+
+                case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: { } lookup } wi:
+                    PlanLookupSelections(wi, lookup, current, backlog, backlogLowerBound, candidates);
+                    break;
+
+                case FieldRequirementWorkItem { Lookup: null } wi:
+                    PlanInlineFieldWithRequirements(
+                        wi,
+                        current,
+                        candidates,
+                        backlog,
+                        backlogLowerBound);
+                    break;
+
+                case FieldRequirementWorkItem wi:
+                    PlanFieldWithRequirement(
+                        wi,
+                        wi.Lookup,
+                        current,
+                        candidates,
+                        backlog,
+                        backlogLowerBound);
+                    break;
+
+                case NodeFieldWorkItem wi:
+                    PlanNode(wi, current, candidates, backlog, backlogLowerBound);
+                    break;
+
+                case NodeLookupWorkItem { Lookup: { } lookup } wi:
+                    PlanNodeLookup(wi, lookup, current, candidates, backlog, backlogLowerBound);
+                    break;
+
+                default:
+                    throw new NotSupportedException(
+                        "The work item type is not supported.");
+            }
+
+            if (!candidates.TryDequeue(out current, out _))
+            {
+                return null;
+            }
+
+            candidates.Clear();
+        }
+    }
+
+    private static double GetOptimisticLowerBound(PlanNode node)
+        => node.PathCost + node.BacklogLowerBound;
+
+    private static double GetCompleteCost(PlanNode node)
+        => node.PathCost;
+
+    private static int ComparePlanDeterministically(PlanNode left, PlanNode right)
+    {
+        var stepCountComparison = left.OperationStepCount.CompareTo(right.OperationStepCount);
+        if (stepCountComparison != 0)
+        {
+            return stepCountComparison;
+        }
+
+        var stepsComparison = left.Steps.Count.CompareTo(right.Steps.Count);
+        if (stepsComparison != 0)
+        {
+            return stepsComparison;
+        }
+
+        for (var i = 0; i < left.Steps.Count; i++)
+        {
+            var comparison = left.Steps[i].Id.CompareTo(right.Steps[i].Id);
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+
+            comparison = CompareStepDeterministically(left.Steps[i], right.Steps[i]);
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+        }
+
+        return string.CompareOrdinal(left.SchemaName, right.SchemaName);
+
+        static int CompareStepDeterministically(PlanStep leftStep, PlanStep rightStep)
+        {
+            if (leftStep is OperationPlanStep leftOperationStep
+                && rightStep is OperationPlanStep rightOperationStep)
+            {
+                var comparison = string.CompareOrdinal(
+                    leftOperationStep.SchemaName,
+                    rightOperationStep.SchemaName);
+                if (comparison != 0)
+                {
+                    return comparison;
+                }
+
+                comparison = leftOperationStep.RootSelectionSetId.CompareTo(rightOperationStep.RootSelectionSetId);
+                if (comparison != 0)
+                {
+                    return comparison;
+                }
+
+                comparison = leftOperationStep.Definition.SelectionSet.Selections.Count.CompareTo(
+                    rightOperationStep.Definition.SelectionSet.Selections.Count);
+                if (comparison != 0)
+                {
+                    return comparison;
+                }
+
+                return string.CompareOrdinal(
+                    leftOperationStep.Definition.Name?.Value,
+                    rightOperationStep.Definition.Name?.Value);
+            }
+
+            if (leftStep is NodeFieldPlanStep leftNodeStep
+                && rightStep is NodeFieldPlanStep rightNodeStep)
+            {
+                return string.CompareOrdinal(leftNodeStep.ResponseName, rightNodeStep.ResponseName);
+            }
+
+            // Prefer operation steps over node fallback steps when everything else is equal.
+            return leftStep switch
+            {
+                OperationPlanStep when rightStep is NodeFieldPlanStep => -1,
+                NodeFieldPlanStep when rightStep is OperationPlanStep => 1,
+                _ => string.CompareOrdinal(leftStep.GetType().Name, rightStep.GetType().Name)
+            };
+        }
     }
 
     private void PlanRootSelections(
@@ -1739,6 +1922,34 @@ file static class Extensions
         return schemaNames.ToImmutable();
     }
 
+    public static IReadOnlyList<Lookup> OrderLookupsDeterministically(this IEnumerable<Lookup> lookups)
+    {
+        return [.. lookups.OrderBy(LookupOrderingKey, StringComparer.Ordinal)];
+    }
+
+    public static string LookupOrderingKey(Lookup? lookup)
+    {
+        if (lookup is null)
+        {
+            return string.Empty;
+        }
+
+        var path = lookup.Path.Length == 0
+            ? string.Empty
+            : string.Join('.', lookup.Path);
+
+        return string.Concat(
+            lookup.SchemaName,
+            ":",
+            lookup.FieldName,
+            ":",
+            path,
+            ":",
+            lookup.Arguments.Length.ToString(),
+            ":",
+            lookup.Fields.Length.ToString());
+    }
+
     public static ImmutableStack<WorkItem> PopWithLowerBound(
         this ImmutableStack<WorkItem> backlog,
         out WorkItem workItem,
@@ -1933,7 +2144,9 @@ file static class Extensions
             }
 
             var hasEnqueuedDirectLookup = false;
-            foreach (var lookup in compositeSchema.GetPossibleLookups(workItem.SelectionSet.Type, toSchema))
+            foreach (var lookup in compositeSchema
+                .GetPossibleLookups(workItem.SelectionSet.Type, toSchema)
+                .OrderLookupsDeterministically())
             {
                 var lookupWorkItem = workItem with { Lookup = lookup };
                 var branchBacklogLowerBound = backlogLowerBound;
@@ -1960,7 +2173,9 @@ file static class Extensions
                     planNodeTemplate,
                     workItem,
                     toSchema,
-                    compositeSchema))
+                    compositeSchema).OrderBy(
+                    t => LookupOrderingKey(t.WorkItem.Lookup),
+                    StringComparer.Ordinal))
                 {
                     var branchBacklogLowerBound = backlogLowerBound;
                     var branchBacklog = backlog.PushWithLowerBound(
@@ -1997,7 +2212,9 @@ file static class Extensions
             // If we have multiple id lookups in a single schema,
             // we try to choose one that returns the desired type directly
             // and not an abstract type.
-            var byIdLookup = compositeSchema.GetPossibleLookups(type, schemaName)
+            var byIdLookup = compositeSchema
+                .GetPossibleLookups(type, schemaName)
+                .OrderLookupsDeterministically()
                 .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal);
 
             if (byIdLookup is null)
@@ -2026,7 +2243,9 @@ file static class Extensions
         // In this case we enqueue the best matching by id lookup of any source schema.
         if (!hasEnqueuedLookup)
         {
-            var byIdLookup = compositeSchema.GetPossibleLookups(type)
+            var byIdLookup = compositeSchema
+                .GetPossibleLookups(type)
+                .OrderLookupsDeterministically()
                 .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal)
                     ?? throw new InvalidOperationException(
                         $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
@@ -2056,7 +2275,7 @@ file static class Extensions
         var allCandidateSchemas = planNodeTemplate.GetCandidateSchemas(workItem.Selection.SelectionSetId);
         var selectionSetType = workItem.Selection.Field.DeclaringType;
 
-        foreach (var schemaName in workItem.Selection.Field.Sources.Schemas)
+        foreach (var schemaName in workItem.Selection.Field.Sources.Schemas.OrderBy(t => t, StringComparer.Ordinal))
         {
             var candidateSchemas = allCandidateSchemas.Remove(schemaName);
 
@@ -2093,7 +2312,9 @@ file static class Extensions
                     continue;
                 }
 
-                foreach (var lookup in compositeSchema.GetPossibleLookups(selectionSetType, schemaName))
+                foreach (var lookup in compositeSchema
+                    .GetPossibleLookups(selectionSetType, schemaName)
+                    .OrderLookupsDeterministically())
                 {
                     var lookupWorkItem = workItem with { Lookup = lookup };
                     var branchBacklogLowerBound = backlogLowerBound;
@@ -2130,7 +2351,9 @@ file static class Extensions
                     continue;
                 }
 
-                foreach (var lookup in compositeSchema.GetPossibleLookups(selectionSetType, schemaName))
+                foreach (var lookup in compositeSchema
+                    .GetPossibleLookups(selectionSetType, schemaName)
+                    .OrderLookupsDeterministically())
                 {
                     var lookupWorkItem = workItem with { Lookup = lookup };
                     var branchBacklogLowerBound = backlogLowerBound;
@@ -2153,6 +2376,7 @@ file static class Extensions
         SelectionSet selectionSet)
     {
         var candidateSchemas = new HashSet<string>(StringComparer.Ordinal);
+        var rankedSchemas = new List<(string SchemaName, double Cost)>();
 
         CollectCandidateSchemas(
             compositeSchema,
@@ -2171,7 +2395,21 @@ file static class Extensions
                 schemaName,
                 fit);
 
-            yield return (schemaName, fit.ComputeCost());
+            rankedSchemas.Add((schemaName, fit.ComputeCost()));
+        }
+
+        rankedSchemas.Sort(
+            static (left, right) =>
+            {
+                var costComparison = left.Cost.CompareTo(right.Cost);
+                return costComparison != 0
+                    ? costComparison
+                    : string.CompareOrdinal(left.SchemaName, right.SchemaName);
+            });
+
+        foreach (var rankedSchema in rankedSchemas)
+        {
+            yield return rankedSchema;
         }
 
         static void CollectCandidateSchemas(
@@ -2427,7 +2665,9 @@ file static class Extensions
 
                 if (parentType?.ExistsInSchema(schemaName) == true)
                 {
-                    foreach (var lookup in compositeSchema.GetPossibleLookups(parentType, schemaName))
+                    foreach (var lookup in compositeSchema
+                        .GetPossibleLookups(parentType, schemaName)
+                        .OrderLookupsDeterministically())
                     {
                         var newSelectionSet = new SelectionSet(
                             selectionSetIndexBuilder.GetId(finalSelectionSet),

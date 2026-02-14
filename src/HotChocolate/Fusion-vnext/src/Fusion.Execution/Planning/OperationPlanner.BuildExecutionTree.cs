@@ -19,7 +19,8 @@ public sealed partial class OperationPlanner
         Operation operation,
         OperationDefinitionNode operationDefinition,
         ImmutableList<PlanStep> planSteps,
-        uint searchSpace)
+        uint searchSpace,
+        int expandedNodes)
     {
         if (operation.IsIntrospectionOnly())
         {
@@ -31,7 +32,7 @@ public sealed partial class OperationPlanner
 
             var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
 
-            return OperationPlan.Create(operation, nodes, nodes, searchSpace);
+            return OperationPlan.Create(operation, nodes, nodes, searchSpace, expandedNodes);
         }
 
         var completedSteps = new HashSet<int>();
@@ -76,7 +77,7 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
-        return OperationPlan.Create(operation, rootNodes, allNodes, searchSpace);
+        return OperationPlan.Create(operation, rootNodes, allNodes, searchSpace, expandedNodes);
     }
 
     private static ImmutableList<PlanStep> PrepareSteps(

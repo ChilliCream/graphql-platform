@@ -16,9 +16,10 @@ public sealed class PlannerEventSourceTests : FusionTestBase
         // arrange
         using var listener = new PlannerEventListener();
         var schema = CreateCompositeSchema();
+        const string operationId = "planner-etw-start-stop";
 
         // act
-        var plan = PlanOperation(
+        var plan = CreatePlan(
             schema,
             """
             {
@@ -28,20 +29,21 @@ public sealed class PlannerEventSourceTests : FusionTestBase
                 estimatedDelivery(postCode: "12345")
               }
             }
-            """);
+            """,
+            operationId);
 
         // assert
-        var start = listener.Single(PlannerEventSource.PlanStartEventId);
-        var stop = listener.Single(PlannerEventSource.PlanStopEventId);
+        var start = listener.Single(PlannerEventSource.PlanStartEventId, operationId);
+        var stop = listener.Single(PlannerEventSource.PlanStopEventId, operationId);
 
-        Assert.Equal("123456789101112", start.GetStringPayload(0));
-        Assert.Equal("123456789101112", stop.GetStringPayload(0));
+        Assert.Equal(operationId, start.GetStringPayload(0));
+        Assert.Equal(operationId, stop.GetStringPayload(0));
 
         var elapsedMilliseconds = stop.GetInt64Payload(1);
         var searchSpace = stop.GetInt32Payload(2);
         var expandedNodes = stop.GetInt32Payload(3);
         var stepCount = stop.GetInt32Payload(4);
-        var dequeueEvents = listener.ByEventId(PlannerEventSource.PlanDequeueEventId);
+        var dequeueEvents = listener.ByEventId(PlannerEventSource.PlanDequeueEventId, operationId);
 
         Assert.True(elapsedMilliseconds >= 0);
         Assert.Equal((int)plan.SearchSpace, searchSpace);
@@ -79,22 +81,23 @@ public sealed class PlannerEventSourceTests : FusionTestBase
               doesNotExist
             }
             """);
+        const string operationId = "planner-etw-error";
 
         // act
         Assert.ThrowsAny<Exception>(
-            () => planner.CreatePlan("op-error", "hash1234", "hash1234", operation));
+            () => planner.CreatePlan(operationId, "hash1234", "hash1234", operation));
 
         // assert
-        var start = listener.Single(PlannerEventSource.PlanStartEventId);
-        var error = listener.Single(PlannerEventSource.PlanErrorEventId);
-        var dequeueEvents = listener.ByEventId(PlannerEventSource.PlanDequeueEventId);
+        var start = listener.Single(PlannerEventSource.PlanStartEventId, operationId);
+        var error = listener.Single(PlannerEventSource.PlanErrorEventId, operationId);
+        var dequeueEvents = listener.ByEventId(PlannerEventSource.PlanDequeueEventId, operationId);
 
-        Assert.Equal("op-error", start.GetStringPayload(0));
-        Assert.Equal("op-error", error.GetStringPayload(0));
+        Assert.Equal(operationId, start.GetStringPayload(0));
+        Assert.Equal(operationId, error.GetStringPayload(0));
         Assert.Equal("Query", error.GetStringPayload(1));
         Assert.False(string.IsNullOrEmpty(error.GetStringPayload(2)));
         Assert.True(error.GetInt64Payload(3) >= 0);
-        Assert.Empty(listener.ByEventId(PlannerEventSource.PlanStopEventId));
+        Assert.Empty(listener.ByEventId(PlannerEventSource.PlanStopEventId, operationId));
         Assert.Empty(dequeueEvents);
     }
 
@@ -104,9 +107,11 @@ public sealed class PlannerEventSourceTests : FusionTestBase
         // arrange
         using var listener = new PlannerEventListener();
         var schema = CreateCompositeSchema();
+        const string operationId1 = "planner-etw-aggregate-1";
+        const string operationId2 = "planner-etw-aggregate-2";
 
         // act
-        PlanOperation(
+        CreatePlan(
             schema,
             """
             {
@@ -115,9 +120,10 @@ public sealed class PlannerEventSourceTests : FusionTestBase
                 name
               }
             }
-            """);
+            """,
+            operationId1);
 
-        PlanOperation(
+        CreatePlan(
             schema,
             """
             {
@@ -126,18 +132,23 @@ public sealed class PlannerEventSourceTests : FusionTestBase
                 estimatedDelivery(postCode: "12345")
               }
             }
-            """);
+            """,
+            operationId2);
 
         // assert
-        var stopEvents = listener.ByEventId(PlannerEventSource.PlanStopEventId);
-        var dequeueEvents = listener.ByEventId(PlannerEventSource.PlanDequeueEventId);
+        var stopEvents = listener.ByEventId(PlannerEventSource.PlanStopEventId, operationId1)
+            .Concat(listener.ByEventId(PlannerEventSource.PlanStopEventId, operationId2))
+            .ToArray();
+        var dequeueEvents = listener.ByEventId(PlannerEventSource.PlanDequeueEventId, operationId1)
+            .Concat(listener.ByEventId(PlannerEventSource.PlanDequeueEventId, operationId2))
+            .ToArray();
 
-        Assert.Equal(2, stopEvents.Count);
+        Assert.Equal(2, stopEvents.Length);
         Assert.True(stopEvents.Sum(t => t.GetInt32Payload(2)) >= 2);
         Assert.True(stopEvents.Sum(t => t.GetInt32Payload(3)) >= 2);
         Assert.True(stopEvents.Sum(t => t.GetInt64Payload(1)) >= 0);
-        Assert.True(dequeueEvents.Count >= 2);
-        Assert.Equal(stopEvents.Sum(t => t.GetInt32Payload(3)), dequeueEvents.Count);
+        Assert.True(dequeueEvents.Length >= 2);
+        Assert.Equal(stopEvents.Sum(t => t.GetInt32Payload(3)), dequeueEvents.Length);
     }
 
     private static OperationPlanner CreatePlanner(FusionSchemaDefinition schema)
@@ -147,6 +158,20 @@ public sealed class PlannerEventSourceTests : FusionTestBase
         var compiler = new OperationCompiler(schema, pool);
 
         return new OperationPlanner(schema, compiler);
+    }
+
+    private static OperationPlan CreatePlan(
+        FusionSchemaDefinition schema,
+        [StringSyntax("graphql")] string operationText,
+        string operationId)
+    {
+        var planner = CreatePlanner(schema);
+        var operation = ParseOperation(operationText);
+        var shortHash = operationId.Length >= 8
+            ? operationId[..8]
+            : operationId.PadRight(8, '0');
+
+        return planner.CreatePlan(operationId, operationId, shortHash, operation);
     }
 
     private static OperationDefinitionNode ParseOperation([StringSyntax("graphql")] string operationText)
@@ -179,17 +204,22 @@ public sealed class PlannerEventSourceTests : FusionTestBase
                         : [.. eventData.Payload]));
         }
 
-        public IReadOnlyList<CapturedEvent> ByEventId(int eventId)
-            => _events.Where(t => t.EventId == eventId).ToArray();
+        public IReadOnlyList<CapturedEvent> ByEventId(int eventId, string operationId)
+            => _events.Where(t => t.EventId == eventId && t.HasOperationId(operationId)).ToArray();
 
-        public CapturedEvent Single(int eventId)
-            => Assert.Single(ByEventId(eventId));
+        public CapturedEvent Single(int eventId, string operationId)
+            => Assert.Single(ByEventId(eventId, operationId));
     }
 
     private sealed record CapturedEvent(
         int EventId,
         IReadOnlyList<object?> Payload)
     {
+        public bool HasOperationId(string operationId)
+            => Payload.Count > 0
+                && Payload[0] is string payloadOperationId
+                && payloadOperationId.Equals(operationId, StringComparison.Ordinal);
+
         public string GetStringPayload(int index)
             => Assert.IsType<string>(Payload[index]);
 
