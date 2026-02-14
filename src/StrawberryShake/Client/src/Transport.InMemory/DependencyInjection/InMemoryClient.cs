@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -64,7 +65,11 @@ public class InMemoryClient : IInMemoryClient
         }
 
         requestBuilder.SetOperationName(request.Name);
-        requestBuilder.SetVariableValues(CreateVariables(request));
+        requestBuilder.SetVariableValues(CreateVariables(request, out var fileLookup));
+        if (fileLookup is not null)
+        {
+            requestBuilder.Features.Set<IFileLookup>(fileLookup);
+        }
         requestBuilder.SetExtensions(request.GetExtensionsOrNull());
         requestBuilder.SetGlobalState(request.GetContextDataOrNull());
 
@@ -81,11 +86,15 @@ public class InMemoryClient : IInMemoryClient
             .ConfigureAwait(false);
     }
 
-    private IReadOnlyDictionary<string, object?>? CreateVariables(OperationRequest request)
+    private IReadOnlyDictionary<string, object?>? CreateVariables(
+        OperationRequest request,
+        out IFileLookup? fileLookup)
     {
+        fileLookup = null;
+
         if (request.Variables is { } variables)
         {
-            var unflattened = MapFilesToLookup(request.Files);
+            var unflattened = MapFilesToLookup(request.Files, out fileLookup);
             var response = new Dictionary<string, object?>();
 
             foreach (var pair in variables)
@@ -127,9 +136,9 @@ public class InMemoryClient : IInMemoryClient
                 return response;
             }
             default:
-                if (fileValue is Upload upload)
+                if (variables is null && fileValue is string fileKey)
                 {
-                    return new StreamFile(upload.FileName, () => upload.Content, null, upload.ContentType);
+                    return fileKey;
                 }
 
                 return variables;
@@ -144,22 +153,35 @@ public class InMemoryClient : IInMemoryClient
         value = (source, key) switch
         {
             (Dictionary<string, object?> s, string prop) when s.ContainsKey(prop) => s[prop],
-            (List<object> l, int i) when i < l.Count => l[i],
+            (List<object?> l, int i) when i < l.Count => l[i],
             _ => null
         };
     }
 
-    private static IReadOnlyDictionary<string, object> MapFilesToLookup(
-        IReadOnlyDictionary<string, Upload?> files)
+    private static IReadOnlyDictionary<string, object?> MapFilesToLookup(
+        IReadOnlyDictionary<string, Upload?> files,
+        out IFileLookup? fileLookup)
     {
         if (files.Count == 0)
         {
-            return ImmutableDictionary<string, object>.Empty;
+            fileLookup = null;
+            return ImmutableDictionary<string, object?>.Empty;
         }
 
-        var unflattened = new Dictionary<string, object>();
+        var unflattened = new Dictionary<string, object?>();
+        var fileMap = new Dictionary<string, IFile>();
+
         foreach (var file in files)
         {
+            if (!file.Value.HasValue)
+            {
+                continue;
+            }
+
+            var upload = file.Value.Value;
+            fileMap[file.Key] =
+                new StreamFile(upload.FileName, () => upload.Content, null, upload.ContentType);
+
             object? current = unflattened;
             var path = file.Key.Split('.').ToArray();
             for (var i = 1; i < path.Length; i++)
@@ -184,7 +206,7 @@ public class InMemoryClient : IInMemoryClient
 
                     if (nextSegment is null)
                     {
-                        currentList[index] = file.Value;
+                        currentList[index] = file.Key;
                     }
                     else if (currentList.ElementAtOrDefault(index) is not null)
                     {
@@ -210,7 +232,7 @@ public class InMemoryClient : IInMemoryClient
 
                     if (nextSegment is null)
                     {
-                        currentDict[segment] = file.Value;
+                        currentDict[segment] = file.Key;
                     }
                     else if (currentDict.TryGetValue(segment, out var o) && o is not null)
                     {
@@ -229,6 +251,22 @@ public class InMemoryClient : IInMemoryClient
             }
         }
 
+        fileLookup = fileMap.Count == 0 ? null : new InMemoryFileLookup(fileMap);
         return unflattened;
+    }
+
+    private sealed class InMemoryFileLookup(IReadOnlyDictionary<string, IFile> files) : IFileLookup
+    {
+        public bool TryGetFile(string name, [NotNullWhen(true)] out IFile? file)
+        {
+            if (files.TryGetValue(name, out var current))
+            {
+                file = current;
+                return true;
+            }
+
+            file = null;
+            return false;
+        }
     }
 }
