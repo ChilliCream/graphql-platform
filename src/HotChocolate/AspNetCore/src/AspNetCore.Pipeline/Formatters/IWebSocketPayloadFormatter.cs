@@ -1,4 +1,3 @@
-using System.Buffers;
 using HotChocolate.Text.Json;
 
 namespace HotChocolate.AspNetCore.Formatters;

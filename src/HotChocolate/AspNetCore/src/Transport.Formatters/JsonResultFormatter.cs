@@ -15,6 +15,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 {
     private readonly JsonWriterOptions _options;
     private readonly JsonSerializerOptions _serializerOptions;
+    private readonly JsonNullIgnoreCondition _nullIgnoreCondition;
 
     /// <summary>
     /// Initializes a new instance of <see cref="JsonResultFormatter"/> with default options.
@@ -25,6 +26,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     public JsonResultFormatter(bool indented = false)
         : this(new JsonResultFormatterOptions { Indented = indented })
     {
+        _nullIgnoreCondition = JsonNullIgnoreCondition.None;
     }
 
     /// <summary>
@@ -37,6 +39,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     {
         _options = options.CreateWriterOptions() with { SkipValidation = true };
         _serializerOptions = options.CreateSerializerOptions();
+        _nullIgnoreCondition = options.NullIgnoreCondition;
     }
 
     /// <summary>
@@ -88,7 +91,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
     private void FormatInternal(OperationResult result, IBufferWriter<byte> bufferWriter)
     {
-        var jsonWriter = new JsonWriter(bufferWriter, _options);
+        var jsonWriter = new JsonWriter(bufferWriter, _options, _nullIgnoreCondition);
         Format(result, jsonWriter);
     }
 
@@ -114,8 +117,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         WriteErrors(
             writer,
             result.Errors,
-            _serializerOptions,
-            default);
+            _serializerOptions);
 
         if (result.Data.HasValue)
         {
@@ -126,16 +128,14 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         WriteExtensions(
             writer,
             result.Extensions,
-            _serializerOptions,
-            default);
+            _serializerOptions);
 
         if (result.IsIncremental)
         {
             WriteIncremental(
                 writer,
                 result,
-                _serializerOptions,
-                default);
+                _serializerOptions);
         }
 
         writer.WriteEndObject();

@@ -8,6 +8,7 @@ using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Transport.Formatters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;

@@ -3,6 +3,7 @@ using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
+using HotChocolate.Text.Json;
 using HotChocolate.Transport.Formatters;
 using HotChocolate.Transport.Http;
 using Microsoft.AspNetCore.Builder;

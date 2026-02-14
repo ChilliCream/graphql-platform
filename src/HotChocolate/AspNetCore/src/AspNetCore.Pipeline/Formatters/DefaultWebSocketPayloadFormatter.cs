@@ -17,26 +17,85 @@ public sealed class DefaultWebSocketPayloadFormatter(WebSocketPayloadFormatterOp
 
     /// <inheritdoc />
     public void Format(OperationResult result, JsonWriter writer)
-        =>  _internalFormatter.Format(result, writer);
+    {
+        // Save the writer's current null ignore condition so we can restore it after formatting.
+        var savedNullIgnoreCondition = writer.NullIgnoreCondition;
+
+        try
+        {
+            // Apply the null ignore condition configured for this payload formatter.
+            writer.NullIgnoreCondition = _nullIgnoreCondition;
+            _internalFormatter.Format(result, writer);
+        }
+        finally
+        {
+            // Restore the original null ignore condition.
+            writer.NullIgnoreCondition = savedNullIgnoreCondition;
+        }
+    }
 
     /// <inheritdoc />
     public void Format(IError error, JsonWriter writer)
-        => WriteError(writer, error, _serializerOptions, _nullIgnoreCondition);
+    {
+        // Save the writer's current null ignore condition so we can restore it after formatting.
+        var savedNullIgnoreCondition = writer.NullIgnoreCondition;
+
+        try
+        {
+            // Apply the null ignore condition configured for this payload formatter.
+            writer.NullIgnoreCondition = _nullIgnoreCondition;
+            WriteError(writer, error, _serializerOptions);
+        }
+        finally
+        {
+            // Restore the original null ignore condition.
+            writer.NullIgnoreCondition = savedNullIgnoreCondition;
+        }
+    }
 
     /// <inheritdoc />
     public void Format(IReadOnlyList<IError> errors, JsonWriter writer)
     {
-        writer.WriteStartArray();
+        // Save the writer's current null ignore condition so we can restore it after formatting.
+        var savedNullIgnoreCondition = writer.NullIgnoreCondition;
 
-        for (var i = 0; i < errors.Count; i++)
+        try
         {
-            WriteError(writer, errors[i], _serializerOptions, _nullIgnoreCondition);
-        }
+            // Apply the null ignore condition configured for this payload formatter.
+            writer.NullIgnoreCondition = _nullIgnoreCondition;
 
-        writer.WriteEndArray();
+            writer.WriteStartArray();
+
+            for (var i = 0; i < errors.Count; i++)
+            {
+                WriteError(writer, errors[i], _serializerOptions);
+            }
+
+            writer.WriteEndArray();
+        }
+        finally
+        {
+            // Restore the original null ignore condition.
+            writer.NullIgnoreCondition = savedNullIgnoreCondition;
+        }
     }
 
     /// <inheritdoc />
     public void Format(IReadOnlyDictionary<string, object?> extensions, JsonWriter writer)
-        => WriteDictionary(writer, extensions, _serializerOptions, _nullIgnoreCondition);
+    {
+        // Save the writer's current null ignore condition so we can restore it after formatting.
+        var savedNullIgnoreCondition = writer.NullIgnoreCondition;
+
+        try
+        {
+            // Apply the null ignore condition configured for this payload formatter.
+            writer.NullIgnoreCondition = _nullIgnoreCondition;
+            WriteDictionary(writer, extensions, _serializerOptions);
+        }
+        finally
+        {
+            // Restore the original null ignore condition.
+            writer.NullIgnoreCondition = savedNullIgnoreCondition;
+        }
+    }
 }

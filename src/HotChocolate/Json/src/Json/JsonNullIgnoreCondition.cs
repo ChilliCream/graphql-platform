@@ -1,4 +1,4 @@
-namespace HotChocolate.Execution;
+namespace HotChocolate.Text.Json;
 
 /// <summary>
 /// Specifies when null values are ignored.

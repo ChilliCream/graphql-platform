@@ -13,6 +13,17 @@ public sealed partial class JsonWriter
     /// </exception>
     public void WriteNullValue()
     {
+        if (HasDeferredPropertyName)
+        {
+            DiscardDeferredPropertyName();
+            return;
+        }
+
+        if (IgnoreNullListElements && IsInArray)
+        {
+            return;
+        }
+
         WriteLiteralByOptions(JsonConstants.NullValue);
 
         SetFlagToAddListSeparatorBeforeNextItem();
@@ -28,6 +39,8 @@ public sealed partial class JsonWriter
     /// </exception>
     public void WriteBooleanValue(bool value)
     {
+        FlushDeferredPropertyName();
+
         if (value)
         {
             WriteLiteralByOptions(JsonConstants.TrueValue);

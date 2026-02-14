@@ -25,6 +25,6 @@ internal sealed class ErrorListSnapshotValueFormatter
         };
 
         var writer = new JsonWriter(snapshot, writerOptions);
-        JsonValueFormatter.WriteErrors(writer, value, serializationOptions, JsonNullIgnoreCondition.None);
+        JsonValueFormatter.WriteErrors(writer, value, serializationOptions);
     }
 }
