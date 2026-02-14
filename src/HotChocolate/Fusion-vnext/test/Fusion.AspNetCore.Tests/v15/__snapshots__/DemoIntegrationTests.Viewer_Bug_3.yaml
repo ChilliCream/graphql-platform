@@ -42,7 +42,7 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query Op_dc7df637_1 {
+            query Op_dc7df637_2 {
               viewer {
                 subgraphA
               }
@@ -105,7 +105,7 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query Op_dc7df637_2 {
+            query Op_dc7df637_1 {
               subgraphC {
                 someField
                 anotherField
@@ -140,21 +140,21 @@ operationPlan:
   nodes:
     - id: 1
       type: Operation
-      schema: A
+      schema: C
       operation: |
         query Op_dc7df637_1 {
-          viewer {
-            subgraphA
+          subgraphC {
+            someField
+            anotherField
           }
         }
     - id: 2
       type: Operation
-      schema: C
+      schema: A
       operation: |
         query Op_dc7df637_2 {
-          subgraphC {
-            someField
-            anotherField
+          viewer {
+            subgraphA
           }
         }
     - id: 3

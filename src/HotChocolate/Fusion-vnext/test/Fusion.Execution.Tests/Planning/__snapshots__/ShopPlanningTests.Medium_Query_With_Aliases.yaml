@@ -201,12 +201,41 @@ nodes:
       - id: 2
   - id: 4
     type: Operation
-    schema: b
+    schema: g
     operation: |
       query Op_123456789101112_4(
         $__fusion_3_id: ID!
+        $__fusion_4_dimension: ProductDimensionInput!
       ) {
-        productByIdAsync(id: $__fusion_3_id) {
+        productById(id: $__fusion_3_id) {
+          deliveryEstimate(zip: "Foo", dimension: $__fusion_4_dimension)
+        }
+      }
+    source: $.productById
+    target: $.products.nodes.b.nodes.product
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+      - name: __fusion_4_dimension
+        selectionMap: >-
+          {
+            weight
+            length: dimension.length
+            width: dimension.width
+            height: dimension.height
+          }
+    dependencies:
+      - id: 2
+      - id: 3
+  - id: 5
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_5(
+        $__fusion_5_id: ID!
+      ) {
+        productByIdAsync(id: $__fusion_5_id) {
           quantity
           item {
             product {
@@ -218,30 +247,55 @@ nodes:
     source: $.productByIdAsync
     target: $.products.nodes.b.nodes.product
     requirements:
-      - name: __fusion_3_id
+      - name: __fusion_5_id
         selectionMap: >-
           id
     dependencies:
       - id: 2
-  - id: 5
+  - id: 6
     type: Operation
-    schema: g
+    schema: e
     operation: |
-      query Op_123456789101112_5(
-        $__fusion_4_id: ID!
-        $__fusion_5_dimension: ProductDimensionInput!
+      query Op_123456789101112_6(
+        $__fusion_6_id: ID!
       ) {
-        productById(id: $__fusion_4_id) {
-          deliveryEstimate(zip: "Foo", dimension: $__fusion_5_dimension)
+        productById(id: $__fusion_6_id) {
+          weight
+          pictureFileName
+          dimension {
+            length
+            width
+            height
+          }
         }
       }
     source: $.productById
-    target: $.products.nodes.b.nodes.product
+    target: $.products.nodes.b.nodes.product.item.product
     requirements:
-      - name: __fusion_4_id
+      - name: __fusion_6_id
         selectionMap: >-
           id
-      - name: __fusion_5_dimension
+    dependencies:
+      - id: 5
+  - id: 7
+    type: Operation
+    schema: g
+    operation: |
+      query Op_123456789101112_7(
+        $__fusion_7_id: ID!
+        $__fusion_8_dimension: ProductDimensionInput!
+      ) {
+        productById(id: $__fusion_7_id) {
+          deliveryEstimate(zip: "Foo", dimension: $__fusion_8_dimension)
+        }
+      }
+    source: $.productById
+    target: $.products.nodes.b.nodes.product.item.product
+    requirements:
+      - name: __fusion_7_id
+        selectionMap: >-
+          id
+      - name: __fusion_8_dimension
         selectionMap: >-
           {
             weight
@@ -250,16 +304,16 @@ nodes:
             height: dimension.height
           }
     dependencies:
-      - id: 2
-      - id: 3
-  - id: 6
+      - id: 5
+      - id: 6
+  - id: 8
     type: Operation
     schema: f
     operation: |
-      query Op_123456789101112_6(
-        $__fusion_6_id: ID!
+      query Op_123456789101112_8(
+        $__fusion_9_id: ID!
       ) {
-        productById(id: $__fusion_6_id) {
+        productById(id: $__fusion_9_id) {
           reviews {
             edges {
               node {
@@ -274,65 +328,11 @@ nodes:
     source: $.productById
     target: $.products.nodes.b.nodes.product.item.product
     requirements:
-      - name: __fusion_6_id
+      - name: __fusion_9_id
         selectionMap: >-
           id
     dependencies:
-      - id: 4
-  - id: 7
-    type: Operation
-    schema: e
-    operation: |
-      query Op_123456789101112_7(
-        $__fusion_7_id: ID!
-      ) {
-        productById(id: $__fusion_7_id) {
-          weight
-          pictureFileName
-          dimension {
-            length
-            width
-            height
-          }
-        }
-      }
-    source: $.productById
-    target: $.products.nodes.b.nodes.product.item.product
-    requirements:
-      - name: __fusion_7_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 4
-  - id: 8
-    type: Operation
-    schema: g
-    operation: |
-      query Op_123456789101112_8(
-        $__fusion_8_id: ID!
-        $__fusion_9_dimension: ProductDimensionInput!
-      ) {
-        productById(id: $__fusion_8_id) {
-          deliveryEstimate(zip: "Foo", dimension: $__fusion_9_dimension)
-        }
-      }
-    source: $.productById
-    target: $.products.nodes.b.nodes.product.item.product
-    requirements:
-      - name: __fusion_8_id
-        selectionMap: >-
-          id
-      - name: __fusion_9_dimension
-        selectionMap: >-
-          {
-            weight
-            length: dimension.length
-            width: dimension.width
-            height: dimension.height
-          }
-    dependencies:
-      - id: 4
-      - id: 7
+      - id: 5
   - id: 9
     type: Operation
     schema: a
@@ -351,7 +351,7 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 6
+      - id: 8
   - id: 10
     type: Operation
     schema: e
@@ -393,36 +393,12 @@ nodes:
       - id: 2
   - id: 12
     type: Operation
-    schema: b
+    schema: e
     operation: |
       query Op_123456789101112_12(
         $__fusion_13_id: ID!
       ) {
-        productByIdAsync(id: $__fusion_13_id) {
-          quantity
-          item {
-            product {
-              id
-            }
-          }
-        }
-      }
-    source: $.productByIdAsync
-    target: $.products.nodes.reviews.nodes.product
-    requirements:
-      - name: __fusion_13_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 2
-  - id: 13
-    type: Operation
-    schema: e
-    operation: |
-      query Op_123456789101112_13(
-        $__fusion_14_id: ID!
-      ) {
-        productById(id: $__fusion_14_id) {
+        productById(id: $__fusion_13_id) {
           weight
           pictureFileName
           price
@@ -436,30 +412,30 @@ nodes:
     source: $.productById
     target: $.products.nodes.reviews.nodes.product
     requirements:
-      - name: __fusion_14_id
+      - name: __fusion_13_id
         selectionMap: >-
           id
     dependencies:
       - id: 2
-  - id: 14
+  - id: 13
     type: Operation
     schema: g
     operation: |
-      query Op_123456789101112_14(
-        $__fusion_15_id: ID!
-        $__fusion_16_dimension: ProductDimensionInput!
+      query Op_123456789101112_13(
+        $__fusion_14_id: ID!
+        $__fusion_15_dimension: ProductDimensionInput!
       ) {
-        productById(id: $__fusion_15_id) {
-          deliveryEstimate(zip: "Foo", dimension: $__fusion_16_dimension)
+        productById(id: $__fusion_14_id) {
+          deliveryEstimate(zip: "Foo", dimension: $__fusion_15_dimension)
         }
       }
     source: $.productById
     target: $.products.nodes.reviews.nodes.product
     requirements:
-      - name: __fusion_15_id
+      - name: __fusion_14_id
         selectionMap: >-
           id
-      - name: __fusion_16_dimension
+      - name: __fusion_15_dimension
         selectionMap: >-
           {
             weight
@@ -469,7 +445,31 @@ nodes:
           }
     dependencies:
       - id: 2
-      - id: 13
+      - id: 12
+  - id: 14
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_14(
+        $__fusion_16_id: ID!
+      ) {
+        productByIdAsync(id: $__fusion_16_id) {
+          quantity
+          item {
+            product {
+              id
+            }
+          }
+        }
+      }
+    source: $.productByIdAsync
+    target: $.products.nodes.reviews.nodes.product
+    requirements:
+      - name: __fusion_16_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 2
   - id: 15
     type: Operation
     schema: e
@@ -494,7 +494,7 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 12
+      - id: 14
   - id: 16
     type: Operation
     schema: g
@@ -522,7 +522,7 @@ nodes:
             height: dimension.height
           }
     dependencies:
-      - id: 12
+      - id: 14
       - id: 15
   - id: 17
     type: Operation
@@ -550,7 +550,7 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 12
+      - id: 14
   - id: 18
     type: Operation
     schema: a

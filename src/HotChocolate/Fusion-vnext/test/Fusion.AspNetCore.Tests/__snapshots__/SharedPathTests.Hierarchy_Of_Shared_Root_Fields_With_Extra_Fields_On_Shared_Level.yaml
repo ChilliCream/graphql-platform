@@ -81,7 +81,7 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query Op_2deb87e6_1 {
+            query Op_2deb87e6_2 {
               viewer {
                 schema1
                 settings {
@@ -206,7 +206,7 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query Op_2deb87e6_2 {
+            query Op_2deb87e6_1 {
               viewer {
                 schema3
               }
@@ -240,23 +240,23 @@ operationPlan:
   nodes:
     - id: 1
       type: Operation
-      schema: A
+      schema: C
       operation: |
         query Op_2deb87e6_1 {
+          viewer {
+            schema3
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query Op_2deb87e6_2 {
           viewer {
             schema1
             settings {
               schema1
             }
-          }
-        }
-    - id: 2
-      type: Operation
-      schema: C
-      operation: |
-        query Op_2deb87e6_2 {
-          viewer {
-            schema3
           }
         }
     - id: 3

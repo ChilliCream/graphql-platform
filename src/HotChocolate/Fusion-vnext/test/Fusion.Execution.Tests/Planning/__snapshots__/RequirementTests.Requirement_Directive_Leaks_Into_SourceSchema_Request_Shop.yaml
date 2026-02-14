@@ -146,45 +146,23 @@ nodes:
       - id: 2
   - id: 4
     type: Operation
-    schema: b
+    schema: g
     operation: |
       query findMe_123456789101112_4(
         $__fusion_3_id: ID!
+        $__fusion_4_dimension: ProductDimensionInput!
       ) {
-        productByIdAsync(id: $__fusion_3_id) {
-          quantity
-        }
-      }
-    source: $.productByIdAsync
-    target: $.users.nodes.reviews.nodes.product
-    requirements:
-      - name: __fusion_3_id
-        selectionMap: >-
-          id
-    conditions:
-      - variable: $skip
-        passingValue: false
-    dependencies:
-      - id: 2
-  - id: 5
-    type: Operation
-    schema: g
-    operation: |
-      query findMe_123456789101112_5(
-        $__fusion_4_id: ID!
-        $__fusion_5_dimension: ProductDimensionInput!
-      ) {
-        productById(id: $__fusion_4_id) {
-          deliveryEstimate(zip: "4383", dimension: $__fusion_5_dimension)
+        productById(id: $__fusion_3_id) {
+          deliveryEstimate(zip: "4383", dimension: $__fusion_4_dimension)
         }
       }
     source: $.productById
     target: $.users.nodes.reviews.nodes.product
     requirements:
-      - name: __fusion_4_id
+      - name: __fusion_3_id
         selectionMap: >-
           id
-      - name: __fusion_5_dimension
+      - name: __fusion_4_dimension
         selectionMap: >-
           {
             weight
@@ -195,6 +173,28 @@ nodes:
     dependencies:
       - id: 2
       - id: 3
+  - id: 5
+    type: Operation
+    schema: b
+    operation: |
+      query findMe_123456789101112_5(
+        $__fusion_5_id: ID!
+      ) {
+        productByIdAsync(id: $__fusion_5_id) {
+          quantity
+        }
+      }
+    source: $.productByIdAsync
+    target: $.users.nodes.reviews.nodes.product
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    conditions:
+      - variable: $skip
+        passingValue: false
+    dependencies:
+      - id: 2
   - id: 6
     type: Operation
     schema: a
@@ -216,21 +216,16 @@ nodes:
       - id: 2
   - id: 7
     type: Operation
-    schema: b
+    schema: e
     operation: |
       query findMe_123456789101112_7(
         $__fusion_7_id: ID!
       ) {
-        productByIdAsync(id: $__fusion_7_id) {
-          item {
-            quantity
-            product {
-              id
-            }
-          }
+        productById(id: $__fusion_7_id) {
+          weight
         }
       }
-    source: $.productByIdAsync
+    source: $.productById
     target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
     requirements:
       - name: __fusion_7_id
@@ -240,16 +235,21 @@ nodes:
       - id: 2
   - id: 8
     type: Operation
-    schema: e
+    schema: b
     operation: |
       query findMe_123456789101112_8(
         $__fusion_8_id: ID!
       ) {
-        productById(id: $__fusion_8_id) {
-          weight
+        productByIdAsync(id: $__fusion_8_id) {
+          item {
+            quantity
+            product {
+              id
+            }
+          }
         }
       }
-    source: $.productById
+    source: $.productByIdAsync
     target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
     requirements:
       - name: __fusion_8_id
@@ -275,4 +275,4 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 7
+      - id: 8
