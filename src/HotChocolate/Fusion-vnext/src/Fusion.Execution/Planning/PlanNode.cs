@@ -55,35 +55,31 @@ internal sealed record PlanNode
         }
     }
 
-    public required ImmutableStack<WorkItem> Backlog
-    {
-        get;
-        init
-        {
-            field = value;
-            BacklogCost = value.Sum(t => t.Cost);
-        }
-    }
+    public required ImmutableStack<WorkItem> Backlog { get; init; }
 
-    public ImmutableList<PlanStep> Steps
-    {
-        get;
-        init
-        {
-            field = value;
-            PathCost = value.OfType<OperationPlanStep>().Count() * 10.0;
-        }
-    } = [];
+    /// <summary>
+    /// The optimistic lower bound for all work currently in <see cref="Backlog"/>.
+    /// This is updated incrementally by planner transitions.
+    /// </summary>
+    public double BacklogLowerBound { get; init; }
+
+    public ImmutableList<PlanStep> Steps { get; init; } = [];
+
+    /// <summary>
+    /// The number of <see cref="OperationPlanStep"/> instances in <see cref="Steps"/>.
+    /// This is updated incrementally by planner transitions.
+    /// </summary>
+    public int OperationStepCount { get; init; }
 
     public uint LastRequirementId { get; init; }
 
-    public double PathCost { get; private set; }
+    public double PathCost => OperationStepCount * PlannerCostEstimator.OperationStepCost;
 
-    public double BacklogCost { get; private set; }
+    public double BacklogCost => BacklogLowerBound;
 
     public double ResolutionCost { get; init; }
 
-    public double TotalCost => PathCost + BacklogCost + ResolutionCost;
+    public double TotalCost => PathCost + BacklogLowerBound + ResolutionCost;
 
     public string CreateOperationName(int stepId)
     {
