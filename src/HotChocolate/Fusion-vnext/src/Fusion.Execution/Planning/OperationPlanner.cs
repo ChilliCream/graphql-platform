@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
@@ -56,66 +57,110 @@ public sealed partial class OperationPlanner
         ArgumentException.ThrowIfNullOrEmpty(shortHash);
         ArgumentNullException.ThrowIfNull(operationDefinition);
 
-        // We first need to create an index to keep track of the logical selections
-        // sets before we can branch them. This allows us to inline requirements later
-        // into the right place.
-        var index = SelectionSetIndexer.Create(operationDefinition);
+        var eventSource = PlannerEventSource.Log;
+        var eventSourceEnabled = eventSource.IsEnabled();
+        var operationType = operationDefinition.Operation.ToString();
+        var rootSelectionCount = operationDefinition.SelectionSet.Selections.Count;
+        var startedAt = eventSourceEnabled ? Stopwatch.GetTimestamp() : 0L;
+        var searchSpace = 0u;
+        var expandedNodes = 0;
+        var stepCount = 0;
 
-        var (node, selectionSet) = operationDefinition.Operation switch
+        if (eventSourceEnabled)
         {
-            OperationType.Query => CreateQueryPlanBase(operationDefinition, shortHash, index),
-            OperationType.Mutation => CreateMutationPlanBase(operationDefinition, shortHash, index),
-            OperationType.Subscription => CreateSubscriptionPlanBase(operationDefinition, shortHash, index),
-            _ => throw new ArgumentOutOfRangeException()
-        };
-
-        var internalOperationDefinition = operationDefinition;
-        ImmutableList<PlanStep> planSteps = [];
-        uint searchSpace = 0;
-
-        if (!node.Backlog.IsEmpty)
-        {
-            var possiblePlans = new PriorityQueue<PlanNode, double>();
-
-            foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
-            {
-                possiblePlans.EnqueueWithCost(
-                    node with
-                    {
-                        SchemaName = schemaName,
-                        ResolutionCost = resolutionCost
-                    },
-                    _schema);
-            }
-
-            if (possiblePlans.Count < 1)
-            {
-                possiblePlans.EnqueueWithCost(node, _schema);
-            }
-
-            var plan = Plan(possiblePlans);
-
-            if (!plan.HasValue)
-            {
-                throw new InvalidOperationException("No possible plan was found.");
-            }
-
-            internalOperationDefinition = plan.Value.InternalOperationDefinition;
-            planSteps = plan.Value.Steps;
-            searchSpace = plan.Value.SearchSpace;
-
-            internalOperationDefinition = AddTypeNameToAbstractSelections(
-                internalOperationDefinition,
-                _schema.GetOperationType(operationDefinition.Operation));
+            eventSource.PlanStart(id, operationType, rootSelectionCount);
         }
 
-        var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
+        try
+        {
+            // We first need to create an index to keep track of the logical selections
+            // sets before we can branch them. This allows us to inline requirements later
+            // into the right place.
+            var index = SelectionSetIndexer.Create(operationDefinition);
 
-        return BuildExecutionPlan(
-            operation,
-            operationDefinition,
-            planSteps,
-            searchSpace);
+            var (node, selectionSet) = operationDefinition.Operation switch
+            {
+                OperationType.Query => CreateQueryPlanBase(operationDefinition, shortHash, index),
+                OperationType.Mutation => CreateMutationPlanBase(operationDefinition, shortHash, index),
+                OperationType.Subscription => CreateSubscriptionPlanBase(operationDefinition, shortHash, index),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            var internalOperationDefinition = operationDefinition;
+            ImmutableList<PlanStep> planSteps = [];
+
+            if (!node.Backlog.IsEmpty)
+            {
+                var possiblePlans = new PriorityQueue<PlanNode, double>();
+
+                foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
+                {
+                    possiblePlans.EnqueueWithCost(
+                        node with
+                        {
+                            SchemaName = schemaName,
+                            ResolutionCost = resolutionCost
+                        },
+                        _schema);
+                }
+
+                if (possiblePlans.Count < 1)
+                {
+                    possiblePlans.EnqueueWithCost(node, _schema);
+                }
+
+                var plan = Plan(id, possiblePlans, eventSourceEnabled);
+
+                if (!plan.HasValue)
+                {
+                    throw new InvalidOperationException("No possible plan was found.");
+                }
+
+                internalOperationDefinition = plan.Value.InternalOperationDefinition;
+                planSteps = plan.Value.Steps;
+                searchSpace = plan.Value.SearchSpace;
+                expandedNodes = plan.Value.ExpandedNodes;
+                stepCount = plan.Value.StepCount;
+
+                internalOperationDefinition = AddTypeNameToAbstractSelections(
+                    internalOperationDefinition,
+                    _schema.GetOperationType(operationDefinition.Operation));
+            }
+
+            var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
+            var operationPlan = BuildExecutionPlan(
+                operation,
+                operationDefinition,
+                planSteps,
+                searchSpace);
+
+            if (eventSourceEnabled)
+            {
+                var elapsed = Stopwatch.GetElapsedTime(startedAt);
+                eventSource.PlanStop(
+                    id,
+                    (long)elapsed.TotalMilliseconds,
+                    searchSpace <= int.MaxValue ? (int)searchSpace : int.MaxValue,
+                    expandedNodes,
+                    stepCount);
+            }
+
+            return operationPlan;
+        }
+        catch (Exception ex)
+        {
+            if (eventSourceEnabled)
+            {
+                var elapsed = Stopwatch.GetElapsedTime(startedAt);
+                eventSource.PlanError(
+                    id,
+                    operationType,
+                    ex.GetType().FullName ?? ex.GetType().Name,
+                    (long)elapsed.TotalMilliseconds);
+            }
+
+            throw;
+        }
     }
 
     private (PlanNode Node, SelectionSet First) CreateQueryPlanBase(
@@ -256,23 +301,44 @@ public sealed partial class OperationPlanner
         return (node, selectionSet);
     }
 
-    private PlanResult? Plan(PriorityQueue<PlanNode, double> possiblePlans)
+    private PlanResult? Plan(
+        string operationId,
+        PriorityQueue<PlanNode, double> possiblePlans,
+        bool emitPlannerEvents)
     {
+        var eventSource = PlannerEventSource.Log;
         var searchSpace = (uint)possiblePlans.Count;
+        var expandedNodes = 0;
 
         while (possiblePlans.TryDequeue(out var current, out _))
         {
+            expandedNodes++;
             var possiblePlansCount = possiblePlans.Count;
             searchSpace = MaxSearchSpace(Unsafe.As<int, uint>(ref possiblePlansCount), searchSpace);
 
             var backlog = current.Backlog;
             var backlogLowerBound = current.BacklogLowerBound;
 
+            if (emitPlannerEvents)
+            {
+                eventSource.PlanDequeue(
+                    operationId,
+                    expandedNodes,
+                    possiblePlansCount,
+                    backlog.IsEmpty ? "Complete" : FormatWorkItemName(backlog.Peek()),
+                    current.SchemaName);
+            }
+
             if (backlog.IsEmpty)
             {
                 // If the backlog is empty, the planning process is complete, and we can return the
                 // steps to build the actual execution plan.
-                return new PlanResult(current.InternalOperationDefinition, current.Steps, searchSpace);
+                return new PlanResult(
+                    current.InternalOperationDefinition,
+                    current.Steps,
+                    searchSpace,
+                    expandedNodes,
+                    current.OperationStepCount);
             }
 
             // The backlog represents the tasks we have to complete to build out
@@ -327,6 +393,19 @@ public sealed partial class OperationPlanner
 
         static uint MaxSearchSpace(uint val1, uint val2)
             => (val1 >= val2) ? val1 : val2;
+
+        static string FormatWorkItemName(WorkItem workItem)
+            => workItem switch
+            {
+                OperationWorkItem { Kind: OperationWorkItemKind.Root } => "OperationRoot",
+                OperationWorkItem { Kind: OperationWorkItemKind.Lookup } => "OperationLookup",
+                FieldRequirementWorkItem { Lookup: null } => "FieldRequirementInline",
+                FieldRequirementWorkItem => "FieldRequirementLookup",
+                NodeFieldWorkItem => "NodeField",
+                NodeLookupWorkItem { Lookup: null } => "NodeLookup",
+                NodeLookupWorkItem => "NodeLookupBound",
+                _ => "Unknown"
+            };
     }
 
     private void PlanRootSelections(
@@ -1624,7 +1703,9 @@ public sealed partial class OperationPlanner
     private readonly record struct PlanResult(
         OperationDefinitionNode InternalOperationDefinition,
         ImmutableList<PlanStep> Steps,
-        uint SearchSpace);
+        uint SearchSpace,
+        int ExpandedNodes,
+        int StepCount);
 }
 
 file static class Extensions
