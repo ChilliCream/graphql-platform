@@ -142,30 +142,6 @@ sourceSchemas:
                 {
                   "__fusion_1_id": "2"
                 }
-            - document: |
-                query Op_fb4f667e_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  authorById(id: $__fusion_1_id) {
-                    name
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "2"
-                }
-            - document: |
-                query Op_fb4f667e_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  authorById(id: $__fusion_1_id) {
-                    name
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "2"
-                }
         response:
           contentType: application/jsonl; charset=utf-8
           results:

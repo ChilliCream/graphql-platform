@@ -48,7 +48,7 @@ internal sealed partial class DeferExecutionCoordinator
     /// </summary>
     public int Branch(int currentBranchId, Path path, DeferUsage deferUsage)
     {
-        Debug.Assert(_isInitialized);
+        AssertInitialized();
 
         var key = new DeferredBranchKey(path, deferUsage, currentBranchId);
 
@@ -74,7 +74,7 @@ internal sealed partial class DeferExecutionCoordinator
     /// </summary>
     public void EnqueueResult(OperationResult result)
     {
-        Debug.Assert(_isInitialized);
+        AssertInitialized();
 
         lock (_sync)
         {
@@ -89,7 +89,7 @@ internal sealed partial class DeferExecutionCoordinator
     /// </summary>
     public void EnqueueResult(OperationResult result, int branchId)
     {
-        Debug.Assert(_isInitialized);
+        AssertInitialized();
 
         lock (_sync)
         {
@@ -110,7 +110,7 @@ internal sealed partial class DeferExecutionCoordinator
     public async IAsyncEnumerable<OperationResult> ReadResultsAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        Debug.Assert(_isInitialized);
+        AssertInitialized();
 
         List<OperationResult>? snapshot = null;
         await using var registration = cancellationToken.Register(_signal.Set);

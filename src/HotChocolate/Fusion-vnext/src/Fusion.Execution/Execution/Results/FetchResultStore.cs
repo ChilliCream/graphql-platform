@@ -362,6 +362,8 @@ SaveSafe_Next:
 
             PooledArrayWriter? buffer = null;
             VariableValues[]? variableValueSets = null;
+            Dictionary<ObjectValueNode, int>? seen = null;
+            List<Path>?[]? additionalPaths = null;
             var nextIndex = 0;
 
             foreach (var result in current)
@@ -372,10 +374,44 @@ SaveSafe_Next:
                     requiredData,
                     ref buffer);
 
-                if (variables is not null)
+                if (variables is null)
                 {
-                    variableValueSets ??= new VariableValues[current.Count];
-                    variableValueSets[nextIndex++] = new VariableValues(result.Path, variables);
+                    continue;
+                }
+
+                variableValueSets ??= new VariableValues[current.Count];
+
+                if (nextIndex > 0)
+                {
+                    seen ??= new Dictionary<ObjectValueNode, int>(VariableValueComparer.Instance)
+                    {
+                        [variableValueSets[0].Values] = 0
+                    };
+
+                    if (seen.TryGetValue(variables, out var existingIndex))
+                    {
+                        additionalPaths ??= new List<Path>?[current.Count];
+                        (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                        continue;
+                    }
+
+                    seen[variables] = nextIndex;
+                }
+
+                variableValueSets[nextIndex++] = new VariableValues(result.Path, variables);
+            }
+
+            if (additionalPaths is not null)
+            {
+                for (var i = 0; i < nextIndex; i++)
+                {
+                    if (additionalPaths[i] is { } paths)
+                    {
+                        variableValueSets![i] = variableValueSets[i] with
+                        {
+                            AdditionalPaths = [.. paths]
+                        };
+                    }
                 }
             }
 
