@@ -2350,9 +2350,7 @@ file static class Extensions
             }
 
             var hasEnqueuedDirectLookup = false;
-            foreach (var lookup in compositeSchema
-                .GetPossibleLookups(workItem.SelectionSet.Type, toSchema)
-                .OrderLookupsDeterministically())
+            foreach (var lookup in compositeSchema.GetPossibleLookupsOrdered(workItem.SelectionSet.Type, toSchema))
             {
                 var lookupWorkItem = workItem with { Lookup = lookup };
                 var branchBacklogCostState = backlogCostState;
@@ -2434,8 +2432,7 @@ file static class Extensions
             // we try to choose one that returns the desired type directly
             // and not an abstract type.
             var byIdLookup = compositeSchema
-                .GetPossibleLookups(type, schemaName)
-                .OrderLookupsDeterministically()
+                .GetPossibleLookupsOrdered(type, schemaName)
                 .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal);
 
             if (byIdLookup is null)
@@ -2467,8 +2464,7 @@ file static class Extensions
         if (!hasEnqueuedLookup)
         {
             var byIdLookup = compositeSchema
-                .GetPossibleLookups(type)
-                .OrderLookupsDeterministically()
+                .GetPossibleLookupsOrdered(type)
                 .FirstOrDefault(l => l.Fields is [PathNode { PathSegment.FieldName.Value: "id" }] && !l.IsInternal)
                     ?? throw new InvalidOperationException(
                         $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
@@ -2510,7 +2506,12 @@ file static class Extensions
         // Requirement planning can fork into inline and lookup paths.
         // Both are scored from the same popped template by cloning and
         // mutating backlog state per candidate.
-        foreach (var schemaName in workItem.Selection.Field.Sources.Schemas.OrderBy(t => t, StringComparer.Ordinal))
+        var requirementSchemas =
+            compositeSchema.TryGetFieldResolution(selectionSetType, workItem.Selection.Field.Name, out var fieldResolution)
+                ? fieldResolution.Schemas
+                : workItem.Selection.Field.Sources.Schemas.OrderBy(static t => t, StringComparer.Ordinal).ToImmutableArray();
+
+        foreach (var schemaName in requirementSchemas)
         {
             var candidateSchemas = allCandidateSchemas.Remove(schemaName);
 
@@ -2551,9 +2552,7 @@ file static class Extensions
                     continue;
                 }
 
-                foreach (var lookup in compositeSchema
-                    .GetPossibleLookups(selectionSetType, schemaName)
-                    .OrderLookupsDeterministically())
+                foreach (var lookup in compositeSchema.GetPossibleLookupsOrdered(selectionSetType, schemaName))
                 {
                     var lookupWorkItem = workItem with { Lookup = lookup };
                     var branchBacklogCostState = backlogCostState;
@@ -2594,9 +2593,7 @@ file static class Extensions
                     continue;
                 }
 
-                foreach (var lookup in compositeSchema
-                    .GetPossibleLookups(selectionSetType, schemaName)
-                    .OrderLookupsDeterministically())
+                foreach (var lookup in compositeSchema.GetPossibleLookupsOrdered(selectionSetType, schemaName))
                 {
                     var lookupWorkItem = workItem with { Lookup = lookup };
                     var branchBacklogCostState = backlogCostState;
@@ -2620,6 +2617,9 @@ file static class Extensions
         this FusionSchemaDefinition compositeSchema,
         SelectionSet selectionSet)
     {
+        ArgumentNullException.ThrowIfNull(compositeSchema);
+        ArgumentNullException.ThrowIfNull(selectionSet);
+
         var candidateSchemas = new HashSet<string>(StringComparer.Ordinal);
         var rankedSchemas = new List<(string SchemaName, double Cost)>();
 
@@ -2685,9 +2685,19 @@ file static class Extensions
                             continue;
                         }
 
-                        foreach (var schemaName in field.Sources.Schemas)
+                        if (compositeSchema.TryGetFieldResolution(complexType, field.Name, out var fieldResolution))
                         {
-                            candidateSchemas.Add(schemaName);
+                            foreach (var schemaName in fieldResolution.Schemas)
+                            {
+                                candidateSchemas.Add(schemaName);
+                            }
+                        }
+                        else
+                        {
+                            foreach (var schemaName in field.Sources.Schemas)
+                            {
+                                candidateSchemas.Add(schemaName);
+                            }
                         }
 
                         break;
@@ -2741,25 +2751,49 @@ file static class Extensions
 
                         fit.TotalFields++;
 
-                        if (field.Sources.ContainsSchema(schemaName))
+                        if (compositeSchema.TryGetFieldResolution(complexType, field.Name, out var fieldResolution))
                         {
-                            fit.Resolvable++;
-
-                            if (field.Sources.TryGetMember(schemaName, out var source)
-                                && source.Requirements is not null)
+                            if (fieldResolution.ContainsSchema(schemaName))
                             {
-                                fit.WithRequirements++;
+                                fit.Resolvable++;
+
+                                if (fieldResolution.HasRequirements(schemaName))
+                                {
+                                    fit.WithRequirements++;
+                                }
+                            }
+                            else
+                            {
+                                fit.Unresolvable++;
+
+                                foreach (var spilloverSchema in fieldResolution.Schemas)
+                                {
+                                    fit.SpilloverSchemas.Add(spilloverSchema);
+                                }
                             }
                         }
                         else
                         {
-                            fit.Unresolvable++;
-
-                            foreach (var spilloverSchema in field.Sources.Schemas)
+                            if (field.Sources.ContainsSchema(schemaName))
                             {
-                                if (!spilloverSchema.Equals(schemaName, StringComparison.Ordinal))
+                                fit.Resolvable++;
+
+                                if (field.Sources.TryGetMember(schemaName, out var source)
+                                    && source.Requirements is not null)
                                 {
-                                    fit.SpilloverSchemas.Add(spilloverSchema);
+                                    fit.WithRequirements++;
+                                }
+                            }
+                            else
+                            {
+                                fit.Unresolvable++;
+
+                                foreach (var spilloverSchema in field.Sources.Schemas)
+                                {
+                                    if (!spilloverSchema.Equals(schemaName, StringComparison.Ordinal))
+                                    {
+                                        fit.SpilloverSchemas.Add(spilloverSchema);
+                                    }
                                 }
                             }
                         }
@@ -2911,8 +2945,7 @@ file static class Extensions
                 if (parentType?.ExistsInSchema(schemaName) == true)
                 {
                     foreach (var lookup in compositeSchema
-                        .GetPossibleLookups(parentType, schemaName)
-                        .OrderLookupsDeterministically())
+                        .GetPossibleLookupsOrdered(parentType, schemaName))
                     {
                         var newSelectionSet = new SelectionSet(
                             selectionSetIndexBuilder.GetId(finalSelectionSet),

@@ -295,20 +295,37 @@ internal static class PlannerCostEstimator
 
                     var field = complexType.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
 
-                    if (!field.Sources.ContainsSchema(targetSchema))
+                    if (schema.TryGetFieldResolution(complexType, field.Name, out var fieldResolution))
                     {
-                        foreach (var schemaName in field.Sources.Schemas)
+                        if (!fieldResolution.ContainsSchema(targetSchema))
                         {
-                            if (!schemaName.Equals(targetSchema, StringComparison.Ordinal))
+                            foreach (var schemaName in fieldResolution.Schemas)
                             {
                                 spilloverSchemas.Add(schemaName);
                             }
                         }
+                        else if (fieldResolution.HasRequirements(targetSchema))
+                        {
+                            spilloverSchemas.Add("__requirement__");
+                        }
                     }
-                    else if (field.Sources.TryGetMember(targetSchema, out var source)
-                        && source.Requirements is not null)
+                    else
                     {
-                        spilloverSchemas.Add("__requirement__");
+                        if (!field.Sources.ContainsSchema(targetSchema))
+                        {
+                            foreach (var schemaName in field.Sources.Schemas)
+                            {
+                                if (!schemaName.Equals(targetSchema, StringComparison.Ordinal))
+                                {
+                                    spilloverSchemas.Add(schemaName);
+                                }
+                            }
+                        }
+                        else if (field.Sources.TryGetMember(targetSchema, out var source)
+                            && source.Requirements is not null)
+                        {
+                            spilloverSchemas.Add("__requirement__");
+                        }
                     }
 
                     if (fieldNode.SelectionSet is not null)
