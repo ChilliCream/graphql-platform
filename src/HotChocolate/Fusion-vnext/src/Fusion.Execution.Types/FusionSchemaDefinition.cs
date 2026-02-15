@@ -409,6 +409,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
 
             foreach (var possibleLookup in GetPossibleLookups(type, toSchema))
             {
+                context.Reset();
                 keyTransitionVisitor.Visit(possibleLookup.Requirements, context);
 
                 if (context.NeedsTransition)
