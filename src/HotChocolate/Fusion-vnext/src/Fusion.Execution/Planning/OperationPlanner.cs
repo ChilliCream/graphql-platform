@@ -350,12 +350,14 @@ public sealed partial class OperationPlanner
         var searchSpace = (uint)possiblePlans.Count;
         var expandedNodes = 0;
 
-        // Seed branch-and-bound with a greedy complete path so we can prune early.
+        // TryBuildGreedyCompletePlan quickly builds one full plan by always choosing the currently
+        // cheapest next option at each step.
+        //
+        // It gives the planner an initial best known complete cost, so the main search can skip branches
+        // that are already worse. If it cannot finish a full plan, it returns null and the planner
+        // continues without that early shortcut.
         var bestCompleteNode = TryBuildGreedyCompletePlan(possiblePlans);
-        var bestCompleteCost =
-            bestCompleteNode is null
-                ? double.PositiveInfinity
-                : GetCompleteCost(bestCompleteNode);
+        var bestCompleteCost = bestCompleteNode is null ? double.PositiveInfinity : GetCompleteCost(bestCompleteNode);
 
         while (possiblePlans.TryDequeue(out var current, out _))
         {
@@ -376,6 +378,9 @@ public sealed partial class OperationPlanner
                     current.SchemaName);
             }
 
+            // If the current plan is already at least as expensive as the
+            // best complete plan, we can skip it and don't need to evaluate
+            // it any further.
             if (GetOptimisticLowerBound(current) >= bestCompleteCost)
             {
                 continue;
@@ -383,6 +388,8 @@ public sealed partial class OperationPlanner
 
             if (backlog.IsEmpty)
             {
+                // We found a complete plan. Keep it if it is cheaper than the current best plan.
+                // If cost is the same, use a deterministic tie-break so results stay stable.
                 var completeCost = GetCompleteCost(current);
 
                 if (completeCost < bestCompleteCost
