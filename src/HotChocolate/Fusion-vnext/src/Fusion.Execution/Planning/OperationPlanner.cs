@@ -2131,6 +2131,9 @@ file static class Extensions
         out WorkItem workItem,
         ref BacklogCostState backlogCostState)
     {
+        // BacklogCostState is the authoritative incremental h(n) state.
+        // Every pop/push must update it in lockstep with the stack so
+        // branch scoring stays O(1) per transition.
         backlog = backlog.Pop(out workItem);
         backlogCostState = PlannerCostEstimator.RemoveWorkItemLowerBound(backlogCostState, workItem);
 
@@ -2305,6 +2308,10 @@ file static class Extensions
                 planNodeTemplate.OpsPerLevel,
                 branchBacklogCostState);
 
+        // Each branch starts from the same popped template and
+        // mutates a local copy of backlog state.
+        // This avoids recomputing backlog shape
+        // from collections for every candidate.
         foreach (var (toSchema, resolutionCost) in compositeSchema.GetPossibleSchemas(workItem.SelectionSet))
         {
             if (toSchema.Equals(workItem.FromSchema, StringComparison.Ordinal))
@@ -2410,6 +2417,10 @@ file static class Extensions
                 planNodeTemplate.OpsPerLevel,
                 branchBacklogCostState);
 
+        // Same branching rule as lookup work items:
+        // copy backlog state per branch, then
+        // materialize a new node with the
+        // branch-local lower bound.
         foreach (var (schemaName, resolutionCost) in compositeSchema.GetPossibleSchemas(workItem.SelectionSet))
         {
             // If we have multiple id lookups in a single schema,
@@ -2489,6 +2500,9 @@ file static class Extensions
                 planNodeTemplate.OpsPerLevel,
                 branchBacklogCostState);
 
+        // Requirement planning can fork into inline and lookup paths.
+        // Both are scored from the same popped template by cloning and
+        // mutating backlog state per candidate.
         foreach (var schemaName in workItem.Selection.Field.Sources.Schemas.OrderBy(t => t, StringComparer.Ordinal))
         {
             var candidateSchemas = allCandidateSchemas.Remove(schemaName);

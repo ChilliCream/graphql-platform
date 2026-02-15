@@ -72,6 +72,11 @@ internal static class PlannerCostEstimator
         BacklogCostState backlogCostState,
         WorkItem workItem)
     {
+        // This is the pure optimistic floor for remaining work:
+        // we only add guarantees here.
+        //
+        // Any context-dependent adjustments (spillover/inline likelihood) stay outside this
+        // incremental state so branch-and-bound pruning remains a safe lower bound.
         var operationLowerBound =
             backlogCostState.OperationLowerBound + EstimateWorkItemLowerBound(workItem);
         var maxProjectedDepth = backlogCostState.MaxProjectedDepth;
@@ -95,6 +100,8 @@ internal static class PlannerCostEstimator
         BacklogCostState backlogCostState,
         WorkItem workItem)
     {
+        // Pop is the inverse of push: remove the optimistic floor for the popped work item
+        // and update the projected shape only if that item represented a guaranteed operation.
         var operationLowerBound =
             Math.Max(0.0, backlogCostState.OperationLowerBound - EstimateWorkItemLowerBound(workItem));
         var maxProjectedDepth = backlogCostState.MaxProjectedDepth;
@@ -134,6 +141,12 @@ internal static class PlannerCostEstimator
         ImmutableDictionary<int, int> currentOpsPerLevel,
         BacklogCostState backlogCostState)
     {
+        // h(n) = guaranteed remaining operation floor
+        //      + optimistic additional depth
+        //      + optimistic additional excess fan-out.
+        //
+        // We compare projected backlog fan-out against already materialized ops at each depth
+        // so we only charge the additional excess this backlog can still force.
         var total = backlogCostState.OperationLowerBound;
 
         if (backlogCostState.MaxProjectedDepth > currentMaxDepth)
@@ -209,10 +222,12 @@ internal static class PlannerCostEstimator
             case FieldRequirementWorkItem { Lookup: not null }:
             case NodeFieldWorkItem:
             case NodeLookupWorkItem:
+                // These kinds all guarantee that at least one future operation step will exist.
                 projectedDepth = workItem.EstimatedDepth;
                 return true;
 
             default:
+                // Inline field requirements can resolve without creating a new operation step.
                 projectedDepth = 0;
                 return false;
         }

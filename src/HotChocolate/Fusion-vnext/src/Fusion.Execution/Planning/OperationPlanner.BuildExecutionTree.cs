@@ -99,6 +99,9 @@ public sealed partial class OperationPlanner
         {
             if (step is OperationPlanStep operationPlanStep)
             {
+                // Planning may leave temporary `{}` child selections after requirement rewrites.
+                // We normalize those first, then only remove the step if the root selection set
+                // itself became empty.
                 operationPlanStep = RemoveEmptySelectionSets(operationPlanStep);
 
                 if (!ReferenceEquals(step, operationPlanStep))
@@ -338,7 +341,7 @@ public sealed partial class OperationPlanner
             foreach (var dependencyId in stepDependencies)
             {
                 if (!completedNodes.TryGetValue(dependencyId, out var childEntry)
-                    || entry is not OperationExecutionNode or NodeFieldExecutionNode)
+                    || childEntry is not (OperationExecutionNode or NodeFieldExecutionNode))
                 {
                     continue;
                 }
@@ -514,6 +517,8 @@ public sealed partial class OperationPlanner
 
     private static OperationDefinitionNode RemoveEmptySelections(OperationDefinitionNode operationDefinition)
     {
+        // Remove fields/fragments whose selection sets collapsed to `{}` during rewriting.
+        // This is local cleanup and intentionally does not remove the whole operation node.
         return SyntaxRewriter.Create(
             rewrite: node =>
             {
