@@ -22,13 +22,23 @@ public sealed partial class OperationPlanner
     private readonly SelectionSetPartitioner _partitioner;
     private readonly SelectionSetByTypePartitioner _selectionSetByTypePartitioner;
     private readonly NodeFieldSelectionSetPartitioner _nodeFieldSelectionSetPartitioner;
+    private readonly OperationPlannerOptions _options;
 
     public OperationPlanner(
         FusionSchemaDefinition schema,
         OperationCompiler operationCompiler)
+        : this(schema, operationCompiler, OperationPlannerOptions.Default)
+    {
+    }
+
+    public OperationPlanner(
+        FusionSchemaDefinition schema,
+        OperationCompiler operationCompiler,
+        OperationPlannerOptions options)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(operationCompiler);
+        ArgumentNullException.ThrowIfNull(options);
 
         _schema = schema;
         _operationCompiler = operationCompiler;
@@ -36,7 +46,10 @@ public sealed partial class OperationPlanner
         _partitioner = new SelectionSetPartitioner(schema);
         _selectionSetByTypePartitioner = new SelectionSetByTypePartitioner(schema);
         _nodeFieldSelectionSetPartitioner = new NodeFieldSelectionSetPartitioner(schema);
+        _options = options;
     }
+
+    internal OperationPlannerOptions Options => _options;
 
     /// <summary>
     /// Creates an operation plan for the given operation definition.
@@ -202,6 +215,7 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = operationDefinition,
             ShortHash = shortHash,
             SchemaName = "None",
+            Options = _options,
             SelectionSetIndex = result.SelectionSetIndex,
             Backlog = backlog,
             BacklogLowerBound = backlogLowerBound,
@@ -262,6 +276,7 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = operationDefinition,
             ShortHash = shortHash,
             SchemaName = ISchemaDefinition.DefaultName,
+            Options = _options,
             SelectionSetIndex = indexBuilder,
             Backlog = backlog,
             BacklogLowerBound = backlogLowerBound,
@@ -293,6 +308,7 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = operationDefinition,
             ShortHash = shortHash,
             SchemaName = "None",
+            Options = _options,
             SelectionSetIndex = index,
             Backlog = backlog,
             BacklogLowerBound = backlogLowerBound,
@@ -513,6 +529,32 @@ public sealed partial class OperationPlanner
     private static double GetCompleteCost(PlanNode node)
         => node.PathCost;
 
+    private static OperationStepCostState AddOperationStepCostState(PlanNode current, int stepId, int stepDepth)
+    {
+        // Planner transitions create many nodes. We keep all path-cost counters updated
+        // incrementally here to avoid walking existing steps for depth/fan-out recomputation.
+        var previousOpsAtDepth = current.OpsPerLevel.GetValueOrDefault(stepDepth, 0);
+        var nextOpsAtDepth = previousOpsAtDepth + 1;
+        var opsPerLevel = current.OpsPerLevel.SetItem(stepDepth, nextOpsAtDepth);
+        var excessFanout = current.ExcessFanout;
+
+        if (previousOpsAtDepth >= current.Options.FanoutPenaltyThreshold)
+        {
+            excessFanout++;
+        }
+
+        return new OperationStepCostState(
+            Math.Max(current.MaxDepth, stepDepth),
+            excessFanout,
+            opsPerLevel,
+            current.OperationStepDepths.SetItem(stepId, stepDepth));
+    }
+
+    private static int GetOperationStepDepth(PlanNode current, int stepId)
+        => current.OperationStepDepths.TryGetValue(stepId, out var stepDepth)
+            ? stepDepth
+            : 1;
+
     private static int ComparePlanDeterministically(PlanNode left, PlanNode right)
     {
         var stepCountComparison = left.OperationStepCount.CompareTo(right.OperationStepCount);
@@ -611,6 +653,7 @@ public sealed partial class OperationPlanner
             workItem.SelectionSet,
             current,
             lookup,
+            workItem.EstimatedDepth,
             backlog,
             backlogLowerBound);
         PlanSelections(
@@ -631,6 +674,7 @@ public sealed partial class OperationPlanner
         PriorityQueue<PlanNode, double> possiblePlans)
     {
         var stepId = current.Steps.NextId();
+        var stepDepth = workItem.EstimatedDepth;
         var index = current.SelectionSetIndex;
 
         var input = new SelectionSetPartitionerInput
@@ -649,8 +693,8 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        backlog = backlog.PushWithLowerBound(unresolvable, current, ref backlogLowerBound);
-        backlog = backlog.PushWithLowerBound(fieldsWithRequirements, stepId, ref backlogLowerBound);
+        backlog = backlog.PushWithLowerBound(unresolvable, current, stepDepth, ref backlogLowerBound);
+        backlog = backlog.PushWithLowerBound(fieldsWithRequirements, stepId, stepDepth, ref backlogLowerBound);
 
         // lookups are always queries.
         var operationType =
@@ -708,6 +752,8 @@ public sealed partial class OperationPlanner
             Lookup = lookup
         };
 
+        var costState = AddOperationStepCostState(current, stepId, stepDepth);
+
         var next = new PlanNode
         {
             Previous = current,
@@ -715,12 +761,17 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = current.InternalOperationDefinition,
             ShortHash = current.ShortHash,
             SchemaName = current.SchemaName,
+            Options = current.Options,
             SelectionSetIndex = index,
             Backlog = backlog,
             BacklogLowerBound = backlogLowerBound,
             Steps = current.Steps.Add(step),
             LastRequirementId = lastRequirementId,
-            OperationStepCount = current.OperationStepCount + 1
+            OperationStepCount = current.OperationStepCount + 1,
+            MaxDepth = costState.MaxDepth,
+            ExcessFanout = costState.ExcessFanout,
+            OpsPerLevel = costState.OpsPerLevel,
+            OperationStepDepths = costState.StepDepths
         };
 
         possiblePlans.Enqueue(next, _schema);
@@ -730,6 +781,7 @@ public sealed partial class OperationPlanner
         SelectionSet workItemSelectionSet,
         PlanNode current,
         Lookup lookup,
+        int lookupStepDepth,
         ImmutableStack<WorkItem> backlog,
         double backlogLowerBound)
     {
@@ -822,7 +874,11 @@ public sealed partial class OperationPlanner
                         selectionSet = top.Node;
                     }
 
-                    backlog = backlog.PushWithLowerBound(unresolvable, current, ref backlogLowerBound);
+                    backlog = backlog.PushWithLowerBound(
+                        unresolvable,
+                        current,
+                        GetOperationStepDepth(current, step.Id),
+                        ref backlogLowerBound);
                 }
             }
 
@@ -841,7 +897,8 @@ public sealed partial class OperationPlanner
                     workItemSelectionSet with { Node = selectionSet },
                     FromSchema: lookup.SchemaName)
                 {
-                    Dependents = ImmutableHashSet<int>.Empty.Add(lookupStepId)
+                    Dependents = ImmutableHashSet<int>.Empty.Add(lookupStepId),
+                    ParentDepth = lookupStepDepth
                 },
                 ref backlogLowerBound);
         }
@@ -956,12 +1013,17 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = current.InternalOperationDefinition,
             ShortHash = current.ShortHash,
             SchemaName = current.SchemaName,
+            Options = current.Options,
             SelectionSetIndex = index,
             Backlog = backlog,
             BacklogLowerBound = backlogLowerBound,
             Steps = steps,
             LastRequirementId = requirementId,
-            OperationStepCount = current.OperationStepCount
+            OperationStepCount = current.OperationStepCount,
+            MaxDepth = current.MaxDepth,
+            ExcessFanout = current.ExcessFanout,
+            OpsPerLevel = current.OpsPerLevel,
+            OperationStepDepths = current.OperationStepDepths
         };
 
         possiblePlans.Enqueue(next, _schema);
@@ -984,6 +1046,7 @@ public sealed partial class OperationPlanner
             selectionSetStub,
             current,
             lookup,
+            workItem.EstimatedDepth,
             backlog,
             backlogLowerBound);
         backlog = current.Backlog;
@@ -996,6 +1059,7 @@ public sealed partial class OperationPlanner
 
         var steps = current.Steps;
         var stepId = current.Steps.NextId();
+        var stepDepth = workItem.EstimatedDepth;
         var indexBuilder = current.SelectionSetIndex.ToBuilder();
         var lastRequirementId = current.LastRequirementId + 1;
         var requirementKey = $"__fusion_{lastRequirementId}";
@@ -1030,7 +1094,8 @@ public sealed partial class OperationPlanner
                         workItem.Selection.Path),
                     FromSchema: lookup.SchemaName)
                 {
-                    Dependents = ImmutableHashSet<int>.Empty.Add(stepId)
+                    Dependents = ImmutableHashSet<int>.Empty.Add(stepId),
+                    ParentDepth = stepDepth
                 },
                 ref backlogLowerBound);
         }
@@ -1077,6 +1142,7 @@ public sealed partial class OperationPlanner
         var childSelections =
             ExtractResolvableChildSelections(
                 stepId,
+                stepDepth,
                 workItem.Selection,
                 current,
                 indexBuilder,
@@ -1133,6 +1199,8 @@ public sealed partial class OperationPlanner
             Lookup = lookup
         };
 
+        var costState = AddOperationStepCostState(current, stepId, stepDepth);
+
         var next = new PlanNode
         {
             Previous = current,
@@ -1140,12 +1208,17 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = current.InternalOperationDefinition,
             ShortHash = current.ShortHash,
             SchemaName = current.SchemaName,
+            Options = current.Options,
             SelectionSetIndex = indexBuilder,
             Backlog = backlog,
             BacklogLowerBound = backlogLowerBound,
             Steps = steps.Add(step),
             LastRequirementId = lastRequirementId,
-            OperationStepCount = current.OperationStepCount + 1
+            OperationStepCount = current.OperationStepCount + 1,
+            MaxDepth = costState.MaxDepth,
+            ExcessFanout = costState.ExcessFanout,
+            OpsPerLevel = costState.OpsPerLevel,
+            OperationStepDepths = costState.StepDepths
         };
 
         possiblePlans.Enqueue(next, _schema);
@@ -1160,6 +1233,7 @@ public sealed partial class OperationPlanner
         double backlogLowerBound)
     {
         var stepId = current.Steps.NextId();
+        var stepDepth = workItem.EstimatedDepth;
         var index = current.SelectionSetIndex;
 
         var input = new SelectionSetPartitionerInput
@@ -1178,8 +1252,8 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        backlog = backlog.PushWithLowerBound(unresolvable, current, ref backlogLowerBound);
-        backlog = backlog.PushWithLowerBound(fieldsWithRequirements, stepId, ref backlogLowerBound);
+        backlog = backlog.PushWithLowerBound(unresolvable, current, stepDepth, ref backlogLowerBound);
+        backlog = backlog.PushWithLowerBound(fieldsWithRequirements, stepId, stepDepth, ref backlogLowerBound);
 
         var resolvableSelections = resolvable.Selections;
         if (!resolvableSelections.Any(IsTypeNameSelection))
@@ -1246,6 +1320,8 @@ public sealed partial class OperationPlanner
         // Add the lookup operation to the steps
         steps = steps.Add(operationPlanStep);
 
+        var costState = AddOperationStepCostState(current, stepId, stepDepth);
+
         var next = new PlanNode
         {
             Previous = current,
@@ -1253,12 +1329,17 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = current.InternalOperationDefinition,
             ShortHash = current.ShortHash,
             SchemaName = current.SchemaName,
+            Options = current.Options,
             SelectionSetIndex = index,
             Backlog = backlog,
             BacklogLowerBound = backlogLowerBound,
             Steps = steps,
             LastRequirementId = current.LastRequirementId,
-            OperationStepCount = current.OperationStepCount + 1
+            OperationStepCount = current.OperationStepCount + 1,
+            MaxDepth = costState.MaxDepth,
+            ExcessFanout = costState.ExcessFanout,
+            OpsPerLevel = costState.OpsPerLevel,
+            OperationStepDepths = costState.StepDepths
         };
 
         possiblePlans.Enqueue(next, _schema);
@@ -1273,6 +1354,7 @@ public sealed partial class OperationPlanner
     {
         var stepId = current.Steps.NextId();
         var fallbackQueryStepId = stepId + 1;
+        var stepDepth = workItem.EstimatedDepth;
         var index = current.SelectionSetIndex;
         var nodeField = workItem.NodeField.Field;
         var responseName = nodeField.Alias?.Value ?? nodeField.Name.Value;
@@ -1353,10 +1435,15 @@ public sealed partial class OperationPlanner
                 Lookup: null,
                 responseName,
                 idArgumentValue,
-                nodeSelectionSet);
+                nodeSelectionSet)
+            {
+                ParentDepth = stepDepth
+            };
 
             backlog = backlog.PushWithLowerBound(newWorkItem, ref backlogLowerBound);
         }
+
+        var costState = AddOperationStepCostState(current, fallbackQueryStepId, stepDepth);
 
         var next = new PlanNode
         {
@@ -1365,6 +1452,7 @@ public sealed partial class OperationPlanner
             InternalOperationDefinition = current.InternalOperationDefinition,
             ShortHash = current.ShortHash,
             SchemaName = current.SchemaName,
+            Options = current.Options,
             SelectionSetIndex = index,
             Backlog = backlog,
             BacklogLowerBound = backlogLowerBound,
@@ -1372,7 +1460,11 @@ public sealed partial class OperationPlanner
                 .Add(nodeStep)
                 .Add(fallbackQueryStep),
             LastRequirementId = current.LastRequirementId,
-            OperationStepCount = current.OperationStepCount + 1
+            OperationStepCount = current.OperationStepCount + 1,
+            MaxDepth = costState.MaxDepth,
+            ExcessFanout = costState.ExcessFanout,
+            OpsPerLevel = costState.OpsPerLevel,
+            OperationStepDepths = costState.StepDepths
         };
 
         possiblePlans.Enqueue(next, _schema);
@@ -1453,6 +1545,7 @@ public sealed partial class OperationPlanner
 
     private SelectionSetNode? ExtractResolvableChildSelections(
         int stepId,
+        int stepDepth,
         FieldSelection selection,
         PlanNode current,
         SelectionSetIndexBuilder index,
@@ -1480,8 +1573,8 @@ public sealed partial class OperationPlanner
         };
 
         var (resolvable, unresolvable, fieldsWithRequirements, _) = _partitioner.Partition(input);
-        backlog = backlog.PushWithLowerBound(unresolvable, current, ref backlogLowerBound);
-        backlog = backlog.PushWithLowerBound(fieldsWithRequirements, stepId, ref backlogLowerBound);
+        backlog = backlog.PushWithLowerBound(unresolvable, current, stepDepth, ref backlogLowerBound);
+        backlog = backlog.PushWithLowerBound(fieldsWithRequirements, stepId, stepDepth, ref backlogLowerBound);
         return resolvable;
     }
 
@@ -1618,7 +1711,10 @@ public sealed partial class OperationPlanner
                         new OperationWorkItem(
                             OperationWorkItemKind.Lookup,
                             selectionSet,
-                            FromSchema: current.SchemaName),
+                            FromSchema: current.SchemaName)
+                        {
+                            ParentDepth = GetOperationStepDepth(current, step.Id)
+                        },
                         ref backlogLowerBound);
                 }
             }
@@ -1889,6 +1985,21 @@ public sealed partial class OperationPlanner
         uint SearchSpace,
         int ExpandedNodes,
         int StepCount);
+
+    private readonly struct OperationStepCostState(
+        int maxDepth,
+        int excessFanout,
+        ImmutableDictionary<int, int> opsPerLevel,
+        ImmutableDictionary<int, int> stepDepths)
+    {
+        public int MaxDepth { get; } = maxDepth;
+
+        public int ExcessFanout { get; } = excessFanout;
+
+        public ImmutableDictionary<int, int> OpsPerLevel { get; } = opsPerLevel;
+
+        public ImmutableDictionary<int, int> StepDepths { get; } = stepDepths;
+    }
 }
 
 file static class Extensions
@@ -1978,6 +2089,7 @@ file static class Extensions
         this ImmutableStack<WorkItem> backlog,
         ImmutableStack<SelectionSet> unresolvable,
         PlanNode current,
+        int parentDepth,
         ref double backlogLowerBound)
     {
         if (unresolvable.IsEmpty)
@@ -1992,7 +2104,10 @@ file static class Extensions
                     ? OperationWorkItemKind.Root
                     : OperationWorkItemKind.Lookup,
                 selectionSet,
-                FromSchema: current.SchemaName);
+                FromSchema: current.SchemaName)
+            {
+                ParentDepth = parentDepth
+            };
             backlog = backlog.PushWithLowerBound(workItem, ref backlogLowerBound);
         }
 
@@ -2011,6 +2126,9 @@ file static class Extensions
     /// <param name="stepId">
     /// The step that the fields with requirements were intended to be included in.
     /// </param>
+    /// <param name="parentDepth">
+    /// The depth of the step that produced the requirement work items.
+    /// </param>
     /// <param name="backlogLowerBound">
     /// The current optimistic lower bound for the backlog.
     /// </param>
@@ -2021,6 +2139,7 @@ file static class Extensions
         this ImmutableStack<WorkItem> backlog,
         ImmutableStack<FieldSelection> fieldsWithRequirements,
         int stepId,
+        int parentDepth,
         ref double backlogLowerBound)
     {
         if (fieldsWithRequirements.IsEmpty)
@@ -2030,7 +2149,10 @@ file static class Extensions
 
         foreach (var selection in fieldsWithRequirements.Reverse())
         {
-            var workItem = new FieldRequirementWorkItem(selection, stepId);
+            var workItem = new FieldRequirementWorkItem(selection, stepId)
+            {
+                ParentDepth = parentDepth
+            };
             backlog = backlog.PushWithLowerBound(workItem, ref backlogLowerBound);
         }
 

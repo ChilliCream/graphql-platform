@@ -60,8 +60,8 @@ operation:
       }
     name: findMe
     hash: 123456789101112
-    searchSpace: 11
-    expandedNodes: 62
+    searchSpace: 4
+    expandedNodes: 17
 nodes:
   - id: 1
     type: Operation

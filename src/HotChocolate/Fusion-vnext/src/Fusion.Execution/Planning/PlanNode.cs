@@ -37,6 +37,11 @@ internal sealed record PlanNode
     public required string SchemaName { get; init; }
 
     /// <summary>
+    /// Planner cost options used by this node.
+    /// </summary>
+    public required OperationPlannerOptions Options { get; init; }
+
+    /// <summary>
     /// The index of the selection set.
     /// </summary>
     public required ISelectionSetIndex SelectionSetIndex
@@ -71,9 +76,33 @@ internal sealed record PlanNode
     /// </summary>
     public int OperationStepCount { get; init; }
 
+    /// <summary>
+    /// Maximum operation depth seen so far for this node.
+    /// </summary>
+    public int MaxDepth { get; init; }
+
+    /// <summary>
+    /// Cumulative excess fan-out across all depth levels.
+    /// </summary>
+    public int ExcessFanout { get; init; }
+
+    /// <summary>
+    /// Number of operation steps per depth level.
+    /// </summary>
+    public ImmutableDictionary<int, int> OpsPerLevel { get; init; } = ImmutableDictionary<int, int>.Empty;
+
+    /// <summary>
+    /// Depth lookup for operation step ids.
+    /// </summary>
+    public ImmutableDictionary<int, int> OperationStepDepths { get; init; }
+        = ImmutableDictionary<int, int>.Empty;
+
     public uint LastRequirementId { get; init; }
 
-    public double PathCost => OperationStepCount * PlannerCostEstimator.OperationStepCost;
+    public double PathCost
+        => MaxDepth * Options.DepthWeight
+            + OperationStepCount * Options.OperationWeight
+            + ExcessFanout * Options.ExcessFanoutWeight;
 
     public double BacklogCost => BacklogLowerBound;
 
