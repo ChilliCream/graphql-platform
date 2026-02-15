@@ -2,7 +2,6 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
