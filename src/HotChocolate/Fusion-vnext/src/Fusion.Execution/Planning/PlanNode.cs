@@ -61,7 +61,7 @@ internal sealed record PlanNode
         init
         {
             field = value;
-            BacklogCost = value.Sum(t => t.Cost);
+            BacklogCost = value.Sum(x => x.Cost);
         }
     }
 
@@ -71,19 +71,21 @@ internal sealed record PlanNode
         init
         {
             field = value;
-            PathCost = value.OfType<OperationPlanStep>().Count() * 10.0;
+
+            var operationPlanStepsById = value.OfType<OperationPlanStep>().ToDictionary(x => x.Id);
+
+            OperationStepCount = operationPlanStepsById.Count;
+            CriticalPathLength = ComputeCriticalPathLength(operationPlanStepsById);
         }
     } = [];
 
     public uint LastRequirementId { get; init; }
 
-    public double PathCost { get; private set; }
+    public int OperationStepCount { get; private set; }
+
+    public int CriticalPathLength { get; private set; }
 
     public double BacklogCost { get; private set; }
-
-    public double ResolutionCost { get; init; }
-
-    public double TotalCost => PathCost + BacklogCost + ResolutionCost;
 
     public string CreateOperationName(int stepId)
     {
@@ -93,5 +95,64 @@ internal sealed record PlanNode
         }
 
         return $"{OperationDefinition.Name.Value}_{ShortHash}_{stepId}";
+    }
+
+    private static int ComputeCriticalPathLength(Dictionary<int, OperationPlanStep> stepsById)
+    {
+        if (stepsById.Count == 0)
+        {
+            return 0;
+        }
+
+        var memoizedDepths = new Dictionary<int, int>(stepsById.Count);
+        var visiting = new HashSet<int>();
+        var criticalPathLength = 0;
+
+        foreach (var stepId in stepsById.Keys)
+        {
+            criticalPathLength = Math.Max(
+                criticalPathLength,
+                ComputeDepth(stepId, stepsById, memoizedDepths, visiting));
+        }
+
+        return criticalPathLength;
+
+        static int ComputeDepth(
+            int stepId,
+            IReadOnlyDictionary<int, OperationPlanStep> stepsById,
+            IDictionary<int, int> memoizedDepths,
+            ISet<int> visiting)
+        {
+            if (memoizedDepths.TryGetValue(stepId, out var memoizedDepth))
+            {
+                return memoizedDepth;
+            }
+
+            if (!visiting.Add(stepId))
+            {
+                throw new InvalidOperationException(
+                    "A cycle was detected in operation plan step dependencies.");
+            }
+
+            var maxDependentDepth = 0;
+
+            foreach (var dependentId in stepsById[stepId].Dependents)
+            {
+                if (!stepsById.ContainsKey(dependentId))
+                {
+                    continue;
+                }
+
+                maxDependentDepth = Math.Max(
+                    maxDependentDepth,
+                    ComputeDepth(dependentId, stepsById, memoizedDepths, visiting));
+            }
+
+            visiting.Remove(stepId);
+
+            var depth = maxDependentDepth + 1;
+            memoizedDepths[stepId] = depth;
+            return depth;
+        }
     }
 }

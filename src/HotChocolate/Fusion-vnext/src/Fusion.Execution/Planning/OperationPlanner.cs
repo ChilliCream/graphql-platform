@@ -83,9 +83,9 @@ public sealed partial class OperationPlanner
                 possiblePlans.Enqueue(
                     node with
                     {
-                        SchemaName = schemaName,
-                        ResolutionCost = resolutionCost
-                    });
+                        SchemaName = schemaName
+                    },
+                    resolutionCost);
             }
 
             if (possiblePlans.Count < 1)
@@ -169,8 +169,8 @@ public sealed partial class OperationPlanner
         string shortHash,
         ISelectionSetIndex index)
     {
-        // todo: we need to do this with a rewriter as in this case we are not
-        // dealing with fragments.
+        // TODO: We need to do this with a rewriter as in this case we are not
+        //       dealing with fragments.
 
         // For mutations, we slice the root selection set into individual root selections,
         // so that we can plan each root selection separately. This aligns with the
@@ -293,7 +293,7 @@ public sealed partial class OperationPlanner
                     break;
 
                 case NodeFieldWorkItem wi:
-                    PlanNode(wi, current, possiblePlans, backlog);
+                    PlanNodeField(wi, current, possiblePlans, backlog);
                     break;
 
                 case NodeLookupWorkItem { Lookup: { } lookup } wi:
@@ -946,7 +946,7 @@ public sealed partial class OperationPlanner
         possiblePlans.Enqueue(next, _schema);
     }
 
-    private void PlanNode(
+    private void PlanNodeField(
         NodeFieldWorkItem workItem,
         PlanNode current,
         PlanNodePriorityQueue possiblePlans,
@@ -1665,10 +1665,6 @@ file static class Extensions
                 ? null
                 : planNodeTemplate.Backlog.Peek();
 
-        // we reset the resolution cost so that the next plan is not chosen based
-        // on the last resolutions cost.
-        planNodeTemplate = planNodeTemplate with { ResolutionCost = 0 };
-
         switch (nextWorkItem)
         {
             case null:
@@ -1709,9 +1705,9 @@ file static class Extensions
             possiblePlans.Enqueue(
                 planNodeTemplate with
                 {
-                    SchemaName = schemaName,
-                    ResolutionCost = resolutionCost
-                });
+                    SchemaName = schemaName
+                },
+                resolutionCost);
         }
     }
 
@@ -1742,9 +1738,9 @@ file static class Extensions
                     planNodeTemplate with
                     {
                         SchemaName = toSchema,
-                        ResolutionCost = resolutionCost,
                         Backlog = backlog.Push(workItem with { Lookup = bestLookup })
-                    });
+                    },
+                    resolutionCost);
                 continue;
             }
 
@@ -1755,9 +1751,9 @@ file static class Extensions
                     planNodeTemplate with
                     {
                         SchemaName = toSchema,
-                        ResolutionCost = resolutionCost,
                         Backlog = backlog.Push(workItem with { Lookup = lookup })
-                    });
+                    },
+                    resolutionCost);
 
                 hasEnqueuedDirectLookup = true;
             }
@@ -1778,9 +1774,9 @@ file static class Extensions
                         {
                             SchemaName = toSchema,
                             SelectionSetIndex = index,
-                            ResolutionCost = resolutionCost + cost,
                             Backlog = backlog.Push(lookupThroughPathWorkItem)
-                        });
+                        },
+                        resolutionCost + cost);
                 }
             }
         }
@@ -1813,13 +1809,14 @@ file static class Extensions
                 planNodeTemplate with
                 {
                     SchemaName = schemaName,
-                    ResolutionCost = resolutionCost,
                     Backlog = backlog.Push(workItem with { Lookup = byIdLookup })
-                });
+                },
+                resolutionCost);
 
             hasEnqueuedLookup = true;
         }
 
+        // TODO: I think we don't need this
         // It could be that we didn't find a suitable source schema for the requested selections
         // that also has a by id resolver.
         // In this case we enqueue the best matching by id lookup of any source schema.

@@ -11,8 +11,26 @@ internal sealed class PlanNodePriorityQueue
 
     public uint ExploredPlans { get; private set; }
 
-    public void Enqueue(PlanNode node)
-        => _queue.Enqueue(node, new PlanNodePriority(node.TotalCost, _sequence++));
+    public void Enqueue(PlanNode node, double resolutionCost = 0)
+    {
+        // Our stated goal is to find the plan with the least amount of requests (operations)
+        // and the shortest critical path length (waterfall latency).
+        var objective = new PlanSearchObjective(
+            node.OperationStepCount,
+            node.CriticalPathLength);
+
+        var priority = new PlanNodePriority(
+            // Primary objective
+            objective,
+            // An estimate of how much work it will take to complete this plan
+            node.BacklogCost,
+            // Steering for when objective and backlog cost are equal.
+            resolutionCost,
+            // Tie breaker
+            _sequence++);
+
+        _queue.Enqueue(node, priority);
+    }
 
     public bool TryDequeue([NotNullWhen(true)] out PlanNode? node)
     {
@@ -26,19 +44,49 @@ internal sealed class PlanNodePriorityQueue
     }
 
     private readonly record struct PlanNodePriority(
-        double TotalCost,
-        long Sequence)
-        : IComparable<PlanNodePriority>
+        PlanSearchObjective Objective,
+        double BacklogCost,
+        double ResolutionCost,
+        long Sequence) : IComparable<PlanNodePriority>
     {
         public int CompareTo(PlanNodePriority other)
         {
-            var result = TotalCost.CompareTo(other.TotalCost);
+            var result = Objective.CompareTo(other.Objective);
+            if (result != 0)
+            {
+                return result;
+            }
+
+            result = BacklogCost.CompareTo(other.BacklogCost);
+            if (result != 0)
+            {
+                return result;
+            }
+
+            result = ResolutionCost.CompareTo(other.ResolutionCost);
             if (result != 0)
             {
                 return result;
             }
 
             return Sequence.CompareTo(other.Sequence);
+        }
+    }
+
+    private readonly record struct PlanSearchObjective(
+        int OperationStepCount,
+        int CriticalPathLength)
+        : IComparable<PlanSearchObjective>
+    {
+        public int CompareTo(PlanSearchObjective other)
+        {
+            var result = OperationStepCount.CompareTo(other.OperationStepCount);
+            if (result != 0)
+            {
+                return result;
+            }
+
+            return CriticalPathLength.CompareTo(other.CriticalPathLength);
         }
     }
 }

@@ -113,7 +113,7 @@ operation:
         }
       }
     hash: 123456789101112
-    searchSpace: 5831
+    searchSpace: 6020
     exploredPlans: 16483
 nodes:
   - id: 1
