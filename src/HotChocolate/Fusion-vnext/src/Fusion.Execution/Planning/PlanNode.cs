@@ -71,7 +71,7 @@ internal sealed record PlanNode
         init
         {
             field = value;
-            UpdatePathCost(value);
+            PathCost = value.OfType<OperationPlanStep>().Count() * 10.0;
         }
     } = [];
 
@@ -93,22 +93,5 @@ internal sealed record PlanNode
         }
 
         return $"{OperationDefinition.Name.Value}_{ShortHash}_{stepId}";
-    }
-
-    private void UpdatePathCost(ImmutableList<PlanStep> steps)
-    {
-        var operationSteps = steps.OfType<OperationPlanStep>().ToArray();
-        if (operationSteps.Length == 0)
-        {
-            PathCost = 0;
-            return;
-        }
-
-        var stepsWithRequirements = operationSteps.Count(x => x.Requirements.Count > 0);
-        var stepsWithoutRequirements = operationSteps.Length - stepsWithRequirements;
-
-        // We penalize steps that need to wait on other steps to complete,
-        // since these lead to waterfalls.
-        PathCost = stepsWithRequirements * 10 + stepsWithoutRequirements;
     }
 }
