@@ -37,6 +37,7 @@ operation:
     name: getReviews
     hash: 123456789101112
     searchSpace: 1
+    exploredPlans: 9
 nodes:
   - id: 1
     type: Node
@@ -126,7 +127,7 @@ nodes:
     operation: |
       query getReviews_123456789101112_7(
         $__fusion_3_dimension: ProductDimensionInput!
-        $__fusion_4_id: ID!
+          $__fusion_4_id: ID!
       ) {
         productById(id: $__fusion_4_id) {
           deliveryEstimate(zip: "123", dimension: $__fusion_3_dimension)

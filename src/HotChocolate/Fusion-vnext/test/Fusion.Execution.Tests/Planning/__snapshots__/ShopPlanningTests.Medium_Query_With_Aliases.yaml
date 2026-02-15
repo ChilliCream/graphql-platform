@@ -114,6 +114,7 @@ operation:
       }
     hash: 123456789101112
     searchSpace: 5831
+    exploredPlans: 16483
 nodes:
   - id: 1
     type: Operation
@@ -205,7 +206,7 @@ nodes:
     operation: |
       query Op_123456789101112_4(
         $__fusion_3_id: ID!
-        $__fusion_4_dimension: ProductDimensionInput!
+          $__fusion_4_dimension: ProductDimensionInput!
       ) {
         productById(id: $__fusion_3_id) {
           deliveryEstimate(zip: "Foo", dimension: $__fusion_4_dimension)
@@ -283,7 +284,7 @@ nodes:
     operation: |
       query Op_123456789101112_7(
         $__fusion_7_id: ID!
-        $__fusion_8_dimension: ProductDimensionInput!
+          $__fusion_8_dimension: ProductDimensionInput!
       ) {
         productById(id: $__fusion_7_id) {
           deliveryEstimate(zip: "Foo", dimension: $__fusion_8_dimension)
@@ -423,7 +424,7 @@ nodes:
     operation: |
       query Op_123456789101112_13(
         $__fusion_14_id: ID!
-        $__fusion_15_dimension: ProductDimensionInput!
+          $__fusion_15_dimension: ProductDimensionInput!
       ) {
         productById(id: $__fusion_14_id) {
           deliveryEstimate(zip: "Foo", dimension: $__fusion_15_dimension)
@@ -501,7 +502,7 @@ nodes:
     operation: |
       query Op_123456789101112_16(
         $__fusion_18_id: ID!
-        $__fusion_19_dimension: ProductDimensionInput!
+          $__fusion_19_dimension: ProductDimensionInput!
       ) {
         productById(id: $__fusion_18_id) {
           deliveryEstimate(zip: "Foo", dimension: $__fusion_19_dimension)

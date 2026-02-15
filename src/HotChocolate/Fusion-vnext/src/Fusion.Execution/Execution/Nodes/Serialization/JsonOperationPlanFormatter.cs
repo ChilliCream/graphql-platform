@@ -36,6 +36,8 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         jsonWriter.WriteNumber("searchSpace", plan.SearchSpace);
 
+        jsonWriter.WriteNumber("exploredPlans", plan.ExploredPlans);
+
         if (trace is not null)
         {
             if (!string.IsNullOrEmpty(trace.AppId))

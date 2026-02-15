@@ -72,10 +72,11 @@ public sealed partial class OperationPlanner
         var internalOperationDefinition = operationDefinition;
         ImmutableList<PlanStep> planSteps = [];
         uint searchSpace = 0;
+        uint exploredPlans = 0;
 
         if (!node.Backlog.IsEmpty)
         {
-            var possiblePlans = new PlanNodeQueue();
+            var possiblePlans = new PlanNodePriorityQueue();
 
             foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
             {
@@ -102,6 +103,7 @@ public sealed partial class OperationPlanner
             internalOperationDefinition = plan.Value.InternalOperationDefinition;
             planSteps = plan.Value.Steps;
             searchSpace = plan.Value.SearchSpace;
+            exploredPlans = plan.Value.ExploredPlans;
 
             internalOperationDefinition = AddTypeNameToAbstractSelections(
                 internalOperationDefinition,
@@ -114,7 +116,8 @@ public sealed partial class OperationPlanner
             operation,
             operationDefinition,
             planSteps,
-            searchSpace);
+            searchSpace,
+            exploredPlans);
     }
 
     private (PlanNode Node, SelectionSet First) CreateQueryPlanBase(
@@ -244,7 +247,7 @@ public sealed partial class OperationPlanner
         return (node, selectionSet);
     }
 
-    private PlanResult? Plan(PlanNodeQueue possiblePlans)
+    private PlanResult? Plan(PlanNodePriorityQueue possiblePlans)
     {
         var searchSpace = (uint)possiblePlans.Count;
 
@@ -259,7 +262,11 @@ public sealed partial class OperationPlanner
             {
                 // If the backlog is empty, the planning process is complete, and we can return the
                 // steps to build the actual execution plan.
-                return new PlanResult(current.InternalOperationDefinition, current.Steps, searchSpace);
+                return new PlanResult(
+                    current.InternalOperationDefinition,
+                    current.Steps,
+                    searchSpace,
+                    possiblePlans.ExploredPlans);
             }
 
             // The backlog represents the tasks we have to complete to build out
@@ -309,7 +316,7 @@ public sealed partial class OperationPlanner
         OperationWorkItem workItem,
         PlanNode current,
         ImmutableStack<WorkItem> backlog,
-        PlanNodeQueue possiblePlans)
+        PlanNodePriorityQueue possiblePlans)
         => PlanSelections(workItem, current, null, backlog, possiblePlans);
 
     private void PlanLookupSelections(
@@ -317,7 +324,7 @@ public sealed partial class OperationPlanner
         Lookup lookup,
         PlanNode current,
         ImmutableStack<WorkItem> backlog,
-        PlanNodeQueue possiblePlans)
+        PlanNodePriorityQueue possiblePlans)
     {
         current = InlineLookupRequirements(workItem.SelectionSet, current, lookup, backlog);
         PlanSelections(workItem, current, lookup, current.Backlog, possiblePlans);
@@ -328,7 +335,7 @@ public sealed partial class OperationPlanner
         PlanNode current,
         Lookup? lookup,
         ImmutableStack<WorkItem> backlog,
-        PlanNodeQueue possiblePlans)
+        PlanNodePriorityQueue possiblePlans)
     {
         var stepId = current.Steps.NextId();
         var index = current.SelectionSetIndex;
@@ -558,7 +565,7 @@ public sealed partial class OperationPlanner
     private void PlanInlineFieldWithRequirements(
         FieldRequirementWorkItem workItem,
         PlanNode current,
-        PlanNodeQueue possiblePlans,
+        PlanNodePriorityQueue possiblePlans,
         ImmutableStack<WorkItem> backlog)
     {
         // we first resolve the original intended plan step, so we can inline the field
@@ -662,7 +669,7 @@ public sealed partial class OperationPlanner
         FieldRequirementWorkItem workItem,
         Lookup lookup,
         PlanNode current,
-        PlanNodeQueue possiblePlans,
+        PlanNodePriorityQueue possiblePlans,
         ImmutableStack<WorkItem> backlog)
     {
         var selectionSetStub = new SelectionSet(
@@ -833,7 +840,7 @@ public sealed partial class OperationPlanner
         NodeLookupWorkItem workItem,
         Lookup lookup,
         PlanNode current,
-        PlanNodeQueue possiblePlans,
+        PlanNodePriorityQueue possiblePlans,
         ImmutableStack<WorkItem> backlog)
     {
         var stepId = current.Steps.NextId();
@@ -942,7 +949,7 @@ public sealed partial class OperationPlanner
     private void PlanNode(
         NodeFieldWorkItem workItem,
         PlanNode current,
-        PlanNodeQueue possiblePlans,
+        PlanNodePriorityQueue possiblePlans,
         ImmutableStack<WorkItem> backlog)
     {
         var stepId = current.Steps.NextId();
@@ -1555,7 +1562,8 @@ public sealed partial class OperationPlanner
     private readonly record struct PlanResult(
         OperationDefinitionNode InternalOperationDefinition,
         ImmutableList<PlanStep> Steps,
-        uint SearchSpace);
+        uint SearchSpace,
+        uint ExploredPlans);
 }
 
 file static class Extensions
@@ -1648,7 +1656,7 @@ file static class Extensions
     }
 
     public static void Enqueue(
-        this PlanNodeQueue possiblePlans,
+        this PlanNodePriorityQueue possiblePlans,
         PlanNode planNodeTemplate,
         FusionSchemaDefinition compositeSchema)
     {
@@ -1691,7 +1699,7 @@ file static class Extensions
     }
 
     private static void EnqueueRootPlanNodes(
-        this PlanNodeQueue possiblePlans,
+        this PlanNodePriorityQueue possiblePlans,
         PlanNode planNodeTemplate,
         OperationWorkItem workItem,
         FusionSchemaDefinition compositeSchema)
@@ -1708,7 +1716,7 @@ file static class Extensions
     }
 
     private static void EnqueueLookupPlanNodes(
-        this PlanNodeQueue possiblePlans,
+        this PlanNodePriorityQueue possiblePlans,
         PlanNode planNodeTemplate,
         OperationWorkItem workItem,
         FusionSchemaDefinition compositeSchema)
@@ -1779,7 +1787,7 @@ file static class Extensions
     }
 
     private static void EnqueueNodeLookupPlanNodes(
-        this PlanNodeQueue possiblePlans,
+        this PlanNodePriorityQueue possiblePlans,
         PlanNode planNodeTemplate,
         NodeLookupWorkItem workItem,
         FusionSchemaDefinition compositeSchema)
@@ -1832,7 +1840,7 @@ file static class Extensions
     }
 
     private static void EnqueueRequirePlanNodes(
-        this PlanNodeQueue possiblePlans,
+        this PlanNodePriorityQueue possiblePlans,
         PlanNode planNodeTemplate,
         FieldRequirementWorkItem workItem,
         FusionSchemaDefinition compositeSchema)

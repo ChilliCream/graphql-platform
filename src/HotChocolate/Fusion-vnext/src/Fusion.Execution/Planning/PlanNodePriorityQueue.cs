@@ -2,18 +2,28 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal sealed class PlanNodeQueue
+internal sealed class PlanNodePriorityQueue
 {
     private readonly PriorityQueue<PlanNode, PlanNodePriority> _queue = new();
-    private long _sequence;
+    private int _sequence;
 
     public int Count => _queue.Count;
+
+    public uint ExploredPlans { get; private set; }
 
     public void Enqueue(PlanNode node)
         => _queue.Enqueue(node, new PlanNodePriority(node.TotalCost, _sequence++));
 
     public bool TryDequeue([NotNullWhen(true)] out PlanNode? node)
-        => _queue.TryDequeue(out node, out _);
+    {
+        if (_queue.TryDequeue(out node, out _))
+        {
+            ExploredPlans++;
+            return true;
+        }
+
+        return false;
+    }
 
     private readonly record struct PlanNodePriority(
         double TotalCost,

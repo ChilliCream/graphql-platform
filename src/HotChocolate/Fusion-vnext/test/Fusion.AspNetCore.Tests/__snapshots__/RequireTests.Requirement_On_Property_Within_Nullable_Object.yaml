@@ -98,7 +98,7 @@ sourceSchemas:
           document: |
             query Op_b05a9c48_2(
               $__fusion_1_nullableArgument: String
-              $__fusion_2_id: ID!
+                $__fusion_2_id: ID!
             ) {
               productById(id: $__fusion_2_id) {
                 fieldWithNullableRequirement(nullableArgument: $__fusion_1_nullableArgument)
@@ -133,6 +133,7 @@ operationPlan:
         }
       hash: b05a9c488c79e334decd9cae59fb7892
       searchSpace: 1
+      exploredPlans: 5
   nodes:
     - id: 1
       type: Operation
@@ -149,7 +150,7 @@ operationPlan:
       operation: |
         query Op_b05a9c48_2(
           $__fusion_1_nullableArgument: String
-          $__fusion_2_id: ID!
+            $__fusion_2_id: ID!
         ) {
           productById(id: $__fusion_2_id) {
             fieldWithNullableRequirement(nullableArgument: $__fusion_1_nullableArgument)
