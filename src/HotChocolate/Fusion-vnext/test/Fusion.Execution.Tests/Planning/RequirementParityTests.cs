@@ -140,6 +140,27 @@ public class RequirementParityTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
+    [Fact]
+    public void Requires_With_Fragments_On_Interfaces()
+    {
+        // arrange
+        var schema = CreateRequiresWithFragmentsOnInterfacesSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              userFromA {
+                permissions
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     private static FusionSchemaDefinition CreateDeepRequiresSchema()
     {
         return ComposeSchema(
@@ -386,6 +407,92 @@ public class RequirementParityTests : FusionTestBase
             type CompositeID {
               two: ID!
               three: ID!
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateRequiresWithFragmentsOnInterfacesSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: a
+            schema {
+              query: Query
+            }
+
+            type Query {
+              userFromA: User
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              profile: Profile! @shareable
+            }
+
+            interface Profile {
+              displayName: String!
+            }
+
+            interface Account implements Profile {
+              displayName: String!
+              accountType: String!
+            }
+
+            type GuestAccount implements Profile & Account {
+              displayName: String! @shareable
+              accountType: String! @shareable
+              guestToken: String! @shareable
+            }
+
+            type AdminAccount implements Profile & Account {
+              displayName: String! @shareable
+              accountType: String! @shareable
+              adminLevel: String! @shareable
+            }
+            """,
+            """
+            # name: b
+            schema {
+              query: Query
+            }
+
+            type Query {
+              userById(id: ID! @is(field: "id")): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+              id: ID!
+              profile: Profile! @shareable
+              permissions(
+                displayName: String! @require(field: "profile.displayName")
+                accountType: String
+                  @require(field:
+                    "profile<AdminAccount>.accountType | profile<GuestAccount>.accountType")
+                adminLevel: String
+                  @require(field: "profile<AdminAccount>.adminLevel")
+                guestToken: String
+                  @require(field: "profile<GuestAccount>.guestToken")): String!
+            }
+
+            interface Profile {
+              displayName: String!
+            }
+
+            interface Account implements Profile {
+              displayName: String!
+              accountType: String!
+            }
+
+            type GuestAccount implements Profile & Account {
+              displayName: String! @shareable
+              accountType: String! @shareable
+              guestToken: String! @shareable
+            }
+
+            type AdminAccount implements Profile & Account {
+              displayName: String! @shareable
+              accountType: String! @shareable
+              adminLevel: String! @shareable
             }
             """);
     }
