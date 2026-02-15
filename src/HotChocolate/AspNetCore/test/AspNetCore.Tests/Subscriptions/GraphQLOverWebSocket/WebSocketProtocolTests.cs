@@ -6,7 +6,6 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
-using HotChocolate.Execution;
 using HotChocolate.Subscriptions.Diagnostics;
 using HotChocolate.Text.Json;
 using HotChocolate.Transport.Formatters;

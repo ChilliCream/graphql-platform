@@ -128,7 +128,7 @@ public class JsonWriterNullIgnoreTests
         {
             writer.WriteStartObject();
             writer.WritePropertyName("name");
-            writer.WriteStringValue((string?)null);
+            writer.WriteStringValue(null);
             writer.WritePropertyName("value");
             writer.WriteNumberValue(42);
             writer.WriteEndObject();

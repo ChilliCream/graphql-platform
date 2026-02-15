@@ -68,7 +68,7 @@ public class InMemoryClient : IInMemoryClient
         requestBuilder.SetVariableValues(CreateVariables(request, out var fileLookup));
         if (fileLookup is not null)
         {
-            requestBuilder.Features.Set<IFileLookup>(fileLookup);
+            requestBuilder.Features.Set(fileLookup);
         }
         requestBuilder.SetExtensions(request.GetExtensionsOrNull());
         requestBuilder.SetGlobalState(request.GetContextDataOrNull());

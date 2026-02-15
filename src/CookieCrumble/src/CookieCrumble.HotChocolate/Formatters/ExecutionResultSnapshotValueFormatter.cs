@@ -109,7 +109,7 @@ internal sealed class JsonResultPatcher
     private const string SubPathProp = "subPath";
     private const string IdProp = "id";
     private JsonObject? _json;
-    private readonly Dictionary<string, JsonElement> _pendingPaths = new();
+    private readonly Dictionary<string, JsonElement> _pendingPaths = [];
 
     public void SetResponse(JsonDocument response)
     {
