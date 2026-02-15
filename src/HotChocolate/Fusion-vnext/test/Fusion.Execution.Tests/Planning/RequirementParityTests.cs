@@ -4,6 +4,93 @@ namespace HotChocolate.Fusion.Planning;
 
 public class RequirementParityTests : FusionTestBase
 {
+    [Fact]
+    public void Simplest_Requires()
+    {
+        // arrange
+        var schema = CreateSimplestRequiresSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              products {
+                isExpensive
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Simple_Requires()
+    {
+        // arrange
+        var schema = CreateSimpleRequiresSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              products {
+                shippingEstimate
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Two_Fields_Same_Subgraph_Same_Requirement()
+    {
+        // arrange
+        var schema = CreateSimpleRequiresSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              products {
+                shippingEstimate
+                shippingEstimate2
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Two_Same_Service_Calls_With_Args_Conflicts()
+    {
+        // arrange
+        var schema = CreateTwoSameServiceCallsWithArgsConflictsSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              products {
+                isExpensive
+                reducedPrice
+                price(withDiscount: true)
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
     [Fact(Skip = "WIP: composite-schema fixture translation for deep nested requires.")]
     public void Deep_Requires()
     {
@@ -107,6 +194,120 @@ public class RequirementParityTests : FusionTestBase
             type Author {
               id: ID!
               name: String
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateSimplestRequiresSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: products
+            schema {
+              query: Query
+            }
+
+            type Query {
+              products: [Product]
+            }
+
+            type Product @key(fields: "upc") {
+              upc: String!
+              price: Int
+            }
+            """,
+            """
+            # name: inventory
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productByUpc(upc: String! @is(field: "upc")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "upc") {
+              upc: String!
+              isExpensive(price: Int @require(field: "price")): Boolean
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateSimpleRequiresSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: products
+            schema {
+              query: Query
+            }
+
+            type Query {
+              products: [Product]
+            }
+
+            type Product @key(fields: "upc") {
+              upc: String!
+              price: Int
+              weight: Int
+              name: String
+            }
+            """,
+            """
+            # name: inventory
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productByUpc(upc: String! @is(field: "upc")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "upc") {
+              upc: String!
+              shippingEstimate(
+                price: Int @require(field: "price")
+                weight: Int @require(field: "weight")): Int
+              shippingEstimate2(
+                price: Int @require(field: "price")
+                weight: Int @require(field: "weight")): String
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateTwoSameServiceCallsWithArgsConflictsSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: inventory
+            schema {
+              query: Query
+            }
+
+            type Query {
+              products: [Product]
+              productByUpc(upc: String! @is(field: "upc")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "upc") {
+              upc: String!
+              isExpensive(price: Int @require(field: "price")): Boolean
+              reducedPrice(price: Int @require(field: "price")): Boolean
+            }
+            """,
+            """
+            # name: products
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productByUpc(upc: String! @is(field: "upc")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "upc") {
+              upc: String!
+              price(withDiscount: Boolean): Int
             }
             """);
     }

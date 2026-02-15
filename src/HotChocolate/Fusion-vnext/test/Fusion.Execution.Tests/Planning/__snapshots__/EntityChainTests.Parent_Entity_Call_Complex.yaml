@@ -1,0 +1,91 @@
+operation:
+  - document: |
+      {
+        productFromD(id: "1") {
+          id
+          id @fusion__requirement
+          name
+          category {
+            id
+            id @fusion__requirement
+            name
+            details
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 11
+nodes:
+  - id: 1
+    type: Operation
+    schema: d
+    operation: |
+      query Op_123456789101112_1 {
+        productFromD(id: "1") {
+          id
+          name
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_id: ID!
+      ) {
+        productById(id: $__fusion_1_id) {
+          category {
+            details
+          }
+        }
+      }
+    source: $.productById
+    target: $.productFromD
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: c
+    operation: |
+      query Op_123456789101112_3(
+        $__fusion_2_id: ID!
+      ) {
+        categoryById(id: $__fusion_2_id) {
+          id
+          name
+        }
+      }
+    source: $.categoryById
+    target: $.productFromD.category
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 4
+  - id: 4
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_4(
+        $__fusion_3_id: ID!
+      ) {
+        productById(id: $__fusion_3_id) {
+          category {
+            id
+          }
+        }
+      }
+    source: $.productById
+    target: $.productFromD
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
