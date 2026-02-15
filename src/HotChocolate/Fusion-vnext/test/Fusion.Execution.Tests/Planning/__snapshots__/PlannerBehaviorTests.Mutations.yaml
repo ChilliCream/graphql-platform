@@ -1,0 +1,51 @@
+operation:
+  - document: |
+      mutation {
+        addProduct(input: { name: "new", price: 599.99 }) {
+          name
+          price
+          price @fusion__requirement
+          isExpensive
+          isAvailable
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      mutation Op_123456789101112_1 {
+        addProduct(input: { name: "new", price: 599.99 }) {
+          name
+          price
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_id: ID!
+          $__fusion_2_price: Float!
+      ) {
+        productById(id: $__fusion_1_id) {
+          isAvailable
+          isExpensive(price: $__fusion_2_price)
+        }
+      }
+    source: $.productById
+    target: $.addProduct
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_price
+        selectionMap: >-
+          price
+    dependencies:
+      - id: 1
