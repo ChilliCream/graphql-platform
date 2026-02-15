@@ -91,7 +91,7 @@ public class RequirementParityTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
-    [Fact(Skip = "WIP: composite-schema fixture translation for deep nested requires.")]
+    [Fact]
     public void Deep_Requires()
     {
         // arrange
@@ -151,17 +151,10 @@ public class RequirementParityTests : FusionTestBase
 
             type Query {
               feed: [Post]
-              commentById(id: ID!): Comment @lookup @internal
             }
 
             type Post @key(fields: "id") {
               id: ID!
-            }
-
-            type Comment @key(fields: "id") {
-              id: ID!
-              authorId: ID
-              body: String!
             }
             """,
             """
@@ -171,24 +164,49 @@ public class RequirementParityTests : FusionTestBase
             }
 
             type Query {
-              postById(id: ID!): Post @lookup @internal
+              postById(id: ID! @is(field: "id")): Post @lookup @internal
             }
 
             type Post @key(fields: "id") {
               id: ID!
               comments(limit: Int!): [Comment]
-              author(
-                commentAuthorIds: [CommentAuthorIdInput!]!
-                  @require(field: "comments { authorId }")): Author
             }
 
-            input CommentAuthorIdInput {
-              authorId: ID
+            type Comment @key(fields: "id") {
+              id: ID!
+            }
+            """,
+            """
+            # name: c
+            schema {
+              query: Query
+            }
+
+            type Query {
+              commentById(id: ID! @is(field: "id")): Comment @lookup @internal
             }
 
             type Comment @key(fields: "id") {
               id: ID!
               authorId: ID
+              body: String!
+            }
+            """,
+            """
+            # name: d
+            schema {
+              query: Query
+            }
+
+            type Query {
+              postById(id: ID! @is(field: "id")): Post @lookup @internal
+            }
+
+            type Post @key(fields: "id") {
+              id: ID!
+              author(
+                commentAuthorIds: [ID]
+                  @require(field: "comments[authorId]")): Author
             }
 
             type Author {

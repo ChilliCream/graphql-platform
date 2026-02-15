@@ -5,6 +5,27 @@ namespace HotChocolate.Fusion.Planning;
 public class RequirementChainTests : FusionTestBase
 {
     [Fact]
+    public void Requires_Requires_One()
+    {
+        // arrange
+        var schema = CreateRequiresRequiresSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              product {
+                canAffordWithDiscount
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Requires_Requires_Many()
     {
         // arrange
@@ -55,7 +76,7 @@ public class RequirementChainTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
-    [Fact(Skip = "WIP: composite-schema fixture translation for circular requires.")]
+    [Fact]
     public void Requires_Circular_1()
     {
         // arrange
@@ -76,7 +97,7 @@ public class RequirementChainTests : FusionTestBase
         MatchSnapshot(plan);
     }
 
-    [Fact(Skip = "WIP: composite-schema fixture translation for circular requires.")]
+    [Fact]
     public void Requires_Circular_2()
     {
         // arrange
@@ -192,11 +213,11 @@ public class RequirementChainTests : FusionTestBase
             type Query {
               feed: [Post]
               postById(id: ID!): Post @lookup @internal
-              authorById(id: ID!): Author @lookup @internal
             }
 
             type Post @key(fields: "id") {
               id: ID!
+              author: Author!
               byExpert(byNovice: Boolean! @require(field: "byNovice")): Boolean!
             }
 
@@ -221,12 +242,6 @@ public class RequirementChainTests : FusionTestBase
               byNovice(
                 yearsOfExperience: Int!
                   @require(field: "author.yearsOfExperience")): Boolean!
-              author: Author!
-            }
-
-            type Author @key(fields: "id") {
-              id: ID!
-              yearsOfExperience: Int!
             }
             """);
     }
