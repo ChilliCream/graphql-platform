@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -67,6 +68,101 @@ internal static class PlannerCostEstimator
         => EstimateWorkItemLowerBound(workItem)
             + EstimateContextualAdjustment(workItem, current, schema);
 
+    public static BacklogCostState AddWorkItemLowerBound(
+        BacklogCostState backlogCostState,
+        WorkItem workItem)
+    {
+        var operationLowerBound =
+            backlogCostState.OperationLowerBound + EstimateWorkItemLowerBound(workItem);
+        var maxProjectedDepth = backlogCostState.MaxProjectedDepth;
+        var projectedOpsPerLevel = backlogCostState.ProjectedOpsPerLevel;
+
+        if (TryGetProjectedOperationDepth(workItem, out var projectedDepth))
+        {
+            var current = projectedOpsPerLevel.GetValueOrDefault(projectedDepth, 0);
+            projectedOpsPerLevel = projectedOpsPerLevel.SetItem(projectedDepth, current + 1);
+
+            if (projectedDepth > maxProjectedDepth)
+            {
+                maxProjectedDepth = projectedDepth;
+            }
+        }
+
+        return new BacklogCostState(operationLowerBound, maxProjectedDepth, projectedOpsPerLevel);
+    }
+
+    public static BacklogCostState RemoveWorkItemLowerBound(
+        BacklogCostState backlogCostState,
+        WorkItem workItem)
+    {
+        var operationLowerBound =
+            Math.Max(0.0, backlogCostState.OperationLowerBound - EstimateWorkItemLowerBound(workItem));
+        var maxProjectedDepth = backlogCostState.MaxProjectedDepth;
+        var projectedOpsPerLevel = backlogCostState.ProjectedOpsPerLevel;
+
+        if (TryGetProjectedOperationDepth(workItem, out var projectedDepth)
+            && projectedOpsPerLevel.TryGetValue(projectedDepth, out var current))
+        {
+            if (current <= 1)
+            {
+                projectedOpsPerLevel = projectedOpsPerLevel.Remove(projectedDepth);
+
+                if (projectedDepth == maxProjectedDepth)
+                {
+                    maxProjectedDepth = RecomputeMaxProjectedDepth(projectedOpsPerLevel);
+                }
+            }
+            else
+            {
+                projectedOpsPerLevel = projectedOpsPerLevel.SetItem(projectedDepth, current - 1);
+            }
+        }
+
+        return new BacklogCostState(operationLowerBound, maxProjectedDepth, projectedOpsPerLevel);
+    }
+
+    public static double EstimateBacklogLowerBound(PlanNode node)
+        => EstimateBacklogLowerBound(
+            node.Options,
+            node.MaxDepth,
+            node.OpsPerLevel,
+            node.BacklogCostState);
+
+    public static double EstimateBacklogLowerBound(
+        OperationPlannerOptions options,
+        int currentMaxDepth,
+        ImmutableDictionary<int, int> currentOpsPerLevel,
+        BacklogCostState backlogCostState)
+    {
+        var total = backlogCostState.OperationLowerBound;
+
+        if (backlogCostState.MaxProjectedDepth > currentMaxDepth)
+        {
+            total += (backlogCostState.MaxProjectedDepth - currentMaxDepth) * options.DepthWeight;
+        }
+
+        if (!backlogCostState.ProjectedOpsPerLevel.IsEmpty)
+        {
+            var threshold = options.FanoutPenaltyThreshold;
+            var projectedAdditionalExcessFanout = 0;
+
+            foreach (var (depth, projectedOps) in backlogCostState.ProjectedOpsPerLevel)
+            {
+                var currentOpsAtDepth = currentOpsPerLevel.GetValueOrDefault(depth, 0);
+                var currentExcess = Math.Max(0, currentOpsAtDepth - threshold);
+                var projectedExcess = Math.Max(0, currentOpsAtDepth + projectedOps - threshold);
+                projectedAdditionalExcessFanout += projectedExcess - currentExcess;
+            }
+
+            if (projectedAdditionalExcessFanout > 0)
+            {
+                total += projectedAdditionalExcessFanout * options.ExcessFanoutWeight;
+            }
+        }
+
+        return total;
+    }
+
     private static double EstimateContextualAdjustment(
         WorkItem workItem,
         PlanNode current,
@@ -101,6 +197,40 @@ internal static class PlannerCostEstimator
         }
 
         return OperationStepCost - InlineLikelyCost;
+    }
+
+    private static bool TryGetProjectedOperationDepth(
+        WorkItem workItem,
+        out int projectedDepth)
+    {
+        switch (workItem)
+        {
+            case OperationWorkItem:
+            case FieldRequirementWorkItem { Lookup: not null }:
+            case NodeFieldWorkItem:
+            case NodeLookupWorkItem:
+                projectedDepth = workItem.EstimatedDepth;
+                return true;
+
+            default:
+                projectedDepth = 0;
+                return false;
+        }
+    }
+
+    private static int RecomputeMaxProjectedDepth(ImmutableDictionary<int, int> projectedOpsPerLevel)
+    {
+        var maxProjectedDepth = 0;
+
+        foreach (var (depth, _) in projectedOpsPerLevel)
+        {
+            if (depth > maxProjectedDepth)
+            {
+                maxProjectedDepth = depth;
+            }
+        }
+
+        return maxProjectedDepth;
     }
 
     private static double EstimateSpillover(

@@ -192,12 +192,12 @@ public sealed partial class OperationPlanner
         var result = _nodeFieldSelectionSetPartitioner.Partition(input);
 
         var backlog = ImmutableStack<WorkItem>.Empty;
-        var backlogLowerBound = 0.0;
+        var backlogCostState = BacklogCostState.Empty;
 
         if (result.SelectionSet is not null)
         {
             var workItem = OperationWorkItem.CreateRoot(result.SelectionSet);
-            backlog = backlog.PushWithLowerBound(workItem, ref backlogLowerBound);
+            backlog = backlog.PushWithLowerBound(workItem, ref backlogCostState);
         }
 
         if (result.NodeFields is not null)
@@ -205,9 +205,16 @@ public sealed partial class OperationPlanner
             foreach (var nodeField in result.NodeFields)
             {
                 var workItem = new NodeFieldWorkItem(nodeField);
-                backlog = backlog.PushWithLowerBound(workItem, ref backlogLowerBound);
+                backlog = backlog.PushWithLowerBound(workItem, ref backlogCostState);
             }
         }
+
+        var backlogLowerBound =
+            PlannerCostEstimator.EstimateBacklogLowerBound(
+                _options,
+                currentMaxDepth: 0,
+                ImmutableDictionary<int, int>.Empty,
+                backlogCostState);
 
         var node = new PlanNode
         {
@@ -218,6 +225,7 @@ public sealed partial class OperationPlanner
             Options = _options,
             SelectionSetIndex = result.SelectionSetIndex,
             Backlog = backlog,
+            BacklogCostState = backlogCostState,
             BacklogLowerBound = backlogLowerBound,
             OperationStepCount = 0
         };
@@ -243,7 +251,7 @@ public sealed partial class OperationPlanner
         // The plan will end up with separate root nodes for each mutation field, and the
         // plan executor will execute these root nodes in document order.
         var backlog = ImmutableStack<WorkItem>.Empty;
-        var backlogLowerBound = 0.0;
+        var backlogCostState = BacklogCostState.Empty;
         var selectionSetId = index.GetId(operationDefinition.SelectionSet);
         var indexBuilder = index.ToBuilder();
         SelectionSet firstSelectionSet = null!;
@@ -267,8 +275,15 @@ public sealed partial class OperationPlanner
             // the selection from the last loop iteration (i=0), which corresponds to
             // the first mutation field in document order and the first to be processed.
             firstSelectionSet = selectionSet;
-            backlog = backlog.PushWithLowerBound(OperationWorkItem.CreateRoot(selectionSet), ref backlogLowerBound);
+            backlog = backlog.PushWithLowerBound(OperationWorkItem.CreateRoot(selectionSet), ref backlogCostState);
         }
+
+        var backlogLowerBound =
+            PlannerCostEstimator.EstimateBacklogLowerBound(
+                _options,
+                currentMaxDepth: 0,
+                ImmutableDictionary<int, int>.Empty,
+                backlogCostState);
 
         var node = new PlanNode
         {
@@ -279,6 +294,7 @@ public sealed partial class OperationPlanner
             Options = _options,
             SelectionSetIndex = indexBuilder,
             Backlog = backlog,
+            BacklogCostState = backlogCostState,
             BacklogLowerBound = backlogLowerBound,
             OperationStepCount = 0
         };
@@ -299,8 +315,14 @@ public sealed partial class OperationPlanner
 
         var workItem = OperationWorkItem.CreateRoot(selectionSet);
         var backlog = ImmutableStack<WorkItem>.Empty;
-        var backlogLowerBound = 0.0;
-        backlog = backlog.PushWithLowerBound(workItem, ref backlogLowerBound);
+        var backlogCostState = BacklogCostState.Empty;
+        backlog = backlog.PushWithLowerBound(workItem, ref backlogCostState);
+        var backlogLowerBound =
+            PlannerCostEstimator.EstimateBacklogLowerBound(
+                _options,
+                currentMaxDepth: 0,
+                ImmutableDictionary<int, int>.Empty,
+                backlogCostState);
 
         var node = new PlanNode
         {
@@ -311,6 +333,7 @@ public sealed partial class OperationPlanner
             Options = _options,
             SelectionSetIndex = index,
             Backlog = backlog,
+            BacklogCostState = backlogCostState,
             BacklogLowerBound = backlogLowerBound,
             OperationStepCount = 0
         };
@@ -341,7 +364,7 @@ public sealed partial class OperationPlanner
             searchSpace = MaxSearchSpace(Unsafe.As<int, uint>(ref possiblePlansCount), searchSpace);
 
             var backlog = current.Backlog;
-            var backlogLowerBound = current.BacklogLowerBound;
+            var backlogCostState = current.BacklogCostState;
 
             if (emitPlannerEvents)
             {
@@ -377,16 +400,16 @@ public sealed partial class OperationPlanner
             // The backlog represents the tasks we have to complete to build out
             // the current possible plan. It's not guaranteed that this plan will work
             // out or that it is efficient.
-            backlog = current.Backlog.PopWithLowerBound(out var workItem, ref backlogLowerBound);
+            backlog = current.Backlog.PopWithLowerBound(out var workItem, ref backlogCostState);
 
             switch (workItem)
             {
                 case OperationWorkItem { Kind: OperationWorkItemKind.Root } wi:
-                    PlanRootSelections(wi, current, backlog, backlogLowerBound, possiblePlans);
+                    PlanRootSelections(wi, current, backlog, backlogCostState, possiblePlans);
                     break;
 
                 case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: { } lookup } wi:
-                    PlanLookupSelections(wi, lookup, current, backlog, backlogLowerBound, possiblePlans);
+                    PlanLookupSelections(wi, lookup, current, backlog, backlogCostState, possiblePlans);
                     break;
 
                 case FieldRequirementWorkItem { Lookup: null } wi:
@@ -395,7 +418,7 @@ public sealed partial class OperationPlanner
                         current,
                         possiblePlans,
                         backlog,
-                        backlogLowerBound);
+                        backlogCostState);
                     break;
 
                 case FieldRequirementWorkItem wi:
@@ -405,15 +428,15 @@ public sealed partial class OperationPlanner
                         current,
                         possiblePlans,
                         backlog,
-                        backlogLowerBound);
+                        backlogCostState);
                     break;
 
                 case NodeFieldWorkItem wi:
-                    PlanNode(wi, current, possiblePlans, backlog, backlogLowerBound);
+                    PlanNode(wi, current, possiblePlans, backlog, backlogCostState);
                     break;
 
                 case NodeLookupWorkItem { Lookup: { } lookup } wi:
-                    PlanNodeLookup(wi, lookup, current, possiblePlans, backlog, backlogLowerBound);
+                    PlanNodeLookup(wi, lookup, current, possiblePlans, backlog, backlogCostState);
                     break;
 
                 default:
@@ -463,23 +486,23 @@ public sealed partial class OperationPlanner
         while (true)
         {
             var backlog = current.Backlog;
-            var backlogLowerBound = current.BacklogLowerBound;
+            var backlogCostState = current.BacklogCostState;
 
             if (backlog.IsEmpty)
             {
                 return current;
             }
 
-            backlog = backlog.PopWithLowerBound(out var workItem, ref backlogLowerBound);
+            backlog = backlog.PopWithLowerBound(out var workItem, ref backlogCostState);
 
             switch (workItem)
             {
                 case OperationWorkItem { Kind: OperationWorkItemKind.Root } wi:
-                    PlanRootSelections(wi, current, backlog, backlogLowerBound, candidates);
+                    PlanRootSelections(wi, current, backlog, backlogCostState, candidates);
                     break;
 
                 case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: { } lookup } wi:
-                    PlanLookupSelections(wi, lookup, current, backlog, backlogLowerBound, candidates);
+                    PlanLookupSelections(wi, lookup, current, backlog, backlogCostState, candidates);
                     break;
 
                 case FieldRequirementWorkItem { Lookup: null } wi:
@@ -488,7 +511,7 @@ public sealed partial class OperationPlanner
                         current,
                         candidates,
                         backlog,
-                        backlogLowerBound);
+                        backlogCostState);
                     break;
 
                 case FieldRequirementWorkItem wi:
@@ -498,15 +521,15 @@ public sealed partial class OperationPlanner
                         current,
                         candidates,
                         backlog,
-                        backlogLowerBound);
+                        backlogCostState);
                     break;
 
                 case NodeFieldWorkItem wi:
-                    PlanNode(wi, current, candidates, backlog, backlogLowerBound);
+                    PlanNode(wi, current, candidates, backlog, backlogCostState);
                     break;
 
                 case NodeLookupWorkItem { Lookup: { } lookup } wi:
-                    PlanNodeLookup(wi, lookup, current, candidates, backlog, backlogLowerBound);
+                    PlanNodeLookup(wi, lookup, current, candidates, backlog, backlogCostState);
                     break;
 
                 default:
@@ -637,16 +660,16 @@ public sealed partial class OperationPlanner
         OperationWorkItem workItem,
         PlanNode current,
         ImmutableStack<WorkItem> backlog,
-        double backlogLowerBound,
+        BacklogCostState backlogCostState,
         PriorityQueue<PlanNode, double> possiblePlans)
-        => PlanSelections(workItem, current, null, backlog, backlogLowerBound, possiblePlans);
+        => PlanSelections(workItem, current, null, backlog, backlogCostState, possiblePlans);
 
     private void PlanLookupSelections(
         OperationWorkItem workItem,
         Lookup lookup,
         PlanNode current,
         ImmutableStack<WorkItem> backlog,
-        double backlogLowerBound,
+        BacklogCostState backlogCostState,
         PriorityQueue<PlanNode, double> possiblePlans)
     {
         current = InlineLookupRequirements(
@@ -655,13 +678,13 @@ public sealed partial class OperationPlanner
             lookup,
             workItem.EstimatedDepth,
             backlog,
-            backlogLowerBound);
+            backlogCostState);
         PlanSelections(
             workItem,
             current,
             lookup,
             current.Backlog,
-            current.BacklogLowerBound,
+            current.BacklogCostState,
             possiblePlans);
     }
 
@@ -670,7 +693,7 @@ public sealed partial class OperationPlanner
         PlanNode current,
         Lookup? lookup,
         ImmutableStack<WorkItem> backlog,
-        double backlogLowerBound,
+        BacklogCostState backlogCostState,
         PriorityQueue<PlanNode, double> possiblePlans)
     {
         var stepId = current.Steps.NextId();
@@ -693,8 +716,8 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        backlog = backlog.PushWithLowerBound(unresolvable, current, stepDepth, ref backlogLowerBound);
-        backlog = backlog.PushWithLowerBound(fieldsWithRequirements, stepId, stepDepth, ref backlogLowerBound);
+        backlog = backlog.PushWithLowerBound(unresolvable, current, stepDepth, ref backlogCostState);
+        backlog = backlog.PushWithLowerBound(fieldsWithRequirements, stepId, stepDepth, ref backlogCostState);
 
         // lookups are always queries.
         var operationType =
@@ -753,6 +776,11 @@ public sealed partial class OperationPlanner
         };
 
         var costState = AddOperationStepCostState(current, stepId, stepDepth);
+        var backlogLowerBound = PlannerCostEstimator.EstimateBacklogLowerBound(
+            current.Options,
+            costState.MaxDepth,
+            costState.OpsPerLevel,
+            backlogCostState);
 
         var next = new PlanNode
         {
@@ -764,6 +792,7 @@ public sealed partial class OperationPlanner
             Options = current.Options,
             SelectionSetIndex = index,
             Backlog = backlog,
+            BacklogCostState = backlogCostState,
             BacklogLowerBound = backlogLowerBound,
             Steps = current.Steps.Add(step),
             LastRequirementId = lastRequirementId,
@@ -783,7 +812,7 @@ public sealed partial class OperationPlanner
         Lookup lookup,
         int lookupStepDepth,
         ImmutableStack<WorkItem> backlog,
-        double backlogLowerBound)
+        BacklogCostState backlogCostState)
     {
         var processed = new HashSet<string>();
         var lookupStepId = current.Steps.NextId();
@@ -878,7 +907,7 @@ public sealed partial class OperationPlanner
                         unresolvable,
                         current,
                         GetOperationStepDepth(current, step.Id),
-                        ref backlogLowerBound);
+                        ref backlogCostState);
                 }
             }
 
@@ -900,13 +929,21 @@ public sealed partial class OperationPlanner
                     Dependents = ImmutableHashSet<int>.Empty.Add(lookupStepId),
                     ParentDepth = lookupStepDepth
                 },
-                ref backlogLowerBound);
+                ref backlogCostState);
         }
+
+        var backlogLowerBound =
+            PlannerCostEstimator.EstimateBacklogLowerBound(
+                current.Options,
+                current.MaxDepth,
+                current.OpsPerLevel,
+                backlogCostState);
 
         return current with
         {
             Steps = steps,
             Backlog = backlog,
+            BacklogCostState = backlogCostState,
             BacklogLowerBound = backlogLowerBound,
             SelectionSetIndex = index,
             InternalOperationDefinition = internalOperation
@@ -922,7 +959,7 @@ public sealed partial class OperationPlanner
         PlanNode current,
         PriorityQueue<PlanNode, double> possiblePlans,
         ImmutableStack<WorkItem> backlog,
-        double backlogLowerBound)
+        BacklogCostState backlogCostState)
     {
         // we first resolve the original intended plan step, so we can inline the field
         // into it.
@@ -944,7 +981,7 @@ public sealed partial class OperationPlanner
                     currentStep,
                     index,
                     ref backlog,
-                    ref backlogLowerBound,
+                    ref backlogCostState,
                     ref steps)
                 is null;
 
@@ -1005,6 +1042,12 @@ public sealed partial class OperationPlanner
         var updatedStep = currentStep with { Definition = operation, Requirements = requirements };
 
         steps = steps.SetItem(workItem.StepIndex, updatedStep);
+        var backlogLowerBound =
+            PlannerCostEstimator.EstimateBacklogLowerBound(
+                current.Options,
+                current.MaxDepth,
+                current.OpsPerLevel,
+                backlogCostState);
 
         var next = new PlanNode
         {
@@ -1016,6 +1059,7 @@ public sealed partial class OperationPlanner
             Options = current.Options,
             SelectionSetIndex = index,
             Backlog = backlog,
+            BacklogCostState = backlogCostState,
             BacklogLowerBound = backlogLowerBound,
             Steps = steps,
             LastRequirementId = requirementId,
@@ -1035,7 +1079,7 @@ public sealed partial class OperationPlanner
         PlanNode current,
         PriorityQueue<PlanNode, double> possiblePlans,
         ImmutableStack<WorkItem> backlog,
-        double backlogLowerBound)
+        BacklogCostState backlogCostState)
     {
         var selectionSetStub = new SelectionSet(
             workItem.Selection.SelectionSetId,
@@ -1048,9 +1092,9 @@ public sealed partial class OperationPlanner
             lookup,
             workItem.EstimatedDepth,
             backlog,
-            backlogLowerBound);
+            backlogCostState);
         backlog = current.Backlog;
-        backlogLowerBound = current.BacklogLowerBound;
+        backlogCostState = current.BacklogCostState;
 
         if (current.Steps.ById(workItem.StepId) is not OperationPlanStep currentStep)
         {
@@ -1072,7 +1116,7 @@ public sealed partial class OperationPlanner
                 currentStep,
                 indexBuilder,
                 ref backlog,
-                ref backlogLowerBound,
+                ref backlogCostState,
                 ref steps);
 
         // if we have requirements that we could not inline into existing
@@ -1097,7 +1141,7 @@ public sealed partial class OperationPlanner
                     Dependents = ImmutableHashSet<int>.Empty.Add(stepId),
                     ParentDepth = stepDepth
                 },
-                ref backlogLowerBound);
+                ref backlogCostState);
         }
 
         var compositeField = workItem.Selection.Field;
@@ -1147,7 +1191,7 @@ public sealed partial class OperationPlanner
                 current,
                 indexBuilder,
                 ref backlog,
-                ref backlogLowerBound);
+                ref backlogCostState);
 
         var selectionSetNode = new SelectionSetNode(
             [workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections)]);
@@ -1200,6 +1244,12 @@ public sealed partial class OperationPlanner
         };
 
         var costState = AddOperationStepCostState(current, stepId, stepDepth);
+        var backlogLowerBound =
+            PlannerCostEstimator.EstimateBacklogLowerBound(
+                current.Options,
+                costState.MaxDepth,
+                costState.OpsPerLevel,
+                backlogCostState);
 
         var next = new PlanNode
         {
@@ -1211,6 +1261,7 @@ public sealed partial class OperationPlanner
             Options = current.Options,
             SelectionSetIndex = indexBuilder,
             Backlog = backlog,
+            BacklogCostState = backlogCostState,
             BacklogLowerBound = backlogLowerBound,
             Steps = steps.Add(step),
             LastRequirementId = lastRequirementId,
@@ -1230,7 +1281,7 @@ public sealed partial class OperationPlanner
         PlanNode current,
         PriorityQueue<PlanNode, double> possiblePlans,
         ImmutableStack<WorkItem> backlog,
-        double backlogLowerBound)
+        BacklogCostState backlogCostState)
     {
         var stepId = current.Steps.NextId();
         var stepDepth = workItem.EstimatedDepth;
@@ -1252,8 +1303,8 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        backlog = backlog.PushWithLowerBound(unresolvable, current, stepDepth, ref backlogLowerBound);
-        backlog = backlog.PushWithLowerBound(fieldsWithRequirements, stepId, stepDepth, ref backlogLowerBound);
+        backlog = backlog.PushWithLowerBound(unresolvable, current, stepDepth, ref backlogCostState);
+        backlog = backlog.PushWithLowerBound(fieldsWithRequirements, stepId, stepDepth, ref backlogCostState);
 
         var resolvableSelections = resolvable.Selections;
         if (!resolvableSelections.Any(IsTypeNameSelection))
@@ -1321,6 +1372,12 @@ public sealed partial class OperationPlanner
         steps = steps.Add(operationPlanStep);
 
         var costState = AddOperationStepCostState(current, stepId, stepDepth);
+        var backlogLowerBound =
+            PlannerCostEstimator.EstimateBacklogLowerBound(
+                current.Options,
+                costState.MaxDepth,
+                costState.OpsPerLevel,
+                backlogCostState);
 
         var next = new PlanNode
         {
@@ -1332,6 +1389,7 @@ public sealed partial class OperationPlanner
             Options = current.Options,
             SelectionSetIndex = index,
             Backlog = backlog,
+            BacklogCostState = backlogCostState,
             BacklogLowerBound = backlogLowerBound,
             Steps = steps,
             LastRequirementId = current.LastRequirementId,
@@ -1350,7 +1408,7 @@ public sealed partial class OperationPlanner
         PlanNode current,
         PriorityQueue<PlanNode, double> possiblePlans,
         ImmutableStack<WorkItem> backlog,
-        double backlogLowerBound)
+        BacklogCostState backlogCostState)
     {
         var stepId = current.Steps.NextId();
         var fallbackQueryStepId = stepId + 1;
@@ -1440,10 +1498,16 @@ public sealed partial class OperationPlanner
                 ParentDepth = stepDepth
             };
 
-            backlog = backlog.PushWithLowerBound(newWorkItem, ref backlogLowerBound);
+            backlog = backlog.PushWithLowerBound(newWorkItem, ref backlogCostState);
         }
 
         var costState = AddOperationStepCostState(current, fallbackQueryStepId, stepDepth);
+        var backlogLowerBound =
+            PlannerCostEstimator.EstimateBacklogLowerBound(
+                current.Options,
+                costState.MaxDepth,
+                costState.OpsPerLevel,
+                backlogCostState);
 
         var next = new PlanNode
         {
@@ -1455,6 +1519,7 @@ public sealed partial class OperationPlanner
             Options = current.Options,
             SelectionSetIndex = index,
             Backlog = backlog,
+            BacklogCostState = backlogCostState,
             BacklogLowerBound = backlogLowerBound,
             Steps = current.Steps
                 .Add(nodeStep)
@@ -1550,7 +1615,7 @@ public sealed partial class OperationPlanner
         PlanNode current,
         SelectionSetIndexBuilder index,
         ref ImmutableStack<WorkItem> backlog,
-        ref double backlogLowerBound)
+        ref BacklogCostState backlogCostState)
     {
         if (selection.Node.SelectionSet is null)
         {
@@ -1573,8 +1638,8 @@ public sealed partial class OperationPlanner
         };
 
         var (resolvable, unresolvable, fieldsWithRequirements, _) = _partitioner.Partition(input);
-        backlog = backlog.PushWithLowerBound(unresolvable, current, stepDepth, ref backlogLowerBound);
-        backlog = backlog.PushWithLowerBound(fieldsWithRequirements, stepId, stepDepth, ref backlogLowerBound);
+        backlog = backlog.PushWithLowerBound(unresolvable, current, stepDepth, ref backlogCostState);
+        backlog = backlog.PushWithLowerBound(fieldsWithRequirements, stepId, stepDepth, ref backlogCostState);
         return resolvable;
     }
 
@@ -1584,7 +1649,7 @@ public sealed partial class OperationPlanner
         OperationPlanStep currentStep,
         SelectionSetIndexBuilder index,
         ref ImmutableStack<WorkItem> backlog,
-        ref double backlogLowerBound,
+        ref BacklogCostState backlogCostState,
         ref ImmutableList<PlanStep> steps)
     {
         var compositeField = workItem.Selection.Field;
@@ -1715,7 +1780,7 @@ public sealed partial class OperationPlanner
                         {
                             ParentDepth = GetOperationStepDepth(current, step.Id)
                         },
-                        ref backlogLowerBound);
+                        ref backlogCostState);
                 }
             }
 
@@ -2064,14 +2129,10 @@ file static class Extensions
     public static ImmutableStack<WorkItem> PopWithLowerBound(
         this ImmutableStack<WorkItem> backlog,
         out WorkItem workItem,
-        ref double backlogLowerBound)
+        ref BacklogCostState backlogCostState)
     {
         backlog = backlog.Pop(out workItem);
-        backlogLowerBound -= PlannerCostEstimator.EstimateWorkItemLowerBound(workItem);
-        if (backlogLowerBound < 0)
-        {
-            backlogLowerBound = 0;
-        }
+        backlogCostState = PlannerCostEstimator.RemoveWorkItemLowerBound(backlogCostState, workItem);
 
         return backlog;
     }
@@ -2079,9 +2140,9 @@ file static class Extensions
     public static ImmutableStack<WorkItem> PushWithLowerBound(
         this ImmutableStack<WorkItem> backlog,
         WorkItem workItem,
-        ref double backlogLowerBound)
+        ref BacklogCostState backlogCostState)
     {
-        backlogLowerBound += PlannerCostEstimator.EstimateWorkItemLowerBound(workItem);
+        backlogCostState = PlannerCostEstimator.AddWorkItemLowerBound(backlogCostState, workItem);
         return backlog.Push(workItem);
     }
 
@@ -2090,7 +2151,7 @@ file static class Extensions
         ImmutableStack<SelectionSet> unresolvable,
         PlanNode current,
         int parentDepth,
-        ref double backlogLowerBound)
+        ref BacklogCostState backlogCostState)
     {
         if (unresolvable.IsEmpty)
         {
@@ -2108,7 +2169,7 @@ file static class Extensions
             {
                 ParentDepth = parentDepth
             };
-            backlog = backlog.PushWithLowerBound(workItem, ref backlogLowerBound);
+            backlog = backlog.PushWithLowerBound(workItem, ref backlogCostState);
         }
 
         return backlog;
@@ -2129,8 +2190,8 @@ file static class Extensions
     /// <param name="parentDepth">
     /// The depth of the step that produced the requirement work items.
     /// </param>
-    /// <param name="backlogLowerBound">
-    /// The current optimistic lower bound for the backlog.
+    /// <param name="backlogCostState">
+    /// The current optimistic lower-bound state for the backlog.
     /// </param>
     /// <returns>
     /// The updated backlog.
@@ -2140,7 +2201,7 @@ file static class Extensions
         ImmutableStack<FieldSelection> fieldsWithRequirements,
         int stepId,
         int parentDepth,
-        ref double backlogLowerBound)
+        ref BacklogCostState backlogCostState)
     {
         if (fieldsWithRequirements.IsEmpty)
         {
@@ -2153,7 +2214,7 @@ file static class Extensions
             {
                 ParentDepth = parentDepth
             };
-            backlog = backlog.PushWithLowerBound(workItem, ref backlogLowerBound);
+            backlog = backlog.PushWithLowerBound(workItem, ref backlogCostState);
         }
 
         return backlog;
@@ -2232,10 +2293,17 @@ file static class Extensions
         OperationWorkItem workItem,
         FusionSchemaDefinition compositeSchema)
     {
-        var backlogLowerBound = planNodeTemplate.BacklogLowerBound;
-        var backlog = planNodeTemplate.Backlog.PopWithLowerBound(out _, ref backlogLowerBound);
+        var backlogCostState = planNodeTemplate.BacklogCostState;
+        var backlog = planNodeTemplate.Backlog.PopWithLowerBound(out _, ref backlogCostState);
         var allCandidateSchemas = planNodeTemplate.GetCandidateSchemas(workItem.SelectionSet.Id);
         var type = (FusionComplexTypeDefinition)workItem.SelectionSet.Type;
+
+        double EstimateBranchLowerBound(BacklogCostState branchBacklogCostState)
+            => PlannerCostEstimator.EstimateBacklogLowerBound(
+                planNodeTemplate.Options,
+                planNodeTemplate.MaxDepth,
+                planNodeTemplate.OpsPerLevel,
+                branchBacklogCostState);
 
         foreach (var (toSchema, resolutionCost) in compositeSchema.GetPossibleSchemas(workItem.SelectionSet))
         {
@@ -2251,14 +2319,16 @@ file static class Extensions
                 out var bestLookup))
             {
                 var lookupWorkItem = workItem with { Lookup = bestLookup };
-                var branchBacklogLowerBound = backlogLowerBound;
-                var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogLowerBound);
+                var branchBacklogCostState = backlogCostState;
+                var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCostState);
+                var branchBacklogLowerBound = EstimateBranchLowerBound(branchBacklogCostState);
                 possiblePlans.EnqueueWithCost(
                     planNodeTemplate with
                     {
                         SchemaName = toSchema,
                         ResolutionCost = resolutionCost,
                         Backlog = branchBacklog,
+                        BacklogCostState = branchBacklogCostState,
                         BacklogLowerBound = branchBacklogLowerBound
                     },
                     compositeSchema);
@@ -2271,14 +2341,16 @@ file static class Extensions
                 .OrderLookupsDeterministically())
             {
                 var lookupWorkItem = workItem with { Lookup = lookup };
-                var branchBacklogLowerBound = backlogLowerBound;
-                var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogLowerBound);
+                var branchBacklogCostState = backlogCostState;
+                var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCostState);
+                var branchBacklogLowerBound = EstimateBranchLowerBound(branchBacklogCostState);
                 possiblePlans.EnqueueWithCost(
                     planNodeTemplate with
                     {
                         SchemaName = toSchema,
                         ResolutionCost = resolutionCost,
                         Backlog = branchBacklog,
+                        BacklogCostState = branchBacklogCostState,
                         BacklogLowerBound = branchBacklogLowerBound
                     },
                     compositeSchema);
@@ -2299,10 +2371,11 @@ file static class Extensions
                     t => LookupOrderingKey(t.WorkItem.Lookup),
                     StringComparer.Ordinal))
                 {
-                    var branchBacklogLowerBound = backlogLowerBound;
+                    var branchBacklogCostState = backlogCostState;
                     var branchBacklog = backlog.PushWithLowerBound(
                         lookupThroughPathWorkItem,
-                        ref branchBacklogLowerBound);
+                        ref branchBacklogCostState);
+                    var branchBacklogLowerBound = EstimateBranchLowerBound(branchBacklogCostState);
                     possiblePlans.EnqueueWithCost(
                         planNodeTemplate with
                         {
@@ -2310,6 +2383,7 @@ file static class Extensions
                             SelectionSetIndex = index,
                             ResolutionCost = resolutionCost + cost,
                             Backlog = branchBacklog,
+                            BacklogCostState = branchBacklogCostState,
                             BacklogLowerBound = branchBacklogLowerBound
                         },
                         compositeSchema);
@@ -2324,10 +2398,17 @@ file static class Extensions
         NodeLookupWorkItem workItem,
         FusionSchemaDefinition compositeSchema)
     {
-        var backlogLowerBound = planNodeTemplate.BacklogLowerBound;
-        var backlog = planNodeTemplate.Backlog.PopWithLowerBound(out _, ref backlogLowerBound);
+        var backlogCostState = planNodeTemplate.BacklogCostState;
+        var backlog = planNodeTemplate.Backlog.PopWithLowerBound(out _, ref backlogCostState);
         var type = workItem.SelectionSet.Type;
         var hasEnqueuedLookup = false;
+
+        double EstimateBranchLowerBound(BacklogCostState branchBacklogCostState)
+            => PlannerCostEstimator.EstimateBacklogLowerBound(
+                planNodeTemplate.Options,
+                planNodeTemplate.MaxDepth,
+                planNodeTemplate.OpsPerLevel,
+                branchBacklogCostState);
 
         foreach (var (schemaName, resolutionCost) in compositeSchema.GetPossibleSchemas(workItem.SelectionSet))
         {
@@ -2345,14 +2426,16 @@ file static class Extensions
             }
 
             var lookupWorkItem = workItem with { Lookup = byIdLookup };
-            var branchBacklogLowerBound = backlogLowerBound;
-            var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogLowerBound);
+            var branchBacklogCostState = backlogCostState;
+            var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCostState);
+            var branchBacklogLowerBound = EstimateBranchLowerBound(branchBacklogCostState);
             possiblePlans.EnqueueWithCost(
                 planNodeTemplate with
                 {
                     SchemaName = schemaName,
                     ResolutionCost = resolutionCost,
                     Backlog = branchBacklog,
+                    BacklogCostState = branchBacklogCostState,
                     BacklogLowerBound = branchBacklogLowerBound
                 },
                 compositeSchema);
@@ -2373,13 +2456,15 @@ file static class Extensions
                         $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
 
             var lookupWorkItem = workItem with { Lookup = byIdLookup };
-            var branchBacklogLowerBound = backlogLowerBound;
-            var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogLowerBound);
+            var branchBacklogCostState = backlogCostState;
+            var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCostState);
+            var branchBacklogLowerBound = EstimateBranchLowerBound(branchBacklogCostState);
             possiblePlans.EnqueueWithCost(
                 planNodeTemplate with
                 {
                     SchemaName = byIdLookup.SchemaName,
                     Backlog = branchBacklog,
+                    BacklogCostState = branchBacklogCostState,
                     BacklogLowerBound = branchBacklogLowerBound
                 },
                 compositeSchema);
@@ -2392,10 +2477,17 @@ file static class Extensions
         FieldRequirementWorkItem workItem,
         FusionSchemaDefinition compositeSchema)
     {
-        var backlogLowerBound = planNodeTemplate.BacklogLowerBound;
-        var backlog = planNodeTemplate.Backlog.PopWithLowerBound(out _, ref backlogLowerBound);
+        var backlogCostState = planNodeTemplate.BacklogCostState;
+        var backlog = planNodeTemplate.Backlog.PopWithLowerBound(out _, ref backlogCostState);
         var allCandidateSchemas = planNodeTemplate.GetCandidateSchemas(workItem.Selection.SelectionSetId);
         var selectionSetType = workItem.Selection.Field.DeclaringType;
+
+        double EstimateBranchLowerBound(BacklogCostState branchBacklogCostState)
+            => PlannerCostEstimator.EstimateBacklogLowerBound(
+                planNodeTemplate.Options,
+                planNodeTemplate.MaxDepth,
+                planNodeTemplate.OpsPerLevel,
+                branchBacklogCostState);
 
         foreach (var schemaName in workItem.Selection.Field.Sources.Schemas.OrderBy(t => t, StringComparer.Ordinal))
         {
@@ -2404,12 +2496,14 @@ file static class Extensions
             if (schemaName == planNodeTemplate.SchemaName)
             {
                 var inlineWorkItem = workItem;
-                var inlineBacklogLowerBound = backlogLowerBound;
-                var inlineBacklog = backlog.PushWithLowerBound(inlineWorkItem, ref inlineBacklogLowerBound);
+                var inlineBacklogCostState = backlogCostState;
+                var inlineBacklog = backlog.PushWithLowerBound(inlineWorkItem, ref inlineBacklogCostState);
+                var inlineBacklogLowerBound = EstimateBranchLowerBound(inlineBacklogCostState);
                 possiblePlans.EnqueueWithCost(
                     planNodeTemplate with
                     {
                         Backlog = inlineBacklog,
+                        BacklogCostState = inlineBacklogCostState,
                         BacklogLowerBound = inlineBacklogLowerBound,
                     },
                     compositeSchema);
@@ -2421,13 +2515,15 @@ file static class Extensions
                     out var bestLookup))
                 {
                     var lookupWorkItem = workItem with { Lookup = bestLookup };
-                    var branchBacklogLowerBound = backlogLowerBound;
-                    var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogLowerBound);
+                    var branchBacklogCostState = backlogCostState;
+                    var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCostState);
+                    var branchBacklogLowerBound = EstimateBranchLowerBound(branchBacklogCostState);
                     possiblePlans.EnqueueWithCost(
                         planNodeTemplate with
                         {
                             SchemaName = schemaName,
                             Backlog = branchBacklog,
+                            BacklogCostState = branchBacklogCostState,
                             BacklogLowerBound = branchBacklogLowerBound
                         },
                         compositeSchema);
@@ -2439,13 +2535,15 @@ file static class Extensions
                     .OrderLookupsDeterministically())
                 {
                     var lookupWorkItem = workItem with { Lookup = lookup };
-                    var branchBacklogLowerBound = backlogLowerBound;
-                    var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogLowerBound);
+                    var branchBacklogCostState = backlogCostState;
+                    var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCostState);
+                    var branchBacklogLowerBound = EstimateBranchLowerBound(branchBacklogCostState);
                     possiblePlans.EnqueueWithCost(
                         planNodeTemplate with
                         {
                             SchemaName = schemaName,
                             Backlog = branchBacklog,
+                            BacklogCostState = branchBacklogCostState,
                             BacklogLowerBound = branchBacklogLowerBound
                         },
                         compositeSchema);
@@ -2460,13 +2558,15 @@ file static class Extensions
                     out var bestLookup))
                 {
                     var lookupWorkItem = workItem with { Lookup = bestLookup };
-                    var branchBacklogLowerBound = backlogLowerBound;
-                    var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogLowerBound);
+                    var branchBacklogCostState = backlogCostState;
+                    var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCostState);
+                    var branchBacklogLowerBound = EstimateBranchLowerBound(branchBacklogCostState);
                     possiblePlans.EnqueueWithCost(
                         planNodeTemplate with
                         {
                             SchemaName = schemaName,
                             Backlog = branchBacklog,
+                            BacklogCostState = branchBacklogCostState,
                             BacklogLowerBound = branchBacklogLowerBound
                         },
                         compositeSchema);
@@ -2478,13 +2578,15 @@ file static class Extensions
                     .OrderLookupsDeterministically())
                 {
                     var lookupWorkItem = workItem with { Lookup = lookup };
-                    var branchBacklogLowerBound = backlogLowerBound;
-                    var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogLowerBound);
+                    var branchBacklogCostState = backlogCostState;
+                    var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCostState);
+                    var branchBacklogLowerBound = EstimateBranchLowerBound(branchBacklogCostState);
                     possiblePlans.EnqueueWithCost(
                         planNodeTemplate with
                         {
                             SchemaName = schemaName,
                             Backlog = branchBacklog,
+                            BacklogCostState = branchBacklogCostState,
                             BacklogLowerBound = branchBacklogLowerBound
                         },
                         compositeSchema);

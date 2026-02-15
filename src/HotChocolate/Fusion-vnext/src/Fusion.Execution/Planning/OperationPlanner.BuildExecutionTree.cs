@@ -88,7 +88,6 @@ public sealed partial class OperationPlanner
         Dictionary<int, int> fallbackLookup)
     {
         var updatedPlanSteps = planSteps;
-        var emptySelectionSetContext = new HasEmptySelectionSetVisitor.Context();
         var forwardVariableContext = new ForwardVariableRewriter.Context();
 
         foreach (var variableDef in originalOperation.VariableDefinitions)
@@ -100,13 +99,20 @@ public sealed partial class OperationPlanner
         {
             if (step is OperationPlanStep operationPlanStep)
             {
+                operationPlanStep = RemoveEmptySelectionSets(operationPlanStep);
+
+                if (!ReferenceEquals(step, operationPlanStep))
+                {
+                    updatedPlanSteps = updatedPlanSteps.Replace(step, operationPlanStep);
+                }
+
                 // During the planing process we keep incomplete operation steps around
                 // in order to inline requirements. If those do not materialize these
                 // operation fragments need to be removed before we can build the
                 // execution plan.
                 if (IsEmptyOperation(operationPlanStep))
                 {
-                    updatedPlanSteps = updatedPlanSteps.Remove(step);
+                    updatedPlanSteps = updatedPlanSteps.Remove(operationPlanStep);
                     continue;
                 }
 
@@ -175,9 +181,15 @@ public sealed partial class OperationPlanner
 
         bool IsEmptyOperation(OperationPlanStep step)
         {
-            emptySelectionSetContext.HasEmptySelectionSet = false;
-            s_hasEmptySelectionSetVisitor.Visit(step.Definition, emptySelectionSetContext);
-            return emptySelectionSetContext.HasEmptySelectionSet;
+            return step.Definition.SelectionSet.Selections.Count == 0;
+        }
+
+        OperationPlanStep RemoveEmptySelectionSets(OperationPlanStep step)
+        {
+            var updatedDefinition = RemoveEmptySelections(step.Definition);
+            return ReferenceEquals(updatedDefinition, step.Definition)
+                ? step
+                : step with { Definition = updatedDefinition };
         }
 
         OperationPlanStep AddVariableDefinitions(OperationPlanStep step)
@@ -498,6 +510,49 @@ public sealed partial class OperationPlanner
         }
 
         return false;
+    }
+
+    private static OperationDefinitionNode RemoveEmptySelections(OperationDefinitionNode operationDefinition)
+    {
+        return SyntaxRewriter.Create(
+            rewrite: node =>
+            {
+                if (node is not SelectionSetNode selectionSet)
+                {
+                    return node;
+                }
+
+                List<ISelectionNode>? rewritten = null;
+                var selections = selectionSet.Selections;
+
+                for (var i = 0; i < selections.Count; i++)
+                {
+                    var selection = selections[i];
+                    var removeSelection =
+                        selection is FieldNode { SelectionSet: { Selections.Count: 0 } }
+                        || selection is InlineFragmentNode { SelectionSet.Selections.Count: 0 };
+
+                    if (!removeSelection)
+                    {
+                        rewritten?.Add(selection);
+                        continue;
+                    }
+
+                    if (rewritten is null)
+                    {
+                        rewritten = new List<ISelectionNode>(selections.Count - 1);
+                        for (var j = 0; j < i; j++)
+                        {
+                            rewritten.Add(selections[j]);
+                        }
+                    }
+                }
+
+                return rewritten is null
+                    ? node
+                    : new SelectionSetNode(rewritten);
+            })
+            .Rewrite(operationDefinition)!;
     }
 
     private static OperationDefinitionNode RemoveEmptyTypeNames(OperationDefinitionNode operationDefinition)

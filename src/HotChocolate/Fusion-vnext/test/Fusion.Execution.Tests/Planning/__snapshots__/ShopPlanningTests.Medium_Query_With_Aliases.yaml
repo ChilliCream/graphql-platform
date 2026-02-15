@@ -114,7 +114,7 @@ operation:
       }
     hash: 123456789101112
     searchSpace: 4
-    expandedNodes: 22
+    expandedNodes: 17
 nodes:
   - id: 1
     type: Operation
