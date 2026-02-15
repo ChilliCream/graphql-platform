@@ -133,7 +133,14 @@ public sealed class OperationExecutionNode : ExecutionNode
             context.TrackSourceSchemaClientResponse(this, response);
 
             // we read the responses from the response stream.
-            bufferLength = Math.Max(variables.Length, 1);
+            var totalPathCount = variables.Length;
+
+            for (var i = 0; i < variables.Length; i++)
+            {
+                totalPathCount += variables[i].AdditionalPaths.Length;
+            }
+
+            bufferLength = Math.Max(totalPathCount, 1);
             buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
 
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
@@ -264,14 +271,27 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         else
         {
-            var pathBufferLength = variables.Length;
+            var pathBufferLength = 0;
+
+            for (var i = 0; i < variables.Length; i++)
+            {
+                pathBufferLength += 1 + variables[i].AdditionalPaths.Length;
+            }
+
             var pathBuffer = ArrayPool<Path>.Shared.Rent(pathBufferLength);
 
             try
             {
+                var pathBufferIndex = 0;
+
                 for (var i = 0; i < variables.Length; i++)
                 {
-                    pathBuffer[i] = variables[i].Path;
+                    pathBuffer[pathBufferIndex++] = variables[i].Path;
+
+                    foreach (var additionalPath in variables[i].AdditionalPaths)
+                    {
+                        pathBuffer[pathBufferIndex++] = additionalPath;
+                    }
                 }
 
                 context.AddErrors(error, responseNames, pathBuffer.AsSpan(0, pathBufferLength));

@@ -8,6 +8,14 @@ internal sealed partial class DeferExecutionCoordinator
     private bool _isInitialized;
 #endif
 
+    [Conditional("DEBUG")]
+    private void AssertInitialized()
+    {
+#if DEBUG
+        Debug.Assert(_isInitialized);
+#endif
+    }
+
     /// <summary>
     /// Initializes the coordinator for a new execution cycle.
     /// Must be called before any other operations when leased from a pool.

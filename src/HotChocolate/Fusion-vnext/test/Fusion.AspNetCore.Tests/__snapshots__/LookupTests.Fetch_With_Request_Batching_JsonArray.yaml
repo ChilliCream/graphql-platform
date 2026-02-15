@@ -12,34 +12,17 @@ request:
 response:
   body: |
     {
-      "data": {
-        "books": [
-          {
-            "author": {
-              "id": "1",
-              "name": "Author 1"
-            }
-          },
-          {
-            "author": {
-              "id": "2",
-              "name": "Author 2"
-            }
-          },
-          {
-            "author": {
-              "id": "2",
-              "name": "Author 2"
-            }
-          },
-          {
-            "author": {
-              "id": "2",
-              "name": "Author 2"
-            }
-          }
-        ]
-      }
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "books",
+            0,
+            "author",
+            "name"
+          ]
+        }
+      ]
     }
 sourceSchemas:
   - name: a
@@ -129,30 +112,6 @@ sourceSchemas:
               variables: |
                 {
                   "__fusion_1_id": "1"
-                }
-            - document: |
-                query Op_fb4f667e_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  authorById(id: $__fusion_1_id) {
-                    name
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "2"
-                }
-            - document: |
-                query Op_fb4f667e_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  authorById(id: $__fusion_1_id) {
-                    name
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "2"
                 }
             - document: |
                 query Op_fb4f667e_2(
