@@ -15,7 +15,9 @@ response:
   body: |
     {
       "data": {
-        "exclusiveSubgraphA": null,
+        "exclusiveSubgraphA": {
+          "__typename": "ExclusiveSubgraphA"
+        },
         "viewer": {
           "subType": {
             "subgraphB": "SubType: U3ViVHlwZToy"
@@ -46,6 +48,24 @@ sourceSchemas:
       type Viewer {
         subType: SubType @shareable
       }
+    interactions:
+      - request:
+          document: |
+            query testQuery_f3bb7334_1 {
+              exclusiveSubgraphA {
+                __typename
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "exclusiveSubgraphA": {
+                    "__typename": "ExclusiveSubgraphA"
+                  }
+                }
+              }
   - name: B
     schema: |
       schema {
@@ -101,8 +121,17 @@ operationPlan:
       name: testQuery
       hash: f3bb7334daafefafae0b10d44f0d19bc
       searchSpace: 2
-      expandedNodes: 4
+      expandedNodes: 2
   nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_f3bb7334_1 {
+          exclusiveSubgraphA {
+            __typename
+          }
+        }
     - id: 2
       type: Operation
       schema: B
