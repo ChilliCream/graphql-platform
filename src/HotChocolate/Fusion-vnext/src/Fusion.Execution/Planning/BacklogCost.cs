@@ -3,25 +3,25 @@ using System.Collections.Immutable;
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// Incremental backlog lower-bound state used to project remaining work shape.
+/// Tracks the minimum guaranteed cost of all work items still in the backlog.
 /// </summary>
-/// <param name="OperationLowerBound">
-/// Guaranteed remaining operation floor from all backlog items.
+/// <param name="MinimumCost">
+/// Sum of the cheapest possible cost for each backlog item.
 /// </param>
 /// <param name="MaxProjectedDepth">
-/// Deepest projected operation depth across remaining guaranteed operations.
+/// The deepest level at which backlog items are expected to produce operations.
 /// </param>
 /// <param name="ProjectedOpsPerLevel">
-/// Projected guaranteed operation count per depth level.
+/// How many operations each depth level is expected to add.
 /// </param>
-internal readonly record struct BacklogCostState(
-    double OperationLowerBound,
+internal readonly record struct BacklogCost(
+    double MinimumCost,
     int MaxProjectedDepth,
     ImmutableDictionary<int, int> ProjectedOpsPerLevel)
 {
     /// <summary>
     /// Gets an empty backlog cost state with no projected operations.
     /// </summary>
-    public static BacklogCostState Empty { get; } =
+    public static BacklogCost Empty { get; } =
         new(0.0, 0, ImmutableDictionary<int, int>.Empty);
 }

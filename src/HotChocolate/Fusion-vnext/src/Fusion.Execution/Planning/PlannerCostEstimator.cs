@@ -182,11 +182,10 @@ internal static class PlannerCostEstimator
     }
 
     /// <summary>
-    /// Records the minimum guaranteed cost of a work item being added to the backlog
-    /// and tracks its projected depth for fan-out estimation.
+    /// Adds a work item's estimated cost and projected depth to the backlog cost tracking.
     /// </summary>
-    public static BacklogCostState PushWorkItem(
-        BacklogCostState backlogCostState,
+    public static BacklogCost AddWorkItemCost(
+        BacklogCost backlogCost,
         WorkItem workItem)
     {
         // When a work item gets added to the backlog, we record the cheapest it could possibly cost.
@@ -198,9 +197,9 @@ internal static class PlannerCostEstimator
         //
         // We also record which depth level this work item will likely produce an operation at,
         // so we can later detect if too many operations are piling up at the same level (fan-out).
-        var operationLowerBound = backlogCostState.OperationLowerBound + EstimateWorkItemLowerBound(workItem);
-        var maxProjectedDepth = backlogCostState.MaxProjectedDepth;
-        var projectedOpsPerLevel = backlogCostState.ProjectedOpsPerLevel;
+        var minimumCost = backlogCost.MinimumCost + EstimateMinimumCost(workItem);
+        var maxProjectedDepth = backlogCost.MaxProjectedDepth;
+        var projectedOpsPerLevel = backlogCost.ProjectedOpsPerLevel;
 
         if (TryGetProjectedOperationDepth(workItem, out var projectedDepth))
         {
@@ -213,22 +212,19 @@ internal static class PlannerCostEstimator
             }
         }
 
-        return new BacklogCostState(operationLowerBound, maxProjectedDepth, projectedOpsPerLevel);
+        return new BacklogCost(minimumCost, maxProjectedDepth, projectedOpsPerLevel);
     }
 
     /// <summary>
-    /// Inverse of <see cref="PushWorkItem"/>: removes the guaranteed cost of a work item
-    /// being taken off the backlog and updates the projected depth tracking.
+    /// Subtracts a work item's estimated cost and projected depth from the backlog cost tracking.
     /// </summary>
-    public static BacklogCostState PopWorkItem(
-        BacklogCostState backlogCostState,
+    public static BacklogCost RemoveWorkItemCost(
+        BacklogCost backlogCost,
         WorkItem workItem)
     {
-        // Inverse of PushWorkItem: removes the guaranteed cost floor for the popped work item
-        // and updates the projected depth shape.
-        var operationLowerBound = Math.Max(0.0, backlogCostState.OperationLowerBound - EstimateWorkItemLowerBound(workItem));
-        var maxProjectedDepth = backlogCostState.MaxProjectedDepth;
-        var projectedOpsPerLevel = backlogCostState.ProjectedOpsPerLevel;
+        var minimumCost = Math.Max(0.0, backlogCost.MinimumCost - EstimateMinimumCost(workItem));
+        var maxProjectedDepth = backlogCost.MaxProjectedDepth;
+        var projectedOpsPerLevel = backlogCost.ProjectedOpsPerLevel;
 
         if (TryGetProjectedOperationDepth(workItem, out var projectedDepth)
             && projectedOpsPerLevel.TryGetValue(projectedDepth, out var current))
@@ -248,10 +244,10 @@ internal static class PlannerCostEstimator
             }
         }
 
-        return new BacklogCostState(operationLowerBound, maxProjectedDepth, projectedOpsPerLevel);
+        return new BacklogCost(minimumCost, maxProjectedDepth, projectedOpsPerLevel);
     }
 
-    private static double EstimateWorkItemLowerBound(WorkItem workItem)
+    private static double EstimateMinimumCost(WorkItem workItem)
     {
         return workItem switch
         {
@@ -264,7 +260,7 @@ internal static class PlannerCostEstimator
                 => InlineLikelyCost,
 
             NodeFieldWorkItem wi
-                => OperationStepCost + EstimateNodeBranches(wi.NodeField) * OperationStepCost,
+                => OperationStepCost + (EstimateNodeBranches(wi.NodeField) * OperationStepCost),
 
             NodeLookupWorkItem
                 => OperationStepCost,
@@ -273,49 +269,43 @@ internal static class PlannerCostEstimator
         };
     }
 
-    /// <summary>
-    /// Computes the optimistic lower bound for all remaining backlog work. This combines the
-    /// guaranteed operation floor with penalties for additional depth and excess fan-out.
-    /// </summary>
-    public static double EstimateBacklogLowerBound(
-        OperationPlannerOptions options,
-        int currentMaxDepth,
-        ImmutableDictionary<int, int> currentOpsPerLevel,
-        BacklogCostState backlogCostState)
+    // Counts the distinct type conditions (inline fragment branches)
+    // in a node field's selection set.
+    // Each branch typically needs its own operation for a different concrete type.
+    private static int EstimateNodeBranches(NodeField nodeField)
     {
-        // h(n) = guaranteed remaining operation floor
-        //      + optimistic additional depth
-        //      + optimistic additional excess fan-out.
-        //
-        // We compare projected backlog fan-out against already materialized ops at each depth
-        // so we only charge the additional excess this backlog can still force.
-        var total = backlogCostState.OperationLowerBound;
-
-        if (backlogCostState.MaxProjectedDepth > currentMaxDepth)
+        if (nodeField.Field.SelectionSet is null)
         {
-            total += (backlogCostState.MaxProjectedDepth - currentMaxDepth) * options.DepthWeight;
+            return 0;
         }
 
-        if (!backlogCostState.ProjectedOpsPerLevel.IsEmpty)
+        var typeConditions = new HashSet<string>(StringComparer.Ordinal);
+        var stack = new Stack<SelectionSetNode>();
+        stack.Push(nodeField.Field.SelectionSet);
+
+        while (stack.TryPop(out var selectionSet))
         {
-            var threshold = options.FanoutPenaltyThreshold;
-            var projectedAdditionalExcessFanout = 0;
-
-            foreach (var (depth, projectedOps) in backlogCostState.ProjectedOpsPerLevel)
+            foreach (var selection in selectionSet.Selections)
             {
-                var currentOpsAtDepth = currentOpsPerLevel.GetValueOrDefault(depth, 0);
-                var currentExcess = Math.Max(0, currentOpsAtDepth - threshold);
-                var projectedExcess = Math.Max(0, currentOpsAtDepth + projectedOps - threshold);
-                projectedAdditionalExcessFanout += projectedExcess - currentExcess;
-            }
+                switch (selection)
+                {
+                    case InlineFragmentNode inlineFragmentNode:
+                        if (inlineFragmentNode.TypeCondition is not null)
+                        {
+                            typeConditions.Add(inlineFragmentNode.TypeCondition.Name.Value);
+                        }
 
-            if (projectedAdditionalExcessFanout > 0)
-            {
-                total += projectedAdditionalExcessFanout * options.ExcessFanoutWeight;
+                        stack.Push(inlineFragmentNode.SelectionSet);
+                        break;
+
+                    case FieldNode { SelectionSet: { } nestedSelectionSet }:
+                        stack.Push(nestedSelectionSet);
+                        break;
+                }
             }
         }
 
-        return total;
+        return typeConditions.Count;
     }
 
     private static bool TryGetProjectedOperationDepth(
@@ -354,41 +344,48 @@ internal static class PlannerCostEstimator
         return maxProjectedDepth;
     }
 
-
-
-    private static int EstimateNodeBranches(NodeField nodeField)
+    /// <summary>
+    /// Computes the lower bound for all remaining backlog work by combining the minimum cost
+    /// with penalties for additional depth and excess fan-out.
+    /// </summary>
+    public static double EstimateBacklogLowerBound(
+        OperationPlannerOptions options,
+        int currentMaxDepth,
+        ImmutableDictionary<int, int> currentOpsPerLevel,
+        BacklogCost backlogCost)
     {
-        if (nodeField.Field.SelectionSet is null)
+        // h(n) = minimum cost
+        //      + additional depth penalty
+        //      + additional excess fan-out penalty.
+        //
+        // We compare projected backlog fan-out against already materialized ops at each depth
+        // so we only charge the additional excess this backlog can still force.
+        var total = backlogCost.MinimumCost;
+
+        if (backlogCost.MaxProjectedDepth > currentMaxDepth)
         {
-            return 0;
+            total += (backlogCost.MaxProjectedDepth - currentMaxDepth) * options.DepthWeight;
         }
 
-        var typeConditions = new HashSet<string>(StringComparer.Ordinal);
-        var stack = new Stack<SelectionSetNode>();
-        stack.Push(nodeField.Field.SelectionSet);
-
-        while (stack.TryPop(out var selectionSet))
+        if (!backlogCost.ProjectedOpsPerLevel.IsEmpty)
         {
-            foreach (var selection in selectionSet.Selections)
+            var threshold = options.FanoutPenaltyThreshold;
+            var projectedAdditionalExcessFanout = 0;
+
+            foreach (var (depth, projectedOps) in backlogCost.ProjectedOpsPerLevel)
             {
-                switch (selection)
-                {
-                    case InlineFragmentNode inlineFragmentNode:
-                        if (inlineFragmentNode.TypeCondition is not null)
-                        {
-                            typeConditions.Add(inlineFragmentNode.TypeCondition.Name.Value);
-                        }
+                var currentOpsAtDepth = currentOpsPerLevel.GetValueOrDefault(depth, 0);
+                var currentExcess = Math.Max(0, currentOpsAtDepth - threshold);
+                var projectedExcess = Math.Max(0, currentOpsAtDepth + projectedOps - threshold);
+                projectedAdditionalExcessFanout += projectedExcess - currentExcess;
+            }
 
-                        stack.Push(inlineFragmentNode.SelectionSet);
-                        break;
-
-                    case FieldNode { SelectionSet: { } nestedSelectionSet }:
-                        stack.Push(nestedSelectionSet);
-                        break;
-                }
+            if (projectedAdditionalExcessFanout > 0)
+            {
+                total += projectedAdditionalExcessFanout * options.ExcessFanoutWeight;
             }
         }
 
-        return typeConditions.Count;
+        return total;
     }
 }
