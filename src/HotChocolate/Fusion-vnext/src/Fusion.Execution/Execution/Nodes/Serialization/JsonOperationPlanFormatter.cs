@@ -35,6 +35,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         WriteOperation(jsonWriter, plan.Operation);
 
         jsonWriter.WriteNumber("searchSpace", plan.SearchSpace);
+        jsonWriter.WriteNumber("expandedNodes", plan.ExpandedNodes);
 
         if (trace is not null)
         {

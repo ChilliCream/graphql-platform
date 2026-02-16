@@ -1,0 +1,100 @@
+operation:
+  - document: |
+      {
+        review {
+          __typename @fusion__requirement
+          ... on AnonymousReview {
+            product {
+              b
+              id @fusion__requirement
+            }
+          }
+          ... on UserReview {
+            product {
+              c
+              d
+              id @fusion__requirement
+            }
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 3
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        review {
+          __typename
+          ... on AnonymousReview {
+            product {
+              id
+            }
+          }
+          ... on UserReview {
+            product {
+              id
+            }
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: c
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_id: ID!
+      ) {
+        productById(id: $__fusion_1_id) {
+          c
+        }
+      }
+    source: $.productById
+    target: $.review<UserReview>.product
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: Operation
+    schema: d
+    operation: |
+      query Op_123456789101112_3(
+        $__fusion_2_id: ID!
+      ) {
+        productById(id: $__fusion_2_id) {
+          d
+        }
+      }
+    source: $.productById
+    target: $.review<UserReview>.product
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 4
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_4(
+        $__fusion_3_id: ID!
+      ) {
+        productById(id: $__fusion_3_id) {
+          b
+        }
+      }
+    source: $.productById
+    target: $.review<AnonymousReview>.product
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

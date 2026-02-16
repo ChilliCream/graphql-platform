@@ -112,8 +112,9 @@ public sealed partial class ResultDocument : IRawJsonFormatter
                 var row = document._metaDb.Get(current);
                 Debug.Assert(row.TokenType is ElementTokenType.PropertyName);
 
-                if ((ElementFlags.IsInternal & row.Flags) == ElementFlags.IsInternal
-                    || (ElementFlags.IsExcluded & row.Flags) == ElementFlags.IsExcluded)
+                var flags = row.Flags;
+
+                if ((flags & (ElementFlags.IsInternal | ElementFlags.IsExcluded | ElementFlags.IsDeferred)) != 0)
                 {
                     // skip name+value
                     current += 2;

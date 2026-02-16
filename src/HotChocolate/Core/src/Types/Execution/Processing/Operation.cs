@@ -18,6 +18,7 @@ public sealed class Operation : IOperation
     private readonly ConcurrentDictionary<(int, string), SelectionSet> _selectionSets = [];
     private readonly OperationCompiler _compiler;
     private readonly IncludeConditionCollection _includeConditions;
+    private readonly DeferConditionCollection _deferConditions;
     private readonly OperationFeatureCollection _features;
     private object[] _elementsById;
     private int _lastId;
@@ -32,9 +33,11 @@ public sealed class Operation : IOperation
         SelectionSet rootSelectionSet,
         OperationCompiler compiler,
         IncludeConditionCollection includeConditions,
+        DeferConditionCollection deferConditions,
         OperationFeatureCollection features,
         int lastId,
-        object[] elementsById)
+        object[] elementsById,
+        bool hasIncrementalParts)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(hash);
@@ -45,6 +48,7 @@ public sealed class Operation : IOperation
         ArgumentNullException.ThrowIfNull(rootSelectionSet);
         ArgumentNullException.ThrowIfNull(compiler);
         ArgumentNullException.ThrowIfNull(includeConditions);
+        ArgumentNullException.ThrowIfNull(deferConditions);
         ArgumentNullException.ThrowIfNull(elementsById);
 
         Id = id;
@@ -56,9 +60,11 @@ public sealed class Operation : IOperation
         RootSelectionSet = rootSelectionSet;
         _compiler = compiler;
         _includeConditions = includeConditions;
+        _deferConditions = deferConditions;
         _lastId = lastId;
         _elementsById = elementsById;
         _features = features;
+        HasIncrementalParts = hasIncrementalParts;
     }
 
     /// <summary>
@@ -117,6 +123,9 @@ public sealed class Operation : IOperation
     public OperationFeatureCollection Features => _features;
 
     IFeatureCollection IFeatureProvider.Features => Features;
+
+    /// <inheritdoc />
+    public bool HasIncrementalParts { get; }
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/>
@@ -183,6 +192,7 @@ public sealed class Operation : IOperation
                             selection,
                             objectType,
                             _includeConditions,
+                            _deferConditions,
                             ref _elementsById,
                             ref _lastId);
                     _selectionSets.TryAdd(key, selectionSet);
@@ -247,11 +257,31 @@ public sealed class Operation : IOperation
         {
             if (includeCondition.IsIncluded(variables))
             {
-                includeFlags |= 1ul << index++;
+                includeFlags |= 1ul << index;
             }
+
+            index++;
         }
 
         return includeFlags;
+    }
+
+    public ulong CreateDeferFlags(IVariableValueCollection variables)
+    {
+        var index = 0;
+        var deferFlags = 0ul;
+
+        foreach (var deferCondition in _deferConditions)
+        {
+            if (deferCondition.IsDeferred(variables))
+            {
+                deferFlags |= 1ul << index;
+            }
+
+            index++;
+        }
+
+        return deferFlags;
     }
 
     internal Selection GetSelectionById(int id)

@@ -61,9 +61,13 @@ internal static class ThrowHelper
                 { "serializedValue", serializedValue }
             }));
 
+    internal static GraphQLClientException UriFormatter_CouldNotParseUri(string value) =>
+        new(new ClientError(
+            $"The URI serializer could not parse value {value}. Invalid format."));
+
     internal static GraphQLClientException UrlFormatter_CouldNotParseUri(string value) =>
         new(new ClientError(
-            $"The URL serializer could not parse value{value}. Invalid format. "));
+            $"The URL serializer could not parse value {value}. Invalid format."));
 
     internal static GraphQLClientException TimeSpanSerializer_CouldNotParseValue(
         string value,

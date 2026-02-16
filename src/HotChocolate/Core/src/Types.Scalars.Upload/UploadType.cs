@@ -10,7 +10,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// The GraphQL Upload scalar.
 /// </summary>
-public sealed class UploadType : ScalarType<IFile, StringValueNode>
+public sealed class UploadType : ScalarType<IFile>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="UploadType"/> class.
@@ -21,14 +21,20 @@ public sealed class UploadType : ScalarType<IFile, StringValueNode>
         Description = UploadResources.UploadType_Description;
     }
 
-    /// <summary>
-    /// This operation is not supported. Upload scalars cannot be used in GraphQL literals.
-    /// </summary>
-    /// <param name="valueLiteral">The GraphQL literal (not used).</param>
-    /// <returns>Never returns; always throws.</returns>
-    /// <exception cref="NotSupportedException">Always thrown as literal input is not supported.</exception>
-    protected override IFile OnCoerceInputLiteral(StringValueNode valueLiteral)
-        => throw new NotSupportedException();
+    public override ScalarSerializationType SerializationType => ScalarSerializationType.String;
+
+    /// <inheritdoc />
+    public override object CoerceInputLiteral(IValueNode valueLiteral)
+    {
+        if (valueLiteral is not UploadValueNode uploadValue)
+        {
+            throw new LeafCoercionException(
+                $"Cannot coerce the literal of type `{valueLiteral.Kind}` to a file.",
+                this);
+        }
+
+        return uploadValue.File;
+    }
 
     /// <summary>
     /// Coerces a JSON string value containing a file reference into an <see cref="IFile"/> instance.
@@ -46,8 +52,15 @@ public sealed class UploadType : ScalarType<IFile, StringValueNode>
     /// <exception cref="LeafCoercionException">
     /// Thrown when the file reference cannot be found in the file lookup service.
     /// </exception>
-    protected override IFile OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
+        if (inputValue.ValueKind is not JsonValueKind.String)
+        {
+            throw new LeafCoercionException(
+                $"Cannot coerce the json value of kind `{inputValue.ValueKind}` to a file.",
+                this);
+        }
+
         var fileLookup = context.Features.Get<IFileLookup>();
         var fileName = inputValue.GetString()!;
 
@@ -69,7 +82,7 @@ public sealed class UploadType : ScalarType<IFile, StringValueNode>
     /// <param name="runtimeValue">The runtime value (not used).</param>
     /// <param name="resultValue">The result element (not used).</param>
     /// <exception cref="NotSupportedException">Always thrown as output coercion is not supported.</exception>
-    protected override void OnCoerceOutputValue(IFile runtimeValue, ResultElement resultValue)
+    public override void OnCoerceOutputValue(IFile runtimeValue, ResultElement resultValue)
         => throw new NotSupportedException();
 
     /// <summary>
@@ -78,6 +91,13 @@ public sealed class UploadType : ScalarType<IFile, StringValueNode>
     /// <param name="runtimeValue">The runtime value (not used).</param>
     /// <returns>Never returns; always throws.</returns>
     /// <exception cref="NotSupportedException">Always thrown as value to literal conversion is not supported.</exception>
-    protected override StringValueNode OnValueToLiteral(IFile runtimeValue)
+    public override IValueNode OnValueToLiteral(IFile runtimeValue)
         => throw new NotSupportedException();
+
+    /// <inheritdoc />
+    public override IValueNode InputValueToLiteral(JsonElement inputValue, IFeatureProvider context)
+    {
+        var file = (IFile)CoerceInputValue(inputValue, context);
+        return new UploadValueNode(inputValue.GetString()!, file);
+    }
 }

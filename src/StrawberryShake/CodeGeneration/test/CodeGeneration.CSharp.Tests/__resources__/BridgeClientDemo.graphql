@@ -619,11 +619,11 @@ enum GarageType {
 
 "Energetická vyhláška"
 enum EnergyCertificate {
-  "č. 148\/2007 Sb."
+  "č. 148/2007 Sb."
   V147_2007
-  "č. 78\/2013 Sb."
+  "č. 78/2013 Sb."
   V78_2013
-  "č. 264\/2020 Sb."
+  "č. 264/2020 Sb."
   V264_2020
 }
 
@@ -972,7 +972,7 @@ type RentInfo {
   restriction: [Restriction!]!
 }
 
-"Doplnující informace podle typu služby (prodej\/pronájem)"
+"Doplnující informace podle typu služby (prodej/pronájem)"
 union ServiceTypeInfo = TransferInfo | RentInfo
 
 "Doplnující informace pro prodej"

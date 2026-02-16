@@ -18,58 +18,45 @@ public class ByteTypeTests
     }
 
     [Fact]
-    public void IsValueCompatible_IntLiteral_True()
-    {
-        // arrange
-        var type = new ByteType();
-        var literal = new IntValueNode(1);
-
-        // act
-        var result = type.IsValueCompatible(literal);
-
-        // assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void IsValueCompatible_FloatLiteral_False()
-    {
-        // arrange
-        var type = new ByteType();
-
-        // act
-        var result = type.IsValueCompatible(new FloatValueNode(1M));
-
-        // assert
-        Assert.False(result);
-    }
-
-    [Fact]
-    public void IsValueCompatible_Null_False()
-    {
-        // arrange
-        var type = new ByteType();
-
-        // act
-        var result = type.IsValueCompatible(null!);
-
-        // assert
-        Assert.False(result);
-    }
-
-    [Fact]
     public void CoerceInputLiteral()
     {
         // arrange
         var type = new ByteType();
-        var literal = new IntValueNode(1);
+        var literal = new IntValueNode(42);
 
         // act
-        var value = type.CoerceInputLiteral(literal);
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.IsType<byte>(value);
-        Assert.Equal(literal.ToByte(), value);
+        Assert.Equal((sbyte)42, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputLiteral_MaxValue()
+    {
+        // arrange
+        var type = new ByteType();
+        var literal = new IntValueNode(sbyte.MaxValue);
+
+        // act
+        var runtimeValue = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(sbyte.MaxValue, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputLiteral_MinValue()
+    {
+        // arrange
+        var type = new ByteType();
+        var literal = new IntValueNode(sbyte.MinValue);
+
+        // act
+        var runtimeValue = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(sbyte.MinValue, runtimeValue);
     }
 
     [Fact]
@@ -77,23 +64,10 @@ public class ByteTypeTests
     {
         // arrange
         var type = new ByteType();
-        var input = new StringValueNode("abc");
+        var literal = new StringValueNode("foo");
 
         // act
-        void Action() => type.CoerceInputLiteral(input);
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
-    }
-
-    [Fact]
-    public void CoerceInputLiteral_Null_Throws()
-    {
-        // arrange
-        var type = new ByteType();
-
-        // act
-        void Action() => type.CoerceInputLiteral(null!);
+        void Action() => type.CoerceInputLiteral(literal);
 
         // assert
         Assert.Throws<LeafCoercionException>(Action);
@@ -104,13 +78,41 @@ public class ByteTypeTests
     {
         // arrange
         var type = new ByteType();
-        var inputValue = JsonDocument.Parse("123").RootElement;
+        var inputValue = JsonDocument.Parse("42").RootElement;
 
         // act
         var runtimeValue = type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.Equal((byte)123, runtimeValue);
+        Assert.Equal((sbyte)42, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputValue_MaxValue()
+    {
+        // arrange
+        var type = new ByteType();
+        var inputValue = JsonDocument.Parse($"{sbyte.MaxValue}").RootElement;
+
+        // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Equal(sbyte.MaxValue, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputValue_MinValue()
+    {
+        // arrange
+        var type = new ByteType();
+        var inputValue = JsonDocument.Parse($"{sbyte.MinValue}").RootElement;
+
+        // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Equal(sbyte.MinValue, runtimeValue);
     }
 
     [Fact]
@@ -132,7 +134,7 @@ public class ByteTypeTests
     {
         // arrange
         var type = new ByteType();
-        const byte runtimeValue = 123;
+        const sbyte runtimeValue = 42;
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
@@ -141,7 +143,7 @@ public class ByteTypeTests
         type.CoerceOutputValue(runtimeValue, resultValue);
 
         // assert
-        resultValue.MatchInlineSnapshot("123");
+        resultValue.MatchInlineSnapshot("42");
     }
 
     [Fact]
@@ -161,90 +163,17 @@ public class ByteTypeTests
     }
 
     [Fact]
-    public void CoerceOutputValue_MaxValue_Violation()
-    {
-        // arrange
-        var type = new ByteType(0, 100);
-        const byte value = 200;
-
-        // act
-        var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
-        var resultValue = resultDocument.Data.GetProperty("first");
-        void Action() => type.CoerceOutputValue(value, resultValue);
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
-    }
-
-    [Fact]
     public void ValueToLiteral()
     {
         // arrange
         var type = new ByteType();
-        const byte runtimeValue = 123;
+        const sbyte runtimeValue = 42;
 
         // act
         var literal = type.ValueToLiteral(runtimeValue);
 
         // assert
-        Assert.Equal(123, Assert.IsType<IntValueNode>(literal).ToByte());
-    }
-
-    [Fact]
-    public void ValueToLiteral_MaxValue()
-    {
-        // arrange
-        var type = new ByteType(1, 100);
-        const byte input = 100;
-
-        // act
-        var literal = (IntValueNode)type.ValueToLiteral(input);
-
-        // assert
-        Assert.Equal(100, literal.ToByte());
-    }
-
-    [Fact]
-    public void ValueToLiteral_MaxValue_Violation()
-    {
-        // arrange
-        var type = new ByteType(1, 100);
-        const byte input = 101;
-
-        // act
-        void Action() => type.ValueToLiteral(input);
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
-    }
-
-    [Fact]
-    public void ValueToLiteral_MinValue()
-    {
-        // arrange
-        var type = new ByteType(1, 100);
-        const byte input = 1;
-
-        // act
-        var literal = (IntValueNode)type.ValueToLiteral(input);
-
-        // assert
-        Assert.Equal(1, literal.ToByte());
-    }
-
-    [Fact]
-    public void ValueToLiteral_MinValue_Violation()
-    {
-        // arrange
-        var type = new ByteType(1, 100);
-        const byte input = 0;
-
-        // act
-        void Action() => type.ValueToLiteral(input);
-
-        // assert
-        Assert.Throws<LeafCoercionException>(Action);
+        Assert.Equal(42, Assert.IsType<IntValueNode>(literal).ToInt32());
     }
 
     [Fact]
@@ -252,13 +181,13 @@ public class ByteTypeTests
     {
         // arrange
         var type = new ByteType();
-        var literal = new IntValueNode(123);
+        var literal = new IntValueNode(42);
 
         // act
         var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Equal((byte)123, Assert.IsType<byte>(runtimeValue));
+        Assert.Equal((sbyte)42, Assert.IsType<sbyte>(runtimeValue));
     }
 
     [Fact]
@@ -272,18 +201,5 @@ public class ByteTypeTests
 
         // assert
         Assert.Throws<LeafCoercionException>(Action);
-    }
-
-    [Fact]
-    public void Ensure_TypeKind_Is_Scalar()
-    {
-        // arrange
-        var type = new ByteType();
-
-        // act
-        var kind = type.Kind;
-
-        // assert
-        Assert.Equal(TypeKind.Scalar, kind);
     }
 }

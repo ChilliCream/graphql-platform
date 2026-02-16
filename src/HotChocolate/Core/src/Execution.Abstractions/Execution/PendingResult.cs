@@ -10,12 +10,12 @@ namespace HotChocolate.Execution;
 /// For @defer: indicates where the deferred fragment fields will be added.
 /// </param>
 /// <param name="Label">The label from the @defer or @stream directive's label argument, if present.</param>
-public sealed record PendingResult(uint Id, Path Path, string? Label = null)
+public sealed record PendingResult(int Id, Path Path, string? Label = null)
 {
     /// <summary>
     /// Gets the request unique pending data identifier.
     /// </summary>
-    public uint Id { get; init; } = Id;
+    public int Id { get; init; } = Id;
 
     /// <summary>
     /// Gets the path in the response where the incremental data will be delivered.

@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -93,14 +92,16 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     return new GraphQLHttpRequest(CreateOperationBatchRequest(operationSourceText, originalRequest))
                     {
                         Uri = _configuration.BaseAddress,
-                        Accept = _configuration.BatchingAcceptHeaderValues
+                        Accept = _configuration.BatchingAcceptHeaderValues,
+                        EnableFileUploads = originalRequest.RequiresFileUpload
                     };
                 }
 
                 return new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, originalRequest))
                 {
                     Uri = _configuration.BaseAddress,
-                    Accept = _configuration.BatchingAcceptHeaderValues
+                    Accept = _configuration.BatchingAcceptHeaderValues,
+                    EnableFileUploads = originalRequest.RequiresFileUpload
                 };
         }
     }
@@ -209,11 +210,20 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     case 1:
                     {
                         var result = await response.ReadAsResultAsync(cancellationToken);
-                        var sourceSchemaResult = new SourceSchemaResult(variables[0].Path, result);
+                        var variable = variables[0];
+                        var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
 
                         configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
                         yield return sourceSchemaResult;
+
+                        foreach (var additionalPath in variable.AdditionalPaths)
+                        {
+                            var alias = sourceSchemaResult.WithPath(additionalPath);
+                            configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                            yield return alias;
+                        }
+
                         break;
                     }
 
@@ -227,13 +237,19 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                             await foreach (var result in response.ReadAsResultStreamAsync()
                                 .WithCancellation(cancellationToken))
                             {
-                                var (path, _) = variables[requestIndex];
-
-                                var sourceSchemaResult = new SourceSchemaResult(path, result);
+                                var variable = variables[requestIndex];
+                                var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
 
                                 configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
                                 yield return sourceSchemaResult;
+
+                                foreach (var additionalPath in variable.AdditionalPaths)
+                                {
+                                    var alias = sourceSchemaResult.WithPath(additionalPath);
+                                    configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                                    yield return alias;
+                                }
 
                                 requestIndex++;
                             }
@@ -252,12 +268,19 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                                 }
 
                                 var index = variableIndex.GetInt32();
-                                var (path, _) = variables[index];
-                                var sourceSchemaResult = new SourceSchemaResult(path, result);
+                                var variable = variables[index];
+                                var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
 
                                 configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
                                 yield return sourceSchemaResult;
+
+                                foreach (var additionalPath in variable.AdditionalPaths)
+                                {
+                                    var alias = sourceSchemaResult.WithPath(additionalPath);
+                                    configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                                    yield return alias;
+                                }
                             }
                         }
 
@@ -265,10 +288,27 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                         {
                             yield return errorResult;
 
+                            foreach (var additionalPath in variables[0].AdditionalPaths)
+                            {
+                                var alias = errorResult.WithPath(additionalPath);
+                                configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                                yield return alias;
+                            }
+
                             for (var i = 1; i < variables.Length; i++)
                             {
-                                var (path, _) = variables[i];
-                                yield return new SourceSchemaResult(path, SourceResultDocument.CreateEmptyObject());
+                                var variable = variables[i];
+                                var sourceSchemaResult = new SourceSchemaResult(
+                                    variable.Path,
+                                    SourceResultDocument.CreateEmptyObject());
+                                yield return sourceSchemaResult;
+
+                                foreach (var additionalPath in variable.AdditionalPaths)
+                                {
+                                    var alias = sourceSchemaResult.WithPath(additionalPath);
+                                    configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                                    yield return alias;
+                                }
                             }
                         }
 

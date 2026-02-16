@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace HotChocolate.Fusion.Types;
 
 internal static class ThrowHelper

@@ -23,6 +23,7 @@ operation:
       }
     hash: 123456789101112
     searchSpace: 1
+    expandedNodes: 7
 nodes:
   - id: 1
     type: Operation
@@ -66,7 +67,7 @@ nodes:
     operation: |
       query Op_123456789101112_4(
         $__fusion_3_dimension: ProductDimensionInput!
-        $__fusion_4_id: ID!
+          $__fusion_4_id: ID!
       ) {
         productById(id: $__fusion_4_id) {
           deliveryEstimate(zip: "123", dimension: $__fusion_3_dimension)

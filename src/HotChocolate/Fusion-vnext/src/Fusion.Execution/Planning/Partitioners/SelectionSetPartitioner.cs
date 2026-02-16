@@ -15,7 +15,6 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         var context = new Context
         {
             SchemaName = input.SchemaName,
-            AllowRequirements = input.AllowRequirements,
             RootPath = input.SelectionSet.Path,
             SelectionSetIndex = input.SelectionSetIndex
         };
@@ -25,7 +24,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 context,
                 input.SelectionSet.Type,
                 input.SelectionSet.Node,
-                input.ProvidedSelectionSetNode);
+                null);
 
         return new SelectionSetPartitionerResult(
             resolvable,
@@ -244,13 +243,6 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                             context.BuildPath()));
                 return (null, null);
             }
-
-            // if requirements are not allowed we return null
-            // which will remove the field from the rewritten selection set.
-            // if (!context.AllowRequirements && source.Requirements is not null)
-            // {
-            //    return (null, fieldNode);
-            // }
         }
 
         var selectionSet = fieldNode.SelectionSet;
@@ -325,8 +317,6 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
     private sealed class Context
     {
         public required string SchemaName { get; init; }
-
-        public required bool AllowRequirements { get; init; }
 
         public required SelectionPath RootPath { get; init; }
 

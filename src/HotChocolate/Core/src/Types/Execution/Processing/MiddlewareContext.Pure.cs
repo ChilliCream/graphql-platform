@@ -120,16 +120,30 @@ internal partial class MiddlewareContext
             => parentContext.ContextData;
 
         public T Parent<T>()
-            => _parent switch
+        {
+            if (_parent is T casted)
             {
-                T casted => casted,
-                null => default!,
-                _ => throw ResolverContext_CannotCastParent(
-                    Selection.Field.Coordinate,
-                    Path,
-                    typeof(T),
-                    _parent.GetType())
-            };
+                return casted;
+            }
+
+            if (_parent is null)
+            {
+                return default!;
+            }
+
+            _typeConverter ??= parentContext._operationContext.Converter;
+
+            if (_typeConverter.TryConvert(_parent, out casted))
+            {
+                return casted;
+            }
+
+            throw ResolverContext_CannotCastParent(
+                Selection.Field.Coordinate,
+                Path,
+                typeof(T),
+                _parent.GetType());
+        }
 
         public T ArgumentValue<T>(string name)
         {
@@ -235,9 +249,7 @@ internal partial class MiddlewareContext
                 return default!;
             }
 
-            _typeConverter ??=
-                parentContext.Services.GetService<ITypeConverter>() ??
-                DefaultTypeConverter.Default;
+            _typeConverter ??= parentContext._operationContext.Converter;
 
             if (value is T castedValue
                 || _typeConverter.TryConvert(value, out castedValue, out var conversionException))

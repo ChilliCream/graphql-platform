@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -8,11 +10,11 @@ public interface IIncrementalResult
     /// <summary>
     /// Gets the request unique pending data identifier that matches a prior pending result.
     /// </summary>
-    uint Id { get; }
+    int Id { get; }
 
     /// <summary>
     /// Gets field errors that occurred during execution of this incremental result.
     /// Only includes errors that did not bubble above the incremental result's path.
     /// </summary>
-    IReadOnlyList<IError>? Errors { get; }
+    ImmutableList<IError> Errors { get; }
 }

@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Validation.Rules;
 

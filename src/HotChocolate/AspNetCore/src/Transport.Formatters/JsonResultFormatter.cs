@@ -26,6 +26,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     public JsonResultFormatter(bool indented = false)
         : this(new JsonResultFormatterOptions { Indented = indented })
     {
+        _nullIgnoreCondition = JsonNullIgnoreCondition.None;
     }
 
     /// <summary>
@@ -90,50 +91,54 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
 
     private void FormatInternal(OperationResult result, IBufferWriter<byte> bufferWriter)
     {
-        var jsonWriter = new JsonWriter(bufferWriter, _options);
+        var jsonWriter = new JsonWriter(bufferWriter, _options, _nullIgnoreCondition);
+        Format(result, jsonWriter);
+    }
 
-        jsonWriter.WriteStartObject();
+    public void Format(OperationResult result, JsonWriter writer)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(writer);
+
+        writer.WriteStartObject();
 
         if (result.RequestIndex.HasValue)
         {
-            jsonWriter.WritePropertyName(RequestIndex);
-            jsonWriter.WriteNumberValue(result.RequestIndex.Value);
+            writer.WritePropertyName(RequestIndex);
+            writer.WriteNumberValue(result.RequestIndex.Value);
         }
 
         if (result.VariableIndex.HasValue)
         {
-            jsonWriter.WritePropertyName(VariableIndex);
-            jsonWriter.WriteNumberValue(result.VariableIndex.Value);
+            writer.WritePropertyName(VariableIndex);
+            writer.WriteNumberValue(result.VariableIndex.Value);
         }
 
         WriteErrors(
-            jsonWriter,
+            writer,
             result.Errors,
-            _serializerOptions,
-            default);
+            _serializerOptions);
 
         if (result.Data.HasValue)
         {
-            jsonWriter.WritePropertyName(Data);
-            result.Data.Value.Formatter.WriteDataTo(jsonWriter);
+            writer.WritePropertyName(Data);
+            result.Data.Value.Formatter.WriteDataTo(writer);
         }
 
         WriteExtensions(
-            jsonWriter,
+            writer,
             result.Extensions,
-            _serializerOptions,
-            default);
+            _serializerOptions);
 
         if (result.IsIncremental)
         {
             WriteIncremental(
-                jsonWriter,
+                writer,
                 result,
-                _serializerOptions,
-                default);
+                _serializerOptions);
         }
 
-        jsonWriter.WriteEndObject();
+        writer.WriteEndObject();
     }
 
     private async ValueTask FormatInternalAsync(

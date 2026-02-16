@@ -123,7 +123,7 @@ public class RegexTypeTests : ScalarTypeTestBase
         /// <summary>
         /// Regex that validates the standard E.164 format
         /// </summary>
-        private const string ValidationPattern = "^\\+[1-9][0-9]{2,14}$";
+        private const string ValidationPattern = @"^\+[1-9][0-9]{2,14}\z";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StubType"/>

@@ -1143,6 +1143,13 @@ public readonly partial struct ResultElement
         _parent.AssignNumberValue(this, buffer[..bytesWritten]);
     }
 
+    internal void MarkAsDeferred()
+    {
+        CheckValidInstance();
+
+        _parent.MarkAsDeferred(this);
+    }
+
     /// <summary>
     /// Writes this element as JSON to the specified buffer writer.
     /// </summary>

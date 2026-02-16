@@ -189,7 +189,8 @@ internal sealed partial class SubscriptionExecutor
                     .ExecuteAsync(operationContext, scopedContextData)
                     .ConfigureAwait(false);
 
-                return result;
+                // todo : we still need to think about defer in subscriptions
+                return result.ExpectOperationResult();
             }
             catch (OperationCanceledException ex)
             {
@@ -256,8 +257,8 @@ internal sealed partial class SubscriptionExecutor
                     rootSelection,
                     resultMap,
                     operationContext,
-                    _scopedContextData,
-                    null);
+                    deferUsage: null,
+                    _scopedContextData);
 
                 // it is important that we correctly coerce the arguments before
                 // invoking subscribe.

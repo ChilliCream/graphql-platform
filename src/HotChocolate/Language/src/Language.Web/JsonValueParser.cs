@@ -1,6 +1,6 @@
 using System.Buffers;
-using System.Text.Json;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using HotChocolate.Buffers;
 
 namespace HotChocolate.Language;
@@ -12,6 +12,7 @@ public ref struct JsonValueParser
 {
     private const int DefaultMaxAllowedDepth = 64;
     private readonly int _maxAllowedDepth;
+    private readonly bool _doNotSeal;
     internal Utf8MemoryBuilder? _memory;
     private readonly PooledArrayWriter? _externalBuffer;
 
@@ -37,6 +38,12 @@ public ref struct JsonValueParser
         _externalBuffer = buffer;
     }
 
+    internal JsonValueParser(bool doNotSeal)
+    {
+        _maxAllowedDepth = DefaultMaxAllowedDepth;
+        _doNotSeal = doNotSeal;
+    }
+
     public IValueNode Parse(JsonElement element)
     {
         if (element.ValueKind is JsonValueKind.Undefined)
@@ -56,8 +63,11 @@ public ref struct JsonValueParser
         }
         finally
         {
-            _memory?.Seal();
-            _memory = null;
+            if (!_doNotSeal)
+            {
+                _memory?.Seal();
+                _memory = null;
+            }
         }
     }
 
@@ -213,8 +223,11 @@ public ref struct JsonValueParser
         }
         finally
         {
-            _memory?.Seal();
-            _memory = null;
+            if (!_doNotSeal)
+            {
+                _memory?.Seal();
+                _memory = null;
+            }
         }
     }
 

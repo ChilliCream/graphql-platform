@@ -20,9 +20,9 @@ public sealed class TestSchema
 
         public ResultNullable GetWithNullableVariables(
             JsonElement? any,
+            [GraphQLType<Base64StringType>] byte[]? base64String,
             bool? boolean,
-            byte? @byte,
-            [GraphQLType<ByteArrayType>] byte[]? byteArray,
+            sbyte? @byte,
             [GraphQLType<DateType>] DateOnly? date,
             DateTimeOffset? dateTime,
             decimal? @decimal,
@@ -40,14 +40,15 @@ public sealed class TestSchema
             string? @string,
             TimeSpan? timeSpan,
             [GraphQLType<UnknownType>] string? unknown,
-            Uri? url,
+            Uri? uri,
+            [GraphQLType<UrlType>] Uri? url,
             Guid? uuid)
             =>
                 new(
                     any,
+                    base64String,
                     boolean,
                     @byte,
-                    byteArray,
                     date,
                     dateTime,
                     @decimal,
@@ -65,14 +66,15 @@ public sealed class TestSchema
                     @string,
                     timeSpan,
                     unknown,
+                    uri,
                     url,
                     uuid);
 
         public ResultNonNullable GetWithNonNullableVariables(
             JsonElement any,
+            [GraphQLType<NonNullType<Base64StringType>>] byte[] base64String,
             bool boolean,
-            byte @byte,
-            [GraphQLType<NonNullType<ByteArrayType>>] byte[] byteArray,
+            sbyte @byte,
             [GraphQLType<NonNullType<DateType>>] DateOnly date,
             DateTimeOffset dateTime,
             decimal @decimal,
@@ -90,14 +92,15 @@ public sealed class TestSchema
             string @string,
             TimeSpan timeSpan,
             [GraphQLType<NonNullType<UnknownType>>] string unknown,
-            Uri url,
+            Uri uri,
+            [GraphQLType<NonNullType<UrlType>>] Uri url,
             Guid uuid)
             =>
                 new(
                     any,
+                    base64String,
                     boolean,
                     @byte,
-                    byteArray,
                     date,
                     dateTime,
                     @decimal,
@@ -115,14 +118,15 @@ public sealed class TestSchema
                     @string,
                     timeSpan,
                     unknown,
+                    uri,
                     url,
                     uuid);
 
         public ResultDefaulted GetWithDefaultedVariables(
             JsonElement any,
+            [GraphQLType<NonNullType<Base64StringType>>] byte[] base64String,
             bool boolean,
-            byte @byte,
-            [GraphQLType<NonNullType<ByteArrayType>>] byte[] byteArray,
+            sbyte @byte,
             [GraphQLType<NonNullType<DateType>>] DateOnly date,
             DateTimeOffset dateTime,
             decimal @decimal,
@@ -140,14 +144,15 @@ public sealed class TestSchema
             string @string,
             TimeSpan timeSpan,
             [GraphQLType<NonNullType<UnknownType>>] string unknown,
-            Uri url,
+            Uri uri,
+            [GraphQLType<NonNullType<UrlType>>] Uri url,
             Guid uuid)
             =>
                 new(
                     any,
+                    base64String,
                     boolean,
                     @byte,
-                    byteArray,
                     date,
                     dateTime,
                     @decimal,
@@ -165,6 +170,7 @@ public sealed class TestSchema
                     @string,
                     timeSpan,
                     unknown,
+                    uri,
                     url,
                     uuid);
 
@@ -323,9 +329,9 @@ public sealed class TestSchema
 
     public sealed record ResultNullable(
         JsonElement? Any,
+        [property: GraphQLType<Base64StringType>] byte[]? Base64String,
         bool? Boolean,
-        byte? Byte,
-        [property: GraphQLType<ByteArrayType>] byte[]? ByteArray,
+        sbyte? Byte,
         [property: GraphQLType<DateType>] DateOnly? Date,
         DateTimeOffset? DateTime,
         decimal? Decimal,
@@ -343,14 +349,15 @@ public sealed class TestSchema
         string? String,
         TimeSpan? TimeSpan,
         [property: GraphQLType<UnknownType>] string? Unknown,
-        Uri? Url,
+        Uri? Uri,
+        [property: GraphQLType<UrlType>] Uri? Url,
         Guid? Uuid);
 
     public sealed record ResultNonNullable(
         JsonElement Any,
+        [property: GraphQLType<NonNullType<Base64StringType>>] byte[] Base64String,
         bool Boolean,
-        byte Byte,
-        [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
+        sbyte Byte,
         [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
         DateTimeOffset DateTime,
         decimal Decimal,
@@ -368,14 +375,15 @@ public sealed class TestSchema
         string String,
         TimeSpan TimeSpan,
         [property: GraphQLType<NonNullType<UnknownType>>] string Unknown,
-        Uri Url,
+        Uri Uri,
+        [property: GraphQLType<NonNullType<UrlType>>] Uri Url,
         Guid Uuid);
 
     public sealed record ResultDefaulted(
         JsonElement Any,
+        [property: GraphQLType<NonNullType<Base64StringType>>] byte[] Base64String,
         bool Boolean,
-        byte Byte,
-        [property: GraphQLType<NonNullType<ByteArrayType>>] byte[] ByteArray,
+        sbyte Byte,
         [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
         DateTimeOffset DateTime,
         decimal Decimal,
@@ -393,7 +401,8 @@ public sealed class TestSchema
         string String,
         TimeSpan TimeSpan,
         [property: GraphQLType<NonNullType<UnknownType>>] string Unknown,
-        Uri Url,
+        Uri Uri,
+        [property: GraphQLType<NonNullType<UrlType>>] Uri Url,
         Guid Uuid);
 
     public sealed record ResultComplex(

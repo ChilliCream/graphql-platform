@@ -43,7 +43,7 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query testQuery_65ad0daf_2 {
+            query testQuery_65ad0daf_1 {
               exclusiveSubgraphA {
                 __typename
               }
@@ -74,7 +74,7 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query testQuery_65ad0daf_1 {
+            query testQuery_65ad0daf_2 {
               viewer {
                 exclusiveSubgraphB
               }
@@ -103,22 +103,23 @@ operationPlan:
       name: testQuery
       hash: 65ad0daf293954c92e5d9329ad6f5bca
       searchSpace: 2
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
-      schema: B
+      schema: A
       operation: |
         query testQuery_65ad0daf_1 {
-          viewer {
-            exclusiveSubgraphB
+          exclusiveSubgraphA {
+            __typename
           }
         }
     - id: 2
       type: Operation
-      schema: A
+      schema: B
       operation: |
         query testQuery_65ad0daf_2 {
-          exclusiveSubgraphA {
-            __typename
+          viewer {
+            exclusiveSubgraphB
           }
         }

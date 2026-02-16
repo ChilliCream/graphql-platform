@@ -26,19 +26,14 @@ internal abstract class NeedsFormatting : IResultDataJsonFormatter
     /// <param name="options">
     /// The JSON serializer options.
     /// </param>
-    /// <param name="nullIgnoreCondition">
-    /// The null ignore condition.
-    /// </param>
     public abstract void FormatValue(
         JsonWriter writer,
-        JsonSerializerOptions options,
-        JsonNullIgnoreCondition nullIgnoreCondition);
+        JsonSerializerOptions options);
 
     void IResultDataJsonFormatter.WriteTo(
         JsonWriter writer,
-        JsonSerializerOptions? options,
-        JsonNullIgnoreCondition nullIgnoreCondition)
-        => FormatValue(writer, options ?? JsonSerializerOptionDefaults.GraphQL, nullIgnoreCondition);
+        JsonSerializerOptions? options)
+        => FormatValue(writer, options ?? JsonSerializerOptionDefaults.GraphQL);
 
     public static JsonNeedsFormatting Create<TValue>(TValue value)
     {
@@ -80,14 +75,10 @@ internal sealed class JsonNeedsFormatting(JsonDocument value) : NeedsFormatting
     /// <param name="options">
     /// The JSON serializer options.
     /// </param>
-    /// <param name="nullIgnoreCondition">
-    /// The null ignore condition.
-    /// </param>
     public override void FormatValue(
         JsonWriter writer,
-        JsonSerializerOptions options,
-        JsonNullIgnoreCondition nullIgnoreCondition)
-        => JsonValueFormatter.WriteValue(writer, Value, options, nullIgnoreCondition);
+        JsonSerializerOptions options)
+        => JsonValueFormatter.WriteValue(writer, Value, options);
 
     /// <summary>
     /// Returns the string representation of the inner value.

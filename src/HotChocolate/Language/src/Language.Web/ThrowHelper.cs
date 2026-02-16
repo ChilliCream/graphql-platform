@@ -19,6 +19,9 @@ internal static class ThrowHelper
             ThrowHelper_InvalidDocumentIdValue,
             tokenType));
 
+    public static InvalidGraphQLRequestException InvalidDocumentIdFormat()
+        => new("The operation id has an invalid format.");
+
     public static InvalidGraphQLRequestException InvalidOperationNameValue(JsonTokenType tokenType)
         => new(string.Format(
             CultureInfo.InvariantCulture,

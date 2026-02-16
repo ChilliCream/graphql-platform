@@ -32,7 +32,7 @@ public class ServiceTypeTests
             .Parse((string)value!)
             .MatchInlineSnapshot(
                 """
-                schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@key", "@tag", "FieldSet" ]) {
+                schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: [ "@key", "@tag", "FieldSet" ]) {
                   query: Query
                 }
 
@@ -88,7 +88,7 @@ public class ServiceTypeTests
             .Parse((string)value!)
             .MatchInlineSnapshot(
                 """
-                schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.2", import: [ "@key", "@tag", "FieldSet" ]) {
+                schema @link(url: "https://specs.apollo.dev/federation/v2.2", import: [ "@key", "@tag", "FieldSet" ]) {
                   query: Query
                 }
 

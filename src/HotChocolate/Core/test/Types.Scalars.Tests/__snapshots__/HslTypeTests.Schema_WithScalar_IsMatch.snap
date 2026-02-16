@@ -6,5 +6,5 @@ type Query {
   scalar: Hsl
 }
 
-"The Hsl scalar type represents a valid CSS HSL color defined in https:\/\/www.w3.org\/TR\/css-color-3\/#hsl-color."
+"The Hsl scalar type represents a valid CSS HSL color defined in https://www.w3.org/TR/css-color-3/#hsl-color."
 scalar Hsl

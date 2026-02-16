@@ -15,6 +15,7 @@ public sealed partial class ResultDocument : IDisposable
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
+    private readonly Path _rootPath = Path.Root;
     internal MetaDb _metaDb;
     private int _nextDataIndex;
     private int _rentedDataSize;
@@ -35,6 +36,26 @@ public sealed partial class ResultDocument : IDisposable
         _includeFlags = includeFlags;
 
         Data = CreateObject(Cursor.Zero, operation.RootSelectionSet);
+    }
+
+    public ResultDocument(
+        Operation operation,
+        SelectionSet selectionSet,
+        Path path,
+        ulong includeFlags,
+        ulong deferFlags,
+        DeferUsage deferUsage)
+    {
+        ArgumentNullException.ThrowIfNull(operation);
+        ArgumentNullException.ThrowIfNull(selectionSet);
+        ArgumentNullException.ThrowIfNull(deferUsage);
+
+        _metaDb = MetaDb.CreateForEstimatedRows(Cursor.RowsPerChunk);
+        _operation = operation;
+        _includeFlags = includeFlags;
+        _rootPath = path;
+
+        Data = CreateObject(Cursor.Zero, selectionSet, includeFlags, deferFlags, deferUsage);
     }
 
     public ResultElement Data { get; }
@@ -128,14 +149,14 @@ public sealed partial class ResultDocument : IDisposable
         // Stop at root via IsRoot flag.
         if ((_metaDb.GetFlags(current) & ElementFlags.IsRoot) == ElementFlags.IsRoot)
         {
-            return Path.Root;
+            return _rootPath;
         }
 
         Span<Cursor> chain = stackalloc Cursor[64];
         var c = current;
         var written = 0;
 
-        do
+        while (true)
         {
             chain[written++] = c;
 
@@ -151,9 +172,9 @@ public sealed partial class ResultDocument : IDisposable
             {
                 throw new InvalidOperationException("The path is to deep.");
             }
-        } while (true);
+        }
 
-        var path = Path.Root;
+        var path = _rootPath;
         var parentTokenType = ElementTokenType.StartObject;
 
         chain = chain[..written];
@@ -353,7 +374,6 @@ public sealed partial class ResultDocument : IDisposable
                 writer.WriteRawValue(ReadRawValue(row), skipInputValidation: true);
                 return;
 
-            // TODO : We need to handle any types.
             default:
                 throw new NotSupportedException();
         }
@@ -428,19 +448,34 @@ public sealed partial class ResultDocument : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ReadOnlySpan<byte> ReadLocalData(int location, int size)
     {
-        var chunkIndex = location / JsonMemory.BufferSize;
-        var offset = location % JsonMemory.BufferSize;
+        var startChunkIndex = location / JsonMemory.BufferSize;
+        var offsetInStartChunk = location % JsonMemory.BufferSize;
 
         // Fast path: data fits in a single chunk
-        if (offset + size <= JsonMemory.BufferSize)
+        if (offsetInStartChunk + size <= JsonMemory.BufferSize)
         {
-            return _data[chunkIndex].AsSpan(offset, size);
+            return _data[startChunkIndex].AsSpan(offsetInStartChunk, size);
         }
 
-        // Data spans chunk boundaries - this should be rare for typical JSON values
-        throw new NotSupportedException(
-            "Reading data that spans chunk boundaries as a span is not supported. "
-            + "Use WriteLocalDataTo for writing to an IBufferWriter instead.");
+        Span<byte> buffer = new byte[size];
+        var bytesRead = 0;
+        var currentLocation = location;
+
+        while (bytesRead < size)
+        {
+            var chunkIndex = currentLocation / JsonMemory.BufferSize;
+            var offsetInChunk = currentLocation % JsonMemory.BufferSize;
+            var chunk = _data[chunkIndex];
+
+            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, JsonMemory.BufferSize - offsetInChunk);
+            var chunkSpan = chunk.AsSpan(offsetInChunk, bytesToCopyFromThisChunk);
+
+            chunkSpan.CopyTo(buffer[bytesRead..]);
+            bytesRead += bytesToCopyFromThisChunk;
+            currentLocation += bytesToCopyFromThisChunk;
+        }
+
+        return buffer;
     }
 
     internal ResultElement CreateObject(Cursor parent, SelectionSet selectionSet)
@@ -454,6 +489,35 @@ public sealed partial class ResultDocument : IDisposable
             {
                 WriteEmptyProperty(startObjectCursor, selection);
                 selectionCount++;
+            }
+
+            WriteEndObject(startObjectCursor, selectionCount);
+
+            return new ResultElement(this, startObjectCursor);
+        }
+    }
+
+    private ResultElement CreateObject(
+        Cursor parent,
+        SelectionSet selectionSet,
+        ulong includeFlags,
+        ulong deferFlags,
+        DeferUsage deferUsage)
+    {
+        lock (_dataChunkLock)
+        {
+            var startObjectCursor = WriteStartObject(parent, selectionSet.Id);
+
+            var selectionCount = 0;
+            foreach (var selection in selectionSet.Selections)
+            {
+                if (selection.IsIncluded(includeFlags)
+                    && selection.IsDeferred(deferFlags)
+                    && selection.GetPrimaryDeferUsage(deferFlags) == deferUsage)
+                {
+                    WriteEmptyProperty(startObjectCursor, selection);
+                    selectionCount++;
+                }
             }
 
             WriteEndObject(startObjectCursor, selectionCount);
@@ -572,6 +636,19 @@ public sealed partial class ResultDocument : IDisposable
             cursor: target.Cursor,
             tokenType: ElementTokenType.Null,
             parentRow: _metaDb.GetParent(target.Cursor));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void MarkAsDeferred(ResultElement target)
+    {
+        // Selection metadata and write filters are tracked on the property row.
+        var propertyCursor = target.Cursor.AddRows(-1);
+        var elementTokenType = _metaDb.GetElementTokenType(propertyCursor, resolveReferences: false);
+
+        CheckExpectedType(ElementTokenType.PropertyName, elementTokenType);
+
+        var flags = _metaDb.GetFlags(propertyCursor);
+        _metaDb.SetFlags(propertyCursor, flags | ElementFlags.IsDeferred);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

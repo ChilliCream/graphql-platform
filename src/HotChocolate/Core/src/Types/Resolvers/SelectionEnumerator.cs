@@ -80,7 +80,7 @@ public struct SelectionEnumerator : IEnumerable<Selection>, IEnumerator<Selectio
 
     IEnumerator<Selection> IEnumerable<Selection>.GetEnumerator() => this;
 
-    IEnumerator IEnumerable.GetEnumerator()  => this;
+    IEnumerator IEnumerable.GetEnumerator() => this;
 
     public void Dispose() { }
 }

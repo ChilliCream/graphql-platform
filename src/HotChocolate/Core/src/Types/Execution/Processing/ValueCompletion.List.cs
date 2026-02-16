@@ -146,6 +146,6 @@ internal static partial class ValueCompletion
             }
 
             result.Invalidate();
-        } while (result.Parent is { IsInvalidated: false });
+        } while (result.Parent is { ValueKind: not JsonValueKind.Undefined, IsInvalidated: false });
     }
 }

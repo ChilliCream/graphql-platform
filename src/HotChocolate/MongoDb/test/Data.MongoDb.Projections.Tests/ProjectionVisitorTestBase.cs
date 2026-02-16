@@ -17,7 +17,7 @@ public class ProjectionVisitorTestBase
             mongoResource.CreateCollection<TResult>("data_" + Guid.NewGuid().ToString("N"));
 
         collection.InsertMany(results);
-        
+
         return _ => collection.AsExecutable();
     }
 

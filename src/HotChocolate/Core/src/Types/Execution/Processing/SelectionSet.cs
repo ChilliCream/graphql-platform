@@ -23,7 +23,8 @@ public sealed class SelectionSet : ISelectionSet
         SelectionPath path,
         IObjectTypeDefinition type,
         Selection[] selections,
-        bool isConditional)
+        bool isConditional,
+        bool hasDeferredSelections = false)
     {
         ArgumentNullException.ThrowIfNull(selections);
 
@@ -31,6 +32,12 @@ public sealed class SelectionSet : ISelectionSet
         Path = path;
         Type = type;
         _flags = isConditional ? Flags.Conditional : Flags.None;
+
+        if (hasDeferredSelections)
+        {
+            _flags |= Flags.HasDeferredSelections;
+        }
+
         _selections = selections;
         _responseNameLookup = _selections.ToFrozenDictionary(t => t.ResponseName);
         _utf8ResponseNameLookup = SelectionLookup.Create(this);
@@ -50,6 +57,9 @@ public sealed class SelectionSet : ISelectionSet
     /// Defines if this list needs post-processing for skip and include.
     /// </summary>
     public bool IsConditional => (_flags & Flags.Conditional) == Flags.Conditional;
+
+    /// <inheritdoc />
+    public bool HasIncrementalParts => (_flags & Flags.HasDeferredSelections) == Flags.HasDeferredSelections;
 
     /// <summary>
     /// Gets the type context of this selection set.
@@ -122,7 +132,8 @@ public sealed class SelectionSet : ISelectionSet
     {
         None = 0,
         Conditional = 1,
-        Sealed = 2
+        Sealed = 2,
+        HasDeferredSelections = 4
     }
 
     public override string ToString()

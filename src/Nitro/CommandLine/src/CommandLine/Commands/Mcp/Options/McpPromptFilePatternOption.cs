@@ -1,6 +1,6 @@
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 
-public class McpPromptFilePatternOption: Option<List<string>>
+public class McpPromptFilePatternOption : Option<List<string>>
 {
     public McpPromptFilePatternOption() : base("--prompt-pattern")
     {

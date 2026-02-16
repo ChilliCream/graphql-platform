@@ -1,6 +1,6 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using HotChocolate.Execution;
+using HotChocolate.Text.Json;
 using static System.Text.Json.JsonSerializerDefaults;
 using static System.Text.Json.Serialization.JsonIgnoreCondition;
 

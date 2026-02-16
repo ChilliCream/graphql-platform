@@ -85,7 +85,7 @@ templates/                     # Project templates
 | Component | Technology     |
 | --------- | -------------- |
 | Runtime   | .NET 8/9/10    |
-| SDK       | 10.0.100       |
+| SDK       | 10.0.102       |
 | Build     | Nuke.Build     |
 | Tests     | xUnit          |
 | Snapshots | CookieCrumble  |
@@ -229,7 +229,7 @@ public class Query
 | Build fails       | Run `./init.sh` first                      |
 | Missing packages  | Run `./build.sh restore`                   |
 | Snapshot mismatch | Check `__snapshots__/` for expected output |
-| SDK not found     | Install .NET SDK 10.0.100                  |
+| SDK not found     | Install .NET SDK 10.0.102                  |
 
 ## Links
 

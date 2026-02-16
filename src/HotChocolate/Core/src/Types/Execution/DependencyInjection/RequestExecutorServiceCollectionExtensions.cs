@@ -138,7 +138,6 @@ public static class RequestExecutorServiceCollectionExtensions
     {
         var builder = new DefaultRequestExecutorBuilder(services, schemaName);
 
-        builder.TryAddNoOpTransactionScopeHandler();
         builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
         builder.TryAddTypeInterceptor<RequirementsTypeInterceptor>();
 

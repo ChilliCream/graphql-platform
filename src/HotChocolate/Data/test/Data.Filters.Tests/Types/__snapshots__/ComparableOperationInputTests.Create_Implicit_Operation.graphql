@@ -7,18 +7,18 @@ type Query {
 }
 
 input ComparableByteOperationFilterInput {
-  eq: Byte
-  neq: Byte
-  in: [Byte!]
-  nin: [Byte!]
-  gt: Byte
-  ngt: Byte
-  gte: Byte
-  ngte: Byte
-  lt: Byte
-  nlt: Byte
-  lte: Byte
-  nlte: Byte
+  eq: UnsignedByte
+  neq: UnsignedByte
+  in: [UnsignedByte!]
+  nin: [UnsignedByte!]
+  gt: UnsignedByte
+  ngt: UnsignedByte
+  gte: UnsignedByte
+  ngte: UnsignedByte
+  lt: UnsignedByte
+  nlt: UnsignedByte
+  lte: UnsignedByte
+  nlte: UnsignedByte
 }
 
 input ComparableDateOnlyOperationFilterInput {
@@ -112,18 +112,18 @@ input ComparableInt64OperationFilterInput {
 }
 
 input ComparableNullableOfByteOperationFilterInput {
-  eq: Byte
-  neq: Byte
-  in: [Byte]
-  nin: [Byte]
-  gt: Byte
-  ngt: Byte
-  gte: Byte
-  ngte: Byte
-  lt: Byte
-  nlt: Byte
-  lte: Byte
-  nlte: Byte
+  eq: UnsignedByte
+  neq: UnsignedByte
+  in: [UnsignedByte]
+  nin: [UnsignedByte]
+  gt: UnsignedByte
+  ngt: UnsignedByte
+  gte: UnsignedByte
+  ngte: UnsignedByte
+  lt: UnsignedByte
+  nlt: UnsignedByte
+  lte: UnsignedByte
+  nlte: UnsignedByte
 }
 
 input ComparableNullableOfDateOnlyOperationFilterInput {
@@ -277,18 +277,18 @@ input ComparableTimeOnlyOperationFilterInput {
 }
 
 input ComparableUriOperationFilterInput {
-  eq: URL
-  neq: URL
-  in: [URL]
-  nin: [URL]
-  gt: URL
-  ngt: URL
-  gte: URL
-  ngte: URL
-  lt: URL
-  nlt: URL
-  lte: URL
-  nlte: URL
+  eq: URI
+  neq: URI
+  in: [URI]
+  nin: [URI]
+  gt: URI
+  ngt: URI
+  gte: URI
+  ngte: URI
+  lt: URI
+  nlt: URI
+  lte: URI
+  nlte: URI
 }
 
 input FooBarOperationFilterInput {
@@ -332,14 +332,11 @@ enum FooBar {
 "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
 directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
 
-"The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255."
-scalar Byte
-
 "The `Decimal` scalar type represents a decimal floating-point number."
 scalar Decimal
 
 "The `LocalDate` scalar represents a date without a time-zone in the ISO-8601 calendar system."
-scalar LocalDate @specifiedBy(url: "https:\/\/scalars.graphql.org\/andimarek\/local-date.html")
+scalar LocalDate @specifiedBy(url: "https://scalars.graphql.org/andimarek/local-date.html")
 
 "The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss."
 scalar LocalTime
@@ -350,4 +347,7 @@ scalar Long
 "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
 scalar Short
 
-scalar URL @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc3986")
+scalar URI @specifiedBy(url: "https://tools.ietf.org/html/rfc3986")
+
+"The UnsignedByte scalar type represents an unsigned 8-bit numeric non-fractional value greater than or equal to 0."
+scalar UnsignedByte

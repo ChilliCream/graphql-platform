@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
@@ -35,6 +36,28 @@ internal sealed class VariableCoercionHelper
                 nameof(variableValues));
         }
 
+        try
+        {
+            CoerceVariableValuesInternal(schema, variableDefinitions, variableValues, coercedValues, context);
+        }
+        finally
+        {
+            var memoryBuilder = context.Features.Get<Utf8MemoryBuilder>();
+            if (memoryBuilder is not null)
+            {
+                memoryBuilder.Seal();
+                context.Features.Set<Utf8MemoryBuilder>(null);
+            }
+        }
+    }
+
+    private void CoerceVariableValuesInternal(
+        ISchemaDefinition schema,
+        IReadOnlyList<VariableDefinitionNode> variableDefinitions,
+        JsonElement variableValues,
+        Dictionary<string, VariableValue> coercedValues,
+        IFeatureProvider context)
+    {
         var hasVariables = variableValues.ValueKind is JsonValueKind.Object;
 
         for (var i = 0; i < variableDefinitions.Count; i++)
@@ -93,12 +116,11 @@ internal sealed class VariableCoercionHelper
         IFeatureProvider context)
     {
         var root = Path.Root.Append(variableDefinition.Variable.Name.Value);
-        var valueParser = new JsonValueParser();
 
         try
         {
             var runtimeValue = _inputParser.ParseInputValue(inputValue, variableType, context, path: root);
-            var valueLiteral = CoerceInputLiteral(inputValue, variableType, ref valueParser, depth: 0);
+            var valueLiteral = CoerceInputLiteral(inputValue, variableType, context, depth: 0);
 
             return new VariableValue(
                 variableDefinition.Variable.Name.Value,
@@ -108,18 +130,11 @@ internal sealed class VariableCoercionHelper
         }
         catch (GraphQLException)
         {
-            valueParser._memory?.Abandon();
             throw;
         }
         catch (Exception ex)
         {
-            valueParser._memory?.Abandon();
             throw ThrowHelper.VariableValueInvalidType(variableDefinition, ex);
-        }
-        finally
-        {
-            valueParser._memory?.Seal();
-            valueParser._memory = null;
         }
     }
 
@@ -138,7 +153,7 @@ internal sealed class VariableCoercionHelper
     private IValueNode CoerceInputLiteral(
         JsonElement inputValue,
         IInputType type,
-        ref JsonValueParser valueParser,
+        IFeatureProvider context,
         int depth)
     {
         if (depth > 64)
@@ -154,7 +169,7 @@ internal sealed class VariableCoercionHelper
         switch (type.Kind)
         {
             case TypeKind.Scalar:
-                return valueParser.Parse(inputValue, depth);
+                return Unsafe.As<ScalarType>(type).InputValueToLiteral(inputValue, context);
 
             case TypeKind.Enum:
                 if (inputValue.ValueKind is not JsonValueKind.String)
@@ -191,7 +206,7 @@ internal sealed class VariableCoercionHelper
                         }
                         else
                         {
-                            var value = CoerceInputLiteral(property.Value, field.Type, ref valueParser, depth + 1);
+                            var value = CoerceInputLiteral(property.Value, field.Type, context, depth + 1);
                             fields.Add(new ObjectFieldNode(field.Name, value));
                         }
                     }
@@ -223,13 +238,13 @@ internal sealed class VariableCoercionHelper
 
                 foreach (var item in inputValue.EnumerateArray())
                 {
-                    items.Add(CoerceInputLiteral(item, elementType, ref valueParser, elementDepth));
+                    items.Add(CoerceInputLiteral(item, elementType, context, elementDepth));
                 }
 
                 return new ListValueNode(items);
 
             case TypeKind.NonNull:
-                return CoerceInputLiteral(inputValue, type.InnerType().EnsureInputType(), ref valueParser, depth);
+                return CoerceInputLiteral(inputValue, type.InnerType().EnsureInputType(), context, depth);
 
             default:
                 throw new NotSupportedException();

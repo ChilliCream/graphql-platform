@@ -85,7 +85,8 @@ public abstract partial class FusionTestBase : IDisposable
                         GetSourceSchemaInteraction(context, node).Request
                             = new SourceSchemaInteraction.RawSourceSchemaRequest
                             {
-                                Body = bodyStream, ContentType = contentType
+                                Body = bodyStream,
+                                ContentType = contentType
                             };
                     },
                     onAfterReceive: (context, node, response) =>

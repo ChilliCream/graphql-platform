@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using HotChocolate.Execution.Options;
-using Microsoft.Extensions.DependencyInjection;
 using static System.Threading.CancellationTokenSource;
 
 namespace HotChocolate.Execution.Pipeline;

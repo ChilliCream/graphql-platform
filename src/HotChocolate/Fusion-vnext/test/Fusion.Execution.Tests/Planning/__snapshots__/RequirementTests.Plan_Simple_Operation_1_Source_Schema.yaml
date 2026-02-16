@@ -9,6 +9,7 @@ operation:
       }
     hash: 123456789101112
     searchSpace: 1
+    expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
@@ -26,7 +27,7 @@ nodes:
     operation: |
       query Op_123456789101112_2(
         $__fusion_1_id: String!
-        $__fusion_2_title: String
+          $__fusion_2_title: String
       ) {
         bookById(id: $__fusion_1_id) {
           titleAndId(title: $__fusion_2_title)

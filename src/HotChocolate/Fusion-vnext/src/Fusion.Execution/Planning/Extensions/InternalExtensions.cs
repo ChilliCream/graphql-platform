@@ -14,7 +14,4 @@ internal static class InternalExtensions
 
         return null;
     }
-
-    public static void Enqueue(this PriorityQueue<PlanNode, double> queue, PlanNode node)
-        => queue.Enqueue(node, node.TotalCost);
 }

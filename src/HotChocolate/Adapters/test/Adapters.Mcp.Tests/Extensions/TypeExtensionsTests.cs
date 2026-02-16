@@ -7,7 +7,7 @@ namespace HotChocolate.Adapters.Mcp.Extensions;
 public sealed class TypeExtensionsTests
 {
     [Theory]
-    [InlineData(typeof(ByteArrayType), "dmFsdWU=")]
+    [InlineData(typeof(Base64StringType), "dmFsdWU=")]
     // A DateTime with UTC offset (+00:00).
     [InlineData(typeof(DateTimeType), "2011-08-30T13:22:53.108Z")]
     // A DateTime with +00:00 which is the same as UTC.
@@ -42,7 +42,7 @@ public sealed class TypeExtensionsTests
     }
 
     [Theory]
-    [InlineData(typeof(ByteArrayType), "invalidBase64")]
+    [InlineData(typeof(Base64StringType), "invalidBase64")]
     // The minutes of the offset are missing.
     [InlineData(typeof(DateTimeType), "2011-08-30T13:22:53.108-03")]
     // No offset provided.

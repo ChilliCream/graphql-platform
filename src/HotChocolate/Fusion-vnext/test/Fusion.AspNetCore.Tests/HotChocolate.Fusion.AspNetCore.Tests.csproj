@@ -12,6 +12,7 @@
     <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate\CookieCrumble.HotChocolate.csproj" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.HotChocolate.Language\CookieCrumble.HotChocolate.Language.csproj" />
     <ProjectReference Include="..\Fusion.Tests.Shared\HotChocolate.Fusion.Tests.Shared.csproj" />
   </ItemGroup>
 

@@ -15,7 +15,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
@@ -268,7 +267,7 @@ internal sealed partial class RequestExecutorManager
 
         serviceCollection.AddSingleton(new SchemaVersionInfo(version));
 
-        serviceCollection.AddSingleton<ITypeConverter>(
+        serviceCollection.AddSingleton(
             _ => context.DescriptorContext.TypeConverter);
 
         serviceCollection.AddSingleton(

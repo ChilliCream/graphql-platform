@@ -212,7 +212,7 @@ sourceSchemas:
           document: |
             query Op_684e067a_2(
               $__fusion_1_id: Int!
-              $__fusion_2_genreIds: [Int!]!
+                $__fusion_2_genreIds: [Int!]!
             ) {
               book(id: $__fusion_1_id) {
                 genres(genreIds: $__fusion_2_genreIds) {
@@ -305,6 +305,7 @@ operationPlan:
         }
       hash: 684e067a80efad0f197393d61f996250
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -325,7 +326,7 @@ operationPlan:
       operation: |
         query Op_684e067a_2(
           $__fusion_1_id: Int!
-          $__fusion_2_genreIds: [Int!]!
+            $__fusion_2_genreIds: [Int!]!
         ) {
           book(id: $__fusion_1_id) {
             genres(genreIds: $__fusion_2_genreIds) {

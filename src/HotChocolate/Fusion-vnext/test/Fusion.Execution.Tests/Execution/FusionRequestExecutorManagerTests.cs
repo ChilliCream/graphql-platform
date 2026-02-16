@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;

@@ -76,6 +76,11 @@ public static class ResultFieldNames
     public static ReadOnlySpan<byte> Label => "label"u8;
 
     /// <summary>
+    /// Gets the subPath field name.
+    /// </summary>
+    public static ReadOnlySpan<byte> SubPath => "subPath"u8;
+
+    /// <summary>
     /// Gets the hasNext field name
     /// </summary>
     public static ReadOnlySpan<byte> HasNext => "hasNext"u8;

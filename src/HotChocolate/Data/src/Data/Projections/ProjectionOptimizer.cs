@@ -14,10 +14,11 @@ internal sealed class ProjectionOptimizer(IProjectionProvider provider)
             selectionToProcess.ExceptWith(processedSelections);
             foreach (var responseName in selectionToProcess)
             {
+                var selection = context.GetSelection(responseName);
                 var rewrittenSelection =
                     provider.RewriteSelection(
                         context,
-                        context.GetSelection(responseName));
+                        selection);
 
                 context.ReplaceSelection(rewrittenSelection);
 

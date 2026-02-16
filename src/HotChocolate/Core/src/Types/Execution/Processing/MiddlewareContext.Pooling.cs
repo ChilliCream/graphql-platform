@@ -22,20 +22,20 @@ internal partial class MiddlewareContext
         Selection selection,
         ResultElement resultValue,
         OperationContext operationContext,
-        IImmutableDictionary<string, object?> scopedContextData,
-        Path? path)
+        DeferUsage? deferUsage,
+        IImmutableDictionary<string, object?> scopedContextData)
     {
         _operationContext = operationContext;
         _operationResultBuilder.Context = _operationContext;
         _services = operationContext.Services;
         _selection = selection;
-        _path = path;
         ResultValue = resultValue;
         _parent = parent;
         _parser = operationContext.InputParser;
         ScopedContextData = scopedContextData;
         LocalContextData = s_emptyLocalContextData;
         Arguments = _selection.Arguments;
+        DeferUsage = deferUsage;
         RequestAborted = _operationContext.RequestAborted;
     }
 

@@ -60,9 +60,7 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             Array.Empty<ArgumentNode>(),
             new SelectionSetNode(selections));
 
-        var nodesPipeline =
-            selection.ResolverPipeline ??
-            context.CompileResolverPipeline(nodesField, combinedField);
+        var nodesPipeline = context.CompileResolverPipeline(nodesField, combinedField);
 
         return new Selection(
             context.NewSelectionId(),

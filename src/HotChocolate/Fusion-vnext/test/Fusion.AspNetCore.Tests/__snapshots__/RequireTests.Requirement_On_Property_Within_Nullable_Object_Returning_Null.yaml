@@ -60,6 +60,29 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          document: |
+            query Op_b05a9c48_4(
+              $__fusion_4_id: ID!
+            ) {
+              productById(id: $__fusion_4_id) {
+                id
+              }
+            }
+          variables: |
+            {
+              "__fusion_4_id": "1"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "id": "1"
+                  }
+                }
+              }
   - name: B
     schema: |
       schema {
@@ -96,7 +119,7 @@ sourceSchemas:
           document: |
             query Op_b05a9c48_2(
               $__fusion_1_nullableArgument: String
-              $__fusion_2_id: ID!
+                $__fusion_2_id: ID!
             ) {
               productById(id: $__fusion_2_id) {
                 fieldWithNullableRequirement(nullableArgument: $__fusion_1_nullableArgument)
@@ -131,6 +154,7 @@ operationPlan:
         }
       hash: b05a9c488c79e334decd9cae59fb7892
       searchSpace: 1
+      expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
@@ -147,7 +171,7 @@ operationPlan:
       operation: |
         query Op_b05a9c48_2(
           $__fusion_1_nullableArgument: String
-          $__fusion_2_id: ID!
+            $__fusion_2_id: ID!
         ) {
           productById(id: $__fusion_2_id) {
             fieldWithNullableRequirement(nullableArgument: $__fusion_1_nullableArgument)
@@ -164,6 +188,7 @@ operationPlan:
             id
       dependencies:
         - id: 3
+        - id: 4
     - id: 3
       type: Operation
       schema: A
@@ -181,6 +206,25 @@ operationPlan:
       target: $.productById
       requirements:
         - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: A
+      operation: |
+        query Op_b05a9c48_4(
+          $__fusion_4_id: ID!
+        ) {
+          productById(id: $__fusion_4_id) {
+            id
+          }
+        }
+      source: $.productById
+      target: $.productById
+      requirements:
+        - name: __fusion_4_id
           selectionMap: >-
             id
       dependencies:

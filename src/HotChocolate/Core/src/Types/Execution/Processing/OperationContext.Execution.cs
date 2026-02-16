@@ -16,9 +16,23 @@ internal sealed partial class OperationContext
             AssertInitialized();
             return _currentWorkScheduler;
         }
-        internal set
+    }
+
+    public DeferExecutionCoordinator DeferExecutionCoordinator
+    {
+        get
         {
-            _currentWorkScheduler = value;
+            AssertInitialized();
+            return _currentDeferExecutionCoordinator;
+        }
+    }
+
+    public int ExecutionBranchId
+    {
+        get
+        {
+            AssertInitialized();
+            return _branchId;
         }
     }
 
@@ -38,7 +52,8 @@ internal sealed partial class OperationContext
         Selection selection,
         ResultElement resultValue,
         IImmutableDictionary<string, object?> scopedContextData,
-        Path? path = null)
+        int? executionBranchId = null,
+        DeferUsage? deferUsage = null)
     {
         AssertInitialized();
 
@@ -50,8 +65,33 @@ internal sealed partial class OperationContext
             resultValue,
             this,
             scopedContextData,
-            path);
+            executionBranchId ?? _branchId,
+            deferUsage);
 
         return resolverTask;
+    }
+
+    public DeferTask CreateDeferTask(
+        SelectionSet selectionSet,
+        Path selectionPath,
+        object? parent,
+        IImmutableDictionary<string, object?> scopedContextData,
+        int executionBranchId,
+        DeferUsage deferUsage)
+    {
+        AssertInitialized();
+
+        var deferTask = new DeferTask();
+
+        deferTask.Initialize(
+            this,
+            parent,
+            scopedContextData,
+            selectionSet,
+            selectionPath,
+            executionBranchId,
+            deferUsage);
+
+        return deferTask;
     }
 }

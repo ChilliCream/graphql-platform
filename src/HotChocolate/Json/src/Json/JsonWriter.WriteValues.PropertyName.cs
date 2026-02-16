@@ -44,6 +44,13 @@ public sealed partial class JsonWriter
     /// </remarks>
     public void WritePropertyName(ReadOnlySpan<char> propertyName)
     {
+        FlushDeferredPropertyName();
+
+        if (IgnoreNullFields)
+        {
+            BeginDeferPropertyName();
+        }
+
         ValidateProperty(propertyName);
 
         var propertyIdx = NeedsEscaping(propertyName, _options.Encoder);
@@ -189,6 +196,13 @@ public sealed partial class JsonWriter
     /// </remarks>
     public void WritePropertyName(ReadOnlySpan<byte> utf8PropertyName)
     {
+        FlushDeferredPropertyName();
+
+        if (IgnoreNullFields)
+        {
+            BeginDeferPropertyName();
+        }
+
         ValidateProperty(utf8PropertyName);
 
         var propertyIdx = NeedsEscaping(utf8PropertyName, _options.Encoder);
@@ -210,6 +224,13 @@ public sealed partial class JsonWriter
 
     private void WritePropertyNameUnescaped(ReadOnlySpan<byte> utf8PropertyName)
     {
+        FlushDeferredPropertyName();
+
+        if (IgnoreNullFields)
+        {
+            BeginDeferPropertyName();
+        }
+
         ValidateProperty(utf8PropertyName);
         WriteStringByOptionsPropertyName(utf8PropertyName);
 

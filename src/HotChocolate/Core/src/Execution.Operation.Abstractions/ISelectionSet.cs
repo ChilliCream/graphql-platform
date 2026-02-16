@@ -25,6 +25,16 @@ public interface ISelectionSet
     bool IsConditional { get; }
 
     /// <summary>
+    /// Gets a value indicating whether this selection set contains any selections
+    /// that may be deferred based on <c>@defer</c> directives.
+    /// </summary>
+    /// <value>
+    /// <c>true</c> if one or more selections in this set can be deferred;
+    /// otherwise, <c>false</c>.
+    /// </value>
+    bool HasIncrementalParts { get; }
+
+    /// <summary>
     /// Gets the type that declares this selection set.
     /// </summary>
     IObjectTypeDefinition Type { get; }

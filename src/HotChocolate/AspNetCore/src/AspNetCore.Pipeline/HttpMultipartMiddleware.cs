@@ -102,6 +102,10 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         var multipartRequest = ParseMultipartRequest(form);
         var requests = session.RequestParser.ParseRequest(multipartRequest.Operations);
 
+        // we add the file lookup as a feature on the HttpContext and can grab it from
+        // there and put it on the GraphQL request.
+        context.Features.Set(multipartRequest.Files);
+
         for (var i = 0; i < requests.Length; i++)
         {
             var current = requests[i];
@@ -110,7 +114,15 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
             if (!multipartRequest.FileMap.Root.TryGetNode(i.ToString(), out var operationRoot))
             {
-                continue;
+                // Legacy multipart maps do not include an operation index.
+                if (requests.Length == 1)
+                {
+                    operationRoot = multipartRequest.FileMap.Root;
+                }
+                else
+                {
+                    continue;
+                }
             }
 
             if (current.Variables is null)
@@ -132,7 +144,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
                 current = current with
                 {
-                    Variables = JsonDocument.Parse(bufferWriter.Memory),
+                    Variables = JsonDocument.Parse(bufferWriter.WrittenMemory),
                     VariablesMemoryOwner = bufferWriter
                 };
                 context.Response.RegisterForDispose(current);
@@ -210,7 +222,14 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         ref Utf8JsonReader originalVariables,
         Utf8JsonWriter variables,
         FileMapTrieNode fileMapRoot)
-        => RewriteJsonValue(ref originalVariables, variables, fileMapRoot);
+    {
+        if (!originalVariables.Read())
+        {
+            throw new JsonException("The variables JSON payload is empty.");
+        }
+
+        RewriteJsonValue(ref originalVariables, variables, fileMapRoot);
+    }
 
     private static void RewriteJsonValue(
         ref Utf8JsonReader reader,

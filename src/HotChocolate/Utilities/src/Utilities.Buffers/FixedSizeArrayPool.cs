@@ -48,7 +48,7 @@ internal sealed class FixedSizeArrayPool
 #if NET8_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(array);
 #else
-        if(array is null)
+        if (array is null)
         {
             throw new ArgumentNullException(nameof(array));
         }

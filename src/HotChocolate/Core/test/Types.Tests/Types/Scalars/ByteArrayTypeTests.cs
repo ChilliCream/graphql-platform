@@ -1,3 +1,5 @@
+#pragma warning disable CS0618 // Type or member is obsolete
+
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
@@ -52,10 +54,10 @@ public class ByteArrayTypeTests
         var type = new ByteArrayType();
 
         // act
-        var result = type.IsValueCompatible(null!);
+        void Error() => type.IsValueCompatible(null!);
 
         // assert
-        Assert.False(result);
+        Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]
@@ -215,3 +217,5 @@ public class ByteArrayTypeTests
         Assert.Equal(TypeKind.Scalar, type.Kind);
     }
 }
+
+#pragma warning restore CS0618 // Type or member is obsolete

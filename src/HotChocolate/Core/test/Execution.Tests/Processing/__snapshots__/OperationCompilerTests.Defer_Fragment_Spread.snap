@@ -19,7 +19,7 @@ fragment Foo on Droid {
       }
       ... on Droid {
         name @__execute(id: 6, kind: PURE, type: LEAF)
-        id @__execute(id: 7, kind: PURE, type: LEAF)
+        id @__execute(id: 7, kind: PURE, type: LEAF, isDeferred: true)
       }
     }
   }

@@ -4,9 +4,9 @@
   "Data": null,
   "Errors": [
     {
-      "message": "No object paths specified for key '1' in 'map'.",
+      "message": "File of key '1' is missing.",
       "extensions": {
-        "code": "HC0037"
+        "code": "HC0038"
       }
     }
   ],

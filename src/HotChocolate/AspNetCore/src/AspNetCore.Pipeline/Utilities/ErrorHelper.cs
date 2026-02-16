@@ -1,4 +1,5 @@
 using HotChocolate.Collections.Immutable;
+using HotChocolate.Language;
 using static HotChocolate.AspNetCore.Properties.AspNetCorePipelineResources;
 
 namespace HotChocolate.AspNetCore.Utilities;
@@ -13,6 +14,13 @@ internal static class ErrorHelper
             .SetMessage(ErrorHelper_InvalidRequest)
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
+
+    public static GraphQLRequestException InvalidRequest(
+        InvalidGraphQLRequestException ex) =>
+        new(ErrorBuilder.New()
+            .SetMessage(ex.Message)
+            .SetCode(ErrorCodes.Server.RequestInvalid)
+            .Build());
 
     public static IError RequestHasNoElements()
         => ErrorBuilder.New()

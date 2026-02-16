@@ -12,6 +12,7 @@ operation:
     name: GetTopProducts
     hash: 123456789101112
     searchSpace: 1
+    expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
@@ -30,7 +31,7 @@ nodes:
     operation: |
       query GetTopProducts_123456789101112_2(
         $__fusion_1_id: ID!
-        $__fusion_2_region: String!
+          $__fusion_2_region: String!
       ) {
         productById(id: $__fusion_1_id) {
           price(region: $__fusion_2_region)

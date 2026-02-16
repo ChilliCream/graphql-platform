@@ -178,7 +178,7 @@ sourceSchemas:
           document: |
             query Op_6721fc4f_2(
               $__fusion_1_id: Int!
-              $__fusion_2_title: String!
+                $__fusion_2_title: String!
             ) {
               bookById(id: $__fusion_1_id) {
                 idAndTitle(title: $__fusion_2_title)
@@ -252,6 +252,7 @@ operationPlan:
         }
       hash: 6721fc4fdf70192bf4714b55074672fb
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -271,7 +272,7 @@ operationPlan:
       operation: |
         query Op_6721fc4f_2(
           $__fusion_1_id: Int!
-          $__fusion_2_title: String!
+            $__fusion_2_title: String!
         ) {
           bookById(id: $__fusion_1_id) {
             idAndTitle(title: $__fusion_2_title)

@@ -1,5 +1,4 @@
 using HotChocolate.Execution.Processing;
-using HotChocolate.Properties;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Execution;

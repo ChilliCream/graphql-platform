@@ -1027,7 +1027,7 @@
                     "Name": null,
                     "OfType": {
                       "Kind": "Scalar",
-                      "Name": "JSON",
+                      "Name": "Any",
                       "OfType": null
                     }
                   },
@@ -1508,7 +1508,7 @@
               "Args": [],
               "Type": {
                 "Kind": "Scalar",
-                "Name": "JSON",
+                "Name": "Any",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1673,7 +1673,7 @@
               "Args": [],
               "Type": {
                 "Kind": "Scalar",
-                "Name": "JSON",
+                "Name": "Any",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1862,7 +1862,7 @@
               "Args": [],
               "Type": {
                 "Kind": "Scalar",
-                "Name": "JSON",
+                "Name": "Any",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -2116,7 +2116,7 @@
         },
         {
           "Kind": "Scalar",
-          "Name": "JSON",
+          "Name": "Any",
           "Description": null,
           "Fields": null,
           "InputFields": null,
@@ -4360,7 +4360,7 @@
                     "PossibleTypes": null,
                     "OfType": {
                       "__typename": "__Type",
-                      "Name": "JSON",
+                      "Name": "Any",
                       "Kind": "Scalar",
                       "Description": null,
                       "Fields": null,
@@ -5272,7 +5272,7 @@
               "Args": [],
               "Type": {
                 "__typename": "__Type",
-                "Name": "JSON",
+                "Name": "Any",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -5563,7 +5563,7 @@
               "Args": [],
               "Type": {
                 "__typename": "__Type",
-                "Name": "JSON",
+                "Name": "Any",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -5865,7 +5865,7 @@
               "Args": [],
               "Type": {
                 "__typename": "__Type",
-                "Name": "JSON",
+                "Name": "Any",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -6292,7 +6292,7 @@
         },
         {
           "__typename": "__Type",
-          "Name": "JSON",
+          "Name": "Any",
           "Kind": "Scalar",
           "Description": null,
           "Fields": null,

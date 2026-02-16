@@ -75,7 +75,7 @@ public sealed partial class SyntaxSerializer
         if (node.DefaultValue is not null)
         {
             writer.Write(" = ");
-            writer.WriteValue(node.DefaultValue);
+            writer.WriteValue(node.DefaultValue, _indented);
         }
 
         WriteDirectives(node.Directives, writer);
@@ -143,6 +143,7 @@ public sealed partial class SyntaxSerializer
         {
             writer.WriteLine();
             writer.Indent();
+            writer.WriteIndent();
             separator = Environment.NewLine;
         }
         else
@@ -187,8 +188,6 @@ public sealed partial class SyntaxSerializer
 
     private void VisitField(FieldNode node, ISyntaxWriter writer)
     {
-        writer.WriteIndent();
-
         if (node.Alias is not null)
         {
             writer.WriteName(node.Alias);
@@ -215,8 +214,6 @@ public sealed partial class SyntaxSerializer
 
     private void VisitFragmentSpread(FragmentSpreadNode node, ISyntaxWriter writer)
     {
-        writer.WriteIndent();
-
         writer.Write("... ");
         writer.WriteName(node.Name);
 
@@ -225,8 +222,6 @@ public sealed partial class SyntaxSerializer
 
     private void VisitInlineFragment(InlineFragmentNode node, ISyntaxWriter writer)
     {
-        writer.WriteIndent();
-
         writer.Write("...");
 
         if (node.TypeCondition is not null)

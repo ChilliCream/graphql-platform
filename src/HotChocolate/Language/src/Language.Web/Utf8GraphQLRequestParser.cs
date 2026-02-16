@@ -200,9 +200,9 @@ public ref struct Utf8GraphQLRequestParser
                 if (reader.TokenType == JsonTokenType.String)
                 {
                     var id = reader.GetString();
-                    if (!string.IsNullOrEmpty(id))
+                    if (!string.IsNullOrEmpty(id) && !OperationDocumentId.TryParse(id, out documentId))
                     {
-                        documentId = new OperationDocumentId(id);
+                        throw ThrowHelper.InvalidDocumentIdFormat();
                     }
                 }
                 else if (reader.TokenType == JsonTokenType.Null)
