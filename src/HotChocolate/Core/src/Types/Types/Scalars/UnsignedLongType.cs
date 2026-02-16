@@ -43,10 +43,10 @@ public class UnsignedLongType : IntegerTypeBase<ulong>
         => inputValue.GetUInt64();
 
     /// <inheritdoc />
-    public override void OnCoerceOutputValue(ulong runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(ulong runtimeValue, ResultElement resultValue)
         => resultValue.SetNumberValue(runtimeValue);
 
     /// <inheritdoc />
-    public override IValueNode OnValueToLiteral(ulong runtimeValue)
+    protected override IValueNode OnValueToLiteral(ulong runtimeValue)
         => new IntValueNode(runtimeValue);
 }

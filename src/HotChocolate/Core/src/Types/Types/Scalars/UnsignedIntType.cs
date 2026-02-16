@@ -43,10 +43,10 @@ public class UnsignedIntType : IntegerTypeBase<uint>
         => inputValue.GetUInt32();
 
     /// <inheritdoc />
-    public override void OnCoerceOutputValue(uint runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(uint runtimeValue, ResultElement resultValue)
         => resultValue.SetNumberValue(runtimeValue);
 
     /// <inheritdoc />
-    public override IValueNode OnValueToLiteral(uint runtimeValue)
+    protected override IValueNode OnValueToLiteral(uint runtimeValue)
         => new IntValueNode(runtimeValue);
 }

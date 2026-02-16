@@ -43,10 +43,10 @@ public class UnsignedShortType : IntegerTypeBase<ushort>
         => inputValue.GetUInt16();
 
     /// <inheritdoc />
-    public override void OnCoerceOutputValue(ushort runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(ushort runtimeValue, ResultElement resultValue)
         => resultValue.SetNumberValue(runtimeValue);
 
     /// <inheritdoc />
-    public override IValueNode OnValueToLiteral(ushort runtimeValue)
+    protected override IValueNode OnValueToLiteral(ushort runtimeValue)
         => new IntValueNode(runtimeValue);
 }

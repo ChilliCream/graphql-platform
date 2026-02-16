@@ -60,10 +60,10 @@ public class IntType : IntegerTypeBase<int>
         => inputValue.GetInt32();
 
     /// <inheritdoc />
-    public override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
         => resultValue.SetNumberValue(runtimeValue);
 
     /// <inheritdoc />
-    public override IValueNode OnValueToLiteral(int runtimeValue)
+    protected override IValueNode OnValueToLiteral(int runtimeValue)
         => new IntValueNode(runtimeValue);
 }

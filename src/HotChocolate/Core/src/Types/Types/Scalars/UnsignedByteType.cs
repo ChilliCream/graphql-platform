@@ -53,9 +53,9 @@ public class UnsignedByteType : IntegerTypeBase<byte>
     protected override byte OnCoerceInputValue(JsonElement inputValue)
         => inputValue.GetByte();
 
-    public override void OnCoerceOutputValue(byte runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(byte runtimeValue, ResultElement resultValue)
         => resultValue.SetNumberValue(runtimeValue);
 
-    public override IValueNode OnValueToLiteral(byte runtimeValue)
+    protected override IValueNode OnValueToLiteral(byte runtimeValue)
         => new IntValueNode(runtimeValue);
 }
