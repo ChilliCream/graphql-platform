@@ -4,8 +4,8 @@
       "message": "The specified argument value does not match the argument type.",
       "locations": [
         {
-          "line": 1,
-          "column": 18
+          "line": 2,
+          "column": 20
         }
       ],
       "path": [
@@ -15,7 +15,7 @@
         "argument": "input",
         "argumentValue": "\"abc123\"",
         "locationType": "ExampleInput!",
-        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
       }
     }
   ]

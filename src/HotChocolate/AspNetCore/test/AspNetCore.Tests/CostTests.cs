@@ -22,7 +22,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         const string requestBody =
             """
             {
-                "query" : "query Test($id: String!){human(id: $id){name}}"
+                "query" : "query Test($id: String!){human(id: $id){name}}",
                 "variables" : { "id" : "1000" }
             }
             """;
@@ -51,7 +51,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         const string requestBody =
             """
             {
-                "query" : "query Test($id: String!){human(id: $id){name}}"
+                "query" : "query Test($id: String!){human(id: $id){name}}",
                 "variables" : { "id" : "1000" }
             }
             """;
@@ -81,7 +81,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         const string requestBody =
             """
             {
-                "query" : "query Test($id: String!){human(id: $id){name}}"
+                "query" : "query Test($id: String!){human(id: $id){name}}",
                 "variables" : { "id" : "1000" }
             }
             """;
@@ -114,7 +114,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         const string requestBody =
             """
             {
-                "query" : "query Test($id: String!){human(id: $id){name}}"
+                "query" : "query Test($id: String!){human(id: $id){name}}",
                 "variables" : { "id" : "1000" }
             }
             """;

@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="nitro" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Aspire" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Composition.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Utilities.Tests" />
@@ -16,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Types.Validation\HotChocolate.Types.Validation.csproj" />
     <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
+    <ProjectReference Include="..\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
     <ProjectReference Include="..\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
   </ItemGroup>
 

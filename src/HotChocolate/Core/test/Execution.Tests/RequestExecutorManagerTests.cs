@@ -25,7 +25,7 @@ public class RequestExecutorManagerTests
 
         // assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
-        Assert.Equal($"The requested schema 'unknown-name' does not exist.", exception.Message);
+        Assert.Equal("The requested schema 'unknown-name' does not exist.", exception.Message);
     }
 
     [Fact]
@@ -219,7 +219,7 @@ public class RequestExecutorManagerTests
         }
     }
 
-    [Fact(Skip = "SomeService needs to be registered with the schema services")]
+    [Fact]
     public async Task WarmupTask_Should_Be_Able_To_Access_Schema_And_Regular_Services()
     {
         // arrange
@@ -230,6 +230,7 @@ public class RequestExecutorManagerTests
         services
             .AddGraphQLServer()
             .AddWarmupTask<CustomWarmupTask>()
+            .AddApplicationService<SomeService>()
             .AddQueryType(d => d.Field("foo").Resolve(""));
         var provider = services.BuildServiceProvider();
         var manager = provider.GetRequiredService<RequestExecutorManager>();

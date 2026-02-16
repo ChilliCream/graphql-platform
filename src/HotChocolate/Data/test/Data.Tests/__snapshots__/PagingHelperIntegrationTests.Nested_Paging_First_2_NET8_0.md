@@ -19,7 +19,7 @@ LIMIT @__p_0
 ## SQL 1
 
 ```sql
--- @__keys_0={ '2', '1' } (DbType = Object)
+-- @__keys_0={ '1', '2' } (DbType = Object)
 SELECT t."BrandId", t0."Id", t0."AvailableStock", t0."BrandId", t0."Description", t0."ImageFileName", t0."MaxStockThreshold", t0."Name", t0."OnReorder", t0."Price", t0."RestockThreshold", t0."TypeId"
 FROM (
     SELECT p."BrandId"

@@ -13,7 +13,7 @@ public class OperationRequestTests
             null,
             "abc",
             "myOperation",
-            variables: new Dictionary<string, object?>()
+            variables: new Dictionary<string, object?>
             {
                 ["abc"] = "def",
                 ["hij"] = null

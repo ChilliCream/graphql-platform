@@ -23,8 +23,5 @@ public static class LookupDirectiveExtensions
     /// </code>
     /// </summary>
     public static IObjectFieldDescriptor Lookup(this IObjectFieldDescriptor descriptor)
-    {
-        ArgumentNullException.ThrowIfNull(descriptor);
-        return descriptor.Directive(Composite.Lookup.Instance);
-    }
+        => descriptor.Directive(Composite.Lookup.Instance);
 }

@@ -1,12 +1,13 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
+using HotChocolate.Fusion.Definitions;
+using HotChocolate.Fusion.Directives;
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Fusion.Info;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
-using HotChocolate.Types.Mutable.Definitions;
-using HotChocolate.Types.Mutable.Directives;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
@@ -24,7 +25,7 @@ internal class SerializeAsDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
 
     public override void MergeDirectives(
         IDirectivesProvider mergedMember,
-        ImmutableArray<IDirectivesProvider> memberDefinitions,
+        ImmutableArray<DirectivesProviderInfo> memberDefinitions,
         MutableSchemaDefinition mergedSchema)
     {
         if (MergeBehavior is DirectiveMergeBehavior.Ignore)
@@ -40,7 +41,7 @@ internal class SerializeAsDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
 
         var serializeAsDirectives =
             memberDefinitions
-                .SelectMany(d => d.Directives.Where(dir => dir.Name == DirectiveNames.SerializeAs))
+                .SelectMany(d => d.Member.Directives.Where(dir => dir.Name == DirectiveNames.SerializeAs))
                 .Select(SerializeAsDirective.From)
                 .ToArray();
 

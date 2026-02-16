@@ -17,4 +17,7 @@ public class QueryableSpatialNotContainsOperationHandler
     protected override int Operation => SpatialFilterOperations.NotContains;
 
     protected override bool IsTrue => false;
+
+    public static QueryableSpatialNotContainsOperationHandler Create(FilterProviderContext context) =>
+        new(context.FilterConvention, context.TypeInspector, context.InputParser);
 }

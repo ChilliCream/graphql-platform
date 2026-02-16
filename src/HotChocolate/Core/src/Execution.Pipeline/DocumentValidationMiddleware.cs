@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,10 +51,8 @@ internal sealed class DocumentValidationMiddleware
                     if (result.HasErrors)
                     {
                         // create result context data that indicate that validation has failed.
-                        var resultContextData = new Dictionary<string, object?>
-                        {
-                            { ExecutionContextData.ValidationErrors, true }
-                        };
+                        var resultContextData = ImmutableDictionary.CreateBuilder<string, object?>();
+                        resultContextData.Add(ExecutionContextData.ValidationErrors, true);
 
                         // if one of the validation rules proposed a status code, we will add
                         // it as a proposed status code to the result context data.
@@ -64,7 +63,11 @@ internal sealed class DocumentValidationMiddleware
                             resultContextData.Add(ExecutionContextData.HttpStatusCode, value);
                         }
 
-                        context.Result = OperationResultBuilder.CreateError(result.Errors, resultContextData);
+                        context.Result = new OperationResult(result.Errors)
+                        {
+                            ContextData = resultContextData.ToImmutable()
+                        };
+
                         _diagnosticEvents.ValidationErrors(context, result.Errors);
                         return;
                     }

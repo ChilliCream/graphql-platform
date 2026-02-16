@@ -1,4 +1,8 @@
+using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Features;
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types.Composite;
@@ -42,28 +46,69 @@ public static class SerializeAsTests
         public string GetBaz() => "foo";
     }
 
-    public class CustomString1 : StringType
+    public class CustomString1 : ScalarType<string>
     {
         public CustomString1() : base("Custom1")
         {
-            SerializationType = ScalarSerializationType.String;
         }
+
+        public override ScalarSerializationType SerializationType => ScalarSerializationType.String;
+
+        public override object CoerceInputLiteral(IValueNode valueLiteral)
+            => throw new NotImplementedException();
+
+        public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+            => throw new NotImplementedException();
+
+        public override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
+            => throw new NotImplementedException();
+
+        public override IValueNode OnValueToLiteral(string runtimeValue)
+            => throw new NotImplementedException();
     }
 
-    public class CustomString2 : StringType
+    public class CustomString2 : ScalarType
     {
         public CustomString2() : base("Custom2")
         {
-            SerializationType = ScalarSerializationType.Any;
         }
+
+        public override Type RuntimeType => typeof(object);
+
+        public override ScalarSerializationType SerializationType => ScalarSerializationType.Any;
+
+        public override object CoerceInputLiteral(IValueNode valueLiteral)
+            => throw new NotImplementedException();
+
+        public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+            => throw new NotImplementedException();
+
+        public override void CoerceOutputValue(object runtimeValue, ResultElement resultValue)
+            => throw new NotImplementedException();
+
+        public override IValueNode ValueToLiteral(object runtimeValue)
+            => throw new NotImplementedException();
     }
 
-    public class CustomString3 : StringType
+    public class CustomString3 : ScalarType<string>
     {
         public CustomString3() : base("Custom3")
         {
-            SerializationType = ScalarSerializationType.String;
             Pattern = "\\b\\d{3}\\b";
         }
+
+        public override ScalarSerializationType SerializationType => ScalarSerializationType.String;
+
+        public override object CoerceInputLiteral(IValueNode valueLiteral)
+            => throw new NotImplementedException();
+
+        public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+            => throw new NotImplementedException();
+
+        public override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
+            => throw new NotImplementedException();
+
+        public override IValueNode OnValueToLiteral(string runtimeValue)
+            => throw new NotImplementedException();
     }
 }

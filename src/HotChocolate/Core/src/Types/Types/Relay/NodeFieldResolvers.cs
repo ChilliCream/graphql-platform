@@ -40,7 +40,7 @@ internal static class NodeFieldResolvers
                 ErrorHelper.Relay_NoNodeResolver(
                     typeName,
                     context.Path,
-                    context.Selection.SyntaxNodes));
+                    context.Selection));
 
             context.Result = null;
         }
@@ -64,7 +64,7 @@ internal static class NodeFieldResolvers
             {
                 context.ReportError(
                     ErrorHelper.FetchedToManyNodesAtOnce(
-                        context.Selection.SyntaxNodes,
+                        context.Selection,
                         context.Path,
                         maxAllowedNodes,
                         list.Items.Count));
@@ -100,7 +100,7 @@ internal static class NodeFieldResolvers
                         ErrorHelper.Relay_NoNodeResolver(
                             typeName,
                             context.Path,
-                            context.Selection.SyntaxNodes));
+                            context.Selection));
                 }
             }
 
@@ -183,7 +183,7 @@ internal static class NodeFieldResolvers
                     ErrorHelper.Relay_NoNodeResolver(
                         typeName,
                         context.Path,
-                        context.Selection.SyntaxNodes));
+                        context.Selection));
             }
 
             context.Result = results;

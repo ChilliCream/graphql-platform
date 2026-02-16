@@ -127,4 +127,44 @@ public class IdAttributeOnRecordParameterAnalyzerTests
             """],
             enableAnalyzers: true).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task RecordWithGenericIdAttribute_RaisesError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            using HotChocolate.Types;
+            using HotChocolate.Types.Relay;
+
+            namespace TestNamespace;
+
+            [ObjectType<Author>]
+            public static partial class AuthorType
+            {
+            }
+
+            public record Author([ID<Author>] int Id, string Name);
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task RecordWithGenericIdAttributePropertyTarget_NoError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            using HotChocolate.Types;
+            using HotChocolate.Types.Relay;
+
+            namespace TestNamespace;
+
+            [ObjectType<Author>]
+            public static partial class AuthorType
+            {
+            }
+
+            public record Author([property: ID<Author>] int Id, string Name);
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync();
+    }
 }

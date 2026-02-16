@@ -21,13 +21,15 @@ public sealed record OperationPlan
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        uint searchSpace)
+        uint searchSpace,
+        int expandedNodes)
     {
         Id = id;
         Operation = operation;
         RootNodes = rootNodes;
         AllNodes = allNodes;
         SearchSpace = searchSpace;
+        ExpandedNodes = expandedNodes;
         _nodes = allNodes.ToFrozenDictionary(t => t.Id);
     }
 
@@ -68,6 +70,11 @@ public sealed record OperationPlan
     public uint SearchSpace { get; }
 
     /// <summary>
+    /// Gets the number of nodes expanded (dequeued) during the A* search.
+    /// </summary>
+    public int ExpandedNodes { get; }
+
+    /// <summary>
     /// Retrieves an execution node by its unique identifier.
     /// </summary>
     /// <param name="id">The unique identifier of the execution node is unique within this plan.</param>
@@ -84,6 +91,7 @@ public sealed record OperationPlan
     /// <param name="rootNodes">The root execution nodes.</param>
     /// <param name="allNodes">All execution nodes in the plan.</param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
+    /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
@@ -93,14 +101,15 @@ public sealed record OperationPlan
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        uint searchSpace)
+        uint searchSpace,
+        int expandedNodes = 0)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentOutOfRangeException.ThrowIfLessThan(rootNodes.Length, 0);
         ArgumentOutOfRangeException.ThrowIfLessThan(allNodes.Length, 0);
 
-        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace);
+        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace, expandedNodes);
     }
 
     /// <summary>
@@ -111,6 +120,7 @@ public sealed record OperationPlan
     /// <param name="rootNodes">The root execution nodes.</param>
     /// <param name="allNodes">All execution nodes in the plan.</param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
+    /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance with a content-based identifier.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when node arrays have negative length.</exception>
@@ -118,7 +128,8 @@ public sealed record OperationPlan
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        uint searchSpace)
+        uint searchSpace,
+        int expandedNodes = 0)
     {
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentOutOfRangeException.ThrowIfLessThan(rootNodes.Length, 0);
@@ -140,6 +151,6 @@ public sealed record OperationPlan
         var id = Convert.ToHexString(buffer.WrittenSpan[^32..]).ToLowerInvariant();
 #endif
 
-        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace);
+        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace, expandedNodes);
     }
 }

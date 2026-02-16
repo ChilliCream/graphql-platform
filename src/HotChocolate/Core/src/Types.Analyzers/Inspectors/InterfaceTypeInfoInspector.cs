@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
@@ -60,16 +61,17 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
 
                 if (member is IPropertySymbol)
                 {
-                    context.SemanticModel.Compilation.TryGetGraphQLDeprecationReason(member, out var deprecationReason);
+                    var compilation = context.SemanticModel.Compilation;
 
                     resolvers[i++] = new Resolver(
                         classSymbol.Name,
-                        deprecationReason,
                         member,
+                        compilation.GetDescription(member, parameters: []),
+                        compilation.GetDeprecationReason(member),
                         ResolverResultKind.Pure,
                         [],
                         [],
-                        GraphQLTypeBuilder.ToSchemaType(member.GetReturnType()!, context.SemanticModel.Compilation));
+                        context.SemanticModel.Compilation.CreateTypeReference(member));
                 }
             }
         }
@@ -148,22 +150,31 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
     {
         var compilation = context.SemanticModel.Compilation;
         var parameters = resolverMethod.Parameters;
-        var resolverParameters = new ResolverParameter[parameters.Length];
+        var buffer = new ResolverParameter[parameters.Length];
+        var resolverParameters = ImmutableCollectionsMarshal.AsImmutableArray(buffer);
 
         for (var i = 0; i < parameters.Length; i++)
         {
-            resolverParameters[i] = ResolverParameter.Create(parameters[i], compilation);
-        }
+            var parameter = parameters[i];
+            var parameterKind = compilation.GetParameterKind(parameter, out var key);
 
-        context.SemanticModel.Compilation.TryGetGraphQLDeprecationReason(resolverMethod, out var deprecationReason);
+            buffer[i] = new ResolverParameter(
+                parameter,
+                parameterKind,
+                compilation.CreateTypeReference(parameter),
+                parameter.GetDescriptionFromAttribute(),
+                compilation.GetDeprecationReason(parameter),
+                key);
+        }
 
         return new Resolver(
             resolverType.Name,
-            deprecationReason,
             resolverMethod,
+            compilation.GetDescription(resolverMethod, parameters: resolverParameters),
+            compilation.GetDeprecationReason(resolverMethod),
             resolverMethod.GetResultKind(),
-            [.. resolverParameters],
+            resolverParameters,
             [],
-            GraphQLTypeBuilder.ToSchemaType(resolverMethod.GetReturnType()!, compilation));
+            compilation.CreateTypeReference(resolverMethod));
     }
 }

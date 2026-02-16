@@ -552,6 +552,105 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             """);
     }
 
+    // @oneOf lookups are split.
+    [Fact]
+    public void Merge_ObjectWithOneOfLookups_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                type Query {
+                    brand1(
+                        by: BrandByInput1! @is(field: "{ id } | { key }")
+                    ): Brand @lookup
+                    brand2(
+                        name: String!
+                        and: BrandByInput1! @is(field: "{ id } | { key }")
+                    ): Brand @lookup
+                    brand3(
+                        by: BrandByInput1! @is(field: "{ id } | { key }")
+                        and: BrandByInput2! @is(field: "{ name } | { title }")
+                    ): Brand @lookup
+                }
+
+                type Brand @key(fields: "id") {
+                    id: Int!
+                    key: String!
+                    name: String!
+                    title: String
+                }
+
+                input BrandByInput1 @oneOf {
+                    id: Int
+                    key: String
+                }
+
+                input BrandByInput2 @oneOf {
+                    name: String
+                    title: String
+                }
+                """
+            ],
+            """
+            schema {
+                query: Query
+            }
+
+            type Query
+                @fusion__type(schema: A) {
+                brand1(by: BrandByInput1!
+                    @fusion__inputField(schema: A)): Brand
+                    @fusion__field(schema: A)
+                brand2(and: BrandByInput1!
+                    @fusion__inputField(schema: A) name: String!
+                    @fusion__inputField(schema: A)): Brand
+                    @fusion__field(schema: A)
+                brand3(and: BrandByInput2!
+                    @fusion__inputField(schema: A) by: BrandByInput1!
+                    @fusion__inputField(schema: A)): Brand
+                    @fusion__field(schema: A)
+            }
+
+            type Brand
+                @fusion__type(schema: A)
+                @fusion__lookup(schema: A, key: "id", field: "brand1(by: BrandByInput1!): Brand", map: [ "{ id }" ], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "key", field: "brand1(by: BrandByInput1!): Brand", map: [ "{ key }" ], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "name id", field: "brand2(name: String! and: BrandByInput1!): Brand", map: [ "name", "{ id }" ], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "name key", field: "brand2(name: String! and: BrandByInput1!): Brand", map: [ "name", "{ key }" ], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "id name", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: [ "{ id }", "{ name }" ], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "key name", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: [ "{ key }", "{ name }" ], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "id title", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: [ "{ id }", "{ title }" ], path: null, internal: false)
+                @fusion__lookup(schema: A, key: "key title", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: [ "{ key }", "{ title }" ], path: null, internal: false) {
+                id: Int!
+                    @fusion__field(schema: A)
+                key: String!
+                    @fusion__field(schema: A)
+                name: String!
+                    @fusion__field(schema: A)
+                title: String
+                    @fusion__field(schema: A)
+            }
+
+            input BrandByInput1
+                @oneOf
+                @fusion__type(schema: A) {
+                id: Int
+                    @fusion__inputField(schema: A)
+                key: String
+                    @fusion__inputField(schema: A)
+            }
+
+            input BrandByInput2
+                @oneOf
+                @fusion__type(schema: A) {
+                name: String
+                    @fusion__inputField(schema: A)
+                title: String
+                    @fusion__inputField(schema: A)
+            }
+            """);
+    }
+
     // Internal lookup.
     [Fact]
     public void Merge_ObjectWithInternalLookup_MatchesSnapshot()

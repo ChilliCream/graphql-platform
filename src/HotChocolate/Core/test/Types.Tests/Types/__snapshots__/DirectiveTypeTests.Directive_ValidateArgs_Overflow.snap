@@ -1,2 +1,2 @@
-The directive arguments have invalid values: 'Int cannot parse the given literal of type `IntValueNode`.' at /d.
+The directive arguments have invalid values: 'Int cannot coerce the given literal of type `IntValue` to a runtime value.' at /d.
 @a(d: 9223372036854775807)

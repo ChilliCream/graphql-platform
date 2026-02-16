@@ -7,8 +7,4 @@
     <Description>This package contains the HotChocolate.Text.Buffers.Base36 encoder.</Description>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <IsAotCompatible>true</IsAotCompatible>
-  </PropertyGroup>
-
 </Project>

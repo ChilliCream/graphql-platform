@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Text.Json;
 
 namespace HotChocolate.Buffers;
@@ -9,7 +8,7 @@ namespace HotChocolate.Buffers;
 /// </summary>
 public sealed class JsonDocumentOwner : IDisposable
 {
-    private readonly IMemoryOwner<byte> _memory;
+    private readonly IDisposable? _memoryOwner;
     private bool _disposed;
 
     /// <summary>
@@ -18,28 +17,47 @@ public sealed class JsonDocumentOwner : IDisposable
     /// <param name="document">
     /// The <see cref="JsonDocument"/> to own.
     /// </param>
-    /// <param name="memory">
-    /// The memory that was used to create the <paramref name="document"/>.
-    /// </param>
-    public JsonDocumentOwner(JsonDocument document, IMemoryOwner<byte> memory)
+    public JsonDocumentOwner(JsonDocument document)
     {
 #if NET8_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(document);
-        ArgumentNullException.ThrowIfNull(memory);
+#else
+        if (document is null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+#endif
+
+        Document = document;
+    }
+    /// <summary>
+    /// Initializes a new instance of <see cref="JsonDocumentOwner"/>.
+    /// </summary>
+    /// <param name="document">
+    /// The <see cref="JsonDocument"/> to own.
+    /// </param>
+    /// <param name="memoryOwner">
+    /// The memory that was used to create the <paramref name="document"/>.
+    /// </param>
+    public JsonDocumentOwner(JsonDocument document, IDisposable memoryOwner)
+    {
+#if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(memoryOwner);
 #else
         if (document is null)
         {
             throw new ArgumentNullException(nameof(document));
         }
 
-        if (memory is null)
+        if (memoryOwner is null)
         {
-            throw new ArgumentNullException(nameof(memory));
+            throw new ArgumentNullException(nameof(memoryOwner));
         }
 #endif
 
         Document = document;
-        _memory = memory;
+        _memoryOwner = memoryOwner;
     }
 
     /// <summary>
@@ -55,7 +73,7 @@ public sealed class JsonDocumentOwner : IDisposable
         if (!_disposed)
         {
             Document.Dispose();
-            _memory.Dispose();
+            _memoryOwner?.Dispose();
 
             _disposed = true;
         }

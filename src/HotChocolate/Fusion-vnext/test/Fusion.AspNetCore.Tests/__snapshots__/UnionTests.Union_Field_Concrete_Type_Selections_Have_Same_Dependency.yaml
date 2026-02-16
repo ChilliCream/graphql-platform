@@ -144,6 +144,7 @@ operationPlan:
       name: testQuery
       hash: 7d12de3b86fca2b5062c55ac7b8da6dc
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

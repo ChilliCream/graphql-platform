@@ -60,7 +60,8 @@ operation:
       }
     name: findMe
     hash: 123456789101112
-    searchSpace: 17
+    searchSpace: 3
+    expandedNodes: 11
 nodes:
   - id: 1
     type: Operation
@@ -172,7 +173,7 @@ nodes:
     operation: |
       query findMe_123456789101112_5(
         $__fusion_4_id: ID!
-        $__fusion_5_dimension: ProductDimensionInput!
+          $__fusion_5_dimension: ProductDimensionInput!
       ) {
         productById(id: $__fusion_4_id) {
           deliveryEstimate(zip: "4383", dimension: $__fusion_5_dimension)

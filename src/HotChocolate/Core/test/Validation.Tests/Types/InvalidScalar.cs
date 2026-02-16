@@ -1,4 +1,7 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 
 namespace HotChocolate.Validation.Types;
@@ -10,23 +13,17 @@ public class InvalidScalar : ScalarType<string>
     {
     }
 
-    public override bool IsInstanceOfType(IValueNode literal)
-    {
-        return false;
-    }
+    public override ScalarSerializationType SerializationType => ScalarSerializationType.Undefined;
 
-    public override object? ParseLiteral(IValueNode valueSyntax)
-    {
-        throw new InvalidOperationException();
-    }
+    public override object CoerceInputLiteral(IValueNode valueLiteral)
+        => throw new InvalidOperationException();
 
-    public override IValueNode ParseValue(object? value)
-    {
-        throw new InvalidOperationException();
-    }
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        => throw new InvalidOperationException();
 
-    public override IValueNode ParseResult(object? resultValue)
-    {
-        throw new InvalidOperationException();
-    }
+    public override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
+        => throw new InvalidOperationException();
+
+    public override IValueNode OnValueToLiteral(string runtimeValue)
+        => throw new InvalidOperationException();
 }

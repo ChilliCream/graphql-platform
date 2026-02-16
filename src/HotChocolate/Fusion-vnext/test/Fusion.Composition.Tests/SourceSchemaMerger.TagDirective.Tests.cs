@@ -67,7 +67,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                     field: Int @tag(name: "a")
                 }
 
-                directive @tag(name: String!) repeatable on {{s_tagLocations}}
+                directive @tag("Some description" name: String!) repeatable on {{s_tagLocations}}
                 """,
                 $$"""
                 # Schema B
@@ -99,7 +99,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                     field: Int @tag(name: "b")
                 }
 
-                directive @tag(name: String!) repeatable on {{s_tagLocations}}
+                directive @tag("Some description" name: String!) repeatable on {{s_tagLocations}}
                 """
             ],
             $$"""

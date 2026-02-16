@@ -39,6 +39,8 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
     /// <inheritdoc />
     public SchemaCoordinate Coordinate => new(Name, ofDirective: false);
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     /// <inheritdoc cref="IMutableTypeDefinition.IsIntrospectionType" />
     public bool IsIntrospectionType { get; set; }
 
@@ -116,9 +118,9 @@ public class MutableScalarTypeDefinition : INamedTypeSystemMemberDefinition<Muta
     public string? Pattern { get; set; }
 
     /// <inheritdoc />
-    public bool IsInstanceOfType(IValueNode value)
+    public bool IsValueCompatible(IValueNode valueLiteral)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(valueLiteral);
         return true;
     }
 

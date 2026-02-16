@@ -136,7 +136,7 @@ internal static class MutableSchemaDefinitionExtensions
 
     public static void RemoveUnreferencedDefinitions(
         this MutableSchemaDefinition schema,
-        HashSet<string> requireInputTypeNames)
+        HashSet<string> preserveInputTypeNames)
     {
         var touchedDefinitions = new HashSet<ITypeSystemMember>();
         var backlog = new Stack<ITypeSystemMember>();
@@ -163,8 +163,7 @@ internal static class MutableSchemaDefinitionExtensions
 
         while (backlog.TryPop(out var type))
         {
-            if (!touchedDefinitions.Add(type)
-                || type is ITypeDefinition { Kind: TypeKind.Scalar or TypeKind.Enum })
+            if (!touchedDefinitions.Add(type))
             {
                 continue;
             }
@@ -186,13 +185,21 @@ internal static class MutableSchemaDefinitionExtensions
                 case IUnionTypeDefinition unionType:
                     InspectUnionType(unionType, backlog);
                     break;
+
+                case IDirectivesProvider directivesProvider:
+                    foreach (var directive in directivesProvider.Directives)
+                    {
+                        backlog.Push(directive.Definition);
+                    }
+
+                    break;
             }
         }
 
         var definitionsToRemove = new HashSet<ITypeSystemMember>();
         foreach (var type in schema.Types)
         {
-            if (touchedDefinitions.Contains(type) || requireInputTypeNames.Contains(type.NamedType().Name))
+            if (touchedDefinitions.Contains(type) || preserveInputTypeNames.Contains(type.NamedType().Name))
             {
                 continue;
             }

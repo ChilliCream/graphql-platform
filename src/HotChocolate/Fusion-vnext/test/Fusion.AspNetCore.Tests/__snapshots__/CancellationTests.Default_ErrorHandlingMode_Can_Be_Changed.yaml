@@ -47,12 +47,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Could not resolve reviews",
-                    "locations": [
-                      {
-                        "line": 2,
-                        "column": 3
-                      }
-                    ],
                     "path": [
                       "reviews"
                     ]
@@ -72,6 +66,7 @@ operationPlan:
         }
       hash: ef4ed8030ea8e8d1331adb3822f96a9c
       searchSpace: 1
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Operation

@@ -54,12 +54,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Could not resolve Product.name",
-                    "locations": [
-                      {
-                        "line": 3,
-                        "column": 5
-                      }
-                    ],
                     "path": [
                       "productById",
                       "name"
@@ -82,6 +76,7 @@ operationPlan:
         }
       hash: 97fd38fcea394bc6badd7ea22c6de660
       searchSpace: 1
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Operation

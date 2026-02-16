@@ -1,10 +1,13 @@
 {
   "ContentType": "application/graphql-response+json; charset=utf-8",
-  "StatusCode": "InternalServerError",
+  "StatusCode": "BadRequest",
   "Data": null,
   "Errors": [
     {
-      "message": "Unexpected Execution Error"
+      "message": "Request must contain either a query or a document id.",
+      "extensions": {
+        "code": "HC0009"
+      }
     }
   ],
   "Extensions": null

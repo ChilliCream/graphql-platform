@@ -1,29 +1,26 @@
-using HotChocolate.Features;
-using HotChocolate.Fusion.Features;
+using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
+using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
+using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.Extensions;
 
 internal static class MutableInputFieldDefinitionExtensions
 {
-    extension(MutableInputFieldDefinition inputField)
+    extension(MutableInputFieldDefinition field)
     {
-        public bool HasIsDirective
-            => inputField.Features.GetRequired<SourceInputFieldMetadata>().HasIsDirective;
+        public void ApplyIsDirective(string fieldName)
+        {
+            var isDirectiveExists =
+                field.Directives.AsEnumerable().Any(d => d.Name == DirectiveNames.Is);
 
-        public bool HasRequireDirective
-            => inputField.Features.GetRequired<SourceInputFieldMetadata>().HasRequireDirective;
-
-        /// <summary>
-        /// Gets a value indicating whether the input field or its declaring member is inaccessible.
-        /// </summary>
-        public bool IsInaccessible
-            => inputField.Features.GetRequired<SourceInputFieldMetadata>().IsInaccessible;
-
-        public IsInfo? IsInfo
-            => inputField.Features.GetRequired<SourceInputFieldMetadata>().IsInfo;
-
-        public RequireInfo? RequireInfo
-            => inputField.Features.GetRequired<SourceInputFieldMetadata>().RequireInfo;
+            if (!isDirectiveExists)
+            {
+                field.Directives.Add(
+                    new Directive(
+                        FusionBuiltIns.SourceSchemaDirectives[DirectiveNames.Is],
+                        new ArgumentAssignment(ArgumentNames.Field, fieldName)));
+            }
+        }
     }
 }

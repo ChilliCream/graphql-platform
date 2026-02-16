@@ -1,40 +1,26 @@
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Represents a scalar type for unsigned 8-bit integers (byte) in GraphQL.
-/// This type serializes as an integer and supports values from 0 to 255.
+/// The Byte scalar type represents a signed numeric non‐fractional
+/// value greater than or equal to -128 and smaller than or equal to 127.
 /// </summary>
-public class ByteType : IntegerTypeBase<byte>
+public class ByteType : IntegerTypeBase<sbyte>
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ByteType"/> class.
-    /// </summary>
-    public ByteType(byte min, byte max)
-        : this(
-            ScalarNames.Byte,
-            TypeResources.ByteType_Description,
-            min,
-            max,
-            BindingBehavior.Implicit)
-    {
-    }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="ByteType"/> class.
     /// </summary>
     public ByteType(
         string name,
         string? description = null,
-        byte min = byte.MinValue,
-        byte max = byte.MaxValue,
-        BindingBehavior bind = BindingBehavior.Explicit)
-        : base(name, min, max, bind)
+        BindingBehavior bind = BindingBehavior.Implicit)
+        : base(name, sbyte.MinValue, sbyte.MaxValue, bind)
     {
         Description = description;
-        SerializationType = ScalarSerializationType.Int;
     }
 
     /// <summary>
@@ -42,13 +28,25 @@ public class ByteType : IntegerTypeBase<byte>
     /// </summary>
     [ActivatorUtilitiesConstructor]
     public ByteType()
-        : this(byte.MinValue, byte.MaxValue)
+        : this(
+            ScalarNames.Byte,
+            TypeResources.ByteType_Description)
     {
     }
 
-    protected override byte ParseLiteral(IntValueNode valueSyntax) =>
-        valueSyntax.ToByte();
+    /// <inheritdoc />
+    protected override sbyte OnCoerceInputLiteral(IntValueNode valueLiteral)
+        => valueLiteral.ToSByte();
 
-    protected override IntValueNode ParseValue(byte runtimeValue) =>
-        new(runtimeValue);
+    /// <inheritdoc />
+    protected override sbyte OnCoerceInputValue(JsonElement inputValue)
+        => inputValue.GetSByte();
+
+    /// <inheritdoc />
+    public override void OnCoerceOutputValue(sbyte runtimeValue, ResultElement resultValue)
+        => resultValue.SetNumberValue(runtimeValue);
+
+    /// <inheritdoc />
+    public override IValueNode OnValueToLiteral(sbyte runtimeValue)
+        => new IntValueNode(runtimeValue);
 }

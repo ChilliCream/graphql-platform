@@ -37,6 +37,11 @@ internal sealed record PlanNode
     public required string SchemaName { get; init; }
 
     /// <summary>
+    /// Planner cost options used by this node.
+    /// </summary>
+    public required OperationPlannerOptions Options { get; init; }
+
+    /// <summary>
     /// The index of the selection set.
     /// </summary>
     public required ISelectionSetIndex SelectionSetIndex
@@ -55,35 +60,61 @@ internal sealed record PlanNode
         }
     }
 
-    public required ImmutableStack<WorkItem> Backlog
-    {
-        get;
-        init
-        {
-            field = value;
-            BacklogCost = value.Sum(t => t.Cost);
-        }
-    }
+    public required ImmutableStack<WorkItem> Backlog { get; init; }
 
-    public ImmutableList<PlanStep> Steps
-    {
-        get;
-        init
-        {
-            field = value;
-            PathCost = value.OfType<OperationPlanStep>().Count() * 10.0;
-        }
-    } = [];
+    /// <summary>
+    /// Incremental backlog projection state for optimistic lower-bound estimation.
+    /// </summary>
+    public BacklogCostState BacklogCostState { get; init; } = BacklogCostState.Empty;
+
+    /// <summary>
+    /// The optimistic lower bound for all work currently in <see cref="Backlog"/>.
+    /// This includes operation, remaining-depth, and projected excess-fanout components.
+    /// It is updated incrementally by planner transitions.
+    /// </summary>
+    public double BacklogLowerBound { get; init; }
+
+    public ImmutableList<PlanStep> Steps { get; init; } = [];
+
+    /// <summary>
+    /// The number of <see cref="OperationPlanStep"/> instances in <see cref="Steps"/>.
+    /// This is updated incrementally by planner transitions.
+    /// </summary>
+    public int OperationStepCount { get; init; }
+
+    /// <summary>
+    /// Maximum operation depth seen so far for this node.
+    /// </summary>
+    public int MaxDepth { get; init; }
+
+    /// <summary>
+    /// Cumulative excess fan-out across all depth levels.
+    /// </summary>
+    public int ExcessFanout { get; init; }
+
+    /// <summary>
+    /// Number of operation steps per depth level.
+    /// </summary>
+    public ImmutableDictionary<int, int> OpsPerLevel { get; init; } = ImmutableDictionary<int, int>.Empty;
+
+    /// <summary>
+    /// Depth lookup for operation step ids.
+    /// </summary>
+    public ImmutableDictionary<int, int> OperationStepDepths { get; init; }
+        = ImmutableDictionary<int, int>.Empty;
 
     public uint LastRequirementId { get; init; }
 
-    public double PathCost { get; private set; }
+    public double PathCost
+        => MaxDepth * Options.DepthWeight
+            + OperationStepCount * Options.OperationWeight
+            + ExcessFanout * Options.ExcessFanoutWeight;
 
-    public double BacklogCost { get; private set; }
+    public double BacklogCost => BacklogLowerBound;
 
     public double ResolutionCost { get; init; }
 
-    public double TotalCost => PathCost + BacklogCost + ResolutionCost;
+    public double TotalCost => PathCost + BacklogLowerBound + ResolutionCost;
 
     public string CreateOperationName(int stepId)
     {

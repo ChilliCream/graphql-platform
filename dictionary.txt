@@ -115,6 +115,7 @@ NSwag
 ntouches
 nwithin
 oncall
+opencover
 OpenIddict
 opensgid
 OPTOUT
@@ -149,11 +150,13 @@ Rewriters
 Rgba
 Rhai
 Roslynator
+RRGGBB
 runbooks
 Satisfiability
 Senn
 shoooe
 Silmarillion
+skybridge
 Skywalker
 snapshooter
 snupkg
@@ -185,6 +188,7 @@ Tzdb
 unlisten
 unpublish
 Unsubscriber
+uppercased
 Upsert
 upvote
 URQL

@@ -16,8 +16,8 @@ internal static class ErrorHelper
     public static NotSupportedException QueryTypeNotSupported()
         => new(ExecutionPipelineResources.ThrowHelper_QueryTypeNotSupported_Message);
 
-    public static IOperationResult StateInvalidForDocumentValidation()
-        => OperationResultBuilder.CreateError(
+    public static OperationResult StateInvalidForDocumentValidation()
+        => OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage(ExecutionPipelineResources.ErrorHelper_StateInvalidForDocumentValidation_Message)
                 .SetCode(ErrorCodes.Execution.OperationDocumentNotFound)

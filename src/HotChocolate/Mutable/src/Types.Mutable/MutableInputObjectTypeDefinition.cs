@@ -43,6 +43,8 @@ public class MutableInputObjectTypeDefinition
     public SchemaCoordinate Coordinate
         => new(Name, ofDirective: false);
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     /// <inheritdoc />
     public DirectiveCollection Directives
         => _directives ??= [];

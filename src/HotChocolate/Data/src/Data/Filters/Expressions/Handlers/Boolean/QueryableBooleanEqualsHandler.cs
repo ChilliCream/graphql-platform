@@ -23,4 +23,6 @@ public class QueryableBooleanEqualsHandler
         var property = context.GetInstance();
         return FilterExpressionBuilder.Equals(property, parsedValue);
     }
+
+    public static QueryableBooleanEqualsHandler Create(FilterProviderContext context) => new(context.InputParser);
 }

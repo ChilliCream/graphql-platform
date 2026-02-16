@@ -1,11 +1,11 @@
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Buffers;
 using HotChocolate.Transport.Sockets;
-using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
 
@@ -121,7 +121,7 @@ public static class WebSocketExtensions
         CancellationToken cancellationToken)
         => await webSocket.SendAsync(message, WebSocketMessageType.Text, true, cancellationToken);
 
-    public static async Task<IReadOnlyDictionary<string, object?>?> ReceiveServerMessageAsync(
+    public static async Task<JsonDocument?> ReceiveServerMessageAsync(
         this WebSocket webSocket,
         CancellationToken cancellationToken)
     {
@@ -142,6 +142,6 @@ public static class WebSocketExtensions
             return null;
         }
 
-        return (IReadOnlyDictionary<string, object?>?)ParseJson(stream.ToArray());
+        return JsonDocument.Parse(stream.ToArray());
     }
 }

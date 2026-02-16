@@ -1,0 +1,208 @@
+title: Fetch_With_Request_Batching_JsonArray
+request:
+  document: |
+    {
+      books {
+        author {
+          id
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "books",
+            0,
+            "author",
+            "name"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+
+      type Book {
+        id: ID!
+        title: String!
+        author: Author! @shareable
+      }
+
+      type Query {
+        books: [Book!]!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_fb4f667e_1 {
+              books {
+                author {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "books": [
+                    {
+                      "author": {
+                        "id": "1"
+                      }
+                    },
+                    {
+                      "author": {
+                        "id": "2"
+                      }
+                    },
+                    {
+                      "author": {
+                        "id": "2"
+                      }
+                    },
+                    {
+                      "author": {
+                        "id": "2"
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: ID!
+        name: String!
+      }
+
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+    interactions:
+      - request:
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_fb4f667e_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    name
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "1"
+                }
+            - document: |
+                query Op_fb4f667e_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    name
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "2"
+                }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Author 1"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Author 2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Author 2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Author 2"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          books {
+            author {
+              id
+              id @fusion__requirement
+              name
+            }
+          }
+        }
+      hash: fb4f667e3d4167a23589ae9f3b3f9182
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_fb4f667e_1 {
+          books {
+            author {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: b
+      operation: |
+        query Op_fb4f667e_2(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            name
+          }
+        }
+      source: $.authorById
+      target: $.books.author
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

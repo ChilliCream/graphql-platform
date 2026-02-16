@@ -25,9 +25,10 @@ public sealed class ObjectTypeInfo
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
         Description = schemaType.GetDescription();
+        Attributes = attributes;
         Shareable = attributes.GetShareableScope();
         Inaccessible = attributes.GetInaccessibleScope();
-        Attributes = attributes.GetUserAttributes();
+        DescriptorAttributes = attributes.GetUserAttributes();
     }
 
     public string Name => SchemaSchemaType.Name;
@@ -63,6 +64,8 @@ public sealed class ObjectTypeInfo
     public DirectiveScope Inaccessible { get; }
 
     public ImmutableArray<AttributeData> Attributes { get; }
+
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
 
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);

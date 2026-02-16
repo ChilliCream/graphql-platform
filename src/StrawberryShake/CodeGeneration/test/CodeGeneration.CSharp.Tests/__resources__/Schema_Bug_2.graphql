@@ -238,7 +238,7 @@ input AddStepToProjectInput {
   insertAfterStepId: Int
   "The id of the card"
   cardId: String!
-  "The track (open \/ restricted \/ closed)"
+  "The track (open / restricted / closed)"
   track: ProjectTrack!
   "The techniques for this step"
   techniques: [AddStepTechniqueInput]!
@@ -312,7 +312,7 @@ input MoveStepToTrackInput {
   id: Guid!
   "The id of the step to move"
   stepId: Int!
-  "The track (open \/ restricted \/ closed) to move the step to"
+  "The track (open / restricted / closed) to move the step to"
   track: ProjectTrack!
 }
 

@@ -1,319 +1,193 @@
+using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
 public class FloatTypeTests
 {
     [Fact]
-    public void IsInstanceOfType_FloatLiteral_True()
+    public void Ensure_Type_Name_Is_Correct()
+    {
+        // arrange
+        // act
+        var type = new FloatType();
+
+        // assert
+        Assert.Equal("Float", type.Name);
+    }
+
+    [Fact]
+    public void CoerceInputLiteral()
     {
         // arrange
         var type = new FloatType();
+        var literal = new FloatValueNode(42.5);
 
         // act
-        var result = type.IsInstanceOfType(CreateExponentialLiteral());
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.True(result);
+        Assert.Equal(42.5, runtimeValue);
     }
 
     [Fact]
-    public void IsInstanceOfType_NullLiteral_True()
-    {
-        // arrange
-        var type = new FloatType();
-
-        // act
-        var result = type.IsInstanceOfType(NullValueNode.Default);
-
-        // assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void IsInstanceOfType_IntLiteral_True()
-    {
-        // arrange
-        var type = new FloatType();
-
-        // act
-        var result = type.IsInstanceOfType(new IntValueNode(123));
-
-        // assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void IsInstanceOfType_StringLiteral_False()
-    {
-        // arrange
-        var type = new FloatType();
-
-        // act
-        var result = type.IsInstanceOfType(new StringValueNode("123"));
-
-        // assert
-        Assert.False(result);
-    }
-
-    [Fact]
-    public void IsInstanceOfType_Null_Throws()
-    {
-        // arrange
-        var type = new FloatType();
-
-        // act
-        // assert
-        Assert.Throws<ArgumentNullException>(
-            () => type.IsInstanceOfType(null!));
-    }
-
-    [Fact]
-    public void Serialize_Type()
-    {
-        // arrange
-        var type = new FloatType();
-        const double value = 123.456;
-
-        // act
-        var serializedValue = type.Serialize(value);
-
-        // assert
-        Assert.IsType<double>(serializedValue);
-        Assert.Equal(value, serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Null()
-    {
-        // arrange
-        var type = new FloatType();
-
-        // act
-        var serializedValue = type.Serialize(null);
-
-        // assert
-        Assert.Null(serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Wrong_Type_Throws()
-    {
-        // arrange
-        var type = new FloatType();
-        const string input = "abc";
-
-        // act
-        // assert
-        Assert.Throws<SerializationException>(
-            () => type.Serialize(input));
-    }
-
-    [Fact]
-    public void Serialize_MaxValue_Violation()
-    {
-        // arrange
-        var type = new FloatType(0, 100);
-        const double value = 123.456;
-
-        // act
-        // assert
-        Assert.Throws<SerializationException>(
-            () => type.Serialize(value));
-    }
-
-    [Fact]
-    public void ParseLiteral_FixedPointLiteral()
+    public void CoerceInputLiteral_FixedPoint()
     {
         // arrange
         var type = new FloatType();
         var literal = CreateFixedPointLiteral();
 
         // act
-        var value = type.ParseLiteral(literal);
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.IsType<double>(value);
-        Assert.Equal(literal.ToDouble(), value);
+        Assert.Equal(literal.ToDouble(), runtimeValue);
     }
 
     [Fact]
-    public void ParseLiteral_ExponentialLiteral()
+    public void CoerceInputLiteral_Exponential()
     {
         // arrange
         var type = new FloatType();
         var literal = CreateExponentialLiteral();
 
         // act
-        var value = type.ParseLiteral(literal);
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.IsType<double>(value);
-        Assert.Equal(literal.ToDouble(), value);
+        Assert.Equal(literal.ToDouble(), runtimeValue);
     }
 
     [Fact]
-    public void ParseLiteral_IntLiteral()
+    public void CoerceInputLiteral_IntLiteral()
     {
         // arrange
         var type = new FloatType();
-        var literal = new IntValueNode(123);
+        var literal = new IntValueNode(42);
 
         // act
-        var value = type.ParseLiteral(literal);
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.IsType<double>(value);
-        Assert.Equal(literal.ToDouble(), value);
+        Assert.Equal(42.0, runtimeValue);
     }
 
     [Fact]
-    public void ParseLiteral_NullValueNode()
+    public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
         var type = new FloatType();
+        var literal = new StringValueNode("foo");
 
         // act
-        var output = type.ParseLiteral(NullValueNode.Default);
+        void Action() => type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Null(output);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseLiteral_Wrong_ValueNode_Throws()
+    public void CoerceInputValue()
     {
         // arrange
         var type = new FloatType();
-        var input = new StringValueNode("abc");
+        var inputValue = JsonDocument.Parse("42.5").RootElement;
 
         // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
         // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseLiteral(input));
+        Assert.Equal(42.5, runtimeValue);
     }
 
     [Fact]
-    public void ParseLiteral_Null_Throws()
+    public void CoerceInputValue_Invalid_Format()
     {
         // arrange
         var type = new FloatType();
+        var inputValue = JsonDocument.Parse("\"foo\"").RootElement;
 
         // act
+        void Action() => type.CoerceInputValue(inputValue, null!);
+
         // assert
-        Assert.Throws<ArgumentNullException>(
-            () => type.ParseLiteral(null!));
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseValue_MaxValue()
-    {
-        // arrange
-        var type = new FloatType(1, 100);
-        const double input = 100;
-
-        // act
-        var literal = (FloatValueNode)type.ParseValue(input);
-
-        // assert
-        Assert.Equal(100, literal.ToDouble());
-    }
-
-    [Fact]
-    public void ParseValue_MaxValue_Violation()
-    {
-        // arrange
-        var type = new FloatType(1, 100);
-        const double input = 101;
-
-        // act
-        Action action = () => type.ParseValue(input);
-
-        // assert
-        Assert.Throws<SerializationException>(action);
-    }
-
-    [Fact]
-    public void ParseValue_MinValue()
-    {
-        // arrange
-        var type = new FloatType(1, 100);
-        const double input = 1;
-
-        // act
-        var literal = (FloatValueNode)type.ParseValue(input);
-
-        // assert
-        Assert.Equal(1, literal.ToDouble());
-    }
-
-    [Fact]
-    public void ParseValue_MinValue_Violation()
-    {
-        // arrange
-        var type = new FloatType(1, 100);
-        const double input = 0;
-
-        // act
-        Action action = () => type.ParseValue(input);
-
-        // assert
-        Assert.Throws<SerializationException>(action);
-    }
-
-    [Fact]
-    public void ParseValue_Wrong_Value_Throws()
+    public void CoerceOutputValue()
     {
         // arrange
         var type = new FloatType();
-        const string value = "123";
+        const double runtimeValue = 42.5;
 
         // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(runtimeValue, resultValue);
+
         // assert
-        Assert.Throws<SerializationException>(
-            () => type.ParseValue(value));
+        resultValue.MatchInlineSnapshot("42.5");
     }
 
     [Fact]
-    public void ParseValue_Null()
-    {
-        // arrange
-        var type = new FloatType();
-        object input = null!;
-
-        // act
-        object output = type.ParseValue(input);
-
-        // assert
-        Assert.IsType<NullValueNode>(output);
-    }
-
-    [Fact]
-    public void ParseValue_Nullable()
-    {
-        // arrange
-        var type = new FloatType();
-        double? input = 123;
-
-        // act
-        var output = (FloatValueNode)type.ParseValue(input);
-
-        // assert
-        Assert.Equal(123, output.ToDouble());
-    }
-
-    [Fact]
-    public void Ensure_TypeKind_is_Scalar()
+    public void CoerceOutputValue_Invalid_Format()
     {
         // arrange
         var type = new FloatType();
 
         // act
-        var kind = type.Kind;
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue("foo", resultValue);
 
         // assert
-        Assert.Equal(TypeKind.Scalar, kind);
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        // arrange
+        var type = new FloatType();
+        const double runtimeValue = 42.5;
+
+        // act
+        var literal = type.ValueToLiteral(runtimeValue);
+
+        // assert
+        Assert.Equal(42.5, Assert.IsType<FloatValueNode>(literal).ToDouble());
+    }
+
+    [Fact]
+    public void ParseLiteral()
+    {
+        // arrange
+        var type = new FloatType();
+        var literal = new FloatValueNode(42.5);
+
+        // act
+        var runtimeValue = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(42.5, Assert.IsType<double>(runtimeValue));
+    }
+
+    [Fact]
+    public void ParseLiteral_InvalidValue()
+    {
+        // arrange
+        var type = new FloatType();
+
+        // act
+        void Action() => type.CoerceInputLiteral(new StringValueNode("abc"));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     private FloatValueNode CreateExponentialLiteral() =>

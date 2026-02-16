@@ -6,6 +6,50 @@ namespace StrawberryShake.CodeGeneration.CSharp;
 public class SchemaGeneratorTests
 {
     [Fact]
+    public void Schema_With_OneOf()
+    {
+        AssertResult(
+            """
+            query SomeQuery($input: SomeInput!) {
+                someField(input: $input)
+            }
+            """,
+            """
+            type Query {
+              someField(input: SomeInput!): Boolean
+            }
+
+            input SomeInput @oneOf {
+              case1: Boolean
+              case2: Boolean
+            }
+            """);
+    }
+
+    [Fact]
+    public void Schema_With_OneOf_And_Directive_Definition()
+    {
+        AssertResult(
+            """
+            query SomeQuery($input: SomeInput!) {
+                someField(input: $input)
+            }
+            """,
+            """
+            type Query {
+              someField(input: SomeInput!): Boolean
+            }
+
+            input SomeInput @oneOf {
+              case1: Boolean
+              case2: Boolean
+            }
+
+            directive @oneOf on INPUT_OBJECT
+            """);
+    }
+
+    [Fact]
     public void Schema_With_Spec_Errors()
     {
         AssertResult(

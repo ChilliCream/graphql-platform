@@ -34,10 +34,16 @@ internal static class FieldDirectiveParser
                     break;
 
                 case "provides":
-                    provides = Utf8GraphQLParser.Syntax.ParseSelectionSet(((StringValueNode)argument.Value).Value);
+                    var providesValue = ((StringValueNode)argument.Value).Value;
+                    provides = ParseProvidesSelectionSet(providesValue);
                     break;
 
                 case "external":
+                    isExternal = ((BooleanValueNode)argument.Value).Value;
+                    break;
+
+                case "partial":
+                    // `partial` is the composition-time encoding for external source fields.
                     isExternal = ((BooleanValueNode)argument.Value).Value;
                     break;
 
@@ -54,6 +60,20 @@ internal static class FieldDirectiveParser
         }
 
         return new FieldDirective(new SchemaKey(schemaKey), sourceName, sourceType, provides, isExternal);
+    }
+
+    private static SelectionSetNode ParseProvidesSelectionSet(string value)
+    {
+        try
+        {
+            // Fusion schemas can encode provides either as a raw selection set (`{ id }`) or as
+            // the legacy field-set form (`id`).
+            return Utf8GraphQLParser.Syntax.ParseSelectionSet(value);
+        }
+        catch (SyntaxException)
+        {
+            return Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{ {value} }}");
+        }
     }
 
     public static ImmutableArray<FieldDirective> Parse(

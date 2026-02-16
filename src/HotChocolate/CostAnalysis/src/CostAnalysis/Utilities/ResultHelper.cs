@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 
 namespace HotChocolate.CostAnalysis.Utilities;
@@ -14,7 +15,7 @@ internal static class ResultHelper
 
     public static IExecutionResult CreateError(IError error, CostMetrics? costMetrics)
     {
-        IReadOnlyDictionary<string, object?>? extensions = null;
+        ImmutableOrderedDictionary<string, object?>? extensions = null;
         if (costMetrics is not null)
         {
             extensions = AddCostMetrics(extensions, costMetrics);
@@ -22,47 +23,24 @@ internal static class ResultHelper
 
         return error is AggregateError aggregateError
             ? CreateError(aggregateError.Errors, costMetrics)
-            : new OperationResult(
-                null,
-                ImmutableArray.Create(error),
-                extensions: extensions,
-                contextData: s_validationError);
+            : new OperationResult([error], extensions) { ContextData = s_validationError };
     }
 
     public static IExecutionResult CreateError(IReadOnlyList<IError> errors, CostMetrics? costMetrics)
     {
-        IReadOnlyDictionary<string, object?>? extensions = null;
+        ImmutableOrderedDictionary<string, object?>? extensions = null;
         if (costMetrics is not null)
         {
             extensions = AddCostMetrics(extensions, costMetrics);
         }
 
-        return new OperationResult(
-            null,
-            errors,
-            extensions: extensions,
-            contextData: s_validationError);
+        return new OperationResult([.. errors], extensions) { ContextData = s_validationError };
     }
 
     public static IExecutionResult CreateResult(this CostMetrics costMetrics)
     {
-        var extensions = AddCostMetrics(ImmutableDictionary<string, object?>.Empty, costMetrics);
-
-        return new OperationResult(
-            data: null,
-            errors: null,
-            extensions: extensions,
-            contextData: s_ok,
-            items: null,
-            incremental: null,
-            label: null,
-            path: null,
-            hasNext: null,
-            cleanupTasks: ([], 0),
-            isDataSet: false,
-            requestIndex: null,
-            variableIndex: null,
-            skipValidation: true);
+        var extensions = AddCostMetrics([], costMetrics);
+        return new OperationResult(extensions: extensions) { ContextData = s_ok };
     }
 
     public static IExecutionResult AddCostMetrics(
@@ -78,17 +56,14 @@ internal static class ResultHelper
                 return AddCostMetrics(r, costMetrics);
 
             case OperationResultBatch r:
-                var results = new IExecutionResult[r.Results.Count];
-                IImmutableDictionary<string, object?>? costMetricsMap = null;
-
-                for (var i = 0; i < r.Results.Count; i++)
+                ImmutableOrderedDictionary<string, object?>? costMetricsMap = null;
+                foreach (var current in r.Results)
                 {
-                    switch (r.Results[i])
+                    switch (current)
                     {
                         case OperationResult operationResult:
                             costMetricsMap ??= CreateCostMetricsMap(costMetrics);
-                            results[i] = operationResult.WithExtensions(
-                                AddCostMetrics(operationResult.Extensions, costMetricsMap));
+                            operationResult.Extensions = AddCostMetrics(operationResult.Extensions, costMetricsMap);
                             break;
 
                         case ResponseStream responseStream:
@@ -99,7 +74,7 @@ internal static class ResultHelper
                     }
                 }
 
-                return new OperationResultBatch(results);
+                return r;
 
             default:
                 throw new NotSupportedException();
@@ -111,7 +86,8 @@ internal static class ResultHelper
         CostMetrics costMetrics)
     {
         var extensions = AddCostMetrics(operationResult.Extensions, costMetrics);
-        return operationResult.WithExtensions(extensions);
+        operationResult.Extensions = extensions;
+        return operationResult;
     }
 
     private static ResponseStream AddCostMetrics(
@@ -120,77 +96,65 @@ internal static class ResultHelper
     {
         var onFirstResult = responseStream.OnFirstResult;
 
-        if (onFirstResult.Count == 0)
+        if (onFirstResult.IsEmpty)
         {
             onFirstResult =
-                ImmutableArray.Create<Func<IOperationResult, IOperationResult>>(
-                    result => result is OperationResult operationResult
-                        ? operationResult.WithExtensions(AddCostMetrics(operationResult.Extensions, costMetrics))
-                        : result);
-
-            return responseStream.WithOnFirstResult(onFirstResult);
+                [
+                    result =>
+                    {
+                        result.Extensions = AddCostMetrics(result.Extensions, costMetrics);
+                        return result;
+                    }
+                ];
         }
-
-        if (onFirstResult is ImmutableArray<Func<IOperationResult, IOperationResult>> immutable)
+        else
         {
-            onFirstResult = immutable.Add(
-                result => result is OperationResult operationResult
-                    ? operationResult.WithExtensions(AddCostMetrics(operationResult.Extensions, costMetrics))
-                    : result);
-
-            return responseStream.WithOnFirstResult(onFirstResult);
+            onFirstResult =
+                onFirstResult.Add(
+                    result =>
+                    {
+                        result.Extensions = AddCostMetrics(result.Extensions, costMetrics);
+                        return result;
+                    });
         }
 
-        var builder = ImmutableArray.CreateBuilder<Func<IOperationResult, IOperationResult>>();
-        builder.AddRange(onFirstResult);
-        builder.Add(
-            result => result is OperationResult operationResult
-                ? operationResult.WithExtensions(AddCostMetrics(operationResult.Extensions, costMetrics))
-                : result);
-        return responseStream.WithOnFirstResult(builder.ToImmutable());
+        responseStream.OnFirstResult = onFirstResult;
+        return responseStream;
     }
 
-    private static IReadOnlyDictionary<string, object?> AddCostMetrics(
-        IReadOnlyDictionary<string, object?>? extensions,
+    private static ImmutableOrderedDictionary<string, object?> AddCostMetrics(
+        ImmutableOrderedDictionary<string, object?>? extensions,
         CostMetrics costMetrics)
     {
         var costMetricsMap = CreateCostMetricsMap(costMetrics);
         return AddCostMetrics(extensions, costMetricsMap);
     }
 
-    private static IReadOnlyDictionary<string, object?> AddCostMetrics(
-        IReadOnlyDictionary<string, object?>? extensions,
-        IImmutableDictionary<string, object?> costMetrics)
+    private static ImmutableOrderedDictionary<string, object?> AddCostMetrics(
+        ImmutableOrderedDictionary<string, object?>? extensions,
+        ImmutableOrderedDictionary<string, object?> costMetrics)
     {
         const string costKey = "operationCost";
 
         if (extensions is null || extensions.Count == 0)
         {
-            return ImmutableDictionary<string, object?>.Empty.Add(costKey, costMetrics);
+            return ImmutableOrderedDictionary<string, object?>.Empty.Add(costKey, costMetrics);
         }
 
-        if (extensions is ImmutableDictionary<string, object?> immutable)
-        {
-            return immutable.Add(costKey, costMetrics);
-        }
-
-        var builder = ImmutableDictionary.CreateBuilder<string, object?>();
-        builder.AddRange(extensions);
-        builder.Add(costKey, costMetrics);
-        return builder.ToImmutable();
+        return extensions.Add(costKey, costMetrics);
     }
 
-    private static IImmutableDictionary<string, object?> CreateCostMetricsMap(
+    private static ImmutableOrderedDictionary<string, object?> CreateCostMetricsMap(
         CostMetrics costMetrics)
     {
-        var builder = ImmutableSortedDictionary.CreateBuilder<string, object?>(StringComparer.Ordinal);
+        var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
         builder.Add("fieldCost", costMetrics.FieldCost);
         builder.Add("typeCost", costMetrics.TypeCost);
         return builder.ToImmutable();
     }
 
-    public static IOperationResult StateInvalidForCostAnalysis() =>
-        OperationResultBuilder.CreateError(
+    public static OperationResult StateInvalidForCostAnalysis()
+        => OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage("The query request contains no document or no document id.")
                 .SetCode(ErrorCodes.Execution.OperationDocumentNotFound)

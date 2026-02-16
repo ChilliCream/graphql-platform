@@ -29,7 +29,7 @@ public sealed class InterfaceTypeFileBuilder(StringBuilder sb) : TypeFileBuilder
                 interfaceType.SchemaTypeFullName,
                 interfaceType.Resolvers.Length > 0,
                 interfaceType.Resolvers.Any(t => t.RequiresParameterBindings),
-                interfaceType.Attributes,
+                interfaceType.DescriptorAttributes,
                 interfaceType.Inaccessible);
 
             WriteResolverBindings(interfaceType, typeLookup);

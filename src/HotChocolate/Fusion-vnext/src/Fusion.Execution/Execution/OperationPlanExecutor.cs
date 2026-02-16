@@ -197,7 +197,7 @@ internal sealed class OperationPlanExecutor
         }
     }
 
-    private static async IAsyncEnumerable<IOperationResult> CreateSubscriptionEnumerable(
+    private static async IAsyncEnumerable<OperationResult> CreateSubscriptionEnumerable(
         OperationPlanContext context,
         OperationExecutionNode subscriptionNode,
         SubscriptionResult subscriptionResult,
@@ -211,7 +211,13 @@ internal sealed class OperationPlanExecutor
 
         await foreach (var eventArgs in stream)
         {
-            IOperationResult result;
+            using var scope = context.DiagnosticEvents.OnSubscriptionEvent(
+                context,
+                subscriptionNode,
+                subscriptionNode.SchemaName ?? context.GetDynamicSchemaName(subscriptionNode),
+                subscriptionResult.Id);
+
+            OperationResult result;
 
             try
             {

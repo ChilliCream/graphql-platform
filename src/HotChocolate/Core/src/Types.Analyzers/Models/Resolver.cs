@@ -6,60 +6,52 @@ namespace HotChocolate.Types.Analyzers.Models;
 
 public sealed class Resolver
 {
+    private readonly IMemberDescription? _description;
+
     public Resolver(
         string typeName,
-        string? deprecationReason,
         ISymbol member,
+        IMemberDescription? description,
+        string? deprecationReason,
         ResolverResultKind resultKind,
         ImmutableArray<ResolverParameter> parameters,
         ImmutableArray<MemberBinding> bindings,
-        string schemaTypeName,
+        SchemaTypeReference schemaTypeRef,
         ResolverKind kind = ResolverKind.Default,
         FieldFlags flags = FieldFlags.None)
     {
-        FieldName = member.GetName();
         TypeName = typeName;
         Member = member;
-        SchemaTypeName = schemaTypeName;
+        _description = description;
+        DeprecationReason = deprecationReason;
+        FieldName = member.GetName();
+        SchemaTypeRef = schemaTypeRef;
         ResultKind = resultKind;
         Parameters = parameters;
         Bindings = bindings;
         Kind = kind;
         Flags = flags;
 
-        switch (member)
+        if (description is MethodDescription m && parameters.Length == m.ParameterDescriptions.Length)
         {
-            case IPropertySymbol property:
-                Description = property.GetDescription();
-                break;
-
-            case IMethodSymbol method:
-                var description = method.GetDescription();
-                Description = description.Description;
-                if (description.ParameterDescriptions.Length == parameters.Length)
-                {
-                    for (var i = 0; i < parameters.Length; i++)
-                    {
-                        parameters[i].Description = description.ParameterDescriptions[i];
-                    }
-                }
-                break;
+            for (var i = 0; i < parameters.Length; i++)
+            {
+                parameters[i].Description ??= m.ParameterDescriptions[i];
+            }
         }
 
-        DeprecationReason = deprecationReason;
-
-        var attributes = member.GetAttributes();
-        Shareable = attributes.GetShareableScope();
-        Inaccessible = attributes.GetInaccessibleScope();
-        IsNodeResolver = attributes.IsNodeResolver();
-        Attributes = attributes.GetUserAttributes();
+        Attributes = member.GetAttributes();
+        Shareable = Attributes.GetShareableScope();
+        Inaccessible = Attributes.GetInaccessibleScope();
+        IsNodeResolver = Attributes.IsNodeResolver();
+        DescriptorAttributes = Attributes.GetUserAttributes();
     }
 
     public string FieldName { get; }
 
     public string TypeName { get; }
 
-    public string? Description { get; }
+    public string? Description => _description?.Description;
 
     public string? DeprecationReason { get; }
 
@@ -69,7 +61,7 @@ public sealed class Resolver
         => Member.GetReturnType()
             ?? throw new InvalidOperationException("Resolver has no return type.");
 
-    public string SchemaTypeName { get; }
+    public SchemaTypeReference SchemaTypeRef { get; }
 
     public bool IsStatic => Member.IsStatic;
 
@@ -98,17 +90,18 @@ public sealed class Resolver
 
     public ImmutableArray<AttributeData> Attributes { get; }
 
-    public Resolver WithSchemaTypeName(string schemaTypeName)
-    {
-        return new Resolver(
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
+
+    public Resolver WithSchemaTypeName(SchemaTypeReference schemaTypeRef)
+        => new Resolver(
             TypeName,
-            DeprecationReason,
             Member,
+            _description,
+            DeprecationReason,
             ResultKind,
             Parameters,
             Bindings,
-            schemaTypeName,
+            schemaTypeRef,
             Kind,
             Flags);
-    }
 }

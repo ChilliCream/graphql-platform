@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Fusion.Info;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
@@ -19,10 +20,10 @@ internal class OneOfDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
 
     public override void MergeDirectives(
         IDirectivesProvider mergedMember,
-        ImmutableArray<IDirectivesProvider> memberDefinitions,
+        ImmutableArray<DirectivesProviderInfo> memberDefinitions,
         MutableSchemaDefinition mergedSchema)
     {
-        var oneOfDirective = memberDefinitions[0].Directives.FirstOrDefault(DirectiveNames.OneOf);
+        var oneOfDirective = memberDefinitions[0].Member.Directives.FirstOrDefault(DirectiveNames.OneOf);
 
         if (oneOfDirective is null)
         {

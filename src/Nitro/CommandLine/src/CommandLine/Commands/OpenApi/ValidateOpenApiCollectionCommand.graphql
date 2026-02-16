@@ -1,0 +1,23 @@
+mutation ValidateOpenApiCollectionCommandMutation(
+  $input: ValidateOpenApiCollectionInput!
+) {
+  validateOpenApiCollection(input: $input) {
+    id
+    errors {
+      ...UnauthorizedOperation
+      ...StageNotFoundError
+      ...OpenApiCollectionNotFoundError
+      ...Error
+    }
+  }
+}
+
+subscription ValidateOpenApiCollectionCommandSubscription($requestId: ID!) {
+  onOpenApiCollectionVersionValidationUpdate(requestId: $requestId) {
+    __typename
+    ...OpenApiCollectionVersionValidationFailed
+    ...OpenApiCollectionVersionValidationSuccess
+    ...OperationInProgress
+    ...ValidationInProgress
+  }
+}

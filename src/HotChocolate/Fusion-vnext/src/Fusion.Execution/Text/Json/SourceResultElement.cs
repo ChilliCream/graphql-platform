@@ -589,6 +589,4 @@ public readonly partial struct SourceResultElement
             throw new InvalidOperationException();
         }
     }
-
-    internal SourceResultDocument.Cursor Cursor => _cursor;
 }

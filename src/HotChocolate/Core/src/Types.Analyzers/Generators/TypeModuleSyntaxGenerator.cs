@@ -3,7 +3,6 @@ using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using TypeInfo = HotChocolate.Types.Analyzers.Models.TypeInfo;
 
 namespace HotChocolate.Types.Analyzers.Generators;
@@ -14,7 +13,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         SourceProductionContext context,
         string assemblyName,
         ImmutableArray<SyntaxInfo> syntaxInfos,
-        Action<string, SourceText> addSource)
+        Action<string, string> addSource)
     {
         if (syntaxInfos.IsEmpty)
         {
@@ -43,7 +42,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
     private static void WriteConfiguration(
         List<SyntaxInfo> syntaxInfos,
         ModuleInfo module,
-        Action<string, SourceText> addSource)
+        Action<string, string> addSource)
     {
         var dataLoaderDefaults = syntaxInfos.GetDataLoaderDefaults();
         HashSet<(string InterfaceName, string ClassName)>? groups = null;
@@ -267,14 +266,14 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
 
         if (hasConfigurations)
         {
-            addSource(WellKnownFileNames.TypeModuleFile, generator.ToSourceText());
+            addSource(WellKnownFileNames.TypeModuleFile, generator.ToString());
         }
     }
 
     private static void WriteOperationTypes(
         List<SyntaxInfo> syntaxInfos,
         ModuleInfo module,
-        Action<string, SourceText> addSource)
+        Action<string, string> addSource)
     {
         var operations = new List<OperationInfo>();
 
@@ -310,7 +309,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
 
         generator.WriteEndNamespace();
 
-        addSource(WellKnownFileNames.RootTypesFile, generator.ToSourceText());
+        addSource(WellKnownFileNames.RootTypesFile, generator.ToString());
     }
 
     public static string GetAssemblyQualifiedName(ITypeSymbol typeSymbol)

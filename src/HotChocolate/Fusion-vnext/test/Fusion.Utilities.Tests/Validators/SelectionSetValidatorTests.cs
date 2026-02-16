@@ -13,8 +13,8 @@ public sealed class SelectionSetValidatorTests
     public void Examples_Valid(string schemaText, string fieldCoordinateText)
     {
         // arrange
-        var sourceSchemaParser = new SourceSchemaParser([new SourceSchemaText("A", schemaText)], new CompositionLog());
-        var schema = sourceSchemaParser.Parse().Value.Single();
+        var sourceSchemaParser = new SourceSchemaParser(new SourceSchemaText("A", schemaText), new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
         var fieldCoordinate = SchemaCoordinate.Parse(fieldCoordinateText);
 
         if (!schema.TryGetMember(fieldCoordinate, out var member)
@@ -44,8 +44,8 @@ public sealed class SelectionSetValidatorTests
         string[] errorMessages)
     {
         // arrange
-        var sourceSchemaParser = new SourceSchemaParser([new SourceSchemaText("A", schemaText)], new CompositionLog());
-        var schema = sourceSchemaParser.Parse().Value.Single();
+        var sourceSchemaParser = new SourceSchemaParser(new SourceSchemaText("A", schemaText), new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
         var fieldCoordinate = SchemaCoordinate.Parse(fieldCoordinateText);
 
         if (!schema.TryGetMember(fieldCoordinate, out var member)

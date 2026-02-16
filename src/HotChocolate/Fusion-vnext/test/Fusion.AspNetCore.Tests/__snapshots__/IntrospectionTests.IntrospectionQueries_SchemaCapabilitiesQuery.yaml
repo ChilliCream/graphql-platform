@@ -130,6 +130,7 @@ operationPlan:
       name: IntrospectionQuery
       hash: 0fe1f53c13f6b62c801102193160023a
       searchSpace: 1
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

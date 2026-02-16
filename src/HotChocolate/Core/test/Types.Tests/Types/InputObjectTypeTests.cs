@@ -370,7 +370,7 @@ public class InputObjectTypeTests : TypeTestBase
             => InputObjectTypeDescriptorExtensions.Ignore<SimpleInput>(null!, t => t.Id);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<NullReferenceException>(Action);
     }
 
     [Fact]
@@ -723,7 +723,7 @@ public class InputObjectTypeTests : TypeTestBase
     {
         void Fail() => InputObjectTypeDescriptorExtensions.OneOf(null!);
 
-        Assert.Throws<ArgumentNullException>(Fail);
+        Assert.Throws<NullReferenceException>(Fail);
     }
 
     [Fact]
@@ -731,7 +731,7 @@ public class InputObjectTypeTests : TypeTestBase
     {
         void Fail() => InputObjectTypeDescriptorExtensions.OneOf<object>(null!);
 
-        Assert.Throws<ArgumentNullException>(Fail);
+        Assert.Throws<NullReferenceException>(Fail);
     }
 
     [Fact]

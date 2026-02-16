@@ -23,8 +23,9 @@ public sealed class InterfaceTypeInfo : SyntaxInfo, IOutputTypeInfo
         Description = schemaType.GetDescription();
         // sharable directives are only allowed on object types and field definitions
         Shareable = DirectiveScope.None;
+        Attributes = attributes;
         Inaccessible = attributes.GetInaccessibleScope();
-        Attributes = attributes.GetUserAttributes();
+        DescriptorAttributes = attributes.GetUserAttributes();
     }
 
     public string Name => SchemaSchemaType.Name;
@@ -58,6 +59,8 @@ public sealed class InterfaceTypeInfo : SyntaxInfo, IOutputTypeInfo
     public DirectiveScope Inaccessible { get; }
 
     public ImmutableArray<AttributeData> Attributes { get; }
+
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
 
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);

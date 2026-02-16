@@ -1,3 +1,7 @@
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
+
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -5,7 +9,10 @@ namespace HotChocolate.Types;
 /// GraphQL responses take the form of a hierarchical tree;
 /// the leaves on these trees are GraphQL scalars.
 /// </summary>
-public abstract class ScalarType<TRuntimeType> : ScalarType
+/// <typeparam name="TRuntimeType">
+/// The .NET runtime type that this scalar represents.
+/// </typeparam>
+public abstract class ScalarType<TRuntimeType> : ScalarType where TRuntimeType : notnull
 {
     /// <inheritdoc />
     protected ScalarType(string name, BindingBehavior bind = BindingBehavior.Explicit)
@@ -17,40 +24,81 @@ public abstract class ScalarType<TRuntimeType> : ScalarType
     public sealed override Type RuntimeType => typeof(TRuntimeType);
 
     /// <inheritdoc />
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    public override void CoerceOutputValue(object runtimeValue, ResultElement resultValue)
     {
-        if (runtimeValue is null)
+        if (runtimeValue is TRuntimeType t)
         {
-            resultValue = null;
-            return true;
+            OnCoerceOutputValue(t, resultValue);
+            return;
         }
 
-        if (runtimeValue is TRuntimeType)
-        {
-            resultValue = runtimeValue;
-            return true;
-        }
-
-        resultValue = null;
-        return false;
+        throw CreateCoerceOutputValueError(runtimeValue);
     }
+
+    /// <summary>
+    /// Coerces a runtime value into an external output representation
+    /// and writes it to the result.
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// The runtime value to coerce.
+    /// </param>
+    /// <param name="resultValue">
+    /// The result element to write the output value to.
+    /// </param>
+    /// <exception cref="LeafCoercionException">
+    /// Unable to coerce the given <paramref name="runtimeValue"/> into an output value.
+    /// </exception>
+    public abstract void OnCoerceOutputValue(TRuntimeType runtimeValue, ResultElement resultValue);
 
     /// <inheritdoc />
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+    public override IValueNode ValueToLiteral(object runtimeValue)
     {
-        if (resultValue is null)
+        if (runtimeValue is TRuntimeType runtimeType)
         {
-            runtimeValue = null;
-            return true;
+            return OnValueToLiteral(runtimeType);
         }
 
-        if (resultValue is TRuntimeType)
-        {
-            runtimeValue = resultValue;
-            return true;
-        }
-
-        runtimeValue = null;
-        return false;
+        throw CreateValueToLiteralError(runtimeValue);
     }
+
+    /// <summary>
+    /// Converts a runtime value into a GraphQL literal (AST value node).
+    /// Used for default value representation in SDL and introspection.
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// The runtime value to convert.
+    /// </param>
+    /// <returns>
+    /// Returns a GraphQL literal representation of the runtime value.
+    /// </returns>
+    /// <exception cref="LeafCoercionException">
+    /// Unable to convert the given <paramref name="runtimeValue"/> into a literal.
+    /// </exception>
+    public abstract IValueNode OnValueToLiteral(TRuntimeType runtimeValue);
+
+    /// <summary>
+    /// Creates the exception to throw when <see cref="CoerceOutputValue(object, ResultElement)"/>
+    /// encounters an incompatible runtime value.
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// The runtime value that could not be coerced.
+    /// </param>
+    /// <returns>
+    /// Returns the exception to throw.
+    /// </returns>
+    protected virtual LeafCoercionException CreateCoerceOutputValueError(object runtimeValue)
+        => Scalar_Cannot_CoerceOutputValue(this, runtimeValue);
+
+    /// <summary>
+    /// Creates the exception to throw when <see cref="ValueToLiteral(object)"/>
+    /// encounters an incompatible runtime value.
+    /// </summary>
+    /// <param name="runtimeValue">
+    /// The runtime value that could not be converted to a literal.
+    /// </param>
+    /// <returns>
+    /// Returns the exception to throw.
+    /// </returns>
+    protected virtual LeafCoercionException CreateValueToLiteralError(object runtimeValue)
+        => Scalar_Cannot_ConvertValueToLiteral(this, runtimeValue);
 }

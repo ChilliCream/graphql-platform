@@ -14,6 +14,7 @@ operation:
       }
     hash: 123456789101112
     searchSpace: 1
+    expandedNodes: 2
 nodes:
   - id: 1
     type: Operation
@@ -35,8 +36,8 @@ nodes:
     operation: |
       query Op_123456789101112_2(
         $__fusion_1_id: ID!
-        $__fusion_2_height: Int!
-        $__fusion_2_width: Int!
+          $__fusion_2_height: Int!
+          $__fusion_2_width: Int!
       ) {
         productById(id: $__fusion_1_id) {
           estimatedDelivery(postCode: "12345", height: $__fusion_2_height, width: $__fusion_2_width)

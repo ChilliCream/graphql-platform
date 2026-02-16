@@ -1,5 +1,9 @@
 using System.Globalization;
+using System.Text;
+using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using NodaTime.Text;
@@ -8,119 +12,82 @@ namespace HotChocolate.Types.NodaTime.Tests;
 
 public class LocalTimeTypeIntegrationTests
 {
-    public static class Schema
-    {
-        public class Query
-        {
-            public LocalTime One => LocalTime
-                .FromHourMinuteSecondMillisecondTick(12, 42, 13, 31, 100)
-                .PlusNanoseconds(1234);
-        }
-
-        public class Mutation
-        {
-            public LocalTime Test(LocalTime arg)
-            {
-                return arg + Period.FromMinutes(10);
-            }
-        }
-    }
-
-    private readonly IRequestExecutor _testExecutor =
-        SchemaBuilder.New()
-            .AddQueryType<Schema.Query>()
-            .AddMutationType<Schema.Mutation>()
-            .AddNodaTime()
-            .Create()
-            .MakeExecutable();
-
     [Fact]
-    public void QueryReturns()
+    public void CoerceInputLiteral()
     {
-        var result = _testExecutor.Execute("query { test: one }");
-
-        Assert.Equal("12:42:13.031011234", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void ParsesVariable()
-    {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13.031011234" } })
-                    .Build());
-
-        Assert.Equal("12:52:13.031011234", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void ParsesVariableWithoutTicks()
-    {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13" } })
-                    .Build());
-
-        Assert.Equal("12:52:13", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void DoesntParseAnIncorrectVariable()
-    {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
-                    .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42" } })
-                    .Build());
-
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
-    }
-
-    [Fact]
-    public void ParsesLiteral()
-    {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"12:42:13.031011234\") }")
-                    .Build());
-
-        Assert.Equal("12:52:13.031011234", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void ParsesLiteralWithoutTick()
-    {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"12:42:13\") }")
-                    .Build());
-
-        Assert.Equal("12:52:13", result.ExpectOperationResult().Data!["test"]);
-    }
-
-    [Fact]
-    public void DoesntParseIncorrectLiteral()
-    {
-        var result = _testExecutor
-            .Execute(
-                OperationRequestBuilder.New()
-                    .SetDocument("mutation { test(arg: \"12:42\") }")
-                    .Build());
-
-        Assert.Null(result.ExpectOperationResult().Data);
-        Assert.Single(result.ExpectOperationResult().Errors!);
-        Assert.Null(result.ExpectOperationResult().Errors![0].Code);
+        var type = new LocalTimeType();
+        var inputValue = new StringValueNode("12:42:13.031011234");
+        var runtimeValue = type.CoerceInputLiteral(inputValue);
         Assert.Equal(
-            "Unable to deserialize string to LocalTime",
-            result.ExpectOperationResult().Errors![0].Message);
+            LocalTime.FromHourMinuteSecondMillisecondTick(12, 42, 13, 31, 100).PlusNanoseconds(1234),
+            Assert.IsType<LocalTime>(runtimeValue));
+    }
+
+    [Fact]
+    public void CoerceInputLiteral_Invalid_Value_Throws()
+    {
+        var type = new LocalTimeType();
+        var valueLiteral = new StringValueNode("12:42");
+        Action error = () => type.CoerceInputLiteral(valueLiteral);
+        Assert.Throws<LeafCoercionException>(error);
+    }
+
+    [Fact]
+    public void CoerceInputValue()
+    {
+        var type = new LocalTimeType();
+        var inputValue = ParseInputValue("\"12:42:13.031011234\"");
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+        Assert.Equal(
+            LocalTime.FromHourMinuteSecondMillisecondTick(12, 42, 13, 31, 100).PlusNanoseconds(1234),
+            Assert.IsType<LocalTime>(runtimeValue));
+    }
+
+    [Fact]
+    public void CoerceInputValue_Invalid_Value_Throws()
+    {
+        var type = new LocalTimeType();
+        var inputValue = ParseInputValue("\"12:42\"");
+        Action error = () => type.CoerceInputValue(inputValue, null!);
+        Assert.Throws<LeafCoercionException>(error);
+    }
+
+    [Fact]
+    public void CoerceOutputValue()
+    {
+        var type = new LocalTimeType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(LocalTime.FromHourMinuteSecondMillisecondTick(12, 42, 13, 31, 100).PlusNanoseconds(1234), resultValue);
+        Assert.Equal("12:42:13.031011234", resultValue.GetString());
+    }
+
+    [Fact]
+    public void CoerceOutputValue_Invalid_Value_Throws()
+    {
+        var type = new LocalTimeType();
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        Action error = () => type.CoerceOutputValue("12:42:13.031011234", resultValue);
+        Assert.Throws<LeafCoercionException>(error);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        var type = new LocalTimeType();
+        var valueLiteral = type.ValueToLiteral(LocalTime.FromHourMinuteSecondMillisecondTick(12, 42, 13, 31, 100).PlusNanoseconds(1234));
+        Assert.Equal("\"12:42:13.031011234\"", valueLiteral.ToString());
+    }
+
+    [Fact]
+    public void ValueToLiteral_Invalid_Value_Throws()
+    {
+        var type = new LocalTimeType();
+        Action error = () => type.ValueToLiteral("12:42:13.031011234");
+        Assert.Throws<LeafCoercionException>(error);
     }
 
     [Fact]
@@ -164,7 +131,7 @@ public class LocalTimeTypeIntegrationTests
     [Fact]
     public async Task Ensure_Schema_First_Can_Override_Type()
     {
-        var schema = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(
                 """
@@ -176,15 +143,15 @@ public class LocalTimeTypeIntegrationTests
                 """)
             .AddType<LocalTimeType>()
             .UseField(next => next)
-            .BuildSchemaAsync();
+            .BuildRequestExecutorAsync();
 
-        schema.MatchSnapshot();
+        executor.Schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task Ensure_Schema_First_Can_Override_Type_2()
     {
-        var schema = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(
                 """
@@ -196,15 +163,15 @@ public class LocalTimeTypeIntegrationTests
                 """)
             .BindScalarType<LocalTimeType>("LocalTime")
             .UseField(next => next)
-            .BuildSchemaAsync();
+            .BuildRequestExecutorAsync();
 
-        schema.MatchSnapshot();
+        executor.Schema.MatchSnapshot();
     }
 
     [Fact]
     public async Task Ensure_Schema_First_Override_Is_Lazy()
     {
-        var schema = await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddDocumentFromString(
                 """
@@ -214,8 +181,14 @@ public class LocalTimeTypeIntegrationTests
                 """)
             .BindScalarType<LocalTimeType>("LocalTime")
             .UseField(next => next)
-            .BuildSchemaAsync();
+            .BuildRequestExecutorAsync();
 
-        schema.MatchSnapshot();
+        executor.Schema.MatchSnapshot();
+    }
+
+    private static JsonElement ParseInputValue(string sourceText)
+    {
+        var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(sourceText));
+        return JsonElement.ParseValue(ref reader);
     }
 }

@@ -1,23 +1,37 @@
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
 /// <summary>
+/// <para>
 /// The ID scalar type represents a unique identifier, often used to refetch
 /// an object or as the key for a cache. The ID type is serialized in the
 /// same way as a String; however, it is not intended to be human‐readable.
-///
-/// While it is often numeric, it should always serialize as a String.
-///
-/// http://facebook.github.io/graphql/June2018/#sec-ID
+/// </para>
+/// <para>While it is often numeric, it should always serialize as a String.</para>
+/// <para>http://facebook.github.io/graphql/June2018/#sec-ID</para>
 /// </summary>
-[SpecScalar]
 public class IdType : ScalarType<string>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="IdType"/> class.
     /// </summary>
+    /// <param name="name">
+    /// The name of the scalar type.
+    /// </param>
+    /// <param name="description">
+    /// The description of the scalar type.
+    /// </param>
+    /// <param name="bind">
+    /// The binding behavior of this scalar.
+    /// </param>
     public IdType(
         string name,
         string? description = null,
@@ -35,19 +49,21 @@ public class IdType : ScalarType<string>
     {
     }
 
-    public override bool IsInstanceOfType(IValueNode literal)
+    /// <inheritdoc />
+    public override ScalarSerializationType SerializationType
+        => ScalarSerializationType.String | ScalarSerializationType.Int;
+
+    /// <inheritdoc />
+    public override bool IsValueCompatible(IValueNode valueLiteral)
+        => valueLiteral is StringValueNode or IntValueNode;
+
+    /// <inheritdoc />
+    public override bool IsValueCompatible(JsonElement inputValue)
+        => inputValue.ValueKind is JsonValueKind.String or JsonValueKind.Number;
+
+    /// <inheritdoc />
+    public override object CoerceInputLiteral(IValueNode literal)
     {
-        ArgumentNullException.ThrowIfNull(literal);
-
-        return literal is StringValueNode
-            || literal is IntValueNode
-            || literal is NullValueNode;
-    }
-
-    public override object? ParseLiteral(IValueNode literal)
-    {
-        ArgumentNullException.ThrowIfNull(literal);
-
         if (literal is StringValueNode stringLiteral)
         {
             return stringLiteral.Value;
@@ -55,97 +71,43 @@ public class IdType : ScalarType<string>
 
         if (literal is IntValueNode intLiteral)
         {
-            return intLiteral.Value;
+            return Encoding.UTF8.GetString(intLiteral.AsSpan());
         }
 
-        if (literal is NullValueNode)
-        {
-            return null;
-        }
-
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, literal.GetType()),
-            this);
+        throw Scalar_Cannot_CoerceInputLiteral(this, literal);
     }
 
-    public override IValueNode ParseValue(object? runtimeValue)
+    /// <inheritdoc />
+    /// <remarks>
+    /// Accepts JSON strings and integer numbers. Floating-point numbers
+    /// (containing '.', 'e', or 'E') are rejected.
+    /// </remarks>
+    public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        if (runtimeValue is null)
+        if (inputValue.ValueKind is JsonValueKind.String)
         {
-            return NullValueNode.Default;
+            return inputValue.GetString()!;
         }
 
-        if (runtimeValue is string s)
+        if (inputValue.ValueKind is JsonValueKind.Number)
         {
-            return new StringValueNode(s);
+            var rawValue = JsonMarshal.GetRawUtf8Value(inputValue);
+
+            // Only accept integers; reject floating-point numbers
+            if (rawValue.IndexOfAny((byte)'.', (byte)'e', (byte)'E') == -1)
+            {
+                return Encoding.UTF8.GetString(rawValue);
+            }
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseValue(Name, runtimeValue.GetType()),
-            this);
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
 
-    public override IValueNode ParseResult(object? resultValue)
-    {
-        if (resultValue is null)
-        {
-            return NullValueNode.Default;
-        }
+    /// <inheritdoc />
+    public override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(runtimeValue);
 
-        if (resultValue is string s)
-        {
-            return new StringValueNode(s);
-        }
-
-        if (resultValue is int i)
-        {
-            return new IntValueNode(i);
-        }
-
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
-            this);
-    }
-
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-    {
-        if (runtimeValue is null)
-        {
-            resultValue = null;
-            return true;
-        }
-
-        if (runtimeValue is string)
-        {
-            resultValue = runtimeValue;
-            return true;
-        }
-
-        resultValue = null;
-        return false;
-    }
-
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-    {
-        if (resultValue is null)
-        {
-            runtimeValue = null;
-            return true;
-        }
-
-        if (resultValue is string)
-        {
-            runtimeValue = resultValue;
-            return true;
-        }
-
-        if (TryConvertSerialized(resultValue, ValueKind.Integer, out string c))
-        {
-            runtimeValue = c;
-            return true;
-        }
-
-        runtimeValue = null;
-        return false;
-    }
+    /// <inheritdoc />
+    public override IValueNode OnValueToLiteral(string runtimeValue)
+        => new StringValueNode(runtimeValue);
 }

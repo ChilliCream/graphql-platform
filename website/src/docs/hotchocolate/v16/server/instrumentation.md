@@ -371,6 +371,9 @@ Register the custom activity enricher as a singleton:
 
 ```csharp
 builder.Services.AddSingleton<ActivityEnricher, CustomActivityEnricher>();
+
+builder.Services.AddGraphQLServer()
+    .AddApplicationService<ActivityEnricher>();
 ```
 
 ![Jaeger](../../../shared/jaeger4.png)

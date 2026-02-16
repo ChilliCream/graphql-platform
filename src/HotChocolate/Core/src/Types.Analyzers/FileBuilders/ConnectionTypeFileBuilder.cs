@@ -38,7 +38,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
 
         using (Writer.IncreaseIndent())
         {
-            if (connectionType.Resolvers.Length > 0 || connectionType.Attributes.Length > 0)
+            if (connectionType.Resolvers.Length > 0 || connectionType.DescriptorAttributes.Length > 0)
             {
                 Writer.WriteIndentedLine("var extension = descriptor.Extend();");
                 Writer.WriteIndentedLine("var configuration = extension.Configuration;");
@@ -57,7 +57,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                         : "var resolvers = new __Resolvers();");
             }
 
-            if (connectionType.Attributes.Length > 0)
+            if (connectionType.DescriptorAttributes.Length > 0)
             {
                 Writer.WriteLine();
                 Writer.WriteIndentedLine(
@@ -70,7 +70,7 @@ public sealed class ConnectionTypeFileBuilder(StringBuilder sb) : TypeFileBuilde
                     Writer.WriteIndentedLine("null,");
 
                     var first = true;
-                    foreach (var attribute in connectionType.Attributes)
+                    foreach (var attribute in connectionType.DescriptorAttributes)
                     {
                         if (!first)
                         {

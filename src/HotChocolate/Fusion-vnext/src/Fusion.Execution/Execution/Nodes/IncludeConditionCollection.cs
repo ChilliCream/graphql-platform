@@ -37,14 +37,7 @@ internal class IncludeConditionCollection : ICollection<IncludeCondition>
         => _dictionary.ContainsKey(item);
 
     public int IndexOf(IncludeCondition item)
-    {
-        if (_dictionary.TryGetValue(item, out var index))
-        {
-            return index;
-        }
-
-        return -1;
-    }
+        => _dictionary.GetValueOrDefault(item, -1);
 
     public void CopyTo(IncludeCondition[] array, int arrayIndex)
         => _dictionary.Keys.CopyTo(array, arrayIndex);

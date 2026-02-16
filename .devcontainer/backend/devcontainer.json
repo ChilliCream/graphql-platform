@@ -1,0 +1,34 @@
+{
+  "name": "ChilliCream Backend",
+  "build": {
+    "dockerfile": "dockerfile",
+    "context": "."
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "enableNonRootDocker": "true",
+      "moby": "true"
+    }
+  },
+  "postCreateCommand": "./init.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "davidanson.vscode-markdownlint",
+        "ms-dotnettools.csdevkit",
+        "EditorConfig.EditorConfig",
+        "dbaeumer.vscode-eslint",
+        "streetsidesoftware.code-spell-checker",
+        "graphql.vscode-graphql",
+        "ms-dotnettools.csharp",
+        "esbenp.prettier-vscode",
+        "anthropic.claude-code",
+        "openai.chatgpt"
+      ],
+      "settings": {
+        "dotnet.defaultSolution": "src/All.slnx"
+      }
+    }
+  }
+}

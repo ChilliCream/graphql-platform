@@ -30,7 +30,7 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
                 objectType.Resolvers.Length > 0 || objectType.NodeResolver is not null,
                 objectType.Resolvers.Any(t => t.RequiresParameterBindings)
                     || (objectType.NodeResolver?.RequiresParameterBindings ?? false),
-                objectType.Attributes,
+                objectType.DescriptorAttributes,
                 objectType.Inaccessible);
 
             if (objectType.Shareable is DirectiveScope.Type)

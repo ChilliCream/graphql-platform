@@ -68,11 +68,60 @@ public static class ShareableTests
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public static async Task Shareable_On_Type_That_Is_Both_Input_And_Output_Type()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query2>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public static async Task Shareable_On_A_Base_Class()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query3>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
     public class Query1
     {
         [UsePaging]
         public IQueryable<string> GetNames()
             => throw new NotImplementedException();
+    }
+
+    public class Query2
+    {
+        public BothInputAndOutput GetOutput(BothInputAndOutput input)
+            => input;
+    }
+
+    public class Query3
+    {
+        public SomeConcreteType GetConcreteType() => new();
+    }
+
+    [Shareable]
+    public class BothInputAndOutput
+    {
+        public string? Field { get; set; }
+    }
+
+    public class SomeConcreteType : ShareableBaseClass;
+
+    [Shareable]
+    public abstract class ShareableBaseClass
+    {
+        public string? Field { get; set; }
     }
 
     [Shareable]

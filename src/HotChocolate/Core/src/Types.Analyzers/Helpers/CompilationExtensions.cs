@@ -1,4 +1,6 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.Helpers;
@@ -83,10 +85,25 @@ public static class CompilationExtensions
         return false;
     }
 
-    public static bool TryGetGraphQLDeprecationReason(
+    public static IMemberDescription? GetDescription(
         this Compilation compilation,
-        ISymbol symbol,
-        [NotNullWhen(true)] out string? reason)
+        ISymbol methodOrProperty,
+        ImmutableArray<ResolverParameter> parameters)
+    {
+        switch (methodOrProperty)
+        {
+            case IPropertySymbol property:
+                return property.GetDescription(compilation);
+
+            case IMethodSymbol method:
+                return method.GetDescription(compilation);
+
+            default:
+                return null;
+        }
+    }
+
+    public static string? GetDeprecationReason(this Compilation compilation, ISymbol symbol)
     {
         var graphQLDeprecatedAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.GraphQLDeprecatedAttribute);
         var obsoleteAttribute = compilation.GetTypeByMetadataName(WellKnownAttributes.ObsoleteAttribute);
@@ -103,13 +120,10 @@ public static class CompilationExtensions
                     && attributeData.ConstructorArguments[0].Value is string deprecatedReason
                     && !string.IsNullOrWhiteSpace(deprecatedReason))
                 {
-                    reason = deprecatedReason;
+                    return deprecatedReason;
                 }
-                else
-                {
-                    reason = defaultReason;
-                }
-                return true;
+
+                return defaultReason;
             }
 
             // Check for ObsoleteAttribute
@@ -120,18 +134,14 @@ public static class CompilationExtensions
                     && attributeData.ConstructorArguments[0].Value is string obsoleteReason
                     && !string.IsNullOrWhiteSpace(obsoleteReason))
                 {
-                    reason = obsoleteReason;
+                    return obsoleteReason;
                 }
-                else
-                {
-                    reason = defaultReason;
-                }
-                return true;
+
+                return defaultReason;
             }
         }
 
-        reason = null;
-        return false;
+        return null;
     }
 
     public static INamedTypeSymbol? GetConnectionBaseSymbol(this GeneratorSyntaxContext context)
@@ -257,5 +267,111 @@ public static class CompilationExtensions
         }
 
         return false;
+    }
+
+    public static ResolverParameterKind GetParameterKind(
+        this Compilation compilation,
+        IParameterSymbol parameter,
+        out string? key)
+    {
+        key = null;
+
+        if (parameter.IsParent())
+        {
+            return ResolverParameterKind.Parent;
+        }
+
+        if (parameter.IsCancellationToken())
+        {
+            return ResolverParameterKind.CancellationToken;
+        }
+
+        if (parameter.IsClaimsPrincipal())
+        {
+            return ResolverParameterKind.ClaimsPrincipal;
+        }
+
+        if (parameter.IsDocumentNode())
+        {
+            return ResolverParameterKind.DocumentNode;
+        }
+
+        if (parameter.IsEventMessage())
+        {
+            return ResolverParameterKind.EventMessage;
+        }
+
+        if (parameter.IsFieldNode())
+        {
+            return ResolverParameterKind.FieldNode;
+        }
+
+        if (parameter.IsOutputField(compilation))
+        {
+            return ResolverParameterKind.OutputField;
+        }
+
+        if (parameter.IsHttpContext())
+        {
+            return ResolverParameterKind.HttpContext;
+        }
+
+        if (parameter.IsHttpRequest())
+        {
+            return ResolverParameterKind.HttpRequest;
+        }
+
+        if (parameter.IsHttpResponse())
+        {
+            return ResolverParameterKind.HttpResponse;
+        }
+
+        if (parameter.IsGlobalState(out key))
+        {
+            return parameter.IsSetState()
+                ? ResolverParameterKind.SetGlobalState
+                : ResolverParameterKind.GetGlobalState;
+        }
+
+        if (parameter.IsScopedState(out key))
+        {
+            return parameter.IsSetState()
+                ? ResolverParameterKind.SetScopedState
+                : ResolverParameterKind.GetScopedState;
+        }
+
+        if (parameter.IsLocalState(out key))
+        {
+            return parameter.IsSetState()
+                ? ResolverParameterKind.SetLocalState
+                : ResolverParameterKind.GetLocalState;
+        }
+
+        if (parameter.IsService(out key))
+        {
+            return ResolverParameterKind.Service;
+        }
+
+        if (parameter.IsArgument(out key))
+        {
+            return ResolverParameterKind.Argument;
+        }
+
+        if (parameter.IsQueryContext())
+        {
+            return ResolverParameterKind.QueryContext;
+        }
+
+        if (parameter.IsPagingArguments())
+        {
+            return ResolverParameterKind.PagingArguments;
+        }
+
+        if (compilation.IsConnectionFlagsType(parameter.Type))
+        {
+            return ResolverParameterKind.ConnectionFlags;
+        }
+
+        return ResolverParameterKind.Unknown;
     }
 }

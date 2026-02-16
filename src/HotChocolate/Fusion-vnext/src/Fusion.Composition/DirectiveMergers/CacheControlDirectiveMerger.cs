@@ -1,11 +1,12 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Definitions;
+using HotChocolate.Fusion.Directives;
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Fusion.Info;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
-using HotChocolate.Types.Mutable.Definitions;
-using HotChocolate.Types.Mutable.Directives;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
 using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
 
@@ -40,7 +41,7 @@ internal class CacheControlDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
 
     public override void MergeDirectives(
         IDirectivesProvider mergedMember,
-        ImmutableArray<IDirectivesProvider> memberDefinitions,
+        ImmutableArray<DirectivesProviderInfo> memberDefinitions,
         MutableSchemaDefinition mergedSchema)
     {
         if (MergeBehavior is DirectiveMergeBehavior.Ignore)
@@ -57,7 +58,7 @@ internal class CacheControlDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
         var cacheControlDirectives =
             memberDefinitions
                 .SelectMany(
-                    d => d.Directives.Where(dir => dir.Name == DirectiveNames.CacheControl))
+                    d => d.Member.Directives.Where(dir => dir.Name == DirectiveNames.CacheControl))
                 .Select(CacheControlDirective.From)
                 .ToArray();
 
