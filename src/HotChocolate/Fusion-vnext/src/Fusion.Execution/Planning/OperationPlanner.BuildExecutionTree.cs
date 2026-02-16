@@ -19,7 +19,7 @@ public sealed partial class OperationPlanner
         Operation operation,
         OperationDefinitionNode operationDefinition,
         ImmutableList<PlanStep> planSteps,
-        uint searchSpace,
+        int searchSpace,
         int expandedNodes)
     {
         if (operation.IsIntrospectionOnly())

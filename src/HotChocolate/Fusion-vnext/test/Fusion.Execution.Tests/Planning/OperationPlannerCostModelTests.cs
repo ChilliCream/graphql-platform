@@ -67,24 +67,24 @@ public class OperationPlannerCostModelTests : FusionTestBase
     }
 
     [Fact]
-    public void BacklogLowerBound_Projects_RemainingDepth_For_EqualOperationFloor()
+    public void RemainingCost_Projects_RemainingDepth_For_EqualOperationFloor()
     {
         // Both states project the same operation floor (3 operations),
         // but one is a deeper remaining chain.
-        var deepChain = CreateBacklogCostState(3, 4, 5);
-        var flatParallel = CreateBacklogCostState(3, 3, 3);
+        var deepChain = CreateBacklogCost(3, 4, 5);
+        var flatParallel = CreateBacklogCost(3, 3, 3);
 
-        Assert.Equal(deepChain.OperationLowerBound, flatParallel.OperationLowerBound);
+        Assert.Equal(deepChain.MinimumCost, flatParallel.MinimumCost);
 
         var currentOpsPerLevel = ImmutableDictionary<int, int>.Empty.Add(2, 1);
 
-        var deepChainCost = PlannerCostEstimator.EstimateBacklogLowerBound(
+        var deepChainCost = PlannerCostEstimator.EstimateRemainingCost(
             OperationPlannerOptions.Default,
             currentMaxDepth: 2,
             currentOpsPerLevel,
             deepChain);
 
-        var flatParallelCost = PlannerCostEstimator.EstimateBacklogLowerBound(
+        var flatParallelCost = PlannerCostEstimator.EstimateRemainingCost(
             OperationPlannerOptions.Default,
             currentMaxDepth: 2,
             currentOpsPerLevel,
@@ -96,22 +96,22 @@ public class OperationPlannerCostModelTests : FusionTestBase
     }
 
     [Fact]
-    public void BacklogLowerBound_Projects_ExcessFanout_For_EqualOperationFloor()
+    public void RemainingCost_Projects_ExcessFanout_For_EqualOperationFloor()
     {
         // Both states project 10 remaining operations and no additional depth.
         // Only fan-out shape differs.
-        var moderateFanout = CreateBacklogCostState(2, 2, 2, 2, 2, 3, 3, 3, 3, 3);
-        var excessiveFanout = CreateBacklogCostState(2, 2, 2, 2, 2, 2, 2, 2, 2, 2);
+        var moderateFanout = CreateBacklogCost(2, 2, 2, 2, 2, 3, 3, 3, 3, 3);
+        var excessiveFanout = CreateBacklogCost(2, 2, 2, 2, 2, 2, 2, 2, 2, 2);
 
-        Assert.Equal(moderateFanout.OperationLowerBound, excessiveFanout.OperationLowerBound);
+        Assert.Equal(moderateFanout.MinimumCost, excessiveFanout.MinimumCost);
 
-        var moderateFanoutCost = PlannerCostEstimator.EstimateBacklogLowerBound(
+        var moderateFanoutCost = PlannerCostEstimator.EstimateRemainingCost(
             OperationPlannerOptions.Default,
             currentMaxDepth: 3,
             ImmutableDictionary<int, int>.Empty,
             moderateFanout);
 
-        var excessiveFanoutCost = PlannerCostEstimator.EstimateBacklogLowerBound(
+        var excessiveFanoutCost = PlannerCostEstimator.EstimateRemainingCost(
             OperationPlannerOptions.Default,
             currentMaxDepth: 3,
             ImmutableDictionary<int, int>.Empty,
@@ -142,16 +142,15 @@ public class OperationPlannerCostModelTests : FusionTestBase
             SchemaName = "None",
             Options = options ?? OperationPlannerOptions.Default,
             SelectionSetIndex = SelectionSetIndexer.Create(operationDefinition),
-            Backlog = ImmutableStack<WorkItem>.Empty,
-            BacklogCostState = BacklogCostState.Empty,
-            BacklogLowerBound = 0,
+            Backlog = Backlog.Empty,
+            RemainingCost = 0,
             OperationStepCount = operationStepCount,
             MaxDepth = maxDepth,
             ExcessFanout = excessFanout
         };
     }
 
-    private BacklogCostState CreateBacklogCostState(params int[] projectedDepths)
+    private BacklogCost CreateBacklogCost(params int[] projectedDepths)
     {
         var schema = CreateCompositeSchema();
         var operationDefinition = Utf8GraphQLParser
@@ -166,7 +165,7 @@ public class OperationPlannerCostModelTests : FusionTestBase
             schema.QueryType,
             SelectionPath.Root);
 
-        var backlogCostState = BacklogCostState.Empty;
+        var backlogCost = BacklogCost.Empty;
 
         foreach (var depth in projectedDepths)
         {
@@ -183,9 +182,9 @@ public class OperationPlannerCostModelTests : FusionTestBase
                 ParentDepth = depth - 1
             };
 
-            backlogCostState = PlannerCostEstimator.AddWorkItemLowerBound(backlogCostState, workItem);
+            backlogCost = PlannerCostEstimator.AddWorkItemCost(backlogCost, workItem);
         }
 
-        return backlogCostState;
+        return backlogCost;
     }
 }
