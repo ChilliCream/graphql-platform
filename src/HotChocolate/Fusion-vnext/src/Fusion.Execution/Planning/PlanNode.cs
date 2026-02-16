@@ -59,12 +59,7 @@ internal sealed record PlanNode
         }
     }
 
-    public required ImmutableStack<WorkItem> Backlog { get; init; }
-
-    /// <summary>
-    /// Incremental backlog projection state for optimistic lower-bound estimation.
-    /// </summary>
-    public BacklogCost BacklogCost { get; init; } = BacklogCost.Empty;
+    public required Backlog Backlog { get; init; }
 
     /// <summary>
     /// The optimistic lower bound for all work currently in <see cref="Backlog"/>.

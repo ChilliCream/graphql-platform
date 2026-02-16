@@ -205,7 +205,6 @@ public sealed partial class OperationPlanner
             searchSpace = Math.Max(possiblePlansCount, searchSpace);
 
             var backlog = current.Backlog;
-            var backlogCost = current.BacklogCost;
 
             if (emitPlannerEvents)
             {
@@ -246,16 +245,16 @@ public sealed partial class OperationPlanner
             // The backlog represents the tasks we have to complete to build out
             // the current possible plan. It's not guaranteed that this plan will work
             // out or that it is efficient.
-            backlog = current.Backlog.PopWithLowerBound(out var workItem, ref backlogCost);
+            backlog = current.Backlog.Pop(out var workItem);
 
             switch (workItem)
             {
                 case OperationWorkItem { Kind: OperationWorkItemKind.Root } wi:
-                    PlanRootSelections(wi, current, backlog, backlogCost, possiblePlans);
+                    PlanRootSelections(wi, current, backlog, possiblePlans);
                     break;
 
                 case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: { } lookup } wi:
-                    PlanLookupSelections(wi, lookup, current, backlog, backlogCost, possiblePlans);
+                    PlanLookupSelections(wi, lookup, current, backlog, possiblePlans);
                     break;
 
                 case FieldRequirementWorkItem { Lookup: null } wi:
@@ -263,8 +262,7 @@ public sealed partial class OperationPlanner
                         wi,
                         current,
                         possiblePlans,
-                        backlog,
-                        backlogCost);
+                        backlog);
                     break;
 
                 case FieldRequirementWorkItem wi:
@@ -273,16 +271,15 @@ public sealed partial class OperationPlanner
                         wi.Lookup,
                         current,
                         possiblePlans,
-                        backlog,
-                        backlogCost);
+                        backlog);
                     break;
 
                 case NodeFieldWorkItem wi:
-                    PlanNode(wi, current, possiblePlans, backlog, backlogCost);
+                    PlanNode(wi, current, possiblePlans, backlog);
                     break;
 
                 case NodeLookupWorkItem { Lookup: { } lookup } wi:
-                    PlanNodeLookup(wi, lookup, current, possiblePlans, backlog, backlogCost);
+                    PlanNodeLookup(wi, lookup, current, possiblePlans, backlog);
                     break;
 
                 default:
@@ -329,23 +326,22 @@ public sealed partial class OperationPlanner
         while (true)
         {
             var backlog = current.Backlog;
-            var backlogCost = current.BacklogCost;
 
             if (backlog.IsEmpty)
             {
                 return current;
             }
 
-            backlog = backlog.PopWithLowerBound(out var workItem, ref backlogCost);
+            backlog = backlog.Pop(out var workItem);
 
             switch (workItem)
             {
                 case OperationWorkItem { Kind: OperationWorkItemKind.Root } wi:
-                    PlanRootSelections(wi, current, backlog, backlogCost, candidates);
+                    PlanRootSelections(wi, current, backlog, candidates);
                     break;
 
                 case OperationWorkItem { Kind: OperationWorkItemKind.Lookup, Lookup: { } lookup } wi:
-                    PlanLookupSelections(wi, lookup, current, backlog, backlogCost, candidates);
+                    PlanLookupSelections(wi, lookup, current, backlog, candidates);
                     break;
 
                 case FieldRequirementWorkItem { Lookup: null } wi:
@@ -353,8 +349,7 @@ public sealed partial class OperationPlanner
                         wi,
                         current,
                         candidates,
-                        backlog,
-                        backlogCost);
+                        backlog);
                     break;
 
                 case FieldRequirementWorkItem wi:
@@ -363,16 +358,15 @@ public sealed partial class OperationPlanner
                         wi.Lookup,
                         current,
                         candidates,
-                        backlog,
-                        backlogCost);
+                        backlog);
                     break;
 
                 case NodeFieldWorkItem wi:
-                    PlanNode(wi, current, candidates, backlog, backlogCost);
+                    PlanNode(wi, current, candidates, backlog);
                     break;
 
                 case NodeLookupWorkItem { Lookup: { } lookup } wi:
-                    PlanNodeLookup(wi, lookup, current, candidates, backlog, backlogCost);
+                    PlanNodeLookup(wi, lookup, current, candidates, backlog);
                     break;
 
                 default:
@@ -496,17 +490,15 @@ public sealed partial class OperationPlanner
     private void PlanRootSelections(
         OperationWorkItem workItem,
         PlanNode current,
-        ImmutableStack<WorkItem> backlog,
-        BacklogCost backlogCost,
+        Backlog backlog,
         PlanQueue possiblePlans)
-        => PlanSelections(workItem, current, null, backlog, backlogCost, possiblePlans);
+        => PlanSelections(workItem, current, null, backlog, possiblePlans);
 
     private void PlanLookupSelections(
         OperationWorkItem workItem,
         Lookup lookup,
         PlanNode current,
-        ImmutableStack<WorkItem> backlog,
-        BacklogCost backlogCost,
+        Backlog backlog,
         PlanQueue possiblePlans)
     {
         current = InlineLookupRequirements(
@@ -514,14 +506,12 @@ public sealed partial class OperationPlanner
             current,
             lookup,
             workItem.EstimatedDepth,
-            backlog,
-            backlogCost);
+            backlog);
         PlanSelections(
             workItem,
             current,
             lookup,
             current.Backlog,
-            current.BacklogCost,
             possiblePlans);
     }
 
@@ -529,8 +519,7 @@ public sealed partial class OperationPlanner
         OperationWorkItem workItem,
         PlanNode current,
         Lookup? lookup,
-        ImmutableStack<WorkItem> backlog,
-        BacklogCost backlogCost,
+        Backlog backlog,
         PlanQueue possiblePlans)
     {
         var stepId = current.Steps.NextId();
@@ -553,8 +542,8 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        backlog = backlog.PushWithLowerBound(unresolvable, current, stepDepth, ref backlogCost);
-        backlog = backlog.PushWithLowerBound(fieldsWithRequirements, stepId, stepDepth, ref backlogCost);
+        backlog = backlog.PushUnresolvable(unresolvable, current.SchemaName, stepDepth);
+        backlog = backlog.PushRequirements(fieldsWithRequirements, stepId, stepDepth);
 
         // lookups are always queries.
         var operationType =
@@ -617,7 +606,7 @@ public sealed partial class OperationPlanner
             current.Options,
             costState.MaxDepth,
             costState.OpsPerLevel,
-            backlogCost);
+            backlog.Cost);
 
         var next = new PlanNode
         {
@@ -628,7 +617,6 @@ public sealed partial class OperationPlanner
             Options = current.Options,
             SelectionSetIndex = index,
             Backlog = backlog,
-            BacklogCost = backlogCost,
             RemainingCost = remainingCost,
             Steps = current.Steps.Add(step),
             LastRequirementId = lastRequirementId,
@@ -647,8 +635,7 @@ public sealed partial class OperationPlanner
         PlanNode current,
         Lookup lookup,
         int lookupStepDepth,
-        ImmutableStack<WorkItem> backlog,
-        BacklogCost backlogCost)
+        Backlog backlog)
     {
         var processed = new HashSet<string>();
         var lookupStepId = current.Steps.NextId();
@@ -739,11 +726,10 @@ public sealed partial class OperationPlanner
                         selectionSet = top.Node;
                     }
 
-                    backlog = backlog.PushWithLowerBound(
+                    backlog = backlog.PushUnresolvable(
                         unresolvable,
-                        current,
-                        GetOperationStepDepth(current, step.Id),
-                        ref backlogCost);
+                        current.SchemaName,
+                        GetOperationStepDepth(current, step.Id));
                 }
             }
 
@@ -756,7 +742,7 @@ public sealed partial class OperationPlanner
         // if we have still selections left we need to add them to the backlog.
         if (selectionSet is not null)
         {
-            backlog = backlog.PushWithLowerBound(
+            backlog = backlog.Push(
                 new OperationWorkItem(
                     OperationWorkItemKind.Lookup,
                     workItemSelectionSet with { Node = selectionSet },
@@ -764,8 +750,7 @@ public sealed partial class OperationPlanner
                 {
                     Dependents = ImmutableHashSet<int>.Empty.Add(lookupStepId),
                     ParentDepth = lookupStepDepth
-                },
-                ref backlogCost);
+                });
         }
 
         var remainingCost =
@@ -773,13 +758,12 @@ public sealed partial class OperationPlanner
                 current.Options,
                 current.MaxDepth,
                 current.OpsPerLevel,
-                backlogCost);
+                backlog.Cost);
 
         return current with
         {
             Steps = steps,
             Backlog = backlog,
-            BacklogCost = backlogCost,
             RemainingCost = remainingCost,
             SelectionSetIndex = index,
             InternalOperationDefinition = internalOperation
@@ -794,8 +778,7 @@ public sealed partial class OperationPlanner
         FieldRequirementWorkItem workItem,
         PlanNode current,
         PlanQueue possiblePlans,
-        ImmutableStack<WorkItem> backlog,
-        BacklogCost backlogCost)
+        Backlog backlog)
     {
         // we first resolve the original intended plan step, so we can inline the field
         // into it.
@@ -817,7 +800,6 @@ public sealed partial class OperationPlanner
                     currentStep,
                     index,
                     ref backlog,
-                    ref backlogCost,
                     ref steps)
                 is null;
 
@@ -883,7 +865,7 @@ public sealed partial class OperationPlanner
                 current.Options,
                 current.MaxDepth,
                 current.OpsPerLevel,
-                backlogCost);
+                backlog.Cost);
 
         var next = new PlanNode
         {
@@ -894,7 +876,6 @@ public sealed partial class OperationPlanner
             Options = current.Options,
             SelectionSetIndex = index,
             Backlog = backlog,
-            BacklogCost = backlogCost,
             RemainingCost = remainingCost,
             Steps = steps,
             LastRequirementId = requirementId,
@@ -913,8 +894,7 @@ public sealed partial class OperationPlanner
         Lookup lookup,
         PlanNode current,
         PlanQueue possiblePlans,
-        ImmutableStack<WorkItem> backlog,
-        BacklogCost backlogCost)
+        Backlog backlog)
     {
         var selectionSetStub = new SelectionSet(
             workItem.Selection.SelectionSetId,
@@ -926,10 +906,8 @@ public sealed partial class OperationPlanner
             current,
             lookup,
             workItem.EstimatedDepth,
-            backlog,
-            backlogCost);
+            backlog);
         backlog = current.Backlog;
-        backlogCost = current.BacklogCost;
 
         if (current.Steps.ById(workItem.StepId) is not OperationPlanStep currentStep)
         {
@@ -951,7 +929,6 @@ public sealed partial class OperationPlanner
                 currentStep,
                 indexBuilder,
                 ref backlog,
-                ref backlogCost,
                 ref steps);
 
         // if we have requirements that we could not inline into existing
@@ -963,7 +940,7 @@ public sealed partial class OperationPlanner
                 workItem.Selection.SelectionSetId,
                 leftoverRequirements);
 
-            backlog = backlog.PushWithLowerBound(
+            backlog = backlog.Push(
                 new OperationWorkItem(
                     OperationWorkItemKind.Lookup,
                     new SelectionSet(
@@ -975,8 +952,7 @@ public sealed partial class OperationPlanner
                 {
                     Dependents = ImmutableHashSet<int>.Empty.Add(stepId),
                     ParentDepth = stepDepth
-                },
-                ref backlogCost);
+                });
         }
 
         var compositeField = workItem.Selection.Field;
@@ -1025,8 +1001,7 @@ public sealed partial class OperationPlanner
                 workItem.Selection,
                 current,
                 indexBuilder,
-                ref backlog,
-                ref backlogCost);
+                ref backlog);
 
         var selectionSetNode = new SelectionSetNode(
             [workItem.Selection.Node.WithArguments(arguments).WithSelectionSet(childSelections)]);
@@ -1084,7 +1059,7 @@ public sealed partial class OperationPlanner
                 current.Options,
                 costState.MaxDepth,
                 costState.OpsPerLevel,
-                backlogCost);
+                backlog.Cost);
 
         var next = new PlanNode
         {
@@ -1095,7 +1070,6 @@ public sealed partial class OperationPlanner
             Options = current.Options,
             SelectionSetIndex = indexBuilder,
             Backlog = backlog,
-            BacklogCost = backlogCost,
             RemainingCost = remainingCost,
             Steps = steps.Add(step),
             LastRequirementId = lastRequirementId,
@@ -1114,8 +1088,7 @@ public sealed partial class OperationPlanner
         Lookup lookup,
         PlanNode current,
         PlanQueue possiblePlans,
-        ImmutableStack<WorkItem> backlog,
-        BacklogCost backlogCost)
+        Backlog backlog)
     {
         var stepId = current.Steps.NextId();
         var stepDepth = workItem.EstimatedDepth;
@@ -1137,8 +1110,8 @@ public sealed partial class OperationPlanner
             return;
         }
 
-        backlog = backlog.PushWithLowerBound(unresolvable, current, stepDepth, ref backlogCost);
-        backlog = backlog.PushWithLowerBound(fieldsWithRequirements, stepId, stepDepth, ref backlogCost);
+        backlog = backlog.PushUnresolvable(unresolvable, current.SchemaName, stepDepth);
+        backlog = backlog.PushRequirements(fieldsWithRequirements, stepId, stepDepth);
 
         var resolvableSelections = resolvable.Selections;
         if (!resolvableSelections.Any(IsTypeNameSelection))
@@ -1211,7 +1184,7 @@ public sealed partial class OperationPlanner
                 current.Options,
                 costState.MaxDepth,
                 costState.OpsPerLevel,
-                backlogCost);
+                backlog.Cost);
 
         var next = new PlanNode
         {
@@ -1222,7 +1195,6 @@ public sealed partial class OperationPlanner
             Options = current.Options,
             SelectionSetIndex = index,
             Backlog = backlog,
-            BacklogCost = backlogCost,
             RemainingCost = remainingCost,
             Steps = steps,
             LastRequirementId = current.LastRequirementId,
@@ -1240,8 +1212,7 @@ public sealed partial class OperationPlanner
         NodeFieldWorkItem workItem,
         PlanNode current,
         PlanQueue possiblePlans,
-        ImmutableStack<WorkItem> backlog,
-        BacklogCost backlogCost)
+        Backlog backlog)
     {
         var stepId = current.Steps.NextId();
         var fallbackQueryStepId = stepId + 1;
@@ -1331,7 +1302,7 @@ public sealed partial class OperationPlanner
                 ParentDepth = stepDepth
             };
 
-            backlog = backlog.PushWithLowerBound(newWorkItem, ref backlogCost);
+            backlog = backlog.Push(newWorkItem);
         }
 
         var costState = AddOperationStepCostState(current, fallbackQueryStepId, stepDepth);
@@ -1340,7 +1311,7 @@ public sealed partial class OperationPlanner
                 current.Options,
                 costState.MaxDepth,
                 costState.OpsPerLevel,
-                backlogCost);
+                backlog.Cost);
 
         var next = new PlanNode
         {
@@ -1351,7 +1322,6 @@ public sealed partial class OperationPlanner
             Options = current.Options,
             SelectionSetIndex = index,
             Backlog = backlog,
-            BacklogCost = backlogCost,
             RemainingCost = remainingCost,
             Steps = current.Steps
                 .Add(nodeStep)
@@ -1446,8 +1416,7 @@ public sealed partial class OperationPlanner
         FieldSelection selection,
         PlanNode current,
         SelectionSetIndexBuilder index,
-        ref ImmutableStack<WorkItem> backlog,
-        ref BacklogCost backlogCost)
+        ref Backlog backlog)
     {
         if (selection.Node.SelectionSet is null)
         {
@@ -1470,8 +1439,8 @@ public sealed partial class OperationPlanner
         };
 
         var (resolvable, unresolvable, fieldsWithRequirements, _) = _partitioner.Partition(input);
-        backlog = backlog.PushWithLowerBound(unresolvable, current, stepDepth, ref backlogCost);
-        backlog = backlog.PushWithLowerBound(fieldsWithRequirements, stepId, stepDepth, ref backlogCost);
+        backlog = backlog.PushUnresolvable(unresolvable, current.SchemaName, stepDepth);
+        backlog = backlog.PushRequirements(fieldsWithRequirements, stepId, stepDepth);
         return resolvable;
     }
 
@@ -1480,8 +1449,7 @@ public sealed partial class OperationPlanner
         ref PlanNode current,
         OperationPlanStep currentStep,
         SelectionSetIndexBuilder index,
-        ref ImmutableStack<WorkItem> backlog,
-        ref BacklogCost backlogCost,
+        ref Backlog backlog,
         ref ImmutableList<PlanStep> steps)
     {
         var compositeField = workItem.Selection.Field;
@@ -1604,15 +1572,14 @@ public sealed partial class OperationPlanner
 
                 foreach (var selectionSet in unresolvable.Reverse())
                 {
-                    backlog = backlog.PushWithLowerBound(
+                    backlog = backlog.Push(
                         new OperationWorkItem(
                             OperationWorkItemKind.Lookup,
                             selectionSet,
                             FromSchema: current.SchemaName)
                         {
                             ParentDepth = GetOperationStepDepth(current, step.Id)
-                        },
-                        ref backlogCost);
+                        });
                 }
             }
 
@@ -1956,103 +1923,6 @@ internal static class PlannerExtensions
             lookup.Arguments.Length.ToString(),
             ":",
             lookup.Fields.Length.ToString());
-    }
-
-    public static ImmutableStack<WorkItem> PopWithLowerBound(
-        this ImmutableStack<WorkItem> backlog,
-        out WorkItem workItem,
-        ref BacklogCost backlogCost)
-    {
-        // BacklogCost is the authoritative incremental h(n) state.
-        // Every pop/push must update it in lockstep with the stack so
-        // branch scoring stays O(1) per transition.
-        backlog = backlog.Pop(out workItem);
-        backlogCost = PlannerCostEstimator.RemoveWorkItemCost(backlogCost, workItem);
-
-        return backlog;
-    }
-
-    public static ImmutableStack<WorkItem> PushWithLowerBound(
-        this ImmutableStack<WorkItem> backlog,
-        WorkItem workItem,
-        ref BacklogCost backlogCost)
-    {
-        backlogCost = PlannerCostEstimator.AddWorkItemCost(backlogCost, workItem);
-        return backlog.Push(workItem);
-    }
-
-    public static ImmutableStack<WorkItem> PushWithLowerBound(
-        this ImmutableStack<WorkItem> backlog,
-        ImmutableStack<SelectionSet> unresolvable,
-        PlanNode current,
-        int parentDepth,
-        ref BacklogCost backlogCost)
-    {
-        if (unresolvable.IsEmpty)
-        {
-            return backlog;
-        }
-
-        foreach (var selectionSet in unresolvable.Reverse())
-        {
-            var workItem = new OperationWorkItem(
-                selectionSet.Path.IsRoot
-                    ? OperationWorkItemKind.Root
-                    : OperationWorkItemKind.Lookup,
-                selectionSet,
-                FromSchema: current.SchemaName)
-            {
-                ParentDepth = parentDepth
-            };
-            backlog = backlog.PushWithLowerBound(workItem, ref backlogCost);
-        }
-
-        return backlog;
-    }
-
-    /// <summary>
-    /// Pushes the field requirements to the backlog.
-    /// </summary>
-    /// <param name="backlog">
-    /// The backlog.
-    /// </param>
-    /// <param name="fieldsWithRequirements">
-    /// The field requirements.
-    /// </param>
-    /// <param name="stepId">
-    /// The step that the fields with requirements were intended to be included in.
-    /// </param>
-    /// <param name="parentDepth">
-    /// The depth of the step that produced the requirement work items.
-    /// </param>
-    /// <param name="backlogCost">
-    /// The current optimistic lower-bound state for the backlog.
-    /// </param>
-    /// <returns>
-    /// The updated backlog.
-    /// </returns>
-    public static ImmutableStack<WorkItem> PushWithLowerBound(
-        this ImmutableStack<WorkItem> backlog,
-        ImmutableStack<FieldSelection> fieldsWithRequirements,
-        int stepId,
-        int parentDepth,
-        ref BacklogCost backlogCost)
-    {
-        if (fieldsWithRequirements.IsEmpty)
-        {
-            return backlog;
-        }
-
-        foreach (var selection in fieldsWithRequirements.Reverse())
-        {
-            var workItem = new FieldRequirementWorkItem(selection, stepId)
-            {
-                ParentDepth = parentDepth
-            };
-            backlog = backlog.PushWithLowerBound(workItem, ref backlogCost);
-        }
-
-        return backlog;
     }
 
     public static IEnumerable<(string SchemaName, double Cost)> GetPossibleSchemas(

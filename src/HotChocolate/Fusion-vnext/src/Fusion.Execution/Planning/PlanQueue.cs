@@ -104,17 +104,16 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         PlanNode planNodeTemplate,
         OperationWorkItem workItem)
     {
-        var backlogCost = planNodeTemplate.BacklogCost;
-        var backlog = planNodeTemplate.Backlog.PopWithLowerBound(out _, ref backlogCost);
+        var backlog = planNodeTemplate.Backlog.Pop(out _);
         var allCandidateSchemas = planNodeTemplate.GetCandidateSchemas(workItem.SelectionSet.Id);
         var type = (FusionComplexTypeDefinition)workItem.SelectionSet.Type;
 
-        double EstimateBranchLowerBound(BacklogCost branchBacklogCost)
+        double EstimateBranchLowerBound(Backlog branchBacklog)
             => PlannerCostEstimator.EstimateRemainingCost(
                 planNodeTemplate.Options,
                 planNodeTemplate.MaxDepth,
                 planNodeTemplate.OpsPerLevel,
-                branchBacklogCost);
+                branchBacklog.Cost);
 
         // Each branch starts from the same popped template and
         // mutates a local copy of backlog state.
@@ -134,16 +133,14 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 out var bestLookup))
             {
                 var lookupWorkItem = workItem with { Lookup = bestLookup };
-                var branchBacklogCost = backlogCost;
-                var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCost);
-                var branchRemainingCost = EstimateBranchLowerBound(branchBacklogCost);
+                var branchBacklog = backlog.Push(lookupWorkItem);
+                var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
                 Enqueue(
                     planNodeTemplate with
                     {
                         SchemaName = toSchema,
                         ResolutionCost = resolutionCost,
                         Backlog = branchBacklog,
-                        BacklogCost = branchBacklogCost,
                         RemainingCost = branchRemainingCost
                     });
                 continue;
@@ -153,16 +150,14 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             foreach (var lookup in schema.GetPossibleLookupsOrdered(workItem.SelectionSet.Type, toSchema))
             {
                 var lookupWorkItem = workItem with { Lookup = lookup };
-                var branchBacklogCost = backlogCost;
-                var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCost);
-                var branchRemainingCost = EstimateBranchLowerBound(branchBacklogCost);
+                var branchBacklog = backlog.Push(lookupWorkItem);
+                var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
                 Enqueue(
                     planNodeTemplate with
                     {
                         SchemaName = toSchema,
                         ResolutionCost = resolutionCost,
                         Backlog = branchBacklog,
-                        BacklogCost = branchBacklogCost,
                         RemainingCost = branchRemainingCost
                     });
 
@@ -182,11 +177,8 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                     t => PlannerExtensions.LookupOrderingKey(t.WorkItem.Lookup),
                     StringComparer.Ordinal))
                 {
-                    var branchBacklogCost = backlogCost;
-                    var branchBacklog = backlog.PushWithLowerBound(
-                        lookupThroughPathWorkItem,
-                        ref branchBacklogCost);
-                    var branchRemainingCost = EstimateBranchLowerBound(branchBacklogCost);
+                    var branchBacklog = backlog.Push(lookupThroughPathWorkItem);
+                    var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
                     Enqueue(
                         planNodeTemplate with
                         {
@@ -194,7 +186,6 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                             SelectionSetIndex = index,
                             ResolutionCost = resolutionCost + cost,
                             Backlog = branchBacklog,
-                            BacklogCost = branchBacklogCost,
                             RemainingCost = branchRemainingCost
                         });
                 }
@@ -206,17 +197,16 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         PlanNode planNodeTemplate,
         NodeLookupWorkItem workItem)
     {
-        var backlogCost = planNodeTemplate.BacklogCost;
-        var backlog = planNodeTemplate.Backlog.PopWithLowerBound(out _, ref backlogCost);
+        var backlog = planNodeTemplate.Backlog.Pop(out _);
         var type = workItem.SelectionSet.Type;
         var hasEnqueuedLookup = false;
 
-        double EstimateBranchLowerBound(BacklogCost branchBacklogCost)
+        double EstimateBranchLowerBound(Backlog branchBacklog)
             => PlannerCostEstimator.EstimateRemainingCost(
                 planNodeTemplate.Options,
                 planNodeTemplate.MaxDepth,
                 planNodeTemplate.OpsPerLevel,
-                branchBacklogCost);
+                branchBacklog.Cost);
 
         // Same branching rule as lookup work items:
         // copy backlog state per branch, then
@@ -237,16 +227,14 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
             }
 
             var lookupWorkItem = workItem with { Lookup = byIdLookup };
-            var branchBacklogCost = backlogCost;
-            var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCost);
-            var branchRemainingCost = EstimateBranchLowerBound(branchBacklogCost);
+            var branchBacklog = backlog.Push(lookupWorkItem);
+            var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
             Enqueue(
                 planNodeTemplate with
                 {
                     SchemaName = schemaName,
                     ResolutionCost = resolutionCost,
                     Backlog = branchBacklog,
-                    BacklogCost = branchBacklogCost,
                     RemainingCost = branchRemainingCost
                 });
 
@@ -265,15 +253,13 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                         $"Expected to have at least one lookup with just an 'id' argument for type '{type.Name}'.");
 
             var lookupWorkItem = workItem with { Lookup = byIdLookup };
-            var branchBacklogCost = backlogCost;
-            var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCost);
-            var branchRemainingCost = EstimateBranchLowerBound(branchBacklogCost);
+            var branchBacklog = backlog.Push(lookupWorkItem);
+            var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
             Enqueue(
                 planNodeTemplate with
                 {
                     SchemaName = byIdLookup.SchemaName,
                     Backlog = branchBacklog,
-                    BacklogCost = branchBacklogCost,
                     RemainingCost = branchRemainingCost
                 });
         }
@@ -283,17 +269,16 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
         PlanNode planNodeTemplate,
         FieldRequirementWorkItem workItem)
     {
-        var backlogCost = planNodeTemplate.BacklogCost;
-        var backlog = planNodeTemplate.Backlog.PopWithLowerBound(out _, ref backlogCost);
+        var backlog = planNodeTemplate.Backlog.Pop(out _);
         var allCandidateSchemas = planNodeTemplate.GetCandidateSchemas(workItem.Selection.SelectionSetId);
         var selectionSetType = workItem.Selection.Field.DeclaringType;
 
-        double EstimateBranchLowerBound(BacklogCost branchBacklogCost)
+        double EstimateBranchLowerBound(Backlog branchBacklog)
             => PlannerCostEstimator.EstimateRemainingCost(
                 planNodeTemplate.Options,
                 planNodeTemplate.MaxDepth,
                 planNodeTemplate.OpsPerLevel,
-                branchBacklogCost);
+                branchBacklog.Cost);
 
         // Requirement planning can fork into inline and lookup paths.
         // Both are scored from the same popped template by cloning and
@@ -309,15 +294,12 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
 
             if (schemaName == planNodeTemplate.SchemaName)
             {
-                var inlineWorkItem = workItem;
-                var inlineBacklogCost = backlogCost;
-                var inlineBacklog = backlog.PushWithLowerBound(inlineWorkItem, ref inlineBacklogCost);
-                var inlineRemainingCost = EstimateBranchLowerBound(inlineBacklogCost);
+                var inlineBacklog = backlog.Push(workItem);
+                var inlineRemainingCost = EstimateBranchLowerBound(inlineBacklog);
                 Enqueue(
                     planNodeTemplate with
                     {
                         Backlog = inlineBacklog,
-                        BacklogCost = inlineBacklogCost,
                         RemainingCost = inlineRemainingCost,
                     });
 
@@ -328,15 +310,13 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                     out var bestLookup))
                 {
                     var lookupWorkItem = workItem with { Lookup = bestLookup };
-                    var branchBacklogCost = backlogCost;
-                    var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCost);
-                    var branchRemainingCost = EstimateBranchLowerBound(branchBacklogCost);
+                    var branchBacklog = backlog.Push(lookupWorkItem);
+                    var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
                     Enqueue(
                         planNodeTemplate with
                         {
                             SchemaName = schemaName,
                             Backlog = branchBacklog,
-                            BacklogCost = branchBacklogCost,
                             RemainingCost = branchRemainingCost
                         });
                     continue;
@@ -345,15 +325,13 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 foreach (var lookup in schema.GetPossibleLookupsOrdered(selectionSetType, schemaName))
                 {
                     var lookupWorkItem = workItem with { Lookup = lookup };
-                    var branchBacklogCost = backlogCost;
-                    var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCost);
-                    var branchRemainingCost = EstimateBranchLowerBound(branchBacklogCost);
+                    var branchBacklog = backlog.Push(lookupWorkItem);
+                    var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
                     Enqueue(
                         planNodeTemplate with
                         {
                             SchemaName = schemaName,
                             Backlog = branchBacklog,
-                            BacklogCost = branchBacklogCost,
                             RemainingCost = branchRemainingCost
                         });
                 }
@@ -367,15 +345,13 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                     out var bestLookup))
                 {
                     var lookupWorkItem = workItem with { Lookup = bestLookup };
-                    var branchBacklogCost = backlogCost;
-                    var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCost);
-                    var branchRemainingCost = EstimateBranchLowerBound(branchBacklogCost);
+                    var branchBacklog = backlog.Push(lookupWorkItem);
+                    var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
                     Enqueue(
                         planNodeTemplate with
                         {
                             SchemaName = schemaName,
                             Backlog = branchBacklog,
-                            BacklogCost = branchBacklogCost,
                             RemainingCost = branchRemainingCost
                         });
                     continue;
@@ -384,15 +360,13 @@ internal sealed class PlanQueue(FusionSchemaDefinition schema)
                 foreach (var lookup in schema.GetPossibleLookupsOrdered(selectionSetType, schemaName))
                 {
                     var lookupWorkItem = workItem with { Lookup = lookup };
-                    var branchBacklogCost = backlogCost;
-                    var branchBacklog = backlog.PushWithLowerBound(lookupWorkItem, ref branchBacklogCost);
-                    var branchRemainingCost = EstimateBranchLowerBound(branchBacklogCost);
+                    var branchBacklog = backlog.Push(lookupWorkItem);
+                    var branchRemainingCost = EstimateBranchLowerBound(branchBacklog);
                     Enqueue(
                         planNodeTemplate with
                         {
                             SchemaName = schemaName,
                             Backlog = branchBacklog,
-                            BacklogCost = branchBacklogCost,
                             RemainingCost = branchRemainingCost
                         });
                 }

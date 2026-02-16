@@ -22,21 +22,18 @@ public sealed partial class OperationPlanner
         var input = new RootSelectionSetPartitionerInput { SelectionSet = selectionSet, SelectionSetIndex = index };
         var result = _nodeFieldSelectionSetPartitioner.Partition(input);
 
-        var backlog = ImmutableStack<WorkItem>.Empty;
-        var backlogCost = BacklogCost.Empty;
+        var backlog = Backlog.Empty;
 
         if (result.SelectionSet is not null)
         {
-            var workItem = OperationWorkItem.CreateRoot(result.SelectionSet);
-            backlog = backlog.PushWithLowerBound(workItem, ref backlogCost);
+            backlog = backlog.Push(OperationWorkItem.CreateRoot(result.SelectionSet));
         }
 
         if (result.NodeFields is not null)
         {
             foreach (var nodeField in result.NodeFields)
             {
-                var workItem = new NodeFieldWorkItem(nodeField);
-                backlog = backlog.PushWithLowerBound(workItem, ref backlogCost);
+                backlog = backlog.Push(new NodeFieldWorkItem(nodeField));
             }
         }
 
@@ -45,7 +42,7 @@ public sealed partial class OperationPlanner
                 _options,
                 currentMaxDepth: 0,
                 ImmutableDictionary<int, int>.Empty,
-                backlogCost);
+                backlog.Cost);
 
         var node = new PlanNode
         {
@@ -56,7 +53,6 @@ public sealed partial class OperationPlanner
             Options = _options,
             SelectionSetIndex = result.SelectionSetIndex,
             Backlog = backlog,
-            BacklogCost = backlogCost,
             RemainingCost = remainingCost,
             OperationStepCount = 0
         };
@@ -78,8 +74,7 @@ public sealed partial class OperationPlanner
         //
         // The plan will end up with separate root nodes for each mutation field, and the
         // plan executor will execute these root nodes in document order.
-        var backlog = ImmutableStack<WorkItem>.Empty;
-        var backlogCost = BacklogCost.Empty;
+        var backlog = Backlog.Empty;
         var selectionSetId = index.GetId(operationDefinition.SelectionSet);
         var indexBuilder = index.ToBuilder();
         SelectionSet firstSelectionSet = null!;
@@ -103,7 +98,7 @@ public sealed partial class OperationPlanner
             // the selection from the last loop iteration (i=0), which corresponds to
             // the first mutation field in document order and the first to be processed.
             firstSelectionSet = selectionSet;
-            backlog = backlog.PushWithLowerBound(OperationWorkItem.CreateRoot(selectionSet), ref backlogCost);
+            backlog = backlog.Push(OperationWorkItem.CreateRoot(selectionSet));
         }
 
         var remainingCost =
@@ -111,7 +106,7 @@ public sealed partial class OperationPlanner
                 _options,
                 currentMaxDepth: 0,
                 ImmutableDictionary<int, int>.Empty,
-                backlogCost);
+                backlog.Cost);
 
         var node = new PlanNode
         {
@@ -122,7 +117,6 @@ public sealed partial class OperationPlanner
             Options = _options,
             SelectionSetIndex = indexBuilder,
             Backlog = backlog,
-            BacklogCost = backlogCost,
             RemainingCost = remainingCost,
             OperationStepCount = 0
         };
@@ -141,16 +135,13 @@ public sealed partial class OperationPlanner
             _schema.GetOperationType(operationDefinition.Operation),
             SelectionPath.Root);
 
-        var workItem = OperationWorkItem.CreateRoot(selectionSet);
-        var backlog = ImmutableStack<WorkItem>.Empty;
-        var backlogCost = BacklogCost.Empty;
-        backlog = backlog.PushWithLowerBound(workItem, ref backlogCost);
+        var backlog = Backlog.Empty.Push(OperationWorkItem.CreateRoot(selectionSet));
         var remainingCost =
             PlannerCostEstimator.EstimateRemainingCost(
                 _options,
                 currentMaxDepth: 0,
                 ImmutableDictionary<int, int>.Empty,
-                backlogCost);
+                backlog.Cost);
 
         var node = new PlanNode
         {
@@ -161,7 +152,6 @@ public sealed partial class OperationPlanner
             Options = _options,
             SelectionSetIndex = index,
             Backlog = backlog,
-            BacklogCost = backlogCost,
             RemainingCost = remainingCost,
             OperationStepCount = 0
         };
