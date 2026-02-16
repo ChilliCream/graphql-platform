@@ -43,10 +43,10 @@ public class ByteType : IntegerTypeBase<sbyte>
         => inputValue.GetSByte();
 
     /// <inheritdoc />
-    public override void OnCoerceOutputValue(sbyte runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(sbyte runtimeValue, ResultElement resultValue)
         => resultValue.SetNumberValue(runtimeValue);
 
     /// <inheritdoc />
-    public override IValueNode OnValueToLiteral(sbyte runtimeValue)
+    protected override IValueNode OnValueToLiteral(sbyte runtimeValue)
         => new IntValueNode(runtimeValue);
 }

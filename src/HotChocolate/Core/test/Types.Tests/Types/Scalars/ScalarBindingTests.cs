@@ -72,12 +72,12 @@ public class ScalarBindingTests
             throw new NotImplementedException();
         }
 
-        public override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
+        protected override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
         {
             throw new NotImplementedException();
         }
 
-        public override IValueNode OnValueToLiteral(int runtimeValue)
+        protected override IValueNode OnValueToLiteral(int runtimeValue)
         {
             throw new NotImplementedException();
         }
@@ -102,12 +102,12 @@ public class ScalarBindingTests
             throw new NotImplementedException();
         }
 
-        public override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
+        protected override void OnCoerceOutputValue(int runtimeValue, ResultElement resultValue)
         {
             throw new NotImplementedException();
         }
 
-        public override IValueNode OnValueToLiteral(int runtimeValue)
+        protected override IValueNode OnValueToLiteral(int runtimeValue)
         {
             throw new NotImplementedException();
         }
