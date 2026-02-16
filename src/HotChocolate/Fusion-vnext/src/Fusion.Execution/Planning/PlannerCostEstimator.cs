@@ -26,7 +26,7 @@ internal static class PlannerCostEstimator
 
     /// <summary>
     /// Computes the priority score for a plan node that indicates how promising this plan branch is.
-    /// Lower scores are explored first. The score adds up the path cost, backlog lower bound, resolution cost,
+    /// Lower scores are explored first. The score adds up the path cost, remaining cost, resolution cost,
     /// and a small adjustment for the next backlog item (spillover or inline likelihood).
     /// </summary>
     public static double ScoreNode(
@@ -37,7 +37,7 @@ internal static class PlannerCostEstimator
 
         if (!node.Backlog.IsEmpty)
         {
-            // The backlog lower bound is a cheap optimistic floor that stays safe for pruning.
+            // The remaining cost is a cheap optimistic floor that stays safe for pruning.
             // To improve ranking without re-scoring the entire backlog on every enqueue,
             // we only apply a context-aware tweak (spillover / inline likelihood) to the
             // next item about to be processed.
