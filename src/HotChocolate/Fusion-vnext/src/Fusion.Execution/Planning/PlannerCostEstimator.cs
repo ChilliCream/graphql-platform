@@ -6,79 +6,199 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Planning;
 
+/// <summary>
+/// The main purpose of the PlannerCostEstimator is to create a score for the OperationPlanner
+/// that indicates how promising a plan branch is. It also tracks the estimated cost of
+/// remaining work items and adjusts scores for field spillover across schemas and for
+/// requirements that can be inlined into existing steps.
+/// </summary>
 internal static class PlannerCostEstimator
 {
-    internal const double OperationStepCost = 10.0;
+    private const double OperationStepCost = 10.0;
     private const double RequirementLookupCost = 12.0;
     private const double InlineLikelyCost = 1.0;
 
-    public static double EstimateTotalCost(
+    /// <summary>
+    /// Fake schema name added to the spillover set when a field can be served by the target
+    /// schema but has requirements — counts as one extra operation in the spillover estimate.
+    /// </summary>
+    private const string RequirementSpilloverMarker = "__requirement__";
+
+    /// <summary>
+    /// Computes the priority score for a plan node that indicates how promising this plan branch is.
+    /// Lower scores are explored first. The score adds up the path cost, backlog lower bound, resolution cost,
+    /// and a small adjustment for the next backlog item (spillover or inline likelihood).
+    /// </summary>
+    public static double ScoreNode(
         PlanNode node,
         FusionSchemaDefinition schema)
     {
-        var total = EstimatePathCost(node) + node.BacklogLowerBound + node.ResolutionCost;
+        var score = node.PathCost + node.BacklogLowerBound + node.ResolutionCost;
 
         if (!node.Backlog.IsEmpty)
         {
-            // We keep backlog lower bound maintenance fully incremental and only apply
-            // a small context-sensitive adjustment for the next work item.
-            total += EstimateContextualAdjustment(node.Backlog.Peek(), node, schema);
+            // The backlog lower bound is a cheap optimistic floor that stays safe for pruning.
+            // To improve ranking without re-scoring the entire backlog on every enqueue,
+            // we only apply a context-aware tweak (spillover / inline likelihood) to the
+            // next item about to be processed.
+            score += node.Backlog.Peek() switch
+            {
+                // Spillover: how many fields in this selection set can't be served by
+                // the target schema and will need additional operations on other schemas.
+                OperationWorkItem wi
+                    => EstimateSpillover(wi.SelectionSet, node.SchemaName, schema),
+
+                // Inline likelihood: if a requirement can likely be folded into an
+                // existing step we lower its cost; otherwise we charge the cost of a full operation.
+                FieldRequirementWorkItem { Lookup: null } wi
+                    => EstimateInlineCost(wi, node),
+
+                _ => 0.0
+            };
         }
 
-        return total;
+        return score;
     }
 
-    public static double EstimatePathCost(PlanNode node)
-        => node.PathCost;
-
-    public static double EstimateBacklogCost(
-        PlanNode node,
+    private static double EstimateSpillover(
+        SelectionSet selectionSet,
+        string targetSchema,
         FusionSchemaDefinition schema)
-        => node.BacklogLowerBound
-            + (node.Backlog.IsEmpty
-                ? 0.0
-                : EstimateContextualAdjustment(node.Backlog.Peek(), node, schema));
-
-    public static double EstimateWorkItemLowerBound(WorkItem workItem)
     {
-        return workItem switch
+        if (string.IsNullOrEmpty(targetSchema)
+            || targetSchema.Equals(PlanNode.UnresolvedSchemaName, StringComparison.Ordinal))
         {
-            OperationWorkItem => OperationStepCost,
+            return 0.0;
+        }
 
-            FieldRequirementWorkItem { Lookup: not null }
-                => RequirementLookupCost,
+        var spilloverSchemas = new HashSet<string>(StringComparer.Ordinal);
 
-            FieldRequirementWorkItem
-                => InlineLikelyCost,
+        // We walks the selection set and collect the distinct set of schemas that the target
+        // schema cannot serve, plus a marker if any field has requirements on the target schema.
+        CollectSpilloverSchemas(
+            schema,
+            selectionSet.Type,
+            selectionSet.Selections,
+            targetSchema,
+            spilloverSchemas);
 
-            NodeFieldWorkItem wi
-                => OperationStepCost + EstimateNodeBranches(wi.NodeField) * OperationStepCost,
-
-            NodeLookupWorkItem
-                => OperationStepCost,
-
-            _ => 1.0
-        };
+        // The count of the spilloverSchemas set drives the spillover cost estimate.
+        return spilloverSchemas.Count * OperationStepCost;
     }
 
-    public static double EstimateWorkItemCost(
-        WorkItem workItem,
-        PlanNode current,
-        FusionSchemaDefinition schema)
-        => EstimateWorkItemLowerBound(workItem)
-            + EstimateContextualAdjustment(workItem, current, schema);
+    private static void CollectSpilloverSchemas(
+        FusionSchemaDefinition schema,
+        ITypeDefinition type,
+        IReadOnlyList<ISelectionNode> selections,
+        string targetSchema,
+        HashSet<string> spilloverSchemas)
+    {
+        if (type is not FusionComplexTypeDefinition complexType)
+        {
+            return;
+        }
 
-    public static BacklogCostState AddWorkItemLowerBound(
+        foreach (var selection in selections)
+        {
+            switch (selection)
+            {
+                case FieldNode fieldNode:
+                    if (fieldNode.Name.Value.Equals(IntrospectionFieldNames.TypeName, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    var field = complexType.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
+
+                    if (!schema.TryGetFieldResolution(complexType, field.Name, out var fieldResolution))
+                    {
+                        continue;
+                    }
+
+                    // Field can't be served by the target schema — collect all alternative schemas.
+                    if (!fieldResolution.ContainsSchema(targetSchema))
+                    {
+                        foreach (var schemaName in fieldResolution.Schemas)
+                        {
+                            spilloverSchemas.Add(schemaName);
+                        }
+                    }
+                    // Field is on the target schema but has requirements — count that as
+                    // one extra operation since a requirement lookup will be needed.
+                    else if (fieldResolution.HasRequirements(targetSchema))
+                    {
+                        spilloverSchemas.Add(RequirementSpilloverMarker);
+                    }
+
+                    if (fieldNode.SelectionSet is not null)
+                    {
+                        CollectSpilloverSchemas(
+                            schema,
+                            field.Type.AsTypeDefinition(),
+                            fieldNode.SelectionSet.Selections,
+                            targetSchema,
+                            spilloverSchemas);
+                    }
+
+                    break;
+
+                case InlineFragmentNode inlineFragmentNode:
+                    var typeCondition = type;
+
+                    if (inlineFragmentNode.TypeCondition is not null)
+                    {
+                        typeCondition = schema.Types[inlineFragmentNode.TypeCondition.Name.Value];
+                    }
+
+                    CollectSpilloverSchemas(
+                        schema,
+                        typeCondition,
+                        inlineFragmentNode.SelectionSet.Selections,
+                        targetSchema,
+                        spilloverSchemas);
+
+                    break;
+            }
+        }
+    }
+
+    private static double EstimateInlineCost(
+        FieldRequirementWorkItem workItem,
+        PlanNode current)
+    {
+        var selectionSetId = workItem.Selection.SelectionSetId;
+
+        for (var i = 0; i < current.Steps.Count; i++)
+        {
+            if (current.Steps[i] is OperationPlanStep step
+                && step.SelectionSets.Contains(selectionSetId)
+                && step.Id != workItem.StepId)
+            {
+                return 0.0;
+            }
+        }
+
+        return OperationStepCost - InlineLikelyCost;
+    }
+
+    /// <summary>
+    /// Records the minimum guaranteed cost of a work item being added to the backlog
+    /// and tracks its projected depth for fan-out estimation.
+    /// </summary>
+    public static BacklogCostState PushWorkItem(
         BacklogCostState backlogCostState,
         WorkItem workItem)
     {
-        // This is the pure optimistic floor for remaining work:
-        // we only add guarantees here.
+        // When a work item gets added to the backlog, we record the cheapest it could possibly cost.
+        // We deliberately keep this estimate low. If a work item might be inlined for free or might
+        // need a full operation, we assume the cheap case.
         //
-        // Any context-dependent adjustments (spillover/inline likelihood) stay outside this
-        // incremental state so branch-and-bound pruning remains a safe lower bound.
-        var operationLowerBound =
-            backlogCostState.OperationLowerBound + EstimateWorkItemLowerBound(workItem);
+        // That way the planner never accidentally throws away a plan branch that
+        // could turn out to be the best one.
+        //
+        // We also record which depth level this work item will likely produce an operation at,
+        // so we can later detect if too many operations are piling up at the same level (fan-out).
+        var operationLowerBound = backlogCostState.OperationLowerBound + EstimateWorkItemLowerBound(workItem);
         var maxProjectedDepth = backlogCostState.MaxProjectedDepth;
         var projectedOpsPerLevel = backlogCostState.ProjectedOpsPerLevel;
 
@@ -96,14 +216,17 @@ internal static class PlannerCostEstimator
         return new BacklogCostState(operationLowerBound, maxProjectedDepth, projectedOpsPerLevel);
     }
 
-    public static BacklogCostState RemoveWorkItemLowerBound(
+    /// <summary>
+    /// Inverse of <see cref="PushWorkItem"/>: removes the guaranteed cost of a work item
+    /// being taken off the backlog and updates the projected depth tracking.
+    /// </summary>
+    public static BacklogCostState PopWorkItem(
         BacklogCostState backlogCostState,
         WorkItem workItem)
     {
-        // Pop is the inverse of push: remove the optimistic floor for the popped work item
-        // and update the projected shape only if that item represented a guaranteed operation.
-        var operationLowerBound =
-            Math.Max(0.0, backlogCostState.OperationLowerBound - EstimateWorkItemLowerBound(workItem));
+        // Inverse of PushWorkItem: removes the guaranteed cost floor for the popped work item
+        // and updates the projected depth shape.
+        var operationLowerBound = Math.Max(0.0, backlogCostState.OperationLowerBound - EstimateWorkItemLowerBound(workItem));
         var maxProjectedDepth = backlogCostState.MaxProjectedDepth;
         var projectedOpsPerLevel = backlogCostState.ProjectedOpsPerLevel;
 
@@ -128,13 +251,32 @@ internal static class PlannerCostEstimator
         return new BacklogCostState(operationLowerBound, maxProjectedDepth, projectedOpsPerLevel);
     }
 
-    public static double EstimateBacklogLowerBound(PlanNode node)
-        => EstimateBacklogLowerBound(
-            node.Options,
-            node.MaxDepth,
-            node.OpsPerLevel,
-            node.BacklogCostState);
+    private static double EstimateWorkItemLowerBound(WorkItem workItem)
+    {
+        return workItem switch
+        {
+            OperationWorkItem => OperationStepCost,
 
+            FieldRequirementWorkItem { Lookup: not null }
+                => RequirementLookupCost,
+
+            FieldRequirementWorkItem
+                => InlineLikelyCost,
+
+            NodeFieldWorkItem wi
+                => OperationStepCost + EstimateNodeBranches(wi.NodeField) * OperationStepCost,
+
+            NodeLookupWorkItem
+                => OperationStepCost,
+
+            _ => 1.0
+        };
+    }
+
+    /// <summary>
+    /// Computes the optimistic lower bound for all remaining backlog work. This combines the
+    /// guaranteed operation floor with penalties for additional depth and excess fan-out.
+    /// </summary>
     public static double EstimateBacklogLowerBound(
         OperationPlannerOptions options,
         int currentMaxDepth,
@@ -176,42 +318,6 @@ internal static class PlannerCostEstimator
         return total;
     }
 
-    private static double EstimateContextualAdjustment(
-        WorkItem workItem,
-        PlanNode current,
-        FusionSchemaDefinition schema)
-    {
-        return workItem switch
-        {
-            OperationWorkItem wi
-                => EstimateSpillover(wi.SelectionSet, current.SchemaName, schema),
-
-            FieldRequirementWorkItem { Lookup: null } wi
-                => EstimateInlineLikelihoodAdjustment(wi, current),
-
-            _ => 0.0
-        };
-    }
-
-    private static double EstimateInlineLikelihoodAdjustment(
-        FieldRequirementWorkItem workItem,
-        PlanNode current)
-    {
-        var selectionSetId = workItem.Selection.SelectionSetId;
-
-        for (var i = 0; i < current.Steps.Count; i++)
-        {
-            if (current.Steps[i] is OperationPlanStep step
-                && step.SelectionSets.Contains(selectionSetId)
-                && step.Id != workItem.StepId)
-            {
-                return 0.0;
-            }
-        }
-
-        return OperationStepCost - InlineLikelyCost;
-    }
-
     private static bool TryGetProjectedOperationDepth(
         WorkItem workItem,
         out int projectedDepth)
@@ -248,117 +354,7 @@ internal static class PlannerCostEstimator
         return maxProjectedDepth;
     }
 
-    private static double EstimateSpillover(
-        SelectionSet selectionSet,
-        string targetSchema,
-        FusionSchemaDefinition schema)
-    {
-        if (string.IsNullOrEmpty(targetSchema)
-            || targetSchema.Equals("None", StringComparison.Ordinal))
-        {
-            return 0.0;
-        }
 
-        var spilloverSchemas = new HashSet<string>(StringComparer.Ordinal);
-
-        CollectSpilloverSchemas(
-            schema,
-            selectionSet.Type,
-            selectionSet.Selections,
-            targetSchema,
-            spilloverSchemas);
-
-        return spilloverSchemas.Count * OperationStepCost;
-    }
-
-    private static void CollectSpilloverSchemas(
-        FusionSchemaDefinition schema,
-        ITypeDefinition type,
-        IReadOnlyList<ISelectionNode> selections,
-        string targetSchema,
-        HashSet<string> spilloverSchemas)
-    {
-        if (type is not FusionComplexTypeDefinition complexType)
-        {
-            return;
-        }
-
-        foreach (var selection in selections)
-        {
-            switch (selection)
-            {
-                case FieldNode fieldNode:
-                    if (fieldNode.Name.Value.Equals(IntrospectionFieldNames.TypeName, StringComparison.Ordinal))
-                    {
-                        continue;
-                    }
-
-                    var field = complexType.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
-
-                    if (schema.TryGetFieldResolution(complexType, field.Name, out var fieldResolution))
-                    {
-                        if (!fieldResolution.ContainsSchema(targetSchema))
-                        {
-                            foreach (var schemaName in fieldResolution.Schemas)
-                            {
-                                spilloverSchemas.Add(schemaName);
-                            }
-                        }
-                        else if (fieldResolution.HasRequirements(targetSchema))
-                        {
-                            spilloverSchemas.Add("__requirement__");
-                        }
-                    }
-                    else
-                    {
-                        if (!field.Sources.ContainsSchema(targetSchema))
-                        {
-                            foreach (var schemaName in field.Sources.Schemas)
-                            {
-                                if (!schemaName.Equals(targetSchema, StringComparison.Ordinal))
-                                {
-                                    spilloverSchemas.Add(schemaName);
-                                }
-                            }
-                        }
-                        else if (field.Sources.TryGetMember(targetSchema, out var source)
-                            && source.Requirements is not null)
-                        {
-                            spilloverSchemas.Add("__requirement__");
-                        }
-                    }
-
-                    if (fieldNode.SelectionSet is not null)
-                    {
-                        CollectSpilloverSchemas(
-                            schema,
-                            field.Type.AsTypeDefinition(),
-                            fieldNode.SelectionSet.Selections,
-                            targetSchema,
-                            spilloverSchemas);
-                    }
-
-                    break;
-
-                case InlineFragmentNode inlineFragmentNode:
-                    var typeCondition = type;
-
-                    if (inlineFragmentNode.TypeCondition is not null)
-                    {
-                        typeCondition = schema.Types[inlineFragmentNode.TypeCondition.Name.Value];
-                    }
-
-                    CollectSpilloverSchemas(
-                        schema,
-                        typeCondition,
-                        inlineFragmentNode.SelectionSet.Selections,
-                        targetSchema,
-                        spilloverSchemas);
-
-                    break;
-            }
-        }
-    }
 
     private static int EstimateNodeBranches(NodeField nodeField)
     {
