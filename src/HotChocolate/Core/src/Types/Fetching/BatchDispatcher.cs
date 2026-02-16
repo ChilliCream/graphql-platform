@@ -28,6 +28,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
     private readonly BatchDispatcherOptions _options;
     private List<Task>? _dispatchTasks;
+    private List<Task>? _inFlightDispatches;
     private int _openBatches;
     private long _lastSubscribed;
     private long _lastEnqueued;
@@ -43,6 +44,15 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         ArgumentNullException.ThrowIfNull(diagnosticEvents);
 
         _diagnosticEvents = diagnosticEvents;
+
+        // Guard against `default(BatchDispatcherOptions)` which zeroes all fields,
+        // bypassing the struct's field initializers and silently disabling age-based
+        // forced dispatch.
+        if (options.MaxBatchWaitTimeUs == 0)
+        {
+            options.MaxBatchWaitTimeUs = 50_000;
+        }
+
         _options = options;
         _coordinatorCts.Token.Register(_signal.Set);
     }
@@ -91,7 +101,8 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         using var scope = _diagnosticEvents.RunBatchDispatchCoordinator();
 
         var backlog = new PriorityQueue<Batch, long>();
-        _dispatchTasks ??= new List<Task>(_options.MaxParallelBatches);
+        _dispatchTasks ??= new List<Task>(4);
+        _inFlightDispatches ??= new List<Task>(4);
 
         Send(BatchDispatchEventType.CoordinatorStarted);
 
@@ -106,7 +117,11 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
                     return;
                 }
 
-                await EvaluateAndDispatchAsync(backlog, _dispatchTasks, stoppingToken);
+                await EvaluateAndDispatchAsync(
+                    backlog,
+                    _dispatchTasks,
+                    _inFlightDispatches,
+                    stoppingToken);
             }
         }
         catch (Exception ex)
@@ -124,17 +139,30 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     private async Task EvaluateAndDispatchAsync(
         PriorityQueue<Batch, long> backlog,
         List<Task> dispatchTasks,
+        List<Task> inFlightDispatches,
         CancellationToken stoppingToken)
     {
-        var noDispatchCycles = 0;
+        var idleCycles = 0;
 
         while (!stoppingToken.IsCancellationRequested)
         {
+            var completedDispatches = await CompleteInFlightDispatchesAsync(inFlightDispatches)
+                .ConfigureAwait(false);
+
+            if (completedDispatches > 0)
+            {
+                _diagnosticEvents.BatchDispatched(completedDispatches);
+                Send(BatchDispatchEventType.Dispatched);
+                idleCycles = 0;
+            }
+
             var openBatches = Volatile.Read(ref _openBatches);
             long lastModified = 0;
 
-            // If we have no open batches to evaluate, we can stop
-            // and wait for another signal.
+            // If we have no open batches to evaluate and all in-flight dispatches
+            // are completed, we can stop and wait for another signal.
+            // If there are in-flight dispatches still running we also stop and
+            // wait for their completion signal.
             if (openBatches == 0)
             {
                 return;
@@ -146,35 +174,13 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
             EvaluateOpenBatches(ref lastModified, backlog, dispatchTasks);
 
-            // If the evaluation selected batches for dispatch.
+            // If the evaluation selected batches for dispatch, we register them
+            // as in-flight and continue evaluation without waiting for completion.
             if (dispatchTasks.Count > 0)
             {
-                // We wait for all dispatch tasks to be completed before we reset the signal
-                // that lets us pause the evaluation. Only then will we send a message to
-                // the subscribed executors to reevaluate if they can continue execution.
-                if (dispatchTasks.Count == 1)
-                {
-                    await dispatchTasks[0];
-                }
-                else
-                {
-                    if (_options.EnableParallelBatches)
-                    {
-                        await Task.WhenAll(dispatchTasks);
-                    }
-                    else
-                    {
-                        foreach (var task in dispatchTasks)
-                        {
-                            await task.ConfigureAwait(false);
-                        }
-                    }
-                }
-
-                _diagnosticEvents.BatchDispatched(dispatchTasks.Count, _options.EnableParallelBatches);
-                _signal.TryResetToIdle();
-                Send(BatchDispatchEventType.Dispatched);
-                return;
+                RegisterInFlightDispatches(dispatchTasks, inFlightDispatches);
+                idleCycles = 0;
+                continue;
             }
 
             // Signal that we have evaluated all enqueued tasks without dispatching any.
@@ -185,15 +191,56 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
             // data requirements to the open batches.
             await WaitForMoreBatchActivityAsync(lastModified);
 
-            // After 10 cycles without dispatch, we add a small delay to provide backpressure.
-            if (noDispatchCycles >= 10)
+            // After 10 cycles without dispatch, insert a delay to avoid busy-spinning.
+            // The first 10 cycles run tight (only the conditional yield in
+            // WaitForMoreBatchActivityAsync) to give resolvers time to fill batches.
+            if (idleCycles++ >= 10)
             {
                 await Task.Delay(10, stoppingToken);
-                noDispatchCycles = 0;
+                idleCycles = 0;
+            }
+        }
+    }
+
+    private void RegisterInFlightDispatches(
+        List<Task> dispatchTasks,
+        List<Task> inFlightDispatches)
+    {
+        foreach (var dispatchTask in dispatchTasks)
+        {
+            if (!dispatchTask.IsCompleted)
+            {
+                _ = dispatchTask.ContinueWith(
+                    static (_, state) => ((AsyncAutoResetEvent)state!).Set(),
+                    _signal,
+                    CancellationToken.None,
+                    TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default);
             }
 
-            noDispatchCycles++;
+            inFlightDispatches.Add(dispatchTask);
         }
+    }
+
+    private static async Task<int> CompleteInFlightDispatchesAsync(List<Task> inFlightDispatches)
+    {
+        var completedDispatches = 0;
+
+        for (var i = inFlightDispatches.Count - 1; i >= 0; i--)
+        {
+            var dispatchTask = inFlightDispatches[i];
+
+            if (!dispatchTask.IsCompleted)
+            {
+                continue;
+            }
+
+            await dispatchTask.ConfigureAwait(false);
+            inFlightDispatches.RemoveAt(i);
+            completedDispatches++;
+        }
+
+        return completedDispatches;
     }
 
     private void EvaluateOpenBatches(
@@ -231,7 +278,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
         // we force dispatch it regardless of its status to prevent starvation
         // under continuous high load.
         //
-        // We stop evaluation once we've dispatched MaxParallelBatches or when we have touched all batches.
+        // We stop evaluation when we have touched all batches.
         if (singleBatch is not null)
         {
             // we have an optimized path if there is only a single batch to evaluate.
@@ -250,7 +297,6 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
     {
         var now = Stopwatch.GetTimestamp();
         var maxBatchAgeUs = _options.MaxBatchWaitTimeUs;
-        var maxParallelBatches = _options.MaxParallelBatches;
 
         while (backlog.TryDequeue(out var batch, out _))
         {
@@ -275,11 +321,6 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
                 Interlocked.Decrement(ref _openBatches);
                 dispatchTasks.Add(batch.DispatchAsync());
-            }
-
-            if (dispatchTasks.Count == maxParallelBatches)
-            {
-                break;
             }
         }
     }
