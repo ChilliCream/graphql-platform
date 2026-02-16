@@ -33,7 +33,7 @@ internal static class PlannerCostEstimator
         PlanNode node,
         FusionSchemaDefinition schema)
     {
-        var score = node.PathCost + node.RemainingCost + node.ResolutionCost;
+        var score = node.TotalCost;
 
         if (!node.Backlog.IsEmpty)
         {
