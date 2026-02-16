@@ -57,10 +57,10 @@ public class DecimalType : FloatTypeBase<decimal>
         => inputValue.GetDecimal();
 
     /// <inheritdoc />
-    public override void OnCoerceOutputValue(decimal runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(decimal runtimeValue, ResultElement resultValue)
         => resultValue.SetNumberValue(runtimeValue);
 
     /// <inheritdoc />
-    public override IValueNode OnValueToLiteral(decimal runtimeValue)
+    protected override IValueNode OnValueToLiteral(decimal runtimeValue)
         => new FloatValueNode(runtimeValue);
 }

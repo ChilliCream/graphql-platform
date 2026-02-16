@@ -74,7 +74,7 @@ public sealed class AnyType : ScalarType<JsonElement>
         => inputValue.Clone();
 
     /// <inheritdoc />
-    public override void OnCoerceOutputValue(JsonElement runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(JsonElement runtimeValue, ResultElement resultValue)
     {
         switch (runtimeValue.ValueKind)
         {
@@ -145,7 +145,7 @@ public sealed class AnyType : ScalarType<JsonElement>
     }
 
     /// <inheritdoc />
-    public override IValueNode OnValueToLiteral(JsonElement runtimeValue)
+    protected override IValueNode OnValueToLiteral(JsonElement runtimeValue)
         => JsonParser.Parse(runtimeValue);
 
     private static class JsonParser

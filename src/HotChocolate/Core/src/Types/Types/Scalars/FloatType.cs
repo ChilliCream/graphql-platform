@@ -60,10 +60,10 @@ public class FloatType : FloatTypeBase<double>
         => inputValue.GetDouble();
 
     /// <inheritdoc />
-    public override void OnCoerceOutputValue(double runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(double runtimeValue, ResultElement resultValue)
         => resultValue.SetNumberValue(runtimeValue);
 
     /// <inheritdoc />
-    public override IValueNode OnValueToLiteral(double runtimeValue)
+    protected override IValueNode OnValueToLiteral(double runtimeValue)
         => new FloatValueNode(runtimeValue);
 }
