@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Rewriters;
@@ -74,7 +73,7 @@ public sealed partial class OperationPlanner
         var operationType = operationDefinition.Operation.ToString();
         var rootSelectionCount = operationDefinition.SelectionSet.Selections.Count;
         var startedAt = eventSourceEnabled ? Stopwatch.GetTimestamp() : 0L;
-        var searchSpace = 0u;
+        var searchSpace = 0;
         var expandedNodes = 0;
         var stepCount = 0;
 
@@ -161,7 +160,7 @@ public sealed partial class OperationPlanner
                 eventSource.PlanStop(
                     id,
                     (long)elapsed.TotalMilliseconds,
-                    searchSpace <= int.MaxValue ? (int)searchSpace : int.MaxValue,
+                    searchSpace,
                     expandedNodes,
                     stepCount);
             }
@@ -187,7 +186,7 @@ public sealed partial class OperationPlanner
     private PlanResult? Plan(string operationId, PlanQueue possiblePlans, bool emitPlannerEvents)
     {
         var eventSource = PlannerEventSource.Log;
-        var searchSpace = (uint)possiblePlans.Count;
+        var searchSpace = possiblePlans.Count;
         var expandedNodes = 0;
 
         // TryBuildGreedyCompletePlan quickly builds one full plan by always choosing the currently
@@ -196,14 +195,14 @@ public sealed partial class OperationPlanner
         // It gives the planner an initial best known complete cost, so the main search can skip branches
         // that are already worse. If it cannot finish a full plan, it returns null and the planner
         // continues without that early shortcut.
-        var bestCompleteNode = TryBuildGreedyCompletePlan(possiblePlans);
-        var bestCompleteCost = bestCompleteNode is null ? double.PositiveInfinity : bestCompleteNode.PathCost;
+        var bestCompletePlan = TryBuildGreedyCompletePlan(possiblePlans);
+        var bestCompletePlanCost = bestCompletePlan is null ? double.PositiveInfinity : bestCompletePlan.PathCost;
 
         while (possiblePlans.TryDequeue(out var current, out _))
         {
             expandedNodes++;
             var possiblePlansCount = possiblePlans.Count;
-            searchSpace = MaxSearchSpace(Unsafe.As<int, uint>(ref possiblePlansCount), searchSpace);
+            searchSpace = Math.Max(possiblePlansCount, searchSpace);
 
             var backlog = current.Backlog;
             var backlogCost = current.BacklogCost;
@@ -221,7 +220,7 @@ public sealed partial class OperationPlanner
             // If the current plan is already at least as expensive as the
             // best complete plan, we can skip it and don't need to evaluate
             // it any further.
-            if (current.BestCaseCost >= bestCompleteCost)
+            if (current.BestCaseCost >= bestCompletePlanCost)
             {
                 continue;
             }
@@ -232,13 +231,13 @@ public sealed partial class OperationPlanner
                 // If cost is the same, use a deterministic tie-break so results stay stable.
                 var completeCost = current.PathCost;
 
-                if (completeCost < bestCompleteCost
-                    || (completeCost.Equals(bestCompleteCost)
-                        && bestCompleteNode is not null
-                        && ComparePlanDeterministically(current, bestCompleteNode) < 0))
+                if (completeCost < bestCompletePlanCost
+                    || (completeCost.Equals(bestCompletePlanCost)
+                        && bestCompletePlan is not null
+                        && ComparePlansForTieBreak(current, bestCompletePlan) < 0))
                 {
-                    bestCompleteNode = current;
-                    bestCompleteCost = completeCost;
+                    bestCompletePlan = current;
+                    bestCompletePlanCost = completeCost;
                 }
 
                 continue;
@@ -292,20 +291,17 @@ public sealed partial class OperationPlanner
             }
         }
 
-        if (bestCompleteNode is null)
+        if (bestCompletePlan is null)
         {
             return null;
         }
 
         return new PlanResult(
-            bestCompleteNode.InternalOperationDefinition,
-            bestCompleteNode.Steps,
+            bestCompletePlan.InternalOperationDefinition,
+            bestCompletePlan.Steps,
             searchSpace,
             expandedNodes,
-            bestCompleteNode.OperationStepCount);
-
-        static uint MaxSearchSpace(uint val1, uint val2)
-            => (val1 >= val2) ? val1 : val2;
+            bestCompletePlan.OperationStepCount);
 
         static string FormatWorkItemName(WorkItem workItem)
             => workItem switch
@@ -419,7 +415,7 @@ public sealed partial class OperationPlanner
             ? stepDepth
             : 1;
 
-    private static int ComparePlanDeterministically(PlanNode left, PlanNode right)
+    private static int ComparePlansForTieBreak(PlanNode left, PlanNode right)
     {
         var stepCountComparison = left.OperationStepCount.CompareTo(right.OperationStepCount);
         if (stepCountComparison != 0)
@@ -1883,7 +1879,7 @@ public sealed partial class OperationPlanner
     private readonly record struct PlanResult(
         OperationDefinitionNode InternalOperationDefinition,
         ImmutableList<PlanStep> Steps,
-        uint SearchSpace,
+        int SearchSpace,
         int ExpandedNodes,
         int StepCount);
 
