@@ -33,7 +33,7 @@ internal static class PlannerCostEstimator
         PlanNode node,
         FusionSchemaDefinition schema)
     {
-        var score = node.PathCost + node.BacklogLowerBound + node.ResolutionCost;
+        var score = node.PathCost + node.RemainingCost + node.ResolutionCost;
 
         if (!node.Backlog.IsEmpty)
         {
@@ -345,10 +345,10 @@ internal static class PlannerCostEstimator
     }
 
     /// <summary>
-    /// Computes the lower bound for all remaining backlog work by combining the minimum cost
+    /// Estimates the cost of completing all remaining backlog work by combining the minimum cost
     /// with penalties for additional depth and excess fan-out.
     /// </summary>
-    public static double EstimateBacklogLowerBound(
+    public static double EstimateRemainingCost(
         OperationPlannerOptions options,
         int currentMaxDepth,
         ImmutableDictionary<int, int> currentOpsPerLevel,
