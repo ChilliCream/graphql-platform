@@ -4,20 +4,22 @@ using HotChocolate.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Properties;
 using HotChocolate.Text.Json;
 using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
 /// <summary>
-/// <para>
-/// The JSON scalar type represents a JSON node which can be a string,
-/// a number a boolean, an array, an object or null.
-/// </para>
-/// <para>The runtime representation of the JSON scalar is an <see cref="JsonElement"/>.</para>
+/// The <c>Any</c> scalar type represents any valid GraphQL value. It is intended for scenarios
+/// where the type of data is dynamic or not known at schema definition time, such as configuration
+/// objects, metadata, flexible schemas, or polymorphic data structures.
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/any.html">Specification</seealso>
 public sealed class AnyType : ScalarType<JsonElement>
 {
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/any.html";
+
     /// <summary>
     /// Initializes a new instance of <see cref="AnyType"/>.
     /// </summary>
@@ -28,6 +30,7 @@ public sealed class AnyType : ScalarType<JsonElement>
         : base(name, bind)
     {
         Description = description;
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>
@@ -35,7 +38,10 @@ public sealed class AnyType : ScalarType<JsonElement>
     /// </summary>
     [ActivatorUtilitiesConstructor]
     public AnyType()
-        : this(ScalarNames.Any, bind: BindingBehavior.Implicit)
+        : this(
+            ScalarNames.Any,
+            TypeResources.AnyType_Description,
+            BindingBehavior.Implicit)
     {
     }
 

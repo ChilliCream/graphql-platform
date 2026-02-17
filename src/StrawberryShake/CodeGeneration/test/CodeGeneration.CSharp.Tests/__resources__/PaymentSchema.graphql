@@ -7672,19 +7672,20 @@ directive @specifiedBy("The specifiedBy URL points to a human-readable specifica
 "The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
 directive @stream("Streamed when true." if: Boolean "The initial elements that shall be send down to the consumer." initialCount: Int! = 0 "If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String) on FIELD
 
-"The `Date` scalar represents an ISO-8601 compliant date type."
-scalar Date
+"The `Date` scalar type represents a date in UTC."
+scalar Date @specifiedBy(url: "https://scalars.graphql.org/chillicream/date.html")
 
-"The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
-scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/andimarek/date-time.html")
+"The `DateTime` scalar type represents a date and time with time zone offset information."
+scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/chillicream/date-time.html")
 
-"The `Decimal` scalar type represents a decimal floating-point number."
-scalar Decimal
+"The `Decimal` scalar type represents a decimal floating-point number with high precision."
+scalar Decimal @specifiedBy(url: "https://scalars.graphql.org/chillicream/decimal.html")
 
-"A date and time that is not associated with a specific time zone. A LocalDateTime value does not represent an instant on the global time line, because it has no associated time zone: \"January 12th 2021 7pm\" occurred at different instants for different people around the world."
-scalar LocalDateTime
+"The `LocalDateTime` scalar type represents a date and time without time zone information."
+scalar LocalDateTime @specifiedBy(url: "https://scalars.graphql.org/chillicream/local-date-time.html")
 
-"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
-scalar Long
+"The `Long` scalar type represents a signed 64-bit integer."
+scalar Long @specifiedBy(url: "https://scalars.graphql.org/chillicream/long.html")
 
-scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
+"The `UUID` scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562."
+scalar UUID @specifiedBy(url: "https://scalars.graphql.org/chillicream/uuid.html")

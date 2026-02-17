@@ -300,14 +300,10 @@ public class LocalDateTypeTests
     {
         return new TheoryData<string, DateOnly>
         {
-            // https://scalars.graphql.org/andimarek/local-date.html#sec-Overview
+            // https://scalars.graphql.org/chillicream/local-date.html#sec-Input-spec.Examples (Valid input values)
             {
-                "1983-10-20",
-                new(1983, 10, 20)
-            },
-            {
-                "2023-04-01",
-                new(2023, 4, 1)
+                "2000-12-24",
+                new DateOnly(2000, 12, 24)
             }
         };
     }
@@ -316,9 +312,20 @@ public class LocalDateTypeTests
     {
         return
         [
-            // https://scalars.graphql.org/andimarek/local-date.html#sec-Overview
-            // There isn't a 13th month in a year.
-            "2011-13-10"
+            // https://scalars.graphql.org/chillicream/local-date.html#sec-Input-spec.Examples (Invalid input values)
+            // Contains time component.
+            "2023-12-24T15:30:00",
+            // Invalid month (13).
+            "2023-13-01",
+            // Invalid day (32).
+            "2023-12-32",
+            // Month and day must be zero-padded.
+            "2023-2-5",
+            // Invalid separator.
+            "2023/12/24",
+            // ReSharper disable once GrammarMistakeInComment
+            // Invalid date (February 30th).
+            "2023-02-30"
         ];
     }
 }

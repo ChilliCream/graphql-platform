@@ -6,11 +6,15 @@ using HotChocolate.Text.Json;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Represents a scalar type for unsigned 8-bit integers (byte) in GraphQL.
-/// This type serializes as an integer and supports values from 0 to 255.
+/// The <c>UnsignedByte</c> scalar type represents an unsigned 8-bit integer. It is intended for
+/// scenarios where values are constrained to the range 0 to 255, such as representing color channel
+/// values (RGB), small counters, or byte-level data.
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/unsigned-byte.html">Specification</seealso>
 public class UnsignedByteType : IntegerTypeBase<byte>
 {
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/unsigned-byte.html";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="UnsignedByteType"/> class.
     /// </summary>
@@ -36,6 +40,7 @@ public class UnsignedByteType : IntegerTypeBase<byte>
         : base(name, min, max, bind)
     {
         Description = description;
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>

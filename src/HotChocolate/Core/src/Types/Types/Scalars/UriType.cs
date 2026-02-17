@@ -1,18 +1,22 @@
 using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Text.Json;
 using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The URI scalar type represents a valid URI as defined by RFC 3986.
-/// The scalar serializes as a string.
+/// The <c>URI</c> scalar type represents a Uniform Resource Identifier (URI) as defined by RFC
+/// 3986. It is intended for scenarios where a field must contain a valid URI, which includes both
+/// URLs (locators) and URNs (names), such as resource identifiers, namespace identifiers, or any
+/// standardized resource reference.
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/uri.html">Specification</seealso>
 public class UriType : ScalarType<Uri, StringValueNode>
 {
-    private const string SpecifiedByUri = "https://tools.ietf.org/html/rfc3986";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/uri.html";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UriType"/> class.
@@ -32,7 +36,10 @@ public class UriType : ScalarType<Uri, StringValueNode>
     /// </summary>
     [ActivatorUtilitiesConstructor]
     public UriType()
-        : this(ScalarNames.URI, bind: BindingBehavior.Implicit)
+        : this(
+            ScalarNames.URI,
+            TypeResources.UriType_Description,
+            BindingBehavior.Implicit)
     {
     }
 

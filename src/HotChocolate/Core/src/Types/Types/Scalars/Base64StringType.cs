@@ -4,16 +4,21 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Represents a scalar type for byte arrays that are serialized as Base64-encoded strings in GraphQL.
-/// This type handles the conversion between byte arrays in .NET and string representations in GraphQL schemas.
+/// The <c>Base64String</c> scalar type represents an array of bytes encoded as a Base64 string. It
+/// is intended for scenarios where binary data needs to be transmitted, such as file contents,
+/// cryptographic keys, image data, or any arbitrary binary data.
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/base64-string.html">Specification</seealso>
 public class Base64StringType : ScalarType<byte[], StringValueNode>
 {
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/base64-string.html";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Base64StringType"/> class.
     /// </summary>
@@ -25,6 +30,7 @@ public class Base64StringType : ScalarType<byte[], StringValueNode>
     {
         Description = description;
         Pattern = @"^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$";
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>
@@ -32,7 +38,10 @@ public class Base64StringType : ScalarType<byte[], StringValueNode>
     /// </summary>
     [ActivatorUtilitiesConstructor]
     public Base64StringType()
-        : this(ScalarNames.Base64String, bind: BindingBehavior.Implicit)
+        : this(
+            ScalarNames.Base64String,
+            TypeResources.Base64StringType_Description,
+            BindingBehavior.Implicit)
     {
     }
 

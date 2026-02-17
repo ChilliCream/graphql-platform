@@ -158,7 +158,7 @@ public class DateTimeTypeTests
         type.CoerceOutputValue(dateTime, resultValue);
 
         // assert
-        resultValue.MatchInlineSnapshot("\"2018-06-11T08:46:14.000Z\"");
+        resultValue.MatchInlineSnapshot("\"2018-06-11T08:46:14Z\"");
     }
 
     [Fact]
@@ -177,7 +177,7 @@ public class DateTimeTypeTests
         type.CoerceOutputValue(dateTime, resultValue);
 
         // assert
-        resultValue.MatchInlineSnapshot("\"2018-06-11T08:46:14.000+04:00\"");
+        resultValue.MatchInlineSnapshot("\"2018-06-11T08:46:14+04:00\"");
     }
 
     [Fact]
@@ -204,7 +204,7 @@ public class DateTimeTypeTests
         var dateTime = new DateTimeOffset(
             new DateTime(2018, 6, 11, 8, 46, 14),
             new TimeSpan(4, 0, 0));
-        const string expectedLiteralValue = "2018-06-11T08:46:14.000+04:00";
+        const string expectedLiteralValue = "2018-06-11T08:46:14+04:00";
 
         // act
         var stringLiteral = (StringValueNode)type.ValueToLiteral(dateTime);
@@ -220,7 +220,7 @@ public class DateTimeTypeTests
         var type = new DateTimeType();
         DateTimeOffset dateTime =
             new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-        const string expectedLiteralValue = "2018-06-11T08:46:14.000Z";
+        const string expectedLiteralValue = "2018-06-11T08:46:14Z";
 
         // act
         var stringLiteral = (StringValueNode)type.ValueToLiteral(dateTime);
@@ -312,42 +312,14 @@ public class DateTimeTypeTests
     {
         return new TheoryData<string, DateTimeOffset>
         {
-            // https://scalars.graphql.org/andimarek/date-time.html#sec-Overview.Examples (valid examples)
+            // https://scalars.graphql.org/chillicream/date-time.html#sec-Input-spec.Examples (Valid input values)
             {
-                // A DateTime with UTC offset (+00:00).
-                "2011-08-30T13:22:53.108Z",
-                new(2011, 8, 30, 13, 22, 53, 108, TimeSpan.Zero)
+                "2023-12-24T15:30:00Z",
+                new DateTimeOffset(2023, 12, 24, 15, 30, 0, 0, TimeSpan.Zero)
             },
             {
-                // A DateTime with +00:00 which is the same as UTC.
-                "2011-08-30T13:22:53.108+00:00",
-                new(2011, 8, 30, 13, 22, 53, 108, TimeSpan.Zero)
-            },
-            {
-                // The z and t may be lower case.
-                "2011-08-30t13:22:53.108z",
-                new(2011, 8, 30, 13, 22, 53, 108, TimeSpan.Zero)
-            },
-            {
-                // A DateTime with -3h offset.
-                "2011-08-30T13:22:53.108-03:00",
-                new(2011, 8, 30, 13, 22, 53, 108, new TimeSpan(-3, 0, 0))
-            },
-            {
-                // A DateTime with +3h 30min offset.
-                "2011-08-30T13:22:53.108+03:30",
-                new(2011, 8, 30, 13, 22, 53, 108, new TimeSpan(3, 30, 0))
-            },
-            // Additional test cases.
-            {
-                // A DateTime with 7 fractional digits.
-                "2011-08-30T13:22:53.1230000+03:30",
-                new(2011, 8, 30, 13, 22, 53, 123, new TimeSpan(3, 30, 0))
-            },
-            {
-                // A DateTime with no fractional seconds.
-                "2011-08-30T13:22:53+03:30",
-                new(2011, 8, 30, 13, 22, 53, 0, new TimeSpan(3, 30, 0))
+                "2023-12-24T15:30:00.123456789+01:00", // Rounded to ".1234568".
+                new DateTimeOffset(2023, 12, 24, 15, 30, 0, 123, 456, TimeSpan.FromHours(1)).AddTicks(8)
             }
         };
     }
@@ -356,31 +328,24 @@ public class DateTimeTypeTests
     {
         return
         [
-            // https://scalars.graphql.org/andimarek/date-time.html#sec-Overview.Examples (invalid examples)
-            // The minutes of the offset are missing.
-            "2011-08-30T13:22:53.108-03",
-            // Too many digits for fractions of a second. Exactly three expected.
-            // -> We diverge from the specification here, and allow up to 7 fractional digits.
-            // Fractions of a second are missing.
-            // -> We diverge from the specification here, and do not require fractional seconds.
-            // No offset provided.
-            "2011-08-30T13:22:53.108",
-            // No time provided.
-            "2011-08-30",
-            // Negative offset (-00:00) is not allowed.
-            "2011-08-30T13:22:53.108-00:00",
-            // Seconds are not allowed for the offset.
-            "2011-08-30T13:22:53.108+03:30:15",
-            // 24 is not allowed as hour of the time.
-            "2011-08-30T24:22:53.108Z",
+            // https://scalars.graphql.org/chillicream/date-time.html#sec-Input-spec.Examples (Invalid input values)
+            // Missing time zone offset.
+            "2023-12-24T15:30:00",
+            // Space instead of T or t separator.
+            "2023-12-24 15:30:00Z",
+            // Invalid hour (25).
+            "2023-12-24T25:00:00Z",
+            // Invalid minute (60).
+            "2023-12-24T15:60:00Z",
             // ReSharper disable once GrammarMistakeInComment
-            // 30th of February is not a valid date.
-            "2010-02-30T21:22:53.108Z",
-            // 25 is not a valid hour for offset.
-            "2010-02-11T21:22:53.108+25:11",
-            // Additional test cases.
-            // A DateTime with 8 fractional digits.
-            "2011-08-30T13:22:53.12345678+03:30"
+            // Invalid date (February 30th).
+            "2023-02-30T15:30:00Z",
+            // More than 9 fractional second digits.
+            "2023-12-24T15:30:00.1234567890Z",
+            // Invalid offset (exceeds maximum).
+            "2023-12-24T15:30:00+25:00",
+            // Invalid offset format.
+            "2023-12-24T15:30:00 UTC"
         ];
     }
 }

@@ -6,7 +6,7 @@
       "byte": 1,
       "byteArray": "Zm9v",
       "date": "1979-12-20",
-      "dateTime": "1979-12-20T15:00:00.000Z",
+      "dateTime": "1979-12-20T15:00:00Z",
       "decimal": 3.4,
       "float": 1.2,
       "id": "id",

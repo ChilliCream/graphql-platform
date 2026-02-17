@@ -281,7 +281,7 @@ type User @internal {
   id: ID!
   name: String!
 }
-            
+
 directive @internal on OBJECT | FIELD_DEFINITION
 """
 directive @internal on OBJECT | FIELD_DEFINITION
@@ -302,11 +302,11 @@ directive @serializeAs("The primitive type a scalar is serialized to." type: [Sc
 By default, only a single source schema is allowed to contribute
 a particular field to an object type.
 
-            
+
 This prevents source schemas from inadvertently defining similarly named
 fields that are not semantically equivalent.
 
-            
+
 Fields must be explicitly marked as @shareable to allow multiple source
 schemas to define them, ensuring that the decision to serve a field from
 more than one source schema is intentional and coordinated.
@@ -316,5 +316,8 @@ directive @shareable repeatable on OBJECT | FIELD_DEFINITION
 """
 directive @shareable repeatable on OBJECT | FIELD_DEFINITION
 
-"The `Decimal` scalar type represents a decimal floating-point number."
-scalar Decimal @serializeAs(type: FLOAT)
+"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
+directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
+
+"The `Decimal` scalar type represents a decimal floating-point number with high precision."
+scalar Decimal @serializeAs(type: FLOAT) @specifiedBy(url: "https://scalars.graphql.org/chillicream/decimal.html")

@@ -6,12 +6,16 @@ using HotChocolate.Text.Json;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Represents a scalar type for 64-bit signed integers (long) in GraphQL.
-/// This type serializes as an integer and supports values from -9,223,372,036,854,775,808
-/// to 9,223,372,036,854,775,807.
+/// The <c>Long</c> scalar type represents a signed 64-bit integer. It is intended for scenarios
+/// where values exceed the range of the built-in <c>Int</c> scalar, such as representing large
+/// identifiers, timestamps in milliseconds, file sizes in bytes, or any integer values requiring
+/// more than 32 bits.
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/long.html">Specification</seealso>
 public class LongType : IntegerTypeBase<long>
 {
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/long.html";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="LongType"/> class.
     /// </summary>
@@ -37,6 +41,7 @@ public class LongType : IntegerTypeBase<long>
         : base(name, min, max, bind)
     {
         Description = description;
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>
