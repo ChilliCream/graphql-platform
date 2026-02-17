@@ -1,9 +1,9 @@
 using System.Collections;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
-using static HotChocolate.Types.Spatial.WellKnownFields;
 
 namespace HotChocolate.Types.Spatial.Serialization;
 
@@ -13,6 +13,46 @@ internal class GeoJsonMultiLineStringSerializer
     private GeoJsonMultiLineStringSerializer()
         : base(GeoJsonGeometryType.MultiLineString)
     {
+    }
+
+    public override void CoerceOutputCoordinates(
+        IType type,
+        object runtimeValue,
+        ResultElement resultElement)
+    {
+        if (runtimeValue is MultiLineString multiLineString)
+        {
+            resultElement.SetArrayValue(multiLineString.NumGeometries);
+
+            var lineIndex = 0;
+            foreach (var lineElement in resultElement.EnumerateArray())
+            {
+                var lineString = (LineString)multiLineString.GetGeometryN(lineIndex++);
+                GeoJsonLineStringSerializer.Default.CoerceOutputCoordinates(type, lineString, lineElement);
+            }
+
+            return;
+        }
+
+        throw Serializer_CouldNotParseValue(type);
+    }
+
+    public override IValueNode CoordinateToLiteral(IType type, object? runtimeValue)
+    {
+        if (runtimeValue is MultiLineString multiLineString)
+        {
+            var result = new IValueNode[multiLineString.NumGeometries];
+
+            for (var i = 0; i < multiLineString.NumGeometries; i++)
+            {
+                var lineString = (LineString)multiLineString.GetGeometryN(i);
+                result[i] = GeoJsonLineStringSerializer.Default.CoordinateToLiteral(type, lineString);
+            }
+
+            return new ListValueNode(result);
+        }
+
+        throw Serializer_CouldNotParseValue(type);
     }
 
     public override MultiLineString CreateGeometry(
@@ -94,43 +134,6 @@ internal class GeoJsonMultiLineStringSerializer
         fieldValues[0] = GeoJsonGeometryType.MultiLineString;
         fieldValues[1] = geometry.Geometries.Select(t => t.Coordinates);
         fieldValues[2] = geometry.SRID;
-    }
-
-    public override IValueNode ParseValue(IType type, object? runtimeValue)
-    {
-        ArgumentNullException.ThrowIfNull(type);
-
-        if (runtimeValue is null)
-        {
-            return NullValueNode.Default;
-        }
-
-        if (runtimeValue is IReadOnlyDictionary<string, object> dict)
-        {
-            return ParseResult(type, dict);
-        }
-
-        if (runtimeValue is MultiLineString geometry)
-        {
-            var list = new List<ObjectFieldNode>
-                {
-                    new ObjectFieldNode(
-                        TypeFieldName,
-                        GeoJsonTypeSerializer.Default.ParseResult(
-                            type,
-                            GeoJsonGeometryType.MultiLineString)),
-                    new ObjectFieldNode(
-                        CoordinatesFieldName,
-                        ParseCoordinateValue(type, geometry)),
-                    new ObjectFieldNode(
-                        CrsFieldName,
-                        new IntValueNode(geometry.SRID))
-                };
-
-            return new ObjectValueNode(list);
-        }
-
-        throw Serializer_CouldNotParseValue(type);
     }
 
     public static readonly GeoJsonMultiLineStringSerializer Default = new();

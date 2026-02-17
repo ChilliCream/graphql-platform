@@ -1,5 +1,7 @@
-using HotChocolate.Language;
+using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types.Descriptors;
 using System.Reflection;
 
@@ -7,247 +9,325 @@ namespace HotChocolate.Types;
 
 public class TimeSpanTypeTests
 {
-    [Theory]
-    [InlineData(TimeSpanFormat.Iso8601, "PT5M")]
-    [InlineData(TimeSpanFormat.DotNet, "00:05:00")]
-    public void Serialize_TimeSpan(TimeSpanFormat format, string expectedValue)
+    [Fact]
+    public void Ensure_Type_Name_Is_Correct()
     {
         // arrange
-        var timeSpanType = new TimeSpanType(format);
-        var timeSpan = TimeSpan.FromMinutes(5);
-
         // act
-        var serializedValue = (string?)timeSpanType.Serialize(timeSpan);
+        var type = new TimeSpanType();
 
         // assert
-        Assert.Equal(expectedValue, serializedValue);
-    }
-
-    [Theory]
-    [InlineData(TimeSpanFormat.Iso8601, "P10675199DT2H48M5.4775807S")]
-    [InlineData(TimeSpanFormat.DotNet, "10675199.02:48:05.4775807")]
-    public void Serialize_TimeSpan_Max(TimeSpanFormat format, string expectedValue)
-    {
-        // arrange
-        var timeSpanType = new TimeSpanType(format);
-        var timeSpan = TimeSpan.MaxValue;
-
-        // act
-        var serializedValue = (string?)timeSpanType.Serialize(timeSpan);
-
-        // assert
-        Assert.Equal(expectedValue, serializedValue);
-    }
-
-    [Theory]
-    [InlineData(TimeSpanFormat.Iso8601, "-P10675199DT2H48M5.4775808S")]
-    [InlineData(TimeSpanFormat.DotNet, "-10675199.02:48:05.4775808")]
-    public void Serialize_TimeSpan_Min(TimeSpanFormat format, string expectedValue)
-    {
-        // arrange
-        var timeSpanType = new TimeSpanType(format);
-        var timeSpan = TimeSpan.MinValue;
-
-        // act
-        var serializedValue = (string?)timeSpanType.Serialize(timeSpan);
-
-        // assert
-        Assert.Equal(expectedValue, serializedValue);
+        Assert.Equal("TimeSpan", type.Name);
     }
 
     [Fact]
-    public void Serialize_TimeSpan_DefaultFormat()
+    public void CoerceInputLiteral()
     {
         // arrange
-        var timeSpanType = new TimeSpanType();
-        var timeSpan = TimeSpan.FromMinutes(5);
-        const string expectedValue = "PT5M";
+        var type = new TimeSpanType();
+        var literal = new StringValueNode("PT5M");
+        var expectedTimeSpan = TimeSpan.FromMinutes(5);
 
         // act
-        var serializedValue = (string?)timeSpanType.Serialize(timeSpan);
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Equal(expectedValue, serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_Null()
-    {
-        // arrange
-        var timeSpanType = new TimeSpanType();
-
-        // act
-        var serializedValue = timeSpanType.Serialize(null);
-
-        // assert
-        Assert.Null(serializedValue);
-    }
-
-    [Fact]
-    public void Serialize_String_Exception()
-    {
-        // arrange
-        var timeSpanType = new TimeSpanType();
-
-        // act
-        Action a = () => timeSpanType.Serialize("bad");
-
-        // assert
-        Assert.Throws<SerializationException>(a);
+        Assert.Equal(expectedTimeSpan, runtimeValue);
     }
 
     [Theory]
     [InlineData(TimeSpanFormat.Iso8601, "PT5M")]
     [InlineData(TimeSpanFormat.DotNet, "00:05:00")]
-    public void ParseLiteral_StringValueNode(TimeSpanFormat format, string literalValue)
+    public void CoerceInputLiteral_WithFormat(TimeSpanFormat format, string literalValue)
     {
         // arrange
-        var timeSpanType = new TimeSpanType(format);
+        var type = new TimeSpanType(format);
         var literal = new StringValueNode(literalValue);
         var expectedTimeSpan = TimeSpan.FromMinutes(5);
 
         // act
-        var timeSpan = (TimeSpan?)timeSpanType
-            .ParseLiteral(literal);
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Equal(expectedTimeSpan, timeSpan);
-    }
-
-    [Theory]
-    [InlineData(TimeSpanFormat.Iso8601, "PT5M")]
-    [InlineData(TimeSpanFormat.DotNet, "00:05:00")]
-    public void Deserialize_TimeSpan(TimeSpanFormat format, string actualValue)
-    {
-        // arrange
-        var timeSpanType = new TimeSpanType(format);
-        var timeSpan = TimeSpan.FromMinutes(5);
-
-        // act
-        var deserializedValue = (TimeSpan?)timeSpanType
-            .Deserialize(actualValue);
-
-        // assert
-        Assert.Equal(timeSpan, deserializedValue);
-    }
-
-    [Fact]
-    public void Deserialize_TimeSpan_Weeks()
-    {
-        // arrange
-        var timeSpanType = new TimeSpanType();
-        var timeSpan = TimeSpan.FromDays(79);
-
-        // act
-        var deserializedValue = (TimeSpan?)timeSpanType
-            .Deserialize("P2M2W5D");
-
-        // assert
-        Assert.Equal(timeSpan, deserializedValue);
-    }
-
-    [Fact]
-    public void Deserialize_TimeSpan_CannotEndWithDigits()
-    {
-        // arrange
-        var timeSpanType = new TimeSpanType();
-
-        // act
-        var success = timeSpanType
-            .TryDeserialize("PT5", out _);
-
-        // assert
-        Assert.False(success);
+        Assert.Equal(expectedTimeSpan, runtimeValue);
     }
 
     [Theory]
     [InlineData(TimeSpanFormat.Iso8601, "P10675199DT2H48M5.4775807S")]
     [InlineData(TimeSpanFormat.DotNet, "10675199.02:48:05.4775807")]
-    public void Deserialize_TimeSpan_Max(TimeSpanFormat format, string actualValue)
+    public void CoerceInputLiteral_MaxValue(TimeSpanFormat format, string literalValue)
     {
         // arrange
-        var timeSpanType = new TimeSpanType(format);
-        var timeSpan = TimeSpan.MaxValue;
+        var type = new TimeSpanType(format);
+        var literal = new StringValueNode(literalValue);
 
         // act
-        var deserializedValue = (TimeSpan?)timeSpanType
-            .Deserialize(actualValue);
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Equal(timeSpan, deserializedValue);
+        Assert.Equal(TimeSpan.MaxValue, runtimeValue);
     }
 
     [Theory]
     [InlineData(TimeSpanFormat.Iso8601, "-P10675199DT2H48M5.4775808S")]
     [InlineData(TimeSpanFormat.DotNet, "-10675199.02:48:05.4775808")]
-    public void Deserialize_TimeSpan_Min(TimeSpanFormat format, string actualValue)
+    public void CoerceInputLiteral_MinValue(TimeSpanFormat format, string literalValue)
     {
         // arrange
-        var timeSpanType = new TimeSpanType(format);
-        var timeSpan = TimeSpan.MinValue;
+        var type = new TimeSpanType(format);
+        var literal = new StringValueNode(literalValue);
 
         // act
-        var deserializedValue = (TimeSpan?)timeSpanType
-            .Deserialize(actualValue);
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Equal(timeSpan, deserializedValue);
+        Assert.Equal(TimeSpan.MinValue, runtimeValue);
     }
 
     [Fact]
-    public void Deserialize_InvalidString()
+    public void CoerceInputLiteral_Weeks()
     {
         // arrange
-        var timeSpanType = new TimeSpanType();
+        var type = new TimeSpanType();
+        var literal = new StringValueNode("P2M2W5D");
+        var expectedTimeSpan = TimeSpan.FromDays(79);
 
         // act
-        var success = timeSpanType
-            .TryDeserialize("bad", out _);
+        var runtimeValue = type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.False(success);
+        Assert.Equal(expectedTimeSpan, runtimeValue);
     }
 
     [Fact]
-    public void Deserialize_Null_To_Null()
+    public void CoerceInputLiteral_Invalid_Format()
     {
         // arrange
-        var timeSpanType = new TimeSpanType();
+        var type = new TimeSpanType();
+        var literal = new StringValueNode("bad");
 
         // act
-        var success = timeSpanType
-            .TryDeserialize(null, out var deserialized);
+        void Action() => type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.True(success);
-        Assert.Null(deserialized);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseLiteral_NullValueNode()
+    public void CoerceInputLiteral_CannotEndWithDigits()
     {
         // arrange
-        var timeSpanType = new TimeSpanType();
-        var literal = NullValueNode.Default;
+        var type = new TimeSpanType();
+        var literal = new StringValueNode("PT5");
 
         // act
-        var value = timeSpanType.ParseLiteral(literal);
+        void Action() => type.CoerceInputLiteral(literal);
 
         // assert
-        Assert.Null(value);
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void ParseValue_Null()
+    public void CoerceInputValue()
     {
         // arrange
-        var timeSpanType = new TimeSpanType();
+        var type = new TimeSpanType();
+        var inputValue = JsonDocument.Parse("\"PT5M\"").RootElement;
+        var expectedTimeSpan = TimeSpan.FromMinutes(5);
 
         // act
-        var literal = timeSpanType.ParseValue(null);
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
 
         // assert
-        Assert.IsType<NullValueNode>(literal);
+        Assert.Equal(expectedTimeSpan, runtimeValue);
+    }
+
+    [Theory]
+    [InlineData(TimeSpanFormat.Iso8601, "PT5M")]
+    [InlineData(TimeSpanFormat.DotNet, "00:05:00")]
+    public void CoerceInputValue_WithFormat(TimeSpanFormat format, string value)
+    {
+        // arrange
+        var type = new TimeSpanType(format);
+        var inputValue = JsonDocument.Parse($"\"{value}\"").RootElement;
+        var expectedTimeSpan = TimeSpan.FromMinutes(5);
+
+        // act
+        var runtimeValue = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Equal(expectedTimeSpan, runtimeValue);
+    }
+
+    [Fact]
+    public void CoerceInputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new TimeSpanType();
+        var inputValue = JsonDocument.Parse("\"bad\"").RootElement;
+
+        // act
+        void Action() => type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void CoerceOutputValue()
+    {
+        // arrange
+        var type = new TimeSpanType();
+        var runtimeValue = TimeSpan.FromMinutes(5);
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(runtimeValue, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"PT5M\"");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_WithFormat_Iso8601()
+    {
+        // arrange
+        var type = new TimeSpanType(TimeSpanFormat.Iso8601);
+        var runtimeValue = TimeSpan.FromMinutes(5);
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(runtimeValue, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"PT5M\"");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_WithFormat_DotNet()
+    {
+        // arrange
+        var type = new TimeSpanType(TimeSpanFormat.DotNet);
+        var runtimeValue = TimeSpan.FromMinutes(5);
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(runtimeValue, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"00:05:00\"");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_Invalid_Format()
+    {
+        // arrange
+        var type = new TimeSpanType();
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        void Action() => type.CoerceOutputValue("bad", resultValue);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
+    }
+
+    [Fact]
+    public void ValueToLiteral()
+    {
+        // arrange
+        var type = new TimeSpanType();
+        var runtimeValue = TimeSpan.FromMinutes(5);
+
+        // act
+        var literal = type.ValueToLiteral(runtimeValue);
+
+        // assert
+        Assert.Equal("PT5M", Assert.IsType<StringValueNode>(literal).Value);
+    }
+
+    [Theory]
+    [InlineData(TimeSpanFormat.Iso8601, "PT5M")]
+    [InlineData(TimeSpanFormat.DotNet, "00:05:00")]
+    public void ValueToLiteral_WithFormat(TimeSpanFormat format, string expectedValue)
+    {
+        // arrange
+        var type = new TimeSpanType(format);
+        var runtimeValue = TimeSpan.FromMinutes(5);
+
+        // act
+        var literal = type.ValueToLiteral(runtimeValue);
+
+        // assert
+        Assert.Equal(expectedValue, Assert.IsType<StringValueNode>(literal).Value);
+    }
+
+    [Theory]
+    [InlineData(TimeSpanFormat.Iso8601, "P10675199DT2H48M5.4775807S")]
+    [InlineData(TimeSpanFormat.DotNet, "10675199.02:48:05.4775807")]
+    public void ValueToLiteral_MaxValue(TimeSpanFormat format, string expectedValue)
+    {
+        // arrange
+        var type = new TimeSpanType(format);
+        var runtimeValue = TimeSpan.MaxValue;
+
+        // act
+        var literal = type.ValueToLiteral(runtimeValue);
+
+        // assert
+        Assert.Equal(expectedValue, Assert.IsType<StringValueNode>(literal).Value);
+    }
+
+    [Theory]
+    [InlineData(TimeSpanFormat.Iso8601, "-P10675199DT2H48M5.4775808S")]
+    [InlineData(TimeSpanFormat.DotNet, "-10675199.02:48:05.4775808")]
+    public void ValueToLiteral_MinValue(TimeSpanFormat format, string expectedValue)
+    {
+        // arrange
+        var type = new TimeSpanType(format);
+        var runtimeValue = TimeSpan.MinValue;
+
+        // act
+        var literal = type.ValueToLiteral(runtimeValue);
+
+        // assert
+        Assert.Equal(expectedValue, Assert.IsType<StringValueNode>(literal).Value);
+    }
+
+    [Fact]
+    public void ParseLiteral()
+    {
+        // arrange
+        var type = new TimeSpanType();
+        var literal = new StringValueNode("PT5M");
+        var expectedTimeSpan = TimeSpan.FromMinutes(5);
+
+        // act
+        var runtimeValue = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(expectedTimeSpan, Assert.IsType<TimeSpan>(runtimeValue));
+    }
+
+    [Fact]
+    public void ParseLiteral_InvalidValue()
+    {
+        // arrange
+        var type = new TimeSpanType();
+
+        // act
+        void Action() => type.CoerceInputLiteral(new IntValueNode(123));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]

@@ -124,6 +124,7 @@ operationPlan:
         }
       hash: e567807ec1ad5128cfb566fad1645abc
       searchSpace: 1
+      expandedNodes: 5
   nodes:
     - id: 1
       type: Node

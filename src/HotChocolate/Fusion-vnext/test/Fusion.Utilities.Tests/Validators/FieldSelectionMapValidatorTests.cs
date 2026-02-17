@@ -55,7 +55,7 @@ public sealed class FieldSelectionMapValidatorTests
 
         // act
         var errors =
-            new FieldSelectionMapValidator(s_schema1).Validate(
+            new FieldSelectionMapValidator(s_schema1, true).Validate(
                 selectedValue,
                 inputType,
                 outputType);
@@ -86,8 +86,8 @@ public sealed class FieldSelectionMapValidatorTests
                     id: ID!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
-        var schema = sourceSchemaParser.Parse().Value.Single();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
         const string fieldSelectionMap = "mediaById.id";
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
         var inputType = schema.QueryType!.Fields["mediaById"].Arguments["id"].Type;
@@ -127,8 +127,8 @@ public sealed class FieldSelectionMapValidatorTests
                     name: String!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
-        var schema = sourceSchemaParser.Parse().Value.Single();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
         var fieldSelectionMap = GetFieldSelectionMap(schema, "Query", "userById", "user", "is");
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
         var inputType = schema.QueryType!.Fields["userById"].Arguments["user"].Type;
@@ -168,8 +168,8 @@ public sealed class FieldSelectionMapValidatorTests
                     name: String
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
-        var schema = sourceSchemaParser.Parse().Value.Single();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
         var fieldSelectionMap = GetFieldSelectionMap(schema, "Query", "findUser", "input", "is");
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
         var inputType = schema.QueryType!.Fields["findUser"].Arguments["input"].Type;
@@ -206,8 +206,8 @@ public sealed class FieldSelectionMapValidatorTests
                     name: String!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
-        var schema = sourceSchemaParser.Parse().Value.Single();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
         var fieldSelectionMap = GetFieldSelectionMap(schema, "Query", "findUser", "input", "is");
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
         var inputType = schema.QueryType!.Fields["findUser"].Arguments["input"].Type;
@@ -256,7 +256,7 @@ public sealed class FieldSelectionMapValidatorTests
                 type Person {
                     id: ID!
                     name: String
-                    address: Address
+                    address: Address!
                 }
 
                 type Address {
@@ -269,8 +269,8 @@ public sealed class FieldSelectionMapValidatorTests
                     name: String
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaText], new CompositionLog());
-        var schema = sourceSchemaParser.Parse().Value.Single();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
         var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
         var inputType = schema.QueryType!.Fields["person"].Arguments["by"].Type;
         var outputType = schema.QueryType!.Fields["person"].Type;
@@ -349,6 +349,12 @@ public sealed class FieldSelectionMapValidatorTests
                 "Store",
                 "id",
                 ["The field 'id' is of type 'ID!' instead of the expected input type 'String'."]
+            },
+            {
+                "ID!",
+                "Book",
+                "nullableAuthor.id",
+                ["The input type 'ID!' is non-null, but one of the fields on the path 'nullableAuthor' returns a nullable type."]
             },
             // TODO: 6.3.5 Selected Object Field Names examples.
             // TODO: 6.3.6 Selected Object Field Uniqueness examples.
@@ -441,6 +447,7 @@ public sealed class FieldSelectionMapValidatorTests
                 title: String!
                 isbn: String!
                 author: Author!
+                nullableAuthor: Author # Added
             }
 
             type Movie implements Media {

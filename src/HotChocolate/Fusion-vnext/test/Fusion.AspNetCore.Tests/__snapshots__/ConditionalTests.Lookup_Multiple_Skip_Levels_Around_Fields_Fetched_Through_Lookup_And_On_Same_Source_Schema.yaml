@@ -3,7 +3,7 @@ request:
   document: |
     query testQuery(
       $skip1: Boolean!
-      $skip2: Boolean!
+        $skip2: Boolean!
     ) {
       productBySlug(slug: "product") {
         name
@@ -60,7 +60,7 @@ sourceSchemas:
           document: |
             query testQuery_28ca75a0_1(
               $skip1: Boolean!
-              $skip2: Boolean!
+                $skip2: Boolean!
             ) {
               productBySlug(slug: "product") {
                 name
@@ -110,7 +110,7 @@ operationPlan:
     - document: |
         query testQuery(
           $skip1: Boolean!
-          $skip2: Boolean!
+            $skip2: Boolean!
         ) {
           productBySlug(slug: "product") {
             name
@@ -129,6 +129,7 @@ operationPlan:
       name: testQuery
       hash: 28ca75a062896ca7d58cff1ce38fdcd6
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -136,7 +137,7 @@ operationPlan:
       operation: |
         query testQuery_28ca75a0_1(
           $skip1: Boolean!
-          $skip2: Boolean!
+            $skip2: Boolean!
         ) {
           productBySlug(slug: "product") {
             name

@@ -6,42 +6,33 @@ using Microsoft.Extensions.Hosting;
 namespace HotChocolate.AspNetCore.CommandLine;
 
 /// <summary>
-/// The export command can be used to export the schema to a file.
+/// The list command can be used to list all registered schemas.
 /// </summary>
 internal sealed class ListCommand : Command
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="ExportCommand"/> class.
+    /// Initializes a new instance of the <see cref="ListCommand"/> class.
     /// </summary>
-    public ListCommand() : base("list")
+    public ListCommand(IHost host) : base("list")
     {
         Description = "List all registered GraphQL schemas.";
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IConsole>(),
-            Bind.FromServiceProvider<IHost>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        SetAction(parseResult => ExecuteAsync(parseResult.InvocationConfiguration.Output, host));
     }
 
-    private static Task ExecuteAsync(
-        IConsole console,
-        IHost host,
-        CancellationToken cancellationToken)
+    private static async Task ExecuteAsync(TextWriter output, IHost host)
     {
         var schemaNames = host.Services.GetRequiredService<IRequestExecutorProvider>().SchemaNames;
 
         if (schemaNames.IsEmpty)
         {
-            console.WriteLine("No schemas registered.");
-            return Task.CompletedTask;
+            await output.WriteLineAsync("No schemas registered.");
+            return;
         }
 
         foreach (var name in schemaNames)
         {
-            console.WriteLine(name);
+            await output.WriteLineAsync(name);
         }
-
-        return Task.CompletedTask;
     }
 }

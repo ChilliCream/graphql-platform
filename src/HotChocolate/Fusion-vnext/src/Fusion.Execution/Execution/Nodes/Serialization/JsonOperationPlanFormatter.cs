@@ -6,7 +6,6 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
 using HotChocolate.Transport.Http;
-using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
@@ -36,6 +35,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         WriteOperation(jsonWriter, plan.Operation);
 
         jsonWriter.WriteNumber("searchSpace", plan.SearchSpace);
+        jsonWriter.WriteNumber("expandedNodes", plan.ExpandedNodes);
 
         if (trace is not null)
         {
@@ -341,7 +341,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         foreach (var field in node.Fields)
         {
-            if (field.Value is FileValueNode or FileReferenceNode)
+            if (field.Value is FileReferenceNode)
             {
                 continue;
             }

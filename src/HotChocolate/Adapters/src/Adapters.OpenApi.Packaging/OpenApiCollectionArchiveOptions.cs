@@ -6,9 +6,9 @@ namespace HotChocolate.Adapters.OpenApi.Packaging;
 public struct OpenApiCollectionArchiveOptions
 {
     /// <summary>
-    /// Gets or sets the maximum allowed size of an operation in the archive.
+    /// Gets or sets the maximum allowed size of a document in the archive.
     /// </summary>
-    public int? MaxAllowedOperationSize { get; set; }
+    public int? MaxAllowedDocumentSize { get; set; }
 
     /// <summary>
     /// Gets or sets the maximum allowed size of the settings in the archive.

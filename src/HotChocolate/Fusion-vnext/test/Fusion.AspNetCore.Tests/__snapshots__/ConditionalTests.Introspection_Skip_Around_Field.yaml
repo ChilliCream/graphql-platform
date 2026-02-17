@@ -46,6 +46,7 @@ operationPlan:
       name: testQuery
       hash: af9d13953a7086c7b2d349841173dbe9
       searchSpace: 1
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Introspection

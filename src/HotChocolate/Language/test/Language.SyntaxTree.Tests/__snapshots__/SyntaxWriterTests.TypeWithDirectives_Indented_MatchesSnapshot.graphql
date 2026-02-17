@@ -1,0 +1,5 @@
+type User @auth(requires: ADMIN) {
+  id: ID! @deprecated(reason: "Use uid instead")
+  uid: ID!
+  name: String!
+}

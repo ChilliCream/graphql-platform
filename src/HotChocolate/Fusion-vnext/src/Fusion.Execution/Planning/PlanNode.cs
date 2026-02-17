@@ -11,10 +11,9 @@ namespace HotChocolate.Fusion.Planning;
 internal sealed record PlanNode
 {
     /// <summary>
-    /// The previous plan node.
+    /// Placeholder value for <see cref="SchemaName"/> when no schema has been resolved yet.
     /// </summary>
-    public PlanNode? Previous { get; init; }
-
+    public const string UnresolvedSchemaName = "None";
     /// <summary>
     /// The original operation definitions that is being planned.
     /// </summary>
@@ -37,6 +36,11 @@ internal sealed record PlanNode
     public required string SchemaName { get; init; }
 
     /// <summary>
+    /// Planner cost options used by this node.
+    /// </summary>
+    public required OperationPlannerOptions Options { get; init; }
+
+    /// <summary>
     /// The index of the selection set.
     /// </summary>
     public required ISelectionSetIndex SelectionSetIndex
@@ -55,35 +59,62 @@ internal sealed record PlanNode
         }
     }
 
-    public required ImmutableStack<WorkItem> Backlog
-    {
-        get;
-        init
-        {
-            field = value;
-            BacklogCost = value.Sum(t => t.Cost);
-        }
-    }
+    public required Backlog Backlog { get; init; }
 
-    public ImmutableList<PlanStep> Steps
-    {
-        get;
-        init
-        {
-            field = value;
-            PathCost = value.OfType<OperationPlanStep>().Count() * 10.0;
-        }
-    } = [];
+    /// <summary>
+    /// The optimistic lower bound for all work currently in <see cref="Backlog"/>.
+    /// This includes operation, remaining-depth, and projected excess-fanout components.
+    /// It is updated incrementally by planner transitions.
+    /// </summary>
+    public double RemainingCost { get; init; }
+
+    public ImmutableList<PlanStep> Steps { get; init; } = [];
+
+    /// <summary>
+    /// The number of <see cref="OperationPlanStep"/> instances in <see cref="Steps"/>.
+    /// This is updated incrementally by planner transitions.
+    /// </summary>
+    public int OperationStepCount { get; init; }
+
+    /// <summary>
+    /// Maximum operation depth seen so far for this node.
+    /// </summary>
+    public int MaxDepth { get; init; }
+
+    /// <summary>
+    /// Cumulative excess fan-out across all depth levels.
+    /// </summary>
+    public int ExcessFanout { get; init; }
+
+    /// <summary>
+    /// Number of operation steps per depth level.
+    /// </summary>
+    public ImmutableDictionary<int, int> OpsPerLevel { get; init; } = ImmutableDictionary<int, int>.Empty;
+
+    /// <summary>
+    /// Depth lookup for operation step ids.
+    /// </summary>
+    public ImmutableDictionary<int, int> OperationStepDepths { get; init; }
+        = ImmutableDictionary<int, int>.Empty;
 
     public uint LastRequirementId { get; init; }
 
-    public double PathCost { get; private set; }
-
-    public double BacklogCost { get; private set; }
+    public double PathCost
+        => (MaxDepth * Options.DepthWeight)
+            + (OperationStepCount * Options.OperationWeight)
+            + (ExcessFanout * Options.ExcessFanoutWeight);
 
     public double ResolutionCost { get; init; }
 
-    public double TotalCost => PathCost + BacklogCost + ResolutionCost;
+    public double TotalCost => PathCost + RemainingCost + ResolutionCost;
+
+    /// <summary>
+    /// The cheapest this plan can possibly finish at, assuming every remaining
+    /// work item resolves perfectly. Used to prune branches that can't beat
+    /// the current best complete plan.
+    /// </summary>
+    public double BestCaseCost
+        => PathCost + RemainingCost;
 
     public string CreateOperationName(int stepId)
     {

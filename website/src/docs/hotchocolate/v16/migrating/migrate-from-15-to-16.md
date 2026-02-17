@@ -278,9 +278,73 @@ If you need the old behavior, use can still use the non-generic `ID`-attribute a
 
 Previously the `TryConfigure` or `OnConfigure` methods carried a non-nullable parameter of the member the descriptor attribute was annotated to. With the new source generator we moved away from pure reflection based APIs. This means that when you use the source generator
 
+## Merged Assemblies HotChocolate.Types, HotChocolate.Execution, HotChocolate.Fetching
+
+With Hot Chocolate 16 we introduced a lot more abstractions, meaning we pulled out abstractions of the type system or the execution into separate libraries. But at the same time we simplified the implementation of the type system and the execution by moving the implementations of HotChocolate.Execution and HotChocolate.Fetching into HotChocolate.Types. This allowed us to simplify the implementation and make it more efficient.
+
+So, if you were referencing HotChocolate.Execution or HotChocolate.Fetching directly make sure to remove references to these libraries and replace them with HotChocolate.Types.
+
+## Simpler Scalar Type
+
+TODO
+
+## Removed Scalars
+
+TODO
+
+NegativeFloat
+NonNegativeFloat
+NegativeInt
+NonPositiveInt
+NonEmptyString
+NonNegativeInt
+
+## OperationRequestBuilder
+
+TODO
+
+## AnyType
+
+TODO
+`JsonElement` is now inferred as `Any` instead of `Json`.
+
+## `Byte` and `SignedByte` types renamed
+
+- The GraphQL type `Byte` has been renamed to `UnsignedByte` (CLR type: `byte`).
+- The GraphQL type `SignedByte` has been renamed to `Byte` (CLR type: `sbyte`).
+
+This is to align the GraphQL type names with the core types (`Int`, etc.), which are signed.
+
+## Byte arrays now mapped to `Base64String`
+
+C# byte arrays (`byte[]`) are now mapped to the GraphQL `Base64String` type by default, as the `ByteArray` type has been deprecated.
+
+## `Uri` now mapped to `URI` scalar instead of `URL`
+
+The CLR type `Uri` is now mapped to a new `URI` scalar, instead of the `URL` scalar.
+
+- The `URI` scalar should be used for absolute or relative URIs.
+- The `URL` scalar should be used for absolute URIs/URLs only.
+
+For backwards compatibility, you can set `allowRelativeUris` to `true`:
+
+```csharp
+AddGraphQL().AddType(new UrlType(allowRelativeUris: true))
+```
+
+Note that this option is likely to be removed in a later release, so it's recommended that you switch types as soon as possible.
+
+## DateTime scalar serialization
+
+The `DateTime` scalar now serializes with up to 7 fractional seconds (`FFFFFFF`) as opposed to exactly 3 (`fff`).
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
+
+## `ByteArray`
+
+The GraphQL `ByteArray` type has been deprecated. Use the `Base64String` type instead.
 
 # Noteworthy changes
 

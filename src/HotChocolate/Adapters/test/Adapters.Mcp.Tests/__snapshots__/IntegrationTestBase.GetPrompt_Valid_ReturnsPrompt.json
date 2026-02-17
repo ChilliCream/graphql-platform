@@ -1,0 +1,13 @@
+{
+  "description": "Asks the LLM to analyze code quality and suggest improvements.",
+  "messages": [
+    {
+      "content": {
+        "type": "text",
+        "text": "Please review this code:\n\n```\n// Example code.\nconsole.log(\"Hello, World!\");\n```"
+      },
+      "role": "user"
+    }
+  ],
+  "_meta": null
+}

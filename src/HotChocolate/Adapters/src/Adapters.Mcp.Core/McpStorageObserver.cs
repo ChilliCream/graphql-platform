@@ -6,6 +6,7 @@ using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using static ModelContextProtocol.Protocol.NotificationMethods;
 
@@ -22,10 +23,14 @@ internal sealed class McpStorageObserver : IDisposable
     private readonly ConcurrentDictionary<string, McpServer> _mcpServers;
     private readonly IMcpStorage _storage;
     private readonly IMcpDiagnosticEvents _diagnosticEvents;
-    private IDisposable? _subscription;
+    private IDisposable? _promptsSubscription;
+    private IDisposable? _toolsSubscription;
 #if NET10_0_OR_GREATER
+    private ImmutableDictionary<string, (Prompt, ImmutableArray<PromptMessage>)> _prompts = [];
     private ImmutableDictionary<string, OperationTool> _tools = [];
 #else
+    private ImmutableDictionary<string, (Prompt, ImmutableArray<PromptMessage>)> _prompts
+        = ImmutableDictionary<string, (Prompt, ImmutableArray<PromptMessage>)>.Empty;
     private ImmutableDictionary<string, OperationTool> _tools = ImmutableDictionary<string, OperationTool>.Empty;
 #endif
     private static readonly DocumentValidator s_documentValidator
@@ -53,43 +58,110 @@ internal sealed class McpStorageObserver : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (_subscription is not null)
+        if (_promptsSubscription is not null || _toolsSubscription is not null)
         {
             return;
         }
 
         await _semaphore.WaitAsync(cancellationToken);
 
-        _subscription = _storage
-            .Buffer(TimeSpan.FromMilliseconds(500), 10)
+        _promptsSubscription = _storage
+            .Buffer<PromptStorageEventArgs>(TimeSpan.FromMilliseconds(500), 10)
+            .Where(batch => batch.Count > 0)
+            .Subscribe(onNext: ProcessBatch);
+
+        _toolsSubscription = _storage
+            .Buffer<OperationToolStorageEventArgs>(TimeSpan.FromMilliseconds(500), 10)
             .Where(batch => batch.Count > 0)
             .Subscribe(onNext: ProcessBatch);
 
         try
         {
-            var tools = ImmutableDictionary.CreateBuilder<string, OperationTool>();
-
-            using var scope = _diagnosticEvents.InitializeTools();
-
-            foreach (var toolDefinition in await _storage.GetOperationToolDefinitionsAsync(cancellationToken))
-            {
-                var validationResult = s_documentValidator.Validate(_schema, toolDefinition.Document);
-
-                if (validationResult.HasErrors)
-                {
-                    _diagnosticEvents.ValidationErrors(validationResult.Errors);
-                    continue;
-                }
-
-                tools.Add(toolDefinition.Name, _toolFactory.CreateTool(toolDefinition));
-            }
-
-            _tools = tools.ToImmutable();
-            _registry.UpdateTools(_tools);
+            await Task.WhenAll(
+                InitializePromptsAsync(cancellationToken),
+                InitializeToolsAsync(cancellationToken));
         }
         finally
         {
             _semaphore.Release();
+        }
+    }
+
+    private async Task InitializePromptsAsync(CancellationToken cancellationToken)
+    {
+        var prompts = ImmutableDictionary.CreateBuilder<string, (Prompt, ImmutableArray<PromptMessage>)>();
+        using var scope = _diagnosticEvents.InitializePrompts();
+
+        foreach (var promptDefinition in await _storage.GetPromptDefinitionsAsync(cancellationToken))
+        {
+            var prompt = PromptFactory.CreatePrompt(promptDefinition);
+            prompts.Add(promptDefinition.Name, prompt);
+        }
+
+        _prompts = prompts.ToImmutable();
+        _registry.UpdatePrompts(_prompts);
+    }
+
+    private async Task InitializeToolsAsync(CancellationToken cancellationToken)
+    {
+        var tools = ImmutableDictionary.CreateBuilder<string, OperationTool>();
+        using var scope = _diagnosticEvents.InitializeTools();
+
+        foreach (var toolDefinition in await _storage.GetOperationToolDefinitionsAsync(cancellationToken))
+        {
+            var validationResult = s_documentValidator.Validate(_schema, toolDefinition.Document);
+
+            if (validationResult.HasErrors)
+            {
+                _diagnosticEvents.ValidationErrors(validationResult.Errors);
+                continue;
+            }
+
+            tools.Add(toolDefinition.Name, _toolFactory.CreateTool(toolDefinition));
+        }
+
+        _tools = tools.ToImmutable();
+        _registry.UpdateTools(_tools);
+    }
+
+    private void ProcessBatch(IList<PromptStorageEventArgs> eventArgs)
+    {
+        _semaphore.Wait(_ct);
+
+        try
+        {
+            foreach (var eventArg in eventArgs)
+            {
+                switch (eventArg.Type)
+                {
+                    case PromptStorageEventType.Added:
+                    case PromptStorageEventType.Modified:
+                        using (_diagnosticEvents.UpdatePrompts())
+                        {
+                            var prompt = PromptFactory.CreatePrompt(eventArg.PromptDefinition!);
+                            _prompts = _prompts.SetItem(eventArg.Name, prompt);
+                            break;
+                        }
+
+                    case PromptStorageEventType.Removed:
+                        _prompts = _prompts.Remove(eventArg.Name);
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            _registry.UpdatePrompts(_prompts);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+
+        foreach (var mcpServer in _mcpServers.Values)
+        {
+            mcpServer.SendNotificationAsync(PromptListChangedNotification, cancellationToken: _ct).FireAndForget();
         }
     }
 
@@ -151,10 +223,12 @@ internal sealed class McpStorageObserver : IDisposable
         }
 
         _disposed = true;
-        _subscription?.Dispose();
+        _promptsSubscription?.Dispose();
+        _toolsSubscription?.Dispose();
         _cts.Cancel();
         _cts.Dispose();
         _semaphore.Dispose();
-        _subscription = null;
+        _promptsSubscription = null;
+        _toolsSubscription = null;
     }
 }

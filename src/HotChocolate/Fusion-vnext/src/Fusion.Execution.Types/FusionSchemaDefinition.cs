@@ -23,6 +23,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     private readonly ConcurrentDictionary<(string, string?), ImmutableArray<Lookup>> _possibleLookups = new();
     private readonly ConcurrentDictionary<TransitionKey, Lookup> _bestDirectLookup = new();
     private readonly IServiceProvider _services;
+    private PlannerTopologyCache? _plannerTopologyCache;
     private ImmutableArray<FusionUnionTypeDefinition> _unionTypes;
     private IFeatureCollection _features;
     private bool _sealed;
@@ -276,6 +277,67 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         return lookups;
     }
 
+    internal ImmutableArray<Lookup> GetPossibleLookupsOrdered(
+        ITypeDefinition type,
+        string? schemaName = null)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        if (_plannerTopologyCache is { } topology
+            && topology.TryGetOrderedLookups(type.Name, schemaName, out var lookups))
+        {
+            return lookups;
+        }
+
+        return [.. GetPossibleLookups(type, schemaName).OrderBy(CreateLookupOrderingKey, StringComparer.Ordinal)];
+    }
+
+    internal bool TryGetFieldResolution(
+        FusionComplexTypeDefinition type,
+        string fieldName,
+        out FieldResolutionInfo fieldResolution)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+        ArgumentException.ThrowIfNullOrEmpty(fieldName);
+
+        if (_plannerTopologyCache is { } topology
+            && topology.TryGetFieldResolution(type.Name, fieldName, out fieldResolution))
+        {
+            return true;
+        }
+
+        if (type.Fields.TryGetField(fieldName, allowInaccessibleFields: true, out var field))
+        {
+            fieldResolution = new FieldResolutionInfo(
+                field.Sources.Schemas.OrderBy(static s => s, StringComparer.Ordinal).ToImmutableArray(),
+                field.Sources.Members
+                    .Where(static s => s.Requirements is not null)
+                    .Select(static s => s.SchemaName)
+                    .OrderBy(static s => s, StringComparer.Ordinal)
+                    .ToImmutableArray());
+            return true;
+        }
+
+        fieldResolution = default;
+        return false;
+    }
+
+    internal bool TryGetTypeScatter(
+        FusionComplexTypeDefinition type,
+        out TypeScatterInfo typeScatter)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        if (_plannerTopologyCache is { } topology
+            && topology.TryGetTypeScatter(type.Name, out typeScatter))
+        {
+            return true;
+        }
+
+        typeScatter = default;
+        return false;
+    }
+
     private ImmutableArray<Lookup> GetPossibleLookupsInternal(ITypeDefinition type, string? schemaName)
     {
         if (type is FusionComplexTypeDefinition complexType)
@@ -392,6 +454,20 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         ArgumentException.ThrowIfNullOrEmpty(fromSchema);
         ArgumentException.ThrowIfNullOrEmpty(toSchema);
 
+        if (_plannerTopologyCache is { } topology)
+        {
+            if (topology.TryGetDirectTransition(type.Name, fromSchema, toSchema, out lookup))
+            {
+                return true;
+            }
+
+            if (topology.IsDirectTransitionImpossible(type.Name, fromSchema, toSchema))
+            {
+                lookup = null;
+                return false;
+            }
+        }
+
         if (!_bestDirectLookup.TryGetValue(new TransitionKey(type.Name, fromSchema, toSchema), out lookup))
         {
             var keyTransitionVisitor = new KeyTransitionVisitor();
@@ -409,6 +485,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
 
             foreach (var possibleLookup in GetPossibleLookups(type, toSchema))
             {
+                context.Reset();
                 keyTransitionVisitor.Visit(possibleLookup.Requirements, context);
 
                 if (context.NeedsTransition)
@@ -481,6 +558,14 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         _unionTypes = [.. Types.AsEnumerable().OfType<FusionUnionTypeDefinition>()];
     }
 
+    internal void InitializePlannerTopologyCache()
+    {
+        if (_plannerTopologyCache is null)
+        {
+            _plannerTopologyCache = PlannerTopologyCache.Build(this);
+        }
+    }
+
     public override string ToString()
         => SchemaFormatter.FormatAsString(this);
 
@@ -509,6 +594,24 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     }
 
     private readonly record struct TransitionKey(string TypeName, string From, string To);
+
+    private static string CreateLookupOrderingKey(Lookup lookup)
+    {
+        var path = lookup.Path.Length == 0
+            ? string.Empty
+            : string.Join('.', lookup.Path);
+
+        return string.Concat(
+            lookup.SchemaName,
+            ":",
+            lookup.FieldName,
+            ":",
+            path,
+            ":",
+            lookup.Arguments.Length.ToString(),
+            ":",
+            lookup.Fields.Length.ToString());
+    }
 }
 
 internal sealed class KeyTransitionVisitor : SyntaxWalker<KeyTransitionVisitor.Context>

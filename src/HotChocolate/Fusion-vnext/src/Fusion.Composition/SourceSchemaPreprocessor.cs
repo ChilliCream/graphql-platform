@@ -1,10 +1,13 @@
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
+using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Language;
+using HotChocolate.Logging;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
@@ -18,24 +21,30 @@ namespace HotChocolate.Fusion;
 internal sealed partial class SourceSchemaPreprocessor(
     MutableSchemaDefinition schema,
     ImmutableSortedSet<MutableSchemaDefinition> schemas,
+    ICompositionLog log,
+    Version? sourceSchemaVersion = null,
     SourceSchemaPreprocessorOptions? options = null)
 {
     private readonly SourceSchemaPreprocessorOptions _options = options ?? new SourceSchemaPreprocessorOptions();
 
-    public CompositionResult Process()
+    public CompositionResult Preprocess()
     {
-        var fusionV1CompatibilityMode = _options.Version.Major == 1;
+        var fusionV1CompatibilityMode = sourceSchemaVersion?.Major == 1;
+
+        if (_options.ExcludeByTag is { } excludeByTag)
+        {
+            RemoveTaggedMembers(excludeByTag);
+        }
 
         if (fusionV1CompatibilityMode)
         {
             RemoveDirectivesFromBatchFields();
-
             ApplyInferredLookupDirectives();
         }
 
-        if (fusionV1CompatibilityMode || _options.ApplyInferredKeyDirectives)
+        if (fusionV1CompatibilityMode || _options.InferKeysFromLookups)
         {
-            ApplyInferredKeyDirectives();
+            InferKeysFromLookups();
         }
 
         if (fusionV1CompatibilityMode || _options.InheritInterfaceKeys)
@@ -49,7 +58,117 @@ internal sealed partial class SourceSchemaPreprocessor(
             ApplyShareableDirectives();
         }
 
-        return CompositionResult.Success();
+        // Additional schema validation will catch issues introduced during preprocessing.
+        if (_options.EnableSchemaValidation)
+        {
+            var validationLog = new ValidationLog();
+            if (!new SchemaValidator().Validate(schema, validationLog) && validationLog.HasErrors)
+            {
+                log.WriteValidationLog(validationLog, schema);
+            }
+        }
+
+        return log.HasErrors
+            ? ErrorHelper.SourceSchemaPreprocessingFailed()
+            : CompositionResult.Success();
+    }
+
+    /// <summary>
+    /// Removes types, fields, arguments, and enum values that are tagged with any of the specified
+    /// tags.
+    /// </summary>
+    private void RemoveTaggedMembers(HashSet<string> excludeByTag)
+    {
+        var typesToRemove = new List<ITypeDefinition>();
+
+        foreach (var type in schema.Types)
+        {
+            if (type.GetTags().Overlaps(excludeByTag))
+            {
+                typesToRemove.Add(type);
+                continue;
+            }
+
+            switch (type)
+            {
+                case MutableComplexTypeDefinition complexType:
+                {
+                    var fieldsToRemove = new List<MutableOutputFieldDefinition>();
+
+                    foreach (var field in complexType.Fields.AsEnumerable())
+                    {
+                        if (field.GetTags().Overlaps(excludeByTag))
+                        {
+                            fieldsToRemove.Add(field);
+                            continue;
+                        }
+
+                        var argumentsToRemove = new List<MutableInputFieldDefinition>();
+
+                        foreach (var argument in field.Arguments.AsEnumerable())
+                        {
+                            if (argument.GetTags().Overlaps(excludeByTag))
+                            {
+                                argumentsToRemove.Add(argument);
+                            }
+                        }
+
+                        foreach (var argument in argumentsToRemove)
+                        {
+                            field.Arguments.Remove(argument);
+                        }
+                    }
+
+                    foreach (var field in fieldsToRemove)
+                    {
+                        complexType.Fields.Remove(field);
+                    }
+
+                    break;
+                }
+                case MutableInputObjectTypeDefinition inputObjectType:
+                {
+                    var fieldsToRemove = new List<MutableInputFieldDefinition>();
+
+                    foreach (var field in inputObjectType.Fields.AsEnumerable())
+                    {
+                        if (field.GetTags().Overlaps(excludeByTag))
+                        {
+                            fieldsToRemove.Add(field);
+                        }
+                    }
+
+                    foreach (var field in fieldsToRemove)
+                    {
+                        inputObjectType.Fields.Remove(field);
+                    }
+
+                    break;
+                }
+                case MutableEnumTypeDefinition enumType:
+                    var valuesToRemove = new List<MutableEnumValue>();
+
+                    foreach (var value in enumType.Values.AsEnumerable())
+                    {
+                        if (value.GetTags().Overlaps(excludeByTag))
+                        {
+                            valuesToRemove.Add(value);
+                        }
+                    }
+
+                    foreach (var value in valuesToRemove)
+                    {
+                        enumType.Values.Remove(value);
+                    }
+
+                    break;
+            }
+        }
+
+        foreach (var type in typesToRemove)
+        {
+            schema.Types.Remove(type);
+        }
     }
 
     /// <summary>
@@ -80,13 +199,13 @@ internal sealed partial class SourceSchemaPreprocessor(
                         continue;
                     }
 
-                    if (field.Directives.ContainsName(Internal) || field.Directives.ContainsName(Inaccessible))
+                    if (field.Directives.ContainsName(WellKnownDirectiveNames.Internal) || field.Directives.ContainsName(Inaccessible))
                     {
                         continue;
                     }
 
                     if (!otherType.Fields.TryGetField(field.Name, out var otherField)
-                        || otherField.Directives.ContainsName(Internal)
+                        || otherField.Directives.ContainsName(WellKnownDirectiveNames.Internal)
                         || otherField.Directives.ContainsName(Inaccessible))
                     {
                         continue;
@@ -121,7 +240,7 @@ internal sealed partial class SourceSchemaPreprocessor(
                 continue;
             }
 
-            if (field.Directives.ContainsName(Internal))
+            if (field.Directives.ContainsName(WellKnownDirectiveNames.Internal))
             {
                 queryType.Fields.Remove(field);
             }
@@ -234,7 +353,7 @@ internal sealed partial class SourceSchemaPreprocessor(
     /// <summary>
     /// Applies inferred key directives to types that are returned by lookup fields.
     /// </summary>
-    private void ApplyInferredKeyDirectives()
+    private void InferKeysFromLookups()
     {
         var lookupFieldDefinitions =
             schema.Types

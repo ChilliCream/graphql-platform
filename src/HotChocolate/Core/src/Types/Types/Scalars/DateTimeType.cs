@@ -1,32 +1,26 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
 /// <summary>
-/// <para>
-/// This scalar represents an exact point in time. This point in time is specified by having an
-/// offset to UTC and does <b>not</b> use a time zone.
-/// </para>
-/// <para>
-/// It is a slightly refined version of
-/// <see href="https://tools.ietf.org/html/rfc3339">RFC 3339</see>, including the
-/// <see href="https://www.rfc-editor.org/errata/rfc3339">errata</see>.
-/// </para>
+/// The <c>DateTime</c> scalar type represents a date and time with time zone offset information. It
+/// is intended for scenarios where representing a specific instant in time is required, such as
+/// recording when an event occurred, scheduling future events across time zones, or storing
+/// timestamps for auditing purposes.
 /// </summary>
-/// <seealso href="https://scalars.graphql.org/andimarek/date-time.html">Specification</seealso>
-public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
+/// <seealso href="https://scalars.graphql.org/chillicream/date-time.html">Specification</seealso>
+public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
 {
-    private const string UtcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
-    private const string LocalFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
-    private const string SpecifiedByUri = "https://scalars.graphql.org/andimarek/date-time.html";
-
-    private static readonly Regex s_dateTimeScalarRegex = new(
-        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?(Z|[+-][0-9]{2}:[0-9]{2})$",
-        RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+    private const string UtcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.FFFFFFFZ";
+    private const string LocalFormat = "yyyy-MM-ddTHH\\:mm\\:ss.FFFFFFFzzz";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/date-time.html";
 
     private readonly bool _enforceSpecFormat;
 
@@ -41,8 +35,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         : base(name, bind)
     {
         Description = description;
-        SerializationType = ScalarSerializationType.String;
-        Pattern = @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:[Zz]|[+-]\d{2}:\d{2})$";
+        Pattern = @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:[Zz]|[+-]\d{2}:\d{2})$";
         SpecifiedBy = new Uri(SpecifiedByUri);
         _enforceSpecFormat = !disableFormatCheck;
     }
@@ -72,156 +65,75 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     {
     }
 
-    protected override DateTimeOffset ParseLiteral(StringValueNode valueSyntax)
+    protected override DateTimeOffset OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        if (TryDeserializeFromString(valueSyntax.Value, out var value))
+        if (TryParseStringValue(valueLiteral.Value, out var value))
         {
-            return value.Value;
+            return value;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
-            this);
+        throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
     }
 
-    protected override StringValueNode ParseValue(DateTimeOffset runtimeValue)
+    protected override DateTimeOffset OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        return new(Serialize(runtimeValue));
+        if (TryParseStringValue(inputValue.GetString()!, out var value))
+        {
+            return value;
+        }
+
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
 
-    public override IValueNode ParseResult(object? resultValue)
+    protected override void OnCoerceOutputValue(DateTimeOffset runtimeValue, ResultElement resultValue)
     {
-        if (resultValue is null)
+        if (runtimeValue.Offset == TimeSpan.Zero)
         {
-            return NullValueNode.Default;
+            resultValue.SetStringValue(runtimeValue.ToString(UtcFormat, CultureInfo.InvariantCulture));
         }
-
-        if (resultValue is string s)
+        else
         {
-            return new StringValueNode(s);
+            resultValue.SetStringValue(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
         }
-
-        if (resultValue is DateTimeOffset d)
-        {
-            return ParseValue(d);
-        }
-
-        if (resultValue is DateTime dt)
-        {
-            return ParseValue(new DateTimeOffset(dt.ToUniversalTime(), TimeSpan.Zero));
-        }
-
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
-            this);
     }
 
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+    protected override StringValueNode OnValueToLiteral(DateTimeOffset runtimeValue)
     {
-        if (runtimeValue is null)
+        if (runtimeValue.Offset == TimeSpan.Zero)
         {
-            resultValue = null;
-            return true;
+            return new StringValueNode(runtimeValue.ToString(UtcFormat, CultureInfo.InvariantCulture));
         }
-
-        if (runtimeValue is DateTimeOffset dt)
+        else
         {
-            resultValue = Serialize(dt);
-            return true;
+            return new StringValueNode(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
         }
-
-        if (runtimeValue is DateTime d)
-        {
-            resultValue = Serialize(new DateTimeOffset(d.ToUniversalTime(), TimeSpan.Zero));
-            return true;
-        }
-
-        resultValue = null;
-        return false;
     }
 
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+    private bool TryParseStringValue(string serialized, out DateTimeOffset value)
     {
-        if (resultValue is null)
-        {
-            runtimeValue = null;
-            return true;
-        }
-
-        if (resultValue is string s && TryDeserializeFromString(s, out var d))
-        {
-            runtimeValue = d;
-            return true;
-        }
-
-        if (resultValue is DateTimeOffset)
-        {
-            runtimeValue = resultValue;
-            return true;
-        }
-
-        if (resultValue is DateTime dt)
-        {
-            runtimeValue = new DateTimeOffset(
-                dt.ToUniversalTime(),
-                TimeSpan.Zero);
-            return true;
-        }
-
-        runtimeValue = null;
-        return false;
-    }
-
-    private static string Serialize(DateTimeOffset value)
-    {
-        if (value.Offset == TimeSpan.Zero)
-        {
-            return value.ToString(
-                UtcFormat,
-                CultureInfo.InvariantCulture);
-        }
-
-        return value.ToString(
-            LocalFormat,
-            CultureInfo.InvariantCulture);
-    }
-
-    private bool TryDeserializeFromString(
-        string? serialized,
-        [NotNullWhen(true)] out DateTimeOffset? value)
-    {
-        if (serialized is null)
-        {
-            value = null;
-            return false;
-        }
-
         // Check format.
-        if (_enforceSpecFormat && !s_dateTimeScalarRegex.IsMatch(serialized))
+        if (_enforceSpecFormat && !DateTimeRegex().IsMatch(serialized))
         {
-            value = null;
-            return false;
-        }
-
-        // No "Unknown Local Offset Convention".
-        // https://scalars.graphql.org/andimarek/date-time.html#sec-Overview.No-Unknown-Local-Offset-Convention-
-        if (serialized.EndsWith("-00:00"))
-        {
-            value = null;
+            value = default;
             return false;
         }
 
         if (DateTimeOffset.TryParse(
-                serialized,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.None,
-                out var dt))
+            serialized,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out var dt))
         {
             value = dt;
             return true;
         }
 
-        value = null;
+        value = default;
         return false;
     }
+
+    [GeneratedRegex(
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex DateTimeRegex();
 }

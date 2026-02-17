@@ -69,20 +69,56 @@ namespace HotChocolate.Adapters.Mcp.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ToolInvokedStatusText cannot exceed 64 characters..
+        ///   Looks up a localized string similar to Missing required arguments: {0}..
         /// </summary>
-        internal static string OpenAiComponent_ToolInvokedStatusTextCannotExceed64Characters {
+        internal static string GetPromptHandler_MissingRequiredArguments {
             get {
-                return ResourceManager.GetString("OpenAiComponent_ToolInvokedStatusTextCannotExceed64Characters", resourceCulture);
+                return ResourceManager.GetString("GetPromptHandler_MissingRequiredArguments", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ToolInvokingStatusText cannot exceed 64 characters..
+        ///   Looks up a localized string similar to Prompt not found..
         /// </summary>
-        internal static string OpenAiComponent_ToolInvokingStatusTextCannotExceed64Characters {
+        internal static string GetPromptHandler_PromptNotFound {
             get {
-                return ResourceManager.GetString("OpenAiComponent_ToolInvokingStatusTextCannotExceed64Characters", resourceCulture);
+                return ResourceManager.GetString("GetPromptHandler_PromptNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The MIME type must be a valid type/subtype string..
+        /// </summary>
+        internal static string IconDefinition_InvalidIconMimeType {
+            get {
+                return ResourceManager.GetString("IconDefinition_InvalidIconMimeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Each size must have the format {WIDTH}x{HEIGHT} (e.g., 48x48) or be &apos;any&apos;..
+        /// </summary>
+        internal static string IconDefinition_InvalidIconSize {
+            get {
+                return ResourceManager.GetString("IconDefinition_InvalidIconSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The icon source URI must use the HTTP, HTTPS, or data scheme..
+        /// </summary>
+        internal static string IconDefinition_InvalidIconSourceScheme {
+            get {
+                return ResourceManager.GetString("IconDefinition_InvalidIconSourceScheme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The icon theme must be &apos;light&apos; or &apos;dark&apos;..
+        /// </summary>
+        internal static string IconDefinition_InvalidIconTheme {
+            get {
+                return ResourceManager.GetString("IconDefinition_InvalidIconTheme", resourceCulture);
             }
         }
         
@@ -105,38 +141,11 @@ namespace HotChocolate.Adapters.Mcp.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} OpenAI Component.
+        ///   Looks up a localized string similar to {0} View.
         /// </summary>
-        internal static string OperationToolFactory_OpenAiComponentResourceName {
+        internal static string OperationToolFactory_McpAppViewResourceName {
             get {
-                return ResourceManager.GetString("OperationToolFactory_OpenAiComponentResourceName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The MIME type must be a valid type/subtype string..
-        /// </summary>
-        internal static string OperationToolIcon_InvalidIconMimeType {
-            get {
-                return ResourceManager.GetString("OperationToolIcon_InvalidIconMimeType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Each size must have the format {WIDTH}x{HEIGHT} (e.g., 48x48) or be &apos;any&apos;..
-        /// </summary>
-        internal static string OperationToolIcon_InvalidIconSize {
-            get {
-                return ResourceManager.GetString("OperationToolIcon_InvalidIconSize", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The icon source URI must use the HTTP, HTTPS, or data scheme..
-        /// </summary>
-        internal static string OperationToolIcon_InvalidIconSourceScheme {
-            get {
-                return ResourceManager.GetString("OperationToolIcon_InvalidIconSourceScheme", resourceCulture);
+                return ResourceManager.GetString("OperationToolFactory_McpAppViewResourceName", resourceCulture);
             }
         }
         

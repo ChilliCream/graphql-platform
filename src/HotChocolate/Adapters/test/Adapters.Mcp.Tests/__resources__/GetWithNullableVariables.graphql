@@ -1,9 +1,9 @@
 "GetWithNullableVariables description"
 query GetWithNullableVariables(
   "Any description" $any: Any
+  "Base64String description" $base64String: Base64String
   "Boolean description" $boolean: Boolean
   "Byte description" $byte: Byte
-  "ByteArray description" $byteArray: ByteArray
   "Date description" $date: Date
   "DateTime description" $dateTime: DateTime
   "Decimal description" $decimal: Decimal
@@ -11,7 +11,6 @@ query GetWithNullableVariables(
   "Float description" $float: Float
   "ID description" $id: ID
   "Int description" $int: Int
-  "JSON description" $json: JSON
   "List description" $list: [String]
   "LocalDate description" $localDate: LocalDate
   "LocalDateTime description" $localDateTime: LocalDateTime
@@ -22,14 +21,15 @@ query GetWithNullableVariables(
   "String description" $string: String
   "TimeSpan description" $timeSpan: TimeSpan
   "Unknown description" $unknown: Unknown
+  "URI description" $uri: URI
   "URL description" $url: URL
   "UUID description" $uuid: UUID
 ) {
   withNullableVariables(
     any: $any
+    base64String: $base64String
     boolean: $boolean
     byte: $byte
-    byteArray: $byteArray
     date: $date
     dateTime: $dateTime
     decimal: $decimal
@@ -37,7 +37,6 @@ query GetWithNullableVariables(
     float: $float
     id: $id
     int: $int
-    json: $json
     list: $list
     localDate: $localDate
     localDateTime: $localDateTime
@@ -48,13 +47,14 @@ query GetWithNullableVariables(
     string: $string
     timeSpan: $timeSpan
     unknown: $unknown
+    uri: $uri
     url: $url
     uuid: $uuid
   ) {
     any
+    base64String
     boolean
     byte
-    byteArray
     date
     dateTime
     decimal
@@ -62,7 +62,6 @@ query GetWithNullableVariables(
     float
     id
     int
-    json
     list
     localDate
     localDateTime
@@ -79,6 +78,7 @@ query GetWithNullableVariables(
     string
     timeSpan
     unknown
+    uri
     url
     uuid
   }

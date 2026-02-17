@@ -1,4 +1,7 @@
 using System.Collections.Concurrent;
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using HotChocolate.Adapters.Mcp.Diagnostics;
 using HotChocolate.Adapters.Mcp.Handlers;
 using HotChocolate.Adapters.Mcp.Proxies;
@@ -12,6 +15,10 @@ using ModelContextProtocol.Server;
 
 namespace HotChocolate.Adapters.Mcp.Extensions;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 internal static class ServiceCollectionExtensions
 {
     public static void AddMcpServices(this IServiceCollection services, string schemaName)
@@ -88,6 +95,7 @@ internal static class ServiceCollectionExtensions
                 .AddMcpServer(options =>
                 {
                     configureServerOptions?.Invoke(options);
+                    options.Capabilities?.Prompts?.ListChanged = true;
                     options.Capabilities?.Tools?.ListChanged = true;
                 })
                 .WithHttpTransport(options =>
@@ -113,6 +121,10 @@ internal static class ServiceCollectionExtensions
                         }
                     };
                 })
+                .WithListPromptsHandler(
+                    (context, _) => ValueTask.FromResult(ListPromptsHandler.Handle(context)))
+                .WithGetPromptHandler(
+                    (context, _) => ValueTask.FromResult(GetPromptHandler.Handle(context)))
                 .WithReadResourceHandler(
                     (context, _) => ValueTask.FromResult(ReadResourceHandler.Handle(context)))
                 .WithListToolsHandler(

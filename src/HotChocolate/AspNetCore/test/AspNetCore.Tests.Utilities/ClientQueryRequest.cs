@@ -35,7 +35,7 @@ public class ClientQueryRequest
         {
             if (Id is not null)
             {
-                query.Append("&");
+                query.Append('&');
             }
             query.Append($"query={Query.Replace("\r", "").Replace("\n", "")}");
         }

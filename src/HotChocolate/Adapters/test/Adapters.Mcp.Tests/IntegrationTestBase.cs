@@ -22,6 +22,272 @@ namespace HotChocolate.Adapters.Mcp;
 public abstract class IntegrationTestBase
 {
     [Fact]
+    public async Task ListPrompts_Valid_ReturnsPrompts()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdatePromptAsync(
+            new PromptDefinition("code_review")
+            {
+                Title = "Code Review",
+                Description = "Asks the LLM to analyze code quality and suggest improvements.",
+                Arguments =
+                [
+                    new PromptArgumentDefinition("code")
+                    {
+                        Title = "Code to Review",
+                        Description = "The code to review",
+                        Required = true
+                    }
+                ],
+                Icons =
+                [
+                    new IconDefinition(new Uri("https://example.com/icon.png"))
+                    {
+                        MimeType = "image/png",
+                        Sizes = ["48x48"],
+                        Theme = "light"
+                    }
+                ],
+                Messages =
+                [
+                    new PromptMessageDefinition(
+                        RoleDefinition.User,
+                        new TextContentBlockDefinition(
+                            """
+                            Please review this code:
+
+                            ```
+                            {code}
+                            ```
+                            """))
+                ]
+            });
+        await storage.AddOrUpdatePromptAsync(
+            new PromptDefinition("bug_finder")
+            {
+                Title = "Bug Finder",
+                Description = "Asks the LLM to find bugs in the provided code.",
+                Arguments =
+                [
+                    new PromptArgumentDefinition("code")
+                    {
+                        Title = "Code to Analyze",
+                        Description = "The code to analyze for bugs",
+                        Required = true
+                    }
+                ],
+                Messages =
+                [
+                    new PromptMessageDefinition(
+                        RoleDefinition.User,
+                        new TextContentBlockDefinition(
+                            """
+                            Please find bugs in this code:
+
+                            ```
+                            {code}
+                            ```
+                            """))
+                ]
+            });
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var prompts = await mcpClient.ListPromptsAsync();
+
+        // assert
+        JsonSerializer.Serialize(prompts.Select(t => t.ProtocolPrompt), JsonSerializerOptions)
+            .ReplaceLineEndings("\n")
+            .MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public async Task ListPrompts_AfterPromptsUpdate_ReturnsUpdatedPrompts()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdatePromptAsync(
+            new PromptDefinition("code_review")
+            {
+                Title = "Code Review",
+                Description = "Asks the LLM to analyze code quality and suggest improvements.",
+                Arguments =
+                [
+                    new PromptArgumentDefinition("code")
+                    {
+                        Title = "Code to Review",
+                        Description = "The code to review",
+                        Required = true
+                    }
+                ],
+                Icons =
+                [
+                    new IconDefinition(new Uri("https://example.com/icon.png"))
+                    {
+                        MimeType = "image/png",
+                        Sizes = ["48x48"],
+                        Theme = "light"
+                    }
+                ],
+                Messages =
+                [
+                    new PromptMessageDefinition(
+                        RoleDefinition.User,
+                        new TextContentBlockDefinition(
+                            """
+                            Please review this code:
+
+                            ```
+                            {code}
+                            ```
+                            """))
+                ]
+            });
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        var listChangedResetEvent = new ManualResetEventSlim(false);
+        mcpClient.RegisterNotificationHandler(
+            NotificationMethods.PromptListChangedNotification,
+            async (_, _) =>
+            {
+                listChangedResetEvent.Set();
+                await ValueTask.CompletedTask;
+            });
+
+        // act
+        var prompts = await mcpClient.ListPromptsAsync();
+        IList<McpClientPrompt>? updatedPrompts = null;
+
+        await storage.AddOrUpdatePromptAsync(
+            new PromptDefinition("bug_finder")
+            {
+                Title = "Bug Finder",
+                Description = "Asks the LLM to find bugs in the provided code.",
+                Arguments =
+                [
+                    new PromptArgumentDefinition("code")
+                    {
+                        Title = "Code to Analyze",
+                        Description = "The code to analyze for bugs",
+                        Required = true
+                    }
+                ],
+                Messages =
+                [
+                    new PromptMessageDefinition(
+                        RoleDefinition.User,
+                        new TextContentBlockDefinition(
+                            """
+                            Please find bugs in this code:
+
+                            ```
+                            {code}
+                            ```
+                            """))
+                ]
+            });
+
+        if (listChangedResetEvent.Wait(TimeSpan.FromSeconds(5)))
+        {
+            updatedPrompts = await mcpClient.ListPromptsAsync();
+        }
+
+        // assert
+        Assert.NotNull(updatedPrompts);
+        JsonSerializer.Serialize(
+                prompts.Concat(updatedPrompts).Select(t => t.ProtocolPrompt),
+                JsonSerializerOptions)
+            .ReplaceLineEndings("\n")
+            .MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public async Task GetPrompt_Valid_ReturnsPrompt()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        var prompt =
+            new PromptDefinition("code_review")
+            {
+                Title = "Code Review",
+                Description = "Asks the LLM to analyze code quality and suggest improvements.",
+                Arguments =
+                [
+                    new PromptArgumentDefinition("code")
+                    {
+                        Title = "Code to Review",
+                        Description = "The code to review",
+                        Required = true
+                    }
+                ],
+                Icons =
+                [
+                    new IconDefinition(new Uri("https://example.com/icon.png"))
+                    {
+                        MimeType = "image/png",
+                        Sizes = ["48x48"],
+                        Theme = "light"
+                    }
+                ],
+                Messages =
+                [
+                    new PromptMessageDefinition(
+                        RoleDefinition.User,
+                        new TextContentBlockDefinition(
+                            """
+                            Please review this code:
+
+                            ```
+                            {code}
+                            ```
+                            """))
+                ]
+            };
+        await storage.AddOrUpdatePromptAsync(prompt);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var result = await mcpClient.GetPromptAsync(
+            prompt.Name,
+            new Dictionary<string, object?>
+            {
+                {
+                    "code",
+                    """
+                    // Example code.
+                    console.log("Hello, World!");
+                    """
+                }
+            });
+
+        // assert
+        JsonSerializer.Serialize(result, JsonSerializerOptions)
+            .ReplaceLineEndings("\n")
+            .MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public async Task GetPrompt_Missing_ThrowsException()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        async Task Action() => await mcpClient.GetPromptAsync("missing");
+
+        // assert
+        var exception = await Assert.ThrowsAsync<McpProtocolException>(Action);
+        Assert.EndsWith("Prompt not found.", exception.Message);
+        Assert.Equal(-32602, (int)exception.ErrorCode);
+        Assert.Equal("missing", exception.Data["name"]);
+    }
+
+    [Fact]
     public async Task ListTools_Valid_ReturnsTools()
     {
         // arrange
@@ -65,9 +331,9 @@ public abstract class IntegrationTestBase
                 Utf8GraphQLParser.Parse(
                     await File.ReadAllTextAsync("__resources__/GetBooksWithTitle1.graphql"))));
         var server = await CreateTestServerAsync(storage);
-        var mcpClient1 = await CreateMcpClientAsync(server.CreateClient());
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
         var listChangedResetEvent = new ManualResetEventSlim(false);
-        mcpClient1.RegisterNotificationHandler(
+        mcpClient.RegisterNotificationHandler(
             NotificationMethods.ToolListChangedNotification,
             async (_, _) =>
             {
@@ -76,7 +342,7 @@ public abstract class IntegrationTestBase
             });
 
         // act
-        var tools = await mcpClient1.ListToolsAsync();
+        var tools = await mcpClient.ListToolsAsync();
         IList<McpClientTool>? updatedTools = null;
 
         await storage.AddOrUpdateToolAsync(
@@ -86,7 +352,7 @@ public abstract class IntegrationTestBase
 
         if (listChangedResetEvent.Wait(TimeSpan.FromSeconds(5)))
         {
-            updatedTools = await mcpClient1.ListToolsAsync();
+            updatedTools = await mcpClient.ListToolsAsync();
         }
 
         // assert
@@ -130,7 +396,7 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
-    public async Task ListTools_WithOpenAiComponent_ReturnsExpectedResult()
+    public async Task ListTools_WithMcpAppView_ReturnsExpectedResult()
     {
         // arrange
         var storage = new TestMcpStorage();
@@ -144,13 +410,8 @@ public abstract class IntegrationTestBase
         await storage.AddOrUpdateToolAsync(
             new OperationToolDefinition(document2)
             {
-                OpenAiComponent = new OpenAiComponent(
-                    htmlTemplateText: await File.ReadAllTextAsync("__resources__/OpenAiComponent.html"))
-                {
-                    AllowToolCalls = true,
-                    ToolInvokingStatusText = "Invoking GetWithNonNullableVariables...",
-                    ToolInvokedStatusText = "GetWithNonNullableVariables invoked."
-                }
+                View = new McpAppView(
+                    html: await File.ReadAllTextAsync("__resources__/McpAppView.html"))
             });
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
@@ -220,13 +481,13 @@ public abstract class IntegrationTestBase
             {
                 Icons =
                 [
-                    new OperationToolIcon(new Uri("https://example.com/icon.png"))
+                    new IconDefinition(new Uri("https://example.com/icon.png"))
                     {
                         MimeType = "image/png",
                         Sizes = ["48x48"],
                         Theme = "light"
                     },
-                    new OperationToolIcon(new Uri("data:image/svg+xml;base64,..."))
+                    new IconDefinition(new Uri("data:image/svg+xml;base64,..."))
                     {
                         MimeType = "image/svg+xml",
                         Sizes = ["any"],
@@ -392,9 +653,9 @@ public abstract class IntegrationTestBase
             new Dictionary<string, object?>
             {
                 { "any", null },
+                { "base64String", null },
                 { "boolean", null },
                 { "byte", null },
-                { "byteArray", null },
                 { "date", null },
                 { "dateTime", null },
                 { "decimal", null },
@@ -413,6 +674,7 @@ public abstract class IntegrationTestBase
                 { "string", null },
                 { "timeSpan", null },
                 { "unknown", null },
+                { "uri", null },
                 { "url", null },
                 { "uuid", null }
             },
@@ -444,9 +706,9 @@ public abstract class IntegrationTestBase
             new Dictionary<string, object?>
             {
                 { "any", new { key = "value" } },
+                { "base64String", "dGVzdA==" },
                 { "boolean", true },
                 { "byte", 1 },
-                { "byteArray", "dGVzdA==" },
                 { "date", "2000-01-01" },
                 { "dateTime", "2000-01-01T12:00:00Z" },
                 { "decimal", 79228162514264337593543950335m },
@@ -465,6 +727,7 @@ public abstract class IntegrationTestBase
                 { "string", "test" },
                 { "timeSpan", "PT5M" },
                 { "unknown", "test" },
+                { "uri", "https://example.com" },
                 { "url", "https://example.com" },
                 { "uuid", "00000000-0000-0000-0000-000000000000" }
             },
@@ -646,27 +909,36 @@ public abstract class IntegrationTestBase
         var tool =
             new OperationToolDefinition(documentNode)
             {
-                OpenAiComponent = new OpenAiComponent(
-                    htmlTemplateText: await File.ReadAllTextAsync("__resources__/OpenAiComponent.html"))
+                View = new McpAppView(
+                    html: await File.ReadAllTextAsync("__resources__/McpAppView.html"))
                 {
-                    Description = "GetBooksWithTitle1 OpenAI Component description",
-                    PrefersBorder = true,
-                    AllowToolCalls = true,
                     Csp =
-                        new OpenAiComponentCsp(
-                            ConnectDomains: ["https://example.com"],
-                            ResourceDomains: ["https://*.example.com"]),
+                        new McpAppViewCsp
+                        {
+                            BaseUriDomains = ["https://example.com"],
+                            ConnectDomains = ["https://example.com"],
+                            FrameDomains = ["https://example.com"],
+                            ResourceDomains = ["https://example.com"]
+                        },
                     Domain = "https://example.com",
-                    ToolInvokingStatusText = "Fetching books...",
-                    ToolInvokedStatusText = "Books fetched."
-                }
+                    Permissions =
+                        new McpAppViewPermissions
+                        {
+                            Camera = true,
+                            ClipboardWrite = false,
+                            Geolocation = true,
+                            Microphone = false
+                        },
+                    PrefersBorder = true
+                },
+                Visibility = [McpAppViewVisibility.App]
             };
         await storage.AddOrUpdateToolAsync(tool);
         var server = await CreateTestServerAsync(storage);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        var result = await mcpClient.ReadResourceAsync(tool.OpenAiComponentOutputTemplate!);
+        var result = await mcpClient.ReadResourceAsync(tool.ViewResourceUri!);
 
         // assert
         JsonSerializer.Serialize(result, JsonSerializerOptions)
@@ -683,13 +955,13 @@ public abstract class IntegrationTestBase
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
-        async Task Action() => await mcpClient.ReadResourceAsync("ui://open-ai-components/missing.html");
+        async Task Action() => await mcpClient.ReadResourceAsync("ui://views/missing.html");
 
         // assert
         var exception = await Assert.ThrowsAsync<McpProtocolException>(Action);
         Assert.EndsWith("Resource not found.", exception.Message);
         Assert.Equal(-32002, (int)exception.ErrorCode);
-        Assert.Equal("ui://open-ai-components/missing.html", exception.Data["uri"]);
+        Assert.Equal("ui://views/missing.html", exception.Data["uri"]);
     }
 
     [Fact]
@@ -726,7 +998,7 @@ public abstract class IntegrationTestBase
                     new HttpClientTransportOptions
                     {
                         Endpoint = new Uri(httpClient.BaseAddress!, "/graphql/mcp"),
-                        AdditionalHeaders = new Dictionary<string, string>()
+                        AdditionalHeaders = new Dictionary<string, string>
                         {
                             { "Authorization", $"Bearer {token}" }
                         }

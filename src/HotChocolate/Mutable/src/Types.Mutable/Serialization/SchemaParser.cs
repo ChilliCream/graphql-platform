@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using static HotChocolate.Types.Mutable.Properties.MutableResources;
 
@@ -812,18 +813,32 @@ public static class SchemaParser
                 directiveNode.Name.Value,
                 out var directiveType))
             {
-                directiveType = directiveNode.Name.Value switch
+                switch (directiveNode.Name.Value)
                 {
-                    DirectiveNames.Deprecated.Name => BuiltIns.Deprecated.Create(schema),
-                    DirectiveNames.OneOf.Name => BuiltIns.OneOf.Create(),
-                    DirectiveNames.SpecifiedBy.Name => BuiltIns.SpecifiedBy.Create(schema),
-                    _ =>
-                        new MutableDirectiveDefinition(directiveNode.Name.Value)
+                    case DirectiveNames.Deprecated.Name:
+                        directiveType = BuiltIns.Deprecated.Create(schema);
+                        break;
+
+                    case DirectiveNames.OneOf.Name:
+                        directiveType = BuiltIns.OneOf.Create();
+                        break;
+
+                    case DirectiveNames.SpecifiedBy.Name:
+                        directiveType = BuiltIns.SpecifiedBy.Create(schema);
+                        break;
+
+                    default:
+                        directiveType = new MutableDirectiveDefinition(directiveNode.Name.Value)
                         {
                             IsRepeatable = true,
                             Locations = DirectiveLocation.TypeSystem
-                        }
-                };
+                        };
+
+                        directiveType.Features.Set(
+                            new IncompleteDirectiveDefinitionFeature { IsIncomplete = true });
+
+                        break;
+                }
 
                 schema.DirectiveDefinitions.Add(directiveType);
             }

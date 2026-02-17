@@ -2,7 +2,7 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Buffers;
 
 #else
 using System.Runtime.CompilerServices;
@@ -176,12 +176,12 @@ internal static class SseEventParser
                 if (lineFeedIndex > 0 && chunk[lineFeedIndex - 1] == (byte)'\r')
                 {
                     nextPosition = possibleEnd + 1;
-                    end = possibleEnd - 2;
+                    end = possibleEnd - 1;
                     return true;
                 }
 
                 nextPosition = possibleEnd + 1;
-                end = possibleEnd - 1;
+                end = possibleEnd;
                 return true;
             }
 

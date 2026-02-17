@@ -233,15 +233,10 @@ sourceSchemas:
               },
               {
                 "__fusion_1_id": 2
-              },
-              {
-                "__fusion_1_id": 2
-              },
-              {
-                "__fusion_1_id": 2
               }
             ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -295,6 +290,7 @@ operationPlan:
       name: GetBooks
       hash: f1bed549ddb5fadb135070be28b9aa58
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

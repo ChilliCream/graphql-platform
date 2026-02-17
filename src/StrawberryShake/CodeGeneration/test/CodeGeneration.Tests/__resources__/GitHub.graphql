@@ -2071,7 +2071,7 @@ type CreatePullRequestPayload {
 input CreateRefInput {
   "The Node ID of the Repository to create the Ref in."
   repositoryId: ID!
-  "The fully qualified name of the new Ref (ie: `refs\/heads\/my_new_branch`)."
+  "The fully qualified name of the new Ref (ie: `refs/heads/my_new_branch`)."
   name: String!
   "The GitObjectID that the new Ref shall target. Must point to a commit."
   oid: GitObjectID!
@@ -3116,7 +3116,7 @@ interface EnterpriseAuditEntryData {
 
 "Enterprise billing information visible to enterprise billing managers and owners."
 type EnterpriseBillingInfo {
-  "The number of licenseable users\/emails across the enterprise."
+  "The number of licenseable users/emails across the enterprise."
   allLicensableUsersCount: Int!
   "The number of data packs used by all organizations owned by the enterprise."
   assetPacks: Int!
@@ -3156,7 +3156,7 @@ enum EnterpriseDefaultRepositoryPermissionSettingValue {
   NONE
 }
 
-"The possible values for an enabled\/disabled enterprise setting."
+"The possible values for an enabled/disabled enterprise setting."
 enum EnterpriseEnabledDisabledSettingValue {
   "The setting is enabled for organizations in the enterprise."
   ENABLED
@@ -3166,7 +3166,7 @@ enum EnterpriseEnabledDisabledSettingValue {
   NO_POLICY
 }
 
-"The possible values for an enabled\/no policy enterprise setting."
+"The possible values for an enabled/no policy enterprise setting."
 enum EnterpriseEnabledSettingValue {
   "The setting is enabled for organizations in the enterprise."
   ENABLED
@@ -4172,7 +4172,7 @@ scalar GitObjectID
 "Git SSH string"
 scalar GitSSHRemote
 
-"Information about a signature (GPG or S\/MIME) on a Commit or Tag."
+"Information about a signature (GPG or S/MIME) on a Commit or Tag."
 interface GitSignature {
   "Email used to sign this object."
   email: String!
@@ -4720,7 +4720,7 @@ type IssueTimelineItemsConnection {
   filteredCount: Int!
   "A list of nodes."
   nodes: [IssueTimelineItems]
-  "Identifies the count of items after applying `before`\/`after` filters and `first`\/`last`\/`skip` slicing."
+  "Identifies the count of items after applying `before`/`after` filters and `first`/`last`/`skip` slicing."
   pageCount: Int!
   "Information to aid in pagination."
   pageInfo: PageInfo!
@@ -4962,7 +4962,7 @@ type License implements Node {
   key: String!
   "The limitations set by the license"
   limitations: [LicenseRule]!
-  "The license full name specified by <https:\/\/spdx.org\/licenses>"
+  "The license full name specified by <https://spdx.org/licenses>"
   name: String!
   "Customary short name if applicable (e.g, GPLv3)"
   nickname: String
@@ -4970,9 +4970,9 @@ type License implements Node {
   permissions: [LicenseRule]!
   "Whether the license is a pseudo-license placeholder (e.g., other, no-license)"
   pseudoLicense: Boolean!
-  "Short identifier specified by <https:\/\/spdx.org\/licenses>"
+  "Short identifier specified by <https://spdx.org/licenses>"
   spdxId: String
-  "URL to the license on <https:\/\/choosealicense.com>"
+  "URL to the license on <https://choosealicense.com>"
   url: URI
 }
 
@@ -7372,7 +7372,7 @@ type Organization implements Node & Actor & PackageOwner & ProjectOwner & Reposi
   domains("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int "Filter by if the domain is verified." isVerified: Boolean "Ordering options for verifiable domains returned." orderBy: VerifiableDomainOrder = { field: DOMAIN, direction: ASC }): VerifiableDomainConnection
   "The organization's public email."
   email: String
-  "True if this user\/organization has a GitHub Sponsors listing."
+  "True if this user/organization has a GitHub Sponsors listing."
   hasSponsorsListing: Boolean!
   id: ID!
   "The interaction ability settings for this organization."
@@ -7381,9 +7381,9 @@ type Organization implements Node & Actor & PackageOwner & ProjectOwner & Reposi
   ipAllowListEnabledSetting: IpAllowListEnabledSettingValue!
   "The IP addresses that are allowed to access resources owned by the organization."
   ipAllowListEntries("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int "Ordering options for IP allow list entries returned." orderBy: IpAllowListEntryOrder = { field: ALLOW_LIST_VALUE, direction: ASC }): IpAllowListEntryConnection!
-  "Check if the given account is sponsoring this user\/organization."
+  "Check if the given account is sponsoring this user/organization."
   isSponsoredBy("The target account's login." accountLogin: String!): Boolean!
-  "True if the viewer is sponsored by this user\/organization."
+  "True if the viewer is sponsored by this user/organization."
   isSponsoringViewer: Boolean!
   "Whether the organization has verified its profile email and website, always false on Enterprise."
   isVerified: Boolean!
@@ -7467,11 +7467,11 @@ type Organization implements Node & Actor & PackageOwner & ProjectOwner & Reposi
   viewerCanCreateRepositories: Boolean!
   "Viewer can create teams on this organization."
   viewerCanCreateTeams: Boolean!
-  "Whether or not the viewer is able to sponsor this user\/organization."
+  "Whether or not the viewer is able to sponsor this user/organization."
   viewerCanSponsor: Boolean!
   "Viewer is an active member of this organization."
   viewerIsAMember: Boolean!
-  "True if the viewer is sponsoring this user\/organization."
+  "True if the viewer is sponsoring this user/organization."
   viewerIsSponsoring: Boolean!
   "The organization's public profile URL."
   websiteUrl: URI
@@ -9086,7 +9086,7 @@ type PullRequestTimelineItemsConnection {
   filteredCount: Int!
   "A list of nodes."
   nodes: [PullRequestTimelineItems]
-  "Identifies the count of items after applying `before`\/`after` filters and `first`\/`last`\/`skip` slicing."
+  "Identifies the count of items after applying `before`/`after` filters and `first`/`last`/`skip` slicing."
   pageCount: Int!
   "Information to aid in pagination."
   pageInfo: PageInfo!
@@ -9307,7 +9307,7 @@ type Query {
   organization("The organization's login." login: String!): Organization
   "The client's rate limit information."
   rateLimit("If true, calculate the cost for the query without evaluating it" dryRun: Boolean = false): RateLimit
-  "Hack to workaround https:\/\/github.com\/facebook\/relay\/issues\/112 re-exposing the root query object"
+  "Hack to workaround https://github.com/facebook/relay/issues/112 re-exposing the root query object"
   relay: Query!
   "Lookup a given repository by the owner and repository name."
   repository("The login field of a user or organization" owner: String! "The name of the repository" name: String!): Repository
@@ -9494,7 +9494,7 @@ type Ref implements Node {
   id: ID!
   "The ref name."
   name: String!
-  "The ref's prefix, such as `refs\/heads\/` or `refs\/tags\/`."
+  "The ref's prefix, such as `refs/heads/` or `refs/tags/`."
   prefix: String!
   "Branch protection rules that are viewable by non-admins"
   refUpdateRule: RefUpdateRule
@@ -9534,7 +9534,7 @@ input RefOrder {
 
 "Properties by which ref connections can be ordered."
 enum RefOrderField {
-  "Order refs by underlying commit date if the ref prefix is refs\/tags\/"
+  "Order refs by underlying commit date if the ref prefix is refs/tags/"
   TAG_COMMIT_DATE
   "Order refs by their alphanumeric name"
   ALPHABETICAL
@@ -11119,9 +11119,9 @@ type Repository implements Node & ProjectOwner & PackageOwner & Subscribable & S
   "Whether or not rebase-merging is enabled on this repository."
   rebaseMergeAllowed: Boolean!
   "Fetch a given ref from the repository"
-  ref("The ref to retrieve. Fully qualified matches are checked in order (`refs\/heads\/master`) before falling back onto checks for short name matches (`master`)." qualifiedName: String!): Ref
+  ref("The ref to retrieve. Fully qualified matches are checked in order (`refs/heads/master`) before falling back onto checks for short name matches (`master`)." qualifiedName: String!): Ref
   "Fetch a list of refs from the repository"
-  refs("Filters refs with query on name" query: String "Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int "A ref name prefix like `refs\/heads\/`, `refs\/tags\/`, etc." refPrefix: String! "DEPRECATED: use orderBy. The ordering direction." direction: OrderDirection "Ordering options for refs returned from the connection." orderBy: RefOrder): RefConnection
+  refs("Filters refs with query on name" query: String "Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int "A ref name prefix like `refs/heads/`, `refs/tags/`, etc." refPrefix: String! "DEPRECATED: use orderBy. The ordering direction." direction: OrderDirection "Ordering options for refs returned from the connection." orderBy: RefOrder): RefConnection
   "Lookup a single release given various criteria."
   release("The name of the Tag the Release was created from" tagName: String!): Release
   "List of releases which are dependent on this repository."
@@ -12295,7 +12295,7 @@ type SetUserInteractionLimitPayload {
   user: User
 }
 
-"Represents an S\/MIME signature on a Commit or Tag."
+"Represents an S/MIME signature on a Commit or Tag."
 type SmimeSignature implements GitSignature {
   "Email used to sign this object."
   email: String!
@@ -12318,11 +12318,11 @@ union Sponsor = Organization | User
 
 "Entities that can be sponsored through GitHub Sponsors"
 interface Sponsorable {
-  "True if this user\/organization has a GitHub Sponsors listing."
+  "True if this user/organization has a GitHub Sponsors listing."
   hasSponsorsListing: Boolean!
-  "Check if the given account is sponsoring this user\/organization."
+  "Check if the given account is sponsoring this user/organization."
   isSponsoredBy("The target account's login." accountLogin: String!): Boolean!
-  "True if the viewer is sponsored by this user\/organization."
+  "True if the viewer is sponsored by this user/organization."
   isSponsoringViewer: Boolean!
   "The GitHub Sponsors listing for this user or organization."
   sponsorsListing: SponsorsListing
@@ -12332,9 +12332,9 @@ interface Sponsorable {
   sponsorshipsAsMaintainer("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int "Whether or not to include private sponsorships in the result set" includePrivate: Boolean = false "Ordering options for sponsorships returned from this connection. If left blank, the sponsorships will be ordered based on relevancy to the viewer." orderBy: SponsorshipOrder): SponsorshipConnection!
   "This object's sponsorships as the sponsor."
   sponsorshipsAsSponsor("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int "Ordering options for sponsorships returned from this connection. If left blank, the sponsorships will be ordered based on relevancy to the viewer." orderBy: SponsorshipOrder): SponsorshipConnection!
-  "Whether or not the viewer is able to sponsor this user\/organization."
+  "Whether or not the viewer is able to sponsor this user/organization."
   viewerCanSponsor: Boolean!
-  "True if the viewer is sponsoring this user\/organization."
+  "True if the viewer is sponsoring this user/organization."
   viewerIsSponsoring: Boolean!
 }
 
@@ -13823,7 +13823,7 @@ type UnmarkFileAsViewedPayload {
 input UnmarkIssueAsDuplicateInput {
   "ID of the issue or pull request currently marked as a duplicate."
   duplicateId: ID!
-  "ID of the issue or pull request currently considered canonical\/authoritative\/original."
+  "ID of the issue or pull request currently considered canonical/authoritative/original."
   canonicalId: ID!
   "A unique identifier for the client performing the mutation."
   clientMutationId: String
@@ -14106,7 +14106,7 @@ type UpdateEnterpriseMembersCanChangeRepositoryVisibilitySettingPayload {
 input UpdateEnterpriseMembersCanCreateRepositoriesSettingInput {
   "The ID of the enterprise on which to set the members can create repositories setting."
   enterpriseId: ID!
-  "Value for the members can create repositories setting on the enterprise. This or the granular public\/private\/internal allowed fields (but not both) must be provided."
+  "Value for the members can create repositories setting on the enterprise. This or the granular public/private/internal allowed fields (but not both) must be provided."
   settingValue: EnterpriseMembersCanCreateRepositoriesSettingValue
   "When false, allow member organizations to set their own repository creation member privileges."
   membersCanCreateRepositoriesPolicyEnabled: Boolean
@@ -14762,7 +14762,7 @@ type User implements Node & Actor & PackageOwner & ProjectOwner & RepositoryOwne
   gistComments("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): GistCommentConnection!
   "A list of the Gists the user has created."
   gists("Filters Gists according to privacy." privacy: GistPrivacy "Ordering options for gists returned from the connection" orderBy: GistOrder "Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): GistConnection!
-  "True if this user\/organization has a GitHub Sponsors listing."
+  "True if this user/organization has a GitHub Sponsors listing."
   hasSponsorsListing: Boolean!
   "The hovercard information for this user in a given context"
   hovercard("The ID of the subject to get the hovercard in the context of" primarySubjectId: ID): Hovercard!
@@ -14781,9 +14781,9 @@ type User implements Node & Actor & PackageOwner & ProjectOwner & RepositoryOwne
   isHireable: Boolean!
   "Whether or not this user is a site administrator."
   isSiteAdmin: Boolean!
-  "Check if the given account is sponsoring this user\/organization."
+  "Check if the given account is sponsoring this user/organization."
   isSponsoredBy("The target account's login." accountLogin: String!): Boolean!
-  "True if the viewer is sponsored by this user\/organization."
+  "True if the viewer is sponsored by this user/organization."
   isSponsoringViewer: Boolean!
   "Whether or not this user is the viewing user."
   isViewer: Boolean!
@@ -14861,15 +14861,15 @@ type User implements Node & Actor & PackageOwner & ProjectOwner & RepositoryOwne
   viewerCanCreateProjects: Boolean!
   "Whether or not the viewer is able to follow the user."
   viewerCanFollow: Boolean!
-  "Whether or not the viewer is able to sponsor this user\/organization."
+  "Whether or not the viewer is able to sponsor this user/organization."
   viewerCanSponsor: Boolean!
   "Whether or not this user is followed by the viewer."
   viewerIsFollowing: Boolean!
-  "True if the viewer is sponsoring this user\/organization."
+  "True if the viewer is sponsoring this user/organization."
   viewerIsSponsoring: Boolean!
   "A list of repositories the given user is watching."
   watching("If non-null, filters repositories according to privacy" privacy: RepositoryPrivacy "Ordering options for repositories returned from the connection" orderBy: RepositoryOrder "Affiliation options for repositories returned from the connection. If none specified, the results will include repositories for which the current viewer is an owner or collaborator, or member." affiliations: [RepositoryAffiliation] "Array of owner's affiliation options for repositories returned from the connection. For example, OWNER will include only repositories that the organization or user being viewed owns." ownerAffiliations: [RepositoryAffiliation] = [ OWNER, COLLABORATOR ] "If non-null, filters repositories according to whether they have been locked" isLocked: Boolean "Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): RepositoryConnection!
-  "A URL pointing to the user's public website\/blog."
+  "A URL pointing to the user's public website/blog."
   websiteUrl: URI
 }
 

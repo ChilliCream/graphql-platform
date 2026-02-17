@@ -14,7 +14,7 @@ public class OpenApiDiagnosticEventListener : IOpenApiDiagnosticEventListener
     /// </summary>
     protected static IDisposable EmptyScope { get; } = new EmptyActivityScope();
 
-    public virtual void ValidationErrors(IReadOnlyList<IOpenApiError> errors)
+    public virtual void ValidationErrors(IReadOnlyList<OpenApiDefinitionValidationError> errors)
     {
     }
 

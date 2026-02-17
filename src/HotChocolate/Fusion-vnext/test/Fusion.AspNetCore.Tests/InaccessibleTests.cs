@@ -1,4 +1,7 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
@@ -1013,31 +1016,28 @@ public class InaccessibleTests : FusionTestBase
                 {
                 }
 
-                public override Type RuntimeType => typeof(string);
+                public override Type RuntimeType
+                    => typeof(string);
 
-                public override bool IsInstanceOfType(IValueNode valueSyntax)
-                    => valueSyntax is StringValueNode;
+                public override ScalarSerializationType SerializationType
+                    => ScalarSerializationType.String;
 
-                public override object? ParseLiteral(IValueNode valueSyntax)
-                    => valueSyntax is StringValueNode s ? s.Value : null;
+                protected override bool ApplySerializeAsToScalars => false;
 
-                public override IValueNode ParseValue(object? runtimeValue)
-                    => new StringValueNode(runtimeValue?.ToString() ?? "");
+                public override bool IsValueCompatible(IValueNode valueLiteral)
+                    => valueLiteral is StringValueNode;
 
-                public override IValueNode ParseResult(object? resultValue)
-                    => ParseValue(resultValue);
+                public override object CoerceInputLiteral(IValueNode valueSyntax)
+                    => ((StringValueNode)valueSyntax).Value;
 
-                public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-                {
-                    resultValue = runtimeValue?.ToString();
-                    return true;
-                }
+                public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+                    => inputValue.GetString()!;
 
-                public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-                {
-                    runtimeValue = resultValue?.ToString();
-                    return true;
-                }
+                public override void CoerceOutputValue(object runtimeValue, ResultElement resultValue)
+                    => resultValue.SetStringValue(runtimeValue.ToString());
+
+                public override IValueNode ValueToLiteral(object runtimeValue)
+                    => new StringValueNode((string)runtimeValue);
             }
 
             public class Query

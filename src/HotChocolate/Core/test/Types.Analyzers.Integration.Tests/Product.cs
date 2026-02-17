@@ -1,5 +1,8 @@
 using System.Reflection;
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types;
@@ -40,6 +43,10 @@ public static partial class TelevisionType
 [QueryType]
 public static partial class Query
 {
+    /// <summary>
+    /// Gets the product.
+    /// </summary>
+    /// <returns>The only product.</returns>
     public static Product GetProduct()
         => new Book { Id = "1", Title = "GraphQL in Action" };
 
@@ -87,13 +94,16 @@ public class VersionType : ScalarType<long, StringValueNode>
     {
     }
 
-    public override IValueNode ParseResult(object? resultValue)
+    protected override long OnCoerceInputLiteral(StringValueNode valueLiteral)
         => throw new NotImplementedException();
 
-    protected override long ParseLiteral(StringValueNode valueSyntax)
+    protected override long OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
         => throw new NotImplementedException();
 
-    protected override StringValueNode ParseValue(long runtimeValue)
+    protected override void OnCoerceOutputValue(long runtimeValue, ResultElement resultValue)
+        => throw new NotImplementedException();
+
+    protected override StringValueNode OnValueToLiteral(long runtimeValue)
         => throw new NotImplementedException();
 }
 
@@ -103,13 +113,16 @@ public class Version2Type : ScalarType<long, StringValueNode>
     {
     }
 
-    public override IValueNode ParseResult(object? resultValue)
+    protected override long OnCoerceInputLiteral(StringValueNode valueLiteral)
         => throw new NotImplementedException();
 
-    protected override long ParseLiteral(StringValueNode valueSyntax)
+    protected override long OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
         => throw new NotImplementedException();
 
-    protected override StringValueNode ParseValue(long runtimeValue)
+    protected override void OnCoerceOutputValue(long runtimeValue, ResultElement resultValue)
+        => throw new NotImplementedException();
+
+    protected override StringValueNode OnValueToLiteral(long runtimeValue)
         => throw new NotImplementedException();
 }
 

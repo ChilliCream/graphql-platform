@@ -19,7 +19,7 @@
                         "string",
                         "null"
                       ],
-                      "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                      "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                       "description": "field1C description",
                       "default": "12:00:00"
                     }
@@ -76,7 +76,7 @@
                       "string",
                       "null"
                     ],
-                    "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                    "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                     "description": "field1C description",
                     "default": "12:00:00"
                   }
@@ -157,7 +157,7 @@
                       "string",
                       "null"
                     ],
-                    "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                    "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                     "description": "field1C description",
                     "default": "12:00:00"
                   }

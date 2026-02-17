@@ -3,6 +3,30 @@ namespace HotChocolate.Adapters.Mcp.Diagnostics;
 internal sealed class AggregateMcpDiagnosticEvents(IMcpDiagnosticEventListener[] listeners)
     : IMcpDiagnosticEvents
 {
+    public IDisposable InitializePrompts()
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].InitializePrompts();
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public IDisposable UpdatePrompts()
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].UpdatePrompts();
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
     public IDisposable InitializeTools()
     {
         var scopes = new IDisposable[listeners.Length];

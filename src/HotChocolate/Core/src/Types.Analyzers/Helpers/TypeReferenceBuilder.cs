@@ -361,7 +361,6 @@ public static class TypeReferenceBuilder
                         var dimensions = 1;
                         while (i < typeName.Length && typeName[i] == '[')
                         {
-                            var start = i;
                             while (i < typeName.Length && typeName[i] != ']')
                             {
                                 i++;

@@ -37,7 +37,7 @@ internal sealed class NoopServerDiagnosticEventListener : IServerDiagnosticEvent
     {
     }
 
-    public IDisposable FormatHttpResponse(HttpContext context, IOperationResult result) => EmptyScope;
+    public IDisposable FormatHttpResponse(HttpContext context, OperationResult result) => EmptyScope;
 
     public IDisposable WebSocketSession(HttpContext context) => EmptyScope;
 

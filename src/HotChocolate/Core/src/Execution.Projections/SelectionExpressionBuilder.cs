@@ -36,7 +36,7 @@ internal sealed class SelectionExpressionBuilder
         typeof(char?)
     ];
 
-    public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(ISelection selection)
+    public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(Selection selection)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
@@ -56,7 +56,7 @@ internal sealed class SelectionExpressionBuilder
         return Expression.Lambda<Func<TRoot, TRoot>>(selectionSetExpression, parameter);
     }
 
-    public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(ISelection selection)
+    public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(Selection selection)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
@@ -66,6 +66,7 @@ internal sealed class SelectionExpressionBuilder
 
         var entityType = selection.DeclaringOperation
             .GetPossibleTypes(selection)
+            .Cast<ObjectType>()
             .FirstOrDefault(t => t.RuntimeType == typeof(TRoot));
 
         if (entityType is null)
@@ -94,7 +95,7 @@ internal sealed class SelectionExpressionBuilder
         return Expression.Lambda<Func<TRoot, TRoot>>(selectionSetExpression, parameter);
     }
 
-    private void CollectTypes(Context context, ISelection selection, TypeContainer parent)
+    private void CollectTypes(Context context, Selection selection, TypeContainer parent)
     {
         var namedType = selection.Type.NamedType();
 
@@ -105,7 +106,7 @@ internal sealed class SelectionExpressionBuilder
 
         if (namedType.IsAbstractType())
         {
-            foreach (var possibleType in selection.DeclaringOperation.GetPossibleTypes(selection))
+            foreach (var possibleType in selection.DeclaringOperation.GetPossibleTypes(selection).Cast<ObjectType>())
             {
                 var possibleTypeNode = new TypeNode(possibleType.RuntimeType);
                 var possibleSelectionSet = selection.DeclaringOperation.GetSelectionSet(selection, possibleType);
@@ -191,7 +192,7 @@ internal sealed class SelectionExpressionBuilder
 
     private void CollectSelection(
         Context context,
-        ISelection selection,
+        Selection selection,
         TypeNode parent)
     {
         var namedType = selection.Field.Type.NamedType();
@@ -266,7 +267,7 @@ internal sealed class SelectionExpressionBuilder
 
     private void CollectSelections(
         Context context,
-        ISelectionSet selectionSet,
+        SelectionSet selectionSet,
         TypeNode parent)
     {
         foreach (var selection in selectionSet.Selections)
@@ -343,7 +344,7 @@ internal sealed class SelectionExpressionBuilder
         FieldRequirementsMetadata Requirements,
         NullabilityInfoContext NullabilityInfoContext)
     {
-        public TypeNode? GetRequirements(ISelection selection)
+        public TypeNode? GetRequirements(Selection selection)
         {
             var flags = selection.Field.Flags;
             return (flags & CoreFieldFlags.WithRequirements) == CoreFieldFlags.WithRequirements

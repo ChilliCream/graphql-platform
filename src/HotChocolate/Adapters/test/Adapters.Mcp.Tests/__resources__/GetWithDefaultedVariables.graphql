@@ -2,12 +2,12 @@
 query GetWithDefaultedVariables(
   "Any description"
   $any: Any! = { key: "value" }
+  "Base64String description"
+  $base64String: Base64String! = "ZGVmYXVsdA=="
   "Boolean description"
   $boolean: Boolean! = true
   "Byte description"
   $byte: Byte! = 1
-  "ByteArray description"
-  $byteArray: ByteArray! = "ZGVmYXVsdA=="
   "Date description"
   $date: Date! = "2000-01-01"
   "DateTime description"
@@ -22,8 +22,6 @@ query GetWithDefaultedVariables(
   $id: ID! = "default"
   "Int description"
   $int: Int! = 1
-  "JSON description"
-  $json: JSON! = { key: "value" }
   "List description"
   $list: [String!]! = ["default"]
   "LocalDate description"
@@ -44,6 +42,8 @@ query GetWithDefaultedVariables(
   $timeSpan: TimeSpan! = "PT5M"
   "Unknown description"
   $unknown: Unknown! = "default"
+  "URI description"
+  $uri: URI! = "https://example.com"
   "URL description"
   $url: URL! = "https://example.com"
   "UUID description"
@@ -51,9 +51,9 @@ query GetWithDefaultedVariables(
 ) {
   withDefaultedVariables(
     any: $any
+    base64String: $base64String
     boolean: $boolean
     byte: $byte
-    byteArray: $byteArray
     date: $date
     dateTime: $dateTime
     decimal: $decimal
@@ -61,7 +61,6 @@ query GetWithDefaultedVariables(
     float: $float
     id: $id
     int: $int
-    json: $json
     list: $list
     localDate: $localDate
     localDateTime: $localDateTime
@@ -72,13 +71,14 @@ query GetWithDefaultedVariables(
     string: $string
     timeSpan: $timeSpan
     unknown: $unknown
+    uri: $uri
     url: $url
     uuid: $uuid
   ) {
     any
+    base64String
     boolean
     byte
-    byteArray
     date
     dateTime
     decimal
@@ -86,7 +86,6 @@ query GetWithDefaultedVariables(
     float
     id
     int
-    json
     list
     localDate
     localDateTime
@@ -103,6 +102,7 @@ query GetWithDefaultedVariables(
     string
     timeSpan
     unknown
+    uri
     url
     uuid
   }

@@ -27,4 +27,8 @@ internal static class LogEntryCodes
     public const string DirectiveDefinitionMissingLocation = "HCV0020";
     public const string UndefinedFieldType = "HCV0021";
     public const string UndefinedArgumentType = "HCV0022";
+    public const string UndefinedArgumentDefaultEnumValue = "HCV0023";
+    public const string UndefinedInputFieldDefaultEnumValue = "HCV0024";
+    public const string UndefinedArgumentAssignedEnumValue = "HCV0025";
+    public const string UndefinedDirective = "HCV0026";
 }

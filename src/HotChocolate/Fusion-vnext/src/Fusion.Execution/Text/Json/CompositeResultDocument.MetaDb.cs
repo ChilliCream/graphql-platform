@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using HotChocolate.Buffers;
 using static HotChocolate.Fusion.Text.Json.MetaDbEventSource;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -26,7 +27,7 @@ public sealed partial class CompositeResultDocument
             log.MetaDbCreated(2, estimatedRows, 1);
 
             // Rent the first chunk now to avoid branching on first append
-            chunks[0] = MetaDbMemory.Rent();
+            chunks[0] = JsonMemory.Rent(JsonMemoryKind.Metadata);
             log.ChunkAllocated(2, 0);
 
             for (var i = 1; i < chunks.Length; i++)
@@ -101,7 +102,7 @@ public sealed partial class CompositeResultDocument
             // if the chunk is empty we did not yet rent any memory for it
             if (chunk.Length == 0)
             {
-                chunk = chunks[chunkIndex] = MetaDbMemory.Rent();
+                chunk = chunks[chunkIndex] = JsonMemory.Rent(JsonMemoryKind.Metadata);
                 log.ChunkAllocated(2, chunkIndex);
             }
 
@@ -291,7 +292,7 @@ public sealed partial class CompositeResultDocument
         internal void SetSizeOrLength(Cursor cursor, int sizeOrLength)
         {
             AssertValidCursor(cursor);
-            Debug.Assert(sizeOrLength >= 0 && sizeOrLength <= int.MaxValue, "SizeOrLength value exceeds 31-bit limit");
+            Debug.Assert(sizeOrLength >= 0, "SizeOrLength value exceeds 31-bit limit");
 
             var fieldSpan = _chunks[cursor.Chunk].AsSpan(cursor.ByteOffset + 4);
             var currentValue = MemoryMarshal.Read<int>(fieldSpan);
@@ -350,7 +351,7 @@ public sealed partial class CompositeResultDocument
 
             Debug.Assert(absoluteIndex >= 0 && absoluteIndex < maxExclusive,
                 $"Cursor points to row {absoluteIndex}, but only {maxExclusive} rows are valid.");
-            Debug.Assert(cursor.ByteOffset + DbRow.Size <= MetaDbMemory.BufferSize, "Cursor byte offset out of bounds");
+            Debug.Assert(cursor.ByteOffset + DbRow.Size <= JsonMemory.BufferSize, "Cursor byte offset out of bounds");
         }
 
         public void Dispose()
@@ -369,7 +370,7 @@ public sealed partial class CompositeResultDocument
                         break;
                     }
 
-                    MetaDbMemory.Return(chunk);
+                    JsonMemory.Return(JsonMemoryKind.Metadata, chunk);
                 }
 
                 chunks.Clear();

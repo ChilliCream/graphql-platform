@@ -1,0 +1,20 @@
+{
+  "name": "ChilliCream Frontend",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "dsznajder.es7-react-js-snippets",
+        "csstools.postcss"
+      ]
+    }
+  },
+  "forwardPorts": [3000],
+  "postCreateCommand": "node --version && npm --version"
+}

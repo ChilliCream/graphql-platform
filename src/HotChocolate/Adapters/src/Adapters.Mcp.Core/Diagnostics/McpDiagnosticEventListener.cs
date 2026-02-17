@@ -14,6 +14,10 @@ public class McpDiagnosticEventListener : IMcpDiagnosticEventListener
     /// </summary>
     private static IDisposable EmptyScope { get; } = new EmptyActivityScope();
 
+    public virtual IDisposable InitializePrompts() => EmptyScope;
+
+    public virtual IDisposable UpdatePrompts() => EmptyScope;
+
     public virtual IDisposable InitializeTools() => EmptyScope;
 
     public virtual IDisposable UpdateTools() => EmptyScope;

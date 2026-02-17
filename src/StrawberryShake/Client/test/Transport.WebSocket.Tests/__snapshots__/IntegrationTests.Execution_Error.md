@@ -7,12 +7,6 @@
   "errors": [
     {
       "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 21
-        }
-      ],
       "path": [
         "onTest"
       ]
@@ -29,12 +23,6 @@
   "errors": [
     {
       "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 21
-        }
-      ],
       "path": [
         "onTest"
       ]
@@ -51,12 +39,6 @@
   "errors": [
     {
       "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 21
-        }
-      ],
       "path": [
         "onTest"
       ]
@@ -73,12 +55,6 @@
   "errors": [
     {
       "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 21
-        }
-      ],
       "path": [
         "onTest"
       ]
@@ -95,12 +71,6 @@
   "errors": [
     {
       "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 21
-        }
-      ],
       "path": [
         "onTest"
       ]
@@ -117,12 +87,6 @@
   "errors": [
     {
       "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 21
-        }
-      ],
       "path": [
         "onTest"
       ]
@@ -139,12 +103,6 @@
   "errors": [
     {
       "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 21
-        }
-      ],
       "path": [
         "onTest"
       ]
@@ -161,12 +119,6 @@
   "errors": [
     {
       "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 21
-        }
-      ],
       "path": [
         "onTest"
       ]
@@ -183,12 +135,6 @@
   "errors": [
     {
       "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 21
-        }
-      ],
       "path": [
         "onTest"
       ]
@@ -205,12 +151,6 @@
   "errors": [
     {
       "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 21
-        }
-      ],
       "path": [
         "onTest"
       ]

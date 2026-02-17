@@ -16,7 +16,7 @@ public record ArchiveMetadata
     /// <summary>
     /// Gets or sets the names of endpoints contained in this archive.
     /// </summary>
-    public ImmutableArray<string> Endpoints { get; init; } = [];
+    public ImmutableArray<OpenApiEndpointKey> Endpoints { get; init; } = [];
 
     /// <summary>
     /// Gets or sets the names of models contained in this archive.

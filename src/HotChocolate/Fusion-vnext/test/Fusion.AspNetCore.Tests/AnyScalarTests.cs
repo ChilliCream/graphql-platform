@@ -13,7 +13,7 @@ public class AnyScalarTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "a",
-            b => b.AddQueryType<Query>());
+            b => b.AddQueryType<Query>().AddJsonTypeConverter());
 
         using var gateway = await CreateCompositeSchemaAsync(
         [
@@ -44,7 +44,7 @@ public class AnyScalarTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "a",
-            b => b.AddQueryType<Query>());
+            b => b.AddQueryType<Query>().AddJsonTypeConverter());
 
         using var gateway = await CreateCompositeSchemaAsync(
         [
@@ -75,7 +75,7 @@ public class AnyScalarTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "a",
-            b => b.AddQueryType<Query>());
+            b => b.AddQueryType<Query>().AddJsonTypeConverter());
 
         using var gateway = await CreateCompositeSchemaAsync(
         [
@@ -106,7 +106,7 @@ public class AnyScalarTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "a",
-            b => b.AddQueryType<Query>());
+            b => b.AddQueryType<Query>().AddJsonTypeConverter());
 
         using var gateway = await CreateCompositeSchemaAsync(
         [
@@ -137,7 +137,7 @@ public class AnyScalarTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "a",
-            b => b.AddQueryType<Query>());
+            b => b.AddQueryType<Query>().AddJsonTypeConverter());
 
         using var gateway = await CreateCompositeSchemaAsync(
         [
@@ -168,7 +168,7 @@ public class AnyScalarTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "a",
-            b => b.AddQueryType<Query>());
+            b => b.AddQueryType<Query>().AddJsonTypeConverter());
 
         using var gateway = await CreateCompositeSchemaAsync(
         [
@@ -199,7 +199,7 @@ public class AnyScalarTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "a",
-            b => b.AddQueryType<Query>());
+            b => b.AddQueryType<Query>().AddJsonTypeConverter());
 
         using var gateway = await CreateCompositeSchemaAsync(
         [
@@ -230,7 +230,7 @@ public class AnyScalarTests : FusionTestBase
         // arrange
         using var server1 = CreateSourceSchema(
             "a",
-            b => b.AddQueryType<Query>());
+            b => b.AddQueryType<Query>().AddJsonTypeConverter());
 
         using var gateway = await CreateCompositeSchemaAsync(
         [

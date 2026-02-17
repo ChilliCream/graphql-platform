@@ -45,7 +45,6 @@ public sealed class ParameterBindingResolver
         bindingFactories.Add(new ResolverContextParameterExpressionBuilder());
         bindingFactories.Add(new SchemaParameterExpressionBuilder());
         bindingFactories.Add(new SelectionParameterExpressionBuilder());
-        bindingFactories.Add(new FieldSyntaxParameterExpressionBuilder());
         bindingFactories.Add(new ObjectTypeParameterExpressionBuilder());
         bindingFactories.Add(new OperationDefinitionParameterExpressionBuilder());
         bindingFactories.Add(new OperationParameterExpressionBuilder());

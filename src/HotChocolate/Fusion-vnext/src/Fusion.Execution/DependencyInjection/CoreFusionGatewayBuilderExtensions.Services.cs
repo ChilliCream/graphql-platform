@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -19,4 +20,14 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder.ConfigureSchemaServices(
             static (sp, sc) => sc.AddSingleton(sp.GetRequiredService<TService>()));
     }
+
+    public static ValueTask<IRequestExecutor> BuildRequestExecutorAsync(
+            this IFusionGatewayBuilder builder,
+            string? schemaName = null,
+            CancellationToken cancellationToken = default) =>
+            builder
+                .Services
+                .BuildServiceProvider()
+                .GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync(schemaName, cancellationToken);
 }

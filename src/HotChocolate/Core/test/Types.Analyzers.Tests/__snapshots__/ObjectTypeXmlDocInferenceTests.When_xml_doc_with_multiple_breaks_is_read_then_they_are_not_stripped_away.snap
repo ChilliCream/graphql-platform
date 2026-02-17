@@ -78,7 +78,7 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "Query and manages users.\n    \nPlease note:\n* Users ...\n* Users ...\n    * Users ...\n    * Users ...\n    \nYou need one of the following role: Owner,\nEditor, use XYZ to manage permissions.";
+                    configuration.Description = "Query and manages users.\n\nPlease note:\n* Users ...\n* Users ...\n    * Users ...\n    * Users ...\n\nYou need one of the following role: Owner,\nEditor, use XYZ to manage permissions.";
                     configuration.Type = typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(string);
 

@@ -35,7 +35,7 @@ public sealed class McpToolAnnotationsDirective
         var openWorldHint =
             (bool?)directive.Arguments.GetValueOrDefault(WellKnownArgumentNames.OpenWorldHint)?.Value;
 
-        return new McpToolAnnotationsDirective()
+        return new McpToolAnnotationsDirective
         {
             DestructiveHint = destructiveHint,
             IdempotentHint = idempotentHint,

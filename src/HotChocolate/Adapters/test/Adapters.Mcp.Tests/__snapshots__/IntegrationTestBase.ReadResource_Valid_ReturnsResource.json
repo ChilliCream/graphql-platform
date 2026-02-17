@@ -1,21 +1,32 @@
 {
   "contents": [
     {
-      "uri": "ui://open-ai-components/get-books-with-title-1-C7C16BF50987BEE49CA1D2CCC7BBC3D3A3A92660EB0380F842EBA6BB87F56259.html",
-      "mimeType": "text/html+skybridge",
-      "text": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>OpenAI Component</title>\n</head>\n<body>\n  <h1>OpenAI Component</h1>\n</body>\n</html>\n",
+      "uri": "ui://views/get-books-with-title-1-A3466F8D1004DE6FF9F8786180799B3534129EE7ABD562AA77F9973EEC4D2898.html",
+      "mimeType": "text/html;profile=mcp-app",
+      "text": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>MCP App View</title>\n</head>\n<body>\n  <h1>MCP App View</h1>\n</body>\n</html>\n",
       "_meta": {
-        "openai/widgetDescription": "GetBooksWithTitle1 OpenAI Component description",
-        "openai/widgetPrefersBorder": true,
-        "openai/widgetCSP": {
-          "connect_domains": [
-            "https://example.com"
-          ],
-          "resource_domains": [
-            "https://*.example.com"
-          ]
-        },
-        "openai/widgetDomain": "https://example.com"
+        "ui": {
+          "csp": {
+            "baseUriDomains": [
+              "https://example.com"
+            ],
+            "connectDomains": [
+              "https://example.com"
+            ],
+            "frameDomains": [
+              "https://example.com"
+            ],
+            "resourceDomains": [
+              "https://example.com"
+            ]
+          },
+          "domain": "https://example.com",
+          "permissions": {
+            "camera": {},
+            "geolocation": {}
+          },
+          "prefersBorder": true
+        }
       }
     }
   ],

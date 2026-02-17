@@ -130,7 +130,7 @@ public sealed class FusionEnumValue : IEnumValue, IInaccessibleProvider
 
         if (context.DeclaringType is null || context.Directives is null || context.Features is null)
         {
-            ThrowHelper.InvalidCompletionContext();
+            throw ThrowHelper.InvalidCompletionContext();
         }
 
         DeclaringType = context.DeclaringType;

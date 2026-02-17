@@ -1,3 +1,4 @@
+using HotChocolate.Features;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;
@@ -15,6 +16,7 @@ namespace HotChocolate.Types;
 public interface IDirectiveDefinition
     : INameProvider
     , IDescriptionProvider
+    , IFeatureProvider
     , ISyntaxNodeProvider<DirectiveDefinitionNode>
     , ISchemaCoordinateProvider
     , IRuntimeTypeProvider

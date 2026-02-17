@@ -7,8 +7,8 @@ namespace HotChocolate.Data.Projections.Handlers;
 
 public sealed class QueryableSortProjectionOptimizer : IProjectionOptimizer
 {
-    public bool CanHandle(ISelection field)
-        => field.Field.Member is { } && field.HasSortingFeature();
+    public bool CanHandle(Selection field)
+        => field.Field.Member is { } && field.HasSortingFeature;
 
     public Selection RewriteSelection(
         SelectionSetOptimizerContext context,
@@ -16,7 +16,7 @@ public sealed class QueryableSortProjectionOptimizer : IProjectionOptimizer
     {
         var resolverPipeline =
             selection.ResolverPipeline ??
-            context.CompileResolverPipeline(selection.Field, selection.SyntaxNode);
+            context.CompileResolverPipeline(selection.Field, selection.SyntaxNodes[0].Node);
 
         static FieldDelegate WrappedPipeline(FieldDelegate next)
             => ctx =>

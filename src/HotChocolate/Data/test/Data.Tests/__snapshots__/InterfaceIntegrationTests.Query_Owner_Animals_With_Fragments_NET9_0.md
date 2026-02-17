@@ -19,8 +19,8 @@ LIMIT @__p_0
 ## SQL 1
 
 ```sql
--- @__keys_0={ '6', '5', '4', '3', '2', ... } (DbType = Object)
-SELECT s."OwnerId", s1.c, s1."Id", s1."IsPurring", s1."Name", s1.c0, s1."IsBarking", s1."Id0"
+-- @__keys_0={ '1', '2', '3', '4', '5', ... } (DbType = Object)
+SELECT s."OwnerId", s1.c, s1."Id", s1."IsBarking", s1."Name", s1.c0, s1."IsPurring", s1."Id0"
 FROM (
     SELECT p."OwnerId"
     FROM "Owners" AS o
@@ -29,9 +29,9 @@ FROM (
     GROUP BY p."OwnerId"
 ) AS s
 LEFT JOIN (
-    SELECT s0.c, s0."Id", s0."IsPurring", s0."Name", s0.c0, s0."IsBarking", s0."Id0", s0."OwnerId"
+    SELECT s0.c, s0."Id", s0."IsBarking", s0."Name", s0.c0, s0."IsPurring", s0."Id0", s0."OwnerId"
     FROM (
-        SELECT p0."AnimalType" = 'Cat' AS c, p0."Id", p0."IsPurring", p0."Name", p0."AnimalType" = 'Dog' AS c0, p0."IsBarking", o0."Id" AS "Id0", p0."OwnerId", ROW_NUMBER() OVER(PARTITION BY p0."OwnerId" ORDER BY p0."Name", p0."Id") AS row
+        SELECT p0."AnimalType" = 'Dog' AS c, p0."Id", p0."IsBarking", p0."Name", p0."AnimalType" = 'Cat' AS c0, p0."IsPurring", o0."Id" AS "Id0", p0."OwnerId", ROW_NUMBER() OVER(PARTITION BY p0."OwnerId" ORDER BY p0."Name", p0."Id") AS row
         FROM "Owners" AS o0
         INNER JOIN "Pets" AS p0 ON o0."Id" = p0."OwnerId"
         WHERE o0."Id" = ANY (@__keys_0)
@@ -44,7 +44,7 @@ ORDER BY s."OwnerId", s1."OwnerId", s1."Name", s1."Id"
 ## Expression 1
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].Where(t => value(HotChocolate.Data.InterfaceIntegrationTests+AnimalsByOwnerDataLoader+<>c__DisplayClass2_0).keys.Contains(t.Id)).SelectMany(t => t.Pets).GroupBy(t => t.OwnerId).Select(g => new Group`2() {Key = g.Key, Items = g.OrderBy(y => y.Name).ThenBy(y => y.Id).Select(root => IIF((root Is Cat), Convert(new Cat() {Id = Convert(root, Cat).Id, IsPurring = Convert(root, Cat).IsPurring, Name = Convert(root, Cat).Name}, Animal), IIF((root Is Dog), Convert(new Dog() {Id = Convert(root, Dog).Id, IsBarking = Convert(root, Dog).IsBarking, Name = Convert(root, Dog).Name}, Animal), null))).Take(11).ToList()})
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].Where(t => value(HotChocolate.Data.InterfaceIntegrationTests+AnimalsByOwnerDataLoader+<>c__DisplayClass2_0).keys.Contains(t.Id)).SelectMany(t => t.Pets).GroupBy(t => t.OwnerId).Select(g => new Group`2() {Key = g.Key, Items = g.OrderBy(y => y.Name).ThenBy(y => y.Id).Select(root => IIF((root Is Dog), Convert(new Dog() {Id = Convert(root, Dog).Id, IsBarking = Convert(root, Dog).IsBarking, Name = Convert(root, Dog).Name}, Animal), IIF((root Is Cat), Convert(new Cat() {Id = Convert(root, Cat).Id, IsPurring = Convert(root, Cat).IsPurring, Name = Convert(root, Cat).Name}, Animal), null))).Take(11).ToList()})
 ```
 
 ## Result 5

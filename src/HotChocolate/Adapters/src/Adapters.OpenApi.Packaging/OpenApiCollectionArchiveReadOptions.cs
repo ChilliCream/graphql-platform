@@ -4,7 +4,7 @@ namespace HotChocolate.Adapters.OpenApi.Packaging;
 /// Specifies the read options for an OpenAPI collection archive.
 /// </summary>
 internal readonly record struct OpenApiCollectionArchiveReadOptions(
-    int MaxAllowedOperationSize,
+    int MaxAllowedDocumentSize,
     int MaxAllowedSettingsSize)
 {
     /// <summary>

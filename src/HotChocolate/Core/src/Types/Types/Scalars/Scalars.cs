@@ -13,25 +13,26 @@ public static class Scalars
     {
         { typeof(string), typeof(StringType) },
         { typeof(bool), typeof(BooleanType) },
-        { typeof(byte), typeof(ByteType) },
+        { typeof(byte), typeof(UnsignedByteType) },
         { typeof(short), typeof(ShortType) },
         { typeof(int), typeof(IntType) },
         { typeof(long), typeof(LongType) },
+        { typeof(sbyte), typeof(ByteType) },
 
         { typeof(float), typeof(FloatType) },
         { typeof(double), typeof(FloatType) },
         { typeof(decimal), typeof(DecimalType) },
 
-        { typeof(Uri), typeof(UrlType) },
+        { typeof(Uri), typeof(UriType) },
         { typeof(Guid), typeof(UuidType) },
         { typeof(DateTime), typeof(DateTimeType) },
         { typeof(DateTimeOffset), typeof(DateTimeType) },
-        { typeof(byte[]), typeof(ByteArrayType) },
+        { typeof(byte[]), typeof(Base64StringType) },
         { typeof(TimeSpan), typeof(TimeSpanType) },
 
         { typeof(DateOnly), typeof(LocalDateType) },
         { typeof(TimeOnly), typeof(LocalTimeType) },
-        { typeof(JsonElement), typeof(JsonType) }
+        { typeof(JsonElement), typeof(AnyType) }
     };
 
     private static readonly Dictionary<string, Type> s_nameLookup = new()
@@ -40,6 +41,7 @@ public static class Scalars
         { ScalarNames.ID, typeof(IdType) },
         { ScalarNames.Boolean, typeof(BooleanType) },
         { ScalarNames.Byte, typeof(ByteType) },
+        { ScalarNames.UnsignedByte, typeof(UnsignedByteType) },
         { ScalarNames.Short, typeof(ShortType) },
         { ScalarNames.Int, typeof(IntType) },
         { ScalarNames.Long, typeof(LongType) },
@@ -47,6 +49,7 @@ public static class Scalars
         { ScalarNames.Float, typeof(FloatType) },
         { ScalarNames.Decimal, typeof(DecimalType) },
 
+        { ScalarNames.URI, typeof(UriType) },
         { ScalarNames.URL, typeof(UrlType) },
         { ScalarNames.UUID, typeof(UuidType) },
         { ScalarNames.DateTime, typeof(DateTimeType) },
@@ -57,8 +60,10 @@ public static class Scalars
         { ScalarNames.LocalDateTime, typeof(LocalDateTimeType) },
         { ScalarNames.LocalTime, typeof(LocalTimeType) },
 
-        { ScalarNames.ByteArray, typeof(ByteArrayType) },
-        { ScalarNames.JSON, typeof(JsonType) }
+        { ScalarNames.Base64String, typeof(Base64StringType) },
+#pragma warning disable CS0618 // Type or member is obsolete
+        { ScalarNames.ByteArray, typeof(ByteArrayType) }
+#pragma warning restore CS0618 // Type or member is obsolete
     };
 
     private static readonly Dictionary<Type, ValueKind> s_scalarKinds = new()

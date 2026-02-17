@@ -68,8 +68,8 @@ public partial class ObjectTypeXmlDocInferenceTests
         var content = snapshot.Match();
         var emitted = s_description.Matches(content).Single().Groups;
         Assert.Equal(
-            "Query and manages users.\\n    \\nPlease note:\\n* Users ...\\n* Users ...\\n    * Users ...\\n"
-            + "    * Users ...\\n    \\nYou need one of the following role: Owner,\\n"
+            "Query and manages users.\\n\\nPlease note:\\n* Users ...\\n* Users ...\\n    * Users ...\\n"
+            + "    * Users ...\\n\\nYou need one of the following role: Owner,\\n"
             + "Editor, use XYZ to manage permissions.",
             emitted[1].Value);
     }

@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Definitions;
 internal sealed class SerializeAsMutableDirectiveDefinition : MutableDirectiveDefinition
 {
     public SerializeAsMutableDirectiveDefinition(
-        ScalarSerializationTypeMutableEnumTypeDefinition scalarSerializationTypeType,
+        MutableEnumTypeDefinition scalarSerializationTypeType,
         MutableScalarTypeDefinition stringType)
         : base(DirectiveNames.SerializeAs.Name)
     {
@@ -20,6 +20,13 @@ internal sealed class SerializeAsMutableDirectiveDefinition : MutableDirectiveDe
 
     public static SerializeAsMutableDirectiveDefinition Create(ISchemaDefinition schema)
     {
+        if (!schema.Types.TryGetType<MutableEnumTypeDefinition>(
+            WellKnownTypeNames.ScalarSerializationType,
+            out var scalarSerializationTypeType))
+        {
+            scalarSerializationTypeType = ScalarSerializationTypeMutableEnumTypeDefinition.Create();
+        }
+
         if (!schema.Types.TryGetType<MutableScalarTypeDefinition>(
             SpecScalarNames.String.Name,
             out var stringType))
@@ -27,8 +34,6 @@ internal sealed class SerializeAsMutableDirectiveDefinition : MutableDirectiveDe
             stringType = BuiltIns.String.Create();
         }
 
-        return new SerializeAsMutableDirectiveDefinition(
-            ScalarSerializationTypeMutableEnumTypeDefinition.Create(),
-            stringType);
+        return new SerializeAsMutableDirectiveDefinition(scalarSerializationTypeType, stringType);
     }
 }

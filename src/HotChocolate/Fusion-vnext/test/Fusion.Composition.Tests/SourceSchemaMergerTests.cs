@@ -143,10 +143,16 @@ public sealed class SourceSchemaMergerTests
                     weight: Int!
                 }
                 """);
-        var sourceSchemaParser = new SourceSchemaParser([sourceSchemaTextA, sourceSchemaTextB], new CompositionLog());
-        var schemas = sourceSchemaParser.Parse().Value;
-        new SourceSchemaEnricher(schemas[0], schemas).Enrich();
-        new SourceSchemaEnricher(schemas[1], schemas).Enrich();
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser1 = new SourceSchemaParser(sourceSchemaTextA, compositionLog);
+        var sourceSchemaParser2 = new SourceSchemaParser(sourceSchemaTextB, compositionLog);
+        var schema1 = sourceSchemaParser1.Parse().Value;
+        var schema2 = sourceSchemaParser2.Parse().Value;
+        var schemas =
+            ImmutableSortedSet.Create(
+                new SchemaByNameComparer<MutableSchemaDefinition>(), schema1, schema2);
+        new SourceSchemaEnricher(schema1, schemas).Enrich();
+        new SourceSchemaEnricher(schema2, schemas).Enrich();
         var merger = new SourceSchemaMerger(schemas);
 
         // act

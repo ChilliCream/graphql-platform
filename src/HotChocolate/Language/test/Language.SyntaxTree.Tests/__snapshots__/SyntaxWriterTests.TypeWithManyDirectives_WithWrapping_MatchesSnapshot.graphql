@@ -1,0 +1,14 @@
+type User
+  @auth
+  @cache
+  @log
+  @validate
+  @track {
+  id: ID!
+  name: String!
+    @deprecated
+    @private
+    @readonly
+    @indexed
+    @unique
+}
