@@ -10,7 +10,7 @@ public class DateTimeSerializerTests
     public void Parse()
     {
         // arrange
-        const string value = "2011-08-30T13:22:53.108Z";
+        const string value = "2011-08-30T13:22:53.123456789Z";
 
         // act
         var result = Serializer.Parse(value);
@@ -41,13 +41,13 @@ public class DateTimeSerializerTests
     public void Format_Value()
     {
         // arrange
-        var value = new DateTimeOffset(2011, 8, 30, 13, 22, 53, 108, TimeSpan.Zero);
+        var value = new DateTimeOffset(2011, 8, 30, 13, 22, 53, 123, 456, TimeSpan.Zero).AddTicks(7);
 
         // act
         var result = Serializer.Format(value);
 
         // assert
-        Assert.Equal("2011-08-30T13:22:53.108Z", result);
+        Assert.Equal("2011-08-30T13:22:53.1234567Z", result);
     }
 
     [Fact]

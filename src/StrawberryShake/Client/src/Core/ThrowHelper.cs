@@ -46,7 +46,7 @@ internal static class ThrowHelper
     internal static GraphQLClientException LocalDateTimeSerializer_InvalidFormat(
         string serializedValue) =>
         new(new ClientError(
-            "The serialized format for LocalDateTime must be `yyyy-MM-ddTHH:mm:ss`.",
+            "The serialized format for LocalDateTime must be `yyyy-MM-ddTHH:mm:ss.FFFFFFF`.",
             extensions: new Dictionary<string, object?>
             {
                 { "serializedValue", serializedValue }
@@ -55,7 +55,7 @@ internal static class ThrowHelper
     internal static GraphQLClientException LocalTimeSerializer_InvalidFormat(
         string serializedValue) =>
         new(new ClientError(
-            "The serialized format for LocalTime must be `HH:mm:ss`.",
+            "The serialized format for LocalTime must be `HH:mm:ss.FFFFFFF`.",
             extensions: new Dictionary<string, object?>
             {
                 { "serializedValue", serializedValue }

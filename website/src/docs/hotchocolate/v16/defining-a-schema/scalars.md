@@ -312,26 +312,26 @@ To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 
 **Available Scalars:**
 
-| Type         | Description                                                                                                                                              |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| EmailAddress | Email address, represented as UTF-8 character sequences, as defined in [RFC5322](https://tools.ietf.org/html/rfc5322)                                    |
-| HexColor     | HEX color code                                                                                                                                           |
-| Hsl          | CSS HSL color as defined [here][2]                                                                                                                       |
-| Hsla         | CSS HSLA color as defined [here][2]                                                                                                                      |
-| IPv4         | IPv4 address as defined [here](https://en.wikipedia.org/wiki/IPv4)                                                                                       |
-| IPv6         | IPv6 address as defined in [RFC8064](https://tools.ietf.org/html/rfc8064)                                                                                |
-| Isbn         | ISBN-10 or ISBN-13 number as defined [here](https://en.wikipedia.org/wiki/International_Standard_Book_Number)                                            |
-| Latitude     | Decimal degrees latitude number                                                                                                                          |
-| Longitude    | Decimal degrees longitude number                                                                                                                         |
-| MacAddress   | IEEE 802 48-bit (MAC-48/EUI-48) and 64-bit (EUI-64) Mac addresses, represented as UTF-8 character sequences, as defined in [RFC7042][3] and [RFC7043][4] |
-| PhoneNumber  | A value that conforms to the standard E.164 format as defined [here](https://en.wikipedia.org/wiki/E.164)                                                |
-| Rgb          | CSS RGB color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                       |
-| Rgba         | CSS RGBA color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                      |
-| UtcOffset    | A value of format `±hh:mm`                                                                                                                               |
+| Type         | Description                                                                                                                                                |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EmailAddress | Email address, represented as UTF-8 character sequences, as defined in [RFC5322](https://tools.ietf.org/html/rfc5322)                                      |
+| HexColor     | HEX color code                                                                                                                                             |
+| Hsl          | CSS HSL color as defined [here][20]                                                                                                                        |
+| Hsla         | CSS HSLA color as defined [here][20]                                                                                                                       |
+| IPv4         | IPv4 address as defined [here](https://en.wikipedia.org/wiki/IPv4)                                                                                         |
+| IPv6         | IPv6 address as defined in [RFC8064](https://tools.ietf.org/html/rfc8064)                                                                                  |
+| Isbn         | ISBN-10 or ISBN-13 number as defined [here](https://en.wikipedia.org/wiki/International_Standard_Book_Number)                                              |
+| Latitude     | Decimal degrees latitude number                                                                                                                            |
+| Longitude    | Decimal degrees longitude number                                                                                                                           |
+| MacAddress   | IEEE 802 48-bit (MAC-48/EUI-48) and 64-bit (EUI-64) Mac addresses, represented as UTF-8 character sequences, as defined in [RFC7042][21] and [RFC7043][22] |
+| PhoneNumber  | A value that conforms to the standard E.164 format as defined [here](https://en.wikipedia.org/wiki/E.164)                                                  |
+| Rgb          | CSS RGB color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                         |
+| Rgba         | CSS RGBA color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                        |
+| UtcOffset    | A value of format `±hh:mm`                                                                                                                                 |
 
-[2]: https://developer.mozilla.org/docs/Web/CSS/color_value#hsl_colors
-[3]: https://tools.ietf.org/html/rfc7042#page-19
-[4]: https://tools.ietf.org/html/rfc7043
+[20]: https://developer.mozilla.org/docs/Web/CSS/color_value#hsl_colors
+[21]: https://tools.ietf.org/html/rfc7042#page-19
+[22]: https://tools.ietf.org/html/rfc7043
 
 Most of these scalars are built on top of native .NET types. An Email Address for example is represented as a `string`, but just returning a `string` from our resolver would result in Hot Chocolate interpreting it as a `StringType`. We need to explicitly specify that the returned type (`string`) should be treated as an `EmailAddressType`.
 
