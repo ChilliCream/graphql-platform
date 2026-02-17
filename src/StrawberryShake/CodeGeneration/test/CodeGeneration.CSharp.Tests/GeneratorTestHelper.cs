@@ -74,6 +74,7 @@ public static class GeneratorTestHelper
         documents.AppendLine("// ReSharper disable UnusedMember.Global");
         documents.AppendLine("// ReSharper disable UnusedMethodReturnValue.Local");
         documents.AppendLine("// ReSharper disable UnusedType.Global");
+        documents.AppendLine("// ReSharper disable UnusedVariable");
         documents.AppendLine();
 
         if (settings.Profiles.Count == 0)

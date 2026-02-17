@@ -37,7 +37,7 @@ internal sealed class FieldWithMissingRequiredArgumentRule : IEventHandler<Outpu
                     .Field
                     .Arguments
                     .AsEnumerable()
-                    .Where(a => a.Type is NonNullType && !a.HasRequireDirective())
+                    .Where(a => a is { Type: NonNullType, HasRequireDirective: false })
                     .Select(a => a.Name))
                 .ToImmutableHashSet();
 
@@ -48,7 +48,7 @@ internal sealed class FieldWithMissingRequiredArgumentRule : IEventHandler<Outpu
                 var hasRequiredArgument =
                     field.Arguments
                         .AsEnumerable()
-                        .Any(a => a.Name == requiredArgumentName && !a.HasRequireDirective());
+                        .Any(a => a.Name == requiredArgumentName && !a.HasRequireDirective);
 
                 if (!hasRequiredArgument)
                 {

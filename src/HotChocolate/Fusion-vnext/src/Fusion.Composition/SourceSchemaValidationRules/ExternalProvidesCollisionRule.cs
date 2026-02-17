@@ -22,7 +22,7 @@ internal sealed class ExternalProvidesCollisionRule : IEventHandler<OutputFieldE
     {
         var (field, _, schema) = @event;
 
-        if (field.HasExternalDirective() && field.HasProvidesDirective())
+        if (field is { HasExternalDirective: true, HasProvidesDirective: true })
         {
             context.Log.Write(ExternalProvidesCollision(field, schema));
         }

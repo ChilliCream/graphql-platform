@@ -1,4 +1,4 @@
-using System.Text.Json;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.AspNetCore.Formatters;
 
@@ -13,10 +13,10 @@ public interface IWebSocketPayloadFormatter
     /// <param name="result">
     /// The GraphQL operation result.
     /// </param>
-    /// <param name="jsonWriter">
+    /// <param name="writer">
     /// The JSON writer that is used to write the payload.
     /// </param>
-    void Format(IOperationResult result, Utf8JsonWriter jsonWriter);
+    void Format(OperationResult result, JsonWriter writer);
 
     /// <summary>
     /// Formats the <paramref name="error"/> into a WebSocket payload.
@@ -24,10 +24,10 @@ public interface IWebSocketPayloadFormatter
     /// <param name="error">
     /// The GraphQL execution error.
     /// </param>
-    /// <param name="jsonWriter">
+    /// <param name="writer">
     /// The JSON writer that is used to write the error.
     /// </param>
-    void Format(IError error, Utf8JsonWriter jsonWriter);
+    void Format(IError error, JsonWriter writer);
 
     /// <summary>
     /// Formats the <paramref name="errors"/> into a WebSocket payload.
@@ -35,10 +35,10 @@ public interface IWebSocketPayloadFormatter
     /// <param name="errors">
     /// The GraphQL execution errors.
     /// </param>
-    /// <param name="jsonWriter">
+    /// <param name="writer">
     /// The JSON writer that is used to write the errors.
     /// </param>
-    void Format(IReadOnlyList<IError> errors, Utf8JsonWriter jsonWriter);
+    void Format(IReadOnlyList<IError> errors, JsonWriter writer);
 
     /// <summary>
     /// Formats the <paramref name="extensions"/> into a WebSocket payload.
@@ -46,8 +46,8 @@ public interface IWebSocketPayloadFormatter
     /// <param name="extensions">
     /// The GraphQL extensions.
     /// </param>
-    /// <param name="jsonWriter">
+    /// <param name="writer">
     /// The JSON writer that is used to write the extensions.
     /// </param>
-    void Format(IReadOnlyDictionary<string, object?> extensions, Utf8JsonWriter jsonWriter);
+    void Format(IReadOnlyDictionary<string, object?> extensions, JsonWriter writer);
 }

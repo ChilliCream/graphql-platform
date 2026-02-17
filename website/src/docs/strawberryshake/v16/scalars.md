@@ -4,22 +4,23 @@ title: "Scalars"
 
 Strawberry Shake supports the following scalars out of the box:
 
-| Type        | Description                                                 |
-| ----------- | ----------------------------------------------------------- |
-| `Int`       | Signed 32-bit numeric non-fractional value                  |
-| `Float`     | Double-precision fractional values as specified by IEEE 754 |
-| `String`    | UTF-8 character sequences                                   |
-| `Boolean`   | Boolean type representing true or false                     |
-| `ID`        | Unique identifier                                           |
-| `Byte`      |                                                             |
-| `ByteArray` | Base64 encoded array of bytes                               |
-| `Short`     | Signed 16-bit numeric non-fractional value                  |
-| `Long`      | Signed 64-bit numeric non-fractional value                  |
-| `Decimal`   | .NET Floating Point Type                                    |
-| `Url`       | Url                                                         |
-| `DateTime`  | ISO-8601 date time                                          |
-| `Date`      | ISO-8601 date                                               |
-| `Uuid`      | GUID                                                        |
+| Type           | Description                                                 |
+| -------------- | ----------------------------------------------------------- |
+| `Base64String` | Base64 encoded array of bytes                               |
+| `Boolean`      | Boolean type representing true or false                     |
+| `Byte`         |                                                             |
+| `ByteArray`    | Base64 encoded array of bytes (DEPRECATED)                  |
+| `Date`         | ISO-8601 date                                               |
+| `DateTime`     | ISO-8601 date time                                          |
+| `Decimal`      | .NET Floating Point Type                                    |
+| `Float`        | Double-precision fractional values as specified by IEEE 754 |
+| `ID`           | Unique identifier                                           |
+| `Int`          | Signed 32-bit numeric non-fractional value                  |
+| `Long`         | Signed 64-bit numeric non-fractional value                  |
+| `Short`        | Signed 16-bit numeric non-fractional value                  |
+| `String`       | UTF-8 character sequences                                   |
+| `Url`          | Url                                                         |
+| `Uuid`         | GUID                                                        |
 
 # Custom Scalars
 
@@ -139,8 +140,8 @@ _configuration_
 serviceCollection.AddSerializer<PositiveIntSerializer>();
 ```
 
-> ⚠️ **Note:** When using a value type (struct) with `@serializationType` or `@runtimeType`, you must set `valueType: true` to ensure correct code generation.  
-> This is not required for intrinsic primitive value types already supported as built-in scalars by Strawberry Shake (e.g., `int`, `float`, `bool`).  
+> ⚠️ **Note:** When using a value type (struct) with `@serializationType` or `@runtimeType`, you must set `valueType: true` to ensure correct code generation.<br />
+> This is not required for intrinsic primitive value types already supported as built-in scalars by Strawberry Shake (e.g., `int`, `float`, `bool`).<br />
 > Example: `@serializationType(name: "global::System.Numerics.Vector2", valueType: true)`
 
 ### Any or JSON

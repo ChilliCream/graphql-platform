@@ -526,7 +526,7 @@ public class QueryableProjectionVisitorPagingTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
             descriptor.Resolve(
                 new List<Bar>

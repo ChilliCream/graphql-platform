@@ -1762,7 +1762,7 @@ public class SchemaBuilderTests
             .AddConvention<IMockConvention>(convention)
             .AddConvention<IMockConvention>(new MockConventionExtension())
             .Create();
-        var result = context.GetConventionOrDefault<IMockConvention>(
+        context.GetConventionOrDefault<IMockConvention>(
             () => throw new InvalidOperationException());
 
         // assert

@@ -7,18 +7,18 @@ public static class Mappings
     public static IQueryable<Product> MapToProduct(
         this IQueryable<ProductEntity> queryable)
         => queryable.Select(t => new Product
-            {
-                Id = t.Id,
-                Name = t.Name,
-                Description = t.Description,
-                Price = t.Price,
-                TypeId = t.TypeId,
-                BrandId = t.BrandId,
-                AvailableStock = t.AvailableStock,
-                RestockThreshold = t.RestockThreshold,
-                MaxStockThreshold = t.MaxStockThreshold,
-                OnReorder = t.OnReorder
-            });
+        {
+            Id = t.Id,
+            Name = t.Name,
+            Description = t.Description,
+            Price = t.Price,
+            TypeId = t.TypeId,
+            BrandId = t.BrandId,
+            AvailableStock = t.AvailableStock,
+            RestockThreshold = t.RestockThreshold,
+            MaxStockThreshold = t.MaxStockThreshold,
+            OnReorder = t.OnReorder
+        });
 
     public static IQueryable<Brand> MapToBrand(
         this IQueryable<BrandEntity> queryable)

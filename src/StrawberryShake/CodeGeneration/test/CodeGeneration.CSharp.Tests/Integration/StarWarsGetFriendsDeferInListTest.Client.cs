@@ -9,6 +9,7 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnusedMethodReturnValue.Local
 // ReSharper disable UnusedType.Global
+// ReSharper disable UnusedVariable
 
 // StarWarsGetFriendsDeferInListClient
 
@@ -50,28 +51,28 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.GetHero_Hero_Droid>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.GetHero_Hero_DroidFromDroidEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.GetHero_Hero_Human>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.GetHero_Hero_HumanFromHumanEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.GetHero_Hero_Friends_Nodes_Droid>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.CharacterName>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.CharacterNameFromDroidEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.GetHero_Hero_Friends_Nodes_Human>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.CharacterName>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.CharacterNameFromHumanEntityMapper>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.Base64StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ShortSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IntSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LongSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.FloatSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DecimalSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UUIDSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DecimalSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.FloatSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IntSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LongSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ShortSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UriSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UUIDSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.GetHeroResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.IGetHeroResult>>(sp));
@@ -391,16 +392,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class CharacterName : global::System.IEquatable<CharacterName>, ICharacterName
+    public partial class GetHero_Hero_Friends_Nodes_Droid : global::System.IEquatable<GetHero_Hero_Friends_Nodes_Droid>, IGetHero_Hero_Friends_Nodes_Droid
     {
-        public CharacterName(global::System.String name)
+        public GetHero_Hero_Friends_Nodes_Droid(global::System.String name)
         {
             Name = name;
         }
 
         public global::System.String Name { get; }
 
-        public virtual global::System.Boolean Equals(CharacterName? other)
+        public virtual global::System.Boolean Equals(GetHero_Hero_Friends_Nodes_Droid? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -437,7 +438,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
                 return false;
             }
 
-            return Equals((CharacterName)obj);
+            return Equals((GetHero_Hero_Friends_Nodes_Droid)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -453,88 +454,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetHero_Hero_Friends_Nodes_Droid : global::System.IEquatable<GetHero_Hero_Friends_Nodes_Droid>, IGetHero_Hero_Friends_Nodes_Droid
-    {
-        private readonly ICharacterName? _characterName;
-        public GetHero_Hero_Friends_Nodes_Droid(ICharacterName? characterName)
-        {
-            this._characterName = characterName;
-        }
-
-        public ICharacterName? CharacterName => _characterName;
-
-        public virtual global::System.Boolean Equals(GetHero_Hero_Friends_Nodes_Droid? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((CharacterName is null && other.CharacterName is null) || CharacterName != null && CharacterName.Equals(other.CharacterName)));
-        }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetHero_Hero_Friends_Nodes_Droid)obj);
-        }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-                if (CharacterName != null)
-                {
-                    hash ^= 397 * CharacterName.GetHashCode();
-                }
-
-                return hash;
-            }
-        }
-
-        public global::System.Boolean TryGetData(out ICharacterName? data)
-        {
-            data = _characterName;
-            return data != null;
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Friends_Nodes_Human : global::System.IEquatable<GetHero_Hero_Friends_Nodes_Human>, IGetHero_Hero_Friends_Nodes_Human
     {
-        private readonly ICharacterName? _characterName;
-        public GetHero_Hero_Friends_Nodes_Human(ICharacterName? characterName)
+        public GetHero_Hero_Friends_Nodes_Human(global::System.String name)
         {
-            this._characterName = characterName;
+            Name = name;
         }
 
-        public ICharacterName? CharacterName => _characterName;
+        public global::System.String Name { get; }
 
         public virtual global::System.Boolean Equals(GetHero_Hero_Friends_Nodes_Human? other)
         {
@@ -553,7 +480,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
                 return false;
             }
 
-            return (((CharacterName is null && other.CharacterName is null) || CharacterName != null && CharacterName.Equals(other.CharacterName)));
+            return (Name.Equals(other.Name));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -581,19 +508,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             unchecked
             {
                 int hash = 5;
-                if (CharacterName != null)
-                {
-                    hash ^= 397 * CharacterName.GetHashCode();
-                }
-
+                hash ^= 397 * Name.GetHashCode();
                 return hash;
             }
-        }
-
-        public global::System.Boolean TryGetData(out ICharacterName? data)
-        {
-            data = _characterName;
-            return data != null;
         }
     }
 
@@ -654,23 +571,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetHero_Hero_Friends_Nodes
+    public partial interface IGetHero_Hero_Friends_Nodes : ICharacterName
     {
-        public ICharacterName? CharacterName { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHero_Hero_Friends_Nodes_Droid : IGetHero_Hero_Friends_Nodes
     {
-        public ICharacterName? CharacterName { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHero_Hero_Friends_Nodes_Human : IGetHero_Hero_Friends_Nodes
     {
-        public ICharacterName? CharacterName { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
@@ -910,15 +824,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DroidEntity
     {
-        public DroidEntity(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.FriendsConnectionData? friends = default !, global::System.Boolean isCharacterNameFulfilled = default !, global::System.String name = default !)
+        public DroidEntity(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.FriendsConnectionData? friends = default !, global::System.String name = default !)
         {
             Friends = friends;
-            IsCharacterNameFulfilled = isCharacterNameFulfilled;
             Name = name;
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.FriendsConnectionData? Friends { get; }
-        public global::System.Boolean IsCharacterNameFulfilled { get; }
         public global::System.String Name { get; }
     }
 
@@ -926,15 +838,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
     {
-        public HumanEntity(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.FriendsConnectionData? friends = default !, global::System.Boolean isCharacterNameFulfilled = default !, global::System.String name = default !)
+        public HumanEntity(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.FriendsConnectionData? friends = default !, global::System.String name = default !)
         {
             Friends = friends;
-            IsCharacterNameFulfilled = isCharacterNameFulfilled;
             Name = name;
         }
 
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.FriendsConnectionData? Friends { get; }
-        public global::System.Boolean IsCharacterNameFulfilled { get; }
         public global::System.String Name { get; }
     }
 
@@ -1066,11 +976,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity(Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds), entity.IsCharacterNameFulfilled, entity.Name));
+                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity(Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds), entity.Name));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity(Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds), default !, default !));
+                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity(Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds), default !));
                 }
 
                 return entityId;
@@ -1080,11 +990,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity(Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds), entity.IsCharacterNameFulfilled, entity.Name));
+                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity(Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds), entity.Name));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity(Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds), default !, default !));
+                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity(Deserialize_IGetHero_Hero_Friends(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "friends"), entityIds), default !));
                 }
 
                 return entityId;
@@ -1153,11 +1063,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity(entity.Friends, global::StrawberryShake.Json.JsonElementExtensions.ContainsFragment(obj, "_isCharacterNameFulfilled"), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))!));
+                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity(entity.Friends, Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity(default !, global::StrawberryShake.Json.JsonElementExtensions.ContainsFragment(obj, "_isCharacterNameFulfilled"), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))!));
+                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity(default !, Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))));
                 }
 
                 return entityId;
@@ -1167,11 +1077,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             {
                 if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity(entity.Friends, global::StrawberryShake.Json.JsonElementExtensions.ContainsFragment(obj, "_isCharacterNameFulfilled"), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))!));
+                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity(entity.Friends, Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity(default !, global::StrawberryShake.Json.JsonElementExtensions.ContainsFragment(obj, "_isCharacterNameFulfilled"), Deserialize_String(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))!));
+                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity(default !, Deserialize_NonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name"))));
                 }
 
                 return entityId;
@@ -1180,16 +1090,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             throw new global::System.NotSupportedException();
         }
 
-        private global::System.String? Deserialize_String(global::System.Text.Json.JsonElement? obj)
+        private global::System.String Deserialize_NonNullableString(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
             {
-                return null;
+                throw new global::System.ArgumentNullException();
             }
 
             if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
-                return null;
+                throw new global::System.ArgumentNullException();
             }
 
             return _stringParser.Parse(obj.Value.GetString()!);
@@ -1379,11 +1289,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
     public partial class GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity, GetHero_Hero_Friends_Nodes_Droid>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.CharacterName> _characterNameMapper;
-        public GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.CharacterName> characterNameMapper)
+        public GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _characterNameMapper = characterNameMapper ?? throw new global::System.ArgumentNullException(nameof(characterNameMapper));
         }
 
         public GetHero_Hero_Friends_Nodes_Droid Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
@@ -1393,38 +1301,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
                 snapshot = _entityStore.CurrentSnapshot;
             }
 
-            return new GetHero_Hero_Friends_Nodes_Droid(MapCharacterName(entity, snapshot));
-        }
-
-        private ICharacterName? MapCharacterName(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity entity, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (!entity.IsCharacterNameFulfilled)
-            {
-                return null;
-            }
-
-            return _characterNameMapper.Map(entity, snapshot);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class CharacterNameFromDroidEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity, CharacterName>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public CharacterNameFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public CharacterName Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.DroidEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new CharacterName(entity.Name);
+            return new GetHero_Hero_Friends_Nodes_Droid(entity.Name);
         }
     }
 
@@ -1433,11 +1310,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
     public partial class GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity, GetHero_Hero_Friends_Nodes_Human>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.CharacterName> _characterNameMapper;
-        public GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.CharacterName> characterNameMapper)
+        public GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _characterNameMapper = characterNameMapper ?? throw new global::System.ArgumentNullException(nameof(characterNameMapper));
         }
 
         public GetHero_Hero_Friends_Nodes_Human Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
@@ -1447,38 +1322,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
                 snapshot = _entityStore.CurrentSnapshot;
             }
 
-            return new GetHero_Hero_Friends_Nodes_Human(MapCharacterName(entity, snapshot));
-        }
-
-        private ICharacterName? MapCharacterName(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity entity, global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (!entity.IsCharacterNameFulfilled)
-            {
-                return null;
-            }
-
-            return _characterNameMapper.Map(entity, snapshot);
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class CharacterNameFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity, CharacterName>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        public CharacterNameFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public CharacterName Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferInList.State.HumanEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new CharacterName(entity.Name);
+            return new GetHero_Hero_Friends_Nodes_Human(entity.Name);
         }
     }
 
@@ -1497,7 +1341,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             {
                 "Droid" => ParseDroidEntityId(obj, __typename),
                 "Human" => ParseHumanEntityId(obj, __typename),
-                "Character" => ParseCharacterEntityId(obj, __typename),
                 _ => throw new global::System.NotSupportedException()};
         }
 
@@ -1507,7 +1350,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             {
                 "Droid" => FormatDroidEntityId(entityId),
                 "Human" => FormatHumanEntityId(entityId),
-                "Character" => FormatCharacterEntityId(entityId),
                 _ => throw new global::System.NotSupportedException()};
         }
 
@@ -1534,23 +1376,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         }
 
         private global::System.String FormatHumanEntityId(global::StrawberryShake.EntityId entityId)
-        {
-            using var writer = new global::StrawberryShake.Internal.ArrayWriter();
-            using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(writer, _options);
-            jsonWriter.WriteStartObject();
-            jsonWriter.WriteString("__typename", entityId.Name);
-            jsonWriter.WriteString("id", (global::System.String)entityId.Value);
-            jsonWriter.WriteEndObject();
-            jsonWriter.Flush();
-            return global::System.Text.Encoding.UTF8.GetString(writer.GetInternalBuffer(), 0, writer.Length);
-        }
-
-        private global::StrawberryShake.EntityId ParseCharacterEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
-        {
-            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetString()!);
-        }
-
-        private global::System.String FormatCharacterEntityId(global::StrawberryShake.EntityId entityId)
         {
             using var writer = new global::StrawberryShake.Internal.ArrayWriter();
             using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(writer, _options);

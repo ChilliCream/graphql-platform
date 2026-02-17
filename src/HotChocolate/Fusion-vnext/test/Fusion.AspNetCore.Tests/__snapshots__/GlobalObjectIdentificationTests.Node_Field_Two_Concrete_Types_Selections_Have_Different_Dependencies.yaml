@@ -50,12 +50,12 @@ sourceSchemas:
         product: Product
       }
 
-      type Product {
+      type Product @key(fields: "id") {
         id: ID!
       }
 
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
@@ -100,12 +100,12 @@ sourceSchemas:
         id: ID!
       }
 
-      type Product {
+      type Product @key(fields: "id") {
         id: ID!
       }
 
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
 
       type Review implements Node {
@@ -128,7 +128,7 @@ sourceSchemas:
       }
 
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
@@ -184,6 +184,7 @@ operationPlan:
       name: testQuery
       hash: c0cdf5d72861e2b024c2d1ea2305cc18
       searchSpace: 1
+      expandedNodes: 3
   nodes:
     - id: 1
       type: Node

@@ -23,7 +23,7 @@ internal sealed class ProvidesOnNonCompositeFieldRule : IEventHandler<OutputFiel
     {
         var (field, _, schema) = @event;
 
-        if (field.HasProvidesDirective())
+        if (field.HasProvidesDirective)
         {
             var fieldType = field.Type.AsTypeDefinition();
 

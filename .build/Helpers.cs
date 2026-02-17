@@ -11,6 +11,7 @@ static class Helpers
     static readonly string[] Directories =
     {
         "GreenDonut",
+        Path.Combine("HotChocolate", "Adapters"),
         Path.Combine("HotChocolate", "ApolloFederation"),
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "AzureFunctions"),
@@ -24,7 +25,6 @@ static class Helpers
         Path.Combine("HotChocolate", "Data"),
         Path.Combine("HotChocolate", "Marten"),
         Path.Combine("HotChocolate", "MongoDb"),
-        Path.Combine("HotChocolate", "ModelContextProtocol"),
         // Path.Combine("HotChocolate", "OpenApi"),
         Path.Combine("HotChocolate", "Primitives"),
         Path.Combine("HotChocolate", "Raven"),
@@ -78,7 +78,7 @@ static class Helpers
         var workingDirectory = Path.GetDirectoryName(solutionFile);
         var list = new List<Output>();
 
-        list.AddRange(DotNetTasks.DotNet($"new sln -n {Path.GetFileNameWithoutExtension(solutionFile)}", workingDirectory));
+        list.AddRange(DotNetTasks.DotNet($"new sln -n {Path.GetFileNameWithoutExtension(solutionFile)} --format sln", workingDirectory));
 
         var projectsArg = string.Join(" ", projects.Select(t => $"\"{t}\""));
 
@@ -99,7 +99,7 @@ static class Helpers
         var workingDirectory = Path.GetDirectoryName(solutionFile);
         var list = new List<Output>();
 
-        list.AddRange(DotNetTasks.DotNet($"new sln -n {Path.GetFileNameWithoutExtension(solutionFile)}", workingDirectory));
+        list.AddRange(DotNetTasks.DotNet($"new sln -n {Path.GetFileNameWithoutExtension(solutionFile)} --format sln", workingDirectory));
 
         var projectsArg = string.Join(" ", projects.Select(t => $"\"{t}\""));
 

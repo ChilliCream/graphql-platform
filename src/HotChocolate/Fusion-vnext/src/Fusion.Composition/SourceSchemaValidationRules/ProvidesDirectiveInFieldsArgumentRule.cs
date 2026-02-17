@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Extensions;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -13,20 +14,26 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Provides-Directive-in-Fields-Argument">
 /// Specification
 /// </seealso>
-internal sealed class ProvidesDirectiveInFieldsArgumentRule : IEventHandler<ProvidesFieldNodeEvent>
+internal sealed class ProvidesDirectiveInFieldsArgumentRule : IEventHandler<OutputFieldEvent>
 {
-    public void Handle(ProvidesFieldNodeEvent @event, CompositionContext context)
+    public void Handle(OutputFieldEvent @event, CompositionContext context)
     {
-        var (fieldNode, fieldNamePath, providesDirective, field, _, schema) = @event;
+        var (field, _, schema) = @event;
 
-        if (fieldNode.Directives.Count != 0)
+        if (field.ProvidesInfo is { } providesInfo)
         {
-            context.Log.Write(
-                ProvidesDirectiveInFieldsArgument(
-                    fieldNamePath,
-                    providesDirective,
-                    field,
-                    schema));
+            foreach (var (fieldNode, fieldNamePath) in providesInfo.FieldNodes)
+            {
+                if (fieldNode.Directives.Count != 0)
+                {
+                    context.Log.Write(
+                        ProvidesDirectiveInFieldsArgument(
+                            fieldNamePath,
+                            providesInfo.Directive,
+                            field,
+                            schema));
+                }
+            }
         }
     }
 }

@@ -6,8 +6,8 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
-using HotChocolate.Execution;
 using HotChocolate.Subscriptions.Diagnostics;
+using HotChocolate.Text.Json;
 using HotChocolate.Transport.Formatters;
 using HotChocolate.Transport.Sockets.Client;
 using Microsoft.AspNetCore.Builder;
@@ -37,7 +37,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 var message = await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.NotNull(message);
-                Assert.Equal(Messages.ConnectionAccept, message[MessageProperties.Type]);
+                Assert.Equal(Messages.ConnectionAccept, message.RootElement.GetProperty(MessageProperties.Type).GetString());
             });
 
     [Fact]
@@ -93,7 +93,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                     TimeSpan.FromSeconds(5),
                     ct);
                 Assert.NotNull(message);
-                Assert.Equal(Messages.Ping, message[MessageProperties.Type]);
+                Assert.Equal(Messages.Ping, message.RootElement.GetProperty(MessageProperties.Type).GetString());
             });
 
     [Fact]
@@ -145,7 +145,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 var message = await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.NotNull(message);
-                Assert.Equal(Messages.ConnectionAccept, message[MessageProperties.Type]);
+                Assert.Equal(Messages.ConnectionAccept, message.RootElement.GetProperty(MessageProperties.Type).GetString());
             });
 
     [Fact]
@@ -189,7 +189,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 var message = await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.NotNull(message);
-                Assert.Equal("connection_ack", message["type"]);
+                Assert.Equal("connection_ack", message.RootElement.GetProperty("type").GetString());
             });
 
     [Fact]
@@ -210,7 +210,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 var message = await webSocket.ReceiveServerMessageAsync(ct);
                 Assert.NotNull(message);
-                Assert.Equal("connection_ack", message["type"]);
+                Assert.Equal("connection_ack", message.RootElement.GetProperty("type").GetString());
             });
 
     [Fact]
@@ -560,7 +560,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"mutation { complete(episode:NEW_HOPE) }"
+                        Query = "mutation { complete(episode:NEW_HOPE) }"
                     });
 
                 // assert
@@ -953,11 +953,10 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 // assert
                 var message = await WaitForMessage(webSocket, Messages.Next, ct);
                 Assert.NotNull(message);
-                var messagePayload = (Dictionary<string, object?>?)message["payload"];
-                var messageData = (Dictionary<string, object?>?)messagePayload?["data"];
-                var messageOnReview = (Dictionary<string, object?>?)messageData?["onReview"];
-                Assert.NotNull(messageOnReview);
-                Assert.DoesNotContain("commentary", messageOnReview);
+                var messagePayload = message.RootElement.GetProperty("payload");
+                var messageData = messagePayload.GetProperty("data");
+                var messageOnReview = messageData.GetProperty("onReview");
+                Assert.False(messageOnReview.TryGetProperty("commentary", out _));
             });
 
     private class AuthInterceptor : DefaultSocketSessionInterceptor

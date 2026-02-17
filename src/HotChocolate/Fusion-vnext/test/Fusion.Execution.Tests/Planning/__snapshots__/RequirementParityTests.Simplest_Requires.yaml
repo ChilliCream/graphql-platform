@@ -1,0 +1,46 @@
+operation:
+  - document: |
+      {
+        products {
+          isExpensive
+          upc @fusion__requirement
+          price @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: products
+    operation: |
+      query Op_123456789101112_1 {
+        products {
+          upc
+          price
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: inventory
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_upc: String!
+          $__fusion_2_price: Int
+      ) {
+        productByUpc(upc: $__fusion_1_upc) {
+          isExpensive(price: $__fusion_2_price)
+        }
+      }
+    source: $.productByUpc
+    target: $.products
+    requirements:
+      - name: __fusion_1_upc
+        selectionMap: >-
+          upc
+      - name: __fusion_2_price
+        selectionMap: >-
+          price
+    dependencies:
+      - id: 1

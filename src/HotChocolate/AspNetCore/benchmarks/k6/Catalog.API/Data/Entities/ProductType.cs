@@ -1,4 +1,4 @@
-﻿// ReSharper disable CollectionNeverUpdated.Global
+// ReSharper disable CollectionNeverUpdated.Global
 
 using System.ComponentModel.DataAnnotations;
 
@@ -9,6 +9,6 @@ public sealed class ProductTypeEntity
     public int Id { get; set; }
 
     [Required] public string Name { get; set; } = default!;
-    
-    public ICollection<ProductEntity> Products { get; set; } = new List<ProductEntity>();
+
+    public ICollection<ProductEntity> Products { get; set; } = [];
 }

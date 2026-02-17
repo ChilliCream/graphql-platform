@@ -7,32 +7,34 @@ namespace HotChocolate.Fusion.Extensions;
 
 internal static class SatisfiabilityPathItemExtensions
 {
-    /// <summary>
-    /// Determines if the <see cref="SatisfiabilityPathItem"/> provides the given field on the given
-    /// type and schema.
-    /// </summary>
-    public static bool Provides(
-        this SatisfiabilityPathItem item,
-        MutableOutputFieldDefinition field,
-        MutableObjectTypeDefinition type,
-        string schemaName,
-        MutableSchemaDefinition schema)
+    extension(SatisfiabilityPathItem item)
     {
-        if (item.SchemaName != schemaName)
+        /// <summary>
+        /// Determines if the <see cref="SatisfiabilityPathItem"/> provides the given field on the given
+        /// type and schema.
+        /// </summary>
+        public bool Provides(
+            MutableOutputFieldDefinition field,
+            MutableObjectTypeDefinition type,
+            string schemaName,
+            MutableSchemaDefinition schema)
         {
-            return false;
+            if (item.SchemaName != schemaName)
+            {
+                return false;
+            }
+
+            var selectionSetText = item.Field.GetFusionFieldProvides(item.SchemaName);
+
+            if (selectionSetText is null)
+            {
+                return false;
+            }
+
+            var selectionSet = ParseSelectionSet($"{{ {selectionSetText} }}");
+            var validator = new FieldInSelectionSetValidator(schema);
+
+            return validator.Validate(selectionSet, item.FieldType, field, type);
         }
-
-        var selectionSetText = item.Field.GetFusionFieldProvides(item.SchemaName);
-
-        if (selectionSetText is null)
-        {
-            return false;
-        }
-
-        var selectionSet = ParseSelectionSet($"{{ {selectionSetText} }}");
-        var validator = new FieldInSelectionSetValidator(schema);
-
-        return validator.Validate(selectionSet, item.FieldType, field, type);
     }
 }

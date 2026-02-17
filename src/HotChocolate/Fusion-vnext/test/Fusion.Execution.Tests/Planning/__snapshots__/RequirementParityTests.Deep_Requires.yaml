@@ -1,0 +1,93 @@
+operation:
+  - document: |
+      {
+        feed {
+          author {
+            id
+          }
+          id @fusion__requirement
+          comments @fusion__requirement {
+            authorId
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 7
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        feed {
+          id
+        }
+      }
+  - id: 3
+    type: Operation
+    schema: d
+    operation: |
+      query Op_123456789101112_3(
+        $__fusion_2_commentAuthorIds: [ID]
+          $__fusion_3_id: ID!
+      ) {
+        postById(id: $__fusion_3_id) {
+          author(commentAuthorIds: $__fusion_2_commentAuthorIds) {
+            id
+          }
+        }
+      }
+    source: $.postById
+    target: $.feed
+    requirements:
+      - name: __fusion_2_commentAuthorIds
+        selectionMap: >-
+          comments[authorId]
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 4
+  - id: 4
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_4(
+        $__fusion_4_id: ID!
+      ) {
+        postById(id: $__fusion_4_id) {
+          comments {
+            id
+          }
+        }
+      }
+    source: $.postById
+    target: $.feed
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 5
+    type: Operation
+    schema: c
+    operation: |
+      query Op_123456789101112_5(
+        $__fusion_5_id: ID!
+      ) {
+        commentById(id: $__fusion_5_id) {
+          authorId
+        }
+      }
+    source: $.commentById
+    target: $.feed.comments
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 4

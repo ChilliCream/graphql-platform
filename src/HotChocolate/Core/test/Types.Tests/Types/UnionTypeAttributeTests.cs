@@ -42,7 +42,7 @@ public class UnionTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IUnionTypeDescriptor descriptor,
-            Type type)
+            Type? type)
         {
             descriptor.Name("Abc");
         }

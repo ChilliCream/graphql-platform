@@ -28,8 +28,8 @@ response:
                 "node": {
                   "feedback": {
                     "buyer": {
-                      "relativeUrl": "User: VXNlcjoxMw==",
-                      "displayName": "User: VXNlcjoxMw=="
+                      "relativeUrl": "User: VXNlcjoxMQ==",
+                      "displayName": "User: VXNlcjoxMQ=="
                     }
                   }
                 }
@@ -48,8 +48,8 @@ response:
                 "node": {
                   "feedback": {
                     "buyer": {
-                      "relativeUrl": "User: VXNlcjoxMQ==",
-                      "displayName": "User: VXNlcjoxMQ=="
+                      "relativeUrl": "User: VXNlcjoxMw==",
+                      "displayName": "User: VXNlcjoxMw=="
                     }
                   }
                 }
@@ -71,8 +71,8 @@ sourceSchemas:
       }
 
       type Query {
-        node(id: ID!): Node @lookup
-        nodes(ids: [ID!]!): [Node]!
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
       }
 
       type User implements Node {
@@ -82,10 +82,10 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query Op_595ce2b9_4(
-              $__fusion_3_id: ID!
+            query Op_595ce2b9_3(
+              $__fusion_2_id: ID!
             ) {
-              node(id: $__fusion_3_id) {
+              node(id: $__fusion_2_id) {
                 __typename
                 ... on User {
                   displayName
@@ -95,23 +95,24 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_3_id": "VXNlcjoxMw=="
+                "__fusion_2_id": "VXNlcjoxMQ=="
               },
               {
-                "__fusion_3_id": "VXNlcjoxMg=="
+                "__fusion_2_id": "VXNlcjoxMg=="
               },
               {
-                "__fusion_3_id": "VXNlcjoxMQ=="
+                "__fusion_2_id": "VXNlcjoxMw=="
               }
             ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "displayName": "User: VXNlcjoxMw=="
+                    "displayName": "User: VXNlcjoxMQ=="
                   }
                 }
               }
@@ -129,7 +130,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "displayName": "User: VXNlcjoxMQ=="
+                    "displayName": "User: VXNlcjoxMw=="
                   }
                 }
               }
@@ -144,8 +145,8 @@ sourceSchemas:
       }
 
       type Query {
-        node(id: ID!): Node @lookup
-        nodes(ids: [ID!]!): [Node]! @null(atIndex: 1)
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @null(atIndex: 1) @shareable
         userBySlug(slug: String!): User
       }
 
@@ -173,10 +174,10 @@ sourceSchemas:
               }
       - request:
           document: |
-            query Op_595ce2b9_3(
-              $__fusion_2_id: ID!
+            query Op_595ce2b9_4(
+              $__fusion_3_id: ID!
             ) {
-              node(id: $__fusion_2_id) {
+              node(id: $__fusion_3_id) {
                 __typename
                 ... on User {
                   relativeUrl
@@ -186,23 +187,24 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "VXNlcjoxMw=="
+                "__fusion_3_id": "VXNlcjoxMQ=="
               },
               {
-                "__fusion_2_id": "VXNlcjoxMg=="
+                "__fusion_3_id": "VXNlcjoxMg=="
               },
               {
-                "__fusion_2_id": "VXNlcjoxMQ=="
+                "__fusion_3_id": "VXNlcjoxMw=="
               }
             ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "relativeUrl": "User: VXNlcjoxMw=="
+                    "relativeUrl": "User: VXNlcjoxMQ=="
                   }
                 }
               }
@@ -220,7 +222,7 @@ sourceSchemas:
                 "data": {
                   "node": {
                     "__typename": "User",
-                    "relativeUrl": "User: VXNlcjoxMQ=="
+                    "relativeUrl": "User: VXNlcjoxMw=="
                   }
                 }
               }
@@ -243,8 +245,8 @@ sourceSchemas:
       }
 
       type Query {
-        node(id: ID!): Node @lookup
-        nodes(ids: [ID!]!): [Node]!
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
       }
 
       type ResaleFeedback implements Node {
@@ -300,7 +302,7 @@ sourceSchemas:
                           "node": {
                             "feedback": {
                               "buyer": {
-                                "id": "VXNlcjoxMw=="
+                                "id": "VXNlcjoxMQ=="
                               }
                             }
                           }
@@ -318,7 +320,7 @@ sourceSchemas:
                           "node": {
                             "feedback": {
                               "buyer": {
-                                "id": "VXNlcjoxMQ=="
+                                "id": "VXNlcjoxMw=="
                               }
                             }
                           }
@@ -351,6 +353,7 @@ operationPlan:
         }
       hash: 595ce2b9cc1d2b098614fb4f4733426b
       searchSpace: 1
+      expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
@@ -395,7 +398,7 @@ operationPlan:
         - id: 1
     - id: 3
       type: Operation
-      schema: B
+      schema: A
       operation: |
         query Op_595ce2b9_3(
           $__fusion_2_id: ID!
@@ -403,7 +406,7 @@ operationPlan:
           node(id: $__fusion_2_id) {
             __typename
             ... on User {
-              relativeUrl
+              displayName
             }
           }
         }
@@ -417,7 +420,7 @@ operationPlan:
         - id: 2
     - id: 4
       type: Operation
-      schema: A
+      schema: B
       operation: |
         query Op_595ce2b9_4(
           $__fusion_3_id: ID!
@@ -425,7 +428,7 @@ operationPlan:
           node(id: $__fusion_3_id) {
             __typename
             ... on User {
-              displayName
+              relativeUrl
             }
           }
         }

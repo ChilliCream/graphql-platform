@@ -2,6 +2,7 @@ namespace HotChocolate.Fusion;
 
 internal static class WellKnownTypeNames
 {
+    public const string CacheControlScope = "CacheControlScope";
     public const string FieldSelectionMap = "FieldSelectionMap";
     public const string FieldSelectionSet = "FieldSelectionSet";
     public const string FusionFieldDefinition = "fusion__FieldDefinition";
@@ -13,5 +14,6 @@ internal static class WellKnownTypeNames
     public const string Mutation = "Mutation";
     public const string Node = "Node";
     public const string Query = "Query";
+    public const string ScalarSerializationType = "ScalarSerializationType";
     public const string Subscription = "Subscription";
 }

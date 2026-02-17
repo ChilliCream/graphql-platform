@@ -94,16 +94,30 @@ get_emoji() {
 # Function to format change
 format_change() {
     local change=$1
-    local show_sign=${2:-true}
+    local metric_type=$2  # "latency" or "throughput"
+    local show_sign=${3:-true}
 
     if [ "$change" == "0" ] || [ -z "$change" ]; then
         echo "(no change)"
     elif [ "$show_sign" == "true" ]; then
-        if (( $(echo "$change > 0" | bc -l) )); then
-            echo "(${change}% worse)"
+        local is_positive=$(echo "$change > 0" | bc -l)
+        local abs_change=$(echo "$change" | tr -d '-')
+
+        # For latency: lower is better (negative change = better)
+        # For throughput: higher is better (positive change = better)
+        if [ "$metric_type" == "throughput" ]; then
+            if [ "$is_positive" == "1" ]; then
+                echo "(${change}% better)"
+            else
+                echo "(${abs_change}% worse)"
+            fi
         else
-            local abs_change=$(echo "$change" | tr -d '-')
-            echo "(${abs_change}% better)"
+            # Default to latency behavior (lower is better)
+            if [ "$is_positive" == "1" ]; then
+                echo "(${change}% worse)"
+            else
+                echo "(${abs_change}% better)"
+            fi
         fi
     else
         echo "(${change}%)"
@@ -238,15 +252,15 @@ if [ -n "$BASELINE_FILE" ]; then
 
 | Test | Min | Med | Max | Avg | P90 | P95 | P99 |
 |------|-----|-----|-----|-----|-----|-----|-----|
-| **Single Fetch** | $(get_emoji "$CHANGE_SF_MIN" "latency") $(format_change "$CHANGE_SF_MIN") | $(get_emoji "$CHANGE_SF_P50" "latency") $(format_change "$CHANGE_SF_P50") | $(get_emoji "$CHANGE_SF_MAX" "latency") $(format_change "$CHANGE_SF_MAX") | $(get_emoji "$CHANGE_SF_AVG" "latency") $(format_change "$CHANGE_SF_AVG") | $(get_emoji "$CHANGE_SF_P90" "latency") $(format_change "$CHANGE_SF_P90") | $(get_emoji "$CHANGE_SF_P95" "latency") $(format_change "$CHANGE_SF_P95") | $(get_emoji "$CHANGE_SF_P99" "latency") $(format_change "$CHANGE_SF_P99") |
-| **DataLoader** | $(get_emoji "$CHANGE_DL_MIN" "latency") $(format_change "$CHANGE_DL_MIN") | $(get_emoji "$CHANGE_DL_P50" "latency") $(format_change "$CHANGE_DL_P50") | $(get_emoji "$CHANGE_DL_MAX" "latency") $(format_change "$CHANGE_DL_MAX") | $(get_emoji "$CHANGE_DL_AVG" "latency") $(format_change "$CHANGE_DL_AVG") | $(get_emoji "$CHANGE_DL_P90" "latency") $(format_change "$CHANGE_DL_P90") | $(get_emoji "$CHANGE_DL_P95" "latency") $(format_change "$CHANGE_DL_P95") | $(get_emoji "$CHANGE_DL_P99" "latency") $(format_change "$CHANGE_DL_P99") |
+| **Single Fetch** | $(get_emoji "$CHANGE_SF_MIN" "latency") $(format_change "$CHANGE_SF_MIN" "latency") | $(get_emoji "$CHANGE_SF_P50" "latency") $(format_change "$CHANGE_SF_P50" "latency") | $(get_emoji "$CHANGE_SF_MAX" "latency") $(format_change "$CHANGE_SF_MAX" "latency") | $(get_emoji "$CHANGE_SF_AVG" "latency") $(format_change "$CHANGE_SF_AVG" "latency") | $(get_emoji "$CHANGE_SF_P90" "latency") $(format_change "$CHANGE_SF_P90" "latency") | $(get_emoji "$CHANGE_SF_P95" "latency") $(format_change "$CHANGE_SF_P95" "latency") | $(get_emoji "$CHANGE_SF_P99" "latency") $(format_change "$CHANGE_SF_P99" "latency") |
+| **DataLoader** | $(get_emoji "$CHANGE_DL_MIN" "latency") $(format_change "$CHANGE_DL_MIN" "latency") | $(get_emoji "$CHANGE_DL_P50" "latency") $(format_change "$CHANGE_DL_P50" "latency") | $(get_emoji "$CHANGE_DL_MAX" "latency") $(format_change "$CHANGE_DL_MAX" "latency") | $(get_emoji "$CHANGE_DL_AVG" "latency") $(format_change "$CHANGE_DL_AVG" "latency") | $(get_emoji "$CHANGE_DL_P90" "latency") $(format_change "$CHANGE_DL_P90" "latency") | $(get_emoji "$CHANGE_DL_P95" "latency") $(format_change "$CHANGE_DL_P95" "latency") | $(get_emoji "$CHANGE_DL_P99" "latency") $(format_change "$CHANGE_DL_P99" "latency") |
 
 ### ⚡ Throughput
 
 | Test | Metric | Current | Baseline | Change |
 |------|--------|---------|----------|--------|
-| **Single Fetch** | **Requests/sec** | ${CURRENT_SF_RPS} req/s | ${BASELINE_SF_RPS} req/s | $(get_emoji "$CHANGE_SF_RPS" "throughput") $(format_change "$CHANGE_SF_RPS") |
-| **DataLoader** | **Requests/sec** | ${CURRENT_DL_RPS} req/s | ${BASELINE_DL_RPS} req/s | $(get_emoji "$CHANGE_DL_RPS" "throughput") $(format_change "$CHANGE_DL_RPS") |
+| **Single Fetch** | **Requests/sec** | ${CURRENT_SF_RPS} req/s | ${BASELINE_SF_RPS} req/s | $(get_emoji "$CHANGE_SF_RPS" "throughput") $(format_change "$CHANGE_SF_RPS" "throughput") |
+| **DataLoader** | **Requests/sec** | ${CURRENT_DL_RPS} req/s | ${BASELINE_DL_RPS} req/s | $(get_emoji "$CHANGE_DL_RPS" "throughput") $(format_change "$CHANGE_DL_RPS" "throughput") |
 
 ### 🎯 Reliability
 

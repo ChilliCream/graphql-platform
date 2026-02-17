@@ -19,7 +19,7 @@ public class DiagnosticEventSourceAttribute : Attribute
     /// </param>
     public DiagnosticEventSourceAttribute(Type listener, bool isSchemaService = true)
     {
-        ArgumentNullException.ThrowIfNull(listener, nameof(listener));
+        ArgumentNullException.ThrowIfNull(listener);
 
         Listener = listener;
         IsSchemaService = isSchemaService;

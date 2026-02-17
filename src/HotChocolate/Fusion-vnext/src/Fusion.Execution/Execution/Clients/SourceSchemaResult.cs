@@ -8,16 +8,27 @@ public sealed class SourceSchemaResult : IDisposable
     private static ReadOnlySpan<byte> ErrorsProperty => "errors"u8;
     private static ReadOnlySpan<byte> ExtensionsProperty => "extensions"u8;
     private readonly SourceResultDocument _document;
+    private readonly bool _ownsDocument;
 
     public SourceSchemaResult(
         Path path,
         SourceResultDocument document,
         FinalMessage final = FinalMessage.Undefined)
+        : this(path, document, final, ownsDocument: true)
+    {
+    }
+
+    private SourceSchemaResult(
+        Path path,
+        SourceResultDocument document,
+        FinalMessage final,
+        bool ownsDocument)
     {
         ArgumentNullException.ThrowIfNull(path);
         ArgumentNullException.ThrowIfNull(document);
 
         _document = document;
+        _ownsDocument = ownsDocument;
         Path = path;
         Final = final;
     }
@@ -60,5 +71,13 @@ public sealed class SourceSchemaResult : IDisposable
 
     public FinalMessage Final { get; }
 
-    public void Dispose() => _document.Dispose();
+    internal SourceSchemaResult WithPath(Path path) => new(path, _document, Final, ownsDocument: false);
+
+    public void Dispose()
+    {
+        if (_ownsDocument)
+        {
+            _document.Dispose();
+        }
+    }
 }

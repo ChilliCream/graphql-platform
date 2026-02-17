@@ -22,7 +22,7 @@ response:
             "votable": {
               "viewerCanVote": true,
               "author": {
-                "displayName": "Author: QXV0aG9yOjc="
+                "displayName": "Author: QXV0aG9yOjk="
               }
             }
           },
@@ -38,7 +38,7 @@ response:
             "votable": {
               "viewerCanVote": true,
               "author": {
-                "displayName": "Author: QXV0aG9yOjk="
+                "displayName": "Author: QXV0aG9yOjc="
               }
             }
           }
@@ -56,7 +56,7 @@ sourceSchemas:
         viewerCanVote: Boolean!
       }
 
-      type Author {
+      type Author @key(fields: "id") {
         id: ID!
       }
 
@@ -105,7 +105,7 @@ sourceSchemas:
                         "__typename": "Discussion",
                         "viewerCanVote": true,
                         "author": {
-                          "id": "QXV0aG9yOjc="
+                          "id": "QXV0aG9yOjk="
                         }
                       }
                     },
@@ -123,7 +123,7 @@ sourceSchemas:
                         "__typename": "Discussion",
                         "viewerCanVote": true,
                         "author": {
-                          "id": "QXV0aG9yOjk="
+                          "id": "QXV0aG9yOjc="
                         }
                       }
                     }
@@ -157,22 +157,23 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "QXV0aG9yOjc="
+                "__fusion_1_id": "QXV0aG9yOjk="
               },
               {
                 "__fusion_1_id": "QXV0aG9yOjg="
               },
               {
-                "__fusion_1_id": "QXV0aG9yOjk="
+                "__fusion_1_id": "QXV0aG9yOjc="
               }
             ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjc="
+                    "displayName": "Author: QXV0aG9yOjk="
                   }
                 }
               }
@@ -188,7 +189,7 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjk="
+                    "displayName": "Author: QXV0aG9yOjc="
                   }
                 }
               }
@@ -212,6 +213,7 @@ operationPlan:
       name: testQuery
       hash: 8c4ceb7d5d586957711457c466f93384
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

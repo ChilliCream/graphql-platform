@@ -27,26 +27,26 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       interface Votable {
         viewerCanVote: Boolean!
       }
-      
+
       type Author implements Node & Votable {
         id: ID!
         viewerCanVote: Boolean!
       }
-      
+
       type Discussion implements Node & Votable {
         id: ID!
         title: String
         viewerCanVote: Boolean!
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
       }
@@ -96,6 +96,7 @@ operationPlan:
       name: testQuery
       hash: eaa5be751070d348ed88da9a09cd512b
       searchSpace: 1
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Node

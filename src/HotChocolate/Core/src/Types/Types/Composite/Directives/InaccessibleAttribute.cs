@@ -33,10 +33,22 @@ namespace HotChocolate.Types.Composite;
     | AttributeTargets.Struct)]
 public sealed class InaccessibleAttribute : DescriptorAttribute
 {
+    public InaccessibleAttribute()
+    {
+    }
+
+    public InaccessibleAttribute(bool scoped)
+        => IsScoped = scoped;
+
+    /// <summary>
+    /// Indicates if the directive is scoped to the current extension or type in view or to the complete type.
+    /// </summary>
+    public bool IsScoped { get; }
+
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {
@@ -49,7 +61,7 @@ public sealed class InaccessibleAttribute : DescriptorAttribute
                 break;
 
             case IInterfaceTypeDescriptor interfaceTypeDescriptor:
-                interfaceTypeDescriptor.Inaccessible();
+                interfaceTypeDescriptor.Inaccessible(IsScoped);
                 break;
 
             case IInterfaceFieldDescriptor interfaceFieldDescriptor:
@@ -65,7 +77,7 @@ public sealed class InaccessibleAttribute : DescriptorAttribute
                 break;
 
             case IObjectTypeDescriptor objectFieldDescriptor:
-                objectFieldDescriptor.Inaccessible();
+                objectFieldDescriptor.Inaccessible(IsScoped);
                 break;
 
             case IObjectFieldDescriptor objectFieldDescriptor:
@@ -78,6 +90,10 @@ public sealed class InaccessibleAttribute : DescriptorAttribute
 
             case IUnionTypeDescriptor unionTypeDescriptor:
                 unionTypeDescriptor.Inaccessible();
+                break;
+
+            case IScalarTypeDescriptor scalarTypeDescriptor:
+                scalarTypeDescriptor.Inaccessible();
                 break;
 
             default:

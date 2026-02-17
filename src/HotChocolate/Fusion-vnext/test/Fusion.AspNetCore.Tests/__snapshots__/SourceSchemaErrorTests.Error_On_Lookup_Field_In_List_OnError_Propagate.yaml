@@ -138,18 +138,13 @@ sourceSchemas:
               }
             ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "errors": [
                   {
                     "message": "Could not resolve Product",
-                    "locations": [
-                      {
-                        "line": 4,
-                        "column": 3
-                      }
-                    ],
                     "path": [
                       "productById"
                     ]
@@ -164,12 +159,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Could not resolve Product",
-                    "locations": [
-                      {
-                        "line": 4,
-                        "column": 3
-                      }
-                    ],
                     "path": [
                       "productById"
                     ]
@@ -184,12 +173,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Could not resolve Product",
-                    "locations": [
-                      {
-                        "line": 4,
-                        "column": 3
-                      }
-                    ],
                     "path": [
                       "productById"
                     ]
@@ -211,6 +194,7 @@ operationPlan:
         }
       hash: 67b3f75afa8d6eb979605a59d5462c1d
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

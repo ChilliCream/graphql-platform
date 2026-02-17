@@ -17,6 +17,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     private readonly PooledFeatureCollection _features;
     private ISchemaDefinition? _schema;
     private int _maxAllowedErrors;
+    private int _maxLocationsPerError;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DocumentValidatorContext"/>.
@@ -110,6 +111,11 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     public Dictionary<string, object?> ContextData { get; } = [];
 
     /// <summary>
+    /// A set that stores the visited fragments (type-name, spread-name).
+    /// </summary>
+    public HashSet<(string, string)> VisitedFragments { get; } = [];
+
+    /// <summary>
     /// A list to track validation errors that occurred during the visitation.
     /// </summary>
     public IReadOnlyList<IError> Errors => _errors;
@@ -127,11 +133,17 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     /// </summary>
     public bool FatalErrorDetected { get; set; }
 
+    /// <summary>
+    /// The maximum number of locations per error.
+    /// </summary>
+    public int MaxLocationsPerError => _maxLocationsPerError;
+
     public void Initialize(
         ISchemaDefinition schema,
         OperationDocumentId documentId,
         DocumentNode document,
         int maxAllowedErrors,
+        int maxLocationsPerError,
         IFeatureCollection? features)
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -142,6 +154,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         DocumentId = documentId;
         Document = document;
         _maxAllowedErrors = maxAllowedErrors;
+        _maxLocationsPerError = maxLocationsPerError;
 
         _features.Initialize(features);
 
@@ -187,6 +200,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         OutputFields.Clear();
         Fields.Clear();
         InputFields.Clear();
+        VisitedFragments.Clear();
 
         // we just make sure that all features are reset but we do not want
         // to fully reset the feature collection.
@@ -221,6 +235,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         Fields.Clear();
         InputFields.Clear();
         ContextData.Clear();
+        VisitedFragments.Clear();
         _errors.Clear();
     }
 

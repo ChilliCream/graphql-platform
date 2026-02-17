@@ -2352,7 +2352,7 @@ public class SubgraphErrorTests : FusionTestBase
               brand: Brand
             }
 
-            type Brand {
+            type Brand @key(fields: "id") {
               id: ID!
             }
             """);
@@ -2416,7 +2416,7 @@ public class SubgraphErrorTests : FusionTestBase
               brand: Brand
             }
 
-            type Brand {
+            type Brand @key(fields: "id") {
               id: ID!
             }
             """);
@@ -2480,7 +2480,7 @@ public class SubgraphErrorTests : FusionTestBase
               brand: Brand!
             }
 
-            type Brand {
+            type Brand @key(fields: "id") {
               id: ID!
             }
             """);
@@ -2544,7 +2544,7 @@ public class SubgraphErrorTests : FusionTestBase
               brand: Brand
             }
 
-            type Brand {
+            type Brand @key(fields: "id") {
               id: ID!
             }
             """);
@@ -2608,7 +2608,7 @@ public class SubgraphErrorTests : FusionTestBase
               brand: Brand
             }
 
-            type Brand {
+            type Brand @key(fields: "id") {
               id: ID!
             }
             """);
@@ -2672,7 +2672,7 @@ public class SubgraphErrorTests : FusionTestBase
               brand: Brand!
             }
 
-            type Brand {
+            type Brand @key(fields: "id") {
               id: ID!
             }
             """);

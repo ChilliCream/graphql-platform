@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace HotChocolate.Subscriptions;
 
 /// <summary>
@@ -18,6 +20,8 @@ public interface IMessageSerializer
     /// <returns>
     /// Returns a string representing the serialized message.
     /// </returns>
+    [RequiresUnreferencedCode("Message serialization might require types that cannot be statically analyzed.")]
+    [RequiresDynamicCode("Message serialization might require types that cannot be statically analyzed and might need runtime code generation.")]
     string Serialize<TMessage>(TMessage message);
 
     /// <summary>
@@ -30,5 +34,7 @@ public interface IMessageSerializer
     /// <returns>
     /// Returns the deserialized message object.
     /// </returns>
+    [RequiresUnreferencedCode("Message deserialization might require types that cannot be statically analyzed.")]
+    [RequiresDynamicCode("Message deserialization might require types that cannot be statically analyzed and might need runtime code generation.")]
     MessageEnvelope<TMessage> Deserialize<TMessage>(string serializedMessage);
 }

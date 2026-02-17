@@ -28,11 +28,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
-      type Product {
+
+      type Product @key(fields: "id") {
         id: ID!
       }
-      
+
       type Query {
         productBySlug(slug: String!): Product
       }
@@ -65,29 +65,29 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Product {
         id: ID!
         size: Int!
       }
-      
+
       type Query {
-        productById(id: ID!): Product @lookup
+        productById(id: ID!): Product @lookup @shareable
       }
   - name: C
     schema: |
       schema {
         query: Query
       }
-      
+
       type Product {
         id: ID!
         dimension(size: Int! @require(field: "size")): String
         price: Int!
       }
-      
+
       type Query {
-        productById(id: ID!): Product @lookup
+        productById(id: ID!): Product @lookup @shareable
       }
 operationPlan:
   operation:
@@ -107,6 +107,7 @@ operationPlan:
       name: testQuery
       hash: c97c6b3fae77c6bc3656d8e0a796d9ac
       searchSpace: 1
+      expandedNodes: 6
   nodes:
     - id: 1
       type: Operation
@@ -148,7 +149,7 @@ operationPlan:
       operation: |
         query testQuery_c97c6b3f_3(
           $__fusion_2_size: Int!
-          $__fusion_3_id: ID!
+            $__fusion_3_id: ID!
         ) {
           productById(id: $__fusion_3_id) {
             dimension(size: $__fusion_2_size)

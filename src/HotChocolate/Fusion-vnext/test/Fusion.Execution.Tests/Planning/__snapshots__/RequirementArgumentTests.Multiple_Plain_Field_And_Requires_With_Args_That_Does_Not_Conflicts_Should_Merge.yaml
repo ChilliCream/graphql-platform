@@ -1,0 +1,105 @@
+operation:
+  - document: |
+      {
+        test {
+          id
+          id @fusion__requirement
+          fieldWithRequiresAndArgs
+          otherField
+          otherField @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 7
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        test {
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_otherField: String!
+          $__fusion_2_id: ID!
+      ) {
+        testById(id: $__fusion_2_id) {
+          fieldWithRequiresAndArgs(otherField: $__fusion_1_otherField)
+        }
+      }
+    source: $.testById
+    target: $.test
+    requirements:
+      - name: __fusion_1_otherField
+        selectionMap: >-
+          otherField
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3
+      - id: 4
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3(
+        $__fusion_3_id: ID!
+      ) {
+        testById(id: $__fusion_3_id) {
+          otherField
+        }
+      }
+    source: $.testById
+    target: $.test
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 4
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_4(
+        $__fusion_4_id: ID!
+      ) {
+        testById(id: $__fusion_4_id) {
+          id
+        }
+      }
+    source: $.testById
+    target: $.test
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 5
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_5(
+        $__fusion_5_id: ID!
+      ) {
+        testById(id: $__fusion_5_id) {
+          otherField
+        }
+      }
+    source: $.testById
+    target: $.test
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

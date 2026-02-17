@@ -22,4 +22,6 @@ type MyError implements Error {
 
 union DoSomethingError = MyError
 
-directive @semanticNonNull(levels: [Int!] = [ 0 ]) on FIELD_DEFINITION
+directive @semanticNonNull(levels: [Int!] = [
+  0
+]) on FIELD_DEFINITION

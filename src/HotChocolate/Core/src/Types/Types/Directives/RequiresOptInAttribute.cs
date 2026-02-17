@@ -34,7 +34,7 @@ public sealed class RequiresOptInAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? element)
     {
         switch (descriptor)
         {

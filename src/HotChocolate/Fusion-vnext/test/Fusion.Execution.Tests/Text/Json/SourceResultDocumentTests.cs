@@ -21,7 +21,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         if (result.Root.TryGetProperty("user", out var user))
         {
             Assert.Equal(JsonValueKind.Object, user.ValueKind);
@@ -52,7 +52,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         var user = result.Root.GetProperty("user");
         Assert.Equal(JsonValueKind.Object, user.ValueKind);
     }
@@ -73,7 +73,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         if (result.Root.TryGetProperty("user"u8, out var user))
         {
             Assert.Equal(JsonValueKind.Object, user.ValueKind);
@@ -104,7 +104,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         var user = result.Root.GetProperty("user"u8);
         Assert.Equal(JsonValueKind.Object, user.ValueKind);
     }
@@ -124,7 +124,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
 
         using var enumerator = result.Root.EnumerateObject().GetEnumerator();
 
@@ -162,7 +162,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
 
         using var enumerator = result.Root.EnumerateObject().GetEnumerator();
 
@@ -200,7 +200,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
 
         using var enumerator = result.Root.EnumerateObject().GetEnumerator();
 
@@ -235,7 +235,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         var prop = result.Root.GetProperty("a");
         using var enumerator = prop.EnumerateArray().GetEnumerator();
 
@@ -263,7 +263,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         var prop = result.Root.GetProperty("a");
         using var enumerator = prop.EnumerateArray().GetEnumerator();
 
@@ -305,7 +305,6 @@ public class SourceResultDocumentTests
             [chunk1, chunk2],
             json.Length - chunkSize,
             2,
-            options: default,
             pooledMemory: false);
 
         // Assert small array parses and enumerates correctly.
@@ -368,7 +367,6 @@ public class SourceResultDocumentTests
             [chunk1, chunk2],
             json.Length - chunkSize,
             2,
-            options: default,
             pooledMemory: false);
 
         // Compare against System.Text.Json to validate unescape correctness
@@ -431,7 +429,6 @@ public class SourceResultDocumentTests
             chunks,
             lastChunkDataLength,
             chunkCount,
-            options: default,
             pooledMemory: false);
         var prop = result.Root.GetProperty("a");
 
@@ -453,7 +450,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         Assert.Equal(JsonValueKind.Object, result.Root.ValueKind);
         Assert.Equal(0, result.Root.GetPropertyCount());
     }
@@ -465,7 +462,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         var arr = result.Root.GetProperty("arr");
         Assert.Equal(0, arr.GetArrayLength());
     }
@@ -477,7 +474,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         Assert.Throws<KeyNotFoundException>(() => result.Root.GetProperty("nonexistent"));
     }
 
@@ -488,7 +485,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         var arr = result.Root.GetProperty("arr");
         Assert.Throws<IndexOutOfRangeException>(() => arr[5]);
     }
@@ -516,7 +513,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
 
         Assert.True(result.Root.GetProperty("sbyte").TryGetSByte(out var sb));
         Assert.Equal(-128, sb);
@@ -535,7 +532,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         Assert.False(result.Root.GetProperty("big").TryGetInt32(out _));
     }
 
@@ -555,7 +552,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
 
         Assert.Equal("line1\nline2", result.Root.GetProperty("newline").GetString());
         Assert.Equal("say \"hello\"", result.Root.GetProperty("quote").GetString());
@@ -569,7 +566,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         var prop = result.Root.GetProperty("escaped");
 
         Assert.True(prop.ValueEquals("hello\nworld"));
@@ -583,7 +580,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
 
         Assert.True(result.Root.TryGetProperty("prop\nname", out var value));
         Assert.Equal(42, value.GetInt32());
@@ -596,7 +593,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         Assert.Equal(3, result.Root.GetProperty("key").GetInt32());
     }
 
@@ -620,7 +617,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         var deep = result.Root
             .GetProperty("level1")
             .GetProperty("level2")
@@ -650,7 +647,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         var firstUser = result.Root.GetProperty("users")[0];
         Assert.Equal("Alice", firstUser.GetProperty("name").GetString());
         Assert.Equal(95, firstUser.GetProperty("scores")[0].GetInt32());
@@ -663,7 +660,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         result.Dispose();
         result.Dispose(); // Should not throw
     }
@@ -675,7 +672,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         result.Dispose();
 
         Assert.Throws<ObjectDisposedException>(() => result.Root.GetProperty("a"));
@@ -695,7 +692,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
 
         Assert.True(result.Root.GetProperty("isTrue").GetBoolean());
         Assert.False(result.Root.GetProperty("isFalse").GetBoolean());
@@ -709,7 +706,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         var prop = result.Root.GetProperty("str");
 
         Assert.True(prop.ValueEquals("test value"));
@@ -725,7 +722,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
 
         Assert.True(result.Root.GetProperty("null").ValueEquals((string?)null));
         Assert.False(result.Root.GetProperty("str").ValueEquals((string?)null));
@@ -738,7 +735,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
         var arr = result.Root.GetProperty("arr");
 
         Assert.Equal("zero", arr[0].GetString());
@@ -761,7 +758,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
 
         var foundNames = new List<string>();
         foreach (var property in result.Root.EnumerateObject())
@@ -795,7 +792,7 @@ public class SourceResultDocumentTests
         var chunk = new byte[128 * 1024];
         json.AsSpan().CopyTo(chunk);
 
-        var result = SourceResultDocument.Parse([chunk], json.Length, 1, options: default, pooledMemory: false);
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
 
         Assert.Equal("42", result.Root.GetProperty("number").GetRawText());
         Assert.Equal("\"hello\"", result.Root.GetProperty("string").GetRawText());

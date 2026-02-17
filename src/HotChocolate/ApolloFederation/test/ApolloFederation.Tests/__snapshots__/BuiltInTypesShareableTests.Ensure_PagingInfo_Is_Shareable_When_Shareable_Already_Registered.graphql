@@ -1,4 +1,4 @@
-schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@shareable", "@tag", "FieldSet" ]) {
+schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: [ "@shareable", "@tag", "FieldSet" ]) {
   query: Query
 }
 
@@ -49,7 +49,7 @@ type _Service {
 "Links definitions within the document to external schemas."
 directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
 
-"Indicates that given object and\/or field can be resolved by multiple subgraphs."
+"Indicates that given object and/or field can be resolved by multiple subgraphs."
 directive @shareable repeatable on OBJECT | FIELD_DEFINITION
 
 "Scalar representing a set of fields."

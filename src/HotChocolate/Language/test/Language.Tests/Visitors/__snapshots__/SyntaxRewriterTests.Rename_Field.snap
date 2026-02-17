@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: QueryType
   mutation: MutationType
 }
@@ -17,8 +17,13 @@ type Foo implements Bar & Baz {
   """ argument: InputType!): Type
   three_abc(argument: InputType other: String): Int
   four_abc(argument: String = "string"): String
-  five_abc(argument: [String] = [ "string", "string" ]): String
-  six_abc(argument: InputType = { key: "value" }): Type
+  five_abc(argument: [String] = [
+    "string",
+    "string"
+  ]): String
+  six_abc(argument: InputType = {
+    key: "value"
+  }): Type
   seven_abc(argument: Int): Type
 }
 

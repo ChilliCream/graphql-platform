@@ -1,4 +1,7 @@
 using System.Collections;
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using HotChocolate.Language;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
@@ -8,6 +11,10 @@ namespace HotChocolate.AspNetCore.Subscriptions;
 /// The operation manager ensures that operation are correctly tracked and cleaned up after they
 /// have been completed.
 /// </summary>
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 public sealed class OperationManager : IOperationManager
 {
     private readonly ReaderWriterLockSlim _lock = new();

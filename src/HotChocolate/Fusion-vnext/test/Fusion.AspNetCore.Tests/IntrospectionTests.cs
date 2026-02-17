@@ -522,14 +522,15 @@ public class IntrospectionTests : FusionTestBase
 
     public static class SourceSchema1
     {
-        public record Book(int Id, string Title, Author Author);
+        public record Book(int Id, string Title, [property: Shareable] Author Author);
 
+        [EntityKey("id")]
         public record Author(int Id);
 
         public class Query
         {
             private readonly OrderedDictionary<int, Book> _books =
-                new OrderedDictionary<int, Book>()
+                new OrderedDictionary<int, Book>
                 {
                     [1] = new Book(1, "C# in Depth", new Author(1)),
                     [2] = new Book(2, "The Lord of the Rings", new Author(2)),
@@ -569,7 +570,7 @@ public class IntrospectionTests : FusionTestBase
         public class Query
         {
             private readonly OrderedDictionary<int, Author> _authors =
-                new OrderedDictionary<int, Author>()
+                new OrderedDictionary<int, Author>
                 {
                     [1] = new Author(1, "Jon Skeet"),
                     [2] = new Author(2, "JRR Tolkien")
@@ -585,6 +586,7 @@ public class IntrospectionTests : FusionTestBase
                 => _authors.Values;
         }
 
-        public record Book(int Id, Author Author);
+        [EntityKey("id")]
+        public record Book(int Id, [property: Shareable] Author Author);
     }
 }

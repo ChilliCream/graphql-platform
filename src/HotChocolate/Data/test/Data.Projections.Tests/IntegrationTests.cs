@@ -513,7 +513,7 @@ public class FooExtensions
 
     public IEnumerable<string> Qux => ["baz"];
 
-    public IEnumerable<Foo> NestedList => [new Foo() { Bar = "C" }];
+    public IEnumerable<Foo> NestedList => [new Foo { Bar = "C" }];
 
     public Foo Nested => new() { Bar = "C" };
 }

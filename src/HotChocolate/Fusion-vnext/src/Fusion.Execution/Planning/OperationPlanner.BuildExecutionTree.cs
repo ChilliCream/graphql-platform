@@ -19,7 +19,8 @@ public sealed partial class OperationPlanner
         Operation operation,
         OperationDefinitionNode operationDefinition,
         ImmutableList<PlanStep> planSteps,
-        uint searchSpace)
+        int searchSpace,
+        int expandedNodes)
     {
         if (operation.IsIntrospectionOnly())
         {
@@ -31,7 +32,7 @@ public sealed partial class OperationPlanner
 
             var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
 
-            return OperationPlan.Create(operation, nodes, nodes, searchSpace);
+            return OperationPlan.Create(operation, nodes, nodes, searchSpace, expandedNodes);
         }
 
         var completedSteps = new HashSet<int>();
@@ -76,7 +77,7 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
-        return OperationPlan.Create(operation, rootNodes, allNodes, searchSpace);
+        return OperationPlan.Create(operation, rootNodes, allNodes, searchSpace, expandedNodes);
     }
 
     private static ImmutableList<PlanStep> PrepareSteps(
@@ -87,7 +88,6 @@ public sealed partial class OperationPlanner
         Dictionary<int, int> fallbackLookup)
     {
         var updatedPlanSteps = planSteps;
-        var emptySelectionSetContext = new HasEmptySelectionSetVisitor.Context();
         var forwardVariableContext = new ForwardVariableRewriter.Context();
 
         foreach (var variableDef in originalOperation.VariableDefinitions)
@@ -99,13 +99,23 @@ public sealed partial class OperationPlanner
         {
             if (step is OperationPlanStep operationPlanStep)
             {
+                // Planning may leave temporary `{}` child selections after requirement rewrites.
+                // We normalize those first, then only remove the step if the root selection set
+                // itself became empty.
+                operationPlanStep = RemoveEmptySelectionSets(operationPlanStep);
+
+                if (!ReferenceEquals(step, operationPlanStep))
+                {
+                    updatedPlanSteps = updatedPlanSteps.Replace(step, operationPlanStep);
+                }
+
                 // During the planing process we keep incomplete operation steps around
                 // in order to inline requirements. If those do not materialize these
                 // operation fragments need to be removed before we can build the
                 // execution plan.
                 if (IsEmptyOperation(operationPlanStep))
                 {
-                    updatedPlanSteps = updatedPlanSteps.Remove(step);
+                    updatedPlanSteps = updatedPlanSteps.Remove(operationPlanStep);
                     continue;
                 }
 
@@ -174,9 +184,15 @@ public sealed partial class OperationPlanner
 
         bool IsEmptyOperation(OperationPlanStep step)
         {
-            emptySelectionSetContext.HasEmptySelectionSet = false;
-            s_hasEmptySelectionSetVisitor.Visit(step.Definition, emptySelectionSetContext);
-            return emptySelectionSetContext.HasEmptySelectionSet;
+            return step.Definition.SelectionSet.Selections.Count == 0;
+        }
+
+        OperationPlanStep RemoveEmptySelectionSets(OperationPlanStep step)
+        {
+            var updatedDefinition = RemoveEmptySelections(step.Definition);
+            return ReferenceEquals(updatedDefinition, step.Definition)
+                ? step
+                : step with { Definition = updatedDefinition };
         }
 
         OperationPlanStep AddVariableDefinitions(OperationPlanStep step)
@@ -325,7 +341,7 @@ public sealed partial class OperationPlanner
             foreach (var dependencyId in stepDependencies)
             {
                 if (!completedNodes.TryGetValue(dependencyId, out var childEntry)
-                    || entry is not OperationExecutionNode or NodeFieldExecutionNode)
+                    || childEntry is not (OperationExecutionNode or NodeFieldExecutionNode))
                 {
                     continue;
                 }
@@ -497,6 +513,51 @@ public sealed partial class OperationPlanner
         }
 
         return false;
+    }
+
+    private static OperationDefinitionNode RemoveEmptySelections(OperationDefinitionNode operationDefinition)
+    {
+        // Remove fields/fragments whose selection sets collapsed to `{}` during rewriting.
+        // This is local cleanup and intentionally does not remove the whole operation node.
+        return SyntaxRewriter.Create(
+            rewrite: node =>
+            {
+                if (node is not SelectionSetNode selectionSet)
+                {
+                    return node;
+                }
+
+                List<ISelectionNode>? rewritten = null;
+                var selections = selectionSet.Selections;
+
+                for (var i = 0; i < selections.Count; i++)
+                {
+                    var selection = selections[i];
+                    var removeSelection =
+                        selection is FieldNode { SelectionSet: { Selections.Count: 0 } }
+                        || selection is InlineFragmentNode { SelectionSet.Selections.Count: 0 };
+
+                    if (!removeSelection)
+                    {
+                        rewritten?.Add(selection);
+                        continue;
+                    }
+
+                    if (rewritten is null)
+                    {
+                        rewritten = new List<ISelectionNode>(selections.Count - 1);
+                        for (var j = 0; j < i; j++)
+                        {
+                            rewritten.Add(selections[j]);
+                        }
+                    }
+                }
+
+                return rewritten is null
+                    ? node
+                    : new SelectionSetNode(rewritten);
+            })
+            .Rewrite(operationDefinition)!;
     }
 
     private static OperationDefinitionNode RemoveEmptyTypeNames(OperationDefinitionNode operationDefinition)
@@ -704,6 +765,22 @@ file static class Extensions
         if (step.Lookup is not null)
         {
             FieldNode? lookupFieldNode = null;
+
+            if (!step.Lookup.Path.IsEmpty)
+            {
+                foreach (var fieldName in step.Lookup.Path)
+                {
+                    var fieldNode = selectionSetNode.Selections.FirstOrDefault(
+                        selection => selection is FieldNode fieldNode && fieldNode.Name.Value == fieldName);
+
+                    if (fieldNode is not FieldNode { SelectionSet: { } nextSelectionSetNode })
+                    {
+                        throw new InvalidOperationException("Unable to resolve the lookup path.");
+                    }
+
+                    selectionSetNode = nextSelectionSetNode;
+                }
+            }
 
             foreach (var selection in selectionSetNode.Selections)
             {

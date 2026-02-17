@@ -134,7 +134,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         }
     }
 
-    public override IDisposable FormatHttpResponse(HttpContext context, IOperationResult result)
+    public override IDisposable FormatHttpResponse(HttpContext context, OperationResult result)
     {
         if (_options.SkipFormatHttpResponse)
         {
@@ -154,8 +154,4 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
 
         return activity;
     }
-
-    // removed for 12.5 public override IDisposable WebSocketSession(HttpContext context)
-    // removed for 12.5public override void WebSocketSessionError(
-    // HttpContext context, Exception exception)
 }

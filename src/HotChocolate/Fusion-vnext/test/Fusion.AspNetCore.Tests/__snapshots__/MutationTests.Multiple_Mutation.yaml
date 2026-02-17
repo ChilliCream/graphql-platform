@@ -43,7 +43,7 @@ sourceSchemas:
         mutation: Mutation
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         id: Int!
         title: String!
       }
@@ -191,6 +191,7 @@ operationPlan:
         }
       hash: 192dc5f8a8f00336bac2094122ae7902
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
