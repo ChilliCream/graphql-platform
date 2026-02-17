@@ -41,7 +41,7 @@ public class GeoJsonMultiLineStringInputTests
         var type = CreateInputType();
 
         // act
-        var result = inputParser.ParseResult(
+        var result = inputParser.ParseLiteral(
             new ObjectValueNode(
                 new ObjectFieldNode(
                     "type",
@@ -114,7 +114,7 @@ public class GeoJsonMultiLineStringInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(new ListValueNode(), type));
     }
 
@@ -127,7 +127,7 @@ public class GeoJsonMultiLineStringInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("coordinates", _multiLinestring),
@@ -144,7 +144,7 @@ public class GeoJsonMultiLineStringInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode(
@@ -163,7 +163,7 @@ public class GeoJsonMultiLineStringInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Polygon)),

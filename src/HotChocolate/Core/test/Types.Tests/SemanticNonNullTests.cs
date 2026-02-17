@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types;
@@ -179,7 +177,7 @@ public class SemanticNonNullTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IObjectTypeDescriptor descriptor,
-            Type type) => descriptor.Implements<T>();
+            Type? type) => descriptor.Implements<T>();
     }
 
     public class QueryType : ObjectType

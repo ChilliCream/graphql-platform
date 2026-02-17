@@ -4,8 +4,6 @@ title: Batching
 
 Batching allows you to send and execute a sequence of GraphQL operations in a single request.
 
-This becomes really powerful in combination with our [@export](#export-directive) directive, especially considering mutations. You could for example create a sequence of mutations and export the result of an earlier mutation as the input for a later mutation.
-
 # Enabling batching
 
 Batching is disabled per default as a security measure, so you need to first enable it explicitly:
@@ -96,66 +94,5 @@ If you're using a JavaScript client, we can highly recommend
 
 - [meros](https://github.com/maraisr/meros) for handling `multipart/mixed` responses
 - [graphql-sse](https://github.com/enisdenjo/graphql-sse) for handling `text/event-stream` responses
-
-# @export directive
-
-The `@export` directive allows you to export the results of a query into a global variable pool from which each query in the sequence can pull data in. Different queries in the sequence can write to the same exported variable, as long as the type matches, but there can also be multiple exported variables of different types. You could for example query for a set of Ids in one query and inject those Ids as variables into a second query, later in the same batch.
-
-Before you can start using the `@export` directive, you need to register it with your schema.
-
-```csharp
-builder.Services.AddGraphQLServer()
-    .AddExportDirectiveType()
-    // Omitted for brevity
-```
-
-Now you can annotate the directive on fields in your GraphQL query.
-
-```graphql
-query NewsFeed {
-  stories {
-    id @export(as: "ids")
-    actor
-    message
-  }
-}
-query StoryComments {
-  stories(ids: $ids) {
-    comments(first: 2) {
-      actor
-      message
-    }
-  }
-}
-```
-
-In the above example we are exporting the `id` field result into a variable `ids`. Since we are exporting multiple Ids the variable is turned into a list. If the Id is of type `String`, we would get a list of `System.String`. As we collect the variables, we will hold them as the native .NET type and only coerce them once we have to create the variable inputs for the next operation.
-
-As can be seen in the above example we have not declared any variables for the next operation and are just using `$ids`. While we could still declare the `ids` variable explicitly, we can infer the variable declaration. The query engine will essentially rewrite the query.
-
-```graphql
-query StoryComments($ids: [ID!]) {
-  stories(ids: $ids) {
-    comments(first: 2) {
-      actor
-      message
-    }
-  }
-}
-```
-
-You can also export objects, so you are not limited to scalars.
-
-```graphql
-query NewsFeed {
-  stories @export {
-    id
-    actor
-    message
-  }
-}
-```
-
-In the above example we would export a list of story objects that would be coerced and converted to fit into an input object.
 
 <!-- spell-checker:ignore Cbnia, Yero -->

@@ -42,8 +42,8 @@ public class SelectionSetPartitionerTests
             }
             """);
 
-        var fragmentRewriter = new InlineFragmentOperationRewriter(compositeSchema);
-        var operation = fragmentRewriter.RewriteDocument(doc).Definitions.OfType<OperationDefinitionNode>().Single();
+        var rewriter = new DocumentRewriter(compositeSchema);
+        var operation = rewriter.RewriteDocument(doc).Definitions.OfType<OperationDefinitionNode>().Single();
         var index = SelectionSetIndexer.Create(operation);
 
         // act
@@ -57,8 +57,8 @@ public class SelectionSetPartitionerTests
                 SelectionPath.Root),
             SelectionSetIndex = index
         };
-        var rewriter = new SelectionSetPartitioner(compositeSchema);
-        var (resolvable, unresolvable, _, _) = rewriter.Partition(input);
+        var partitioner = new SelectionSetPartitioner(compositeSchema);
+        var (resolvable, unresolvable, _, _) = partitioner.Partition(input);
 
         // assert
         resolvable.MatchInlineSnapshot(
@@ -114,8 +114,8 @@ public class SelectionSetPartitionerTests
             }
             """);
 
-        var fragmentRewriter = new InlineFragmentOperationRewriter(compositeSchema);
-        var operation = fragmentRewriter.RewriteDocument(doc).Definitions.OfType<OperationDefinitionNode>().Single();
+        var rewriter = new DocumentRewriter(compositeSchema);
+        var operation = rewriter.RewriteDocument(doc).Definitions.OfType<OperationDefinitionNode>().Single();
         var index = SelectionSetIndexer.Create(operation);
 
         // act
@@ -129,8 +129,8 @@ public class SelectionSetPartitionerTests
                 SelectionPath.Root),
             SelectionSetIndex = index
         };
-        var rewriter = new SelectionSetPartitioner(compositeSchema);
-        var (resolvable, unresolvable, _, _) = rewriter.Partition(input);
+        var partitioner = new SelectionSetPartitioner(compositeSchema);
+        var (resolvable, unresolvable, _, _) = partitioner.Partition(input);
 
         // assert
         resolvable.MatchInlineSnapshot(

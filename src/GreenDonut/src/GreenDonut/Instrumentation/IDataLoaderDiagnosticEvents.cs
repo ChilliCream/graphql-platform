@@ -64,4 +64,39 @@ public interface IDataLoaderDiagnosticEvents
         TKey key,
         Exception error)
         where TKey : notnull;
+
+    /// <summary>
+    /// The batch dispatch coordinator is running.
+    /// </summary>
+    /// <returns>
+    /// Returns the scope that will be disposed when the batch dispatch coordinator stops.
+    /// </returns>
+    IDisposable RunBatchDispatchCoordinator();
+
+    /// <summary>
+    /// This event is raised whenever there is an error while running the batch dispatch coordinator.
+    /// </summary>
+    /// <param name="error">
+    /// The error that was thrown.
+    /// </param>
+    void BatchDispatchError(Exception error);
+
+    /// <summary>
+    /// This event is raised whenever the batch dispatcher has evaluated the currently open batches.
+    /// </summary>
+    /// <param name="openBatches">
+    /// The number of open batches at the time of evaluation.
+    /// </param>
+    void BatchEvaluated(int openBatches);
+
+    /// <summary>
+    /// This event is raised whenever the batch dispatcher has dispatched one or more batches.
+    /// </summary>
+    /// <param name="dispatchedBatches">
+    /// The number of batches that have been dispatched.
+    /// </param>
+    /// <param name="inParallel">
+    /// Indicates whether the batches have been dispatched in parallel.
+    /// </param>
+    void BatchDispatched(int dispatchedBatches, bool inParallel);
 }

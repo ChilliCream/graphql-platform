@@ -9,6 +9,7 @@ namespace HotChocolate.Configuration;
 internal sealed class TypeReferenceResolver
 {
     private readonly Dictionary<TypeId, IType> _typeCache = [];
+    private readonly Dictionary<string, IType> _factoryCache = [];
     private readonly ITypeInspector _typeInspector;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
@@ -18,12 +19,13 @@ internal sealed class TypeReferenceResolver
         TypeRegistry typeRegistry,
         TypeLookup typeLookup)
     {
-        _typeInspector = typeInspector ??
-            throw new ArgumentNullException(nameof(typeInspector));
-        _typeRegistry = typeRegistry ??
-            throw new ArgumentNullException(nameof(typeRegistry));
-        _typeLookup = typeLookup ??
-            throw new ArgumentNullException(nameof(typeLookup));
+        ArgumentNullException.ThrowIfNull(typeInspector);
+        ArgumentNullException.ThrowIfNull(typeRegistry);
+        ArgumentNullException.ThrowIfNull(typeLookup);
+
+        _typeInspector = typeInspector;
+        _typeRegistry = typeRegistry;
+        _typeLookup = typeLookup;
     }
 
     public IEnumerable<T> GetTypes<T>() =>
@@ -51,6 +53,25 @@ internal sealed class TypeReferenceResolver
         if (typeRef is SchemaTypeReference { Type: IType schemaType })
         {
             type = schemaType;
+            return true;
+        }
+
+        if (typeRef is FactoryTypeReference factoryTypeRef)
+        {
+            if (!_factoryCache.TryGetValue(factoryTypeRef.Key, out type))
+            {
+                if (_typeLookup.TryNormalizeReference(factoryTypeRef.TypeDefinition, out var typeDefRef)
+                    && TryGetType(typeDefRef, out var typeDef))
+                {
+                    type = factoryTypeRef.Create((ITypeDefinition)typeDef);
+                    _factoryCache[factoryTypeRef.Key] = type;
+                    return true;
+                }
+
+                type = null;
+                return false;
+            }
+
             return true;
         }
 

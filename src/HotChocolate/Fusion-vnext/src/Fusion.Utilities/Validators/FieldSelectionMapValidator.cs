@@ -7,7 +7,9 @@ using static HotChocolate.Fusion.WellKnownDirectiveNames;
 
 namespace HotChocolate.Fusion.Validators;
 
-public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
+public sealed class FieldSelectionMapValidator(
+    ISchemaDefinition schema,
+    bool disallowNullableFieldsOnPathToNonNullInputType = false)
     : FieldSelectionMapSyntaxVisitor<FieldSelectionMapValidatorContext>(Continue)
 {
     public ImmutableArray<string> Validate(
@@ -122,7 +124,8 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
         PathSegmentNode node,
         FieldSelectionMapValidatorContext context)
     {
-        if (context.OutputTypes.Peek().NullableType() is IComplexTypeDefinition complexType)
+        var outputType = context.OutputTypes.Peek();
+        if (outputType.NullableType() is IComplexTypeDefinition complexType)
         {
             if (!complexType.Fields.TryGetField(node.FieldName.Value, out var field))
             {
@@ -146,7 +149,7 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
                     context.Errors.Add(
                         string.Format(
                             FieldSelectionMapValidator_FieldMissingTypeCondition,
-                            node.FieldName));
+                            node.FieldName.Value));
 
                     return Break;
                 }
@@ -166,6 +169,21 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
                         && inputObjectType.Directives.ContainsName(OneOf))
                     {
                         inputType = new NonNullType(inputType);
+                    }
+
+                    if (disallowNullableFieldsOnPathToNonNullInputType
+                        && inputType.IsNonNullType()
+                        && context.LastNullableField is { } nullableFieldOnPath)
+                    {
+                        var printedInputType = inputType.ToTypeNode().Print(indented: false);
+
+                        context.Errors.Add(
+                            string.Format(
+                                FieldSelectionMapValidator_NullableFieldOnPathToNonNullType,
+                                printedInputType,
+                                nullableFieldOnPath.Name));
+
+                        return Break;
                     }
 
                     if (!fieldType.IsCompatibleWith(inputType))
@@ -196,10 +214,25 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
                 }
             }
 
+            if (field.Type.IsNullableType())
+            {
+                context.LastNullableField = field;
+            }
+
             if (node.PathSegment is null)
             {
                 context.TerminalTypes.Push(field.Type);
             }
+        }
+        else
+        {
+            context.Errors.Add(
+                string.Format(
+                    FieldSelectionMapValidator_InvalidFieldParentType,
+                    node.FieldName.Value,
+                    outputType));
+
+            return Break;
         }
 
         if (node.TypeName is { } typeName)
@@ -242,6 +275,7 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
         FieldSelectionMapValidatorContext context)
     {
         context.OutputTypes.Pop();
+        context.LastNullableField = null;
 
         return Continue;
     }
@@ -339,6 +373,11 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
                 return Skip;
             }
 
+            if (field.Type.IsNullableType())
+            {
+                context.LastNullableField = field;
+            }
+
             context.SelectedFields.Add(field);
         }
 
@@ -350,6 +389,7 @@ public sealed class FieldSelectionMapValidator(ISchemaDefinition schema)
         FieldSelectionMapValidatorContext context)
     {
         context.InputTypes.Pop();
+        context.LastNullableField = null;
 
         return Continue;
     }
@@ -408,6 +448,8 @@ public sealed class FieldSelectionMapValidatorContext
     public Stack<IType> OutputTypes { get; } = [];
 
     public Stack<IType> TerminalTypes { get; } = [];
+
+    public IOutputFieldDefinition? LastNullableField { get; set; }
 
     public HashSet<IOutputFieldDefinition> SelectedFields { get; } = [];
 

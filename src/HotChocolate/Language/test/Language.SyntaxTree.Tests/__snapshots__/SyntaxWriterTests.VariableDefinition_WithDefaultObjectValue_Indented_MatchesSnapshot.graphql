@@ -1,0 +1,8 @@
+query GetUser(
+  $input: InputType = {
+    field1: "value1",
+    field2: "value2"
+  }
+) {
+  user
+}

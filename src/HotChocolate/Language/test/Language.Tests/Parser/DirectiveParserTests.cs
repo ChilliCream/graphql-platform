@@ -44,12 +44,14 @@ public class DirectiveParserTests
     public void ParseDescription()
     {
         // arrange
-        const string text = @"
-            """"""
+        const string text =
+            // lang=graphql
+            """"
+            """
             Description
-            """"""
-            directive @foo(bar:String!) on FIELD_DEFINITION
-            ";
+            """
+            directive @foo(bar: String!) on FIELD_DEFINITION
+            """";
         var parser = new Utf8GraphQLParser(Encoding.UTF8.GetBytes(text));
 
         // assert

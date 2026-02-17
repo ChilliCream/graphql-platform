@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
-using HotChocolate.Fusion.Execution.Introspection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;

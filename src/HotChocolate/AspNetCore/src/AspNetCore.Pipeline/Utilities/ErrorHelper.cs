@@ -1,4 +1,5 @@
 using HotChocolate.Collections.Immutable;
+using HotChocolate.Language;
 using static HotChocolate.AspNetCore.Properties.AspNetCorePipelineResources;
 
 namespace HotChocolate.AspNetCore.Utilities;
@@ -14,6 +15,13 @@ internal static class ErrorHelper
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
 
+    public static GraphQLRequestException InvalidRequest(
+        InvalidGraphQLRequestException ex) =>
+        new(ErrorBuilder.New()
+            .SetMessage(ex.Message)
+            .SetCode(ErrorCodes.Server.RequestInvalid)
+            .Build());
+
     public static IError RequestHasNoElements()
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_RequestHasNoElements)
@@ -26,8 +34,8 @@ internal static class ErrorHelper
             .SetCode(ErrorCodes.Server.NoSupportedAcceptMediaType)
             .Build();
 
-    public static IOperationResult TypeNameIsEmpty()
-        => OperationResultBuilder.CreateError(
+    public static OperationResult TypeNameIsEmpty()
+        => OperationResult.FromError(
             new Error
             {
                 Message = ErrorHelper_TypeNameIsEmpty,
@@ -35,8 +43,8 @@ internal static class ErrorHelper
                     .Add("code", ErrorCodes.Server.TypeParameterIsEmpty)
             });
 
-    public static IOperationResult InvalidTypeName(string typeName)
-        => OperationResultBuilder.CreateError(
+    public static OperationResult InvalidTypeName(string typeName)
+        => OperationResult.FromError(
             new Error
             {
                 Message = ErrorHelper_InvalidTypeName,
@@ -45,8 +53,8 @@ internal static class ErrorHelper
                     .Add(nameof(typeName), typeName)
             });
 
-    public static IOperationResult TypeNotFound(string typeName)
-        => OperationResultBuilder.CreateError(
+    public static OperationResult TypeNotFound(string typeName)
+        => OperationResult.FromError(
             new Error
             {
                 Message = string.Format(ErrorHelper_TypeNotFound, typeName),
@@ -55,8 +63,8 @@ internal static class ErrorHelper
                     .Add(nameof(typeName), typeName)
             });
 
-    public static IOperationResult InvalidAcceptMediaType(string headerValue)
-        => OperationResultBuilder.CreateError(
+    public static OperationResult InvalidAcceptMediaType(string headerValue)
+        => OperationResult.FromError(
             new Error
             {
                 Message = string.Format(ErrorHelper_InvalidAcceptMediaType, headerValue),
@@ -65,8 +73,8 @@ internal static class ErrorHelper
                     .Add(nameof(headerValue), headerValue)
             });
 
-    public static IOperationResult MultiPartRequestPreflightRequired()
-        => OperationResultBuilder.CreateError(
+    public static OperationResult MultiPartRequestPreflightRequired()
+        => OperationResult.FromError(
             new Error
             {
                 Message = ErrorHelper_MultiPartRequestPreflightRequired,
@@ -81,7 +89,7 @@ internal static class ErrorHelper
                 .Build());
 
     public static IExecutionResult OperationNameRequired()
-        => OperationResultBuilder.CreateError(
+        => OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage("The operation name is required.")
                 .Build());

@@ -780,13 +780,13 @@ public class IntegrationTests
 
     public interface ISome
     {
-        public string[] ExplicitType();
+        string[] ExplicitType();
     }
 
     public interface ISome2
     {
         [UseOffsetPaging(typeof(NonNullType<StringType>))]
-        public string[] ExplicitType();
+        string[] ExplicitType();
     }
 
     public class QueryEnumerableValueType

@@ -40,7 +40,7 @@ namespace HotChocolate.Validation.Rules;
 ///
 /// AND
 ///
-/// Oneof Input Objects require that exactly one field must be supplied and that
+/// OneOf Input Objects require that exactly one field must be supplied and that
 /// field must not be {null}.
 ///
 /// DRAFT: https://github.com/graphql/graphql-spec/pull/825
@@ -186,7 +186,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         ObjectValueNode node,
         DocumentValidatorContext context)
     {
-        var inputFieldNames = context.Features.GetOrSet<ValueVisitorFeature>().InputFieldNames;
+        var inputFieldNames = context.Features.GetRequired<ValueVisitorFeature>().InputFieldNames;
         inputFieldNames.Clear();
 
         for (var i = 0; i < node.Fields.Count; i++)
@@ -472,9 +472,9 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             return false;
         }
 
-        if (inputType.IsScalarType())
+        if (inputType is IScalarTypeDefinition scalarType)
         {
-            return ((IScalarTypeDefinition)inputType).IsInstanceOfType(value);
+            return scalarType.IsValueCompatible(value);
         }
 
         return value.Kind is SyntaxKind.ObjectValue;

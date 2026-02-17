@@ -20,16 +20,31 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     {
         using var document = JsonDocument.Parse(planSourceText);
         var rootElement = document.RootElement;
+        var searchSpace = 0;
+        var expandedNodes = 0;
 
         var id = rootElement.GetProperty("id").GetString()!;
         var operation = ParseOperation(rootElement.GetProperty("operation"));
+
+        if (rootElement.TryGetProperty("searchSpace", out var searchSpaceElement))
+        {
+            searchSpace = searchSpaceElement.GetInt32();
+        }
+
+        if (rootElement.TryGetProperty("expandedNodes", out var expandedNodesElement))
+        {
+            expandedNodes = expandedNodesElement.GetInt32();
+        }
+
         var nodes = ParseNodes(rootElement.GetProperty("nodes"), operation);
 
         return OperationPlan.Create(
             id,
             operation,
             [.. nodes.Where(n => n.Dependencies.Length == 0)],
-            nodes);
+            nodes,
+            searchSpace,
+            expandedNodes);
     }
 
     private Operation ParseOperation(JsonElement operationElement)
@@ -60,20 +75,15 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             var nodeType = nodeElement.GetProperty("type").GetString()!;
             var id = nodeElement.GetProperty("id").GetInt32();
 
-            switch (nodeType)
+            (ExecutionNode, int[]?, Dictionary<string, int>?, int?) node = nodeType switch
             {
-                case "Operation":
-                    nodes.Add(ParseOperationNode(nodeElement, id));
-                    break;
-                case "Introspection":
-                    nodes.Add(ParseIntrospectionNode(nodeElement, id, operation));
-                    break;
-                case "Node":
-                    nodes.Add(ParseNodeNode(nodeElement, id, operation));
-                    break;
-                default:
-                    throw new NotSupportedException($"Unsupported node type: {nodeType}");
-            }
+                "Operation" => ParseOperationNode(nodeElement, id),
+                "Introspection" => ParseIntrospectionNode(nodeElement, id, operation),
+                "Node" => ParseNodeFieldNode(nodeElement, id, operation),
+                _ => throw new NotSupportedException($"Unsupported node type: {nodeType}")
+            };
+
+            nodes.Add(node);
         }
 
         var nodeMap = nodes.ToDictionary(n => n.Item1.Id, n => n.Item1);
@@ -149,7 +159,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var operationElement = nodeElement.GetProperty("operation");
         var operationName = operationElement.GetProperty("name").GetString()!;
-        var operationType = Enum.Parse<OperationType>(operationElement.GetProperty("type").GetString()!);
+        var operationType = Enum.Parse<OperationType>(operationElement.GetProperty("kind").GetString()!);
         var document = operationElement.GetProperty("document").GetString()!;
         var hash = operationElement.GetProperty("hash").GetString()!;
 
@@ -213,6 +223,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 .ToArray();
         }
 
+        var conditions = TryParseConditions(nodeElement);
+
+        var requiresFileUpload = nodeElement.TryGetProperty("requiresFileUpload", out var requiresFileUploadElement)
+            && requiresFileUploadElement.ValueKind == JsonValueKind.True;
+
         var node = new OperationExecutionNode(
             id,
             new OperationSourceText(
@@ -225,7 +240,9 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             source ?? SelectionPath.Root,
             requirements?.ToArray() ?? [],
             forwardedVariables ?? [],
-            responseNames ?? []);
+            responseNames ?? [],
+            conditions,
+            requiresFileUpload);
 
         return (node, dependencies, null, null);
     }
@@ -245,9 +262,12 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             selections.Add(selection);
         }
 
+        var conditions = TryParseConditions(nodeElement);
+
         var node = new IntrospectionExecutionNode(
             id,
-            selections.ToArray());
+            selections.ToArray(),
+            conditions);
 
         return (node, null, null, null);
 
@@ -266,7 +286,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         }
     }
 
-    private static (NodeFieldExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseNodeNode(
+    private static (NodeFieldExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseNodeFieldNode(
         JsonElement nodeElement, int id, Operation operation)
     {
         var responseName = nodeElement.GetProperty("responseName").GetString()!;
@@ -276,7 +296,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         if (idValue is VariableNode variableNode)
         {
-            if (!operation.Definition.VariableDefinitions.Any(v => v.Variable.Equals(variableNode)))
+            if (!operation.Definition.VariableDefinitions
+                .Any(v => v.Variable.Equals(variableNode, SyntaxComparison.Syntax)))
             {
                 throw new InvalidOperationException(
                     $"'idValue' references non-existent '{variableNode.Name}' variable.");
@@ -300,11 +321,35 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var fallbackNodeId = nodeElement.GetProperty("fallback").GetInt32();
 
+        var conditions = TryParseConditions(nodeElement);
+
         var node = new NodeFieldExecutionNode(
             id,
             responseName,
-            idValue);
+            idValue,
+            conditions);
 
         return (node, null, branches, fallbackNodeId);
+    }
+
+    private static ExecutionNodeCondition[] TryParseConditions(JsonElement nodeElement)
+    {
+        if (!nodeElement.TryGetProperty("conditions", out var conditionsElement))
+        {
+            return [];
+        }
+
+        var conditions = new List<ExecutionNodeCondition>();
+
+        foreach (var conditionElement in conditionsElement.EnumerateArray())
+        {
+            conditions.Add(new ExecutionNodeCondition
+            {
+                VariableName = conditionElement.GetProperty("variable").GetString()!.TrimStart('$'),
+                PassingValue = conditionElement.GetProperty("passingValue").GetBoolean()
+            });
+        }
+
+        return conditions.ToArray();
     }
 }

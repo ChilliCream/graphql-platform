@@ -20,7 +20,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.ToString().MatchSnapshot();
+        executor.Schema.MatchSnapshot();
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.ToString().MatchSnapshot();
+        executor.Schema.MatchSnapshot();
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.ToString().MatchSnapshot();
+        executor.Schema.MatchSnapshot();
     }
 
     [Fact]
@@ -110,6 +110,32 @@ public class IntegrationTests
                             startCursor
                             endCursor
                         }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task First_Value_Not_Set()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .ModifyPagingOptions(o =>
+                {
+                    o.RequirePagingBoundaries = true;
+                    o.AllowBackwardPagination = false;
+                })
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        await executor
+            .ExecuteAsync(@"
+                {
+                    letters {
+                        nodes
                     }
                 }")
             .MatchSnapshotAsync();
@@ -346,9 +372,10 @@ public class IntegrationTests
                 .GetRequestExecutorAsync();
 
         await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                """
                 {
-                    letters(first: 2 after: ""MQ=="") {
+                    letters(first: 2, after: "MQ==") {
                         edges {
                             node
                             cursor
@@ -361,7 +388,8 @@ public class IntegrationTests
                             endCursor
                         }
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -377,9 +405,10 @@ public class IntegrationTests
                 .GetRequestExecutorAsync();
 
         await executor
-            .ExecuteAsync(@"
+            .ExecuteAsync(
+                """
                 {
-                    letters(first: 2 after: ""MQ=="") {
+                    letters(first: 2, after: "MQ==") {
                         edges {
                             node
                             cursor
@@ -392,7 +421,8 @@ public class IntegrationTests
                             endCursor
                         }
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -765,7 +795,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -785,7 +815,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -800,7 +830,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetRequestExecutorAsync();
 
-        executor.Schema.ToString().MatchSnapshot();
+        executor.Schema.MatchSnapshot();
     }
 
     [Fact]
@@ -816,7 +846,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -830,7 +860,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -844,7 +874,7 @@ public class IntegrationTests
                 .BuildServiceProvider()
                 .GetSchemaAsync();
 
-        schema.ToString().MatchSnapshot();
+        schema.MatchSnapshot();
     }
 
     [Fact]
@@ -1194,13 +1224,13 @@ public class IntegrationTests
 
     public interface ISome
     {
-        public string[] ExplicitType();
+        string[] ExplicitType();
     }
 
     public interface ISome2
     {
         [UsePaging(typeof(NonNullType<StringType>))]
-        public string[] ExplicitType();
+        string[] ExplicitType();
     }
 
     public class InferConnectionNameFromFieldType : ObjectType<InferConnectionNameFromField>

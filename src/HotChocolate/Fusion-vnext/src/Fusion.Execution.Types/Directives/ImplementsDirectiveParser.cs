@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Types.Directives;
@@ -21,7 +20,7 @@ internal static class ImplementsDirectiveParser
         {
             if (directive.Name.Value.Equals(FusionBuiltIns.Implements, StringComparison.Ordinal))
             {
-                temp ??= new Dictionary<SchemaKey, ImmutableHashSet<string>.Builder>();
+                temp ??= [];
 
                 var schemaValue = directive.Arguments.FirstOrDefault(t => t.Name.Value == "schema")?.Value;
                 var interfaceValue = directive.Arguments.FirstOrDefault(t => t.Name.Value == "interface")?.Value;
@@ -40,7 +39,7 @@ internal static class ImplementsDirectiveParser
 
                 var schemaKey = new SchemaKey(schemaName);
 
-                if(!temp.TryGetValue(schemaKey, out var implements))
+                if (!temp.TryGetValue(schemaKey, out var implements))
                 {
                     implements = ImmutableHashSet.CreateBuilder<string>();
                     temp.Add(schemaKey, implements);
@@ -51,7 +50,11 @@ internal static class ImplementsDirectiveParser
         }
 
         return temp is null
+#if NET10_0_OR_GREATER
+            ? []
+#else
             ? ImmutableDictionary<SchemaKey, ImmutableHashSet<string>>.Empty
+#endif
             : temp.ToImmutableDictionary(t => t.Key, t => t.Value.ToImmutable());
     }
 }

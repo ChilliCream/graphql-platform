@@ -3,6 +3,9 @@ using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data.Types.Brands;
 
+/// <summary>
+/// Some connection docs
+/// </summary>
 [GraphQLName("{0}Connection")]
 public class CatalogConnection<TEntity> : ConnectionBase<TEntity, CatalogEdge<TEntity>, ConnectionPageInfo>
 {

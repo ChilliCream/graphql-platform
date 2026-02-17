@@ -26,7 +26,6 @@ internal static class HttpContextExtensions
         return false;
     }
 
-    // TODO : Implement this
     public static string? TryGetCostSwitch(this HttpContext context)
     {
         var headers = context.Request.Headers;

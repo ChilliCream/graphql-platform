@@ -39,7 +39,7 @@ LIMIT @__p_0
 
 ```sql
 -- @__ids_0={ '2', '5' } (DbType = Object)
-SELECT b."Id", b."Name"
+SELECT b."Name", b."Id"
 FROM "Brands" AS b
 WHERE b."Id" = ANY (@__ids_0)
 ```

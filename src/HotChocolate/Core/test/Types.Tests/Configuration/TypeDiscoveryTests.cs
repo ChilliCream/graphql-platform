@@ -103,7 +103,7 @@ public class TypeDiscoveryTests
 
     public class Model
     {
-        public string Foo { get; set; }
+        public required string Foo { get; set; }
 
         public int Bar { get; set; }
 
@@ -127,13 +127,13 @@ public class TypeDiscoveryTests
 
         public InferStruct? NullableStruct { get; set; }
 
-        public InferStruct[] StructArray { get; set; }
+        public required InferStruct[] StructArray { get; set; }
 
-        public InferStruct?[] NullableStructArray { get; set; }
+        public required InferStruct?[] NullableStructArray { get; set; }
 
-        public InferStruct[][] StructNestedArray { get; set; }
+        public required InferStruct[][] StructNestedArray { get; set; }
 
-        public InferStruct?[][] NullableStructNestedArray { get; set; }
+        public required InferStruct?[][] NullableStructNestedArray { get; set; }
 
         public Guid ScalarGuid { get; set; }
 

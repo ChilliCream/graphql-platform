@@ -121,7 +121,7 @@ public static class SchemaFormatter
                 if (definition is IDirectiveDefinition directiveDefinition)
                 {
                     if (!context.PrintSpecDirectives
-                        && SpecDirectiveNames.IsSpecDirective(directiveDefinition.Name))
+                        && DirectiveNames.IsSpecDirective(directiveDefinition.Name))
                     {
                         continue;
                     }
@@ -247,7 +247,7 @@ public static class SchemaFormatter
             foreach (var type in directiveTypes
                 .OrderBy(t => t.Name, context.OrderByName))
             {
-                if (SpecDirectiveNames.IsSpecDirective(type.Name))
+                if (DirectiveNames.IsSpecDirective(type.Name))
                 {
                     continue;
                 }
@@ -545,8 +545,8 @@ public static class SchemaFormatter
             }
 
             return new DirectiveNode(
-                new NameNode(SpecDirectiveNames.Deprecated.Name),
-                [new ArgumentNode(SpecDirectiveNames.Deprecated.Arguments.Reason, reason)]);
+                new NameNode(DirectiveNames.Deprecated.Name),
+                [new ArgumentNode(DirectiveNames.Deprecated.Arguments.Reason, reason)]);
         }
 
         private static StringValueNode? CreateDescription(string? description)

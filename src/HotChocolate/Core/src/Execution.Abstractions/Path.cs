@@ -246,6 +246,25 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
         }
     }
 
+    public IEnumerable<Path> EnumerateSegments()
+        => EnumerateSegmentsBackwards().Reverse();
+
+    private IEnumerable<Path> EnumerateSegmentsBackwards()
+    {
+        if (IsRoot)
+        {
+            yield break;
+        }
+
+        var current = this;
+
+        while (!current.IsRoot)
+        {
+            yield return current;
+            current = current.Parent;
+        }
+    }
+
     /// <summary>Returns a string that represents the current <see cref="Path"/>.</summary>
     /// <returns>A string that represents the current <see cref="Path"/>.</returns>
     public override string ToString() => Print();

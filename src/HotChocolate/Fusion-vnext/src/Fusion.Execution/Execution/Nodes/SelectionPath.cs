@@ -167,6 +167,20 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     }
 
     /// <summary>
+    /// Constructs <see cref="SelectionPath"/> from the given <paramref name="segments"/>.
+    /// </summary>
+    /// <param name="segments">
+    /// The segments to initialize the <see cref="SelectionPath"/> with.
+    /// </param>
+    /// <returns>
+    /// A new <see cref="SelectionPath"/> initialized with the <paramref name="segments"/>.
+    /// </returns>
+    public static SelectionPath From(ImmutableArray<Segment> segments)
+    {
+        return new SelectionPath(segments);
+    }
+
+    /// <summary>
     /// Returns the portion of this path that comes <em>after</em> <paramref name="basePath"/>.
     /// </summary>
     /// <param name="basePath">

@@ -429,40 +429,44 @@ public class MongoDbFilterVisitorObjectIdTests
 
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument(@"{
-                    root(where: {
-                        objectId: { in: [
-                                ""6124e80f3f5fc839830c1f69"",
-                                ""6124e80f3f5fc839830c1f6a""
-                            ]}})
-                        {
+                .SetDocument(
+                    """
+                    {
+                        root(
+                            where: {
+                                objectId: {
+                                    in: ["6124e80f3f5fc839830c1f69", "6124e80f3f5fc839830c1f6a"]
+                                }
+                            }
+                        ) {
                             objectId
                         }
-                    }")
+                    }
+                    """)
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument(@"{
-                    root(where: {
-                        objectId: {
-                            in: [ null, ""6124e80f3f5fc839830c1f6b"" ]
-                        }}) {
-                        objectId
+                .SetDocument(
+                    """
+                    {
+                        root(where: { objectId: { in: [null, "6124e80f3f5fc839830c1f6b"] } }) {
+                            objectId
+                        }
                     }
-                }")
+                    """)
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument(@"{
-                    root(where: {
-                        objectId: {
-                            in: [ null, ""6124e80f3f5fc839830c1f6b"" ]
-                        }}) {
-                        objectId
+                .SetDocument(
+                    """
+                    {
+                        root(where: { objectId: { in: [null, "6124e80f3f5fc839830c1f6b"] } }) {
+                            objectId
+                        }
                     }
-                }")
+                    """)
                 .Build());
 
         // assert
@@ -484,50 +488,44 @@ public class MongoDbFilterVisitorObjectIdTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
-                      root(
-                        where: {
-                          objectId: {
-                            nin: [""6124e80f3f5fc839830c1f69"", ""6124e80f3f5fc839830c1f6a""]
-                          }
+                    """
+                    {
+                        root(
+                            where: {
+                                objectId: {
+                                    nin: ["6124e80f3f5fc839830c1f69", "6124e80f3f5fc839830c1f6a"]
+                                }
+                            }
+                        ) {
+                            objectId
                         }
-                      ) {
-                        objectId
-                      }
-                    }")
+                    }
+                    """)
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
-                      root(
-                        where: {
-                          objectId: {
-                            nin: [null, ""6124e80f3f5fc839830c1f6b""]
-                          }
+                    """
+                    {
+                        root(where: { objectId: { nin: [null, "6124e80f3f5fc839830c1f6b"] } }) {
+                            objectId
                         }
-                      ) {
-                        objectId
-                      }
-                    }")
+                    }
+                    """)
                 .SetDocument("{ root(where: { objectId: { nin: [ null, \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
-                      root(
-                        where: {
-                          objectId: {
-                            nin: [null, ""6124e80f3f5fc839830c1f6b""]
-                          }
+                    """
+                    {
+                        root(where: { objectId: { nin: [null, "6124e80f3f5fc839830c1f6b"] } }) {
+                            objectId
                         }
-                      ) {
-                        objectId
-                      }
-                    }")
+                    }
+                    """)
                 .Build());
 
         // assert

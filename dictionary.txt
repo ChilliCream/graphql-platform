@@ -5,6 +5,8 @@ accessibilities
 agrc
 Alderaan
 Andi
+ASPDEPR004
+ASPDEPR008
 aspnetcore
 Astromech
 automagically
@@ -16,8 +18,10 @@ bananacakepop
 bbox
 BCPROCKS
 bfnrt
+birthdates
 blazor
 blazorwasm
+Brontie
 Browsable
 BSON
 buildtransitive
@@ -48,12 +52,14 @@ EPSG
 esque
 evolvability
 Fanout
+FFFFFFFZ
 fffzzz
 fieldset
 FIPS
 foos
 fricking
 frontends
+Fzzz
 GEOGCS
 Giroux
 GraphiQL
@@ -111,7 +117,7 @@ NSwag
 ntouches
 nwithin
 oncall
-oneof
+opencover
 OpenIddict
 opensgid
 OPTOUT
@@ -146,11 +152,13 @@ Rewriters
 Rgba
 Rhai
 Roslynator
+RRGGBB
 runbooks
 Satisfiability
 Senn
 shoooe
 Silmarillion
+skybridge
 Skywalker
 snapshooter
 snupkg
@@ -182,6 +190,7 @@ Tzdb
 unlisten
 unpublish
 Unsubscriber
+uppercased
 Upsert
 upvote
 URQL

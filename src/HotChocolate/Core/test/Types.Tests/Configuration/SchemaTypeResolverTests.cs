@@ -25,6 +25,7 @@ public class SchemaTypeResolverTests
 
         // assert
         Assert.True(success);
+        Assert.NotNull(schemaTypes);
         Assert.Collection(schemaTypes,
             type =>
             {
@@ -47,6 +48,7 @@ public class SchemaTypeResolverTests
 
         // assert
         Assert.True(success);
+        Assert.NotNull(schemaTypes);
         Assert.Collection(schemaTypes,
             type =>
             {
@@ -88,6 +90,7 @@ public class SchemaTypeResolverTests
 
         // assert
         Assert.True(success);
+        Assert.NotNull(schemaTypes);
         Assert.Collection(schemaTypes,
             type =>
             {
@@ -108,6 +111,7 @@ public class SchemaTypeResolverTests
 
         // assert
         Assert.True(success);
+        Assert.NotNull(schemaTypes);
         Assert.Collection(schemaTypes,
             type =>
             {
@@ -133,6 +137,7 @@ public class SchemaTypeResolverTests
 
         // assert
         Assert.True(success);
+        Assert.NotNull(schemaTypes);
         Assert.Collection(
             schemaTypes,
             type =>
@@ -142,9 +147,9 @@ public class SchemaTypeResolverTests
             });
     }
 
-    public class Bar
+    public class Bar(string baz)
     {
-        public string Baz { get; }
+        public string Baz { get; } = baz;
     }
 
     public readonly struct BarStruct

@@ -4,7 +4,9 @@ using GreenDonut.Data.Expressions;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Pagination.Utilities;
+#if DEBUG
 using Microsoft.EntityFrameworkCore;
+#endif
 using static HotChocolate.Data.Properties.EntityFrameworkResources;
 
 namespace HotChocolate.Data.Pagination;

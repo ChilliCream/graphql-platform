@@ -16,6 +16,14 @@ public class ScalarGeneratorTests
             "extend schema @key(fields: \"id\")");
 
     [Fact]
+    public void Base64String_ScalarType() =>
+        AssertResult(
+            "query GetAttachment { base64String }",
+            "type Query { base64String: Base64String! }",
+            "scalar Base64String",
+            "extend schema @key(fields: \"id\")");
+
+    [Fact]
     public void ByteArray_ScalarType() =>
         AssertResult(
             "query GetAttachment { byteArray }",
@@ -91,9 +99,11 @@ public class ScalarGeneratorTests
             "type Query { person: Person }",
             "type Person { name: String! email: Email }",
             "scalar Email",
-            @"extend scalar Email
-                    @runtimeType(name: ""global::System.Int64"")
-                    @serializationType(name: ""global::System.Int32"")",
+            """
+            extend scalar Email
+                @runtimeType(name: "global::System.Int64")
+                @serializationType(name: "global::System.Int32")
+            """,
             "extend schema @key(fields: \"id\")");
 
     [Fact]
@@ -102,8 +112,10 @@ public class ScalarGeneratorTests
             "query GetId($modelId: ModelIdScalar!) { personId(id: $modelId) }",
             "type Query { personId(id: ModelIdScalar!): ModelIdScalar }",
             "scalar ModelIdScalar",
-            @"extend scalar ModelIdScalar
-                    @runtimeType(name: ""global::StrawberryShake.CodeGeneration.CSharp.ModelId"" valueType: true)");
+            """
+            extend scalar ModelIdScalar
+                @runtimeType(name: "global::StrawberryShake.CodeGeneration.CSharp.ModelId" valueType: true)
+            """);
 
     [Fact]
     public void Custom_Scalar_With_ValueType_RuntimeType_Used_As_Nullable_Input() =>
@@ -111,8 +123,10 @@ public class ScalarGeneratorTests
             "query GetId($modelId: ModelIdScalar) { personId(id: $modelId) }",
             "type Query { personId(id: ModelIdScalar): ModelIdScalar }",
             "scalar ModelIdScalar",
-            @"extend scalar ModelIdScalar
-                    @runtimeType(name: ""global::StrawberryShake.CodeGeneration.CSharp.ModelId"" valueType: true)");
+            """
+            extend scalar ModelIdScalar
+                @runtimeType(name: "global::StrawberryShake.CodeGeneration.CSharp.ModelId" valueType: true)
+            """);
 
     [Fact]
     public void Custom_Scalar_With_ValueType_RuntimeType_Fails_If_ValueType_Not_Specified() =>
@@ -121,8 +135,10 @@ public class ScalarGeneratorTests
             "query GetId($modelId: ModelIdScalar!) { personId(id: $modelId) }",
             "type Query { personId(id: ModelIdScalar!): ModelIdScalar }",
             "scalar ModelIdScalar",
-            @"extend scalar ModelIdScalar
-                    @runtimeType(name: ""global::StrawberryShake.CodeGeneration.CSharp.ModelId"")"));
+            """
+            extend scalar ModelIdScalar
+                @runtimeType(name: "global::StrawberryShake.CodeGeneration.CSharp.ModelId")
+            """));
 
     [Fact]
     public void Any_Scalar() =>
@@ -131,9 +147,11 @@ public class ScalarGeneratorTests
             "type Query { person: Person }",
             "type Person { name: String! data: Any }",
             "scalar Any",
-            @"extend scalar Any
-                    @runtimeType(name: ""global::System.Object"")
-                    @serializationType(name: ""global::System.Text.Json.JsonElement"")",
+            """
+            extend scalar Any
+                @runtimeType(name: "global::System.Object")
+                @serializationType(name: "global::System.Text.Json.JsonElement")
+            """,
             "extend schema @key(fields: \"id\")");
 
     [Fact]

@@ -18,7 +18,7 @@ internal sealed class OperationPlanExecutor
         // without also cancelling the entire request pipeline.
         using var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-        var context = new OperationPlanContext(requestContext, variables, operationPlan, executionCts);
+        await using var context = new OperationPlanContext(requestContext, variables, operationPlan, executionCts);
         context.Begin();
 
         switch (operationPlan.Operation.Definition.Operation)
@@ -197,7 +197,7 @@ internal sealed class OperationPlanExecutor
         }
     }
 
-    private static async IAsyncEnumerable<IOperationResult> CreateSubscriptionEnumerable(
+    private static async IAsyncEnumerable<OperationResult> CreateSubscriptionEnumerable(
         OperationPlanContext context,
         OperationExecutionNode subscriptionNode,
         SubscriptionResult subscriptionResult,
@@ -211,7 +211,13 @@ internal sealed class OperationPlanExecutor
 
         await foreach (var eventArgs in stream)
         {
-            IOperationResult result;
+            using var scope = context.DiagnosticEvents.OnSubscriptionEvent(
+                context,
+                subscriptionNode,
+                subscriptionNode.SchemaName ?? context.GetDynamicSchemaName(subscriptionNode),
+                subscriptionResult.Id);
+
+            OperationResult result;
 
             try
             {
@@ -254,7 +260,7 @@ internal sealed class OperationPlanExecutor
                 // so we throw here to properly cancel the request execution.
                 requestCancellationToken.ThrowIfCancellationRequested();
 
-                result = context.Complete();
+                result = context.Complete(reusable: true);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {

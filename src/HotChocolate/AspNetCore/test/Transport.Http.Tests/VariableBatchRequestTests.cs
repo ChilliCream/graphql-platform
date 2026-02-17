@@ -29,7 +29,7 @@ public class VariableBatchRequestTestss(TestServerFactory serverFactory) : Serve
                 }
             ]);
 
-        using var memory = new MemoryStream();
+        await using var memory = new MemoryStream();
         await using var writer = new Utf8JsonWriter(memory);
 
         // act

@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace HotChocolate.Language;
 
 public class BlockStringTokenReaderTests
@@ -8,8 +6,7 @@ public class BlockStringTokenReaderTests
     public void ReadToken()
     {
         // arrange
-        var source = Encoding.UTF8.GetBytes(
-            "\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar\"\"\"");
+        var source = "\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar\"\"\""u8.ToArray();
         var reader = new Utf8GraphQLReader(source);
 
         // act
@@ -35,8 +32,7 @@ public class BlockStringTokenReaderTests
     public void ReadToken_WithEscapedTrippleQuote1_EscapeIsReplacedWithActualQuotes()
     {
         // arrange
-        var source = Encoding.UTF8.GetBytes(
-            "\"\"\"\\\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar\"\"\"");
+        var source = "\"\"\"\\\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar\"\"\""u8.ToArray();
         var reader = new Utf8GraphQLReader(source);
 
         // act
@@ -58,8 +54,7 @@ public class BlockStringTokenReaderTests
     public void ReadToken_WithEscapedTrippleQuote2_EscapeIsReplacedWithActualQuotes()
     {
         // arrange
-        var source = Encoding.UTF8.GetBytes(
-            "\"\"\"hello\\\"\"\"World_123\r\n\t\tfoo\r\n\tbar\"\"\"");
+        var source = "\"\"\"hello\\\"\"\"World_123\r\n\t\tfoo\r\n\tbar\"\"\""u8.ToArray();
         var reader = new Utf8GraphQLReader(source);
 
         // act
@@ -81,9 +76,7 @@ public class BlockStringTokenReaderTests
     public void ReadToken_WithLeadingBlanks_BlanksAreRemoved()
     {
         // arrange
-        var source = Encoding.UTF8.GetBytes(
-            "\"\"\"\r\n\t\r\n\t\r\n\thelloWorld_123"
-            + "\r\n\t\tfoo\r\n\tbar\"\"\"");
+        var source = "\"\"\"\r\n\t\r\n\t\r\n\thelloWorld_123\r\n\t\tfoo\r\n\tbar\"\"\""u8.ToArray();
         var reader = new Utf8GraphQLReader(source);
 
         // act
@@ -105,9 +98,7 @@ public class BlockStringTokenReaderTests
     public void ReadToken_WithTrailingBlanks_BlanksAreRemoved()
     {
         // arrange
-        var source = Encoding.UTF8.GetBytes(
-            "\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar"
-            + "\r\n\t\r\n\t\r\n\t\r\n\t\"\"\"");
+        var source = "\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar\r\n\t\r\n\t\r\n\t\r\n\t\"\"\""u8.ToArray();
         var reader = new Utf8GraphQLReader(source);
 
         // act
@@ -129,8 +120,7 @@ public class BlockStringTokenReaderTests
     public void ReadToken_SingleLine_ParsesCorrectly()
     {
         // arrange
-        var source = Encoding.UTF8.GetBytes(
-            "\"\"\"helloWorld_123\"\"\"");
+        var source = "\"\"\"helloWorld_123\"\"\""u8.ToArray();
         var reader = new Utf8GraphQLReader(source);
 
         // act
@@ -149,7 +139,7 @@ public class BlockStringTokenReaderTests
     public void UnescapeEmpty()
     {
         // arrange
-        var source = Encoding.UTF8.GetBytes("\"\"");
+        var source = "\"\""u8.ToArray();
         var reader = new Utf8GraphQLReader(source);
         reader.Read();
 
@@ -166,7 +156,7 @@ public class BlockStringTokenReaderTests
     public void UnescapeString()
     {
         // arrange
-        var source = Encoding.UTF8.GetBytes("\"abc\"");
+        var source = "\"abc\""u8.ToArray();
         var reader = new Utf8GraphQLReader(source);
         reader.Read();
 
@@ -207,7 +197,7 @@ public class BlockStringTokenReaderTests
     public void NoDigitAfterZeroException()
     {
         // arrange
-        var source = Encoding.UTF8.GetBytes("01");
+        var source = "01"u8.ToArray();
         var reader = new Utf8GraphQLReader(source);
         var raised = false;
 
@@ -230,7 +220,7 @@ public class BlockStringTokenReaderTests
     public void InvalidDigit()
     {
         // arrange
-        var source = Encoding.UTF8.GetBytes("123.F");
+        var source = "123.F"u8.ToArray();
         var reader = new Utf8GraphQLReader(source);
         var raised = false;
 
@@ -253,7 +243,7 @@ public class BlockStringTokenReaderTests
     public void Zero()
     {
         // arrange
-        var source = Encoding.UTF8.GetBytes("0 ");
+        var source = "0 "u8.ToArray();
         var reader = new Utf8GraphQLReader(source);
 
         // act

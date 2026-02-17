@@ -1,5 +1,9 @@
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
 using HotChocolate.Fusion.Logging;
@@ -20,6 +24,18 @@ public abstract class FusionTestBase : IDisposable
     private readonly TestServerSession _testServerSession = new();
     private bool _disposed;
 
+    protected static FusionConfiguration CreateFusionConfiguration(
+        [StringSyntax("graphql")] params string[] schemas)
+    {
+        var compositeSchema = ComposeSchemaDocument(schemas);
+
+        return new FusionConfiguration(
+            compositeSchema,
+            new JsonDocumentOwner(
+                JsonDocument.Parse("{ }"),
+                new EmptyMemoryOwner()));
+    }
+
     protected static FusionSchemaDefinition CreateCompositeSchema()
     {
         var compositeSchemaDoc = Utf8GraphQLParser.Parse(FileResource.Open("fusion1.graphql"));
@@ -33,6 +49,373 @@ public abstract class FusionTestBase : IDisposable
         return FusionSchemaDefinition.Create(compositeSchemaDoc);
     }
 
+    public static FusionSchemaDefinition ComposeShoppingSchema()
+    {
+        return ComposeSchema(
+            """"
+            interface Node {
+              id: ID!
+            }
+
+            type PageInfo @shareable {
+              hasNextPage: Boolean!
+              hasPreviousPage: Boolean!
+              startCursor: String
+              endCursor: String
+            }
+
+            type Query {
+              node("ID of the object." id: ID!): Node @lookup @shareable
+              nodes("The list of node IDs." ids: [ID!]!): [Node]! @shareable
+              userById(id: ID!): User @lookup
+              userByUsername(username: String!): User @lookup
+              users(first: Int after: String last: Int before: String): UsersConnection
+            }
+
+            type User implements Node {
+              id: ID!
+              name: String! @shareable
+              birthdate: String!
+              username: String!
+            }
+
+            type UsersConnection {
+              pageInfo: PageInfo!
+              edges: [UsersEdge!]
+              nodes: [User!]
+            }
+
+            type UsersEdge {
+              cursor: String!
+              node: User!
+            }
+            """",
+            """"
+            interface Node {
+              id: ID!
+            }
+
+            type InventoryItem implements Node {
+              product: Product!
+              id: ID!
+              quantity: Int!
+            }
+
+            type Mutation {
+              restockProduct(input: RestockProductInput!): RestockProductPayload! @cost(weight: "10")
+            }
+
+            type Product {
+              quantity: Int! @cost(weight: "10")
+              id: ID!
+              item: InventoryItem
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
+              inventoryItemById(id: ID!): InventoryItem @lookup
+              productByIdAsync(id: ID!): Product @lookup @internal
+            }
+
+            type RestockProductPayload {
+              product: Product
+            }
+
+            input RestockProductInput {
+              id: ID!
+              quantity: Int!
+            }
+
+            directive @cost(weight: String!)
+                on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+            """",
+            """"
+            interface Node {
+              id: ID!
+            }
+
+            type CreateOrderPayload {
+              order: Order
+            }
+
+            type Mutation {
+              createOrder(input: CreateOrderInput!): CreateOrderPayload! @cost(weight: "10")
+            }
+
+            type Order implements Node {
+              user: User!
+              id: ID!
+              items: [OrderItem!]!
+              weight: Int!
+            }
+
+            type OrderItem {
+              product: Product!
+              id: Int!
+              quantity: Int!
+              price: Float!
+              orderId: Int!
+              order: Order
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
+              orderById(id: ID!): Order @lookup @shareable
+              userById(id: ID!): User! @lookup @internal
+            }
+
+            type User {
+              id: ID!
+            }
+
+            input CreateOrderInput {
+              userId: ID!
+              items: [OrderItemInput!]!
+              weight: Int!
+            }
+
+            input OrderItemInput {
+              productId: ID!
+              quantity: Int!
+              price: Float!
+            }
+
+            directive @cost(weight: String!)
+                on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+            """",
+            """"
+            "The node interface is implemented by entities that have a global unique identifier."
+            interface Node {
+              id: ID!
+            }
+
+            type CreatePaymentPayload {
+              payment: Payment
+            }
+
+            type Mutation {
+              createPayment(input: CreatePaymentInput!): CreatePaymentPayload!
+            }
+
+            type Order {
+              payments: [Payment!]!
+              id: ID!
+            }
+
+            type Payment implements Node {
+              order: Order!
+              id: ID!
+              amount: Float!
+              status: PaymentStatus!
+              createdAt: String!
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
+              paymentById(id: ID!): Payment @lookup
+              orderById(id: ID!): Order! @lookup @shareable
+            }
+
+            input CreatePaymentInput {
+              orderId: ID!
+            }
+
+            enum PaymentStatus {
+              PENDING
+              AUTHORIZED
+              DECLINED
+              REFUNDED
+            }
+            """",
+            """"
+            interface Error {
+              message: String!
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type Mutation {
+              uploadProductPicture(input: UploadProductPictureInput!): UploadProductPicturePayload!
+            }
+
+            type PageInfo @shareable {
+              hasNextPage: Boolean!
+              hasPreviousPage: Boolean!
+              startCursor: String
+              endCursor: String
+            }
+
+            type Product implements Node {
+              dimension: ProductDimension!
+              pictureString: String
+              id: ID!
+              name: String!
+              price: Float!
+              weight: Int!
+              pictureFileName: String
+            }
+
+            type ProductDimension {
+              length: Float!
+              width: Float!
+              height: Float!
+            }
+
+            type ProductsConnection {
+              pageInfo: PageInfo!
+              edges: [ProductsEdge!]
+              nodes: [Product!]
+            }
+
+            type ProductsEdge {
+              cursor: String!
+              node: Product!
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
+              productById(id: ID!): Product @lookup
+              products(first: Int after: String last: Int before: String): ProductsConnection
+            }
+
+            type UnknownProductError implements Error {
+              productId: Int!
+              message: String!
+            }
+
+            type UploadProductPicturePayload {
+              product: Product
+              errors: [UploadProductPictureError!]
+            }
+
+            union UploadProductPictureError = UnknownProductError
+
+            input UploadProductPictureInput {
+              productId: Int!
+              picture: String!
+            }
+            """",
+            """"
+            interface Node {
+              id: ID!
+            }
+
+            type CreateReviewPayload {
+              review: Review
+            }
+
+            type Mutation {
+              createReview(input: CreateReviewInput!): CreateReviewPayload!
+            }
+
+            type PageInfo @shareable {
+              hasNextPage: Boolean!
+              hasPreviousPage: Boolean!
+              startCursor: String
+              endCursor: String
+            }
+
+            type Product {
+              reviews(first: Int after: String last: Int before: String): ProductReviewsConnection
+              id: ID!
+            }
+
+            type ProductReviewsConnection {
+              pageInfo: PageInfo!
+              edges: [ProductReviewsEdge!]
+              nodes: [Review!]
+            }
+
+            type ProductReviewsEdge {
+              cursor: String!
+              node: Review!
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
+              productById(id: ID!): Product! @lookup @internal
+              reviewById(id: ID!): Review @lookup
+              userById(id: ID!): User @lookup @internal
+            }
+
+            type Review implements Node {
+              product: Product!
+              author: User
+              id: ID!
+              body: String!
+              stars: Int!
+              createAt: String!
+            }
+
+            type Subscription {
+              onCreateReview: Review
+            }
+
+            type User {
+              reviews(first: Int after: String last: Int before: String): UserReviewsConnection
+              id: ID!
+              name: String! @shareable
+            }
+
+            type UserReviewsConnection {
+              pageInfo: PageInfo!
+              edges: [UserReviewsEdge!]
+              nodes: [Review!]
+            }
+
+            type UserReviewsEdge {
+              cursor: String!
+              node: Review!
+            }
+
+            input CreateReviewInput {
+              body: String!
+              stars: Int!
+              productId: ID!
+              authorId: ID!
+            }
+            """",
+            """"
+            type Product {
+              deliveryEstimate(
+                zip: String!
+                dimension: ProductDimensionInput!
+                  @require(field:
+                    """
+                    {
+                      weight
+                      length: dimension.length
+                      width: dimension.width
+                      height: dimension.height
+                    }
+                    """)): Int!
+              id: ID!
+            }
+
+            type Query {
+              productById(id: ID!): Product! @lookup @internal
+            }
+
+            input ProductDimensionInput {
+              weight: Int!
+              length: Float!
+              width: Float!
+              height: Float!
+            }
+            """");
+    }
+
     protected static FusionSchemaDefinition ComposeSchema(
         [StringSyntax("graphql")] params string[] schemas)
     {
@@ -41,7 +424,10 @@ public abstract class FusionTestBase : IDisposable
         var compositionLog = new CompositionLog();
         var composerOptions = new SchemaComposerOptions
         {
-            EnableGlobalObjectIdentification = true
+            Merger =
+            {
+                EnableGlobalObjectIdentification = true
+            }
         };
         var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
@@ -64,7 +450,14 @@ public abstract class FusionTestBase : IDisposable
         var sourceSchemas = CreateSourceSchemaTexts(schemas);
 
         var compositionLog = new CompositionLog();
-        var composer = new SchemaComposer(sourceSchemas, new SchemaComposerOptions(), compositionLog);
+        var composerOptions = new SchemaComposerOptions
+        {
+            Merger =
+            {
+                EnableGlobalObjectIdentification = false
+            }
+        };
+        var composer = new SchemaComposer(sourceSchemas, composerOptions, compositionLog);
         var result = composer.Compose();
 
         if (!result.IsSuccess)
@@ -109,7 +502,7 @@ public abstract class FusionTestBase : IDisposable
 
         var operationDoc = Utf8GraphQLParser.Parse(operationText);
 
-        var rewriter = new InlineFragmentOperationRewriter(schema);
+        var rewriter = new DocumentRewriter(schema);
         var rewritten = rewriter.RewriteDocument(operationDoc, operationName: null);
         var operation = rewritten.Definitions.OfType<OperationDefinitionNode>().First();
 
@@ -187,4 +580,49 @@ public abstract class FusionTestBase : IDisposable
     }
 
     protected record TestSourceSchema([StringSyntax("graphql")] string Schema);
+
+    protected sealed class TestFusionConfigurationProvider(FusionConfiguration initialConfig) : IFusionConfigurationProvider
+    {
+        private readonly List<IObserver<FusionConfiguration>> _observers = [];
+
+        public IDisposable Subscribe(IObserver<FusionConfiguration> observer)
+        {
+            if (Configuration is not null)
+            {
+                observer.OnNext(Configuration);
+            }
+
+            _observers.Add(observer);
+
+            return new Observer();
+        }
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+        public FusionConfiguration? Configuration { get; private set; } = initialConfig;
+
+        public void UpdateConfiguration(FusionConfiguration configuration)
+        {
+            Configuration = configuration;
+
+            foreach (var observer in _observers)
+            {
+                observer.OnNext(Configuration);
+            }
+        }
+
+        private sealed class Observer : IDisposable
+        {
+            public void Dispose()
+            {
+            }
+        }
+    }
+
+    private class EmptyMemoryOwner : IMemoryOwner<byte>
+    {
+        public Memory<byte> Memory => default;
+
+        public void Dispose() { }
+    }
 }

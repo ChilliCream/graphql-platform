@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
 }
 
@@ -9,15 +9,15 @@ interface Node {
 
 type Entity implements Node {
   id: ID!
-  name: String
+  name: String!
 }
 
 type Entity2 {
-  id: String
-  name: String
+  id: String!
+  name: String!
 }
 
 type Query {
-  entity(name: String): Entity
-  entity2(name: String): Entity2
+  entity(name: String!): Entity!
+  entity2(name: String!): Entity2!
 }

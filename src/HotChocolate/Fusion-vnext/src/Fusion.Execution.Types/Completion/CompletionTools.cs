@@ -13,9 +13,10 @@ internal static class CompletionTools
 {
     public static FusionDirectiveCollection CreateDirectiveCollection(
         IReadOnlyList<DirectiveNode> directives,
-        CompositeSchemaBuilderContext context)
+        CompositeSchemaBuilderContext context,
+        bool applySerializeAsToScalars = false)
     {
-        directives = DirectiveTools.GetUserDirectives(directives);
+        directives = DirectiveTools.GetUserDirectives(directives, applySerializeAsToScalars);
 
         if (directives.Count == 0)
         {
@@ -115,8 +116,8 @@ internal static class CompletionTools
                 typeDef.Name.Value,
                 schemaName,
                 lookups,
-                implements ?? ImmutableHashSet<string>.Empty,
-                unionTypes ?? ImmutableHashSet<string>.Empty);
+                implements ?? [],
+                unionTypes ?? []);
         }
 
         return new SourceObjectTypeCollection(sourceObjectType);
@@ -144,7 +145,7 @@ internal static class CompletionTools
                 typeDef.Name.Value,
                 schemaName,
                 lookups,
-                implements ?? ImmutableHashSet<string>.Empty);
+                implements ?? []);
         }
 
         return new SourceInterfaceTypeCollection(sourceInterfaceType);
@@ -213,7 +214,8 @@ internal static class CompletionTools
                         lookup.Field.Type.NamedType().Name.Value,
                         lookup.Internal,
                         arguments.ToImmutable(),
-                        fields));
+                        fields,
+                        lookup.Path));
             }
         }
 

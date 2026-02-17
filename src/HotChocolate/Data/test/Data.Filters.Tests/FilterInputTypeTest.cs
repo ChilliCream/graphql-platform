@@ -378,6 +378,53 @@ public class FilterInputTypeTest : FilterTestBase
     }
 
     [Fact]
+    public void FilterInputType_WithGlobalObjectIdentification_AppliesGlobalIdFormatter()
+    {
+        // arrange
+        var builder = SchemaBuilder.New()
+            .ModifyOptions(x => x.StrictValidation = false)
+            .AddGlobalObjectIdentification()
+            .AddFiltering()
+            .AddQueryType(
+                d => d
+                    .Field("books")
+                    .UseFiltering<BookFilterInput>()
+                    .Resolve(new List<Book>()));
+
+        // act
+        var schema = builder.Create();
+        var idFilterField = ((BookFilterInput)schema.Types[nameof(BookFilterInput)]).Fields["id"];
+
+        // assert
+        Assert.True(
+            ((IdOperationFilterInputType)idFilterField.Type).Fields.All(
+                f => f.Formatter is FilterGlobalIdInputValueFormatter));
+    }
+
+    [Fact]
+    public void FilterInputType_WithoutGlobalObjectIdentification_DoesNotApplyGlobalIdFormatter()
+    {
+        // arrange
+        var builder = SchemaBuilder.New()
+            .ModifyOptions(x => x.StrictValidation = false)
+            .AddFiltering()
+            .AddQueryType(
+                d => d
+                    .Field("books")
+                    .UseFiltering<BookFilterInput>()
+                    .Resolve(new List<Book>()));
+
+        // act
+        var schema = builder.Create();
+        var idFilterField = ((BookFilterInput)schema.Types[nameof(BookFilterInput)]).Fields["id"];
+
+        // assert
+        Assert.True(
+            ((IdOperationFilterInputType)idFilterField.Type).Fields.All(
+                f => f.Formatter is not FilterGlobalIdInputValueFormatter));
+    }
+
+    [Fact]
     public async Task Execute_CoerceWhereArgument_MatchesSnapshot()
     {
         // arrange
@@ -495,9 +542,9 @@ public class FilterInputTypeTest : FilterTestBase
 
     public interface ITest
     {
-        public string? Prop { get; set; }
+        string? Prop { get; set; }
 
-        public string? Prop2 { get; set; }
+        string? Prop2 { get; set; }
     }
 
     public interface ITest<T>
@@ -608,4 +655,12 @@ public class FilterInputTypeTest : FilterTestBase
     }
 
     public record struct ExampleValueType(string Foo, string Bar);
+
+    private class BookFilterInput : FilterInputType<Book>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<Book> descriptor)
+        {
+            descriptor.Field(b => b.Id).Type<IdOperationFilterInputType>();
+        }
+    }
 }

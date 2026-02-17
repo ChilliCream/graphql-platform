@@ -280,7 +280,7 @@ public class EnumTypeTests : TypeTestBase
         void Action() => SchemaBuilder.New()
             .AddQueryType<Bar>()
             .AddType(new EnumType(d => d.Name("Foo")
-                .Value<string>(null)))
+                .Value<string>(null!)))
             .Create();
 
         // assert
@@ -646,7 +646,7 @@ public class EnumTypeTests : TypeTestBase
 
         // assert
         var type = schema.Types.GetType<EnumType>("Foo");
-        Assert.True(type.IsInstanceOfType(new EnumValueNode("baz")));
+        Assert.True(type.TryGetValue("baz", out _));
     }
 
     [Fact]
@@ -668,7 +668,7 @@ public class EnumTypeTests : TypeTestBase
 
         // assert
         var type = schema.Types.GetType<EnumType>("Foo");
-        Assert.True(type.IsInstanceOfType("ANYTHING WILL DO"));
+        Assert.True(type.ValueLookup.ContainsKey("ANYTHING_WILL_DO"));
     }
 
     [Fact]
@@ -810,7 +810,7 @@ public class EnumTypeTests : TypeTestBase
 
     public class ValueComparer : IEqualityComparer<object>
     {
-        bool IEqualityComparer<object>.Equals(object x, object y)
+        bool IEqualityComparer<object>.Equals(object? x, object? y)
         {
             return true;
         }

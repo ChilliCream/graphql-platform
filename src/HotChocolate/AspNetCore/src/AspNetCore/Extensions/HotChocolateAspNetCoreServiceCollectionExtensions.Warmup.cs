@@ -1,6 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.AspNetCore.Warmup;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Execution.Internal;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -8,84 +8,190 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds the current GraphQL configuration to the warmup background service.
+    /// Adds a warmup task that will be executed on each newly created request executor.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
-    /// <param name="warmup">
-    /// The warmup task that shall be executed on a new executor.
+    /// <param name="warmupFunc">
+    /// The warmup delegate to execute.
     /// </param>
-    /// <param name="keepWarm">
-    /// Apply warmup task after eviction and keep executor in-memory.
+    /// <param name="skipIf">
+    /// A function that is called to determine if the warmup service should be registered or not.
+    /// If <c>true</c> is returned, the warmup task will not be registered.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// The <see cref="IRequestExecutorBuilder"/> is <c>null</c>.
+    /// The <paramref name="builder"/> is <c>null</c>.
     /// </exception>
-    public static IRequestExecutorBuilder InitializeOnStartup(
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="warmupFunc"/> is <c>null</c>.
+    /// </exception>
+    /// <remarks>
+    /// The <see cref="IServiceProvider"/> passed to the <paramref name="skipIf"/>
+    /// is for the application services.
+    /// </remarks>
+    public static IRequestExecutorBuilder AddWarmupTask(
         this IRequestExecutorBuilder builder,
-        Func<IRequestExecutor, CancellationToken, Task>? warmup = null,
-        bool keepWarm = false)
+        Func<IRequestExecutor, CancellationToken, Task> warmupFunc,
+        Func<IServiceProvider, bool>? skipIf = null)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(warmupFunc);
+
+        return builder.AddWarmupTask(new DelegateRequestExecutorWarmupTask(warmupFunc), skipIf);
+    }
+
+    /// <summary>
+    /// Adds a warmup task that will be executed on each newly created request executor.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="warmupTask">
+    /// The warmup task to execute.
+    /// </param>
+    /// <param name="skipIf">
+    /// A function that is called to determine if the warmup service should be registered or not.
+    /// If <c>true</c> is returned, the warmup task will not be registered.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="warmupTask"/> is <c>null</c>.
+    /// </exception>
+    /// <remarks>
+    /// The <see cref="IServiceProvider"/> passed to the <paramref name="skipIf"/>
+    /// is for the application services.
+    /// </remarks>
+    public static IRequestExecutorBuilder AddWarmupTask(
+        this IRequestExecutorBuilder builder,
+        IRequestExecutorWarmupTask warmupTask,
+        Func<IServiceProvider, bool>? skipIf = null)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(warmupTask);
+
+        return builder.ConfigureSchemaServices((applicationServices, sc) =>
+        {
+            var shouldSkip = skipIf?.Invoke(applicationServices) ?? false;
+
+            if (!shouldSkip)
+            {
+                sc.AddSingleton(warmupTask);
+            }
+        });
+    }
+
+    /// <summary>
+    /// Adds a warmup task for the request executor.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="skipIf">
+    /// A function that is called to determine if the warmup service should be registered or not.
+    /// If <c>true</c> is returned, the warmup task will not be registered.
+    /// </param>
+    /// <typeparam name="T">
+    /// The warmup task to execute.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    /// <remarks>
+    /// The <typeparamref name="T"/> will be activated with the <see cref="IServiceProvider"/> of the schema services.
+    /// If your <typeparamref name="T"/> needs to access application services you need to
+    /// make the services available in the schema services via <see cref="RequestExecutorBuilderExtensions.AddApplicationService"/>.
+    /// <br />
+    /// The <see cref="IServiceProvider"/> passed to the <paramref name="skipIf"/>
+    /// is for the application services.
+    /// </remarks>
+    public static IRequestExecutorBuilder AddWarmupTask<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IRequestExecutorBuilder builder,
+        Func<IServiceProvider, bool>? skipIf = null)
+        where T : class, IRequestExecutorWarmupTask
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        builder.Services.AddHostedService<RequestExecutorWarmupService>();
-        builder.Services.AddSingleton(new WarmupSchemaTask(builder.Name, keepWarm, warmup));
+        builder.ConfigureSchemaServices((applicationServices, sc) =>
+        {
+            var shouldSkip = skipIf?.Invoke(applicationServices) ?? false;
+
+            if (!shouldSkip)
+            {
+                sc.AddSingleton<IRequestExecutorWarmupTask, T>();
+            }
+        });
+
         return builder;
     }
 
     /// <summary>
-    /// Adds the current GraphQL configuration to the warmup background service.
+    /// Adds a warmup task that will be executed on each newly created request executor.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
-    /// <param name="options">
-    /// The <see cref="RequestExecutorInitializationOptions"/>.
+    /// <param name="factory">
+    /// The factory to create the warmup task.
+    /// </param>
+    /// <param name="skipIf">
+    /// A function that is called to determine if the warmup service should be registered or not.
+    /// If <c>true</c> is returned, the warmup task will not be registered.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// The <see cref="IRequestExecutorBuilder"/> is <c>null</c>.
+    /// The <paramref name="builder"/> is <c>null</c>.
     /// </exception>
-    public static IRequestExecutorBuilder InitializeOnStartup(
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="factory"/> is <c>null</c>.
+    /// </exception>
+    /// <remarks>
+    /// The <see cref="IServiceProvider"/> passed to the <paramref name="factory"/>
+    /// is for the schema services. If you need to access application services
+    /// you need to either make the services available in the schema services
+    /// via <see cref="RequestExecutorBuilderExtensions.AddApplicationService"/> or use
+    /// <see cref="ExecutionServiceProviderExtensions.GetRootServiceProvider(IServiceProvider)"/>
+    /// to access the application services from within the schema service provider.
+    /// <br />
+    /// The <see cref="IServiceProvider"/> passed to the <paramref name="skipIf"/>
+    /// is for the application services.
+    /// </remarks>
+    public static IRequestExecutorBuilder AddWarmupTask<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder,
-        RequestExecutorInitializationOptions options)
+        Func<IServiceProvider, T> factory,
+        Func<IServiceProvider, bool>? skipIf = null)
+        where T : class, IRequestExecutorWarmupTask
     {
         ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
 
-        Func<IRequestExecutor, CancellationToken, Task>? warmup;
-
-        if (options.WriteSchemaFile.Enable)
-        {
-            var schemaFileName =
-                options.WriteSchemaFile.FileName
-                    ?? System.IO.Path.Combine(Environment.CurrentDirectory, "schema.graphqls");
-
-            if (options.Warmup is null)
+        builder.ConfigureSchemaServices(
+            (applicationServices, sc) =>
             {
-                warmup = async (executor, cancellationToken)
-                    => await SchemaFileExporter.Export(schemaFileName, executor, cancellationToken);
-            }
-            else
-            {
-                warmup = async (executor, cancellationToken) =>
+                var shouldSkip = skipIf?.Invoke(applicationServices) ?? false;
+
+                if (!shouldSkip)
                 {
-                    await SchemaFileExporter.Export(schemaFileName, executor, cancellationToken);
-                    await options.Warmup(executor, cancellationToken);
-                };
-            }
-        }
-        else
-        {
-            warmup = options.Warmup;
-        }
+                    sc.AddSingleton<IRequestExecutorWarmupTask, T>(factory);
+                }
+            });
 
-        return InitializeOnStartup(builder, warmup, options.KeepWarm);
+        return builder;
     }
 
     /// <summary>
@@ -97,26 +203,24 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="schemaFileName">
     /// The file name of the schema file.
     /// </param>
+    /// <param name="skipIf">
+    /// If <c>true</c>, the schema file will not be exported.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// The <see cref="IRequestExecutorBuilder"/> is <c>null</c>.
+    /// The <paramref name="builder"/> is <c>null</c>.
     /// </exception>
     public static IRequestExecutorBuilder ExportSchemaOnStartup(
         this IRequestExecutorBuilder builder,
-        string? schemaFileName = null)
+        string? schemaFileName = null,
+        bool skipIf = false)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return InitializeOnStartup(builder, new RequestExecutorInitializationOptions
-        {
-            KeepWarm = true,
-            WriteSchemaFile = new SchemaFileInitializationOptions
-            {
-                Enable = true,
-                FileName = schemaFileName
-            }
-        });
+        schemaFileName ??= System.IO.Path.Combine(Environment.CurrentDirectory, "schema.graphqls");
+
+        return builder.AddWarmupTask(new SchemaFileExporterWarmupTask(schemaFileName), _ => skipIf);
     }
 }

@@ -14,7 +14,7 @@ public class ScalarsTests
     [InlineData((double)1, ValueKind.Float)]
     [InlineData(null, ValueKind.Null)]
     [Theory]
-    public void TryGetKind(object value, ValueKind expectedKind)
+    public void TryGetKind(object? value, ValueKind expectedKind)
     {
         // arrange
         // act

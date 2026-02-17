@@ -2,6 +2,7 @@ using System.Buffers;
 #if NET8_0_OR_GREATER
 using System.Runtime.InteropServices;
 #endif
+using static HotChocolate.Buffers.PooledArrayWriterEventSource;
 using static HotChocolate.Buffers.Properties.BuffersResources;
 
 namespace HotChocolate.Buffers;
@@ -11,10 +12,13 @@ namespace HotChocolate.Buffers;
 /// </summary>
 public sealed class PooledArrayWriter : IWritableMemory
 {
-    private const int InitialBufferSize = 512;
+    private const int InitialBufferSize = 4096;
+    private const int LargeAllocationThreshold = 1024 * 1024; // 1MB
+
     private byte[] _buffer;
     private int _capacity;
     private int _start;
+    private int _resizeCount;
     private bool _disposed;
 
     /// <summary>
@@ -22,9 +26,12 @@ public sealed class PooledArrayWriter : IWritableMemory
     /// </summary>
     public PooledArrayWriter()
     {
-        _buffer = ArrayPool<byte>.Shared.Rent(InitialBufferSize);
+        _buffer = BufferPools.Rent(InitialBufferSize);
         _capacity = _buffer.Length;
         _start = 0;
+        _resizeCount = 0;
+
+        Log.WriterCreated(InitialBufferSize, _capacity);
     }
 
     /// <summary>
@@ -35,9 +42,18 @@ public sealed class PooledArrayWriter : IWritableMemory
     /// </param>
     public PooledArrayWriter(int initialBufferSize)
     {
-        _buffer = ArrayPool<byte>.Shared.Rent(initialBufferSize);
+        _buffer = BufferPools.Rent(initialBufferSize);
         _capacity = _buffer.Length;
         _start = 0;
+        _resizeCount = 0;
+        var log = Log;
+
+        log.WriterCreated(initialBufferSize, _capacity);
+
+        if (initialBufferSize > LargeAllocationThreshold)
+        {
+            log.LargeAllocation(initialBufferSize, LargeAllocationThreshold);
+        }
     }
 
     /// <summary>
@@ -49,6 +65,11 @@ public sealed class PooledArrayWriter : IWritableMemory
     /// Gets the current internal capacity of the internal buffer.
     /// </summary>
     public int Capacity => _buffer.Length;
+
+    /// <summary>
+    /// Gets the total number of buffer resizes that have occurred.
+    /// </summary>
+    public int ResizeCount => _resizeCount;
 
     /// <summary>
     /// Gets the underlying buffer.
@@ -145,9 +166,11 @@ public sealed class PooledArrayWriter : IWritableMemory
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentOutOfRangeException.ThrowIfNegative(count);
 #endif
+        var log = Log;
 
         if (count > _capacity)
         {
+            log.BufferOverflow(count, _capacity);
             throw new ArgumentOutOfRangeException(
                 nameof(count),
                 count,
@@ -156,6 +179,8 @@ public sealed class PooledArrayWriter : IWritableMemory
 
         _start += count;
         _capacity -= count;
+
+        log.WriterAdvanced(count, _start, _capacity);
     }
 
     /// <summary>
@@ -187,10 +212,13 @@ public sealed class PooledArrayWriter : IWritableMemory
         ArgumentOutOfRangeException.ThrowIfNegative(sizeHint);
 #endif
 
-        var size = sizeHint < 1
-            ? InitialBufferSize
-            : sizeHint;
+        var size = sizeHint < 1 ? InitialBufferSize : sizeHint;
+        var resizeRequired = _capacity < size;
+
         EnsureBufferCapacity(size);
+
+        Log.MemoryRequested(sizeHint, size, resizeRequired);
+
         return _buffer.AsMemory().Slice(_start, size);
     }
 
@@ -224,7 +252,11 @@ public sealed class PooledArrayWriter : IWritableMemory
 #endif
 
         var size = sizeHint < 1 ? InitialBufferSize : sizeHint;
+        var resizeRequired = _capacity < size;
+
         EnsureBufferCapacity(size);
+
+        Log.MemoryRequested(sizeHint, size, resizeRequired);
 
 #if NETSTANDARD2_0
         return _buffer.AsSpan(_start, size);
@@ -239,13 +271,14 @@ public sealed class PooledArrayWriter : IWritableMemory
     /// <param name="neededCapacity">
     /// The necessary capacity on the internal buffer.
     /// </param>
-    private void EnsureBufferCapacity(int neededCapacity)
+    public void EnsureBufferCapacity(int neededCapacity)
     {
         // check if we have enough capacity available on the buffer.
         if (_capacity < neededCapacity)
         {
             // if we need to expand the buffer, we first capture the original buffer.
             var buffer = _buffer;
+            var oldSize = buffer.Length;
 
             // next we determine the new size of the buffer, we at least double the size to avoid
             // expanding the buffer too often.
@@ -260,7 +293,8 @@ public sealed class PooledArrayWriter : IWritableMemory
 
             // next we will rent a new array from the array pool that supports
             // the new capacity requirements.
-            _buffer = ArrayPool<byte>.Shared.Rent(newSize);
+            _buffer = BufferPools.Rent(newSize);
+            var actualNewSize = _buffer.Length;
 
             // the rented array might have a larger size than the necessary capacity,
             // so we will take the buffer length and calculate from that the free capacity.
@@ -270,14 +304,28 @@ public sealed class PooledArrayWriter : IWritableMemory
             buffer.AsSpan().CopyTo(_buffer);
 
             // last but not least, we return the original buffer to the array pool.
-            ArrayPool<byte>.Shared.Return(buffer);
+            BufferPools.Return(buffer);
+
+            _resizeCount++;
+
+            // Log the resize operation
+            var log = Log;
+            log.BufferResize(oldSize, actualNewSize, _start, neededCapacity, _resizeCount);
+
+            if (actualNewSize > LargeAllocationThreshold)
+            {
+                log.LargeAllocation(actualNewSize, LargeAllocationThreshold);
+            }
         }
     }
 
     public void Reset()
     {
+        var previousLength = _start;
         _capacity = _buffer.Length;
         _start = 0;
+
+        Log.WriterReset(previousLength, _capacity);
     }
 
     /// <inheritdoc/>
@@ -285,7 +333,14 @@ public sealed class PooledArrayWriter : IWritableMemory
     {
         if (!_disposed)
         {
-            ArrayPool<byte>.Shared.Return(_buffer);
+            Log.WriterDisposed(_start, _buffer.Length, _resizeCount);
+
+            if (_start > 0)
+            {
+                _buffer.AsSpan(0, _start).Clear();
+            }
+
+            BufferPools.Return(_buffer);
             _buffer = [];
             _capacity = 0;
             _start = 0;

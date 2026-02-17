@@ -8,19 +8,24 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
 {
     private List<SelectionSetNode>? _temp;
     private ImmutableDictionary<SelectionSetNode, uint> _selectionSets;
+    private ImmutableDictionary<uint, uint> _clonedToOriginalMap;
     private uint _nextId;
 
-    internal SelectionSetIndexBuilder(ImmutableDictionary<SelectionSetNode, uint> selectionSets, uint nextId)
+    internal SelectionSetIndexBuilder(
+        ImmutableDictionary<SelectionSetNode, uint> selectionSets,
+        ImmutableDictionary<uint, uint> clonedToOriginalMap,
+        uint nextId)
     {
         _selectionSets = selectionSets;
+        _clonedToOriginalMap = clonedToOriginalMap;
         _nextId = nextId;
     }
 
     public uint GetId(SelectionSetNode selectionSet)
         => _selectionSets[selectionSet];
 
-    public bool TryGetId(SelectionSetNode selectionSet, out uint id)
-        => _selectionSets.TryGetValue(selectionSet, out id);
+    public bool TryGetOriginalIdFromCloned(uint clonedId, out uint originalId)
+        => _clonedToOriginalMap.TryGetValue(clonedId, out originalId);
 
     public bool IsRegistered(SelectionSetNode selectionSet)
         => _selectionSets.ContainsKey(selectionSet);
@@ -39,6 +44,16 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
 
     public void Register(SelectionSetNode original)
         => _selectionSets = _selectionSets.SetItem(original, _nextId++);
+
+    public void RegisterCloned(SelectionSetNode original, SelectionSetNode cloned)
+    {
+        Register(cloned);
+
+        var clonedId = _selectionSets[cloned];
+        var originalId = _selectionSets[original];
+
+        _clonedToOriginalMap = _clonedToOriginalMap.SetItem(clonedId, originalId);
+    }
 
     public void OnMerge(FieldNode field1, FieldNode field2)
     {
@@ -197,7 +212,7 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
     }
 
     public ISelectionSetIndex Build()
-        => new SelectionSetIndex(_selectionSets, _nextId);
+        => new SelectionSetIndex(_selectionSets, _clonedToOriginalMap, _nextId);
 
     public SelectionSetIndexBuilder ToBuilder()
         => this;

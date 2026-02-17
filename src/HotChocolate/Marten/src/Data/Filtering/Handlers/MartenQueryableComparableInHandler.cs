@@ -31,6 +31,9 @@ public class MartenQueryableComparableInHandler : QueryableComparableOperationHa
     /// </summary>
     protected override int Operation => DefaultFilterOperations.In;
 
+    public static MartenQueryableComparableInHandler Create(FilterProviderContext context)
+        => new(context.TypeConverter, context.InputParser);
+
     /// <inheritdoc cref="QueryableOperationHandlerBase"/>
     public override Expression HandleOperation(
         QueryableFilterContext context,

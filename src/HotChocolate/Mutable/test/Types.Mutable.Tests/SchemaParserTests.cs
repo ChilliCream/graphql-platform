@@ -253,4 +253,216 @@ public class SchemaParserTests
                 Assert.Equal("String", stringType.Name);
             });
     }
+
+    [Fact]
+    public void Parse_Complex_Type_With_Duplicate_Field()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Foo {
+                field: String
+                field: String
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "A field with the name 'field' has already been defined on the type 'Foo'.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Complex_Type_With_Field_Not_Returning_Output_Type()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Foo {
+                field: FooInput
+            }
+
+            input FooInput {
+                bar: String
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The field 'Foo.field' must return an output type.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Complex_Type_With_Duplicate_Argument()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Foo {
+                field(arg: String, arg: String): String
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "An argument with the name 'arg' has already been defined on the field 'Foo.field'.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Complex_Type_With_Argument_Not_Accepting_Input_Type()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Foo {
+                field(arg: Foo): String
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The argument 'Foo.field(arg:)' must accept an input type.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Input_Object_Type_With_Duplicate_Field()
+    {
+        // arrange
+        const string sdl =
+            """
+            input Foo {
+                field: String
+                field: String
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "A field with the name 'field' has already been defined on the Input Object type 'Foo'.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Input_Object_Type_With_Field_Not_Accepting_Input_Type()
+    {
+        // arrange
+        const string sdl =
+            """
+            input FooInput {
+                field: FooObject
+            }
+
+            type FooObject {
+                field: String
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The Input Object field 'FooInput.field' must accept an input type.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Directive_With_Argument_Not_Accepting_Input_Type()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @foo(arg: Foo) on FIELD
+
+            type Foo {
+                field: String
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The argument '@foo(arg:)' must accept an input type.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Union_Type_With_Non_Object_Member()
+    {
+        // arrange
+        const string sdl =
+            """
+            union Foo = Bar
+
+            input Bar {
+                field: String
+            }
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "The Union type 'Foo' cannot include the type 'Bar'. Unions can only contain Object types.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Duplicate_Type_Definition()
+    {
+        // arrange
+        const string sdl =
+            """
+            scalar Foo
+            scalar Foo
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "A type with the name 'Foo' has already been defined.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
+
+    [Fact]
+    public void Parse_Duplicate_Directive_Definition()
+    {
+        // arrange
+        const string sdl =
+            """
+            directive @foo on FIELD
+            directive @foo on FIELD
+            """;
+
+        // act
+        static void Action() => SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // assert
+        Assert.Equal(
+            "A directive with the name '@foo' has already been defined.",
+            Assert.Throws<SchemaInitializationException>(Action).Message);
+    }
 }

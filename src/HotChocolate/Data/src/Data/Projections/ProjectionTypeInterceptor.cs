@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Data.Projections.Optimizers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -80,7 +81,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
             {
                 alwaysProjected ??= [];
                 if (field.GetFeatures().TryGet(out ProjectionFeature? feature)
-                    && feature.AlwaysProjected is true)
+                    && feature.AlwaysProjected)
                 {
                     alwaysProjected.Add(field.Name);
                 }

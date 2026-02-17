@@ -7,12 +7,18 @@ using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Internal;
 
-internal sealed partial class ExtendedType
+public sealed partial class ExtendedType
 {
     private static class Helper
     {
         internal static bool IsSchemaType(Type type)
         {
+            if (!typeof(IType).IsAssignableFrom(type)
+                && !typeof(IDirectiveDefinition).IsAssignableFrom(type))
+            {
+                return false;
+            }
+
             if (BaseTypes.IsNamedType(type))
             {
                 return true;
@@ -21,9 +27,10 @@ internal sealed partial class ExtendedType
             if (type.IsGenericType)
             {
                 var definition = type.GetGenericTypeDefinition();
+
                 if (typeof(ListType<>) == definition
                     || typeof(NonNullType<>) == definition
-                    || typeof(NativeType<>) == definition)
+                    || typeof(NamedRuntimeType<>) == definition)
                 {
                     return IsSchemaType(type.GetGenericArguments()[0]);
                 }
@@ -35,7 +42,8 @@ internal sealed partial class ExtendedType
         internal static Type RemoveNonEssentialTypes(Type type)
         {
             if (type.IsGenericType
-                && (type.GetGenericTypeDefinition() == typeof(NativeType<>)
+                && (type.GetGenericTypeDefinition() == typeof(SourceGeneratedType<>)
+                    || type.GetGenericTypeDefinition() == typeof(NamedRuntimeType<>)
                     || type.GetGenericTypeDefinition() == typeof(ValueTask<>)
                     || type.GetGenericTypeDefinition() == typeof(Task<>)))
             {
@@ -48,7 +56,8 @@ internal sealed partial class ExtendedType
         internal static IExtendedType RemoveNonEssentialTypes(IExtendedType type)
         {
             if (type.IsGeneric
-                && (type.Definition == typeof(NativeType<>)
+                && (type.Definition == typeof(SourceGeneratedType<>)
+                    || type.Definition == typeof(NamedRuntimeType<>)
                     || type.Definition == typeof(ValueTask<>)
                     || type.Definition == typeof(Task<>)))
             {
@@ -120,6 +129,7 @@ internal sealed partial class ExtendedType
                     || typeDefinition == typeof(IQueryable<>)
                     || typeDefinition == typeof(IAsyncEnumerable<>)
                     || typeDefinition == typeof(IObservable<>)
+                    || typeDefinition == typeof(ListType<>)
                     || typeDefinition == typeof(List<>)
                     || typeDefinition == typeof(Collection<>)
                     || typeDefinition == typeof(Stack<>)

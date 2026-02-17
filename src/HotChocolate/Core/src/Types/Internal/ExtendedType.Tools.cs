@@ -2,7 +2,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Internal;
 
-internal sealed partial class ExtendedType
+public sealed partial class ExtendedType
 {
     internal static class Tools
     {
@@ -48,7 +48,7 @@ internal sealed partial class ExtendedType
                 var definition = type.GetGenericTypeDefinition();
                 if (typeof(ListType<>) == definition
                     || typeof(NonNullType<>) == definition
-                    || typeof(NativeType<>) == definition)
+                    || typeof(NamedRuntimeType<>) == definition)
                 {
                     return GetNamedType(type.GetGenericArguments()[0]);
                 }

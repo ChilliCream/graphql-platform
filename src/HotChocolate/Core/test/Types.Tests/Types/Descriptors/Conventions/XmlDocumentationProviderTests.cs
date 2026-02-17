@@ -34,6 +34,7 @@ public class XmlDocumentationProviderTests
                 .GetProperty(nameof(WithMultilineXmlDoc.Foo))!);
 
         // assert
+        Assert.NotNull(description);
         Assert.Matches(new Regex(@"\n[ \t]*\n"), description);
         Assert.Contains("    * Users", description);
         Assert.Equal(description.Trim(), description);

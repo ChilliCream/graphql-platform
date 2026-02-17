@@ -1,6 +1,7 @@
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Data.Projections.Handlers;
+using HotChocolate.Data.Projections.Optimizers;
 
 namespace HotChocolate.Data;
 
@@ -15,19 +16,19 @@ public static class ProjectionProviderDescriptorExtensions
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
-        descriptor.RegisterFieldHandler<QueryableProjectionScalarHandler>();
-        descriptor.RegisterFieldHandler<QueryableProjectionListHandler>();
-        descriptor.RegisterFieldHandler<QueryableProjectionFieldHandler>();
+        descriptor.RegisterFieldHandler(QueryableProjectionScalarHandler.Create);
+        descriptor.RegisterFieldHandler(QueryableProjectionListHandler.Create);
+        descriptor.RegisterFieldHandler(QueryableProjectionFieldHandler.Create);
 
-        descriptor.RegisterFieldInterceptor<QueryableFilterInterceptor>();
-        descriptor.RegisterFieldInterceptor<QueryableSortInterceptor>();
-        descriptor.RegisterFieldInterceptor<QueryableFirstOrDefaultInterceptor>();
-        descriptor.RegisterFieldInterceptor<QueryableSingleOrDefaultInterceptor>();
+        descriptor.RegisterFieldInterceptor(QueryableFilterInterceptor.Create);
+        descriptor.RegisterFieldInterceptor(QueryableSortInterceptor.Create);
+        descriptor.RegisterFieldInterceptor(QueryableFirstOrDefaultInterceptor.Create);
+        descriptor.RegisterFieldInterceptor(QueryableSingleOrDefaultInterceptor.Create);
 
-        descriptor.RegisterOptimizer<IsProjectedProjectionOptimizer>();
-        descriptor.RegisterOptimizer<QueryablePagingProjectionOptimizer>();
-        descriptor.RegisterOptimizer<QueryableFilterProjectionOptimizer>();
-        descriptor.RegisterOptimizer<QueryableSortProjectionOptimizer>();
+        descriptor.RegisterOptimizer(IsProjectedProjectionOptimizer.Create);
+        descriptor.RegisterOptimizer(QueryablePagingProjectionOptimizer.Create);
+        descriptor.RegisterOptimizer(QueryableFilterProjectionOptimizer.Create);
+        descriptor.RegisterOptimizer(QueryableSortProjectionOptimizer.Create);
 
         return descriptor;
     }

@@ -4,7 +4,6 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.ObjectPool;
 
 // ReSharper disable once CheckNamespace
 #pragma warning disable IDE0130 // Namespace does not match folder structure
@@ -95,15 +94,6 @@ public static class FusionRequestContextExtensions
         context.Features.GetOrSet<FusionOperationInfo>().OperationPlan = plan;
     }
 
-    internal static ResultPoolSessionHolder CreateResultPoolSession(
-        this RequestContext context)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-
-        var objectPool = context.RequestServices.GetRequiredService<ObjectPool<ResultPoolSession>>();
-        return new ResultPoolSessionHolder(objectPool);
-    }
-
     internal static bool CollectOperationPlanTelemetry(
         this RequestContext context)
     {
@@ -124,7 +114,7 @@ public static class FusionRequestContextExtensions
             return errorHandlingMode;
         }
 
-        return requestOptions.DefaultErrorHandlingMode;
+        return context.Schema.GetOptions().DefaultErrorHandlingMode;
     }
 
     internal static bool AllowErrorHandlingModeOverride(

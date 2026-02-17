@@ -3,7 +3,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types.Descriptors;
 
 /// <summary>
-/// A reference to a type that has not yet been create by name.
+/// A reference to a type that has not yet been created by name.
 /// This reference contains the type name plus a factory to create it.
 /// </summary>
 public sealed class DependantFactoryTypeReference
@@ -21,7 +21,9 @@ public sealed class DependantFactoryTypeReference
             context,
             scope)
     {
-        Name = name.EnsureGraphQLName();
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
+        Name = name;
         Dependency = dependency ?? throw new ArgumentNullException(nameof(dependency));
         Factory = factory ?? throw new ArgumentNullException(nameof(factory));
     }
@@ -32,7 +34,7 @@ public sealed class DependantFactoryTypeReference
     public string Name { get; }
 
     /// <summary>
-    /// Gets the reference to the type this type is dependant on.
+    /// Gets the reference to the type this type is dependent on.
     /// </summary>
     public TypeReference Dependency { get; }
 
@@ -106,14 +108,7 @@ public sealed class DependantFactoryTypeReference
 
     /// <inheritdoc />
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            return base.GetHashCode()
-                ^ Name.GetHashCode() * 397
-                ^ Dependency.GetHashCode() * 397;
-        }
-    }
+        => HashCode.Combine(Name, Dependency);
 
     /// <inheritdoc />
     public override string ToString()

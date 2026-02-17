@@ -8,8 +8,6 @@ using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate.Types.Relay;
 
 public class IdAttributeTests
@@ -620,7 +618,7 @@ public class IdAttributeTests
     {
         [ID] string SomeId { get; }
 
-        [ID] public string? SomeNullableId { get; }
+        [ID] string? SomeNullableId { get; }
 
         [ID] IReadOnlyList<int> SomeIds { get; }
 
@@ -683,14 +681,14 @@ public class IdAttributeTests
         protected internal override void TryConfigure(
             IDescriptorContext context,
             IDescriptor descriptor,
-            ICustomAttributeProvider element)
+            ICustomAttributeProvider? attributeProvider)
         {
             switch (descriptor)
             {
-                case IInputFieldDescriptor dc when element is PropertyInfo:
+                case IInputFieldDescriptor dc when attributeProvider is PropertyInfo:
                     dc.Extend().OnBeforeCompletion((_, d) => AddInterceptingSerializer(d));
                     break;
-                case IArgumentDescriptor dc when element is ParameterInfo:
+                case IArgumentDescriptor dc when attributeProvider is ParameterInfo:
                     dc.Extend().OnBeforeCompletion((_, d) => AddInterceptingSerializer(d));
                     break;
             }

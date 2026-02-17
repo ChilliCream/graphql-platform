@@ -180,6 +180,7 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
                 node(id: $id) {
                     ... on Node @skip(if: $skip) {
                         id
+                        a: id
                     }
                     ... on Discussion {
                         title
@@ -198,12 +199,14 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
             Shared: {
               ... @skip(if: $skip) {
                 id
+                a: id
               }
             }
 
             Discussion: {
               ... @skip(if: $skip) {
                 id
+                a: id
               }
               title
             }
@@ -396,7 +399,7 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
             """);
     }
 
-        [Fact]
+    [Fact]
     public void Spread_On_Type_Of_SelectionSet_Is_Part_Of_Shared_Selections()
     {
         // arrange
@@ -578,6 +581,7 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
                 node(id: $id) {
                     ... on Node @skip(if: $skip) {
                       id
+                      a: id
                     }
                     ... on Discussion  {
                         title
@@ -596,12 +600,14 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
             Shared: {
               ... @skip(if: $skip) {
                 id
+                a: id
               }
             }
 
             Discussion: {
               ... @skip(if: $skip) {
                 id
+                a: id
               }
               title
             }
@@ -669,8 +675,8 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
 
     private static SelectionSetByTypePartitionerResult Partition(FusionSchemaDefinition schema, DocumentNode document)
     {
-        var fragmentRewriter = new InlineFragmentOperationRewriter(schema);
-        var operation = fragmentRewriter.RewriteDocument(document).Definitions
+        var rewriter = new DocumentRewriter(schema);
+        var operation = rewriter.RewriteDocument(document).Definitions
             .OfType<OperationDefinitionNode>()
             .Single();
         var index = SelectionSetIndexer.Create(operation);
@@ -685,7 +691,7 @@ public class SelectionSetByTypePartitionerTests : FusionTestBase
                 index.GetId(nodeField.SelectionSet!),
                 nodeField.SelectionSet!,
                 schema.Types["Node"],
-                Execution.Nodes.SelectionPath.Root),
+                SelectionPath.Root),
             SelectionSetIndex = index
         };
         var partitioner = new SelectionSetByTypePartitioner(schema);

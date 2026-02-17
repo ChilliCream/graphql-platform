@@ -1,0 +1,129 @@
+operation:
+  - document: |
+      {
+        viewer {
+          review {
+            __typename @fusion__requirement
+            ... on AnonymousReview {
+              __typename
+              product {
+                b
+                id @fusion__requirement
+              }
+            }
+            ... on UserReview {
+              __typename
+              product {
+                c
+                d
+                pid @fusion__requirement
+                id @fusion__requirement
+              }
+            }
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 5
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        viewer {
+          review {
+            __typename
+            ... on AnonymousReview {
+              __typename
+              product {
+                id
+              }
+            }
+            ... on UserReview {
+              __typename
+              product {
+                id
+              }
+            }
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: c
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_pid: ID!
+      ) {
+        productByPid(pid: $__fusion_1_pid) {
+          c
+          pid
+        }
+      }
+    source: $.productByPid
+    target: $.viewer.review<UserReview>.product
+    requirements:
+      - name: __fusion_1_pid
+        selectionMap: >-
+          pid
+    dependencies:
+      - id: 4
+  - id: 3
+    type: Operation
+    schema: d
+    operation: |
+      query Op_123456789101112_3(
+        $__fusion_2_pid: ID!
+      ) {
+        productByPid(pid: $__fusion_2_pid) {
+          d
+        }
+      }
+    source: $.productByPid
+    target: $.viewer.review<UserReview>.product
+    requirements:
+      - name: __fusion_2_pid
+        selectionMap: >-
+          pid
+    dependencies:
+      - id: 2
+  - id: 4
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_4(
+        $__fusion_3_id: ID!
+      ) {
+        productById(id: $__fusion_3_id) {
+          pid
+        }
+      }
+    source: $.productById
+    target: $.viewer.review<UserReview>.product
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 5
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_5(
+        $__fusion_4_id: ID!
+      ) {
+        productById(id: $__fusion_4_id) {
+          b
+        }
+      }
+    source: $.productById
+    target: $.viewer.review<AnonymousReview>.product
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

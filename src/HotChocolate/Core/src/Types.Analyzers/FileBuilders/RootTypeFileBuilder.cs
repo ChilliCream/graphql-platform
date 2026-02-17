@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 
@@ -6,7 +7,9 @@ namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class RootTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(sb)
 {
-    public override void WriteInitializeMethod(IOutputTypeInfo type)
+    protected override string OutputFieldDescriptorType => WellKnownTypes.ObjectFieldDescriptor;
+
+    public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type is not RootTypeInfo rootType)
         {
@@ -22,20 +25,20 @@ public sealed class RootTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(
 
         using (Writer.IncreaseIndent())
         {
-            if (rootType.Resolvers.Length > 0)
+            WriteInitializationBase(
+                rootType.SchemaSchemaType.ToFullyQualified(),
+                rootType.Resolvers.Length > 0,
+                rootType.Resolvers.Any(t => t.RequiresParameterBindings),
+                rootType.DescriptorAttributes,
+                rootType.Inaccessible);
+
+            if (rootType.Shareable is DirectiveScope.Type)
             {
-                Writer.WriteIndentedLine(
-                    "var thisType = typeof({0});",
-                    rootType.SchemaSchemaType.ToFullyQualified());
-                Writer.WriteIndentedLine(
-                    "var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;");
-                Writer.WriteIndentedLine(
-                    rootType.Resolvers.Any(t => t.RequiresParameterBindings)
-                        ? "var resolvers = new __Resolvers(bindingResolver);"
-                        : "var resolvers = new __Resolvers();");
+                Writer.WriteLine();
+                Writer.WriteIndentedLine("descriptor.Directive(global::{0}.Instance);", WellKnownTypes.Shareable);
             }
 
-            WriteResolverBindings(rootType);
+            WriteResolverBindings(rootType, typeLookup);
 
             Writer.WriteLine();
             Writer.WriteIndentedLine("Configure(descriptor);");

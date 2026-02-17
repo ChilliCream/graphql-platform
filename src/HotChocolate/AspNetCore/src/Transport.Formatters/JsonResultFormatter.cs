@@ -1,20 +1,21 @@
 using System.Buffers;
+using System.IO.Pipelines;
 using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Text.Json;
 using static HotChocolate.Execution.JsonValueFormatter;
 using static HotChocolate.Execution.ResultFieldNames;
 
 namespace HotChocolate.Transport.Formatters;
 
 /// <summary>
-/// The default JSON formatter for <see cref="IOperationResult"/>.
+/// The default JSON formatter for <see cref="OperationResult"/>.
 /// </summary>
 public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionResultFormatter
 {
     private readonly JsonWriterOptions _options;
     private readonly JsonSerializerOptions _serializerOptions;
     private readonly JsonNullIgnoreCondition _nullIgnoreCondition;
-    private readonly ThreadLocal<Utf8JsonWriter?> _writer = new(valueFactory: () => null, trackAllValues: false);
 
     /// <summary>
     /// Initializes a new instance of <see cref="JsonResultFormatter"/> with default options.
@@ -25,6 +26,7 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     public JsonResultFormatter(bool indented = false)
         : this(new JsonResultFormatterOptions { Indented = indented })
     {
+        _nullIgnoreCondition = JsonNullIgnoreCondition.None;
     }
 
     /// <summary>
@@ -35,118 +37,40 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
     /// </param>
     public JsonResultFormatter(JsonResultFormatterOptions options)
     {
-        _options = options.CreateWriterOptions();
+        _options = options.CreateWriterOptions() with { SkipValidation = true };
         _serializerOptions = options.CreateSerializerOptions();
         _nullIgnoreCondition = options.NullIgnoreCondition;
     }
 
     /// <summary>
-    /// The default JSON formatter for <see cref="IOperationResult"/> with indentations.
+    /// The default JSON formatter for <see cref="OperationResult"/> with indentations.
     /// </summary>
     public static JsonResultFormatter Indented { get; } = new(true);
 
     /// <summary>
-    /// The default JSON formatter for <see cref="IOperationResult"/> without indentations.
+    /// The default JSON formatter for <see cref="OperationResult"/> without indentations.
     /// </summary>
     public static JsonResultFormatter Default { get; } = new();
 
     /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync"/>
     public ValueTask FormatAsync(
         IExecutionResult result,
-        Stream outputStream,
+        PipeWriter writer,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(outputStream);
+        ArgumentNullException.ThrowIfNull(writer);
 
         return result switch
         {
-            IOperationResult singleResult => FormatInternalAsync(singleResult, outputStream, cancellationToken),
-            OperationResultBatch resultBatch => FormatInternalAsync(resultBatch, outputStream, cancellationToken),
-            IResponseStream responseStream => FormatInternalAsync(responseStream, outputStream, cancellationToken),
+            OperationResult singleResult => FormatInternalAsync(singleResult, writer, cancellationToken),
+            OperationResultBatch resultBatch => FormatInternalAsync(resultBatch, writer, cancellationToken),
+            IResponseStream responseStream => FormatInternalAsync(responseStream, writer, cancellationToken),
             _ => throw new NotSupportedException($"The result type '{result.GetType().FullName}' is not supported.")
         };
     }
 
-    /// <summary>
-    /// Formats a query result as JSON string.
-    /// </summary>
-    /// <param name="result">
-    /// The query result.
-    /// </param>
-    /// <param name="writer">
-    /// The JSON writer.
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="result"/> is <c>null</c>.
-    /// <paramref name="writer"/> is <c>null</c>.
-    /// </exception>
-    public void Format(IOperationResult result, Utf8JsonWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(writer);
-
-        WriteResult(writer, result);
-    }
-
-    /// <summary>
-    /// Formats a <see cref="IError"/> as JSON string.
-    /// </summary>
-    /// <param name="error">
-    /// The error object.
-    /// </param>
-    /// <param name="writer">
-    /// The JSON writer.
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="error"/> is <c>null</c>.
-    /// <paramref name="writer"/> is <c>null</c>.
-    /// </exception>
-    public void FormatError(IError error, Utf8JsonWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(error);
-        ArgumentNullException.ThrowIfNull(writer);
-
-        WriteError(writer, error, _serializerOptions, _nullIgnoreCondition);
-    }
-
-    /// <summary>
-    /// Formats a list of <see cref="IError"/>s as JSON array string.
-    /// </summary>
-    /// <param name="errors">
-    /// The list of error objects.
-    /// </param>
-    /// <param name="writer">
-    /// The JSON writer.
-    /// </param>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="errors"/> is <c>null</c>.
-    /// <paramref name="writer"/> is <c>null</c>.
-    /// </exception>
-    public void FormatErrors(IReadOnlyList<IError> errors, Utf8JsonWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(errors);
-        ArgumentNullException.ThrowIfNull(writer);
-
-        writer.WriteStartArray();
-
-        for (var i = 0; i < errors.Count; i++)
-        {
-            WriteError(writer, errors[i], _serializerOptions, _nullIgnoreCondition);
-        }
-
-        writer.WriteEndArray();
-    }
-
-    public void FormatDictionary(IReadOnlyDictionary<string, object?> dictionary, Utf8JsonWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(dictionary);
-        ArgumentNullException.ThrowIfNull(writer);
-
-        WriteDictionary(writer, dictionary, _serializerOptions, _nullIgnoreCondition);
-    }
-
-    public void Format(IOperationResult result, IBufferWriter<byte> writer)
+    public void Format(OperationResult result, IBufferWriter<byte> writer)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(writer);
@@ -154,264 +78,131 @@ public sealed class JsonResultFormatter : IOperationResultFormatter, IExecutionR
         FormatInternal(result, writer);
     }
 
-    private void FormatInternal(IOperationResult result, IBufferWriter<byte> writer)
-    {
-        var jsonWriter = CreateWriter(writer);
-        WriteResult(jsonWriter, result);
-        jsonWriter.Flush();
-    }
-
     public ValueTask FormatAsync(
-        IOperationResult result,
-        Stream outputStream,
+        OperationResult result,
+        PipeWriter writer,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(outputStream);
+        ArgumentNullException.ThrowIfNull(writer);
 
-        return FormatInternalAsync(result, outputStream, cancellationToken);
+        return FormatInternalAsync(result, writer, cancellationToken);
     }
 
-    private async ValueTask FormatInternalAsync(
-        IOperationResult result,
-        Stream outputStream,
-        CancellationToken cancellationToken)
+    private void FormatInternal(OperationResult result, IBufferWriter<byte> bufferWriter)
     {
-        Exception? exception = null;
-        var writer = outputStream.CreatePipeWriter();
-
-        try
-        {
-            FormatInternal(result, writer);
-            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            exception = ex;
-            throw;
-        }
-        finally
-        {
-            await writer.CompleteAsync(exception).ConfigureAwait(false);
-        }
+        var jsonWriter = new JsonWriter(bufferWriter, _options, _nullIgnoreCondition);
+        Format(result, jsonWriter);
     }
 
-    private async ValueTask FormatInternalAsync(
-        OperationResultBatch resultBatch,
-        Stream outputStream,
-        CancellationToken cancellationToken = default)
+    public void Format(OperationResult result, JsonWriter writer)
     {
-        Exception? exception = null;
-        var writer = outputStream.CreatePipeWriter();
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(writer);
 
-        try
-        {
-            foreach (var result in resultBatch.Results)
-            {
-                switch (result)
-                {
-                    case IOperationResult singleResult:
-                        FormatInternal(singleResult, writer);
-                        break;
-
-                    case IResponseStream batchResult:
-                        await foreach (var partialResult in batchResult.ReadResultsAsync()
-                            .WithCancellation(cancellationToken)
-                            .ConfigureAwait(false))
-                        {
-                            try
-                            {
-                                FormatInternal(partialResult, writer);
-                                await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
-                            }
-                            finally
-                            {
-                                await partialResult.DisposeAsync().ConfigureAwait(false);
-                            }
-                        }
-                        break;
-                }
-            }
-
-            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            exception = ex;
-            throw;
-        }
-        finally
-        {
-            await writer.CompleteAsync(exception).ConfigureAwait(false);
-        }
-    }
-
-    private async ValueTask FormatInternalAsync(
-        IResponseStream batchResult,
-        Stream outputStream,
-        CancellationToken cancellationToken = default)
-    {
-        Exception? exception = null;
-        var writer = outputStream.CreatePipeWriter();
-
-        try
-        {
-            await foreach (var partialResult in batchResult.ReadResultsAsync()
-                .WithCancellation(cancellationToken)
-                .ConfigureAwait(false))
-            {
-                try
-                {
-                    FormatInternal(partialResult, writer);
-                }
-                finally
-                {
-                    await partialResult.DisposeAsync().ConfigureAwait(false);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            exception = ex;
-            throw;
-        }
-        finally
-        {
-            await writer.CompleteAsync(exception).ConfigureAwait(false);
-        }
-    }
-
-    private void WriteResult(Utf8JsonWriter writer, IOperationResult result)
-    {
         writer.WriteStartObject();
 
         if (result.RequestIndex.HasValue)
         {
-            writer.WriteNumber(RequestIndex, result.RequestIndex.Value);
+            writer.WritePropertyName(RequestIndex);
+            writer.WriteNumberValue(result.RequestIndex.Value);
         }
 
         if (result.VariableIndex.HasValue)
         {
-            writer.WriteNumber(VariableIndex, result.VariableIndex.Value);
+            writer.WritePropertyName(VariableIndex);
+            writer.WriteNumberValue(result.VariableIndex.Value);
         }
 
-        WriteErrors(writer, result.Errors);
-        WriteData(writer, result);
-        WriteItems(writer, result.Items);
-        WriteIncremental(writer, result.Incremental);
-        WriteExtensions(writer, result.Extensions, _serializerOptions, _nullIgnoreCondition);
-        WritePatchInfo(writer, result);
-        WriteHasNext(writer, result);
+        WriteErrors(
+            writer,
+            result.Errors,
+            _serializerOptions);
+
+        if (result.Data.HasValue)
+        {
+            writer.WritePropertyName(Data);
+            result.Data.Value.Formatter.WriteDataTo(writer);
+        }
+
+        WriteExtensions(
+            writer,
+            result.Extensions,
+            _serializerOptions);
+
+        if (result.IsIncremental)
+        {
+            WriteIncremental(
+                writer,
+                result,
+                _serializerOptions);
+        }
 
         writer.WriteEndObject();
     }
 
-    private static void WritePatchInfo(
-        Utf8JsonWriter writer,
-        IOperationResult result)
+    private async ValueTask FormatInternalAsync(
+        OperationResult result,
+        PipeWriter writer,
+        CancellationToken cancellationToken)
     {
-        if (result.Label is not null)
-        {
-            writer.WriteString("label", result.Label);
-        }
-
-        if (result.Path is not null)
-        {
-            WritePath(writer, result.Path);
-        }
+        FormatInternal(result, writer);
+        await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private static void WriteHasNext(
-        Utf8JsonWriter writer,
-        IOperationResult result)
+    private async ValueTask FormatInternalAsync(
+        OperationResultBatch resultBatch,
+        PipeWriter writer,
+        CancellationToken cancellationToken = default)
     {
-        if (result.HasNext.HasValue)
+        foreach (var result in resultBatch.Results)
         {
-            writer.WriteBoolean("hasNext", result.HasNext.Value);
-        }
-    }
-
-    private void WriteData(
-        Utf8JsonWriter writer,
-        IOperationResult result)
-    {
-        if (!result.IsDataSet)
-        {
-            return;
-        }
-
-        if (result.Data is null)
-        {
-            writer.WriteNull(Data);
-            return;
-        }
-
-        writer.WritePropertyName(Data);
-
-        WriteValue(writer, result.Data, _serializerOptions, _nullIgnoreCondition);
-    }
-
-    private void WriteItems(Utf8JsonWriter writer, IReadOnlyList<object?>? items)
-    {
-        if (items is { Count: > 0 })
-        {
-            writer.WritePropertyName(Items);
-
-            writer.WriteStartArray();
-
-            for (var i = 0; i < items.Count; i++)
+            switch (result)
             {
-                WriteValue(writer, items[i], _serializerOptions, _nullIgnoreCondition);
-            }
+                case OperationResult singleResult:
+                    FormatInternal(singleResult, writer);
+                    break;
 
-            writer.WriteEndArray();
+                case IResponseStream batchResult:
+                    await foreach (var partialResult in batchResult.ReadResultsAsync()
+                        .WithCancellation(cancellationToken)
+                        .ConfigureAwait(false))
+                    {
+                        try
+                        {
+                            FormatInternal(partialResult, writer);
+                            await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            await partialResult.DisposeAsync().ConfigureAwait(false);
+                        }
+                    }
+
+                    break;
+            }
         }
+
+        await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private void WriteErrors(Utf8JsonWriter writer, IReadOnlyList<IError>? errors)
+    private async ValueTask FormatInternalAsync(
+        IResponseStream batchResult,
+        PipeWriter writer,
+        CancellationToken cancellationToken = default)
     {
-        if (errors is { Count: > 0 })
+        await foreach (var partialResult in batchResult.ReadResultsAsync()
+            .WithCancellation(cancellationToken)
+            .ConfigureAwait(false))
         {
-            writer.WritePropertyName(Errors);
-
-            writer.WriteStartArray();
-
-            for (var i = 0; i < errors.Count; i++)
+            try
             {
-                WriteError(writer, errors[i], _serializerOptions, _nullIgnoreCondition);
+                FormatInternal(partialResult, writer);
             }
-
-            writer.WriteEndArray();
-        }
-    }
-
-    private void WriteIncremental(Utf8JsonWriter writer, IReadOnlyList<IOperationResult>? patches)
-    {
-        if (patches is { Count: > 0 })
-        {
-            writer.WritePropertyName(Incremental);
-
-            writer.WriteStartArray();
-
-            for (var i = 0; i < patches.Count; i++)
+            finally
             {
-                WriteResult(writer, patches[i]);
+                await partialResult.DisposeAsync().ConfigureAwait(false);
             }
-
-            writer.WriteEndArray();
         }
-    }
-
-    private Utf8JsonWriter CreateWriter(IBufferWriter<byte> buffer)
-    {
-        if (_writer.Value is not { } jsonWriter)
-        {
-            jsonWriter = new Utf8JsonWriter(buffer, _options);
-            _writer.Value = jsonWriter;
-            return jsonWriter;
-        }
-
-        jsonWriter.Reset(buffer);
-        return jsonWriter;
     }
 }

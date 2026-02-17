@@ -193,7 +193,7 @@ public partial class Schema
         ArgumentException.ThrowIfNullOrEmpty(typeName);
 
         if (Types.TryGetType(typeName, out var type)
-            && type is IHasRuntimeType ct
+            && type is IRuntimeTypeProvider ct
             && ct.RuntimeType != typeof(object))
         {
             runtimeType = ct.RuntimeType;

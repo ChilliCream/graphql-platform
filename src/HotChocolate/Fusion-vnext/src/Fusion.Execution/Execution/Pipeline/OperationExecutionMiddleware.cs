@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
@@ -18,7 +19,6 @@ internal sealed class OperationExecutionMiddleware
 
     public async ValueTask InvokeAsync(
         RequestContext context,
-        ResultPoolSession resultPoolSession,
         RequestDelegate next,
         CancellationToken cancellationToken)
     {
@@ -42,7 +42,7 @@ internal sealed class OperationExecutionMiddleware
 
                     _diagnosticEvents.RequestError(context, error);
 
-                    context.Result = OperationResultBuilder.CreateError(error);
+                    context.Result = OperationResult.FromError(error);
                     return;
                 }
 
@@ -64,7 +64,7 @@ internal sealed class OperationExecutionMiddleware
                             cancellationToken);
                     }
 
-                    var results = await Task.WhenAll(tasks);
+                    var results = ImmutableList.CreateRange(await Task.WhenAll(tasks));
                     context.Result = new OperationResultBatch(results);
                 }
                 else
@@ -89,9 +89,8 @@ internal sealed class OperationExecutionMiddleware
                 var middleware = new OperationExecutionMiddleware(diagnosticEvents);
                 return context => middleware.InvokeAsync(
                     context,
-                    context.RequestServices.GetRequiredService<ResultPoolSession>(),
                     next,
                     context.RequestAborted);
             },
-            nameof(OperationExecutionMiddleware));
+            WellKnownRequestMiddleware.OperationExecutionMiddleware);
 }

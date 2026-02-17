@@ -5,10 +5,18 @@ using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
+#if FUSION
+using HotChocolate.Transport;
+using HotChocolate.Transport.Http;
+#endif
 using HotChocolate.Transport.Serialization;
 using static System.Net.Http.HttpCompletionOption;
 
+#if FUSION
+namespace HotChocolate.Fusion.Transport.Http;
+#else
 namespace HotChocolate.Transport.Http;
+#endif
 
 /// <summary>
 /// A default implementation of <see cref="GraphQLHttpClient"/> that supports the GraphQL over HTTP spec draft.
@@ -277,7 +285,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             sb.Append(Uri.EscapeDataString(or.OperationName!));
         }
 
-        if (or.OnError is {} errorHandlingMode)
+        if (or.OnError is { } errorHandlingMode)
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("onError=");

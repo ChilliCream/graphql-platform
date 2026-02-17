@@ -103,7 +103,7 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var schema = ComposeSchema(
             """
-            schema @schemaName(value: "A") {
+            schema {
               query: Query
             }
 
@@ -111,13 +111,13 @@ public class OperationPlannerTests : FusionTestBase
               topProducts: [Product!]
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
               name: String!
             }
             """,
             """
-            schema @schemaName(value: "B") {
+            schema {
               query: Query
             }
 
@@ -154,7 +154,7 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var schema = ComposeSchema(
             """
-            schema @schemaName(value: "A") {
+            schema {
               query: Query
             }
 
@@ -169,7 +169,7 @@ public class OperationPlannerTests : FusionTestBase
             }
             """,
             """
-            schema @schemaName(value: "B") {
+            schema {
               query: Query
             }
 
@@ -210,7 +210,7 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var schema = ComposeSchema(
             """
-            schema @schemaName(value: "A") {
+            schema {
               query: Query
             }
 
@@ -226,7 +226,7 @@ public class OperationPlannerTests : FusionTestBase
             }
             """,
             """
-            schema @schemaName(value: "B") {
+            schema {
               query: Query
             }
 
@@ -265,7 +265,7 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var schema = ComposeSchema(
             """
-            schema @schemaName(value: "A") {
+            schema {
               query: Query
             }
 
@@ -273,14 +273,14 @@ public class OperationPlannerTests : FusionTestBase
               topProducts: [Product!]
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
               name: String!
               region: String!
             }
             """,
             """
-            schema @schemaName(value: "B") {
+            schema {
               query: Query
             }
 
@@ -317,7 +317,7 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var schema = ComposeSchema(
             """
-            schema @schemaName(value: "A") {
+            schema {
               query: Query
             }
 
@@ -325,14 +325,14 @@ public class OperationPlannerTests : FusionTestBase
               topProducts: [Product!]
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
               name: String!
               region: String!
             }
             """,
             """
-            schema @schemaName(value: "B") {
+            schema {
               query: Query
             }
 
@@ -369,7 +369,7 @@ public class OperationPlannerTests : FusionTestBase
         // arrange
         var schema = ComposeSchema(
             """
-            schema @schemaName(value: "A") {
+            schema {
               query: Query
             }
 
@@ -377,13 +377,13 @@ public class OperationPlannerTests : FusionTestBase
               topProducts: [Product!]
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
               region: String!
             }
             """,
             """
-            schema @schemaName(value: "B") {
+            schema {
               query: Query
             }
 
@@ -393,11 +393,11 @@ public class OperationPlannerTests : FusionTestBase
 
             type Product {
               id: ID!
-              sku(region: String! @require(field: "region")): String!
+              sku(region: String! @require(field: "region")): String! @shareable
             }
             """,
             """
-            schema @schemaName(value: "C") {
+            schema {
               query: Query
             }
 

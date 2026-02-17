@@ -65,7 +65,7 @@ public class SelectionContextTests
             }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         string.Join("\n", list).MatchSnapshot();
     }
 
@@ -129,7 +129,7 @@ public class SelectionContextTests
             }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         string.Join("\n", list).MatchSnapshot();
     }
 
@@ -215,7 +215,7 @@ public class SelectionContextTests
 
         // assert
 
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         string.Join("\n", list).MatchSnapshot();
     }
 
@@ -286,7 +286,7 @@ public class SelectionContextTests
             }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         Assert.IsType<InvalidOperationException>(ex).Message.MatchSnapshot();
     }
 
@@ -356,7 +356,7 @@ public class SelectionContextTests
             }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         string.Join("\n", list).MatchSnapshot(selectedField);
     }
 }

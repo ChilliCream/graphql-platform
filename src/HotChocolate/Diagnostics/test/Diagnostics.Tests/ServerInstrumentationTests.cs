@@ -232,17 +232,17 @@ public class ServerInstrumentationTests : ServerTestBase
             // act
             await server.PostRawAsync(new ClientQueryRequest
             {
-                Query = @"
-                {
-                    hero(episode: NEW_HOPE)
+                Query =
+                    """
                     {
-                        name
-                        ... on Droid @defer(label: ""my_id"")
-                        {
-                            id
+                        hero(episode: NEW_HOPE) {
+                            name
+                            ... on Droid @defer(label: "my_id") {
+                                id
+                            }
                         }
                     }
-                }"
+                    """
             });
 
             // assert
@@ -296,6 +296,7 @@ public class ServerInstrumentationTests : ServerTestBase
             // act
             await server.PostRawAsync(new ClientQueryRequest
             {
+                // lang=text
                 Query = @"
                 {
                     hero(episode: NEW_HOPE)
@@ -336,6 +337,7 @@ public class ServerInstrumentationTests : ServerTestBase
             // act
             await server.PostRawAsync(new ClientQueryRequest
             {
+                // lang=text
                 Query = @"
                 {
                     1

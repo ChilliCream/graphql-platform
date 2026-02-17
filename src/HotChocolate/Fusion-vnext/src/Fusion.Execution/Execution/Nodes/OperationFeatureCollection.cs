@@ -13,7 +13,11 @@ internal sealed class OperationFeatureCollection : IFeatureCollection
 #else
     private readonly object _writeLock = new();
 #endif
+#if NET10_0_OR_GREATER
+    private ImmutableDictionary<Type, object> _features = [];
+#else
     private ImmutableDictionary<Type, object> _features = ImmutableDictionary<Type, object>.Empty;
+#endif
     private volatile int _containerRevision;
 
     /// <summary>
@@ -54,7 +58,7 @@ internal sealed class OperationFeatureCollection : IFeatureCollection
                     return;
                 }
 
-                _features = _features.SetItem(key,  value);
+                _features = _features.SetItem(key, value);
                 _containerRevision++;
             }
         }

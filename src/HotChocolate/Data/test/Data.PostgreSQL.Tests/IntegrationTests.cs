@@ -225,7 +225,29 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
                     }
                 }
             }
+            """);
 
+        // assert
+        MatchSnapshot(result, interceptor);
+    }
+
+    [Fact]
+    public async Task Project_Into_1to1_Relation()
+    {
+        // arrange
+        using var interceptor = new TestQueryInterceptor();
+
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                products(first: 2) {
+                    nodes {
+                        name
+                        brandName
+                    }
+                }
+            }
             """);
 
         // assert
@@ -460,7 +482,10 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
 
         // assert
         var cache = services.GetRequiredService<IMemoryCache>();
-        var entry = cache.Get<Promise<Brand>>(new PromiseCacheKey("HotChocolate.Data.Services.BrandByIdDataLoader", 1));
+        var entry = cache.Get<Promise<Brand>>(
+            new PromiseCacheKey(
+                "HotChocolate.Data.Services.BrandByIdDataLoader:1a50fe619de69da54111d7525dc67ff9",
+                1));
         var brand = await entry.Task;
         Assert.Equal("Daybird", brand.Name);
     }
@@ -480,7 +505,7 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
 
         var cache = services.GetRequiredService<IMemoryCache>();
         cache.Set(
-            new PromiseCacheKey("HotChocolate.Data.Services.BrandByIdDataLoader", 1),
+            new PromiseCacheKey("HotChocolate.Data.Services.BrandByIdDataLoader:1a50fe619de69da54111d7525dc67ff9", 1),
             new Promise<Brand>(new Brand { Id = 1, Name = "Test" }));
 
         // act

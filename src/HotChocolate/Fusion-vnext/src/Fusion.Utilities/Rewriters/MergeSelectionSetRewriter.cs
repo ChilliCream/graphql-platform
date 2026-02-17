@@ -3,9 +3,12 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Rewriters;
 
-public sealed class MergeSelectionSetRewriter(ISchemaDefinition schema)
+public sealed class MergeSelectionSetRewriter(
+    ISchemaDefinition schema,
+    bool ignoreMissingTypeSystemMembers = false)
 {
-    private readonly InlineFragmentOperationRewriter _rewriter = new(schema);
+    private readonly InlineFragmentOperationRewriter _rewriter =
+        new(schema, ignoreMissingTypeSystemMembers: ignoreMissingTypeSystemMembers);
 
     public SelectionSetNode Merge(
         SelectionSetNode selectionSet1,
@@ -21,7 +24,8 @@ public sealed class MergeSelectionSetRewriter(ISchemaDefinition schema)
         CopyTo(selectionSet1.Selections, selections, 0);
         CopyTo(selectionSet2.Selections, selections, selectionSet1.Selections.Count);
 
-        var context = new InlineFragmentOperationRewriter.Context(type, [], mergeObserver);
+        var hasIncrementalParts = false;
+        var context = new InlineFragmentOperationRewriter.Context(type, [], ref hasIncrementalParts, mergeObserver);
         var merged = new SelectionSetNode(null, selections);
 
         mergeObserver.OnMerge(selectionSet1, selectionSet2);
@@ -40,7 +44,8 @@ public sealed class MergeSelectionSetRewriter(ISchemaDefinition schema)
     {
         mergeObserver ??= NoopSelectionSetMergeObserver.Instance;
 
-        var context = new InlineFragmentOperationRewriter.Context(type, [], mergeObserver);
+        var hasIncrementalParts = false;
+        var context = new InlineFragmentOperationRewriter.Context(type, [], ref hasIncrementalParts, mergeObserver);
         var merged = new SelectionSetNode(null, [.. selectionSets.SelectMany(t => t.Selections)]);
 
         mergeObserver.OnMerge(selectionSets);
@@ -59,42 +64,4 @@ public sealed class MergeSelectionSetRewriter(ISchemaDefinition schema)
             target[i + offset] = source[i];
         }
     }
-}
-
-public interface ISelectionSetMergeObserver
-{
-    void OnMerge(FieldNode field1, FieldNode field2);
-
-    void OnMerge(IEnumerable<FieldNode> fields);
-
-    void OnMerge(InlineFragmentNode inlineFragment1, InlineFragmentNode inlineFragment2);
-
-    void OnMerge(SelectionSetNode selectionSet1, SelectionSetNode selectionSet2);
-
-    void OnMerge(IEnumerable<SelectionSetNode> selectionSets);
-}
-
-internal sealed class NoopSelectionSetMergeObserver : ISelectionSetMergeObserver
-{
-    public void OnMerge(FieldNode field1, FieldNode field2)
-    {
-    }
-
-    public void OnMerge(IEnumerable<FieldNode> fields)
-    {
-    }
-
-    public void OnMerge(InlineFragmentNode inlineFragment1, InlineFragmentNode inlineFragment2)
-    {
-    }
-
-    public void OnMerge(SelectionSetNode selectionSet1, SelectionSetNode selectionSet2)
-    {
-    }
-
-    public void OnMerge(IEnumerable<SelectionSetNode> selectionSets)
-    {
-    }
-
-    public static NoopSelectionSetMergeObserver Instance { get; } = new();
 }

@@ -1,21 +1,23 @@
 operation:
-  - document: >-
+  - document: |
       query GetTopProducts {
         topProducts {
           id
+          id @fusion__requirement
           name
           sku @fusion__requirement
-          id @fusion__requirement
           region @fusion__requirement
         }
       }
     name: GetTopProducts
     hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 3
 nodes:
   - id: 1
     type: Operation
     schema: a
-    operation: >-
+    operation: |
       query GetTopProducts_123456789101112_1 {
         topProducts {
           id
@@ -25,7 +27,7 @@ nodes:
   - id: 2
     type: Operation
     schema: c
-    operation: >-
+    operation: |
       query GetTopProducts_123456789101112_2(
         $__fusion_1_sku: String!
       ) {
@@ -44,10 +46,10 @@ nodes:
   - id: 3
     type: Operation
     schema: b
-    operation: >-
+    operation: |
       query GetTopProducts_123456789101112_3(
         $__fusion_2_id: ID!
-        $__fusion_3_region: String!
+          $__fusion_3_region: String!
       ) {
         productById(id: $__fusion_2_id) {
           sku(region: $__fusion_3_region)

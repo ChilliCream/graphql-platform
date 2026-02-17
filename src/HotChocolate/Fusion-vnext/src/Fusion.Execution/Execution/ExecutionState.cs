@@ -55,8 +55,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
                 break;
 
             default:
-                throw new ArgumentOutOfRangeException(
-                    "Unexpected operation type.");
+                throw new ArgumentOutOfRangeException("Unexpected operation type.");
         }
     }
 
@@ -117,7 +116,15 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
                     SpanId = result.Activity?.SpanId.ToHexString(),
                     Status = result.Status,
                     Duration = result.Duration,
-                    VariableSets = result.VariableValueSets
+                    VariableSets = result.VariableValueSets,
+                    Transport = result.TransportDetails.Uri is not null
+                        && result.TransportDetails.ContentType is not null
+                            ? new ExecutionNodeTransportTrace
+                            {
+                                Uri = result.TransportDetails.Uri,
+                                ContentType = result.TransportDetails.ContentType
+                            }
+                            : null
                 });
         }
 

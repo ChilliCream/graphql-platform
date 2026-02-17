@@ -24,4 +24,9 @@ public static class ContentType
     /// Gets the application/graphql-response+jsonl content type.
     /// </summary>
     public const string GraphQLJsonLine = "application/graphql-response+jsonl";
+
+    /// <summary>
+    /// Gets the application/jsonl content type.
+    /// </summary>
+    public const string JsonLine = "application/jsonl";
 }

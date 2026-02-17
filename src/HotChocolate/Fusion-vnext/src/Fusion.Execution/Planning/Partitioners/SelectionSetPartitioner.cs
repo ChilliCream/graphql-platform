@@ -15,7 +15,6 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         var context = new Context
         {
             SchemaName = input.SchemaName,
-            AllowRequirements = input.AllowRequirements,
             RootPath = input.SelectionSet.Path,
             SelectionSetIndex = input.SelectionSetIndex
         };
@@ -25,7 +24,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 context,
                 input.SelectionSet.Type,
                 input.SelectionSet.Node,
-                input.ProvidedSelectionSetNode);
+                null);
 
         return new SelectionSetPartitionerResult(
             resolvable,
@@ -64,7 +63,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                     {
                         if (type == schema.QueryType)
                         {
-                            var field = complexType!.Fields[fieldNode.Name.Value];
+                            var field = complexType!.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
 
                             if (field.IsIntrospectionField)
                             {
@@ -102,13 +101,22 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         context.Nodes.Pop();
 
-        if (resolvableSelections is null && unresolvableSelections is null)
+        var isAbstractType = type.NamedType().IsAbstractType();
+
+        if (resolvableSelections is null && unresolvableSelections is null && !isAbstractType)
         {
             return (selectionSetNode, null);
         }
 
         if (unresolvableSelections is not null)
         {
+            if (isAbstractType && !unresolvableSelections.Any(IsTypeNameSelection))
+            {
+                unresolvableSelections = [
+                    new FieldNode(IntrospectionFieldNames.TypeName),
+                    ..unresolvableSelections];
+            }
+
             var unresolvableSelectionSet = new SelectionSetNode(unresolvableSelections);
             context.Register(selectionSetNode, unresolvableSelectionSet);
 
@@ -121,17 +129,19 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             unresolvableSelections = null;
         }
 
-        var resolvableSelections2 = resolvableSelections ?? selectionSetNode.Selections;
+        resolvableSelections ??= [.. selectionSetNode.Selections];
 
-        if (type.NamedType().IsAbstractType())
+        if (isAbstractType && !resolvableSelections.Any(IsTypeNameSelection))
         {
-            resolvableSelections2 = [new FieldNode(IntrospectionFieldNames.TypeName), ..resolvableSelections2];
+            resolvableSelections = [
+                new FieldNode(IntrospectionFieldNames.TypeName),
+                ..resolvableSelections];
         }
 
         var result =
         (
             Resolvable:
-                selectionSetNode.WithSelections(resolvableSelections2),
+                selectionSetNode.WithSelections(resolvableSelections),
             Unresolvable: unresolvableSelections is not null
                 ? selectionSetNode.WithSelections(unresolvableSelections)
                 : null
@@ -192,6 +202,17 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             // todo match correct inline fragment
             return providedSelectionSetNode;
         }
+
+        static bool IsTypeNameSelection(ISelectionNode selection)
+        {
+            if (selection is FieldNode field)
+            {
+                return field.Name.Value.Equals(IntrospectionFieldNames.TypeName)
+                    && field.Alias is null;
+            }
+
+            return false;
+        }
     }
 
     private (FieldNode?, FieldNode?) RewriteFieldNode(
@@ -200,7 +221,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         FieldNode fieldNode,
         FieldNode? providedFieldNode)
     {
-        var field = complexType.Fields[fieldNode.Name.Value];
+        var field = complexType.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
 
         if (providedFieldNode is null)
         {
@@ -222,13 +243,6 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                             context.BuildPath()));
                 return (null, null);
             }
-
-            // if requirements are not allowed we return null
-            // which will remove the field from the rewritten selection set.
-            // if (!context.AllowRequirements && source.Requirements is not null)
-            // {
-            //    return (null, fieldNode);
-            // }
         }
 
         var selectionSet = fieldNode.SelectionSet;
@@ -272,6 +286,11 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             typeCondition = schema.Types[inlineFragmentNode.TypeCondition.Name.Value];
         }
 
+        if (!typeCondition.ExistsInSchema(context.SchemaName))
+        {
+            return (null, null);
+        }
+
         context.Nodes.Push(inlineFragmentNode);
 
         var (resolvable, unresolvable) =
@@ -299,8 +318,6 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
     {
         public required string SchemaName { get; init; }
 
-        public required bool AllowRequirements { get; init; }
-
         public required SelectionPath RootPath { get; init; }
 
         public required ISelectionSetIndex SelectionSetIndex { get; set; } = null!;
@@ -313,7 +330,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 if (field is null)
                 {
                     field = SelectionSetIndex.ToBuilder();
-                    this.SelectionSetIndex = field;
+                    SelectionSetIndex = field;
                 }
 
                 return field;

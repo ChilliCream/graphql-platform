@@ -1,0 +1,11 @@
+{
+  "document": "{\n  foo\n}",
+  "variableValues": [
+    {
+      "one": "bar"
+    },
+    {
+      "one": "baz"
+    }
+  ]
+}

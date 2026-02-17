@@ -27,9 +27,16 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     private const string EqualsMethodName = "Equals";
     private const string CloneMethodName = "<Clone>$";
 
+#if NET9_0_OR_GREATER
+    private readonly Lock _parametersLock = new();
+#else
+    private readonly object _parametersLock = new();
+#endif
     private readonly TypeCache _typeCache = new();
     private readonly ConcurrentDictionary<MethodInfo, ExtendedMethodInfo> _methods = [];
-    private readonly ConcurrentDictionary<(Type, bool, bool), MemberInfo[]> _memberCache = new();
+    private readonly ConcurrentDictionary<(Type, bool, bool), MemberInfo[]> _membersCache = new();
+    private readonly ConcurrentDictionary<MethodInfo, ParameterInfo[]> _parametersCache = new();
+    private readonly ConcurrentDictionary<(ICustomAttributeProvider, bool), ImmutableArray<object>> _attributes = new();
 
     /// <summary>
     /// Infer type to be non-null if <see cref="RequiredAttribute"/> is found.
@@ -47,7 +54,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
 
         var cacheKey = (type, includeIgnored, includeStatic);
 
-        if (_memberCache.TryGetValue(cacheKey, out var cached))
+        if (_membersCache.TryGetValue(cacheKey, out var cached))
         {
             return cached;
         }
@@ -71,10 +78,33 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         var selectedMembers = new MemberInfo[next];
         span.CopyTo(selectedMembers);
         span.Clear();
-        _memberCache.TryAdd(cacheKey, selectedMembers);
+        _membersCache.TryAdd(cacheKey, selectedMembers);
 
         ArrayPool<MemberInfo>.Shared.Return(temp);
         return selectedMembers;
+    }
+
+    /// <inheritdoc />
+    public ParameterInfo[] GetParameters(MethodInfo method)
+    {
+        // ReSharper disable once InconsistentlySynchronizedField
+        if (_parametersCache.TryGetValue(method, out var parameters))
+        {
+            return parameters;
+        }
+
+        lock (_parametersLock)
+        {
+            if (_parametersCache.TryGetValue(method, out parameters))
+            {
+                return parameters;
+            }
+
+            parameters = method.GetParameters();
+            _parametersCache.TryAdd(method, parameters);
+
+            return parameters;
+        }
     }
 
     /// <inheritdoc />
@@ -164,7 +194,11 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
 
         var info = _methods.GetOrAdd(
             method,
-            static (m, c) => ExtendedType.FromMethod(m, c), _typeCache);
+            static (methodInfo, typeInspector) =>
+            {
+                var parameters = typeInspector.GetParameters(methodInfo);
+                return ExtendedType.FromMethod(methodInfo, parameters, typeInspector._typeCache);
+            }, this);
 
         return info.ParameterTypes[parameter];
     }
@@ -235,6 +269,23 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         }
 
         return null;
+    }
+
+    public ImmutableArray<object> GetAttributes(ICustomAttributeProvider attributeProvider, bool inherit)
+    {
+        if (!_attributes.TryGetValue((attributeProvider, inherit), out var attributes))
+        {
+            lock (_parametersLock)
+            {
+                if (!_attributes.TryGetValue((attributeProvider, inherit), out attributes))
+                {
+                    attributes = [.. attributeProvider.GetCustomAttributes(inherit)];
+                    _attributes[(attributeProvider, inherit)] = attributes;
+                }
+            }
+        }
+
+        return attributes;
     }
 
     public virtual MemberInfo? GetNodeIdMember(Type type)
@@ -342,7 +393,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NativeType<>))
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NamedRuntimeType<>))
         {
             return type;
         }
@@ -356,62 +407,6 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         ArgumentNullException.ThrowIfNull(type);
 
         return ExtendedType.Tools.IsSchemaType(type);
-    }
-
-    /// <inheritdoc />
-    public void ApplyAttributes(
-        IDescriptorContext context,
-        IDescriptor descriptor,
-        ICustomAttributeProvider attributeProvider)
-    {
-        var attributes = attributeProvider.GetCustomAttributes(true);
-        var temp = ArrayPool<DescriptorAttribute>.Shared.Rent(attributes.Length);
-        var i = 0;
-
-        foreach (var attribute in attributes)
-        {
-            if (attribute is DescriptorAttribute casted)
-            {
-                temp[i++] = casted;
-            }
-        }
-
-        Array.Sort(temp, 0, i, DescriptorAttributeComparer.Default);
-
-        var span = temp.AsSpan()[..i];
-
-        foreach (var attribute in span)
-        {
-            attribute.TryConfigure(context, descriptor, attributeProvider);
-        }
-
-        span.Clear();
-        ArrayPool<DescriptorAttribute>.Shared.Return(temp);
-    }
-
-    private sealed class DescriptorAttributeComparer : IComparer
-    {
-        public static DescriptorAttributeComparer Default { get; } = new();
-
-        public int Compare(object? x, object? y)
-        {
-            if (ReferenceEquals(x, y))
-            {
-                return 0;
-            }
-
-            if (y is not DescriptorAttribute attr2)
-            {
-                return 1;
-            }
-
-            if (x is not DescriptorAttribute attr1)
-            {
-                return -1;
-            }
-
-            return attr1.Order.CompareTo(attr2.Order);
-        }
     }
 
     /// <inheritdoc />
@@ -667,7 +662,8 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         if (member is MethodInfo { IsGenericMethodDefinition: false } method
             && CanHandleReturnType(member, method.ReturnType, allowObjectType))
         {
-            foreach (var parameter in method.GetParameters())
+            var parameters = GetParameters(method);
+            foreach (var parameter in parameters)
             {
                 if (!CanHandleParameter(parameter, allowObjectType))
                 {

@@ -1,0 +1,3 @@
+directive @auth(requires: Role = ADMIN scopes: [String!]) repeatable on OBJECT | FIELD_DEFINITION
+
+directive @deprecated(reason: String = "No longer supported") on FIELD_DEFINITION | ENUM_VALUE

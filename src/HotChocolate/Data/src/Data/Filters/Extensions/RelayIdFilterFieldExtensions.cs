@@ -1,6 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters;
@@ -31,9 +32,12 @@ public static class RelayIdFilterFieldExtensions
             .Extend()
             .OnBeforeCompletion((c, d) =>
             {
-                var returnType = d.Member is null ? typeof(string) : d.Member.GetReturnType();
-                var returnTypeInfo = c.DescriptorContext.TypeInspector.CreateTypeInfo(returnType);
-                d.Formatters.Push(CreateSerializer(c, returnTypeInfo.NamedType));
+                if (c.Features.Get<NodeSchemaFeature>()?.IsEnabled == true)
+                {
+                    var returnType = d.Member is null ? typeof(string) : d.Member.GetReturnType();
+                    var returnTypeInfo = c.DescriptorContext.TypeInspector.CreateTypeInfo(returnType);
+                    d.Formatters.Push(CreateSerializer(c, returnTypeInfo.NamedType));
+                }
             });
 
         return descriptor;

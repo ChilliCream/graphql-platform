@@ -1,3 +1,7 @@
+using System.Collections.Immutable;
+using System.Net.Http.Headers;
+using HotChocolate.Fusion.Execution.Nodes;
+
 namespace HotChocolate.Fusion.Execution.Clients;
 
 /// <summary>
@@ -6,8 +10,7 @@ namespace HotChocolate.Fusion.Execution.Clients;
 public class SourceSchemaHttpClientConfiguration
     : ISourceSchemaClientConfiguration
 {
-    private readonly Action<OperationPlanContext, HttpRequestMessage>? _onBeforeSend;
-    private readonly Action<OperationPlanContext, HttpResponseMessage>? _onAfterReceive;
+    public const string DefaultClientName = "fusion";
 
     /// <summary>
     /// Initializes a new instance of <see cref="SourceSchemaHttpClientConfiguration"/>.
@@ -21,34 +24,59 @@ public class SourceSchemaHttpClientConfiguration
     /// <param name="supportedOperations">
     /// The supported operations.
     /// </param>
+    /// <param name="batchingMode">
+    /// The batching mode.
+    /// </param>
+    /// <param name="defaultAcceptHeaderValues">
+    /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
+    /// </param>
+    /// <param name="batchingAcceptHeaderValues">
+    /// The <c>Accept</c> header values sent in case of a batching request.
+    /// </param>
+    /// <param name="subscriptionAcceptHeaderValues">
+    /// The <c>Accept</c> header values sent in case of a subscription.
+    /// </param>
     /// <param name="onBeforeSend">
     /// The action to call before the request is sent.
     /// </param>
     /// <param name="onAfterReceive">
     /// The action to call after the response is received.
     /// </param>
+    /// <param name="onSourceSchemaResult">
+    /// The action to call after a <see cref="SourceSchemaResult"/> was materialized.
+    /// </param>
     public SourceSchemaHttpClientConfiguration(
         string name,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        Action<OperationPlanContext, HttpRequestMessage>? onBeforeSend = null,
-        Action<OperationPlanContext, HttpResponseMessage>? onAfterReceive = null)
+        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
+        Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
+        Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null,
+        Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null)
+        : this(
+            name,
+            DefaultClientName,
+            baseAddress,
+            supportedOperations,
+            batchingMode,
+            defaultAcceptHeaderValues,
+            batchingAcceptHeaderValues,
+            subscriptionAcceptHeaderValues,
+            onBeforeSend,
+            onAfterReceive,
+            onSourceSchemaResult)
     {
-        ArgumentNullException.ThrowIfNull(name);
-        ArgumentNullException.ThrowIfNull(baseAddress);
-
-        Name = name;
-        HttpClientName = name;
-        BaseAddress = baseAddress;
-        SupportedOperations = supportedOperations;
-        _onBeforeSend = onBeforeSend;
-        _onAfterReceive = onAfterReceive;
     }
 
     /// <summary>
     /// Initializes a new instance of <see cref="SourceSchemaHttpClientConfiguration"/>.
     /// </summary>
-    /// <param name="name"></param>
+    /// <param name="name">
+    /// The name of the source schema.
+    /// </param>
     /// <param name="httpClientName">
     /// The name of the http client.
     /// </param>
@@ -58,19 +86,39 @@ public class SourceSchemaHttpClientConfiguration
     /// <param name="supportedOperations">
     /// The supported operations.
     /// </param>
+    /// <param name="batchingMode">
+    /// The batching mode.
+    /// </param>
+    /// <param name="defaultAcceptHeaderValues">
+    /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
+    /// </param>
+    /// <param name="batchingAcceptHeaderValues">
+    /// The <c>Accept</c> header values sent in case of a batching request.
+    /// </param>
+    /// <param name="subscriptionAcceptHeaderValues">
+    /// The <c>Accept</c> header values sent in case of a subscription.
+    /// </param>
     /// <param name="onBeforeSend">
     /// The action to call before the request is sent.
     /// </param>
     /// <param name="onAfterReceive">
     /// The action to call after the response is received.
     /// </param>
+    /// <param name="onSourceSchemaResult">
+    /// The action to call after a <see cref="SourceSchemaResult"/> was materialized.
+    /// </param>
     public SourceSchemaHttpClientConfiguration(
         string name,
         string httpClientName,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        Action<OperationPlanContext, HttpRequestMessage>? onBeforeSend = null,
-        Action<OperationPlanContext, HttpResponseMessage>? onAfterReceive = null)
+        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
+        Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? onBeforeSend = null,
+        Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? onAfterReceive = null,
+        Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? onSourceSchemaResult = null)
     {
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(httpClientName);
@@ -80,8 +128,26 @@ public class SourceSchemaHttpClientConfiguration
         HttpClientName = httpClientName;
         BaseAddress = baseAddress;
         SupportedOperations = supportedOperations;
-        _onBeforeSend = onBeforeSend;
-        _onAfterReceive = onAfterReceive;
+        BatchingMode = batchingMode;
+
+        DefaultAcceptHeaderValues = defaultAcceptHeaderValues ?? AcceptContentTypes.Default;
+
+        if (batchingAcceptHeaderValues.HasValue)
+        {
+            BatchingAcceptHeaderValues = batchingAcceptHeaderValues.Value;
+        }
+        else
+        {
+            BatchingAcceptHeaderValues = batchingMode == SourceSchemaHttpClientBatchingMode.ApolloRequestBatching
+                ? AcceptContentTypes.ApolloRequestBatching
+                : AcceptContentTypes.VariableBatching;
+        }
+
+        SubscriptionAcceptHeaderValues = subscriptionAcceptHeaderValues ?? AcceptContentTypes.Subscription;
+
+        OnBeforeSend = onBeforeSend;
+        OnAfterReceive = onAfterReceive;
+        OnSourceSchemaResult = onSourceSchemaResult;
     }
 
     /// <summary>
@@ -105,30 +171,69 @@ public class SourceSchemaHttpClientConfiguration
     public SupportedOperationType SupportedOperations { get; }
 
     /// <summary>
+    /// Gets the preferred batching mode.
+    /// </summary>
+    public SourceSchemaHttpClientBatchingMode BatchingMode { get; }
+
+    /// <summary>
+    /// Gets the <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
+    /// </summary>
+    public ImmutableArray<MediaTypeWithQualityHeaderValue> DefaultAcceptHeaderValues { get; }
+
+    /// <summary>
+    /// Gets the <c>Accept</c> header values sent in case of a batching request.
+    /// </summary>
+    public ImmutableArray<MediaTypeWithQualityHeaderValue> BatchingAcceptHeaderValues { get; }
+
+    /// <summary>
+    /// Gets the <c>Accept</c> header values sent in case of a subscription.
+    /// </summary>
+    public ImmutableArray<MediaTypeWithQualityHeaderValue> SubscriptionAcceptHeaderValues { get; }
+
+    /// <summary>
     /// Called before the request is sent.
     /// </summary>
-    /// <param name="context">
-    /// The operation plan context.
-    /// </param>
-    /// <param name="requestMessage">
-    /// The request message.
-    /// </param>
-    public virtual void OnBeforeSend(
-        OperationPlanContext context,
-        HttpRequestMessage requestMessage)
-        => _onBeforeSend?.Invoke(context, requestMessage);
+    public Action<OperationPlanContext, ExecutionNode, HttpRequestMessage>? OnBeforeSend { get; }
 
     /// <summary>
     /// Called after the response is received.
     /// </summary>
-    /// <param name="context">
-    /// The operation plan context.
-    /// </param>
-    /// <param name="responseMessage">
-    /// The response message.
-    /// </param>
-    public virtual void OnAfterReceive(
-        OperationPlanContext context,
-        HttpResponseMessage responseMessage)
-        => _onAfterReceive?.Invoke(context, responseMessage);
+    public Action<OperationPlanContext, ExecutionNode, HttpResponseMessage>? OnAfterReceive { get; }
+
+    /// <summary>
+    /// Called after a <see cref="SourceSchemaResult"/> was materialized.
+    /// </summary>
+    public Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? OnSourceSchemaResult { get; }
+
+    private static class AcceptContentTypes
+    {
+        public static readonly ImmutableArray<MediaTypeWithQualityHeaderValue> Default =
+        [
+            new("application/graphql-response+json") { CharSet = "utf-8" },
+            new("application/json") { CharSet = "utf-8" },
+            new("application/jsonl") { CharSet = "utf-8" },
+            new("text/event-stream") { CharSet = "utf-8" }
+        ];
+
+        public static ImmutableArray<MediaTypeWithQualityHeaderValue> VariableBatching { get; } =
+        [
+            new("application/jsonl") { CharSet = "utf-8" },
+            new("text/event-stream") { CharSet = "utf-8" },
+            new("application/graphql-response+json") { CharSet = "utf-8" },
+            new("application/json") { CharSet = "utf-8" }
+        ];
+
+        public static readonly ImmutableArray<MediaTypeWithQualityHeaderValue> ApolloRequestBatching =
+        [
+            new("application/jsonl") { CharSet = "utf-8" },
+            new("text/event-stream") { CharSet = "utf-8" },
+            new("application/json") { CharSet = "utf-8" }
+        ];
+
+        public static ImmutableArray<MediaTypeWithQualityHeaderValue> Subscription { get; } =
+        [
+            new("application/jsonl") { CharSet = "utf-8" },
+            new("text/event-stream") { CharSet = "utf-8" }
+        ];
+    }
 }

@@ -1,0 +1,40 @@
+title: InputObject_Invalid_Field
+request:
+  document: |
+    query testQuery(
+      $cat: Cat!
+    ) {
+      catName(input: $cat)
+    }
+  variables: |
+    {
+      "cat": {
+        "invalidField": "invalid"
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "The field \u0060invalidField\u0060 is not defined on the input object type \u0060Cat\u0060.",
+          "extensions": {
+            "variable": "/cat"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        catName(input: Cat!): String
+      }
+
+      input Cat {
+        cute: Boolean!
+      }

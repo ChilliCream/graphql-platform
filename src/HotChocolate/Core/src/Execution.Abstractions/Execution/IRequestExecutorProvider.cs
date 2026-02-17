@@ -24,7 +24,7 @@ public interface IRequestExecutorProvider
     /// <returns>
     /// Returns a GraphQL request executor.
     /// </returns>
-    public ValueTask<IRequestExecutor> GetExecutorAsync(
+    ValueTask<IRequestExecutor> GetExecutorAsync(
         string? schemaName = null,
         CancellationToken cancellationToken = default);
 }
