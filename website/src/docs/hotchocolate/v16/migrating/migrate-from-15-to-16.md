@@ -201,9 +201,9 @@ if (context.Result is OperationResult result)
 }
 ```
 
-Most of the properties you'd want to modify are now immutable data structures that can be modified.
+Both `Errors` and `Extensions` are now immutable collection properties that can be re-assigned.
 
-`OperationResultBuilder.CreateError(error)` can be simply replaced with `new OperationResult([error])`.
+`OperationResultBuilder.CreateError(error)` can be simply replaced with `OperationResult.FromError(error)`.
 
 ## OperationResult changes
 
