@@ -178,6 +178,39 @@ public class CustomRequestMiddleware
 }
 ```
 
+## OperationResultBuilder is now internal
+
+If you've previously used the `OperationResultBuilder` to construct an `OperationResult`, switch to constructing it directly instead:
+
+```csharp
+var errors = ImmutableList.Create<IError>([]);
+var extensions = ImmutableOrderedDictionary.Create([]);
+
+context.Result = new OperationResult(errors, extensions);
+```
+
+If you've used `OperationResultBuilder.FromResult()` to alter an existing `OperationResult`, switch to directly modifying the `OperationResult`:
+
+```diff
+if (context.Result is OperationResult result)
+{
+-    var resultBuilder = OperationResultBuilder.FromResult(result);
+-    resultBuilder.SetExtension("foo", "bar");
+-    context.Result = resultBuilder.Build();
++    result.Extensions = result.Extensions.SetItem("foo", "bar");
+}
+```
+
+Most of the properties you'd want to modify are now immutable data structures that can be modified.
+
+`OperationResultBuilder.CreateError(error)` can be simply replaced with `new OperationResult([error])`.
+
+## OperationResult changes
+
+We've removed the `IOperationResult` abstraction. If you've previously pattern-matched on this, you can simply replace it with `OperationResult`. To assert that an `IExecutionResult` is an `OperationResult` in tests, use `result.ExpectOperationResult();`.
+
+We've also switched the `OperationResult.Errors` and `OperationResult.Extensions` properties to always be initialized instead of being nullable. If you were previously asserting these properties as `null` in tests, switch to asserting them as empty instead.
+
 ## Skip/include disallowed on root subscription fields
 
 The `@skip` and `@include` directives are now disallowed on root subscription fields, as specified in the RFC: [Prevent @skip and @include on root subscription selection set](https://github.com/graphql/graphql-spec/pull/860).
@@ -337,6 +370,10 @@ Note that this option is likely to be removed in a later release, so it's recomm
 ## DateTime scalar serialization
 
 The `DateTime` scalar now serializes with up to 7 fractional seconds (`FFFFFFF`) as opposed to exactly 3 (`fff`).
+
+## IHasRuntimeType is now IRuntimeTypeProvider
+
+In an effort to standardize our abstractions, we've renamed `IHasRuntimeType` to `IRuntimeTypeProvider`.
 
 # Deprecations
 
