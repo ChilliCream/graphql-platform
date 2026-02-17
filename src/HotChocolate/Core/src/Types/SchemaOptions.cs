@@ -225,6 +225,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
+            EnableOptInFeatures = options.EnableOptInFeatures,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
             DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
             LazyInitialization = options.LazyInitialization,

@@ -39,8 +39,8 @@ internal sealed class RequiresOptInValidationRule : ISchemaValidationRule
 
                     break;
 
-                case IObjectTypeDefinition objectType:
-                    foreach (var field in objectType.Fields)
+                case IComplexTypeDefinition complexType:
+                    foreach (var field in complexType.Fields)
                     {
                         foreach (var argument in field.Arguments)
                         {
@@ -52,7 +52,7 @@ internal sealed class RequiresOptInValidationRule : ISchemaValidationRule
                                 foreach (var _ in requiresOptInDirectives)
                                 {
                                     errors.Add(RequiresOptInOnRequiredArgument(
-                                        objectType,
+                                        complexType,
                                         field,
                                         argument));
                                 }

@@ -37,6 +37,14 @@ internal sealed class OptInFeaturesTypeInterceptor : TypeInterceptor
 
                 break;
 
+            case InterfaceTypeConfiguration interfaceType:
+                _optInFeatures.UnionWith(interfaceType.Fields.SelectMany(f => f.GetOptInFeatures()));
+
+                _optInFeatures.UnionWith(interfaceType.Fields.SelectMany(
+                    f => f.Arguments.SelectMany(a => a.GetOptInFeatures())));
+
+                break;
+
             case ObjectTypeConfiguration objectType:
                 _optInFeatures.UnionWith(objectType.Fields.SelectMany(f => f.GetOptInFeatures()));
 
