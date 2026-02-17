@@ -70,7 +70,7 @@ src/
 ├── CookieCrumble/             # Snapshot testing framework
 └── StrawberryShake/           # GraphQL client
 
-website/                       # Gatsby documentation site
+website/                       # Next.js documentation site
 templates/                     # Project templates
 .build/                        # Nuke build automation
 ```
@@ -80,7 +80,7 @@ templates/                     # Project templates
 - **.NET**: SDK 10.0.102 (supports .NET 8, 9, 10)
 - **Build System**: Nuke.Build
 - **Testing**: xUnit with CookieCrumble for snapshots
-- **Documentation**: Gatsby + React + TypeScript
+- **Documentation**: Next.js + React + TypeScript
 
 ## Code Conventions
 
@@ -121,7 +121,7 @@ dotnet test src/HotChocolate/Core/test/Types.Tests/HotChocolate.Types.Tests.cspr
 
 ```bash
 cd website
-yarn start    # Development server
+yarn dev      # Development server
 yarn build    # Production build
 ```
 

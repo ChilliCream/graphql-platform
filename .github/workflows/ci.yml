@@ -119,7 +119,7 @@ jobs:
         with:
           path: |
             website/.yarn/cache
-            website/.cache/yarn
+            website/.next/cache
           key: ${{ runner.os }}-yarn-${{ hashFiles('website/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
@@ -129,7 +129,7 @@ jobs:
         working-directory: website
 
       - name: Build Website
-        run: yarn build --prefix-paths
+        run: yarn build
         working-directory: website
 
   configure:
