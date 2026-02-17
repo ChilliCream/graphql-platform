@@ -3,17 +3,22 @@ import Prism from "prismjs";
 import React, { FC } from "react";
 import styled, { css } from "styled-components";
 
+import { Play } from "@/components/mdx/play";
 import { FONT_FAMILY_CODE, THEME_COLORS } from "@/style";
 import { Copy } from "./copy";
 
 export interface CodeBlockProps {
   readonly children: any;
   readonly language?: Language;
+  readonly hideLanguageIndicator?: boolean;
+  readonly playUrl?: string;
 }
 
 export const CodeBlock: FC<CodeBlockProps> = ({
   children,
   language: fallbackLanguage,
+  hideLanguageIndicator,
+  playUrl,
 }) => {
   const language =
     (children.props?.className?.replace(/language-/, "") as Language) ||
@@ -24,10 +29,16 @@ export const CodeBlock: FC<CodeBlockProps> = ({
 
   return (
     <Container className={`gatsby-highlight code-${language}`}>
-      <CodeIndicator language={language} />
-      <CopyPosition>
-        <Copy content={code} />
-      </CopyPosition>
+      {!hideLanguageIndicator && language ? (
+        <CodeIndicator language={language} />
+      ) : null}
+
+      <ActionsContainer>
+        {playUrl ? <StyledPlay content={code} url={playUrl} /> : null}
+
+        <StyledCopy content={code} />
+      </ActionsContainer>
+
       <Highlight
         Prism={Prism as any}
         code={code}
@@ -164,7 +175,6 @@ const Pre = styled.pre`
   }
 
   @media only screen and (min-width: 700px) {
-    max-width: 660px;
     border-radius: var(--box-border-radius) !important;
   }
 `;
@@ -196,6 +206,8 @@ const Container = styled.div`
   font-size: 1rem !important;
   padding-right: 0 !important;
   padding-left: 0 !important;
+  width: 100%;
+  overflow: visible;
 
   * {
     font-family: ${FONT_FAMILY_CODE};
@@ -204,13 +216,57 @@ const Container = styled.div`
 
   > pre[class*="language-"] {
     margin: 0;
-    padding: 30px 20px;
+    padding: 40px 30px;
+    width: 100%;
+    overflow: visible;
+  }
+
+  @media only screen and (min-width: 700px) {
+    > pre[class*="language-"] {
+      padding: 40px 40px;
+    }
   }
 `;
 
-const CopyPosition = styled.div`
+const ActionsContainer = styled.div`
   position: absolute;
-  z-index: 1;
-  top: 0;
-  right: 0;
+  z-index: 2;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+const sharedButtonStyles = css`
+  border-radius: var(--button-border-radius) !important;
+  border: 1px solid ${THEME_COLORS.boxBorder} !important;
+  padding: 10px !important;
+  background-color: ${THEME_COLORS.background} !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.2s ease-in-out !important;
+
+  svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  > div {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  &:hover {
+    background-color: ${THEME_COLORS.backgroundAlt} !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25) !important;
+  }
+`;
+
+const StyledCopy = styled(Copy)`
+  ${sharedButtonStyles}
+`;
+
+const StyledPlay = styled(Play)`
+  ${sharedButtonStyles}
 `;
