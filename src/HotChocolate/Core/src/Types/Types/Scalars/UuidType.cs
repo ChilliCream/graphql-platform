@@ -11,12 +11,15 @@ using static HotChocolate.Utilities.ThrowHelper;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The UUID scalar type represents a universally unique identifier (UUID) as defined by RFC 4122.
-/// This type supports multiple GUID string formats (N, D, B, P) and serializes as a string.
+/// The <c>UUID</c> scalar type represents a Universally Unique Identifier (UUID) as defined by RFC
+/// 9562. It is intended for scenarios where globally unique identifiers are required, such as
+/// database primary keys, distributed system identifiers, or any situation requiring
+/// collision-resistant unique identifiers.
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/uuid.html">Specification</seealso>
 public class UuidType : ScalarType<Guid, StringValueNode>
 {
-    private const string SpecifiedByUri = "https://tools.ietf.org/html/rfc4122";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/uuid.html";
     private readonly string _format;
     private readonly bool _enforceFormat;
 
@@ -39,9 +42,10 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     public UuidType(char defaultFormat = '\0', bool enforceFormat = false)
         : this(
             ScalarNames.UUID,
-            defaultFormat: defaultFormat,
-            enforceFormat: enforceFormat,
-            bind: BindingBehavior.Implicit)
+            TypeResources.UuidType_Description,
+            defaultFormat,
+            enforceFormat,
+            BindingBehavior.Implicit)
     {
     }
 

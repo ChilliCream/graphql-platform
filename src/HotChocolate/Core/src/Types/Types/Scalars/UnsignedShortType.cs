@@ -6,11 +6,15 @@ using HotChocolate.Text.Json;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The UnsignedShortType scalar type represents an unsigned numeric non‐fractional
-/// value greater than or equal to 0 and smaller or equal to 65535.
+/// The <c>UnsignedShort</c> scalar type represents an unsigned 16-bit integer. It is intended for
+/// scenarios where values are constrained to the range 0 to 65,535, such as representing port
+/// numbers, small counts, or other non-negative values that fit within 16 bits.
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/unsigned-short.html">Specification</seealso>
 public class UnsignedShortType : IntegerTypeBase<ushort>
 {
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/unsigned-short.html";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="UnsignedShortType"/> class.
     /// </summary>
@@ -21,6 +25,7 @@ public class UnsignedShortType : IntegerTypeBase<ushort>
         : base(name, ushort.MinValue, ushort.MaxValue, bind)
     {
         Description = description;
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>

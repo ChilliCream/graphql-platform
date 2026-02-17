@@ -274,7 +274,7 @@ namespace Foo.Bar
         /// </summary>
         public global::Foo.Bar.IPeopleSearch_People_Items_Department? Department { get; }
         /// <summary>
-        /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
+        /// URL to image, you can specify a size in pixels by appending '?size=300' to get a square image.
         /// </summary>
         public global::System.Uri? Image { get; }
         /// <summary>
@@ -582,7 +582,7 @@ namespace Foo.Bar
         /// </summary>
         public global::Foo.Bar.IPeopleSearch_People_Items_Department? Department { get; }
         /// <summary>
-        /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
+        /// URL to image, you can specify a size in pixels by appending '?size=300' to get a square image.
         /// </summary>
         public global::System.Uri? Image { get; }
         /// <summary>
@@ -1023,7 +1023,7 @@ namespace Foo.Bar.State
         public global::System.Boolean IsActive { get; }
         ///<summary>The department the person belongs to.</summary>
         public global::StrawberryShake.EntityId? Department { get; }
-        ///<summary>Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.</summary>
+        ///<summary>URL to image, you can specify a size in pixels by appending '?size=300' to get a square image.</summary>
         public global::System.Uri? Image { get; }
         ///<summary>The job title of the person.</summary>
         public global::System.String Title { get; }
@@ -1213,7 +1213,7 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int64, global::System.Int64> _longParser;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _urlParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _uRLParser;
         public PeopleSearchBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IPeopleSearchQueryResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -1224,7 +1224,7 @@ namespace Foo.Bar.State
             _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean") ?? throw new global::System.ArgumentException("No serializer for type `Boolean` found.");
             _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID") ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
             _longParser = serializerResolver.GetLeafValueParser<global::System.Int64, global::System.Int64>("Long") ?? throw new global::System.ArgumentException("No serializer for type `Long` found.");
-            _urlParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("Url") ?? throw new global::System.ArgumentException("No serializer for type `Url` found.");
+            _uRLParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Uri>("URL") ?? throw new global::System.ArgumentException("No serializer for type `URL` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IPeopleSearchQueryResult> ResultDataFactory { get; }
@@ -1454,7 +1454,7 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            return _urlParser.Parse(obj.Value.GetString()!);
+            return _uRLParser.Parse(obj.Value.GetString()!);
         }
 
         private global::StrawberryShake.EntityId? Update_IPeopleSearch_People_Items_ManagerEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
@@ -1751,7 +1751,6 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UriSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UUIDSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer>(services, new global::StrawberryShake.Serialization.UrlSerializer("Url"));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IPeopleSearchQueryResult>, global::Foo.Bar.State.PeopleSearchResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IPeopleSearchQueryResult>>(sp));

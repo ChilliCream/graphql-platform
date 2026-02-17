@@ -334,6 +334,10 @@ AddGraphQL().AddType(new UrlType(allowRelativeUris: true))
 
 Note that this option is likely to be removed in a later release, so it's recommended that you switch types as soon as possible.
 
+## DateTime scalar serialization
+
+The `DateTime` scalar now serializes with up to 7 fractional seconds (`FFFFFFF`) as opposed to exactly 3 (`fff`).
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

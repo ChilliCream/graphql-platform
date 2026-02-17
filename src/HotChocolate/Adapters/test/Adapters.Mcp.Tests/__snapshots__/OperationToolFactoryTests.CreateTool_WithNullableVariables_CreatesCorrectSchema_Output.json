@@ -45,6 +45,7 @@
                 "string",
                 "null"
               ],
+              "format": "date",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
             },
             "dateTime": {
@@ -53,7 +54,7 @@
                 "null"
               ],
               "format": "date-time",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,7})?(?:[Zz]|[+-]\\d{2}:\\d{2})$"
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?(?:[Zz]|[+-]\\d{2}:\\d{2})$"
             },
             "decimal": {
               "type": [
@@ -116,14 +117,14 @@
                 "string",
                 "null"
               ],
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$"
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$"
             },
             "localTime": {
               "type": [
                 "string",
                 "null"
               ],
-              "pattern": "^\\d{2}:\\d{2}:\\d{2}$"
+              "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$"
             },
             "long": {
               "type": [
@@ -154,7 +155,7 @@
                             "string",
                             "null"
                           ],
-                          "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                          "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                           "description": "field1C description"
                         }
                       },
@@ -194,6 +195,7 @@
                 "string",
                 "null"
               ],
+              "format": "duration",
               "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$"
             },
             "unknown": {
@@ -206,19 +208,22 @@
               "type": [
                 "string",
                 "null"
-              ]
+              ],
+              "format": "uri"
             },
             "url": {
               "type": [
                 "string",
                 "null"
-              ]
+              ],
+              "format": "uri"
             },
             "uuid": {
               "type": [
                 "string",
                 "null"
               ],
+              "format": "uuid",
               "pattern": "^[\\da-fA-F]{8}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{12}$"
             }
           },

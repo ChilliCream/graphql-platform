@@ -182,22 +182,23 @@ enum FooBar {
 "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
 directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
 
-"The `Decimal` scalar type represents a decimal floating-point number."
-scalar Decimal
+"The `Decimal` scalar type represents a decimal floating-point number with high precision."
+scalar Decimal @specifiedBy(url: "https://scalars.graphql.org/chillicream/decimal.html")
 
-"The `LocalDate` scalar represents a date without a time-zone in the ISO-8601 calendar system."
-scalar LocalDate @specifiedBy(url: "https://scalars.graphql.org/andimarek/local-date.html")
+"The `LocalDate` scalar type represents a date without time or time zone information."
+scalar LocalDate @specifiedBy(url: "https://scalars.graphql.org/chillicream/local-date.html")
 
-"The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss."
-scalar LocalTime
+"The `LocalTime` scalar type represents a time of day without date or time zone information."
+scalar LocalTime @specifiedBy(url: "https://scalars.graphql.org/chillicream/local-time.html")
 
-"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
-scalar Long
+"The `Long` scalar type represents a signed 64-bit integer."
+scalar Long @specifiedBy(url: "https://scalars.graphql.org/chillicream/long.html")
 
-"The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
-scalar Short
+"The `Short` scalar type represents a signed 16-bit integer."
+scalar Short @specifiedBy(url: "https://scalars.graphql.org/chillicream/short.html")
 
-scalar URI @specifiedBy(url: "https://tools.ietf.org/html/rfc3986")
+"The `URI` scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986."
+scalar URI @specifiedBy(url: "https://scalars.graphql.org/chillicream/uri.html")
 
-"The UnsignedByte scalar type represents an unsigned 8-bit numeric non-fractional value greater than or equal to 0."
-scalar UnsignedByte
+"The `UnsignedByte` scalar type represents an unsigned 8-bit integer."
+scalar UnsignedByte @specifiedBy(url: "https://scalars.graphql.org/chillicream/unsigned-byte.html")

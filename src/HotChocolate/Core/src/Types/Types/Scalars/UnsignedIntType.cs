@@ -6,11 +6,15 @@ using HotChocolate.Text.Json;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The UnsignedInt scalar type represents an unsigned 32‐bit numeric non‐fractional
-/// value greater than or equal to 0.
+/// The <c>UnsignedInt</c> scalar type represents an unsigned 32-bit integer. It is intended for
+/// scenarios where values are constrained to the range 0 to 4,294,967,295, such as representing
+/// counts, sizes, indices, or other non-negative integer values.
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/unsigned-int.html">Specification</seealso>
 public class UnsignedIntType : IntegerTypeBase<uint>
 {
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/unsigned-int.html";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="UnsignedIntType"/> class.
     /// </summary>
@@ -21,6 +25,7 @@ public class UnsignedIntType : IntegerTypeBase<uint>
         : base(name, uint.MinValue, uint.MaxValue, bind)
     {
         Description = description;
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>

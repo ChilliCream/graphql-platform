@@ -7028,7 +7028,7 @@
         {
           "kind": "SCALAR",
           "name": "Any",
-          "description": null,
+          "description": "The `Any` scalar type represents any valid GraphQL value.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -7272,6 +7272,29 @@
                 "ofType": null
               },
               "defaultValue": "\"No longer supported.\""
+            }
+          ],
+          "onOperation": false,
+          "onFragment": false,
+          "onField": false
+        },
+        {
+          "name": "specifiedBy",
+          "description": "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.",
+          "args": [
+            {
+              "name": "url",
+              "description": "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.",
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              },
+              "defaultValue": null
             }
           ],
           "onOperation": false,

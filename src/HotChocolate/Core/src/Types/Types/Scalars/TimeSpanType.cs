@@ -9,11 +9,15 @@ using static HotChocolate.Utilities.ThrowHelper;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The TimeSpan scalar type represented in two formats:
-/// <see cref="TimeSpanFormat.Iso8601"/> and <see cref="TimeSpanFormat.DotNet"/>
+/// The <c>TimeSpan</c> scalar type represents a duration of time. It is intended for scenarios
+/// where you need to represent time intervals, such as elapsed time, timeout durations, scheduling
+/// intervals, or any measurement of time that is not tied to a specific date or time.
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/time-span.html">Specification</seealso>
 public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
 {
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/time-span.html";
+
     public TimeSpanFormat Format { get; }
 
     public TimeSpanType(
@@ -40,6 +44,11 @@ public class TimeSpanType : ScalarType<TimeSpan, StringValueNode>
                 => @"^-?(?:(?:\d{1,8})\.)?(?:[0-1]?\d|2[0-3]):(?:[0-5]?\d):(?:[0-5]?\d)(?:\.(?:\d{1,7}))?$",
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
         };
+
+        if (format == TimeSpanFormat.Iso8601)
+        {
+            SpecifiedBy = new Uri(SpecifiedByUri);
+        }
     }
 
     [ActivatorUtilitiesConstructor]

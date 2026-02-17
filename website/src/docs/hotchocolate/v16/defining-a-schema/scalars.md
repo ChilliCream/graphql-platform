@@ -168,83 +168,55 @@ builder.Services
 
 Notice how our code uses `int` for the `Id`, but in a request / response it would be serialized as a `string`. This allows us to switch the CLR type of our `Id`, without affecting the schema and our clients.
 
-# GraphQL Community Scalars
-
-The website <https://scalars.graphql.org/> hosts specifications for GraphQL scalars defined by the community. The community scalars use the `@specifiedBy` directive to point to the spec that is implemented.
-
-```sdl
-scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
-```
-
-## DateTime Type
-
-This scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does **not** use a time zone.
-
-It is a slightly refined version of [RFC 3339](https://tools.ietf.org/html/rfc3339), including the [errata](https://www.rfc-editor.org/errata/rfc3339).
-
-```sdl
-scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/andimarek/date-time.html")
-```
-
-> Note: The Hot Chocolate implementation diverges slightly from the DateTime scalar specification, and allows fractional seconds of 0-7 digits, as opposed to exactly 3.
-
-<Video videoId="gO3bNKBmXZM" />
-
-## LocalDate Type
-
-This scalar represents a date without a time-zone in the [ISO-8601](https://en.wikipedia.org/wiki/ISO_8601) calendar system.
-
-The pattern is "YYYY-MM-DD" with "YYYY" representing the year, "MM" the month, and "DD" the day.
-
-```sdl
-scalar LocalDate @specifiedBy(url: "https://scalars.graphql.org/andimarek/local-date.html")
-```
-
 # .NET Scalars
 
 In addition to the scalars defined by the specification, Hot Chocolate also supports the following set of scalar types:
 
-| Type            | Description                                                                                               |
-| --------------- | --------------------------------------------------------------------------------------------------------- |
-| `Base64String`  | Base64 encoded array of bytes                                                                             |
-| `Byte`          | Signed 8-bit numeric non‐fractional value greater than or equal to -128 and smaller than or equal to 127. |
-| `Date`          | ISO-8601 date                                                                                             |
-| `Decimal`       | .NET Floating Point Type                                                                                  |
-| `Json`          | This type can be anything, string, int, list or object, etc.                                              |
-| `LocalDateTime` | Local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`          |
-| `LocalTime`     | Local time string (i.e., with no associated timezone) in 24-hr `HH:mm:ss`                                 |
-| `Long`          | Signed 64-bit numeric non-fractional value                                                                |
-| `Short`         | Signed 16-bit numeric non-fractional value                                                                |
-| `TimeSpan`      | ISO-8601 duration                                                                                         |
-| `UnsignedByte`  | Unsigned 8-bit numeric non-fractional value greater than or equal to 0                                    |
-| `UnsignedInt`   | Unsigned 32‐bit numeric non‐fractional value greater than or equal to 0                                   |
-| `UnsignedLong`  | Unsigned 64‐bit numeric non‐fractional value greater than or equal to 0                                   |
-| `UnsignedShort` | Unsigned 16‐bit numeric non‐fractional value greater than or equal to 0 and smaller or equal to 65535.    |
-| `URI`           | URI                                                                                                       |
-| `URL`           | URL                                                                                                       |
-| `Uuid`          | GUID                                                                                                      |
+| Type          | Description                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------------ |
+| Any           | The [Any][1] scalar type represents any valid GraphQL value.                                           |
+| Base64String  | The [Base64String][2] scalar type represents an array of bytes encoded as a Base64 string.             |
+| Byte          | The [Byte][3] scalar type represents a signed 8-bit integer.                                           |
+| Date          | The [Date][4] scalar type represents a date in UTC.                                                    |
+| DateTime      | The [DateTime][5] scalar type represents a date and time with time zone offset information.            |
+| Decimal       | The [Decimal][6] scalar type represents a decimal floating-point number with high precision.           |
+| LocalDate     | The [LocalDate][7] scalar type represents a date without time or time zone information.                |
+| LocalDateTime | The [LocalDateTime][8] scalar type represents a date and time without time zone information.           |
+| LocalTime     | The [LocalTime][9] scalar type represents a time of day without date or time zone information.         |
+| Long          | The [Long][10] scalar type represents a signed 64-bit integer.                                         |
+| Short         | The [Short][11] scalar type represents a signed 16-bit integer.                                        |
+| TimeSpan      | The [TimeSpan][12] scalar type represents a duration of time.                                          |
+| UnsignedByte  | The [UnsignedByte][13] scalar type represents an unsigned 8-bit integer.                               |
+| UnsignedInt   | The [UnsignedInt][14] scalar type represents an unsigned 32-bit integer.                               |
+| UnsignedLong  | The [UnsignedLong][15] scalar type represents an unsigned 64-bit integer.                              |
+| UnsignedShort | The [UnsignedShort][16] scalar type represents an unsigned 16-bit integer.                             |
+| URI           | The [URI][17] scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986.       |
+| URL           | The [URL][18] scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986.          |
+| UUID          | The [UUID][19] scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562.   |
 
-## Uuid Type
+[1]: https://scalars.graphql.org/chillicream/any.html
+[2]: https://scalars.graphql.org/chillicream/base64-string.html
+[3]: https://scalars.graphql.org/chillicream/byte.html
+[4]: https://scalars.graphql.org/chillicream/date.html
+[5]: https://scalars.graphql.org/chillicream/date-time.html
+[6]: https://scalars.graphql.org/chillicream/decimal.html
+[7]: https://scalars.graphql.org/chillicream/local-date.html
+[8]: https://scalars.graphql.org/chillicream/local-date-time.html
+[9]: https://scalars.graphql.org/chillicream/local-time.html
+[10]: https://scalars.graphql.org/chillicream/long.html
+[11]: https://scalars.graphql.org/chillicream/short.html
+[12]: https://scalars.graphql.org/chillicream/time-span.html
+[13]: https://scalars.graphql.org/chillicream/unsigned-byte.html
+[14]: https://scalars.graphql.org/chillicream/unsigned-int.html
+[15]: https://scalars.graphql.org/chillicream/unsigned-long.html
+[16]: https://scalars.graphql.org/chillicream/unsigned-short.html
+[17]: https://scalars.graphql.org/chillicream/uri.html
+[18]: https://scalars.graphql.org/chillicream/url.html
+[19]: https://scalars.graphql.org/chillicream/uuid.html
 
-The `Uuid` scalar supports the following serialization formats.
+## DateTime Type
 
-| Specifier   | Format                                                               |
-| ----------- | -------------------------------------------------------------------- |
-| N           | 00000000000000000000000000000000                                     |
-| D (default) | 00000000-0000-0000-0000-000000000000                                 |
-| B           | {00000000-0000-0000-0000-000000000000}                               |
-| P           | (00000000-0000-0000-0000-000000000000)                               |
-| X           | {0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}} |
-
-The `UuidType` will always return the value in the specified format. In case it is used as an input type, it will first try to parse the result in the specified format. If the parsing does not succeed, it will try to parse the value in other formats.
-
-To change the default format we have to register the `UuidType` with the specifier on the schema:
-
-```csharp
-builder.Services
-   .AddGraphQLServer()
-   .AddType(new UuidType('D'));
-```
+<Video videoId="gO3bNKBmXZM" />
 
 ## Any Type
 
@@ -308,6 +280,28 @@ If we want to access an object dynamically without serializing it to a strongly 
 
 Lists can be accessed generically by getting them as `IReadOnlyList<object>` or as `ListValueNode`.
 
+## Uuid Type
+
+The `Uuid` scalar supports the following serialization formats.
+
+| Specifier   | Format                                                               |
+| ----------- | -------------------------------------------------------------------- |
+| N           | 00000000000000000000000000000000                                     |
+| D (default) | 00000000-0000-0000-0000-000000000000                                 |
+| B           | {00000000-0000-0000-0000-000000000000}                               |
+| P           | (00000000-0000-0000-0000-000000000000)                               |
+| X           | {0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}} |
+
+The `UuidType` will always return the value in the specified format. In case it is used as an input type, it will first try to parse the result in the specified format. If the parsing does not succeed, it will try to parse the value in other formats.
+
+To change the default format we have to register the `UuidType` with the specifier on the schema:
+
+```csharp
+builder.Services
+   .AddGraphQLServer()
+   .AddType(new UuidType('D'));
+```
+
 # Additional Scalars
 
 We also offer a separate package with scalars for more specific use cases.
@@ -318,26 +312,26 @@ To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 
 **Available Scalars:**
 
-| Type             | Description                                                                                                                                              |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| EmailAddress     | Email address, represented as UTF-8 character sequences, as defined in [RFC5322](https://tools.ietf.org/html/rfc5322)                                    |
-| HexColor         | HEX color code                                                                                                                                           |
-| Hsl              | CSS HSL color as defined [here][2]                                                                                                                       |
-| Hsla             | CSS HSLA color as defined [here][2]                                                                                                                      |
-| IPv4             | IPv4 address as defined [here](https://en.wikipedia.org/wiki/IPv4)                                                                                       |
-| IPv6             | IPv6 address as defined in [RFC8064](https://tools.ietf.org/html/rfc8064)                                                                                |
-| Isbn             | ISBN-10 or ISBN-13 number as defined [here](https://en.wikipedia.org/wiki/International_Standard_Book_Number)                                            |
-| Latitude         | Decimal degrees latitude number                                                                                                                          |
-| Longitude        | Decimal degrees longitude number                                                                                                                         |
-| MacAddress       | IEEE 802 48-bit (MAC-48/EUI-48) and 64-bit (EUI-64) Mac addresses, represented as UTF-8 character sequences, as defined in [RFC7042][3] and [RFC7043][4] |
-| PhoneNumber      | A value that conforms to the standard E.164 format as defined [here](https://en.wikipedia.org/wiki/E.164)                                                |
-| Rgb              | CSS RGB color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                       |
-| Rgba             | CSS RGBA color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                      |
-| UtcOffset        | A value of format `±hh:mm`                                                                                                                               |
+| Type         | Description                                                                                                                                                |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EmailAddress | Email address, represented as UTF-8 character sequences, as defined in [RFC5322](https://tools.ietf.org/html/rfc5322)                                      |
+| HexColor     | HEX color code                                                                                                                                             |
+| Hsl          | CSS HSL color as defined [here][20]                                                                                                                        |
+| Hsla         | CSS HSLA color as defined [here][20]                                                                                                                       |
+| IPv4         | IPv4 address as defined [here](https://en.wikipedia.org/wiki/IPv4)                                                                                         |
+| IPv6         | IPv6 address as defined in [RFC8064](https://tools.ietf.org/html/rfc8064)                                                                                  |
+| Isbn         | ISBN-10 or ISBN-13 number as defined [here](https://en.wikipedia.org/wiki/International_Standard_Book_Number)                                              |
+| Latitude     | Decimal degrees latitude number                                                                                                                            |
+| Longitude    | Decimal degrees longitude number                                                                                                                           |
+| MacAddress   | IEEE 802 48-bit (MAC-48/EUI-48) and 64-bit (EUI-64) Mac addresses, represented as UTF-8 character sequences, as defined in [RFC7042][21] and [RFC7043][22] |
+| PhoneNumber  | A value that conforms to the standard E.164 format as defined [here](https://en.wikipedia.org/wiki/E.164)                                                  |
+| Rgb          | CSS RGB color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                         |
+| Rgba         | CSS RGBA color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                        |
+| UtcOffset    | A value of format `±hh:mm`                                                                                                                                 |
 
-[2]: https://developer.mozilla.org/docs/Web/CSS/color_value#hsl_colors
-[3]: https://tools.ietf.org/html/rfc7042#page-19
-[4]: https://tools.ietf.org/html/rfc7043
+[20]: https://developer.mozilla.org/docs/Web/CSS/color_value#hsl_colors
+[21]: https://tools.ietf.org/html/rfc7042#page-19
+[22]: https://tools.ietf.org/html/rfc7043
 
 Most of these scalars are built on top of native .NET types. An Email Address for example is represented as a `string`, but just returning a `string` from our resolver would result in Hot Chocolate interpreting it as a `StringType`. We need to explicitly specify that the returned type (`string`) should be treated as an `EmailAddressType`.
 

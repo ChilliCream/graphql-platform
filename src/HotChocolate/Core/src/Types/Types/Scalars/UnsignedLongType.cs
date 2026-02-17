@@ -6,11 +6,16 @@ using HotChocolate.Text.Json;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The `UnsignedLong` scalar type represents a signed 64‐bit numeric non‐fractional
-/// value greater than or equal to 0.
+/// The <c>UnsignedLong</c> scalar type represents an unsigned 64-bit integer. It is intended for
+/// scenarios where values exceed the range of unsigned 32-bit integers, such as representing very
+/// large counts, file sizes, memory addresses, or any non-negative integer values requiring more
+/// than 32 bits.
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/unsigned-long.html">Specification</seealso>
 public class UnsignedLongType : IntegerTypeBase<ulong>
 {
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/unsigned-long.html";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="UnsignedLongType"/> class.
     /// </summary>
@@ -21,6 +26,7 @@ public class UnsignedLongType : IntegerTypeBase<ulong>
         : base(name, ulong.MinValue, ulong.MaxValue, bind)
     {
         Description = description;
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>

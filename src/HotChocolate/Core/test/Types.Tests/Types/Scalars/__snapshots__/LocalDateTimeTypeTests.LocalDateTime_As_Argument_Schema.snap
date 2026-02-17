@@ -10,5 +10,8 @@ type QueryDateTime1 {
   foo: Foo!
 }
 
-"The `LocalDateTime` scalar type is a local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`."
-scalar LocalDateTime
+"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
+directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
+
+"The `LocalDateTime` scalar type represents a date and time without time zone information."
+scalar LocalDateTime @specifiedBy(url: "https://scalars.graphql.org/chillicream/local-date-time.html")

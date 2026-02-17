@@ -69,6 +69,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The `Any` scalar type represents any valid GraphQL value..
+        /// </summary>
+        internal static string AnyType_Description {
+            get {
+                return ResourceManager.GetString("AnyType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An Applied Directive is an instances of a directive as applied to a schema element. This type is NOT specified by the graphql specification presently..
         /// </summary>
         internal static string AppliedDirective_Description {
@@ -105,6 +114,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The `Base64String` scalar type represents an array of bytes encoded as a Base64 string..
+        /// </summary>
+        internal static string Base64StringType_Description {
+            get {
+                return ResourceManager.GetString("Base64StringType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified binding cannot be handled..
         /// </summary>
         internal static string BindingCompiler_AddBinding_BindingCannotBeHandled {
@@ -123,7 +141,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Byte scalar type represents an 8-bit signed integer with a minimum value of -128 and a maximum value of 127..
+        ///   Looks up a localized string similar to The `Byte` scalar type represents a signed 8-bit integer..
         /// </summary>
         internal static string ByteType_Description {
             get {
@@ -276,7 +294,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone..
+        ///   Looks up a localized string similar to The `DateTime` scalar type represents a date and time with time zone offset information..
         /// </summary>
         internal static string DateTimeType_Description {
             get {
@@ -285,7 +303,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `Date` scalar represents an ISO-8601 compliant date type..
+        ///   Looks up a localized string similar to The `Date` scalar type represents a date in UTC..
         /// </summary>
         internal static string DateType_Description {
             get {
@@ -294,7 +312,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `Decimal` scalar type represents a decimal floating-point number..
+        ///   Looks up a localized string similar to The `Decimal` scalar type represents a decimal floating-point number with high precision..
         /// </summary>
         internal static string DecimalType_Description {
             get {
@@ -1340,7 +1358,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `LocalDateTime` scalar type is a local date/time string (i.e., with no associated timezone) with the format `YYYY-MM-DDThh:mm:ss`..
+        ///   Looks up a localized string similar to The `LocalDateTime` scalar type represents a date and time without time zone information..
         /// </summary>
         internal static string LocalDateTimeType_Description {
             get {
@@ -1349,7 +1367,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `LocalDate` scalar represents a date without a time-zone in the ISO-8601 calendar system..
+        ///   Looks up a localized string similar to The `LocalDate` scalar type represents a date without time or time zone information..
         /// </summary>
         internal static string LocalDateType_Description {
             get {
@@ -1358,7 +1376,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss..
+        ///   Looks up a localized string similar to The `LocalTime` scalar type represents a time of day without date or time zone information..
         /// </summary>
         internal static string LocalTimeType_Description {
             get {
@@ -1367,7 +1385,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1..
+        ///   Looks up a localized string similar to The `Long` scalar type represents a signed 64-bit integer..
         /// </summary>
         internal static string LongType_Description {
             get {
@@ -2051,7 +2069,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1..
+        ///   Looks up a localized string similar to The `Short` scalar type represents a signed 16-bit integer..
         /// </summary>
         internal static string ShortType_Description {
             get {
@@ -2609,7 +2627,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `TimeSpan` scalar represents an ISO-8601 compliant duration type..
+        ///   Looks up a localized string similar to The `TimeSpan` scalar type represents a duration of time..
         /// </summary>
         internal static string TimeSpanType_Description {
             get {
@@ -2945,7 +2963,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The UnsignedByte scalar type represents an unsigned 8-bit numeric non-fractional value greater than or equal to 0..
+        ///   Looks up a localized string similar to The `UnsignedByte` scalar type represents an unsigned 8-bit integer..
         /// </summary>
         internal static string UnsignedByteType_Description {
             get {
@@ -2954,7 +2972,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The UnsignedInt scalar type represents an unsigned 32-bit numeric non-fractional value greater than or equal to 0..
+        ///   Looks up a localized string similar to The `UnsignedInt` scalar type represents an unsigned 32-bit integer..
         /// </summary>
         internal static string UnsignedIntType_Description {
             get {
@@ -2963,7 +2981,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The UnsignedLong scalar type represents an unsigned 64-bit numeric non-fractional value greater than or equal to 0..
+        ///   Looks up a localized string similar to The `UnsignedLong` scalar type represents an unsigned 64-bit integer..
         /// </summary>
         internal static string UnsignedLongType_Description {
             get {
@@ -2972,11 +2990,38 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The UnsignedShort scalar type represents an unsigned 16-bit numeric non-fractional value greater than or equal to 0..
+        ///   Looks up a localized string similar to The `UnsignedShort` scalar type represents an unsigned 16-bit integer..
         /// </summary>
         internal static string UnsignedShortType_Description {
             get {
                 return ResourceManager.GetString("UnsignedShortType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `URI` scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986..
+        /// </summary>
+        internal static string UriType_Description {
+            get {
+                return ResourceManager.GetString("UriType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `URL` scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986..
+        /// </summary>
+        internal static string UrlType_Description {
+            get {
+                return ResourceManager.GetString("UrlType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `UUID` scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562..
+        /// </summary>
+        internal static string UuidType_Description {
+            get {
+                return ResourceManager.GetString("UuidType_Description", resourceCulture);
             }
         }
         

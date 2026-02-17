@@ -6,11 +6,15 @@ using HotChocolate.Text.Json;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Represents a scalar type for 16-bit signed integers (short) in GraphQL.
-/// This type serializes as an integer and supports values from -32,768 to 32,767.
+/// The <c>Short</c> scalar type represents a signed 16-bit integer. It is intended for scenarios
+/// where values are constrained to the range -32,768 to 32,767, providing a more compact
+/// representation than the built-in <c>Int</c> scalar for smaller integer values.
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/short.html">Specification</seealso>
 public class ShortType : IntegerTypeBase<short>
 {
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/short.html";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ShortType"/> class.
     /// </summary>
@@ -36,6 +40,7 @@ public class ShortType : IntegerTypeBase<short>
         : base(name, min, max, bind)
     {
         Description = description;
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>

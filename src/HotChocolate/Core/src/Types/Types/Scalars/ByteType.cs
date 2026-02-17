@@ -6,11 +6,15 @@ using HotChocolate.Text.Json;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The Byte scalar type represents a signed numeric non‐fractional
-/// value greater than or equal to -128 and smaller than or equal to 127.
+/// The <c>Byte</c> scalar type represents a signed 8-bit integer. It is intended for scenarios
+/// where values are constrained to the range -128 to 127, such as representing small offsets,
+/// temperature differences, or compact signed counters.
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/byte.html">Specification</seealso>
 public class ByteType : IntegerTypeBase<sbyte>
 {
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/byte.html";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ByteType"/> class.
     /// </summary>
@@ -21,6 +25,7 @@ public class ByteType : IntegerTypeBase<sbyte>
         : base(name, sbyte.MinValue, sbyte.MaxValue, bind)
     {
         Description = description;
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>

@@ -91,6 +91,7 @@ enum Unit {
   METERS
 }
 
+"The `Any` scalar type represents any valid GraphQL value."
 scalar Any
 
 type Starship {
@@ -119,7 +120,7 @@ type FriendsEdge {
   node: Character
 }
 
-"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+"The `Long` scalar type represents a signed 64-bit integer."
 scalar Long
 
 "The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
