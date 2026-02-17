@@ -4,19 +4,39 @@ namespace HotChocolate.Fusion.Language;
 /// Each segment specifies a field in the context of the parent, with the root segment referencing a
 /// field in the return type of the query.
 /// </summary>
-public sealed class PathSegmentNode(
-    NameNode fieldName,
-    NameNode? typeName = null,
-    PathSegmentNode? pathSegment = null)
-    : IFieldSelectionMapSyntaxNode
+public sealed class PathSegmentNode : IFieldSelectionMapSyntaxNode
 {
+    public PathSegmentNode(NameNode fieldName)
+        : this(null, fieldName, null, null)
+    {
+    }
+
+    public PathSegmentNode(
+        NameNode fieldName,
+        PathSegmentNode? pathSegment)
+        : this(null, fieldName, null, pathSegment)
+    {
+    }
+
+    public PathSegmentNode(
+        NameNode fieldName,
+        NameNode? typeName,
+        PathSegmentNode? pathSegment)
+        : this(null, fieldName, typeName, pathSegment)
+    {
+    }
+
     public PathSegmentNode(
         Location? location,
         NameNode fieldName,
         NameNode? typeName,
         PathSegmentNode? pathSegment)
-        : this(fieldName, typeName, pathSegment)
     {
+        ArgumentNullException.ThrowIfNull(fieldName);
+
+        FieldName = fieldName;
+        TypeName = typeName;
+        PathSegment = pathSegment;
         Location = location;
     }
 
@@ -24,12 +44,11 @@ public sealed class PathSegmentNode(
 
     public Location? Location { get; }
 
-    public NameNode FieldName { get; } = fieldName
-        ?? throw new ArgumentNullException(nameof(fieldName));
+    public NameNode FieldName { get; }
 
-    public NameNode? TypeName { get; } = typeName;
+    public NameNode? TypeName { get; }
 
-    public PathSegmentNode? PathSegment { get; } = pathSegment;
+    public PathSegmentNode? PathSegment { get; }
 
     public IEnumerable<IFieldSelectionMapSyntaxNode> GetNodes()
     {

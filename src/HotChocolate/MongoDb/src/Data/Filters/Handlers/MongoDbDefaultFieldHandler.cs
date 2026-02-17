@@ -13,6 +13,9 @@ namespace HotChocolate.Data.MongoDb.Filters;
 public class MongoDbDefaultFieldHandler
     : FilterFieldHandler<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
 {
+    public static MongoDbDefaultFieldHandler Create(FilterProviderContext context)
+        => new();
+
     /// <summary>
     /// Checks if the field not a filter operations field
     /// </summary>
@@ -24,7 +27,7 @@ public class MongoDbDefaultFieldHandler
         ITypeCompletionContext context,
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration) =>
-        !(fieldConfiguration is FilterOperationFieldConfiguration);
+        fieldConfiguration is not FilterOperationFieldConfiguration;
 
     /// <inheritdoc />
     public override bool TryHandleEnter(

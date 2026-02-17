@@ -11,10 +11,10 @@ namespace GreenDonut.Data.Expressions;
 /// </summary>
 internal static class ExpressionHelpers
 {
-    private static readonly MethodInfo _createAndConvert = typeof(ExpressionHelpers)
+    private static readonly MethodInfo s_createAndConvert = typeof(ExpressionHelpers)
         .GetMethod(nameof(CreateAndConvertParameter), BindingFlags.NonPublic | BindingFlags.Static)!;
 
-    private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> _cachedConverters = new();
+    private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> s_cachedConverters = new();
 
     /// <summary>
     /// Builds a where expression that can be used to slice a dataset.
@@ -104,7 +104,6 @@ internal static class ExpressionHelpers
         return (Expression.Lambda<Func<T, bool>>(expression!, parameter), cursor.Offset ?? 0);
     }
 
-
     /// <summary>
     /// Build the select expression for a batch paging expression that uses grouping.
     /// </summary>
@@ -122,6 +121,9 @@ internal static class ExpressionHelpers
     /// </param>
     /// <param name="forward">
     /// Defines how the dataset is sorted.
+    /// </param>
+    /// <param name="selector">
+    /// Optional selector to apply to each item before materialization.
     /// </param>
     /// <param name="requestedCount">
     /// The number of items that are requested.
@@ -142,6 +144,7 @@ internal static class ExpressionHelpers
         ReadOnlySpan<LambdaExpression> orderExpressions,
         ReadOnlySpan<string> orderMethods,
         bool forward,
+        Expression<Func<TV, TV>>? selector,
         ref int requestedCount)
     {
         if (keys.Length == 0)
@@ -176,6 +179,17 @@ internal static class ExpressionHelpers
                 method,
                 source,
                 typedOrderExpression);
+        }
+
+        // apply the selector to each item in the grouping after ordering
+        if (selector is not null)
+        {
+            var selectMethod = typeof(Enumerable)
+                .GetMethods(BindingFlags.Static | BindingFlags.Public)
+                .First(m => m.Name == nameof(Enumerable.Select) && m.GetParameters().Length == 2)
+                .MakeGenericMethod(typeof(TV), typeof(TV));
+
+            source = Expression.Call(selectMethod, source, selector);
         }
 
         var offset = 0;
@@ -306,10 +320,7 @@ internal static class ExpressionHelpers
     /// <exception cref="ArgumentNullException"></exception>
     public static OrderRewriterResult ExtractAndRemoveOrder(Expression expression)
     {
-        if (expression is null)
-        {
-            throw new ArgumentNullException(nameof(expression));
-        }
+        ArgumentNullException.ThrowIfNull(expression);
 
         var rewriter = new OrderByRemovalRewriter();
         var (result, orderExpressions, orderMethods) = rewriter.Rewrite(expression);
@@ -318,11 +329,11 @@ internal static class ExpressionHelpers
 
     private static Expression CreateParameter(object? value, Type type)
     {
-        var converter = _cachedConverters.GetOrAdd(
+        var converter = s_cachedConverters.GetOrAdd(
             type,
             t =>
             {
-                var method = _createAndConvert.MakeGenericMethod(t);
+                var method = s_createAndConvert.MakeGenericMethod(t);
                 return v => (Expression)method.Invoke(null, [v])!;
             });
 
@@ -356,7 +367,7 @@ internal static class ExpressionHelpers
     {
         public TKey Key { get; set; } = default!;
 
-        public List<TValue> Items { get; set; } = default!;
+        public List<TValue> Items { get; set; } = null!;
     }
 
     public readonly struct OrderRewriterResult(
@@ -373,8 +384,8 @@ internal static class ExpressionHelpers
 
     private sealed class OrderByRemovalRewriter : ExpressionVisitor
     {
-        private readonly List<LambdaExpression> _orderExpressions = new();
-        private readonly List<string> _orderMethods = new();
+        private readonly List<LambdaExpression> _orderExpressions = [];
+        private readonly List<string> _orderMethods = [];
         private bool _insideSelectProjection;
 
         public (Expression, List<LambdaExpression>, List<string>) Rewrite(Expression expression)

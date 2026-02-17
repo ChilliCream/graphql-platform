@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators;
 
 public partial class JsonResultBuilderGenerator
 {
-    private const string _child = "child";
+    private const string Child = "child";
 
     private void AddArrayHandler(
         ClassBuilder classBuilder,
@@ -39,7 +39,7 @@ public partial class JsonResultBuilderGenerator
                 ForEachBuilder
                     .New()
                     .SetLoopHeader(
-                        $"{TypeNames.JsonElement} {_child} in {_obj}.Value.EnumerateArray()")
+                        $"{TypeNames.JsonElement} {Child} in {Obj}.Value.EnumerateArray()")
                     .AddCode(
                         MethodCallBuilder
                             .New()
@@ -47,7 +47,7 @@ public partial class JsonResultBuilderGenerator
                             .AddArgument(
                                 BuildUpdateMethodCall(
                                     listTypeDescriptor.InnerType,
-                                    CodeInlineBuilder.From(_child),
+                                    CodeInlineBuilder.From(Child),
                                     setNullForgiving: false))))
             .AddEmptyLine()
             .AddCode($"return {listVarName};");

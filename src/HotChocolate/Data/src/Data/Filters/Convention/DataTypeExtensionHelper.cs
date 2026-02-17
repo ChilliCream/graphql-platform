@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Internal;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters;
@@ -13,7 +13,7 @@ internal static class DataTypeExtensionHelper
         FilterInputTypeConfiguration extensionConfiguration,
         FilterInputTypeConfiguration typeConfiguration)
     {
-        TypeExtensionHelper.MergeContextData(
+        TypeExtensionHelper.MergeFeatures(
             extensionConfiguration,
             typeConfiguration);
 
@@ -37,7 +37,7 @@ internal static class DataTypeExtensionHelper
         SortEnumTypeConfiguration extensionConfiguration,
         SortEnumTypeConfiguration typeConfiguration)
     {
-        TypeExtensionHelper.MergeContextData(
+        TypeExtensionHelper.MergeFeatures(
             extensionConfiguration,
             typeConfiguration);
 
@@ -61,7 +61,7 @@ internal static class DataTypeExtensionHelper
         SortInputTypeConfiguration extensionConfiguration,
         SortInputTypeConfiguration typeConfiguration)
     {
-        TypeExtensionHelper.MergeContextData(
+        TypeExtensionHelper.MergeFeatures(
             extensionConfiguration,
             typeConfiguration);
 
@@ -91,8 +91,8 @@ internal static class DataTypeExtensionHelper
             typeFields,
             (_, extensionField, typeField) =>
             {
-                if (typeField is FilterFieldConfiguration filterTypeField &&
-                    extensionField is FilterFieldConfiguration filterExtensionField)
+                if (typeField is FilterFieldConfiguration filterTypeField
+                    && extensionField is FilterFieldConfiguration filterExtensionField)
                 {
                     filterTypeField.Handler ??= filterExtensionField.Handler;
                 }
@@ -113,8 +113,8 @@ internal static class DataTypeExtensionHelper
             typeFields,
             (_, extensionField, typeField) =>
             {
-                if (typeField is SortEnumValueConfiguration filterTypeField &&
-                    extensionField is SortEnumValueConfiguration filterExtensionField)
+                if (typeField is SortEnumValueConfiguration filterTypeField
+                    && extensionField is SortEnumValueConfiguration filterExtensionField)
                 {
                     filterTypeField.Handler ??= filterExtensionField.Handler;
                 }
@@ -134,8 +134,8 @@ internal static class DataTypeExtensionHelper
             typeFields,
             (_, extensionField, typeField) =>
             {
-                if (typeField is SortFieldConfiguration filterTypeField &&
-                    extensionField is SortFieldConfiguration filterExtensionField)
+                if (typeField is SortFieldConfiguration filterTypeField
+                    && extensionField is SortFieldConfiguration filterExtensionField)
                 {
                     filterTypeField.Handler ??= filterExtensionField.Handler;
                 }
@@ -177,7 +177,7 @@ internal static class DataTypeExtensionHelper
                     extensionField.Directives,
                     typeField.Directives);
 
-                TypeExtensionHelper.MergeContextData(extensionField, typeField);
+                TypeExtensionHelper.MergeFeatures(extensionField, typeField);
 
                 action(typeFields, extensionField, typeField);
             }
@@ -216,7 +216,7 @@ internal static class DataTypeExtensionHelper
                     extensionField.Directives,
                     typeField.Directives);
 
-                TypeExtensionHelper.MergeContextData(extensionField, typeField);
+                TypeExtensionHelper.MergeFeatures(extensionField, typeField);
 
                 action(typeFields, extensionField, typeField);
             }
@@ -246,7 +246,7 @@ internal static class DataTypeExtensionHelper
                     extensionField.Directives,
                     typeField.Directives);
 
-                TypeExtensionHelper.MergeContextData(extensionField, typeField);
+                TypeExtensionHelper.MergeFeatures(extensionField, typeField);
 
                 action(typeFields, extensionField, typeField);
             }

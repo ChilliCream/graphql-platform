@@ -36,7 +36,7 @@ public sealed class DeferredFragmentDescriptor
     /// <summary>
     /// The interface descriptor representing this deferred fragment.
     /// </summary>
-    public InterfaceTypeDescriptor Interface { get; private set; } = default!;
+    public InterfaceTypeDescriptor Interface { get; private set; } = null!;
 
     /// <summary>
     /// Gets the class name of the deferred fragment.
@@ -46,7 +46,7 @@ public sealed class DeferredFragmentDescriptor
     /// <summary>
     /// The class descriptor representing this deferred fragment.
     /// </summary>
-    public ObjectTypeDescriptor Class { get; private set; } = default!;
+    public ObjectTypeDescriptor Class { get; private set; } = null!;
 
     /// <summary>
     /// The entity property that represents the fragment indicator.

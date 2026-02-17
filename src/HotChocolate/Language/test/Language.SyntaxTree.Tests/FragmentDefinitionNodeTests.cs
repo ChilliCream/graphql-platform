@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public class FragmentDefinitionNodeTests
@@ -11,6 +9,7 @@ public class FragmentDefinitionNodeTests
         var a = new FragmentDefinitionNode(
             new Location(1, 1, 1, 1),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("cc"),
             new List<DirectiveNode>(),
@@ -18,6 +17,7 @@ public class FragmentDefinitionNodeTests
         var b = new FragmentDefinitionNode(
             new Location(1, 1, 1, 1),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("cc"),
             new List<DirectiveNode>(),
@@ -25,6 +25,7 @@ public class FragmentDefinitionNodeTests
         var c = new FragmentDefinitionNode(
             new Location(1, 1, 1, 1),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("dd"),
             new List<DirectiveNode>(),
@@ -34,7 +35,7 @@ public class FragmentDefinitionNodeTests
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -50,6 +51,7 @@ public class FragmentDefinitionNodeTests
         var a = new FragmentDefinitionNode(
             new Location(1, 1, 1, 1),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("cc"),
             new List<DirectiveNode>(),
@@ -57,6 +59,7 @@ public class FragmentDefinitionNodeTests
         var b = new FragmentDefinitionNode(
             new Location(2, 2, 2, 2),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("cc"),
             new List<DirectiveNode>(),
@@ -64,6 +67,7 @@ public class FragmentDefinitionNodeTests
         var c = new FragmentDefinitionNode(
             new Location(3, 3, 3, 3),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("dd"),
             new List<DirectiveNode>(),
@@ -73,7 +77,7 @@ public class FragmentDefinitionNodeTests
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -89,6 +93,7 @@ public class FragmentDefinitionNodeTests
         var a = new FragmentDefinitionNode(
             new Location(1, 1, 1, 1),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("cc"),
             new List<DirectiveNode>(),
@@ -96,6 +101,7 @@ public class FragmentDefinitionNodeTests
         var b = new FragmentDefinitionNode(
             new Location(2, 2, 2, 2),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("cc"),
             new List<DirectiveNode>(),
@@ -103,6 +109,7 @@ public class FragmentDefinitionNodeTests
         var c = new FragmentDefinitionNode(
             new Location(1, 1, 1, 1),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("dd"),
             new List<DirectiveNode>(),
@@ -110,6 +117,7 @@ public class FragmentDefinitionNodeTests
         var d = new FragmentDefinitionNode(
             new Location(2, 2, 2, 2),
             new("aa"),
+            description: null,
             new List<VariableDefinitionNode>(),
             new NamedTypeNode("dd"),
             new List<DirectiveNode>(),

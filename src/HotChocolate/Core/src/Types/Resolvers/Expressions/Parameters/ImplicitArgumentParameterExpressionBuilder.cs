@@ -1,7 +1,5 @@
 using System.Reflection;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal class ImplicitArgumentParameterExpressionBuilder

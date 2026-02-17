@@ -11,7 +11,7 @@ internal static class RequiredDirectiveParser
 
     public static RequireDirective Parse(DirectiveNode directiveNode)
     {
-        string? schemaName = null;
+        string? schemaKey = null;
         SelectionSetNode? requirements = null;
         FieldDefinitionNode? field = null;
         ImmutableArray<string?>? map = null;
@@ -21,7 +21,7 @@ internal static class RequiredDirectiveParser
             switch (argument.Name.Value)
             {
                 case "schema":
-                    schemaName = ((EnumValueNode)argument.Value).Value;
+                    schemaKey = ((EnumValueNode)argument.Value).Value;
                     break;
 
                 case "requirements":
@@ -49,7 +49,7 @@ internal static class RequiredDirectiveParser
             }
         }
 
-        if (string.IsNullOrEmpty(schemaName))
+        if (string.IsNullOrEmpty(schemaKey))
         {
             throw new DirectiveParserException(
                 "The `schema` argument is required on the @require directive.");
@@ -73,7 +73,7 @@ internal static class RequiredDirectiveParser
                 "The `map` argument is required on the @require directive.");
         }
 
-        return new RequireDirective(schemaName, requirements, field, map.Value);
+        return new RequireDirective(new SchemaKey(schemaKey), requirements, field, map.Value);
     }
 
     private static ImmutableArray<string?> ParseMap(IValueNode value)
@@ -81,23 +81,23 @@ internal static class RequiredDirectiveParser
         switch (value)
         {
             case ListValueNode listValue:
+            {
+                var fields = ImmutableArray.CreateBuilder<string?>();
+
+                foreach (var item in listValue.Items)
                 {
-                    var fields = ImmutableArray.CreateBuilder<string?>();
-
-                    foreach (var item in listValue.Items)
+                    if (item is StringValueNode stringValue)
                     {
-                        if (item is StringValueNode stringValue)
-                        {
-                            fields.Add(stringValue.Value);
-                        }
-                        else
-                        {
-                            fields.Add(null);
-                        }
+                        fields.Add(stringValue.Value);
                     }
-
-                    return fields.ToImmutable();
+                    else
+                    {
+                        fields.Add(null);
+                    }
                 }
+
+                return fields.ToImmutable();
+            }
 
             case StringValueNode stringValue:
                 return [stringValue.Value];
@@ -123,7 +123,7 @@ internal static class RequiredDirectiveParser
             }
         }
 
-        return temp?.ToImmutable() ?? ImmutableArray<RequireDirective>.Empty;
+        return temp?.ToImmutable() ?? [];
     }
 
     public static bool TryParse(

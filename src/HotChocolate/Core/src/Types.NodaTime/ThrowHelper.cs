@@ -4,7 +4,8 @@ namespace HotChocolate.Types.NodaTime;
 
 internal static class ThrowHelper
 {
-    public static SchemaException PatternCannotBeEmpty(ITypeSystemObject type) =>
+    public static SchemaException PatternCannotBeEmpty(
+        TypeSystemObject type) =>
         new(SchemaErrorBuilder
             .New()
             .SetTypeSystemObject(type)

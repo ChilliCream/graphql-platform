@@ -58,8 +58,8 @@ public class FilterContext : IFilterContext
     {
         var localContextData = _context.LocalContextData;
 
-        if (localContextData.TryGetValue(ContextAsPredicateKey, out var asPredicateObj) &&
-            asPredicateObj is AsPredicate<T> asPredicate)
+        if (localContextData.TryGetValue(ContextAsPredicateKey, out var asPredicateObj)
+            && asPredicateObj is AsPredicate<T> asPredicate)
         {
             return asPredicate(_context, false);
         }
@@ -81,7 +81,7 @@ public class FilterContext : IFilterContext
                 return filterValue.Value;
 
             case IFilterInfo info:
-                Dictionary<string, object?> data = new();
+                Dictionary<string, object?> data = [];
 
                 foreach (var field in info.GetFields())
                 {

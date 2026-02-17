@@ -20,9 +20,9 @@ internal sealed class FusionEnumValueMutableDirectiveDefinition : MutableDirecti
             new MutableInputFieldDefinition(
                 WellKnownArgumentNames.Schema,
                 new NonNullType(schemaMutableEnumType))
-        {
-            Description = FusionEnumValueMutableDirectiveDefinition_Argument_Schema_Description
-        });
+            {
+                Description = FusionEnumValueMutableDirectiveDefinition_Argument_Schema_Description
+            });
 
         IsRepeatable = true;
         Locations = DirectiveLocation.EnumValue;

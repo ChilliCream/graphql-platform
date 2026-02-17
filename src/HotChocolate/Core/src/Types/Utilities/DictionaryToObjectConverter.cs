@@ -1,3 +1,5 @@
+#nullable disable
+
 using System.Collections;
 using HotChocolate.Internal;
 
@@ -11,15 +13,8 @@ public sealed class DictionaryToObjectConverter(ITypeConverter converter)
 
     public object Convert(object from, Type to)
     {
-        if (from is null)
-        {
-            throw new ArgumentNullException(nameof(from));
-        }
-
-        if (to is null)
-        {
-            throw new ArgumentNullException(nameof(to));
-        }
+        ArgumentNullException.ThrowIfNull(from);
+        ArgumentNullException.ThrowIfNull(to);
 
         var context = new ConverterContext { ClrType = to };
         Visit(from, context);
@@ -30,8 +25,8 @@ public sealed class DictionaryToObjectConverter(ITypeConverter converter)
         IReadOnlyDictionary<string, object> dictionary,
         ConverterContext context)
     {
-        if (!context.ClrType.IsValueType &&
-            context.ClrType != typeof(string))
+        if (!context.ClrType.IsValueType
+            && context.ClrType != typeof(string))
         {
             var properties =
                 context.ClrType.CreatePropertyLookup();

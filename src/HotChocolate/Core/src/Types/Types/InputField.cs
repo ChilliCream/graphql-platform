@@ -1,17 +1,29 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Internal.FieldInitHelper;
-
-#nullable enable
+using static HotChocolate.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Types;
 
-public class InputField : FieldBase, IInputField, IHasProperty
+/// <summary>
+/// Represents an input field of an <see cref="InputObjectType" />.
+/// </summary>
+public class InputField : FieldBase, IInputValueDefinition, IInputValueInfo, IPropertyProvider
 {
-    private Type _runtimeType = default!;
+    private Type _runtimeType = null!;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="InputField"/> with the given
+    /// </summary>
+    /// <param name="configuration">
+    /// The input field configuration.
+    /// </param>
+    /// <param name="index">
+    /// The index of the field.
+    /// </param>
     public InputField(InputFieldConfiguration configuration, int index)
         : base(configuration, index)
     {
@@ -25,26 +37,24 @@ public class InputField : FieldBase, IInputField, IHasProperty
             1 => formatters[0],
             _ => new AggregateInputValueFormatter(formatters)
         };
-
-        IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
-        DeprecationReason = configuration.DeprecationReason;
     }
-
-    /// <inheritdoc />
-    public IInputType Type { get; private set; } = default!;
 
     /// <summary>
     /// Gets the type that declares this field.
     /// </summary>
-    public new InputObjectType DeclaringType => (InputObjectType)base.DeclaringType;
+    public new InputObjectType DeclaringType => Unsafe.As<InputObjectType>(base.DeclaringType);
 
     /// <inheritdoc />
     public override Type RuntimeType => _runtimeType;
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the default value of this field.
+    /// </summary>
     public IValueNode? DefaultValue { get; private set; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the input value formatter.
+    /// </summary>
     public IInputValueFormatter? Formatter { get; }
 
     /// <summary>
@@ -52,11 +62,10 @@ public class InputField : FieldBase, IInputField, IHasProperty
     /// </summary>
     internal bool IsOptional { get; private set; }
 
-    /// <inheritdoc />
-    public bool IsDeprecated { get; }
-
-    /// <inheritdoc />
-    public string? DeprecationReason { get; }
+    /// <summary>
+    /// Gets the type of the input field.
+    /// </summary>
+    public new IInputType Type => Unsafe.As<IInputType>(base.Type);
 
     /// <summary>
     /// If this field is bound to a property on a concrete model,
@@ -77,7 +86,6 @@ public class InputField : FieldBase, IInputField, IHasProperty
     {
         base.OnCompleteField(context, declaringMember, definition);
 
-        Type = context.GetType<IInputType>(definition.Type!).EnsureInputType();
         _runtimeType = definition.RuntimeType ?? definition.Property?.PropertyType!;
         _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
         IsOptional = isOptional;
@@ -122,13 +130,13 @@ public class InputField : FieldBase, IInputField, IHasProperty
         InputFieldConfiguration definition)
         => base.OnFinalizeField(context, declaringMember, definition);
 
-
-
     /// <summary>
-    /// Returns a string that represents the current field.
+    /// Creates a <see cref="InputValueDefinitionNode"/> from this input field.
     /// </summary>
-    /// <returns>
-    /// A string that represents the current field.
-    /// </returns>
-    public override string ToString() => $"{Name}:{Type.Print()}";
+    public InputValueDefinitionNode ToSyntaxNode()
+        => Format(this);
+
+    /// <inheritdoc />
+    protected override ISyntaxNode FormatField()
+        => Format(this);
 }

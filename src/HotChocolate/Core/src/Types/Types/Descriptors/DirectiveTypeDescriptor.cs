@@ -2,7 +2,7 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 
@@ -17,10 +17,7 @@ public class DirectiveTypeDescriptor
         Type clrType)
         : base(context)
     {
-        if (clrType is null)
-        {
-            throw new ArgumentNullException(nameof(clrType));
-        }
+        ArgumentNullException.ThrowIfNull(clrType);
 
         Configuration.RuntimeType = clrType;
         Configuration.Name = context.Naming.GetTypeName(
@@ -47,21 +44,21 @@ public class DirectiveTypeDescriptor
 
     protected internal override DirectiveTypeConfiguration Configuration { get; protected set; } = new();
 
-    protected ICollection<DirectiveArgumentDescriptor> Arguments { get; } =
-        new List<DirectiveArgumentDescriptor>();
+    protected ICollection<DirectiveArgumentDescriptor> Arguments { get; } = [];
 
     protected override void OnCreateConfiguration(
         DirectiveTypeConfiguration definition)
     {
         Context.Descriptors.Push(this);
 
-        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
                 Configuration.RuntimeType);
-            Configuration.AttributesAreApplied = true;
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         var arguments = new Dictionary<string, DirectiveArgumentConfiguration>(StringComparer.Ordinal);
@@ -122,10 +119,7 @@ public class DirectiveTypeDescriptor
 
     public IDirectiveTypeDescriptor Use(DirectiveMiddleware middleware)
     {
-        if (middleware is null)
-        {
-            throw new ArgumentNullException(nameof(middleware));
-        }
+        ArgumentNullException.ThrowIfNull(middleware);
 
         Configuration.MiddlewareComponents.Add(middleware);
         return this;
@@ -141,10 +135,7 @@ public class DirectiveTypeDescriptor
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
     {
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        ArgumentNullException.ThrowIfNull(factory);
 
         return Use(DirectiveClassMiddlewareFactory.Create(factory));
     }

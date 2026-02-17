@@ -4,7 +4,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Filters;
 
 /// <summary>
-/// A <see cref="IFilterProvider"/> translates a incoming query to another
+/// A <see cref="IFilterProvider"/> translates an incoming query to another
 /// object structure at runtime
 /// </summary>
 public interface IFilterProvider
@@ -32,7 +32,7 @@ public interface IFilterProvider
     void ConfigureField(string argumentName, IObjectFieldDescriptor descriptor);
 
     /// <summary>
-    /// Creates metadata for a field that the provider can pick up an use for the translation
+    /// Creates metadata for a field that the provider can pick up and use for the translation
     /// </summary>
     IFilterMetadata? CreateMetaData(
         ITypeCompletionContext context,

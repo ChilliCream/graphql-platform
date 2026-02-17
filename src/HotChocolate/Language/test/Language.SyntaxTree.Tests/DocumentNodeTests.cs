@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public class DocumentNodeTests
@@ -12,13 +10,14 @@ public class DocumentNodeTests
 
         var fragment = new FragmentDefinitionNode(
             null, new NameNode("foo"),
+            description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("foo"),
             Array.Empty<DirectiveNode>(),
             new SelectionSetNode(Array.Empty<ISelectionNode>()));
 
         // act
-        var document = new DocumentNode(location, new IDefinitionNode[] { fragment, });
+        var document = new DocumentNode(location, new IDefinitionNode[] { fragment });
 
         // assert
         Assert.Equal(SyntaxKind.Document, document.Kind);
@@ -32,13 +31,14 @@ public class DocumentNodeTests
         // arrange
         var fragment = new FragmentDefinitionNode(
             null, new NameNode("foo"),
+            description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("foo"),
             Array.Empty<DirectiveNode>(),
             new SelectionSetNode(Array.Empty<ISelectionNode>()));
 
         // act
-        var document = new DocumentNode(new IDefinitionNode[] { fragment, });
+        var document = new DocumentNode(new IDefinitionNode[] { fragment });
 
         // assert
         Assert.Equal(SyntaxKind.Document, document.Kind);
@@ -54,12 +54,13 @@ public class DocumentNodeTests
 
         var fragment = new FragmentDefinitionNode(
             null, new NameNode("foo"),
+            description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("foo"),
             Array.Empty<DirectiveNode>(),
             new SelectionSetNode(Array.Empty<ISelectionNode>()));
 
-        var document = new DocumentNode(new IDefinitionNode[] { fragment, });
+        var document = new DocumentNode(new IDefinitionNode[] { fragment });
 
         // act
         document = document.WithLocation(location);
@@ -76,12 +77,13 @@ public class DocumentNodeTests
 
         var fragment = new FragmentDefinitionNode(
             null, new NameNode("foo"),
+            description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("foo"),
             Array.Empty<DirectiveNode>(),
             new SelectionSetNode(Array.Empty<ISelectionNode>()));
 
-        var document = new DocumentNode(location, new IDefinitionNode[] { fragment, });
+        var document = new DocumentNode(location, new IDefinitionNode[] { fragment });
 
         // act
         document = document.WithLocation(null);
@@ -98,6 +100,7 @@ public class DocumentNodeTests
 
         var fragment = new FragmentDefinitionNode(
             null, new NameNode("foo"),
+            description: null,
             Array.Empty<VariableDefinitionNode>(),
             new NamedTypeNode("foo"),
             Array.Empty<DirectiveNode>(),
@@ -106,7 +109,7 @@ public class DocumentNodeTests
         var document = new DocumentNode(location, new IDefinitionNode[] { });
 
         // act
-        document = document.WithDefinitions(new IDefinitionNode[] { fragment, });
+        document = document.WithDefinitions(new IDefinitionNode[] { fragment });
 
         // assert
         Assert.Collection(document.Definitions, d => Assert.Equal(fragment, d));
@@ -116,13 +119,6 @@ public class DocumentNodeTests
     public void Document_With_Definitions_Null()
     {
         // arrange
-        var fragment = new FragmentDefinitionNode(
-            null, new NameNode("foo"),
-            Array.Empty<VariableDefinitionNode>(),
-            new NamedTypeNode("foo"),
-            Array.Empty<DirectiveNode>(),
-            new SelectionSetNode(Array.Empty<ISelectionNode>()));
-
         var document = new DocumentNode(new IDefinitionNode[] { });
 
         // act
@@ -149,8 +145,8 @@ public class DocumentNodeTests
                         null,
                         new("DEF"),
                         null,
-                        Array.Empty<DirectiveNode>()),
-                }),
+                        Array.Empty<DirectiveNode>())
+                })
         };
 
         var definitions2 = new List<IDefinitionNode>
@@ -166,8 +162,8 @@ public class DocumentNodeTests
                         null,
                         new("DEF"),
                         null,
-                        Array.Empty<DirectiveNode>()),
-                }),
+                        Array.Empty<DirectiveNode>())
+                })
         };
 
         var a = new DocumentNode(
@@ -184,7 +180,7 @@ public class DocumentNodeTests
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -210,8 +206,8 @@ public class DocumentNodeTests
                         null,
                         new("DEF"),
                         null,
-                        Array.Empty<DirectiveNode>()),
-                }),
+                        Array.Empty<DirectiveNode>())
+                })
         };
 
         var definitions2 = new List<IDefinitionNode>
@@ -227,8 +223,8 @@ public class DocumentNodeTests
                         null,
                         new("DEF"),
                         null,
-                        Array.Empty<DirectiveNode>()),
-                }),
+                        Array.Empty<DirectiveNode>())
+                })
         };
 
         var a = new DocumentNode(
@@ -245,7 +241,7 @@ public class DocumentNodeTests
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -272,8 +268,8 @@ public class DocumentNodeTests
                         null,
                         new("DEF"),
                         null,
-                        Array.Empty<DirectiveNode>()),
-                }),
+                        Array.Empty<DirectiveNode>())
+                })
         };
 
         var definitions2 = new List<IDefinitionNode>
@@ -289,8 +285,8 @@ public class DocumentNodeTests
                         null,
                         new("DEF"),
                         null,
-                        Array.Empty<DirectiveNode>()),
-                }),
+                        Array.Empty<DirectiveNode>())
+                })
         };
 
         var a = new DocumentNode(

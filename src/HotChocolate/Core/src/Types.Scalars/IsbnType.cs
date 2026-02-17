@@ -1,23 +1,22 @@
 using System.Text.RegularExpressions;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The `ISBN` scalar type is a ISBN-10 or ISBN-13 number:
+/// The `ISBN` scalar type is an ISBN-10 or ISBN-13 number:
 /// <a>https://en.wikipedia.org/wiki/International_Standard_Book_Number</a>.
 /// </summary>
 public partial class IsbnType : RegexType
 {
-    private const string _validationPattern =
-        "^(?:ISBN(-1(?:(0)|3))?:?\\ )?(?(1)(?(2)(?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0" +
-        "-9X]{13}$)[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]|(?=[0-9]{13}$|(?=(?:[0-9]" +
-        "+[- ]){4})[- 0-9]{17}$)97[89][- ]?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9])|(" +
-        "?=[0-9X]{10}$|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[" +
-        "- ]){4})[- 0-9]{17}$)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X" +
-        "])$";
+    private const string ValidationPattern =
+        @"^(?:ISBN(-1(?:(0)|3))?:?\ )?(?(1)(?(2)(?=[0-9X]{10}\z|(?=(?:[0-9]+[- ]){3})[- 0"
+        + @"-9X]{13}\z)[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X]|(?=[0-9]{13}\z|(?=(?:[0-9]"
+        + @"+[- ]){4})[- 0-9]{17}\z)97[89][- ]?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9])|("
+        + @"?=[0-9X]{10}\z|(?=(?:[0-9]+[- ]){3})[- 0-9X]{13}\z|97[89][0-9]{10}\z|(?=(?:[0-9]+["
+        + @"- ]){4})[- 0-9]{17}\z)(?:97[89][- ]?)?[0-9]{1,5}[- ]?[0-9]+[- ]?[0-9]+[- ]?[0-9X"
+        + @"])\z";
 
-    [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(ValidationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
 
     /// <summary>
@@ -46,15 +45,6 @@ public partial class IsbnType : RegexType
     {
     }
 
-    /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
-    {
-        return ThrowHelper.IsbnType_ParseLiteral_IsInvalid(this);
-    }
-
-    /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
-    {
-        return ThrowHelper.IsbnType_ParseValue_IsInvalid(this);
-    }
+    protected override LeafCoercionException FormatException(string runtimeValue)
+        => ThrowHelper.IsbnType_InvalidFormat(this);
 }

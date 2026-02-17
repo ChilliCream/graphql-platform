@@ -26,7 +26,7 @@ internal class GeoJsonResolvers
             OgcGeometryType.MultiPoint => GeoJsonGeometryType.MultiPoint,
             OgcGeometryType.MultiLineString => GeoJsonGeometryType.MultiLineString,
             OgcGeometryType.MultiPolygon => GeoJsonGeometryType.MultiPolygon,
-            _ => throw Resolver_Type_InvalidGeometryType(),
+            _ => throw Resolver_Type_InvalidGeometryType()
         };
 
     public IReadOnlyCollection<double> GetBbox([Parent] Geometry geometry)
@@ -34,7 +34,7 @@ internal class GeoJsonResolvers
         var envelope = geometry.EnvelopeInternal;
 
         // TODO: support Z
-        return new[] { envelope.MinX, envelope.MinY, envelope.MaxX, envelope.MaxY, };
+        return [envelope.MinX, envelope.MinY, envelope.MaxX, envelope.MaxY];
     }
 
     public int GetCrs([Parent] Geometry geometry) =>

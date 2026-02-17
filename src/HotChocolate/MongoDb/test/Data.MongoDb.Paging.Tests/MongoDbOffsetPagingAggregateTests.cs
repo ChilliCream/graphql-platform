@@ -15,11 +15,11 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
 {
     private readonly List<Foo> _foos =
     [
-        new Foo { Bar = "a", },
-        new Foo { Bar = "b", },
-        new Foo { Bar = "d", },
-        new Foo { Bar = "e", },
-        new Foo { Bar = "f", },
+        new Foo { Bar = "a" },
+        new Foo { Bar = "b" },
+        new Foo { Bar = "d" },
+        new Foo { Bar = "e" },
+        new Foo { Bar = "f" }
     ];
 
     private readonly MongoResource _resource;
@@ -165,7 +165,7 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
         [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        public string Bar { get; set; } = default!;
+        public string Bar { get; set; } = null!;
     }
 
     private Func<IResolverContext, MongoDbAggregateFluentExecutable<TResult>>
@@ -205,26 +205,23 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
                                 }
                             })
                         .UseOffsetPaging<ObjectType<Foo>>(
-                            options: new PagingOptions { IncludeTotalCount = true, });
+                            options: new PagingOptions { IncludeTotalCount = true });
                 })
             .UseRequest(
-                next => async context =>
+                (_, next) => async context =>
                 {
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
-                        context.Result =
-                            OperationResultBuilder
-                                .FromResult(context.Result!.ExpectOperationResult())
-                                .SetContextData("query", queryString)
-                                .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.ContextData = result.ContextData.SetItem("query", queryString);
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
             .UseDefaultPipeline()
             .Services
             .BuildServiceProvider()
-            .GetRequiredService<IRequestExecutorResolver>()
-            .GetRequestExecutorAsync();
+            .GetRequiredService<IRequestExecutorProvider>()
+            .GetExecutorAsync();
     }
 }

@@ -23,8 +23,7 @@ public class SortConventionConfiguration : IHasScope
 
     public Type? DefaultBinding { get; set; }
 
-    public IList<SortOperationConventionConfiguration> Operations { get; } =
-        new List<SortOperationConventionConfiguration>();
+    public IList<SortOperationConventionConfiguration> Operations { get; } = [];
 
     public IDictionary<Type, Type> Bindings { get; } = new Dictionary<Type, Type>();
 
@@ -36,8 +35,7 @@ public class SortConventionConfiguration : IHasScope
         = new Dictionary<TypeReference, List<ConfigureSortEnumType>>(
             TypeReferenceComparer.Default);
 
-    public IList<ISortProviderExtension> ProviderExtensions { get; } =
-        new List<ISortProviderExtension>();
+    public IList<ISortProviderExtension> ProviderExtensions { get; } = [];
 
-    public IList<Type> ProviderExtensionsTypes { get; } = new List<Type>();
+    public IList<Type> ProviderExtensionsTypes { get; } = [];
 }

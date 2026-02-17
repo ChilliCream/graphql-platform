@@ -6,13 +6,13 @@ namespace HotChocolate.Types.Pagination;
 
 internal static class IndexCursor
 {
-    private static readonly Encoding _utf8 = Encoding.UTF8;
+    private static readonly Encoding s_utf8 = Encoding.UTF8;
 
     public static unsafe string Format(Span<byte> buffer)
     {
         fixed (byte* bytePtr = buffer)
         {
-            return _utf8.GetString(bytePtr, buffer.Length);
+            return s_utf8.GetString(bytePtr, buffer.Length);
         }
     }
 
@@ -26,7 +26,7 @@ internal static class IndexCursor
 
         fixed (char* cPtr = cursor)
         {
-            var count = _utf8.GetByteCount(cPtr, cursor.Length);
+            var count = s_utf8.GetByteCount(cPtr, cursor.Length);
             byte[]? rented = null;
 
             var buffer = count <= 128
@@ -37,11 +37,11 @@ internal static class IndexCursor
             {
                 fixed (byte* bytePtr = buffer)
                 {
-                    _utf8.GetBytes(cPtr, cursor.Length, bytePtr, buffer.Length);
+                    s_utf8.GetBytes(cPtr, cursor.Length, bytePtr, buffer.Length);
                 }
 
                 Base64.DecodeFromUtf8InPlace(buffer, out var written);
-                if (Utf8Parser.TryParse(buffer.Slice(0, written), out index, out _))
+                if (Utf8Parser.TryParse(buffer[..written], out index, out _))
                 {
                     return true;
                 }

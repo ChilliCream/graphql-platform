@@ -1,12 +1,11 @@
-#nullable enable
-
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Types.Relay.NodeResolverCompilerHelper;
@@ -45,10 +44,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
     public IObjectFieldDescriptor ResolveNode<TId>(
         NodeResolverDelegate<object, TId> fieldResolver)
     {
-        if (fieldResolver is null)
-        {
-            throw new ArgumentNullException(nameof(fieldResolver));
-        }
+        ArgumentNullException.ThrowIfNull(fieldResolver);
 
         return ResolveNode(async ctx =>
         {
@@ -75,10 +71,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
     public IObjectFieldDescriptor ResolveNodeWith<TResolver>(
         Expression<Func<TResolver, object?>> method)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
+        ArgumentNullException.ThrowIfNull(method);
 
         var member = method.TryExtractMember();
 
@@ -103,10 +96,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
     /// </param>
     public IObjectFieldDescriptor ResolveNodeWith(MethodInfo method)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
+        ArgumentNullException.ThrowIfNull(method);
 
         Configuration.ResolverField ??= new ObjectFieldConfiguration();
         Configuration.ResolverField.Member = method;
@@ -125,10 +115,10 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
                 .From(descriptorContext, Configuration.ResolverField)
                 .CreateConfiguration();
 
-            // after that all middleware should be available on the field definition and we can
+            // after that all middleware should be available on the field definition, and we can
             // start compiling the resolver and the resolver pipeline.
-            if (Configuration.ResolverField.Resolver is null &&
-                Configuration.ResolverField.Member is not null)
+            if (Configuration.ResolverField.Resolver is null
+                && Configuration.ResolverField.Member is not null)
             {
                 Configuration.ResolverField.Resolvers =
                     Context.ResolverCompiler.CompileResolve(
@@ -167,8 +157,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
                     }
                 }
 
-                definition.ContextData[WellKnownContextData.NodeResolver] =
-                    new NodeResolverInfo(null, pipeline!);
+                definition.Features.GetOrSet<NodeTypeFeature>().NodeResolver = new NodeResolverInfo(null, pipeline!);
             }
         }
     }
@@ -179,16 +168,8 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
         {
             var extensions = descriptor.Extend();
             var context = extensions.Context;
-
-            if (!context.ContextData.TryGetValue(WellKnownContextData.NodeIdResultFormatter, out var value) ||
-                value is null)
-            {
-                value = Create(context.NodeIdSerializerAccessor);
-                context.ContextData[WellKnownContextData.NodeIdResultFormatter] = value;
-            }
-
-            var formatter = (ResultFormatterConfiguration)value;
             var converters = extensions.Configuration.FormatterConfigurations;
+            var formatter = context.Features.GetOrSet(Create, context.NodeIdSerializerAccessor);
 
             if (!converters.Contains(formatter))
             {
@@ -204,7 +185,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
                     => result is not null
                         ? serializerAccessor.Serializer.Format(context.ObjectType.Name, result)
                         : null,
-                key: WellKnownMiddleware.GlobalId,
-                isRepeatable: false);
+                isRepeatable: false,
+                key: WellKnownMiddleware.GlobalId);
     }
 }

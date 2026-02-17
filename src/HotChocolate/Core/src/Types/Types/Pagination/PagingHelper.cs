@@ -6,11 +6,9 @@ using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
 using static HotChocolate.WellKnownMiddleware;
-
-#nullable enable
 
 namespace HotChocolate.Types.Pagination;
 
@@ -25,10 +23,7 @@ public static class PagingHelper
         GetPagingProvider resolvePagingProvider,
         PagingOptions? options)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         FieldMiddlewareConfiguration placeholder = new(_ => _ => default, key: Paging);
 
@@ -69,7 +64,7 @@ public static class PagingHelper
 
         var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
         definition.MiddlewareConfigurations[index] = new(middleware, key: Paging);
-        definition.ContextData[WellKnownContextData.PagingOptions] = options;
+        definition.Features.Set(options);
     }
 
     private static IExtendedType GetSourceType(
@@ -197,21 +192,15 @@ public static class PagingHelper
         return false;
     }
 
-    public static PagingOptions GetPagingOptions(ISchema schema, IObjectField field)
-    {
-        if (field.ContextData.TryGetValue(WellKnownContextData.PagingOptions, out var o)
-            && o is PagingOptions options)
-        {
-            return options;
-        }
-
-        return schema.Features.GetRequired<PagingOptions>();
-    }
+    public static PagingOptions GetPagingOptions(ISchemaDefinition schema, IOutputFieldDefinition field)
+        => field.Features.TryGet<PagingOptions>(out var options)
+            ? options
+            : schema.Features.GetRequired<PagingOptions>();
 
     internal static PagingOptions GetPagingOptions(
         this ITypeCompletionContext context,
-        PagingOptions? options) =>
-        context.DescriptorContext.GetPagingOptions(options);
+        PagingOptions? options)
+        => context.DescriptorContext.GetPagingOptions(options);
 
     public static PagingOptions GetPagingOptions(
         this IDescriptorContext context,
@@ -219,7 +208,7 @@ public static class PagingHelper
     {
         options = options?.Copy() ?? new();
 
-        if (context.ContextData.TryGetValue(typeof(PagingOptions).FullName!, out var o) && o is PagingOptions global)
+        if (context.Features.TryGet<PagingOptions>(out var global))
         {
             options.Merge(global);
         }

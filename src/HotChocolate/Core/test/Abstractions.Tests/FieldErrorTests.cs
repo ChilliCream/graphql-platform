@@ -32,7 +32,7 @@ public class FieldErrorTests
     public void Constructor_ErrorList_Valid_DoesNotThrow()
     {
         // Arrange
-        var errors = new List<object> { new object(), new object(), };
+        var errors = new List<object> { new object(), new object() };
 
         // Act
         var mutationError = new FieldError(errors);

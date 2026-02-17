@@ -3,9 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Configuration;
 
@@ -555,7 +553,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         }
     }
 
-    internal override void OnAfterCreateSchemaInternal(IDescriptorContext context, ISchema schema)
+    internal override void OnAfterCreateSchemaInternal(IDescriptorContext context, Schema schema)
     {
         ref var first = ref GetReference();
         var length = _typeInterceptors.Length;

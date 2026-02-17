@@ -1,16 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ChilliCream.Nitro" Version="14.0.0" />
-    <PackageReference Include="HotChocolate.AspNetCore" Version="14.0.0-preview.build.0" />
-    <PackageReference Include="HotChocolate.AspNetCore.CommandLine" Version="14.0.0-preview.build.0" />
-    <PackageReference Include="HotChocolate.Fusion" Version="14.0.0-preview.build.0" />
+    <PackageReference Include="HotChocolate.Fusion.AspNetCore" Version="14.0.0-preview.build.0" />
   </ItemGroup>
 
 </Project>

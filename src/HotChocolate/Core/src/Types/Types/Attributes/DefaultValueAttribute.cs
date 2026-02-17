@@ -1,8 +1,6 @@
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -66,7 +64,7 @@ public sealed class DefaultValueAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         if (descriptor is IArgumentDescriptor arg)
         {

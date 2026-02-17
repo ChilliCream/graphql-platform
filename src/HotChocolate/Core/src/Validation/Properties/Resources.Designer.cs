@@ -63,6 +63,12 @@ namespace HotChocolate.Validation.Properties {
             }
         }
         
+        internal static string ErrorHelper_OneOfVariableIsNotCompatible {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OneOfVariableIsNotCompatible", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_VariableIsNotCompatible {
             get {
                 return ResourceManager.GetString("ErrorHelper_VariableIsNotCompatible", resourceCulture);
@@ -288,6 +294,12 @@ namespace HotChocolate.Validation.Properties {
         internal static string ErrorHelper_OneOfVariablesMustBeNonNull {
             get {
                 return ResourceManager.GetString("ErrorHelper_OneOfVariablesMustBeNonNull", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_SkipAndIncludeNotAllowedOnSubscriptionRootField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_SkipAndIncludeNotAllowedOnSubscriptionRootField", resourceCulture);
             }
         }
         

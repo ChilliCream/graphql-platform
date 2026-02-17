@@ -1,0 +1,127 @@
+operation:
+  - document: |
+      {
+        b {
+          id
+          a {
+            id
+            id @fusion__requirement
+            name
+            name @fusion__requirement
+            nameInB
+            compositeId @fusion__requirement {
+              two
+              three
+            }
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 7
+nodes:
+  - id: 1
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_1 {
+        b {
+          id
+          a {
+            id
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_name: String!
+          $__fusion_2_compositeIdThree: ID!
+          $__fusion_2_compositeIdTwo: ID!
+          $__fusion_2_id: ID!
+      ) {
+        aByIdAndCompositeId(id: $__fusion_2_id, compositeIdTwo: $__fusion_2_compositeIdTwo, compositeIdThree: $__fusion_2_compositeIdThree) {
+          nameInB(name: $__fusion_1_name)
+        }
+      }
+    source: $.aByIdAndCompositeId
+    target: $.b.a
+    requirements:
+      - name: __fusion_1_name
+        selectionMap: >-
+          name
+      - name: __fusion_2_compositeIdThree
+        selectionMap: >-
+          compositeId.three
+      - name: __fusion_2_compositeIdTwo
+        selectionMap: >-
+          compositeId.two
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3
+      - id: 4
+  - id: 3
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_3(
+        $__fusion_3_id: ID!
+      ) {
+        aById(id: $__fusion_3_id) {
+          name
+        }
+      }
+    source: $.aById
+    target: $.b.a
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 4
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_4(
+        $__fusion_4_id: ID!
+      ) {
+        aById(id: $__fusion_4_id) {
+          id
+          compositeId {
+            two
+            three
+          }
+        }
+      }
+    source: $.aById
+    target: $.b.a
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 5
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_5(
+        $__fusion_5_id: ID!
+      ) {
+        aById(id: $__fusion_5_id) {
+          name
+        }
+      }
+    source: $.aById
+    target: $.b.a
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

@@ -1,27 +1,26 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate.Validation;
 
 public class DocumentValidatorResult
 {
     private DocumentValidatorResult()
     {
-        Errors = Array.Empty<IError>();
+        Errors = [];
         HasErrors = false;
     }
 
     public DocumentValidatorResult(IEnumerable<IError> errors)
     {
-        if (errors is null)
-        {
-            throw new ArgumentNullException(nameof(errors));
-        }
+        ArgumentNullException.ThrowIfNull(errors);
 
-        Errors = errors.ToArray();
+        Errors = [.. errors];
         HasErrors = Errors.Count > 0;
     }
 
     public bool HasErrors { get; }
 
-    public IReadOnlyList<IError> Errors { get; }
+    public ImmutableList<IError> Errors { get; }
 
-    public static DocumentValidatorResult Ok { get; } = new();
+    public static DocumentValidatorResult OK { get; } = new();
 }

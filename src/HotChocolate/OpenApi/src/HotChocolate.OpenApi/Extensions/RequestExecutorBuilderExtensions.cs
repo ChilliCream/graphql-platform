@@ -18,8 +18,8 @@ public static class RequestExecutorBuilderExtensions
         MutationConventionOptions mutationConventionOptions = default)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        ArgumentException.ThrowIfNullOrEmpty(nameof(httpClientName));
-        ArgumentException.ThrowIfNullOrEmpty(nameof(openApiDocumentText));
+        ArgumentException.ThrowIfNullOrEmpty(httpClientName);
+        ArgumentException.ThrowIfNullOrEmpty(openApiDocumentText);
 
         // Create OpenAPI document from the provided string.
         var openApiStringReader = new OpenApiStringReader();

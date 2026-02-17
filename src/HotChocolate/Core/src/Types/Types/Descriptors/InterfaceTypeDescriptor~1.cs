@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors;
 public class InterfaceTypeDescriptor<T>
     : InterfaceTypeDescriptor
     , IInterfaceTypeDescriptor<T>
-    , IHasRuntimeType
+    , IRuntimeTypeProvider
 {
     protected internal InterfaceTypeDescriptor(IDescriptorContext context)
         : base(context, typeof(T))
@@ -26,7 +26,7 @@ public class InterfaceTypeDescriptor<T>
     {
     }
 
-    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
+    Type IRuntimeTypeProvider.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCompleteFields(
         IDictionary<string, InterfaceFieldConfiguration> fields,
@@ -92,10 +92,7 @@ public class InterfaceTypeDescriptor<T>
     public IInterfaceFieldDescriptor Field(
         Expression<Func<T, object>> propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         var member = propertyOrMethod.ExtractMember();
         if (member is PropertyInfo or MethodInfo)

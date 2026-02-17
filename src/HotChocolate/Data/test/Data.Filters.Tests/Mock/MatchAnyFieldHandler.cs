@@ -10,4 +10,6 @@ public class MatchAnyQueryableFieldHandler : FilterFieldHandler<QueryableFilterC
         ITypeCompletionContext context,
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration fieldConfiguration) => true;
+
+    public static MatchAnyQueryableFieldHandler Create(FilterProviderContext context) => new();
 }

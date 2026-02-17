@@ -1,5 +1,5 @@
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Spatial.Serialization;
 
 namespace HotChocolate.Types.Spatial;

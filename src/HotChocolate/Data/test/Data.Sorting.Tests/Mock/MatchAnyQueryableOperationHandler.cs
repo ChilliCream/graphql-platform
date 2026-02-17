@@ -1,6 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting.Expressions;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -11,4 +11,6 @@ public class MatchAnyQueryableOperationHandler
         ITypeCompletionContext context,
         EnumTypeConfiguration typeDefinition,
         SortEnumValueConfiguration valueConfiguration) => true;
+
+    public static MatchAnyQueryableOperationHandler Create(SortProviderContext context) => new();
 }

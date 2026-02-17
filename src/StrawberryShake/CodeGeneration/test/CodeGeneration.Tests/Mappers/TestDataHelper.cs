@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -16,11 +17,10 @@ public static class TestDataHelper
         string schemaResource)
     {
         var schema = SchemaHelper.Load(
-            new GraphQLFile[]
-            {
+            [
                 new(Utf8GraphQLParser.Parse(Open(schemaResource))),
-                new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")")),
-            });
+                new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
+            ]);
 
         var document = Utf8GraphQLParser.Parse(Open(queryResource));
 
@@ -28,11 +28,10 @@ public static class TestDataHelper
             .New()
             .SetSchema(schema)
             .AddDocument(document)
-            .AnalyzeAsync()
-            .Result;
+            .Analyze();
     }
 
-    public static async Task<ClientModel> CreateClientModelAsync(string query)
+    public static async Task<ClientModel> CreateClientModelAsync([StringSyntax("graphql")] string query)
     {
         var schema =
             await new ServiceCollection()
@@ -42,11 +41,10 @@ public static class TestDataHelper
                 .BuildSchemaAsync();
 
         schema = SchemaHelper.Load(
-            new GraphQLFile[]
-            {
-                new(schema.ToDocument()),
-                new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")")),
-            });
+            [
+                new(schema.ToSyntaxNode()),
+                new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
+            ]);
 
         var document = Utf8GraphQLParser.Parse(query);
 
@@ -54,7 +52,6 @@ public static class TestDataHelper
             .New()
             .SetSchema(schema)
             .AddDocument(document)
-            .AnalyzeAsync()
-            .Result;
+            .Analyze();
     }
 }

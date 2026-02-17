@@ -10,11 +10,11 @@ public class CatalogContext(string connectionString) : DbContext
         optionsBuilder.UseNpgsql(connectionString);
     }
 
-    public DbSet<Product> Products { get; set; } = default!;
+    public DbSet<Product> Products { get; set; } = null!;
 
-    public DbSet<ProductType> ProductTypes { get; set; } = default!;
+    public DbSet<ProductType> ProductTypes { get; set; } = null!;
 
-    public DbSet<Brand> Brands { get; set; } = default!;
+    public DbSet<Brand> Brands { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -31,7 +31,7 @@ public class CatalogContext(string connectionString) : DbContext
         await using var context = new CatalogContext(connectionString);
         await context.Database.EnsureCreatedAsync();
 
-        var type = new ProductType { Name = "T-Shirt", };
+        var type = new ProductType { Name = "T-Shirt" };
         context.ProductTypes.Add(type);
 
         for (var i = 0; i < 100; i++)
@@ -48,7 +48,9 @@ public class CatalogContext(string connectionString) : DbContext
             {
                 var product = new Product
                 {
-                    Name = $"Product {i}-{j}", Type = type, Brand = brand,
+                    Name = $"Product {i}-{j}",
+                    Type = type,
+                    Brand = brand
                 };
                 context.Products.Add(product);
             }

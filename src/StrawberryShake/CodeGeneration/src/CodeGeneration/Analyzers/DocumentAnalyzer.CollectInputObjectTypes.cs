@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Analyzers.Types;
@@ -9,7 +10,7 @@ public partial class DocumentAnalyzer
 {
     private static void CollectInputObjectTypes(IDocumentAnalyzerContext context)
     {
-        var analyzer = new InputObjectTypeUsageAnalyzer(context.Schema);
+        var analyzer = new InputObjectTypeUsageAnalyzer((Schema)context.Schema);
         analyzer.Analyze(context.Document);
 
         var namesOfInputTypesWithUploadScalar = CollectTypesWithUploadScalar(analyzer);
@@ -38,9 +39,9 @@ public partial class DocumentAnalyzer
         RenameDirective? rename;
         var fields = new List<InputFieldModel>();
 
-        foreach (IInputField inputField in inputObjectType.Fields)
+        foreach (var inputField in inputObjectType.Fields)
         {
-            rename = inputField.Directives.SingleOrDefault<RenameDirective>();
+            rename = inputField.Directives.FirstOrDefault<RenameDirective>()?.ToValue<RenameDirective>();
 
             fields.Add(new InputFieldModel(
                 GetClassName(rename?.Name ?? inputField.Name),
@@ -54,7 +55,7 @@ public partial class DocumentAnalyzer
             context.RegisterType(inputField.Type.NamedType());
         }
 
-        rename = inputObjectType.Directives.SingleOrDefault<RenameDirective>();
+        rename = inputObjectType.Directives.FirstOrDefault<RenameDirective>()?.ToValue<RenameDirective>();
 
         var typeName = context.ResolveTypeName(
             GetClassName(rename?.Name ?? inputObjectType.Name));
@@ -79,8 +80,8 @@ public partial class DocumentAnalyzer
             detected = false;
             foreach (var namedInputType in analyzer.InputTypes)
             {
-                if (namedInputType is not INamedType { Name: { } typeName, } ||
-                    namesOfInputTypesWithUploadScalar.Contains(typeName))
+                if (namedInputType is not ITypeDefinition { Name: { } typeName }
+                    || namesOfInputTypesWithUploadScalar.Contains(typeName))
                 {
                     continue;
                 }
@@ -97,7 +98,7 @@ public partial class DocumentAnalyzer
                         }
                     }
                 }
-                else if (namedInputType is ScalarType { Name: "Upload", })
+                else if (namedInputType is ScalarType { Name: "Upload" })
                 {
                     detected = true;
                     namesOfInputTypesWithUploadScalar.Add("Upload");

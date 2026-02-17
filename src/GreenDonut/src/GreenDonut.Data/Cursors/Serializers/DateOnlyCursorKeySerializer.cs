@@ -6,20 +6,20 @@ namespace GreenDonut.Data.Cursors.Serializers;
 
 internal sealed class DateOnlyCursorKeySerializer : ICursorKeySerializer
 {
-    private static readonly MethodInfo _compareTo =
+    private static readonly MethodInfo s_compareTo =
         CompareToResolver.GetCompareToMethod<DateOnly>();
 
-    private const string _dateFormat = "yyyyMMdd";
+    private const string DateFormat = "yyyyMMdd";
 
     public bool IsSupported(Type type)
         => type == typeof(DateOnly);
 
     public MethodInfo GetCompareToMethod(Type type)
-        => _compareTo;
+        => s_compareTo;
 
     public object Parse(ReadOnlySpan<byte> formattedKey)
     {
-        Span<char> dateOnlyChars = stackalloc char[_dateFormat.Length];
+        Span<char> dateOnlyChars = stackalloc char[DateFormat.Length];
 
         if (Utf8.ToUtf16(formattedKey, dateOnlyChars, out _, out _) != OperationStatus.Done)
         {
@@ -27,16 +27,16 @@ internal sealed class DateOnlyCursorKeySerializer : ICursorKeySerializer
         }
 
         // Parse date.
-        return DateOnly.ParseExact(dateOnlyChars, _dateFormat);
+        return DateOnly.ParseExact(dateOnlyChars, DateFormat);
     }
 
     public bool TryFormat(object key, Span<byte> buffer, out int written)
     {
         var dateOnly = (DateOnly)key;
-        Span<char> characters = stackalloc char[_dateFormat.Length];
+        Span<char> characters = stackalloc char[DateFormat.Length];
 
         // Format date.
-        if (!dateOnly.TryFormat(characters, out _, _dateFormat))
+        if (!dateOnly.TryFormat(characters, out _, DateFormat))
         {
             written = 0;
             return false;

@@ -37,16 +37,16 @@ namespace HotChocolate.ApolloFederation.Types;
 [Package(Federation20)]
 [DirectiveType(
     InaccessibleDirective_Name,
-    DirectiveLocation.FieldDefinition |
-    DirectiveLocation.Object |
-    DirectiveLocation.Interface |
-    DirectiveLocation.Union |
-    DirectiveLocation.Enum |
-    DirectiveLocation.EnumValue |
-    DirectiveLocation.Scalar |
-    DirectiveLocation.InputObject |
-    DirectiveLocation.InputFieldDefinition |
-    DirectiveLocation.ArgumentDefinition)]
+    DirectiveLocation.FieldDefinition
+    | DirectiveLocation.Object
+    | DirectiveLocation.Interface
+    | DirectiveLocation.Union
+    | DirectiveLocation.Enum
+    | DirectiveLocation.EnumValue
+    | DirectiveLocation.Scalar
+    | DirectiveLocation.InputObject
+    | DirectiveLocation.InputFieldDefinition
+    | DirectiveLocation.ArgumentDefinition)]
 [GraphQLDescription(InaccessibleDirective_Description)]
 public sealed class InaccessibleDirective
 {

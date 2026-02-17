@@ -1,9 +1,7 @@
-using System.Collections.Immutable;
+using HotChocolate.Features;
 using HotChocolate.Utilities;
 
-#nullable enable
-
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// A type system definition is used in the type initialization to store properties
@@ -12,18 +10,17 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
 {
     private List<TypeDependency>? _dependencies;
-    private List<ITypeSystemConfigurationTask>? _configurations;
-    private ExtensionData? _contextData;
-    private string _name = string.Empty;
+    private List<ITypeSystemConfigurationTask>? _tasks;
+    private IFeatureCollection? _features;
 
     /// <summary>
     /// Gets or sets the name of the type system member.
     /// </summary>
-    public string Name
+    public virtual string Name
     {
-        get => _name;
-        set => _name = string.Intern(value.EnsureGraphQLName());
-    }
+        get;
+        set => field = string.Intern(value.EnsureGraphQLName());
+    } = string.Empty;
 
     /// <summary>
     /// Gets or sets the description of the type system member.
@@ -36,11 +33,16 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     public string? BindTo { get; set; }
 
     /// <summary>
+    /// Defines whether the <see cref="Configurations"/>> have been applied or not.
+    /// </summary>
+    public bool ConfigurationsAreApplied { get; set; }
+
+    /// <summary>
     /// Get access to context data that are copied to the type
     /// and can be used for customizations.
     /// </summary>
-    public virtual ExtensionData ContextData
-        => _contextData ??= new ExtensionData();
+    public virtual IFeatureCollection Features
+        => _features ??= new FeatureCollection();
 
     /// <summary>
     /// Gets access to additional type dependencies.
@@ -58,36 +60,25 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     /// Gets configurations that shall be applied at a later point.
     /// </summary>
     public IList<ITypeSystemConfigurationTask> Tasks
-        => _configurations ??= [];
+        => _tasks ??= [];
 
     /// <summary>
     /// Defines if this type has configurations.
     /// </summary>
     public bool HasTasks
-        => _configurations is { Count: > 0 };
-
-    /// <summary>
-    /// Defines whether descriptor attributes have been applied or not.
-    /// </summary>
-    public bool AttributesAreApplied { get; set; }
-
-    /// <summary>
-    /// Gets state that is available during schema initialization.
-    /// </summary>
-    public ImmutableDictionary<string, object?> State { get; set; }
-        = ImmutableDictionary<string, object?>.Empty;
+        => _tasks is { Count: > 0 };
 
     /// <summary>
     /// Gets lazy configuration of this definition and all dependent definitions.
     /// </summary>
     public virtual IEnumerable<ITypeSystemConfigurationTask> GetTasks()
     {
-        if (_configurations is null)
+        if (_tasks is null)
         {
             return [];
         }
 
-        return _configurations;
+        return _tasks;
     }
 
     /// <summary>
@@ -104,52 +95,47 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
     }
 
     /// <summary>
-    /// Get access to context data that are copied to the type
+    /// Get access to features that are copied to the type
     /// and can be used for customizations.
     /// </summary>
-    public IReadOnlyDictionary<string, object?> GetContextData()
-    {
-        if (_contextData is null)
-        {
-            return ImmutableDictionary<string, object?>.Empty;
-        }
+    public IFeatureCollection GetFeatures()
+        => _features ?? FeatureCollection.Empty;
 
-        return _contextData;
-    }
-
-    public void TouchContextData()
-        => _contextData = [];
+    /// <summary>
+    /// Ensures that a feature collection is created.
+    /// </summary>
+    public void TouchFeatures()
+        => _features ??= new FeatureCollection();
 
     protected void CopyTo(TypeSystemConfiguration target)
     {
         if (_dependencies?.Count > 0)
         {
-            target._dependencies = [.._dependencies];
+            target._dependencies = [.. _dependencies];
         }
 
-        if (_configurations?.Count > 0)
+        if (_tasks?.Count > 0)
         {
-            target._configurations = [];
+            target._tasks = [];
 
-            foreach (var configuration in _configurations)
+            foreach (var configuration in _tasks)
             {
-                target._configurations.Add(configuration.Copy(target));
+                target._tasks.Add(configuration.Copy(target));
             }
         }
 
-        if (_contextData?.Count > 0)
+        if (_features?.IsEmpty is false)
         {
-            target._contextData = [.. _contextData];
-        }
-
-        if (State is { Count: > 0 })
-        {
-            target.State = State;
+            target._features = new FeatureCollection();
+            foreach (var item in _features)
+            {
+                target._features[item.Key] = item.Value;
+            }
         }
 
         target.Name = Name;
         target.Description = Description;
-        target.AttributesAreApplied = AttributesAreApplied;
+        target.ConfigurationsAreApplied = ConfigurationsAreApplied;
         target.BindTo = BindTo;
     }
 
@@ -161,41 +147,22 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
             target._dependencies.AddRange(_dependencies);
         }
 
-        if (_configurations?.Count > 0)
+        if (_tasks?.Count > 0)
         {
-            target._configurations ??= [];
+            target._tasks ??= [];
 
-            foreach (var configuration in _configurations)
+            foreach (var configuration in _tasks)
             {
-                target._configurations.Add(configuration.Copy(target));
+                target._tasks.Add(configuration.Copy(target));
             }
         }
 
-        if (_contextData?.Count > 0)
+        if (_features?.IsEmpty is false)
         {
-            target._contextData ??= [];
-            foreach (var item in _contextData)
+            target._features ??= new FeatureCollection();
+            foreach (var item in _features)
             {
-                target._contextData[item.Key] = item.Value;
-            }
-        }
-
-        if (State is { Count: > 0 })
-        {
-            if (target.State.Count == 0)
-            {
-                target.State = State;
-            }
-            else
-            {
-                var state = ImmutableDictionary.CreateBuilder<string, object?>();
-                if (target.State.Count > 0)
-                {
-                    state.AddRange(target.State);
-                }
-
-                state.AddRange(State);
-                target.State = state.ToImmutable();
+                target._features[item.Key] = item.Value;
             }
         }
 
@@ -209,9 +176,9 @@ public abstract class TypeSystemConfiguration : ITypeSystemConfiguration
             target.BindTo = BindTo;
         }
 
-        if (!target.AttributesAreApplied)
+        if (!target.ConfigurationsAreApplied)
         {
-            target.AttributesAreApplied = AttributesAreApplied;
+            target.ConfigurationsAreApplied = ConfigurationsAreApplied;
         }
     }
 

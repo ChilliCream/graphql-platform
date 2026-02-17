@@ -3,9 +3,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
-using static HotChocolate.WellKnownContextData;
-
-#nullable enable
 
 namespace HotChocolate.Configuration.Validation;
 
@@ -17,14 +14,14 @@ internal sealed class ObjectTypeValidationRule : ISchemaValidationRule
 {
     public void Validate(
         IDescriptorContext context,
-        ISchema schema,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
         NodeType? nodeType = null;
 
         if (context.Options.StrictValidation)
         {
-            if (context.Options.EnsureAllNodesCanBeResolved)
+            if (schema.Features.Get<NodeSchemaFeature>() is { Options.EnsureAllNodesCanBeResolved: true })
             {
                 foreach (var type in schema.Types)
                 {
@@ -45,9 +42,9 @@ internal sealed class ObjectTypeValidationRule : ISchemaValidationRule
                     EnsureInterfacesAreCorrectlyImplemented(objectType, errors);
                     EnsureArgumentDeprecationIsValid(objectType, errors);
 
-                    if (nodeType is not null && nodeType.IsAssignableFrom(objectType))
+                    if (nodeType?.IsAssignableFrom(objectType) == true)
                     {
-                        if (!objectType.ContextData.ContainsKey(NodeResolver))
+                        if (objectType.Features.Get<NodeTypeFeature>() is null)
                         {
                             errors.Add(ErrorHelper.NodeResolverMissing(objectType));
                         }

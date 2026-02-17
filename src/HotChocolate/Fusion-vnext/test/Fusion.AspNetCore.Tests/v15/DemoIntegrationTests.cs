@@ -1,0 +1,3187 @@
+using HotChocolate.Fusion.Packaging;
+using HotChocolate.Transport;
+using HotChocolate.Transport.Http;
+
+namespace HotChocolate.Fusion;
+
+public class DemoIntegrationTests : FusionTestBase
+{
+    [Fact]
+    public async Task Same_Selection_On_Two_Object_Types_That_Require_Data_From_Another_Subgraph()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              item1: Item1!
+              item2: Item2!
+            }
+
+            type Item1 {
+              product: Product!
+            }
+
+            type Item2 {
+              product: Product!
+            }
+
+            type Product implements Node {
+              id: ID!
+            }
+
+            interface Node @key(fields: "id") {
+              id: ID!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              item1 {
+                product {
+                  id
+                  name
+                }
+              }
+              item2 {
+                product {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Same_Selection_On_Two_List_Fields_That_Require_Data_From_Another_Subgraph()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type Query {
+              productsA: [Product]
+              productsB: [Product]
+              productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup
+              nodes(ids: [ID!]!): [Node]!
+            }
+
+            type Product implements Node {
+              id: ID!
+              price: Float!
+              reviewCount: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              productsA {
+                id
+                name
+                price
+                reviewCount
+              }
+              productsB {
+                id
+                name
+                price
+                reviewCount
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_AutoCompose()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //         });
+
+    //     // assert
+    //     fusionGraph.MatchSnapshot(extension: ".graphql");
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_And_Products_AutoCompose()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //         });
+
+    //     // assert
+    //     fusionGraph.MatchSnapshot(extension: ".graphql");
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_Query_GetUserReviews()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //         });
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query GetUser {
+    //             users {
+    //                 name
+    //                 reviews {
+    //                     body
+    //                     author {
+    //                         name
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_Query_GetUserReviews_Report_Cost()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync(enableCost: true);
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory)
+    //         .ComposeAsync(
+    //         [
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionWithCostSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionWithCostSdl)
+    //         ]);
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query GetUser {
+    //             users {
+    //                 name
+    //                 reviews {
+    //                     body
+    //                     author {
+    //                         name
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .ReportCost()
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_Query_GetUserReviews_Skip_Author()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //         });
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query GetUser($skip: Boolean!) {
+    //             users {
+    //                 name
+    //                 reviews {
+    //                     body
+    //                     author @skip(if: $skip) {
+    //                         name
+    //                         birthdate
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetVariableValues(new Dictionary<string, object?> { { "skip", true } })
+    //             .SetDocument(request)
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_Query_GetUserReviews_Skip_Author_ErrorField()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //         });
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query GetUser($skip: Boolean!) {
+    //             users {
+    //                 name
+    //                 reviews {
+    //                     body
+    //                     author {
+    //                         name
+    //                         birthdate
+    //                         errorField @skip(if: $skip)
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetVariableValues(new Dictionary<string, object?> { { "skip", true } })
+    //             .SetDocument(request)
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_Query_GetUserById()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //         });
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query GetUser {
+    //           userById(id: "VXNlcjox") {
+    //             id
+    //           }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_Query_GetUserById_With_Invalid_Id_Value()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //         });
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query GetUser {
+    //           userById(id: 1) {
+    //             id
+    //           }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.NotNull(result.ExpectOperationResult().Errors);
+    //     Assert.NotEmpty(result.ExpectOperationResult().Errors!);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_Subscription_OnNewReview()
+    // {
+    //     // arrange
+    //     using var cts = TestEnvironment.CreateCancellationTokenSource();
+    //     using var demoProject = await DemoProject.CreateAsync(cts.Token);
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         [
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+    //         ],
+    //         null,
+    //         cts.Token);
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync(cancellationToken: cts.Token);
+
+    //     var request = Parse(
+    //         """
+    //         subscription OnNewReview {
+    //             onNewReview {
+    //                 body
+    //                 author {
+    //                     name
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build(),
+    //         cts.Token);
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     await CollectStreamSnapshotData(snapshot, request, result, cts.Token);
+    //     await snapshot.MatchMarkdownAsync(cts.Token);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_Subscription_OnNewReviewError()
+    // {
+    //     // arrange
+    //     using var cts = TestEnvironment.CreateCancellationTokenSource();
+    //     using var demoProject = await DemoProject.CreateAsync(cts.Token);
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         [
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+    //         ],
+    //         null,
+    //         cts.Token);
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync(cancellationToken: cts.Token);
+
+    //     var request = Parse(
+    //         """
+    //         subscription OnNewReview {
+    //             onNewReviewError {
+    //                 body
+    //                 author {
+    //                     name
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build(),
+    //         cts.Token);
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     await CollectStreamSnapshotData(snapshot, request, result, cts.Token);
+    //     await snapshot.MatchMarkdownAsync(cts.Token);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_Subscription_OnError()
+    // {
+    //     // arrange
+    //     using var cts = TestEnvironment.CreateCancellationTokenSource();
+    //     using var demoProject = await DemoProject.CreateAsync(cts.Token);
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //         },
+    //         default,
+    //         cts.Token);
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync(cancellationToken: cts.Token);
+
+    //     var request = Parse(
+    //         """
+    //         subscription OnError {
+    //             onError {
+    //                 body
+    //                 author {
+    //                     name
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build(),
+    //         cts.Token);
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     await CollectStreamSnapshotData(snapshot, request, result, cts.Token);
+    //     await snapshot.MatchMarkdownAsync(cts.Token);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_Subscription_OnError_SSE()
+    // {
+    //     // arrange
+    //     using var cts = TestEnvironment.CreateCancellationTokenSource();
+    //     using var demoProject = await DemoProject.CreateAsync(cts.Token);
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl, onlyHttp: true),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl, onlyHttp: true),
+    //         },
+    //         default,
+    //         cts.Token);
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync(cancellationToken: cts.Token);
+
+    //     var request = Parse(
+    //         """
+    //         subscription OnError {
+    //             onError {
+    //                 body
+    //                 author {
+    //                     name
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build(),
+    //         cts.Token);
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     await CollectStreamSnapshotData(snapshot, request, result, cts.Token);
+    //     await snapshot.MatchMarkdownAsync(cts.Token);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_Subscription_OnNewReview_Two_Graphs()
+    // {
+    //     // arrange
+    //     using var cts = TestEnvironment.CreateCancellationTokenSource();
+    //     using var demoProject = await DemoProject.CreateAsync(cts.Token);
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //         },
+    //         default,
+    //         cts.Token);
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync(cancellationToken: cts.Token);
+
+    //     var request = Parse(
+    //         """
+    //         subscription OnNewReview {
+    //             onNewReview {
+    //                 body
+    //                 author {
+    //                     name
+    //                     birthdate
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build(),
+    //         cts.Token);
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     await CollectStreamSnapshotData(snapshot, request, result, cts.Token);
+    //     await snapshot.MatchMarkdownAsync(cts.Token);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_Query_ReviewsUser()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //         });
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query GetUser {
+    //             a: reviews {
+    //                 body
+    //                 author {
+    //                     name
+    //                 }
+    //             }
+    //             b: reviews {
+    //                 body
+    //                 author {
+    //                     name
+    //                 }
+    //             }
+    //             users {
+    //                 name
+    //                 reviews {
+    //                     body
+    //                     author {
+    //                         name
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact(Skip = "Do we want to reformat ids?")]
+    // public async Task Authors_And_Reviews_Query_Reformat_AuthorIds()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph =
+    //         await new FusionGraphComposer(logFactory: _logFactory)
+    //             .ComposeAsync(
+    //                 new[]
+    //                 {
+    //                     demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+    //                     demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //                 },
+    //                 new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query ReformatIds {
+    //             reviews {
+    //                 author {
+    //                     id
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact(Skip = "this does not work yet")]
+    // public async Task Authors_And_Reviews_Query_Reformat_AuthorIds_ReEncodeAllIds()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph =
+    //         await new FusionGraphComposer(logFactory: _logFactory)
+    //             .ComposeAsync(
+    //                 new[]
+    //                 {
+    //                     demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //                     demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //                 },
+    //                 new FusionFeatureCollection(FusionFeatures.ReEncodeIds));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query ReformatIds {
+    //             reviews {
+    //                 author {
+    //                     id
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_Batch_Requests()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph =
+    //         await new FusionGraphComposer(logFactory: _logFactory)
+    //             .ComposeAsync(
+    //                 new[]
+    //                 {
+    //                     demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //                     demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //                 },
+    //                 new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query GetUser {
+    //             reviews {
+    //                 body
+    //                 author {
+    //                     birthdate
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_And_Products_Query_TopProducts()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //         });
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query TopProducts {
+    //             topProducts(first: 2) {
+    //                 name
+    //                 reviews {
+    //                     body
+    //                     author {
+    //                         name
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_And_Products_Query_TypeName()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //         });
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query TopProducts {
+    //             __typename
+    //             topProducts(first: 2) {
+    //                 __typename
+    //                 reviews {
+    //                     __typename
+    //                     author {
+    //                         __typename
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_And_Products_With_Variables()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //         });
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query TopProducts($first: Int!) {
+    //             topProducts(first: $first) {
+    //                 id
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "first", 2 }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Authors_And_Reviews_And_Products_Introspection()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph =
+    //         await new FusionGraphComposer(logFactory: _logFactory)
+    //             .ComposeAsync(
+    //             [
+    //                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //                 demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+    //             ]);
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query Introspect {
+    //             __schema {
+    //                 types {
+    //                     name
+    //                     kind
+    //                     fields {
+    //                         name
+    //                         type {
+    //                             name
+    //                             kind
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Fetch_User_With_Node_Field()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //         },
+    //         new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query FetchNode($id: ID!) {
+    //             node(id: $id) {
+    //                 ... on User {
+    //                     id
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     var id = Convert.ToBase64String("User:1"u8);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Fetch_User_With_Invalid_Node_Field()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //         },
+    //         new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query FetchNode($id: ID!) {
+    //             node(id: $id) {
+    //                 ... on User {
+    //                     id
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "id", 1 }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+    // }
+
+    // [Fact]
+    // public async Task Fetch_User_With_Node_Field_Pass_In_Review_Id()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //         },
+    //         new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query FetchNode($id: ID!) {
+    //             node(id: $id) {
+    //                 ... on User {
+    //                     id
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     var id = Convert.ToBase64String("Review:1"u8);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Fetch_User_With_Node_Field_Pass_In_Unknown_Id()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //         },
+    //         new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query FetchNode($id: ID!) {
+    //             node(id: $id) {
+    //                 ... on User {
+    //                     id
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     var id = Convert.ToBase64String("Unknown:1"u8);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+    // }
+
+    // [Fact]
+    // public async Task Fetch_User_With_Node_Field_From_Two_Subgraphs()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //         },
+    //         new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query FetchNode($id: ID!) {
+    //             node(id: $id) {
+    //                 ... on User {
+    //                     birthdate
+    //                     reviews {
+    //                         body
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         """);
+
+    //     var id = Convert.ToBase64String("User:1"u8);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Hot_Reload()
+    // {
+    //     // arrange
+    //     var executorUpdatedResetEvent = new ManualResetEventSlim(false);
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     var fusionGraph =
+    //         await new FusionGraphComposer(logFactory: _logFactory)
+    //             .ComposeAsync(
+    //                 new[] { demoProject.Accounts.ToConfiguration(AccountsExtensionSdl), },
+    //                 new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var config = new HotReloadConfiguration(
+    //         new GatewayConfiguration(
+    //             SchemaFormatter.FormatAsDocument(fusionGraph)));
+
+    //     var services = new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer(null)
+    //         .RegisterGatewayConfiguration(_ => config)
+    //         .Services
+    //         .BuildServiceProvider();
+
+    //     var request = Parse(
+    //         """
+    //         {
+    //           __type(name: "Query") {
+    //             fields {
+    //               name
+    //             }
+    //           }
+    //         }
+    //         """);
+
+    //     var executorResolver = services.GetRequiredService<IRequestExecutorResolver>();
+    //     var executorProxy = new RequestExecutorProxy(executorResolver, Schema.DefaultName);
+    //     var isFirstUpdate = true;
+    //     executorProxy.ExecutorUpdated += (sender, args) =>
+    //     {
+    //         if (isFirstUpdate)
+    //         {
+    //             isFirstUpdate = false;
+    //         }
+    //         else
+    //         {
+    //             executorUpdatedResetEvent.Set();
+    //         }
+    //     };
+
+    //     var result = await executorProxy.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build());
+
+    //     var snapshot = new Snapshot();
+    //     snapshot.Add(result, "1. Version");
+
+    //     // act
+    //     fusionGraph =
+    //         await new FusionGraphComposer(logFactory: _logFactory)
+    //             .ComposeAsync(
+    //                 new[]
+    //                 {
+    //                     demoProject.Reviews2.ToConfiguration(AccountsExtensionSdl),
+    //                     demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //                 },
+    //                 new FusionFeatureCollection(FusionFeatures.NodeField));
+    //     config.SetConfiguration(
+    //         new GatewayConfiguration(
+    //             SchemaFormatter.FormatAsDocument(fusionGraph)));
+    //     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+    //     executorUpdatedResetEvent.Wait(cts.Token);
+
+    //     result = await executorProxy.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build());
+
+    //     snapshot.Add(result, "2. Version");
+
+    //     // assert
+    //     await snapshot.MatchMarkdownAsync();
+    // }
+
+    // [Fact]
+    // public async Task TypeName_Field_On_QueryRoot()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //         });
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query Introspect {
+    //             __typename
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Forward_Nested_Variables()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //         },
+    //         new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query ProductReviews(
+    //           $id: ID!
+    //           $first: Int!
+    //         ) {
+    //           productById(id: $id) {
+    //             id
+    //             repeat(num: $first)
+    //           }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Forward_Nested_Variables_No_OpName()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //         },
+    //         new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query (
+    //           $id: ID!
+    //           $first: Int!
+    //         ) {
+    //           productById(id: $id) {
+    //             id
+    //             repeat(num: $first)
+    //           }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(
+    //                 new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Forward_Nested_Variables_No_OpName_Two_RootSelections()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //         },
+    //         new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query (
+    //           $id: ID!
+    //           $first: Int!
+    //         ) {
+    //           a: productById(id: $id) {
+    //             id
+    //             repeat(num: $first)
+    //           }
+    //           b: productById(id: $id) {
+    //             id
+    //             repeat(num: $first)
+    //           }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Forward_Nested_Node_Variables()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //         },
+    //         new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query ProductReviews(
+    //           $id: ID!
+    //           $first: Int!
+    //         ) {
+    //           node(id: $id) {
+    //             ... on Product {
+    //               id
+    //               repeat(num: $first)
+    //             }
+    //           }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Forward_Nested_Object_Variables()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //         },
+    //         new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query ProductReviews(
+    //           $id: ID!
+    //           $first: Int!
+    //         ) {
+    //           productById(id: $id) {
+    //             id
+    //             repeatData(data: { data: { num: $first } }) {
+    //               data {
+    //                 num
+    //               }
+    //             }
+    //           }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Require_Data_In_Context()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //             demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+    //         },
+    //         new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query Requires {
+    //             reviews {
+    //               body
+    //               author {
+    //                 name
+    //                 birthdate
+    //               }
+    //               product {
+    //                 name
+    //                 deliveryEstimate(zip: "12345") {
+    //                   min
+    //                   max
+    //                 }
+    //               }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Require_Data_In_Context_2()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //             demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+    //         },
+    //         new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query Requires {
+    //             reviews {
+    //               body
+    //               author {
+    //                 name
+    //                 birthdate
+    //               }
+    //               product {
+    //                 deliveryEstimate(zip: "12345") {
+    //                   min
+    //                   max
+    //                 }
+    //               }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task Require_Data_In_Context_3()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //             demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+    //         },
+    //         new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query Large {
+    //           users {
+    //             id
+    //             name
+    //             birthdate
+    //             reviews {
+    //               body
+    //               author {
+    //                 name
+    //                 birthdate
+    //               }
+    //               product {
+    //                 id
+    //                 name
+    //                 deliveryEstimate(zip: "abc") {
+    //                   max
+    //                 }
+    //               }
+    //             }
+    //           }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task GetFirstPage_With_After_Null()
+    // {
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[] { demoProject.Appointment.ToConfiguration(), },
+    //         new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query AfterNull($after: String) {
+    //             appointments(after: $after) {
+    //                nodes {
+    //                     id
+    //                }
+    //             }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "after", null }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    // [Fact]
+    // public async Task QueryType_Parallel_Multiple_SubGraphs_WithArguments()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[]
+    //         {
+    //             demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+    //             demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+    //             demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+    //             demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+    //         },
+    //         new FusionFeatureCollection(FusionFeatures.NodeField));
+
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+
+    //     var request = Parse(
+    //         """
+    //         query TopProducts {
+    //           topProducts(first: 5) {
+    //             weight
+    //             deliveryEstimate(zip: "12345") {
+    //               min
+    //               max
+    //             }
+    //             reviews {
+    //                 body
+    //             }
+    //           }
+    //         }
+    //         """);
+
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
+    //             .Build());
+
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    [Fact]
+    public async Task BatchExecutionState_With_Multiple_Variable_Values()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              id: ID!
+              displayName: String!
+            }
+            """);
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
+              userBySlug(slug: String!): User
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              relativeUrl: String!
+              id: ID!
+            }
+            """);
+        var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              id: ID!
+              feedbacks: FeedbacksConnection
+            }
+
+            type FeedbacksConnection {
+              edges: [FeedbacksEdge!]
+            }
+
+            type FeedbacksEdge {
+              node: ResaleFeedback!
+            }
+
+            type ResaleFeedback implements Node {
+              feedback: ResaleSurveyFeedback
+              id: ID!
+            }
+
+            type ResaleSurveyFeedback {
+              buyer: User
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              userBySlug(slug: "me") {
+                feedbacks {
+                  edges {
+                    node {
+                      feedback {
+                        buyer {
+                          relativeUrl
+                          displayName
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task BatchExecutionState_With_Multiple_Variable_Values_Some_Items_Null()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              id: ID!
+              displayName: String!
+            }
+            """);
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              # TODO: This will not work like this
+              nodes(ids: [ID!]!): [Node]! @null(atIndex: 1) @shareable
+              userBySlug(slug: String!): User
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              relativeUrl: String!
+              id: ID!
+            }
+            """);
+        var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              id: ID!
+              feedbacks: FeedbacksConnection
+            }
+
+            type FeedbacksConnection {
+              edges: [FeedbacksEdge!]
+            }
+
+            type FeedbacksEdge {
+              node: ResaleFeedback!
+            }
+
+            type ResaleFeedback implements Node {
+              feedback: ResaleSurveyFeedback
+              id: ID!
+            }
+
+            type ResaleSurveyFeedback {
+              buyer: User
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              userBySlug(slug: "me") {
+                feedbacks {
+                  edges {
+                    node {
+                      feedback {
+                        buyer {
+                          relativeUrl
+                          displayName
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task BatchExecutionState_With_Multiple_Variable_Values_And_Forwarded_Variable()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              id: ID!
+              displayName(arg: String): String!
+            }
+            """);
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
+              userBySlug(slug: String!): User
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              relativeUrl(arg: String): String!
+              id: ID!
+            }
+            """);
+        var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              nodes(ids: [ID!]!): [Node]! @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            type User implements Node {
+              id: ID!
+              feedbacks: FeedbacksConnection
+            }
+
+            type FeedbacksConnection {
+              edges: [FeedbacksEdge!]
+            }
+
+            type FeedbacksEdge {
+              node: ResaleFeedback!
+            }
+
+            type ResaleFeedback implements Node {
+              feedback: ResaleSurveyFeedback
+              id: ID!
+            }
+
+            type ResaleSurveyFeedback {
+              buyer: User
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query($arg1: String, $arg2: String) {
+              userBySlug(slug: "me") {
+                feedbacks {
+                  edges {
+                    node {
+                      feedback {
+                        buyer {
+                          relativeUrl(arg: $arg1)
+                          displayName(arg: $arg2)
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["arg1"] = "abc", ["arg2"] = "def" });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              subgraph1Only: ProductAvailability
+            }
+
+            type ProductAvailability implements Node {
+              id: ID!
+              sharedLinked: ProductAvailabilityMail! @shareable
+            }
+
+            type ProductAvailabilityMail {
+              subgraph1Only: String!
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              productById(id: ID!): Product @lookup
+              productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type ProductAvailability implements Node {
+              id: ID!
+              sharedLinked: ProductAvailabilityMail! @shareable
+            }
+
+            type ProductAvailabilityMail {
+              subgraph2Only: Boolean!
+            }
+
+            type Query {
+              node("ID of the object." id: ID!): Node @lookup @shareable
+              productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query($productId: ID!) {
+              productById(id: $productId) {
+                subgraph1Only {
+                  sharedLinked {
+                    subgraph2Only
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk=" });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node_2()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              subgraph1Only: ProductAvailability
+            }
+
+            type ProductAvailability implements Node {
+              id: ID!
+              sharedLinked: ProductAvailabilityMail! @shareable
+            }
+
+            type ProductAvailabilityMail {
+              sharedScalar: String! @shareable
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              productById(id: ID!): Product @lookup
+              productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type ProductAvailability implements Node {
+              sharedLinked: ProductAvailabilityMail! @shareable
+              subgraph2Only: Boolean!
+              id: ID!
+            }
+
+            type ProductAvailabilityMail {
+              subgraph2Only: Boolean!
+              sharedScalar: String! @shareable
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query($productId: ID!) {
+              productById(id: $productId) {
+                subgraph1Only {
+                  subgraph2Only
+                  sharedLinked {
+                    subgraph2Only
+                    sharedScalar
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk=" });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node_3()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type Product implements Node {
+              id: ID!
+              subgraph1Only: ProductAvailability
+            }
+
+            type ProductAvailability implements Node {
+              id: ID!
+              sharedLinked: ProductAvailabilityMail! @shareable
+              subgraph1Only: Boolean!
+            }
+
+            type ProductAvailabilityMail {
+              sharedScalar: String! @shareable
+              subgraph1Only: String!
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              productById(id: ID!): Product @lookup
+              productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            interface Node {
+              id: ID!
+            }
+
+            type ProductAvailability implements Node {
+              sharedLinked: ProductAvailabilityMail! @shareable
+              subgraph2Only: Boolean!
+              id: ID!
+            }
+
+            type ProductAvailabilityMail {
+              subgraph2Only: Boolean!
+              sharedScalar: String! @shareable
+            }
+
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              productAvailabilityById(id: ID!): ProductAvailability @lookup @shareable
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query($productId: ID!) {
+              productById(id: $productId) {
+                subgraph1Only {
+                  subgraph2Only
+                  subgraph1Only
+                  sharedLinked {
+                    subgraph2Only
+                    sharedScalar
+                    subgraph1Only
+                  }
+                }
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?> { ["productId"] = "UHJvZHVjdAppMzg2MzE4NTk=" });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Viewer_Bug_1()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              exclusiveSubgraphA: ExclusiveSubgraphA
+              viewer: Viewer @shareable
+            }
+
+            type ExclusiveSubgraphA {
+              id: ID!
+            }
+
+            type Viewer {
+              name: String
+            }
+            """);
+
+        using var serverB = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              viewer: Viewer @shareable
+            }
+
+            type Viewer {
+              exclusiveSubgraphB: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery {
+              exclusiveSubgraphA {
+                __typename
+              }
+              viewer {
+                exclusiveSubgraphB
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Viewer_Bug_2()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              exclusiveSubgraphA: ExclusiveSubgraphA
+              viewer: Viewer @shareable
+            }
+
+            type ExclusiveSubgraphA {
+              id: ID!
+            }
+
+            type Viewer {
+              subType: SubType @shareable
+            }
+
+            type SubType {
+              subgraphA: String
+            }
+            """);
+
+        using var serverB = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              viewer: Viewer @shareable
+            }
+
+            type Viewer {
+              subType: SubType @shareable
+            }
+
+            type SubType {
+              subgraphB: String
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery {
+              exclusiveSubgraphA {
+                __typename
+              }
+              viewer {
+                subType {
+                  subgraphB
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Viewer_Bug_3()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              viewer: Viewer! @shareable
+            }
+
+            type Viewer {
+              subgraphA: String!
+            }
+            """);
+
+        using var serverB = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              viewer: Viewer! @shareable
+            }
+
+            type Viewer {
+              subgraphB: String!
+            }
+            """);
+
+        using var serverC = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+              subgraphC: SubgraphC!
+            }
+
+            type SubgraphC {
+              someField: String!
+              anotherField: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB),
+            ("C", serverC)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              viewer {
+                subgraphA
+                subgraphB
+              }
+              subgraphC {
+                someField
+                anotherField
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    // [Fact]
+    // public async Task Two_Arguments_Differing_Nullability_Does_Not_Duplicate_Forwarded_Variables()
+    // {
+    //     // arrange
+    //     using var demoProject = await DemoProject.CreateAsync();
+    //
+    //     // act
+    //     var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+    //         new[] { demoProject.Accounts.ToConfiguration(AccountsExtensionSdl) });
+    //
+    //     var executor = await new ServiceCollection()
+    //         .AddSingleton(demoProject.HttpClientFactory)
+    //         .AddSingleton(demoProject.WebSocketConnectionFactory)
+    //         .AddFusionGatewayServer()
+    //         .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+    //         .BuildRequestExecutorAsync();
+    //
+    //     var request = Parse(
+    //         """
+    //         query Test($number: Int!) {
+    //             testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
+    //         }
+    //         """);
+    //
+    //     // act
+    //     await using var result = await executor.ExecuteAsync(
+    //         OperationRequestBuilder
+    //             .New()
+    //             .SetDocument(request)
+    //             .SetVariableValues(new Dictionary<string, object?> { { "number", 1 } })
+    //             .Build());
+    //
+    //     // assert
+    //     var snapshot = new Snapshot();
+    //     CollectSnapshotData(snapshot, request, result);
+    //     await snapshot.MatchMarkdownAsync();
+    //
+    //     Assert.Null(result.ExpectOperationResult().Errors);
+    // }
+
+    [Fact]
+    public async Task Unresolvable_Subgraph_Is_Not_Chosen_If_Data_Is_Available_In_Resolvable_Subgraph()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              viewer: Viewer
+            }
+
+            type Viewer {
+              product: Product!
+            }
+
+            type Product implements Node {
+              id: ID!
+            }
+
+            interface Node @key(fields: "id") {
+              id: ID!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              test: Test!
+            }
+
+            type Test {
+              id: ID!
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String! @shareable
+            }
+            """);
+
+        var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+              node(id: ID!): Node @lookup
+            }
+
+            type Product implements Node {
+              id: ID!
+              name: String! @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              viewer {
+                product {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Subgraph_Containing_More_Selections_Is_Chosen()
+    {
+        // arrange
+        var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              productBySlug: Product
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """);
+
+        var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup @shareable
+            }
+
+            type Product {
+              id: ID!
+              author: Author @shareable
+            }
+
+            type Author {
+              name: String! @shareable
+            }
+            """);
+
+        var server3 = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+              productById(id: ID!): Product @lookup @shareable
+            }
+
+            type Product {
+              id: ID!
+              author: Author @shareable
+            }
+
+            type Author {
+              name: String! @shareable
+              rating: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2),
+            ("C", server3)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+              productBySlug {
+                author {
+                  name
+                  rating
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    public sealed class HotReloadConfiguration : IObservable<GatewayConfiguration>
+    {
+        private GatewayConfiguration _configuration;
+        private Session? _session;
+
+        public HotReloadConfiguration(GatewayConfiguration configuration)
+        {
+            _configuration = configuration ??
+                throw new ArgumentNullException(nameof(configuration));
+        }
+
+        public void SetConfiguration(GatewayConfiguration configuration)
+        {
+            _configuration = configuration ??
+                throw new ArgumentNullException(nameof(configuration));
+            _session?.Update();
+        }
+
+        public IDisposable Subscribe(IObserver<GatewayConfiguration> observer)
+        {
+            var session = _session = new Session(this, observer);
+            session.Update();
+            return session;
+        }
+
+        private sealed class Session : IDisposable
+        {
+            private readonly HotReloadConfiguration _owner;
+            private readonly IObserver<GatewayConfiguration> _observer;
+
+            public Session(HotReloadConfiguration owner, IObserver<GatewayConfiguration> observer)
+            {
+                _owner = owner;
+                _observer = observer;
+            }
+
+            public void Update()
+            {
+                _observer.OnNext(_owner._configuration);
+            }
+
+            public void Dispose() { }
+        }
+    }
+}

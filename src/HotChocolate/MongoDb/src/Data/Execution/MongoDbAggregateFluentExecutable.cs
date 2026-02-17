@@ -4,7 +4,7 @@ using MongoDB.Driver;
 namespace HotChocolate.Data.MongoDb;
 
 /// <summary>
-/// A executable that is based on <see cref="IAggregateFluent{TInput}"/>
+/// An executable that is based on <see cref="IAggregateFluent{TInput}"/>
 /// </summary>
 /// <typeparam name="T">The entity type</typeparam>
 public class MongoDbAggregateFluentExecutable<T>(IAggregateFluent<T> aggregate) : MongoDbExecutable<T>

@@ -7,7 +7,7 @@ internal sealed class ResolverArgument(
     Type runtimeType,
     IValueNode? defaultValue,
     IInputValueFormatter? formatter)
-    : IInputFieldInfo
+    : IInputValueInfo
 {
     public string Name { get; } = name;
 

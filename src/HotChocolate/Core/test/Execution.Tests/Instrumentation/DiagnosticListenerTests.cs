@@ -23,7 +23,7 @@ public class DiagnosticListenerTests
         var result = await executor.ExecuteAsync("{ hero { name } }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         Assert.Collection(listener.Results, r => Assert.IsType<Droid>(r));
     }
 
@@ -34,6 +34,7 @@ public class DiagnosticListenerTests
         var services = new ServiceCollection()
             .AddSingleton<Touched>()
             .AddGraphQL()
+            .AddApplicationService<Touched>()
             .AddDiagnosticEventListener<TouchedListener>()
             .AddStarWars()
             .Services
@@ -63,14 +64,14 @@ public class DiagnosticListenerTests
         var result = await executor.ExecuteAsync("{ hero { name } }");
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(result).Errors);
         Assert.Collection(listenerA.Results, r => Assert.IsType<Droid>(r));
         Assert.Collection(listenerB.Results, r => Assert.IsType<Droid>(r));
     }
 
     public class Touched
     {
-        public bool Signal = false;
+        public bool Signal;
     }
 
     private class TouchedListener : ExecutionDiagnosticEventListener
@@ -82,7 +83,7 @@ public class DiagnosticListenerTests
             _touched = touched;
         }
 
-        public override IDisposable ExecuteRequest(IRequestContext context)
+        public override IDisposable ExecuteRequest(RequestContext context)
         {
             _touched.Signal = true;
             return EmptyScope;

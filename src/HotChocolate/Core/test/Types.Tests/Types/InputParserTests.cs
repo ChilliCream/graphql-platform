@@ -1,10 +1,11 @@
+using System.Text.Json;
 using HotChocolate.Execution;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-
-#nullable enable
+using Moq;
 
 namespace HotChocolate.Types;
 
@@ -19,17 +20,22 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("TestInput");
+        var type = schema.Types.GetType<InputObjectType>("TestInput");
 
-        var fieldData = new Dictionary<string, object?>
-        {
-            { "field1", "abc" },
-            { "field2", 123 },
-        };
+        var fieldData = JsonDocument.Parse(
+            """
+            {
+                "field1": "abc",
+                "field2": 123
+            }
+            """);
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
-        var runtimeValue = parser.ParseResult(fieldData, type, Path.Root);
+        var runtimeValue = parser.ParseInputValue(fieldData.RootElement, type, context.Object, Path.Root);
 
         // assert
         Assert.IsType<TestInput>(runtimeValue).MatchSnapshot();
@@ -44,7 +50,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("TestInput");
+        var type = schema.Types.GetType<InputObjectType>("TestInput");
 
         var fieldData = new ObjectValueNode(
             new ObjectFieldNode("field1", "abc"),
@@ -67,17 +73,22 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("Test2Input");
+        var type = schema.Types.GetType<InputObjectType>("Test2Input");
 
-        var fieldData = new Dictionary<string, object?>
-        {
-            { "field1", "abc" },
-            { "field2", 123 },
-        };
+        var fieldData = JsonDocument.Parse(
+            """
+            {
+                "field1": "abc",
+                "field2": 123
+            }
+            """);
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
-        var runtimeValue = parser.ParseResult(fieldData, type, Path.Root);
+        var runtimeValue = parser.ParseInputValue(fieldData.RootElement, type, context.Object, Path.Root);
 
         // assert
         Assert.IsType<Test2Input>(runtimeValue).MatchSnapshot();
@@ -92,7 +103,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("Test2Input");
+        var type = schema.Types.GetType<InputObjectType>("Test2Input");
 
         var fieldData = new ObjectValueNode(
             new ObjectFieldNode("field1", "abc"),
@@ -115,19 +126,24 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("Test2Input");
+        var type = schema.Types.GetType<InputObjectType>("Test2Input");
 
-        var fieldData = new Dictionary<string, object?>
-        {
-            { "field2", 123 },
-        };
+        var fieldData = JsonDocument.Parse(
+            """
+            {
+                "field2": 123
+            }
+            """);
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
-        void Action() => parser.ParseResult(fieldData, type, Path.Root);
+        void Action() => parser.ParseInputValue(fieldData.RootElement, type, context.Object, Path.Root);
 
         // assert
-        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
     }
 
     [Fact]
@@ -139,7 +155,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("Test2Input");
+        var type = schema.Types.GetType<InputObjectType>("Test2Input");
 
         var fieldData = new ObjectValueNode(
             new ObjectFieldNode("field2", 123));
@@ -149,7 +165,7 @@ public class InputParserTests
         void Action() => parser.ParseLiteral(fieldData, type, Path.Root);
 
         // assert
-        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
     }
 
     [Fact]
@@ -161,22 +177,31 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("TestInput");
+        var type = schema.Types.GetType<InputObjectType>("TestInput");
 
-        var fieldData = new Dictionary<string, object?>
-        {
-            { "field2", 123 },
-            { "field3", 123 },
-        };
+        var fieldData = JsonDocument.Parse(
+            """
+            {
+                "field2": 123,
+                "field3": 123
+            }
+            """);
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
 
         void Action()
-            => parser.ParseResult(fieldData, type, Path.Root.Append("root"));
+            => parser.ParseInputValue(
+                fieldData.RootElement,
+                type,
+                context: context.Object,
+                Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
     }
 
     [Fact]
@@ -188,7 +213,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("TestInput");
+        var type = schema.Types.GetType<InputObjectType>("TestInput");
 
         var fieldData = new ObjectValueNode(
             new ObjectFieldNode("field2", 123),
@@ -201,7 +226,7 @@ public class InputParserTests
             => parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
     }
 
     [Fact]
@@ -213,23 +238,32 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("TestInput");
+        var type = schema.Types.GetType<InputObjectType>("TestInput");
 
-        var fieldData = new Dictionary<string, object?>
-        {
-            { "field2", 123 },
-            { "field3", 123 },
-            { "field4", 123 },
-        };
+        var fieldData = JsonDocument.Parse(
+            """
+            {
+                "field2": 123,
+                "field3": 123,
+                "field4": 123
+            }
+            """);
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
 
         void Action()
-            => parser.ParseResult(fieldData, type, Path.Root.Append("root"));
+            => parser.ParseInputValue(
+                fieldData.RootElement,
+                type,
+                context: context.Object,
+                path: Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
     }
 
     [Fact]
@@ -241,7 +275,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("TestInput");
+        var type = schema.Types.GetType<InputObjectType>("TestInput");
 
         var fieldData = new ObjectValueNode(
             new ObjectFieldNode("field2", 123),
@@ -255,7 +289,7 @@ public class InputParserTests
             => parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
     }
 
     [Fact]
@@ -267,7 +301,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("TestInput");
+        var type = schema.Types.GetType<InputObjectType>("TestInput");
 
         var fieldData = new ObjectValueNode(
             new ObjectFieldNode("field1", "abc"),
@@ -279,7 +313,7 @@ public class InputParserTests
 
         var options = new InputParserOptions
         {
-            IgnoreAdditionalInputFields = true,
+            IgnoreAdditionalInputFields = true
         };
 
         // act
@@ -299,7 +333,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("Test3Input");
+        var type = schema.Types.GetType<InputObjectType>("Test3Input");
 
         var fieldData = new ObjectValueNode(
             new ObjectFieldNode("field2", 123));
@@ -321,7 +355,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = new NonNullType(schema.GetType<InputObjectType>("Test3Input"));
+        var type = new NonNullType(schema.Types.GetType<InputObjectType>("Test3Input"));
 
         // act
         var parser = new InputParser();
@@ -333,7 +367,7 @@ public class InputParserTests
                 Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Action).MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Action).MatchSnapshot();
     }
 
     [Fact]
@@ -345,7 +379,7 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = new NonNullType(schema.GetType<InputObjectType>("FooInput"));
+        var type = new NonNullType(schema.Types.GetType<InputObjectType>("FooInput"));
 
         var listData = new ListValueNode(
             NullValueNode.Default,
@@ -403,7 +437,7 @@ public class InputParserTests
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
-        var oneOfInput = schema.GetType<InputObjectType>(nameof(OneOfInput));
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
 
         var parser = new InputParser();
 
@@ -415,7 +449,7 @@ public class InputParserTests
         void Fail() => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Fail).Errors.MatchSnapshot();
     }
 
     [Fact]
@@ -429,7 +463,7 @@ public class InputParserTests
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
-        var oneOfInput = schema.GetType<InputObjectType>(nameof(OneOfInput));
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
 
         var parser = new InputParser();
 
@@ -442,7 +476,7 @@ public class InputParserTests
             => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
 
         // assert
-        Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();
+        Assert.Throws<LeafCoercionException>(Fail).Errors.MatchSnapshot();
     }
 
     [Fact]
@@ -456,7 +490,7 @@ public class InputParserTests
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
-        var oneOfInput = schema.GetType<InputObjectType>(nameof(OneOfInput));
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
 
         var parser = new InputParser();
 
@@ -480,16 +514,21 @@ public class InputParserTests
             .ModifyOptions(o => o.StrictValidation = false)
             .Create();
 
-        var type = schema.GetType<InputObjectType>("Test4Input");
+        var type = schema.Types.GetType<InputObjectType>("Test4Input");
 
-        var fieldData = new Dictionary<string, object?>
-        {
-            { "field1", "abc" },
-        };
+        var fieldData = JsonDocument.Parse(
+            """
+            {
+                "field1": "abc"
+            }
+            """);
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
-        var runtimeValue = parser.ParseResult(fieldData, type, Path.Root);
+        var runtimeValue = parser.ParseInputValue(fieldData.RootElement, type, context.Object, Path.Root);
 
         // assert
         Assert.IsType<Test4Input>(runtimeValue).MatchSnapshot();
@@ -547,7 +586,7 @@ public class InputParserTests
 
     public enum Bar
     {
-        Baz,
+        Baz
     }
 
     [OneOf]
@@ -562,8 +601,8 @@ public class InputParserTests
 
     public class Test4Input
     {
-        public string Field1 { get; set; } = default!;
+        public string Field1 { get; set; } = null!;
 
-        public int Field2 { get; set; } = default!;
+        public int Field2 { get; set; }
     }
 }

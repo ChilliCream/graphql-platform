@@ -1,3 +1,5 @@
+using HotChocolate.Features;
+
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -8,7 +10,10 @@ public interface ITypeDefinition
     , INameProvider
     , IDescriptionProvider
     , IDirectivesProvider
+    , IFeatureProvider
     , ISyntaxNodeProvider
+    , ISchemaCoordinateProvider
+    , IRuntimeTypeProvider
 {
     /// <summary>
     /// Specifies if this type is an introspection type.
@@ -21,3 +26,13 @@ public interface ITypeDefinition
     /// </summary>
     bool IsAssignableFrom(ITypeDefinition type);
 }
+
+/// <summary>
+/// Represents a GraphQL output type definition.
+/// </summary>
+public interface IOutputTypeDefinition : ITypeDefinition, IOutputType;
+
+/// <summary>
+/// Represents a GraphQL input type definition.
+/// </summary>
+public interface IInputTypeDefinition : ITypeDefinition, IInputType;

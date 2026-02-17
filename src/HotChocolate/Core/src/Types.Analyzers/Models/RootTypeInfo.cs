@@ -13,18 +13,26 @@ public sealed class RootTypeInfo
         INamedTypeSymbol schemaType,
         OperationType operationType,
         ClassDeclarationSyntax classDeclarationSyntax,
-        ImmutableArray<Resolver> resolvers)
+        ImmutableArray<Resolver> resolvers,
+        ImmutableArray<AttributeData> attributes)
     {
         OperationType = operationType;
         SchemaSchemaType = schemaType;
         SchemaTypeFullName = schemaType.ToDisplayString();
         ClassDeclaration = classDeclarationSyntax;
         Resolvers = resolvers;
+        Description = schemaType.GetDescription();
+        Attributes = attributes;
+        Shareable = attributes.GetShareableScope();
+        Inaccessible = attributes.GetInaccessibleScope();
+        DescriptorAttributes = attributes.GetUserAttributes();
     }
 
     public string Name => SchemaSchemaType.Name;
 
     public string Namespace => SchemaSchemaType.ContainingNamespace.ToDisplayString();
+
+    public string? Description { get; }
 
     public bool IsPublic => SchemaSchemaType.DeclaredAccessibility == Accessibility.Public;
 
@@ -48,15 +56,42 @@ public sealed class RootTypeInfo
 
     public override string OrderByKey => SchemaTypeFullName;
 
+    public DirectiveScope Shareable { get; }
+
+    public DirectiveScope Inaccessible { get; }
+
+    public ImmutableArray<AttributeData> Attributes { get; }
+
+    public ImmutableArray<AttributeData> DescriptorAttributes { get; }
+
+    public bool SourceSchemaDetected { get; set; }
+
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);
 
     public override bool Equals(object? obj)
-        => obj is ObjectTypeInfo other && Equals(other);
+        => obj is RootTypeInfo other && Equals(other);
 
     public override bool Equals(SyntaxInfo? obj)
-        => obj is ObjectTypeInfo other && Equals(other);
+        => obj is RootTypeInfo other && Equals(other);
+
+    public bool Equals(RootTypeInfo? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return OrderByKey.Equals(other.OrderByKey, StringComparison.Ordinal)
+            && string.Equals(SchemaTypeFullName, other.SchemaTypeFullName, StringComparison.Ordinal)
+            && ClassDeclaration.SyntaxTree.IsEquivalentTo(other.ClassDeclaration.SyntaxTree);
+    }
 
     public override int GetHashCode()
-        => HashCode.Combine(SchemaTypeFullName, ClassDeclaration);
+        => HashCode.Combine(OrderByKey, SchemaTypeFullName, ClassDeclaration);
 }

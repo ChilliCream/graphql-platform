@@ -40,10 +40,7 @@ public class ProjectionConventionDescriptor
     /// <inheritdoc />
     public IProjectionConventionDescriptor Provider(Type provider)
     {
-        if (provider is null)
-        {
-            throw new ArgumentNullException(nameof(provider));
-        }
+        ArgumentNullException.ThrowIfNull(provider);
 
         if (!typeof(IProjectionProvider).IsAssignableFrom(provider))
         {

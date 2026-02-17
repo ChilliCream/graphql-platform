@@ -16,7 +16,7 @@ public sealed class EnumValueDescriptor : ICodeDescriptor
 
     public string RuntimeValue { get; }
 
-    public  string Name { get; }
+    public string Name { get; }
 
     public string? Documentation { get; }
 

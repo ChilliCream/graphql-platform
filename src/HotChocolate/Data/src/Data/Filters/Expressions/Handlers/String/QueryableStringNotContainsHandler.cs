@@ -28,4 +28,6 @@ public class QueryableStringNotContainsHandler : QueryableStringOperationHandler
 
         return FilterExpressionBuilder.NotContains(property, parsedValue);
     }
+
+    public static QueryableStringNotContainsHandler Create(FilterProviderContext context) => new(context.InputParser);
 }

@@ -9,7 +9,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data;
 
@@ -144,41 +144,38 @@ internal static class ThrowHelper
 
     public static SchemaException FilterProvider_UnableToCreateFieldHandler(
         IFilterProvider filterProvider,
-        Type fieldHandler) =>
+        Exception exception) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     DataResources.FilterProvider_UnableToCreateFieldHandler,
-                    fieldHandler.FullName ?? fieldHandler.Name,
                     filterProvider.GetType().FullName ?? filterProvider.GetType().Name)
                 .SetExtension(nameof(filterProvider), filterProvider)
-                .SetExtension(nameof(fieldHandler), fieldHandler)
+                .SetException(exception)
                 .Build());
 
     public static SchemaException SortProvider_UnableToCreateFieldHandler(
         ISortProvider sortProvider,
-        Type fieldHandler) =>
+        Exception exception) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     DataResources.SortProvider_UnableToCreateFieldHandler,
-                    fieldHandler.FullName ?? fieldHandler.Name,
                     sortProvider.GetType().FullName ?? sortProvider.GetType().Name)
                 .SetExtension(nameof(sortProvider), sortProvider)
-                .SetExtension(nameof(fieldHandler), fieldHandler)
+                .SetException(exception)
                 .Build());
 
     public static SchemaException SortProvider_UnableToCreateOperationHandler(
         ISortProvider sortProvider,
-        Type operationHandler) =>
+        Exception exception) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
                     DataResources.SortProvider_UnableToCreateOperationHandler,
-                    operationHandler.FullName ?? operationHandler.Name,
                     sortProvider.GetType().FullName ?? sortProvider.GetType().Name)
                 .SetExtension(nameof(sortProvider), sortProvider)
-                .SetExtension(nameof(operationHandler), operationHandler)
+                .SetException(exception)
                 .Build());
 
     public static SchemaException SortProvider_NoFieldHandlersConfigured(
@@ -387,13 +384,13 @@ internal static class ThrowHelper
 
     public static InvalidOperationException PagingProjectionOptimizer_NotAPagingField(
         IType actualType,
-        IObjectField fieldName) =>
+        IOutputFieldDefinition field) =>
         new(string.Format(
             CultureInfo.InvariantCulture,
             DataResources.PagingProjectionOptimizer_NotAPagingField,
             actualType.Print(),
-            fieldName.Name,
-            fieldName.Type.Print()));
+            field.Name,
+            field.Type.Print()));
 
     public static InvalidOperationException Filtering_CouldNotParseValue(
         IFilterFieldHandler handler,
@@ -432,7 +429,7 @@ internal static class ThrowHelper
             field.Type.Print()));
 
     public static SchemaException QueryableFilterProvider_ExpressionParameterInvalid(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         IFilterInputTypeConfiguration typeConfiguration,
         IFilterFieldConfiguration field) =>
         new(SchemaErrorBuilder
@@ -527,7 +524,7 @@ internal static class ThrowHelper
             field.Type.Print()));
 
     public static SchemaException QueryableSortProvider_ExpressionParameterInvalid(
-        ITypeSystemObject type,
+        TypeSystemObject type,
         ISortInputTypeConfiguration typeConfiguration,
         ISortFieldConfiguration field) =>
         new(SchemaErrorBuilder
@@ -573,7 +570,7 @@ internal static class ThrowHelper
             .Build());
 
     public static InvalidOperationException SelectionContext_NoTypeForAbstractFieldProvided(
-        INamedType type,
+        ITypeDefinition type,
         IEnumerable<ObjectType> possibleTypes) =>
         new(string.Format(
             CultureInfo.CurrentCulture,

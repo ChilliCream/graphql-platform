@@ -2,9 +2,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -19,7 +17,7 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
     private Action<IInputObjectTypeDescriptor>? _configure;
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="InputObjectTypeExtension"/>.
+    /// Initializes a new instance of <see cref="InputObjectTypeExtension"/>.
     /// </summary>
     protected InputObjectTypeExtension()
     {
@@ -27,7 +25,7 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
     }
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="InputObjectTypeExtension"/>.
+    /// Initializes a new instance of <see cref="InputObjectTypeExtension"/>.
     /// </summary>
     /// <param name="configure">
     /// A delegate to specify the properties of this type.
@@ -88,7 +86,7 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
 
     protected override void Merge(
         ITypeCompletionContext context,
-        INamedType type)
+        ITypeDefinition type)
     {
         if (type is InputObjectType inputObjectType)
         {
@@ -97,13 +95,13 @@ public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeCo
             AssertMutable();
             inputObjectType.AssertMutable();
 
-            TypeExtensionHelper.MergeContextData(
+            TypeExtensionHelper.MergeFeatures(
                 Configuration!,
                 inputObjectType.Configuration!);
 
             TypeExtensionHelper.MergeDirectives(
                 context,
-                Configuration!.Directives!,
+                Configuration!.Directives,
                 inputObjectType.Configuration!.Directives);
 
             TypeExtensionHelper.MergeInputObjectFields(

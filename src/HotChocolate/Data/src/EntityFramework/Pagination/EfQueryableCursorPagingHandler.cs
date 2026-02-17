@@ -4,7 +4,9 @@ using GreenDonut.Data.Expressions;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Pagination.Utilities;
+#if DEBUG
 using Microsoft.EntityFrameworkCore;
+#endif
 using static HotChocolate.Data.Properties.EntityFrameworkResources;
 
 namespace HotChocolate.Data.Pagination;
@@ -79,7 +81,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
 
         if (!edgesRequired)
         {
-            if(countRequired)
+            if (countRequired)
             {
                 totalCount ??= await executable.CountAsync(context.RequestAborted);
             }
@@ -207,7 +209,7 @@ internal sealed class EfQueryableCursorPagingHandler<TEntity>(PagingOptions opti
             IQueryable<TEntity> q => q.AsDbContextExecutable(),
             IEnumerable<TEntity> e => e.AsQueryable().AsDbContextExecutable(),
             IQueryableExecutable<TEntity> e => e,
-            _ => throw new InvalidOperationException(EfQueryableCursorPagingHandler_SourceNotSupported),
+            _ => throw new InvalidOperationException(EfQueryableCursorPagingHandler_SourceNotSupported)
         };
 
     private static CursorKey[] ParseDataSetKeys<T>(IQueryable<T> source)

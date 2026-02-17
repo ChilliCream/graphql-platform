@@ -5,14 +5,13 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Requirements;
 using HotChocolate.Features;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Execution.Projections;
 
 internal sealed class SelectionExpressionBuilder
 {
-    private static readonly NullabilityInfoContext _nullabilityInfoContext = new();
-    private static readonly HashSet<Type> _runtimeLeafTypes =
+    private static readonly HashSet<Type> s_runtimeLeafTypes =
     [
         typeof(string),
         typeof(byte),
@@ -37,7 +36,7 @@ internal sealed class SelectionExpressionBuilder
         typeof(char?)
     ];
 
-    public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(ISelection selection)
+    public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(Selection selection)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
@@ -57,7 +56,7 @@ internal sealed class SelectionExpressionBuilder
         return Expression.Lambda<Func<TRoot, TRoot>>(selectionSetExpression, parameter);
     }
 
-    public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(ISelection selection)
+    public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(Selection selection)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
@@ -67,6 +66,7 @@ internal sealed class SelectionExpressionBuilder
 
         var entityType = selection.DeclaringOperation
             .GetPossibleTypes(selection)
+            .Cast<ObjectType>()
             .FirstOrDefault(t => t.RuntimeType == typeof(TRoot));
 
         if (entityType is null)
@@ -95,7 +95,7 @@ internal sealed class SelectionExpressionBuilder
         return Expression.Lambda<Func<TRoot, TRoot>>(selectionSetExpression, parameter);
     }
 
-    private void CollectTypes(Context context, ISelection selection, TypeContainer parent)
+    private void CollectTypes(Context context, Selection selection, TypeContainer parent)
     {
         var namedType = selection.Type.NamedType();
 
@@ -106,7 +106,7 @@ internal sealed class SelectionExpressionBuilder
 
         if (namedType.IsAbstractType())
         {
-            foreach (var possibleType in selection.DeclaringOperation.GetPossibleTypes(selection))
+            foreach (var possibleType in selection.DeclaringOperation.GetPossibleTypes(selection).Cast<ObjectType>())
             {
                 var possibleTypeNode = new TypeNode(possibleType.RuntimeType);
                 var possibleSelectionSet = selection.DeclaringOperation.GetSelectionSet(selection, possibleType);
@@ -170,7 +170,8 @@ internal sealed class SelectionExpressionBuilder
     {
         var assignments = ImmutableArray.CreateBuilder<MemberAssignment>();
 
-        foreach (var property in parent.Nodes)
+        // order by property name so expressions evaluate to the same hash regardless of selection order
+        foreach (var property in parent.Nodes.OrderBy(node => node.Property.Name))
         {
             var assignment = BuildAssignmentExpression(property, context);
             if (assignment is not null)
@@ -191,7 +192,7 @@ internal sealed class SelectionExpressionBuilder
 
     private void CollectSelection(
         Context context,
-        ISelection selection,
+        Selection selection,
         TypeNode parent)
     {
         var namedType = selection.Field.Type.NamedType();
@@ -208,9 +209,9 @@ internal sealed class SelectionExpressionBuilder
             return;
         }
 
-        var flags = ((ObjectField)selection.Field).Flags;
-        if ((flags & FieldFlags.Connection) == FieldFlags.Connection
-            || (flags & FieldFlags.CollectionSegment) == FieldFlags.CollectionSegment)
+        var flags = selection.Field.Flags;
+        if ((flags & CoreFieldFlags.Connection) == CoreFieldFlags.Connection
+            || (flags & CoreFieldFlags.CollectionSegment) == CoreFieldFlags.CollectionSegment)
         {
             return;
         }
@@ -227,7 +228,7 @@ internal sealed class SelectionExpressionBuilder
 
     private static void TryAddAnyLeafField(
         TypeNode parent,
-        IObjectType selectionType)
+        ObjectType selectionType)
     {
         // if we could not collect anything it means that either all fields
         // are skipped or that __typename is the only field that is selected.
@@ -254,7 +255,7 @@ internal sealed class SelectionExpressionBuilder
                 var properties = selectionType.RuntimeType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
                 foreach (var property in properties)
                 {
-                    if (_runtimeLeafTypes.Contains(property.PropertyType))
+                    if (s_runtimeLeafTypes.Contains(property.PropertyType))
                     {
                         parent.AddOrGetNode(property);
                         break;
@@ -266,7 +267,7 @@ internal sealed class SelectionExpressionBuilder
 
     private void CollectSelections(
         Context context,
-        ISelectionSet selectionSet,
+        SelectionSet selectionSet,
         TypeNode parent)
     {
         foreach (var selection in selectionSet.Selections)
@@ -343,10 +344,10 @@ internal sealed class SelectionExpressionBuilder
         FieldRequirementsMetadata Requirements,
         NullabilityInfoContext NullabilityInfoContext)
     {
-        public TypeNode? GetRequirements(ISelection selection)
+        public TypeNode? GetRequirements(Selection selection)
         {
-            var flags = ((ObjectField)selection.Field).Flags;
-            return (flags & FieldFlags.WithRequirements) == FieldFlags.WithRequirements
+            var flags = selection.Field.Flags;
+            return (flags & CoreFieldFlags.WithRequirements) == CoreFieldFlags.WithRequirements
                 ? Requirements.GetRequirements(selection.Field)
                 : null;
         }

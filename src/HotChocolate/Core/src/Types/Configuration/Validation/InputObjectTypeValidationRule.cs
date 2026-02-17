@@ -1,5 +1,3 @@
-#nullable enable
-
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -12,7 +10,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
 {
     public void Validate(
         IDescriptorContext context,
-        ISchema schema,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
         if (!context.Options.StrictValidation)
@@ -24,7 +22,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         CycleValidationContext cycleValidationContext = new()
         {
             Visited = [],
-            CycleStartIndex = new Dictionary<InputObjectType, int>(),
+            CycleStartIndex = [],
             Errors = errors,
             FieldPath = []
         };
@@ -107,13 +105,10 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
             switch (type.Kind)
             {
                 case TypeKind.List:
-                {
                     return null;
-                }
+
                 default:
-                {
                     return type;
-                }
             }
         }
     }
@@ -123,7 +118,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         ICollection<ISchemaError> errors,
         ref List<string>? temp)
     {
-        if (!type.Directives.ContainsDirective(WellKnownDirectives.OneOf))
+        if (!type.Directives.ContainsDirective(DirectiveNames.OneOf.Name))
         {
             return;
         }

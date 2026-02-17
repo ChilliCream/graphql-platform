@@ -1,6 +1,8 @@
+#nullable disable
+
+using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Helpers;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -11,10 +13,7 @@ public class EnumValueDescriptor
     protected EnumValueDescriptor(IDescriptorContext context, object runtimeValue)
         : base(context)
     {
-        if (runtimeValue is null)
-        {
-            throw new ArgumentNullException(nameof(runtimeValue));
-        }
+        ArgumentNullException.ThrowIfNull(runtimeValue);
 
         Configuration.RuntimeValue = runtimeValue;
         Configuration.Description = context.Naming.GetEnumValueDescription(runtimeValue);
@@ -38,15 +37,17 @@ public class EnumValueDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, Member: not null })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
                 Configuration.Member);
-            Configuration.AttributesAreApplied = true;
 
-            if (Context.TypeInspector.IsMemberIgnored(Configuration.Member))
+            Configuration.ConfigurationsAreApplied = true;
+
+            if (Configuration.Member is { } member
+                && Context.TypeInspector.IsMemberIgnored(member))
             {
                 Ignore();
             }
@@ -87,7 +88,7 @@ public class EnumValueDescriptor
 
     public IEnumValueDescriptor Deprecated()
     {
-        Configuration.DeprecationReason = WellKnownDirectives.DeprecationDefaultReason;
+        Configuration.DeprecationReason = DirectiveNames.Deprecated.Arguments.DefaultReason;
         return this;
     }
 

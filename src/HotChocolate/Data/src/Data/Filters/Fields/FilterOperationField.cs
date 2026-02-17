@@ -6,7 +6,7 @@ public class FilterOperationField
 {
     internal FilterOperationField(
         FilterOperationFieldConfiguration configuration)
-        : this(configuration, default)
+        : this(configuration, 0)
     {
     }
 

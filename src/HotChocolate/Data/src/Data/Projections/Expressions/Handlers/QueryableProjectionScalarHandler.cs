@@ -8,16 +8,15 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers;
 public class QueryableProjectionScalarHandler
     : QueryableProjectionHandlerBase
 {
-    public override bool CanHandle(ISelection selection) =>
-        selection.Field.Member is { } &&
-        selection.SelectionSet is null;
+    public override bool CanHandle(Selection selection)
+        => selection.Field.Member is not null && selection.IsLeaf;
 
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
-        if (selection.Field.Member is PropertyInfo { CanWrite: true, })
+        if (selection.Field.Member is PropertyInfo { CanWrite: true })
         {
             action = SelectionVisitor.SkipAndLeave;
             return true;
@@ -29,14 +28,14 @@ public class QueryableProjectionScalarHandler
 
     public override bool TryHandleLeave(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
 
-        if (context.Scopes.Count > 0 &&
-            context.Scopes.Peek() is QueryableProjectionScope closure &&
-            field.Member is PropertyInfo member)
+        if (context.Scopes.Count > 0
+            && context.Scopes.Peek() is QueryableProjectionScope closure
+            && field.Member is PropertyInfo member)
         {
             var instance = closure.Instance.Peek();
 
@@ -53,4 +52,6 @@ public class QueryableProjectionScalarHandler
         action = SelectionVisitor.Skip;
         return true;
     }
+
+    public static QueryableProjectionScalarHandler Create(ProjectionProviderContext context) => new();
 }

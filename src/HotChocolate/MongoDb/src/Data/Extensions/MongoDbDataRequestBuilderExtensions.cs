@@ -104,10 +104,7 @@ public static class MongoDbDataRequestBuilderExtensions
         string? providerName = null,
         bool defaultProvider = false)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.AddCursorPagingProvider<MongoDbCursorPagingProvider>(
             providerName,

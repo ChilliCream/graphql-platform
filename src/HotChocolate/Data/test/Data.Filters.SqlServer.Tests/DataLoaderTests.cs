@@ -37,7 +37,11 @@ public sealed class DataLoaderTests
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -69,7 +73,11 @@ public sealed class DataLoaderTests
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -101,7 +109,50 @@ public sealed class DataLoaderTests
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
+            .AddSql(queries)
+            .AddResult(result)
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Filter_With_Aliased_Filtering()
+    {
+        // Arrange
+        var queries = new List<string>();
+        var context = new CatalogContext();
+        await context.SeedAsync();
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => queries)
+            .AddTransient(_ => context)
+            .AddGraphQL()
+            .AddFiltering()
+            .AddQueryType<Query>()
+            .AddPagingArguments()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .ExecuteRequestAsync(
+                """
+                {
+                    a: filterContext(brandId: 1, where: { name: { startsWith: "Product" } }) {
+                        name
+                    }
+                    b: filterContext(brandId: 1, where: { name: { eq: "Product 0-0" } }) {
+                        name
+                    }
+                }
+                """);
+
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();
@@ -133,7 +184,11 @@ public sealed class DataLoaderTests
                 }
                 """);
 
-        Snapshot.Create()
+        Snapshot
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddSql(queries)
             .AddResult(result)
             .MatchMarkdownSnapshot();

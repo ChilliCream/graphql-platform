@@ -23,10 +23,7 @@ public static class JsonRequestExecutorBuilderExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddJsonSupport(this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         builder.ConfigureSchema(sb => sb.TryAddSchemaDirective(new FromJsonSchemaDirective()));
         return builder;

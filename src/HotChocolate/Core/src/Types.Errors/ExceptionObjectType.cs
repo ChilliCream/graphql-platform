@@ -14,7 +14,7 @@ internal sealed class ExceptionObjectType<T> : ObjectType<T> where T : Exception
         descriptor.Ignore(x => x.TargetSite);
         descriptor.Ignore(x => x.GetBaseException());
         descriptor.Field(x => x.Message).Type<NonNullType<StringType>>();
-        descriptor.Extend().Configuration.ContextData.MarkAsError();
+        descriptor.Extend().Configuration.MarkAsError();
         descriptor.BindFieldsImplicitly();
     }
 
@@ -24,7 +24,7 @@ internal sealed class ExceptionObjectType<T> : ObjectType<T> where T : Exception
         const string exceptionSuffix = nameof(Exception);
 
         return name.EndsWith(exceptionSuffix)
-            ? $"{name.Substring(0, name.Length - exceptionSuffix.Length)}Error"
+            ? $"{name[..^exceptionSuffix.Length]}Error"
             : name;
     }
 }

@@ -11,47 +11,47 @@ public class MongoDbFilterVisitorComparableTests
     : SchemaCache
     , IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
         new Foo
         {
             BarShort = 12,
-            BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+            BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc)
         },
         new Foo
         {
             BarShort = 14,
-            BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc),
+            BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc)
         },
         new Foo
         {
             BarShort = 13,
-            BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc),
-        },
+            BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc)
+        }
     ];
 
-    private static readonly FooNullable[] _fooNullableEntities =
+    private static readonly FooNullable[] s_fooNullableEntities =
     [
         new FooNullable
         {
             BarShort = 12,
-            BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+            BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc)
         },
         new FooNullable
         {
             BarShort = null,
-            BarDateTime = null,
+            BarDateTime = null
         },
         new FooNullable
         {
             BarShort = 14,
-            BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc),
+            BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc)
         },
         new FooNullable
         {
             BarShort = 13,
-            BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc),
-        },
+            BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc)
+        }
     ];
 
     public MongoDbFilterVisitorComparableTests(MongoResource resource)
@@ -63,19 +63,19 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortEqual_Expression_DateTime()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})" +
-                    "{ barDateTime}}")
+                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})"
+                    + "{ barDateTime}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})" +
-                    "{ barDateTime}}")
+                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})"
+                    + "{ barDateTime}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
@@ -97,19 +97,19 @@ public class MongoDbFilterVisitorComparableTests
     {
         // arrange
         var tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+            CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})" +
-                    "{ barDateTime}}")
+                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})"
+                    + "{ barDateTime}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
-                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})" +
-                    "{ barDateTime}}")
+                .SetDocument("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})"
+                    + "{ barDateTime}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
@@ -130,7 +130,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -173,7 +173,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNotEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -204,7 +204,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortGreaterThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -241,7 +241,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNotGreaterThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -278,7 +278,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -315,7 +315,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNotGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -352,7 +352,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortLowerThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -389,7 +389,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNotLowerThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -422,7 +422,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -459,7 +459,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNotLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -496,7 +496,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -524,7 +524,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNotIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+        var tester = CreateSchema<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -556,7 +556,7 @@ public class MongoDbFilterVisitorComparableTests
     {
         // arrange
         var tester =
-            CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+            CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -587,7 +587,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableNotEqual_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -618,7 +618,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableGreaterThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -654,7 +654,7 @@ public class MongoDbFilterVisitorComparableTests
     [Fact]
     public async Task Create_ShortNullableNotGreaterThan_Expression()
     {
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -691,7 +691,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableGreaterThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -727,7 +727,7 @@ public class MongoDbFilterVisitorComparableTests
     [Fact]
     public async Task Create_ShortNullableNotGreaterThanOrEquals_Expression()
     {
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         // assert
@@ -765,7 +765,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableLowerThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -802,7 +802,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableNotLowerThan_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -839,7 +839,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -876,7 +876,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableNotLowerThanOrEquals_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -913,7 +913,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -944,7 +944,7 @@ public class MongoDbFilterVisitorComparableTests
     public async Task Create_ShortNullableNotIn_Expression()
     {
         // arrange
-        var tester = CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+        var tester = CreateSchema<FooNullable, FooNullableFilterType>(s_fooNullableEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(

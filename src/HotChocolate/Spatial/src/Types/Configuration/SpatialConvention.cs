@@ -23,7 +23,7 @@ public class SpatialConvention
     public int DefaultSrid { get; private set; } = NtsGeometryServices.Instance.DefaultSRID;
 
     /// <inheritdoc />
-    public IGeometryTransformerFactory TransformerFactory { get; private set; } = default!;
+    public IGeometryTransformerFactory TransformerFactory { get; private set; } = null!;
 
     /// <inheritdoc />
     public SpatialConvention(Action<ISpatialConventionDescriptor> configure)

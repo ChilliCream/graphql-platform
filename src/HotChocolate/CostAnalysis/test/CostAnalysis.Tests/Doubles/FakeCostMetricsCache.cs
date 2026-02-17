@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Caching.Memory;
 using HotChocolate.CostAnalysis.Caching;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.CostAnalysis.Doubles;
 

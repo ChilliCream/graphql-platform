@@ -108,7 +108,7 @@ public class GeoJsonPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(new ListValueNode(), type));
     }
 
@@ -121,7 +121,7 @@ public class GeoJsonPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("coordinates", _polygon),
@@ -138,7 +138,7 @@ public class GeoJsonPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Polygon)),
@@ -155,7 +155,7 @@ public class GeoJsonPolygonInputTests
 
         // act
         // assert
-        Assert.Throws<SerializationException>(
+        Assert.Throws<LeafCoercionException>(
             () => inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Point)),
@@ -197,7 +197,7 @@ public class GeoJsonPolygonInputTests
         schema.MatchSnapshot();
     }
 
-    private ISchema CreateSchema() => SchemaBuilder.New()
+    private Schema CreateSchema() => SchemaBuilder.New()
         .AddConvention<INamingConventions, MockNamingConvention>()
         .AddQueryType(
             d => d
@@ -210,6 +210,6 @@ public class GeoJsonPolygonInputTests
     private InputObjectType CreateInputType()
     {
         var schema = CreateSchema();
-        return schema.GetType<InputObjectType>("GeoJSONPolygonInput");
+        return schema.Types.GetType<InputObjectType>("GeoJSONPolygonInput");
     }
 }

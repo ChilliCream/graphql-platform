@@ -60,6 +60,24 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} (Schema: &apos;{1}&apos;).
+        /// </summary>
+        internal static string CompositionLogExtensions_EntryMessageWithSchemaName {
+            get {
+                return ResourceManager.GetString("CompositionLogExtensions_EntryMessageWithSchemaName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @cost directive must have a &apos;weight&apos; argument of type String..
+        /// </summary>
+        internal static string CostDirective_WeightArgument_Invalid {
+            get {
+                return ResourceManager.GetString("CostDirective_WeightArgument_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Post-merge validation failed..
         /// </summary>
         internal static string ErrorHelper_PostMergeValidationFailed {
@@ -78,11 +96,29 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Satisfiability validation failed..
+        /// </summary>
+        internal static string ErrorHelper_SatisfiabilityValidationFailed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_SatisfiabilityValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Source schema parsing failed..
         /// </summary>
         internal static string ErrorHelper_SourceSchemaParsingFailed {
             get {
                 return ResourceManager.GetString("ErrorHelper_SourceSchemaParsingFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Source schema preprocessing failed..
+        /// </summary>
+        internal static string ErrorHelper_SourceSchemaPreprocessingFailed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_SourceSchemaPreprocessingFailed", resourceCulture);
             }
         }
         
@@ -105,6 +141,33 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema that defined the cost metadata..
+        /// </summary>
+        internal static string FusionCostMutableDirectiveDefinition_Argument_Schema_Description {
+            get {
+                return ResourceManager.GetString("FusionCostMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The weight defined in the source schema..
+        /// </summary>
+        internal static string FusionCostMutableDirectiveDefinition_Argument_Weight_Description {
+            get {
+                return ResourceManager.GetString("FusionCostMutableDirectiveDefinition_Argument_Weight_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__cost directive specifies cost metadata for each source schema..
+        /// </summary>
+        internal static string FusionCostMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionCostMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The name of the source schema that provides the specified enum value..
         /// </summary>
         internal static string FusionEnumValueMutableDirectiveDefinition_Argument_Schema_Description {
@@ -119,6 +182,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string FusionEnumValueMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("FusionEnumValueMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The fusion__FieldDefinition scalar is used to represent a GraphQL field definition specified in the GraphQL spec..
+        /// </summary>
+        internal static string FusionFieldDefinitionMutableScalarTypeDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionFieldDefinitionMutableScalarTypeDefinition_Description", resourceCulture);
             }
         }
         
@@ -168,6 +240,33 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The fusion__FieldSelectionMap scalar is used to represent the FieldSelectionMap type specified in the GraphQL Composite Schemas Spec..
+        /// </summary>
+        internal static string FusionFieldSelectionMapMutableScalarTypeDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionFieldSelectionMapMutableScalarTypeDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The fusion__FieldSelectionPath scalar is used to represent a path of field names relative to the Query type..
+        /// </summary>
+        internal static string FusionFieldSelectionPathMutableScalarTypeDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionFieldSelectionPathMutableScalarTypeDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The fusion__FieldSelectionSet scalar is used to represent a GraphQL selection set. To simplify the syntax, the outermost selection set is not wrapped in curly braces..
+        /// </summary>
+        internal static string FusionFieldSelectionSetMutableScalarTypeDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionFieldSelectionSetMutableScalarTypeDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The name of the interface type..
         /// </summary>
         internal static string FusionImplementsMutableDirectiveDefinition_Argument_Interface_Description {
@@ -191,6 +290,15 @@ namespace HotChocolate.Fusion.Properties {
         internal static string FusionImplementsMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("FusionImplementsMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas..
+        /// </summary>
+        internal static string FusionInaccessibleMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionInaccessibleMutableDirectiveDefinition_Description", resourceCulture);
             }
         }
         
@@ -222,11 +330,85 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The assumed size of the list as defined in the source schema..
+        /// </summary>
+        internal static string FusionListSizeMutableDirectiveDefinition_Argument_AssumedSize_Description {
+            get {
+                return ResourceManager.GetString("FusionListSizeMutableDirectiveDefinition_Argument_AssumedSize_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The single slicing argument requirement of the list as defined in the source schema..
+        /// </summary>
+        internal static string FusionListSizeMutableDirectiveDefinition_Argument_RequireOneSlicingArgument_Description {
+            get {
+                return ResourceManager.GetString(("FusionListSizeMutableDirectiveDefinition_Argument_RequireOneSlicingArgument_Descr" +
+                        "iption"), resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema that defined the list size metadata..
+        /// </summary>
+        internal static string FusionListSizeMutableDirectiveDefinition_Argument_Schema_Description {
+            get {
+                return ResourceManager.GetString("FusionListSizeMutableDirectiveDefinition_Argument_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The sized fields of the list as defined in the source schema..
+        /// </summary>
+        internal static string FusionListSizeMutableDirectiveDefinition_Argument_SizedFields_Description {
+            get {
+                return ResourceManager.GetString("FusionListSizeMutableDirectiveDefinition_Argument_SizedFields_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The slicing argument default value of the list as defined in the source schema..
+        /// </summary>
+        internal static string FusionListSizeMutableDirectiveDefinition_Argument_SlicingArgumentDefaultValue_Description {
+            get {
+                return ResourceManager.GetString(("FusionListSizeMutableDirectiveDefinition_Argument_SlicingArgumentDefaultValue_Des" +
+                        "cription"), resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The slicing arguments of the list as defined in the source schema..
+        /// </summary>
+        internal static string FusionListSizeMutableDirectiveDefinition_Argument_SlicingArguments_Description {
+            get {
+                return ResourceManager.GetString("FusionListSizeMutableDirectiveDefinition_Argument_SlicingArguments_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__listSize directive specifies list size metadata for each source schema..
+        /// </summary>
+        internal static string FusionListSizeMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionListSizeMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The GraphQL field definition in the source schema that can be used to look up the entity..
         /// </summary>
         internal static string FusionLookupMutableDirectiveDefinition_Argument_Field_Description {
             get {
                 return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_Field_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Is the lookup meant as an entry point or just to provide more data..
+        /// </summary>
+        internal static string FusionLookupMutableDirectiveDefinition_Argument_Internal_Description {
+            get {
+                return ResourceManager.GetString("FusionLookupMutableDirectiveDefinition_Argument_Internal_Description", resourceCulture);
             }
         }
         
@@ -317,6 +499,33 @@ namespace HotChocolate.Fusion.Properties {
         internal static string FusionRequiresMutableDirectiveDefinition_Schema_Description {
             get {
                 return ResourceManager.GetString("FusionRequiresMutableDirectiveDefinition_Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the source schema..
+        /// </summary>
+        internal static string FusionSchemaMetadataMutableDirectiveDefinition_Argument_Name_Description {
+            get {
+                return ResourceManager.GetString("FusionSchemaMetadataMutableDirectiveDefinition_Argument_Name_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @fusion__schema_metadata directive is used to provide additional metadata for a source schema..
+        /// </summary>
+        internal static string FusionSchemaMetadataMutableDirectiveDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionSchemaMetadataMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner..
+        /// </summary>
+        internal static string FusionSchemaMutableEnumTypeDefinition_Description {
+            get {
+                return ResourceManager.GetString("FusionSchemaMutableEnumTypeDefinition_Description", resourceCulture);
             }
         }
         
@@ -416,6 +625,51 @@ namespace HotChocolate.Fusion.Properties {
         internal static string KeyMutableDirectiveDefinition_Description {
             get {
                 return ResourceManager.GetString("KeyMutableDirectiveDefinition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @listSize directive argument &apos;assumedSize&apos; must be of type Int..
+        /// </summary>
+        internal static string ListSizeDirective_AssumedSizeArgument_Invalid {
+            get {
+                return ResourceManager.GetString("ListSizeDirective_AssumedSizeArgument_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @listSize directive argument &apos;requireOneSlicingArgument&apos; must be of type Boolean..
+        /// </summary>
+        internal static string ListSizeDirective_RequireOneSlicingArgumentArgument_Invalid {
+            get {
+                return ResourceManager.GetString("ListSizeDirective_RequireOneSlicingArgumentArgument_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @listSize directive argument &apos;sizedFields&apos; must be of type [String]..
+        /// </summary>
+        internal static string ListSizeDirective_SizedFieldsArgument_Invalid {
+            get {
+                return ResourceManager.GetString("ListSizeDirective_SizedFieldsArgument_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @listSize directive argument &apos;slicingArgumentDefaultValue&apos; must be of type Int..
+        /// </summary>
+        internal static string ListSizeDirective_SlicingArgumentDefaultValueArgument_Invalid {
+            get {
+                return ResourceManager.GetString("ListSizeDirective_SlicingArgumentDefaultValueArgument_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @listSize directive argument &apos;slicingArguments&apos; must be of type [String]..
+        /// </summary>
+        internal static string ListSizeDirective_SlicingArgumentsArgument_Invalid {
+            get {
+                return ResourceManager.GetString("ListSizeDirective_SlicingArgumentsArgument_Invalid", resourceCulture);
             }
         }
         
@@ -537,6 +791,24 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; must define the argument &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalArgumentMissing {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalArgumentMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; on external field &apos;{1}&apos; in schema &apos;{2}&apos; has a different type ({3}) than it does in schema &apos;{4}&apos; ({5})..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalArgumentTypeMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalArgumentTypeMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; is not defined (non-external) in any other schema..
         /// </summary>
         internal static string LogEntryHelper_ExternalMissingOnBase {
@@ -551,6 +823,42 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_ExternalOnInterface {
             get {
                 return ResourceManager.GetString("LogEntryHelper_ExternalOnInterface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; must not be annotated with the @override directive..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalOverrideCollision {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalOverrideCollision", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; must not be annotated with the @provides directive..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalProvidesCollision {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalProvidesCollision", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; must not have arguments that are annotated with the @require directive..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalRequireCollision {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalRequireCollision", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The external field &apos;{0}&apos; in schema &apos;{1}&apos; has a different type ({2}) than it does in schema &apos;{3}&apos; ({4})..
+        /// </summary>
+        internal static string LogEntryHelper_ExternalTypeMismatch {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ExternalTypeMismatch", resourceCulture);
             }
         }
         
@@ -609,6 +917,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The input type &apos;{0}&apos; in schema &apos;{1}&apos; must be annotated with the &apos;@oneOf` directive, since the same type has been annotated with it in schema &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_InputWithMissingOneOf {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InputWithMissingOneOf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The input type &apos;{0}&apos; in schema &apos;{1}&apos; must define the required field &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_InputWithMissingRequiredFields {
@@ -627,6 +944,15 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; must be shareable..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidFieldSharing {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidFieldSharing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid GraphQL in source schema. Exception message: {0}..
         /// </summary>
         internal static string LogEntryHelper_InvalidGraphQL {
@@ -636,7 +962,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The interface field &apos;{0}&apos; in schema &apos;{1}&apos; must not be marked as shareable..
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; must not be marked as shareable..
         /// </summary>
         internal static string LogEntryHelper_InvalidShareableUsage {
             get {
@@ -647,9 +973,9 @@ namespace HotChocolate.Fusion.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The @is directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection against the composed schema..
         /// </summary>
-        internal static string LogEntryHelper_IsInvalidField {
+        internal static string LogEntryHelper_IsInvalidFields {
             get {
-                return ResourceManager.GetString("LogEntryHelper_IsInvalidField", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_IsInvalidFields", resourceCulture);
             }
         }
         
@@ -708,7 +1034,7 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection..
+        ///   Looks up a localized string similar to A @key directive on type &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection against the composed schema..
         /// </summary>
         internal static string LogEntryHelper_KeyInvalidFields {
             get {
@@ -870,6 +1196,42 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The merged field argument &apos;{0}&apos; on field &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToInaccessibleTypeFromFieldArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged input field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToInaccessibleTypeFromInputField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToInaccessibleTypeFromInputField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged output field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the inaccessible type &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToInaccessibleTypeFromOutputField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The merged field &apos;{0}&apos; in type &apos;{1}&apos; cannot reference the internal type &apos;{2}&apos;..
+        /// </summary>
+        internal static string LogEntryHelper_ReferenceToInternalType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_ReferenceToInternalType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The @require directive on argument &apos;{0}&apos; in schema &apos;{1}&apos; specifies an invalid field selection against the composed schema..
         /// </summary>
         internal static string LogEntryHelper_RequireInvalidFields {
@@ -920,15 +1282,6 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_RootSubscriptionUsed {
             get {
                 return ResourceManager.GetString("LogEntryHelper_RootSubscriptionUsed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The type or directive &apos;{0}&apos; in schema &apos;{1}&apos; is incompatible with the built-in type or directive of the same name..
-        /// </summary>
-        internal static string LogEntryHelper_TypeDefinitionInvalid {
-            get {
-                return ResourceManager.GetString("LogEntryHelper_TypeDefinitionInvalid", resourceCulture);
             }
         }
         
@@ -987,6 +1340,96 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The required field &apos;{0}&apos; must not be defined in schema &apos;{1}&apos;..
+        /// </summary>
+        internal static string RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema {
+            get {
+                return ResourceManager.GetString("RequireInvalidFieldsRule_RequiredFieldMustNotBeDefinedInSameSchema", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cycle detected in requirement: {0} -&gt; {1}..
+        /// </summary>
+        internal static string RequirementsValidator_CycleDetected {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_CycleDetected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; does not exist on the type &apos;{1}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_FieldDoesNotExistOnType {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_FieldDoesNotExistOnType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No lookups found for type &apos;{0}&apos; in schema &apos;{1}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_NoLookupsFoundForType {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_NoLookupsFoundForType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No other schemas contain the field &apos;{0}.{1}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_NoOtherSchemasContainField {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_NoOtherSchemasContainField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to access the required field &apos;{0}.{1}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_UnableToAccessField {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_UnableToAccessField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to access the required field &apos;{0}.{1}&apos; on path &apos;{2}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_UnableToAccessFieldOnPath {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_UnableToAccessFieldOnPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_UnableToSatisfyRequirement {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_UnableToSatisfyRequirement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos; for lookup &apos;{1}&apos; in schema &apos;{2}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_UnableToSatisfyRequirementForLookup {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_UnableToSatisfyRequirementForLookup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to transition between schemas &apos;{0}&apos; and &apos;{1}&apos; for access to required field &apos;{2}&apos;..
+        /// </summary>
+        internal static string RequirementsValidator_UnableToTransitionBetweenSchemas {
+            get {
+                return ResourceManager.GetString("RequirementsValidator_UnableToTransitionBetweenSchemas", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Represents a selection path map syntax..
         /// </summary>
         internal static string RequireMutableDirectiveDefinition_Argument_Field_Description {
@@ -1005,20 +1448,74 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The name of the source schema..
+        ///   Looks up a localized string similar to Cycle detected: {0} -&gt; {1}..
         /// </summary>
-        internal static string SchemaNameMutableDirectiveDefinition_Argument_Value_Description {
+        internal static string SatisfiabilityValidator_CycleDetected {
             get {
-                return ResourceManager.GetString("SchemaNameMutableDirectiveDefinition_Argument_Value_Description", resourceCulture);
+                return ResourceManager.GetString("SatisfiabilityValidator_CycleDetected", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The @schemaName directive is used to specify the name of a source schema..
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; implements the &apos;Node&apos; interface, but no source schema provides a non-internal &apos;Query.node&lt;Node&gt;&apos; lookup field for this type..
         /// </summary>
-        internal static string SchemaNameMutableDirectiveDefinition_Description {
+        internal static string SatisfiabilityValidator_NodeTypeHasNoNodeLookup {
             get {
-                return ResourceManager.GetString("SchemaNameMutableDirectiveDefinition_Description", resourceCulture);
+                return ResourceManager.GetString("SatisfiabilityValidator_NodeTypeHasNoNodeLookup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No lookups found for type &apos;{0}&apos; in schema &apos;{1}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_NoLookupsFoundForType {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_NoLookupsFoundForType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to access the field &apos;{0}.{1}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_UnableToAccessField {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_UnableToAccessField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to access the field &apos;{0}.{1}&apos; on path &apos;{2}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_UnableToAccessFieldOnPath {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_UnableToAccessFieldOnPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos; on field &apos;{1}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_UnableToSatisfyRequirement {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_UnableToSatisfyRequirement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to satisfy the requirement &apos;{0}&apos; for lookup &apos;{1}&apos; in schema &apos;{2}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_UnableToSatisfyRequirementForLookup {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_UnableToSatisfyRequirementForLookup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to transition between schemas &apos;{0}&apos; and &apos;{1}&apos; for access to field &apos;{2}&apos;..
+        /// </summary>
+        internal static string SatisfiabilityValidator_UnableToTransitionBetweenSchemas {
+            get {
+                return ResourceManager.GetString("SatisfiabilityValidator_UnableToTransitionBetweenSchemas", resourceCulture);
             }
         }
         
@@ -1032,20 +1529,20 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The argument &apos;{0}&apos; is missing..
+        ///   Looks up a localized string similar to The @tag directive must have a &apos;name&apos; argument of type String..
         /// </summary>
-        internal static string TypeDefinitionInvalidRule_ArgumentMissing {
+        internal static string TagDirective_NameArgument_Invalid {
             get {
-                return ResourceManager.GetString("TypeDefinitionInvalidRule_ArgumentMissing", resourceCulture);
+                return ResourceManager.GetString("TagDirective_NameArgument_Invalid", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The argument &apos;{0}&apos; has a different type..
+        ///   Looks up a localized string similar to The specified type is not an abstract type..
         /// </summary>
-        internal static string TypeDefinitionInvalidRule_ArgumentTypeDifferent {
+        internal static string TypeDefinitionExtensions_TheSpecifiedTypeIsNotAnAbstractType {
             get {
-                return ResourceManager.GetString("TypeDefinitionInvalidRule_ArgumentTypeDifferent", resourceCulture);
+                return ResourceManager.GetString("TypeDefinitionExtensions_TheSpecifiedTypeIsNotAnAbstractType", resourceCulture);
             }
         }
     }

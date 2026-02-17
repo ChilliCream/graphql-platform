@@ -13,10 +13,7 @@ public static class SpatialFilterConventionDescriptorExtensions
     public static IFilterConventionDescriptor AddSpatialDefaults(
         this IFilterConventionDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.AddSpatialOperations();
         descriptor.BindSpatialTypes();
@@ -32,10 +29,7 @@ public static class SpatialFilterConventionDescriptorExtensions
     public static IFilterConventionDescriptor AddSpatialOperations(
         this IFilterConventionDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor.Operation(SpatialFilterOperations.Contains).Name("contains");
         descriptor.Operation(SpatialFilterOperations.Distance).Name("distance");
@@ -60,10 +54,7 @@ public static class SpatialFilterConventionDescriptorExtensions
     public static IFilterConventionDescriptor BindSpatialTypes(
         this IFilterConventionDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor
             .BindRuntimeType<Geometry, GeometryFilterInputType>()

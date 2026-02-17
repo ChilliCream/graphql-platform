@@ -1,11 +1,9 @@
-#nullable enable
-
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
@@ -54,7 +52,7 @@ public class InterfaceFieldDescriptor
 
         if (member is MethodInfo m)
         {
-            _parameterInfos = m.GetParameters();
+            _parameterInfos = context.TypeInspector.GetParameters(m);
             Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
         }
     }
@@ -65,10 +63,14 @@ public class InterfaceFieldDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, Member: not null })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.Member);
-            Configuration.AttributesAreApplied = true;
+            DescriptorAttributeHelper.ApplyConfiguration(
+                Context,
+                this,
+                Configuration.Member);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         base.OnCreateConfiguration(definition);
@@ -164,10 +166,7 @@ public class InterfaceFieldDescriptor
 
     public IInterfaceFieldDescriptor Resolve(FieldResolverDelegate fieldResolver)
     {
-        if (fieldResolver is null)
-        {
-            throw new ArgumentNullException(nameof(fieldResolver));
-        }
+        ArgumentNullException.ThrowIfNull(fieldResolver);
 
         Configuration.Resolver = fieldResolver;
         return this;
@@ -177,10 +176,7 @@ public class InterfaceFieldDescriptor
         FieldResolverDelegate fieldResolver,
         Type? resultType)
     {
-        if (fieldResolver is null)
-        {
-            throw new ArgumentNullException(nameof(fieldResolver));
-        }
+        ArgumentNullException.ThrowIfNull(fieldResolver);
 
         Configuration.Resolver = fieldResolver;
 
@@ -194,7 +190,7 @@ public class InterfaceFieldDescriptor
             {
                 var resultTypeDef = resultType.GetGenericTypeDefinition();
 
-                var clrResultType = resultTypeDef == typeof(NativeType<>)
+                var clrResultType = resultTypeDef == typeof(NamedRuntimeType<>)
                     ? resultType.GetGenericArguments()[0]
                     : resultType;
 
@@ -211,20 +207,14 @@ public class InterfaceFieldDescriptor
     public IInterfaceFieldDescriptor ResolveWith<TResolver>(
         Expression<Func<TResolver, object>> propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         return ResolveWithInternal(propertyOrMethod.ExtractMember(), typeof(TResolver));
     }
 
     public IInterfaceFieldDescriptor ResolveWith(MemberInfo propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         return ResolveWithInternal(propertyOrMethod, propertyOrMethod.DeclaringType);
     }
@@ -255,7 +245,7 @@ public class InterfaceFieldDescriptor
 
             if (propertyOrMethod is MethodInfo m)
             {
-                _parameterInfos = m.GetParameters();
+                _parameterInfos = Context.TypeInspector.GetParameters(m);
                 Parameters = _parameterInfos.ToDictionary(t => t.Name!, StringComparer.Ordinal);
             }
 
@@ -269,10 +259,7 @@ public class InterfaceFieldDescriptor
 
     public IInterfaceFieldDescriptor Use(FieldMiddleware middleware)
     {
-        if (middleware is null)
-        {
-            throw new ArgumentNullException(nameof(middleware));
-        }
+        ArgumentNullException.ThrowIfNull(middleware);
 
         Configuration.MiddlewareDefinitions.Add(new(middleware));
         return this;

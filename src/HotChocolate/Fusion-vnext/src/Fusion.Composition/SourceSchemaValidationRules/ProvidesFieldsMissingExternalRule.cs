@@ -21,22 +21,26 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Provides-Fields-Missing-External">
 /// Specification
 /// </seealso>
-internal sealed class ProvidesFieldsMissingExternalRule : IEventHandler<ProvidesFieldEvent>
+internal sealed class ProvidesFieldsMissingExternalRule : IEventHandler<OutputFieldEvent>
 {
-    public void Handle(ProvidesFieldEvent @event, CompositionContext context)
+    public void Handle(OutputFieldEvent @event, CompositionContext context)
     {
-        var (providedField, providedType, providesDirective, field, type, schema) = @event;
+        var (field, _, schema) = @event;
 
-        if (!providedField.HasExternalDirective())
+        if (field.ProvidesInfo is { } providesInfo)
         {
-            context.Log.Write(
-                ProvidesFieldsMissingExternal(
-                    providedField.Name,
-                    providedType.Name,
-                    providesDirective,
-                    field.Name,
-                    type.Name,
-                    schema));
+            foreach (var providedField in providesInfo.Fields)
+            {
+                if (!providedField.IsExternal)
+                {
+                    context.Log.Write(
+                        ProvidesFieldsMissingExternal(
+                            providedField,
+                            providesInfo.Directive,
+                            field,
+                            schema));
+                }
+            }
         }
     }
 }

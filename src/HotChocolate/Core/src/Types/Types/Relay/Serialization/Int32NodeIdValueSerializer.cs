@@ -1,4 +1,3 @@
-#nullable enable
 using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 
@@ -23,6 +22,12 @@ internal sealed class Int32NodeIdValueSerializer : INodeIdValueSerializer
 
     public bool TryParse(ReadOnlySpan<byte> buffer, [NotNullWhen(true)] out object? value)
     {
+        if (buffer.Length == 0)
+        {
+            value = string.Empty;
+            return true;
+        }
+
         if (Utf8Parser.TryParse(buffer, out int parsedValue, out _))
         {
             value = parsedValue;

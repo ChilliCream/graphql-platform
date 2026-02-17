@@ -1,9 +1,9 @@
 using System.Reflection;
+using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Interceptors;
-
-#nullable enable
 
 namespace HotChocolate;
 
@@ -33,16 +33,7 @@ public static partial class SchemaBuilderExtensions
         FieldResolverDelegate resolver,
         Type? resultType = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
-
+        ArgumentNullException.ThrowIfNull(resolver);
         return AddResolverConfigInternal(builder, fieldCoordinate, resolver, resultType);
     }
 
@@ -70,16 +61,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<IResolverContext, object?> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
-
+        ArgumentNullException.ThrowIfNull(resolver);
         return AddResolverInternal(
             builder,
             typeName,
@@ -111,18 +93,8 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<IResolverContext, ValueTask<object?>> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
-
-        return AddResolverInternal(builder, typeName, fieldName,
-            ctx => resolver(ctx));
+        ArgumentNullException.ThrowIfNull(resolver);
+        return AddResolverInternal(builder, typeName, fieldName, ctx => resolver(ctx));
     }
 
     /// <summary>
@@ -149,16 +121,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<IResolverContext, TResult> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
-
+        ArgumentNullException.ThrowIfNull(resolver);
         return AddResolverInternal(builder, typeName, fieldName,
             ctx => new ValueTask<object?>(resolver(ctx)));
     }
@@ -187,16 +150,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<IResolverContext, ValueTask<TResult>> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
-
+        ArgumentNullException.ThrowIfNull(resolver);
         return AddResolverInternal(builder, typeName, fieldName,
             async ctx => await resolver(ctx).ConfigureAwait(false));
     }
@@ -225,16 +179,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<object?> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
-
+        ArgumentNullException.ThrowIfNull(resolver);
         return AddResolverInternal(builder, typeName, fieldName,
             _ => new ValueTask<object?>(resolver()));
     }
@@ -263,16 +208,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<ValueTask<object?>> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
-
+        ArgumentNullException.ThrowIfNull(resolver);
         return AddResolverInternal(builder, typeName, fieldName, _ => resolver());
     }
 
@@ -300,16 +236,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<TResult> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
-
+        ArgumentNullException.ThrowIfNull(resolver);
         return AddResolverInternal(builder, typeName, fieldName,
             _ => new ValueTask<object?>(resolver()));
     }
@@ -338,16 +265,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<ValueTask<TResult>> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
-
+        ArgumentNullException.ThrowIfNull(resolver);
         return AddResolverInternal(
             builder,
             typeName,
@@ -381,16 +299,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<IResolverContext, CancellationToken, object?> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
-
+        ArgumentNullException.ThrowIfNull(resolver);
         return AddResolverInternal(builder, typeName, fieldName,
             ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)));
     }
@@ -419,16 +328,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<IResolverContext, CancellationToken, TResult> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
-
+        ArgumentNullException.ThrowIfNull(resolver);
         return AddResolverInternal(builder, typeName, fieldName,
             ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)));
     }
@@ -457,16 +357,7 @@ public static partial class SchemaBuilderExtensions
         string fieldName,
         Func<IResolverContext, CancellationToken, ValueTask<TResult>> resolver)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolver is null)
-        {
-            throw new ArgumentNullException(nameof(resolver));
-        }
-
+        ArgumentNullException.ThrowIfNull(resolver);
         return AddResolverInternal(
             builder,
             typeName,
@@ -499,15 +390,8 @@ public static partial class SchemaBuilderExtensions
         string typeName,
         string fieldName,
         object? constantResult)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        return AddResolverInternal(builder, typeName, fieldName,
+        => AddResolverInternal(builder, typeName, fieldName,
             _ => new ValueTask<object?>(constantResult));
-    }
 
     /// <summary>
     /// Adds a resolver delegate that returns a constant result.
@@ -532,15 +416,8 @@ public static partial class SchemaBuilderExtensions
         string typeName,
         string fieldName,
         TResult constantResult)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        return AddResolverInternal(builder, typeName, fieldName,
+        => AddResolverInternal(builder, typeName, fieldName,
             _ => new ValueTask<object?>(constantResult));
-    }
 
     /// <summary>
     /// Adds a resolver delegate for a specific field.
@@ -563,15 +440,7 @@ public static partial class SchemaBuilderExtensions
         Type resolverType,
         string? typeName = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (resolverType is null)
-        {
-            throw new ArgumentNullException(nameof(resolverType));
-        }
+        ArgumentNullException.ThrowIfNull(resolverType);
 
         if (resolverType is { IsClass: true, IsAbstract: false, IsPublic: true } or
             { IsClass: true, IsAbstract: false, IsNestedPublic: true })
@@ -616,11 +485,6 @@ public static partial class SchemaBuilderExtensions
 
     public static ISchemaBuilder AddRootResolver(this ISchemaBuilder builder, Type resolverType)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
         if (resolverType is { IsClass: true } or { IsInterface: true })
         {
             foreach (var property in resolverType.GetProperties())
@@ -642,17 +506,10 @@ public static partial class SchemaBuilderExtensions
     public static ISchemaBuilder AddRootResolver<T>(this ISchemaBuilder builder, T root)
         where T : class
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (root is null)
-        {
-            throw new ArgumentNullException(nameof(root));
-        }
-
-        builder.SetContextData(WellKnownContextData.RootInstance, root);
+        ArgumentNullException.ThrowIfNull(root);
+        InitializeResolverTypeInterceptor(builder);
+        var feature = builder.Features.GetRequired<ResolverFeature>();
+        feature.RootInstance = root;
         return AddRootResolver(builder, typeof(T));
     }
 
@@ -676,13 +533,8 @@ public static partial class SchemaBuilderExtensions
         Type? resultType)
     {
         InitializeResolverTypeInterceptor(builder);
-
-        if (builder.ContextData.TryGetValue(WellKnownContextData.ResolverConfigs, out var o) &&
-            o is List<FieldResolverConfig> resolverConfigs)
-        {
-            resolverConfigs.Add(new(fieldCoordinate, resolver, null, resultType));
-        }
-
+        var feature = builder.Features.GetRequired<ResolverFeature>();
+        feature.FieldResolvers.Add(new(fieldCoordinate, resolver, null, resultType));
         return builder;
     }
 
@@ -692,30 +544,24 @@ public static partial class SchemaBuilderExtensions
         Type resolverType)
     {
         InitializeResolverTypeInterceptor(builder);
-
-        if (builder.ContextData.TryGetValue(WellKnownContextData.ResolverTypes, out var o) &&
-            o is List<(string, Type)> resolverTypes)
-        {
-            resolverTypes.Add((typeName, resolverType));
-        }
-
+        var feature = builder.Features.GetRequired<ResolverFeature>();
+        feature.ResolverTypes.Add((typeName, resolverType));
         return builder;
     }
 
     private static void InitializeResolverTypeInterceptor(ISchemaBuilder builder)
     {
-        if (!builder.ContextData.ContainsKey(WellKnownContextData.ResolverConfigs))
+        if (builder.Features.Get<ResolverFeature>() is null)
         {
-            var resolverConfigs = new List<FieldResolverConfig>();
-            var resolverTypes = new List<(string, Type)>();
-            var runtimeTypes = new Dictionary<string, Type>();
+            builder.Features.Set(new ResolverFeature());
 
-            builder.ContextData.Add(WellKnownContextData.ResolverConfigs, resolverConfigs);
-            builder.ContextData.Add(WellKnownContextData.ResolverTypes, resolverTypes);
-            builder.ContextData.Add(WellKnownContextData.RuntimeTypes, runtimeTypes);
+            // the type system feature will most likely be already there.
+            // still we make sure here that it is.
+            builder.Features.GetOrSet<TypeSystemFeature>();
 
-            builder.TryAddTypeInterceptor(
-                new ResolverTypeInterceptor(resolverConfigs, resolverTypes, runtimeTypes));
+            // when all the features are in place, we also initialize the
+            // type interceptor to bin resolvers.
+            builder.TryAddTypeInterceptor(new ResolverTypeInterceptor());
         }
     }
 }

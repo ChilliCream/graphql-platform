@@ -3,7 +3,7 @@ using HotChocolate.Properties;
 namespace HotChocolate;
 
 /// <summary>
-/// This exception can be thrown if a feature that is dependant on a well-known state
+/// This exception can be thrown if a feature that is dependent on a well-known state
 /// cannot retrieve it.
 /// </summary>
 public sealed class MissingStateException : Exception
@@ -39,7 +39,7 @@ public sealed class MissingStateException : Exception
     public string Key { get; }
 
     /// <summary>
-    /// Gets the state store that is missing the state.
+    /// Gets the state store missing the state.
     /// </summary>
     public StateKind Kind { get; }
 }

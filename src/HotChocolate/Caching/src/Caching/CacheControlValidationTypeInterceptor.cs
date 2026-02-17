@@ -1,14 +1,13 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
-using IHasDirectives = HotChocolate.Types.IHasDirectives;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Caching;
 
 internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 {
-    private ITypeCompletionContext _queryContext = default!;
+    private ITypeCompletionContext _queryContext = null!;
 
     public override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
@@ -40,9 +39,8 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
                 var span = objectType.Fields.AsSpan();
 
-                for (var i = 0; i < span.Length; i++)
+                foreach (var field in span)
                 {
-                    var field = span[i];
                     ValidateCacheControlOnField(context, field, objectType, isQueryType);
                 }
                 break;
@@ -54,9 +52,8 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
                 var span = interfaceType.Fields.AsSpan();
 
-                for (var i = 0; i < span.Length; i++)
+                foreach (var field in span)
                 {
-                    var field = span[i];
                     ValidateCacheControlOnField(context, field, interfaceType, false);
                 }
                 break;
@@ -70,11 +67,11 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
     private static void ValidateCacheControlOnType(
         ITypeSystemObjectContext validationContext,
-        IHasDirectives type)
+        IDirectivesProvider type)
     {
-        var directive = type.Directives
-            .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName)?
-            .AsValue<CacheControlDirective>();
+        var directive = (type.Directives
+            .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName) as Directive)
+            ?.ToValue<CacheControlDirective>();
 
         if (directive is null)
         {
@@ -82,7 +79,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
         }
 
         if (directive.InheritMaxAge == true
-            && type is ITypeSystemObject typeSystemObject)
+            && type is TypeSystemObject typeSystemObject)
         {
             var error = ErrorHelper.CacheControlInheritMaxAgeOnType(typeSystemObject);
 
@@ -92,12 +89,13 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 
     private static void ValidateCacheControlOnField(
         ITypeSystemObjectContext validationContext,
-        IField field, ITypeSystemObject obj,
+        IFieldDefinition field,
+        TypeSystemObject obj,
         bool isQueryTypeField)
     {
-        var directive = field.Directives
-            .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName)?
-            .AsValue<CacheControlDirective>();
+        var directive = (field.Directives
+            .FirstOrDefault(CacheControlDirectiveType.Names.DirectiveName) as Directive)
+            ?.ToValue<CacheControlDirective>();
 
         if (directive is null)
         {

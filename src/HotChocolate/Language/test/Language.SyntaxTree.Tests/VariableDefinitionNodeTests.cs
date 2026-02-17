@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Language.SyntaxTree;
 
 public class VariableDefinitionNodeTests
@@ -11,27 +9,30 @@ public class VariableDefinitionNodeTests
         var a = new VariableDefinitionNode(
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("aa"),
-            default,
+            null,
             new List<DirectiveNode>(0));
         var b = new VariableDefinitionNode(
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("aa"),
-            default,
+            null,
             new List<DirectiveNode>(0));
         var c = new VariableDefinitionNode(
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("bb"),
-            default,
+            null,
             new List<DirectiveNode>(0));
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -47,27 +48,30 @@ public class VariableDefinitionNodeTests
         var a = new VariableDefinitionNode(
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("aa"),
-            default,
+            null,
             new List<DirectiveNode>(0));
         var b = new VariableDefinitionNode(
             new Location(2, 2, 2, 2),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("aa"),
-            default,
+            null,
             new List<DirectiveNode>(0));
         var c = new VariableDefinitionNode(
             new Location(3, 3, 3, 3),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("bb"),
-            default,
+            null,
             new List<DirectiveNode>(0));
 
         // act
         var abResult = SyntaxComparer.BySyntax.Equals(a, b);
         var aaResult = SyntaxComparer.BySyntax.Equals(a, a);
         var acResult = SyntaxComparer.BySyntax.Equals(a, c);
-        var aNullResult = SyntaxComparer.BySyntax.Equals(a, default);
+        var aNullResult = SyntaxComparer.BySyntax.Equals(a, null);
 
         // assert
         Assert.True(abResult);
@@ -83,26 +87,30 @@ public class VariableDefinitionNodeTests
         var a = new VariableDefinitionNode(
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("aa"),
-            default,
+            null,
             new List<DirectiveNode>(0));
         var b = new VariableDefinitionNode(
             new Location(2, 2, 2, 2),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("aa"),
-            default,
+            null,
             new List<DirectiveNode>(0));
         var c = new VariableDefinitionNode(
             new Location(1, 1, 1, 1),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("bb"),
-            default,
+            null,
             new List<DirectiveNode>(0));
         var d = new VariableDefinitionNode(
             new Location(2, 2, 2, 2),
             new VariableNode("aa"),
+            description: null,
             new NamedTypeNode("bb"),
-            default,
+            null,
             new List<DirectiveNode>(0));
 
         // act
@@ -127,6 +135,7 @@ public class VariableDefinitionNodeTests
             => new VariableDefinitionNode(
                 new Location(1, 1, 1, 1),
                 null!,
+                description: null,
                 new NamedTypeNode(new NameNode("foo")),
                 new StringValueNode("Foo"),
                 new List<DirectiveNode>());
@@ -144,6 +153,7 @@ public class VariableDefinitionNodeTests
             => new VariableDefinitionNode(
                 new Location(1, 1, 1, 1),
                 new VariableNode(new NameNode("foo")),
+                description: null,
                 null!,
                 new StringValueNode("Foo"),
                 new List<DirectiveNode>());
@@ -161,6 +171,7 @@ public class VariableDefinitionNodeTests
             => new VariableDefinitionNode(
                 new Location(1, 1, 1, 1),
                 new VariableNode(new NameNode("foo")),
+                description: null,
                 new NamedTypeNode(new NameNode("foo")),
                 new StringValueNode("Foo"),
                 null!);
@@ -177,12 +188,13 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode> { new("qux"), });
+            new List<DirectiveNode> { new("qux") });
 
         // assert
-        variableDefinition.MatchSnapshot();
+        variableDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -192,9 +204,10 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode> { new("qux"), });
+            new List<DirectiveNode> { new("qux") });
 
         // act
         variableDefinition =
@@ -202,7 +215,7 @@ public class VariableDefinitionNodeTests
                 new Location(6, 7, 8, 9));
 
         // assert
-        variableDefinition.MatchSnapshot();
+        variableDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -212,11 +225,12 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
             new List<DirectiveNode>
             {
-                    new DirectiveNode("qux"),
+                    new DirectiveNode("qux")
             });
 
         // act
@@ -225,7 +239,7 @@ public class VariableDefinitionNodeTests
                 new VariableNode(new NameNode("quux")));
 
         // assert
-        variableDefinition.MatchSnapshot();
+        variableDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -235,11 +249,12 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
             new List<DirectiveNode>
             {
-                    new DirectiveNode("qux"),
+                    new DirectiveNode("qux")
             });
 
         // act
@@ -256,9 +271,10 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode> { new("qux"), });
+            new List<DirectiveNode> { new("qux") });
 
         // act
         variableDefinition =
@@ -266,7 +282,7 @@ public class VariableDefinitionNodeTests
                 new NamedTypeNode(new NameNode("quux")));
 
         // assert
-        variableDefinition.MatchSnapshot();
+        variableDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -276,11 +292,12 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
             new List<DirectiveNode>
             {
-                    new DirectiveNode("qux"),
+                    new DirectiveNode("qux")
             });
 
         // act
@@ -297,9 +314,10 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode> { new("qux"), });
+            new List<DirectiveNode> { new("qux") });
 
         // act
         variableDefinition =
@@ -307,7 +325,7 @@ public class VariableDefinitionNodeTests
                 new StringValueNode("quux"));
 
         // assert
-        variableDefinition.MatchSnapshot();
+        variableDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -317,17 +335,18 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode> { new("qux"), });
+            new List<DirectiveNode> { new("qux") });
 
         // act
         variableDefinition =
             variableDefinition.WithDirectives(
-                new List<DirectiveNode> { new("quux"), });
+                new List<DirectiveNode> { new("quux") });
 
         // assert
-        variableDefinition.MatchSnapshot();
+        variableDefinition.ToString().MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -337,14 +356,15 @@ public class VariableDefinitionNodeTests
         var variableDefinition = new VariableDefinitionNode(
             new Location(1, 2, 3, 5),
             new VariableNode(new NameNode("foo")),
+            description: null,
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode> { new("qux"), });
+            new List<DirectiveNode> { new("qux") });
 
         // act
         void Action() => variableDefinition.WithDirectives(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>((Action) Action);
+        Assert.Throws<ArgumentNullException>(Action);
     }
 }

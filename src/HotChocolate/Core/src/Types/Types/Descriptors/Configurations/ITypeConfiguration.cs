@@ -1,11 +1,13 @@
-namespace HotChocolate.Types.Descriptors.Definitions;
+#nullable disable
+
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// Represents a type definition.
 /// </summary>
 public interface ITypeConfiguration
     : ITypeSystemConfiguration
-    , IHasRuntimeType
+    , IRuntimeTypeProvider
     , IDirectiveConfigurationProvider
     , IExtendsTypeConfiguration
 {

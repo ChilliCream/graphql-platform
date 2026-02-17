@@ -41,10 +41,7 @@ public abstract class DataComponent<TClientOrOperation> : ComponentBase, IDispos
     /// </exception>
     public void Register(Func<TClientOrOperation, IDisposable> subscribe)
     {
-        if (subscribe is null)
-        {
-            throw new ArgumentNullException(nameof(subscribe));
-        }
+        ArgumentNullException.ThrowIfNull(subscribe);
 
         _subscriptions.Add(subscribe(ClientOrOperation));
     }

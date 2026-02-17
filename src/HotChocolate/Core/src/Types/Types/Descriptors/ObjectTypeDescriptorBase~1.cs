@@ -1,7 +1,9 @@
+#nullable disable
+
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Types.FieldBindingFlags;
 
 namespace HotChocolate.Types.Descriptors;
@@ -9,7 +11,7 @@ namespace HotChocolate.Types.Descriptors;
 public abstract class ObjectTypeDescriptorBase<T>
     : ObjectTypeDescriptor
     , IObjectTypeDescriptor<T>
-    , IHasRuntimeType
+    , IRuntimeTypeProvider
 {
     protected ObjectTypeDescriptorBase(
         IDescriptorContext context,
@@ -25,7 +27,7 @@ public abstract class ObjectTypeDescriptorBase<T>
         ObjectTypeConfiguration definition)
         : base(context, definition) { }
 
-    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
+    Type IRuntimeTypeProvider.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCompleteFields(
         IDictionary<string, ObjectFieldConfiguration> fields,
@@ -94,11 +96,11 @@ public abstract class ObjectTypeDescriptorBase<T>
         return this;
     }
 
-    public IObjectTypeDescriptor<T> BindFieldsExplicitly() =>
-        BindFields(BindingBehavior.Explicit);
+    public IObjectTypeDescriptor<T> BindFieldsExplicitly()
+        => BindFields(BindingBehavior.Explicit);
 
-    public IObjectTypeDescriptor<T> BindFieldsImplicitly() =>
-        BindFields(BindingBehavior.Implicit);
+    public IObjectTypeDescriptor<T> BindFieldsImplicitly()
+        => BindFields(BindingBehavior.Implicit);
 
     public new IObjectTypeDescriptor<T> Implements<TInterface>()
         where TInterface : InterfaceType

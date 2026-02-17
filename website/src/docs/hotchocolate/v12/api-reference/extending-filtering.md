@@ -350,7 +350,7 @@ The following example creates a `StringOperationHandler` that supports case inse
 // further below
 public class QueryableStringInvariantEqualsHandler : QueryableStringOperationHandler
 {
-    // For creating a expression tree we need the `MethodInfo` of the `ToLower` method of string
+    // For creating an expression tree we need the `MethodInfo` of the `ToLower` method of string
     private static readonly MethodInfo _toLower = typeof(string)
         .GetMethods()
         .Single(

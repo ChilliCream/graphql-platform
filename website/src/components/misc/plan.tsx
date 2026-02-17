@@ -26,7 +26,8 @@ export function Plans({ plans }: PlansProps): ReactElement {
 export interface PlanProps {
   readonly title: string;
   readonly price?: number | string;
-  readonly period?: "hour" | "month" | "year";
+  readonly period?: "hour" | "month" | "year" | "day";
+  readonly fromPrice?: boolean;
   readonly description: string;
   readonly features: readonly string[];
   readonly ctaText: string;
@@ -37,6 +38,7 @@ function Plan({
   title,
   price,
   period,
+  fromPrice,
   description,
   features,
   ctaText,
@@ -48,13 +50,13 @@ function Plan({
         <PlanTitleContainer>
           <PlanTitle>{title}</PlanTitle>
         </PlanTitleContainer>
-        {(typeof price === "string" ||
-          (typeof price === "number" && period !== undefined)) && (
+        {(typeof price === "string" || typeof price === "number") && (
           <PlanPrice>
             {typeof price === "number" ? (
               <>
+                {fromPrice && <PlanFromText>from </PlanFromText>}
                 ${price}
-                <PlanPeriod>/{period}</PlanPeriod>
+                {period && <PlanPeriod>/{period}</PlanPeriod>}
               </>
             ) : (
               price
@@ -139,11 +141,21 @@ const PlanTitle = styled.div.attrs({
 `;
 
 const PlanPrice = styled.div`
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
   font-family: ${FONT_FAMILY_HEADING};
   font-size: 3rem;
   font-weight: 500;
   line-height: 1em;
   color: ${THEME_COLORS.heading};
+`;
+
+const PlanFromText = styled.span`
+  font-size: 1.2rem;
+  font-weight: 400;
+  margin-right: 0.25em;
+  color: ${THEME_COLORS.text};
 `;
 
 const PlanDescription = styled.div.attrs({

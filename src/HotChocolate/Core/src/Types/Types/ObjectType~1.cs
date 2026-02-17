@@ -1,8 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -29,13 +27,13 @@ public class ObjectType<T> : ObjectType
     private Action<IObjectTypeDescriptor<T>>? _configure;
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="ObjectType{T}"/>.
+    /// Initializes a new instance of <see cref="ObjectType{T}"/>.
     /// </summary>
     public ObjectType(Action<IObjectTypeDescriptor<T>> configure)
         => _configure = configure ?? throw new ArgumentNullException(nameof(configure));
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="ObjectType{T}"/>.
+    /// Initializes a new instance of <see cref="ObjectType{T}"/>.
     /// </summary>
     [ActivatorUtilitiesConstructor]
     public ObjectType()

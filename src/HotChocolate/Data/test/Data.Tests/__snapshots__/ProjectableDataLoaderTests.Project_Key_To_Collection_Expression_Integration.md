@@ -3,7 +3,7 @@
 ## SQL
 
 ```text
--- @__keys_0={ '2', '1' } (DbType = Object)
+-- @__keys_0={ '1', '2' } (DbType = Object)
 SELECT b."Id", p."Name", p."Id"
 FROM "Brands" AS b
 LEFT JOIN "Products" AS p ON b."Id" = p."BrandId"

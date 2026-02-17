@@ -1,3 +1,5 @@
+#nullable disable
+
 using HotChocolate.Execution;
 using HotChocolate.Utilities.StreamAdapters;
 using HotChocolate.Utilities.Subscriptions;

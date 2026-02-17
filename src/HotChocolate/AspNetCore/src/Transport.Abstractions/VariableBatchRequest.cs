@@ -7,7 +7,7 @@ namespace HotChocolate.Transport;
 /// <summary>
 /// Represents a GraphQL operation request that can be sent over a WebSocket connection.
 /// </summary>
-public readonly struct VariableBatchRequest : IOperationRequest, IEquatable<OperationRequest>
+public sealed class VariableBatchRequest : IOperationRequest, IEquatable<VariableBatchRequest>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="OperationRequest"/> struct.
@@ -20,6 +20,9 @@ public readonly struct VariableBatchRequest : IOperationRequest, IEquatable<Oper
     /// </param>
     /// <param name="operationName">
     /// The name of the operation to execute.
+    /// </param>
+    /// <param name="onError">
+    /// The requested error handling mode.
     /// </param>
     /// <param name="variables">
     /// A list of dictionaries representing the sets of variable values to use when executing the operation.
@@ -34,12 +37,14 @@ public readonly struct VariableBatchRequest : IOperationRequest, IEquatable<Oper
         string? query,
         string? id,
         string? operationName,
+        ErrorHandlingMode? onError,
         IReadOnlyList<ObjectValueNode>? variables,
         ObjectValueNode? extensions)
     {
         Query = query;
         Id = id;
         OperationName = operationName;
+        OnError = onError;
         VariablesNode = variables;
         ExtensionsNode = extensions;
     }
@@ -56,6 +61,9 @@ public readonly struct VariableBatchRequest : IOperationRequest, IEquatable<Oper
     /// <param name="operationName">
     /// The name of the operation to execute.
     /// </param>
+    /// <param name="onError">
+    /// The requested error handling mode.
+    /// </param>
     /// <param name="variables">
     /// A list of dictionaries representing the sets of variable values to use when executing the operation.
     /// </param>
@@ -69,12 +77,14 @@ public readonly struct VariableBatchRequest : IOperationRequest, IEquatable<Oper
         string? query = null,
         string? id = null,
         string? operationName = null,
+        ErrorHandlingMode? onError = null,
         IReadOnlyList<IReadOnlyDictionary<string, object?>>? variables = null,
         IReadOnlyDictionary<string, object?>? extensions = null)
     {
         Query = query;
         Id = id;
         OperationName = operationName;
+        OnError = onError;
         Variables = variables;
         Extensions = extensions;
     }
@@ -98,6 +108,11 @@ public readonly struct VariableBatchRequest : IOperationRequest, IEquatable<Oper
     /// Gets the name of the operation to execute.
     /// </summary>
     public string? OperationName { get; }
+
+    /// <summary>
+    /// Gets the requested error handling mode.
+    /// </summary>
+    public ErrorHandlingMode? OnError { get; }
 
     /// <summary>
     /// Gets a list of dictionaries representing the sets of variable values to use when executing the operation.
@@ -129,12 +144,9 @@ public readonly struct VariableBatchRequest : IOperationRequest, IEquatable<Oper
     /// </param>
     public void WriteTo(Utf8JsonWriter writer)
     {
-        if (writer == null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
-        Utf8JsonWriterHelper.WriteOperationRequest(writer, this);
+        Utf8JsonWriterHelper.WriteVariableBatchRequest(writer, this);
     }
 
     /// <summary>
@@ -146,13 +158,20 @@ public readonly struct VariableBatchRequest : IOperationRequest, IEquatable<Oper
     /// <returns>
     /// <see langword="true"/> if the two objects are equal; otherwise, <see langword="false"/>.
     /// </returns>
-    public bool Equals(OperationRequest other)
-        => Id == other.Id &&
-            Query == other.Query &&
-            Equals(Variables, other.Variables) &&
-            Equals(Extensions, other.Extensions) &&
-            Equals(VariablesNode, other.VariablesNode) &&
-            Equals(ExtensionsNode, other.ExtensionsNode);
+    public bool Equals(VariableBatchRequest? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return Id == other.Id
+            && Query == other.Query
+            && Equals(Variables, other.Variables)
+            && Equals(Extensions, other.Extensions)
+            && Equals(VariablesNode, other.VariablesNode)
+            && Equals(ExtensionsNode, other.ExtensionsNode);
+    }
 
     /// <inheritdoc/>
     public override bool Equals(object? obj)

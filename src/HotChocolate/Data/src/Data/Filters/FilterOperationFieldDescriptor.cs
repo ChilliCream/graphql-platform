@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Filters;
 
@@ -20,7 +20,7 @@ public class FilterOperationFieldDescriptor
         Configuration.Name = convention.GetOperationName(operationId);
         Configuration.Description = convention.GetOperationDescription(operationId);
         Configuration.Scope = scope;
-        Configuration.Flags = FieldFlags.FilterOperationField;
+        Configuration.Flags = CoreFieldFlags.FilterOperationField;
     }
 
     protected internal new FilterOperationFieldConfiguration Configuration
@@ -31,10 +31,14 @@ public class FilterOperationFieldDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, Property: not null })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.Property);
-            Configuration.AttributesAreApplied = true;
+            DescriptorAttributeHelper.ApplyConfiguration(
+                Context,
+                this,
+                Configuration.Property);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         base.OnCreateConfiguration(configuration);

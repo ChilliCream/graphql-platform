@@ -159,7 +159,7 @@ public readonly struct Optional<T>
     /// </summary>
     public static Optional<T> From(IOptional optional)
     {
-        if (optional.HasValue || optional.Value != default)
+        if (optional.HasValue || optional.Value != null)
         {
             return new Optional<T>((T?)optional.Value, optional.HasValue);
         }

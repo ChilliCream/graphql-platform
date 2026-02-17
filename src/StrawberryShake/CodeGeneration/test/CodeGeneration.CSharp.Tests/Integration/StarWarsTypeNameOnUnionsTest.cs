@@ -31,7 +31,7 @@ public class StarWarsTypeNameOnUnionsTest : ServerTestBase
         var client =
             services.GetRequiredService<StarWarsTypeNameOnUnionsClient>();
 
-       // act
+        // act
         var result = await client.SearchHero.ExecuteAsync(cts.Token);
 
         // assert

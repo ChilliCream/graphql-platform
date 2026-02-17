@@ -1,5 +1,3 @@
 namespace HotChocolate.Types.Spatial;
 
-internal interface IGeoJsonObjectType : IType
-{
-}
+internal interface IGeoJsonObjectType : IType;

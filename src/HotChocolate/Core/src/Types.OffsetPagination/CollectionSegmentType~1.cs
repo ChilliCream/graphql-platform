@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Pagination;
@@ -13,10 +13,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
         TypeReference nodeType,
         bool withTotalCount)
     {
-        if (nodeType is null)
-        {
-            throw new ArgumentNullException(nameof(nodeType));
-        }
+        ArgumentNullException.ThrowIfNull(nodeType);
 
         Configuration = CreateConfiguration(withTotalCount);
 
@@ -61,7 +58,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
     /// <summary>
     /// Gets the item type of this collection segment.
     /// </summary>
-    public IOutputType ItemType { get; private set; } = default!;
+    public IOutputType ItemType { get; private set; } = null!;
 
     protected override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext context,
@@ -77,7 +74,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
         var definition = new ObjectTypeConfiguration
         {
             Description = CollectionSegmentType_Description,
-            RuntimeType = typeof(CollectionSegment),
+            RuntimeType = typeof(CollectionSegment)
         };
 
         definition.Fields.Add(new(
@@ -90,8 +87,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
             Names.Items,
             CollectionSegmentType_Items_Description,
             pureResolver: GetItems)
-            { Flags = FieldFlags.ItemsField });
-
+        { Flags = CoreFieldFlags.CollectionSegmentItemsField });
 
         if (withTotalCount)
         {
@@ -100,7 +96,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
                 pureResolver: GetTotalCount)
             {
-                Flags = FieldFlags.TotalCount
+                Flags = CoreFieldFlags.TotalCount
             });
         }
 
@@ -117,7 +113,7 @@ internal class CollectionSegmentType : ObjectType, IPageType
         => context.Parent<CollectionSegment>().TotalCount;
 
     private static bool IsItemsField(ObjectFieldConfiguration field)
-        => (field.Flags & FieldFlags.ItemsField) == FieldFlags.ItemsField;
+        => (field.Flags & CoreFieldFlags.CollectionSegmentItemsField) == CoreFieldFlags.CollectionSegmentItemsField;
 
     internal static class Names
     {

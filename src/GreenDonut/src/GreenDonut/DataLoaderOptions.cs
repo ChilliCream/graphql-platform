@@ -37,6 +37,6 @@ public sealed class DataLoaderOptions
         {
             MaxBatchSize = MaxBatchSize,
             Cache = Cache,
-            DiagnosticEvents = DiagnosticEvents,
+            DiagnosticEvents = DiagnosticEvents
         };
 }

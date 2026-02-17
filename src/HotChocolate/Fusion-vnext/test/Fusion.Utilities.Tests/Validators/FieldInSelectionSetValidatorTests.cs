@@ -17,7 +17,7 @@ public sealed class FieldInSelectionSetValidatorTests
         // arrange
         var selectionSet = ParseSelectionSet(selectionSetText);
         var fieldDeclaringType =
-            _schema.Types
+            s_schema.Types
                 .OfType<MutableObjectTypeDefinition>()
                 .FirstOrDefault(t => t.Name == fieldDeclaringTypeName);
 
@@ -35,9 +35,9 @@ public sealed class FieldInSelectionSetValidatorTests
         else
         {
             result =
-                new FieldInSelectionSetValidator(_schema).Validate(
+                new FieldInSelectionSetValidator(s_schema).Validate(
                     selectionSet,
-                    _schema.QueryType!,
+                    s_schema.QueryType!,
                     field,
                     fieldDeclaringType);
         }
@@ -117,7 +117,7 @@ public sealed class FieldInSelectionSetValidatorTests
         };
     }
 
-    private static readonly MutableSchemaDefinition _schema = SchemaParser.Parse(
+    private static readonly MutableSchemaDefinition s_schema = SchemaParser.Parse(
         """
         type Query {
             a: A!

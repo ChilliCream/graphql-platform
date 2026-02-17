@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Caching.Memory;
 
@@ -73,7 +74,7 @@ public sealed class Cache<TValue>
     /// <returns>
     /// True if the value was found, otherwise false.
     /// </returns>
-    public bool TryGet(string key, out TValue? value)
+    public bool TryGet(string key, [NotNullWhen(true)] out TValue? value)
     {
         if (_map.TryGetValue(key, out var entry))
         {
@@ -83,13 +84,39 @@ public sealed class Cache<TValue>
             // tiny risk that an in‑flight eviction may still remove this entry.
             Volatile.Write(ref entry.Accessed, 1);
             _diagnostics.Hit();
-            value = entry.Value;
+            value = entry.Value!;
             return true;
         }
 
         _diagnostics.Miss();
         value = default;
         return false;
+    }
+
+    /// <summary>
+    /// Tries to add a value to the cache if it does not exist.
+    /// </summary>
+    /// <param name="key">
+    /// The key to add.
+    /// </param>
+    /// <param name="value">
+    /// The value to add.
+    /// </param>
+    public void TryAdd(string key, TValue value)
+    {
+        var args = new CacheEntryCreateArgs<TValue>(value, static (_, v) => v, this);
+
+        // we use the same mechanism as in GetOrCreate, but we do not
+        // do the extra lookup.
+        _map.GetOrAdd(
+            key,
+            static (k, arg) =>
+            {
+                arg.Diagnostics.Miss();
+                var value = arg.Create(k, arg.State);
+                return arg.Cache.InsertNew(k, value);
+            },
+            args);
     }
 
     /// <summary>
@@ -143,7 +170,7 @@ public sealed class Cache<TValue>
             return entry.Value;
         }
 
-        // If we have miss we do a GetOrAdd on the map to get at the end
+        // If we have miss, we do a GetOrAdd on the map to get at the end
         // the winner in case of contention.
         //
         // The GetOrAdd of the ConcurrentDictionary is not atomic.

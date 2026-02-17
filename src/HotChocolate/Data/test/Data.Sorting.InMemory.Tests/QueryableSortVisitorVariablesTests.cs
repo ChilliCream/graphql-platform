@@ -10,17 +10,17 @@ namespace HotChocolate.Data.Sorting;
 
 public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 {
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new() { Bar = true },
+        new() { Bar = false }
     ];
 
     [Fact]
     public async Task Create_Boolean_OrderBy()
     {
         // arrange
-        var tester = await CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = await CreateSchema<Foo, FooSortType>(s_fooEntities);
         const string query =
             "query Test($order: SortEnumType){ root(order: { bar: $order}){ bar}}";
 
@@ -28,13 +28,13 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
-                .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" } })
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
-                .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" } })
                 .Build());
 
         // assert
@@ -49,7 +49,7 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
     public async Task Create_Boolean_OrderBy_NonNull()
     {
         // arrange
-        var tester = await CreateSchema<Foo, FooSortType>(_fooEntities);
+        var tester = await CreateSchema<Foo, FooSortType>(s_fooEntities);
         const string query =
             "query Test($order: SortEnumType!){ root(order: { bar: $order}){ bar}}";
 
@@ -57,13 +57,13 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
-                .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" } })
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(query)
-                .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" } })
                 .Build());
 
         // assert
@@ -78,17 +78,17 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
     public async Task Integration_Create_Boolean_OrderBy()
     {
         // arrange
-        var server = CreateServer<Foo, FooSortType>(_fooEntities);
+        var server = CreateServer<Foo, FooSortType>(s_fooEntities);
         const string query =
             "query Test($order: SortEnumType){ root(order: { bar: $order}){ bar}}";
 
         // act
         ClientQueryRequest request1 =
-            new() { Query = query, Variables = new() { ["order"] = "ASC", }, };
+            new() { Query = query, Variables = new() { ["order"] = "ASC" } };
         var res1 = await server.PostAsync(request1);
 
         ClientQueryRequest request2 =
-            new() { Query = query, Variables = new() { ["order"] = "DESC", }, };
+            new() { Query = query, Variables = new() { ["order"] = "DESC" } };
         var res2 = await server.PostAsync(request2);
 
         // assert
@@ -103,17 +103,17 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
     public async Task Integration_Create_Boolean_OrderBy_NonNull()
     {
         // arrange
-        var server = CreateServer<Foo, FooSortType>(_fooEntities);
+        var server = CreateServer<Foo, FooSortType>(s_fooEntities);
         const string query =
             "query Test($order: SortEnumType!){ root(order: { bar: $order}){ bar}}";
 
         // act
         ClientQueryRequest request1 =
-            new() { Query = query, Variables = new() { ["order"] = "ASC", }, };
+            new() { Query = query, Variables = new() { ["order"] = "ASC" } };
         var res1 = await server.PostAsync(request1);
 
         ClientQueryRequest request2 =
-            new() { Query = query, Variables = new() { ["order"] = "DESC", }, };
+            new() { Query = query, Variables = new() { ["order"] = "DESC" } };
         var res2 = await server.PostAsync(request2);
 
         // assert
@@ -188,5 +188,5 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
         public bool Bar { get; set; }
     }
 
-    public class FooSortType : SortInputType<Foo> { }
+    public class FooSortType : SortInputType<Foo>;
 }

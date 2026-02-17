@@ -364,6 +364,10 @@ public sealed class TypeInfos
             new RuntimeTypeInfo(TypeNames.DecimalSerializer)
         },
         {
+            TypeNames.UriSerializer,
+            new RuntimeTypeInfo(TypeNames.UriSerializer)
+        },
+        {
             TypeNames.UrlSerializer,
             new RuntimeTypeInfo(TypeNames.UrlSerializer)
         },
@@ -396,13 +400,17 @@ public sealed class TypeInfos
             new RuntimeTypeInfo(TypeNames.LocalTimeSerializer)
         },
         {
+            TypeNames.Base64StringSerializer,
+            new RuntimeTypeInfo(TypeNames.Base64StringSerializer)
+        },
+        {
             TypeNames.ByteArraySerializer,
             new RuntimeTypeInfo(TypeNames.ByteArraySerializer)
         },
         {
             TypeNames.TimeSpanSerializer,
             new RuntimeTypeInfo(TypeNames.TimeSpanSerializer)
-        },
+        }
     };
 
     public RuntimeTypeInfo GetOrAdd(string fullTypeName, bool valueType = false) =>

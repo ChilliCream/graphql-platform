@@ -1,7 +1,7 @@
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -33,21 +33,21 @@ public class SortEnumTypeDescriptor
 
     protected internal override SortEnumTypeConfiguration Configuration { get; protected set; } = new();
 
-    protected ICollection<SortEnumValueDescriptor> Values { get; } =
-        new List<SortEnumValueDescriptor>();
+    protected ICollection<SortEnumValueDescriptor> Values { get; } = [];
 
     protected override void OnCreateConfiguration(
         SortEnumTypeConfiguration configuration)
     {
         Context.Descriptors.Push(this);
 
-        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
                 Configuration.RuntimeType);
-            Configuration.AttributesAreApplied = true;
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         var values = Values.Select(t => t.CreateConfiguration())
@@ -81,10 +81,7 @@ public class SortEnumTypeDescriptor
     public ISortEnumValueDescriptor Operation(int operation)
     {
         var descriptor = Values
-            .FirstOrDefault(
-                t =>
-                    t.Configuration.RuntimeValue is not null &&
-                    t.Configuration.RuntimeValue.Equals(operation));
+            .FirstOrDefault(t => t.Configuration.RuntimeValue?.Equals(operation) == true);
 
         if (descriptor is not null)
         {

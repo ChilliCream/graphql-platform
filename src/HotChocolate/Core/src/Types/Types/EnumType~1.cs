@@ -1,9 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-
-#nullable enable
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -25,7 +23,7 @@ namespace HotChocolate.Types;
 /// }
 /// </code>
 /// </summary>
-public class EnumType<T> : EnumType, IEnumType<T>
+public class EnumType<T> : EnumType
 {
     private Action<IEnumTypeDescriptor<T>>? _configure;
 
@@ -53,8 +51,8 @@ public class EnumType<T> : EnumType, IEnumType<T>
     /// <inheritdoc />
     public bool TryGetRuntimeValue(string name, [NotNullWhen(true)] out T runtimeValue)
     {
-        if (base.TryGetRuntimeValue(name, out var rv) &&
-            rv is T casted)
+        if (base.TryGetRuntimeValue(name, out var rv)
+            && rv is T casted)
         {
             runtimeValue = casted;
             return true;
@@ -79,8 +77,7 @@ public class EnumType<T> : EnumType, IEnumType<T>
     protected override EnumTypeConfiguration CreateConfiguration(
         ITypeDiscoveryContext context)
     {
-        var descriptor =
-            EnumTypeDescriptor.New<T>(context.DescriptorContext);
+        var descriptor = EnumTypeDescriptor.New<T>(context.DescriptorContext);
 
         _configure!(descriptor);
         _configure = null;

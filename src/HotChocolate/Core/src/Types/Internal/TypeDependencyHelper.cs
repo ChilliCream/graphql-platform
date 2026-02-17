@@ -1,7 +1,6 @@
 using HotChocolate.Configuration;
-using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
+using HotChocolate.Types.Descriptors.Configurations;
+using static HotChocolate.Types.Descriptors.Configurations.TypeDependencyFulfilled;
 
 namespace HotChocolate.Internal;
 
@@ -11,15 +10,8 @@ public static class TypeDependencyHelper
         InterfaceTypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
-
-        if (dependencies is null)
-        {
-            throw new ArgumentNullException(nameof(dependencies));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(dependencies);
 
         if (definition.HasDependencies)
         {
@@ -45,15 +37,8 @@ public static class TypeDependencyHelper
         ObjectTypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
-
-        if (dependencies is null)
-        {
-            throw new ArgumentNullException(nameof(dependencies));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(dependencies);
 
         if (definition.HasDependencies)
         {
@@ -79,15 +64,8 @@ public static class TypeDependencyHelper
         InputObjectTypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
-
-        if (dependencies is null)
-        {
-            throw new ArgumentNullException(nameof(dependencies));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(dependencies);
 
         if (definition.HasDependencies)
         {
@@ -122,15 +100,8 @@ public static class TypeDependencyHelper
         EnumTypeConfiguration definition,
         ICollection<TypeDependency> dependencies)
     {
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
-
-        if (dependencies is null)
-        {
-            throw new ArgumentNullException(nameof(dependencies));
-        }
+        ArgumentNullException.ThrowIfNull(definition);
+        ArgumentNullException.ThrowIfNull(dependencies);
 
         if (definition.HasDependencies)
         {
@@ -269,15 +240,8 @@ public static class TypeDependencyHelper
         this ITypeDiscoveryContext context,
         ObjectTypeConfiguration definition)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(definition);
 
         CollectDependencies(definition, context.Dependencies);
     }
@@ -286,15 +250,8 @@ public static class TypeDependencyHelper
         this ITypeDiscoveryContext context,
         InterfaceTypeConfiguration definition)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(definition);
 
         CollectDependencies(definition, context.Dependencies);
     }
@@ -303,15 +260,8 @@ public static class TypeDependencyHelper
         this ITypeDiscoveryContext context,
         EnumTypeConfiguration definition)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(definition);
 
         CollectDependencies(definition, context.Dependencies);
     }
@@ -320,15 +270,8 @@ public static class TypeDependencyHelper
         this ITypeDiscoveryContext context,
         InputObjectTypeConfiguration definition)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (definition is null)
-        {
-            throw new ArgumentNullException(nameof(definition));
-        }
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(definition);
 
         CollectDependencies(definition, context.Dependencies);
     }

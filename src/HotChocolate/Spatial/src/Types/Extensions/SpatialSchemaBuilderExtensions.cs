@@ -29,10 +29,7 @@ public static class SpatialSchemaBuilderExtensions
         this ISchemaBuilder builder,
         Func<SpatialConvention> conventionFactory)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder
             .TryAddConvention<ISpatialConvention>(conventionFactory())

@@ -8,7 +8,7 @@ internal sealed class InterfaceHasAtLeastOneImplementationRule : ISchemaValidati
 {
     public void Validate(
         IDescriptorContext context,
-        ISchema schema,
+        ISchemaDefinition schema,
         ICollection<ISchemaError> errors)
     {
         if (!context.Options.StrictValidation)
@@ -17,12 +17,12 @@ internal sealed class InterfaceHasAtLeastOneImplementationRule : ISchemaValidati
         }
 
         var interfaceTypes = new HashSet<InterfaceType>();
-        var fieldTypes = new HashSet<INamedType>();
+        var fieldTypes = new HashSet<ITypeDefinition>();
 
         // first we get all interface types and add them to the interface type list.
         // we will strike from this list all the items that we find being implemented by
         // object types.
-        foreach(var type in schema.Types)
+        foreach (var type in schema.Types)
         {
             if (type is InterfaceType interfaceType)
             {
@@ -32,7 +32,7 @@ internal sealed class InterfaceHasAtLeastOneImplementationRule : ISchemaValidati
 
         // next we go through all the object types and strike the interfaces from the interface
         // list that we find being implemented.
-        foreach(var type in schema.Types)
+        foreach (var type in schema.Types)
         {
             if (type is ObjectType objectType)
             {
@@ -44,7 +44,7 @@ internal sealed class InterfaceHasAtLeastOneImplementationRule : ISchemaValidati
 
                 // we register all the interfaces that are being used as a field type.
                 // if there are interfaces that are not being implemented and not being used by
-                // fields they are removed by the cleanup of the schema, so we do not worry about
+                // fields, they are removed by the cleanup of the schema, so we do not worry about
                 // these.
                 foreach (var field in objectType.Fields)
                 {

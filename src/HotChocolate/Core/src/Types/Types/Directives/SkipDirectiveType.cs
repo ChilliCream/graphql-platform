@@ -10,14 +10,14 @@ public sealed class SkipDirectiveType : DirectiveType
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
     {
         descriptor
-            .Name(WellKnownDirectives.Skip)
+            .Name(DirectiveNames.Skip.Name)
             .Description(TypeResources.SkipDirectiveType_TypeDescription)
             .Location(DirectiveLocation.Field)
             .Location(DirectiveLocation.FragmentSpread)
             .Location(DirectiveLocation.InlineFragment);
 
         descriptor
-            .Argument(WellKnownDirectives.IfArgument)
+            .Argument(DirectiveNames.Skip.Arguments.If)
             .Description(TypeResources.SkipDirectiveType_IfDescription)
             .Type<NonNullType<BooleanType>>();
     }

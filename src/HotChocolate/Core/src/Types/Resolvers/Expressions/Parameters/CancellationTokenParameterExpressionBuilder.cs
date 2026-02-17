@@ -1,10 +1,9 @@
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
-
-#nullable enable
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
@@ -13,12 +12,12 @@ internal sealed class CancellationTokenParameterExpressionBuilder
     , IParameterBindingFactory
     , IParameterBinding
 {
-    private static readonly PropertyInfo _cancellationToken =
+    private static readonly PropertyInfo s_cancellationToken =
         ContextType.GetProperty(nameof(IResolverContext.RequestAborted))!;
 
     static CancellationTokenParameterExpressionBuilder()
     {
-        Debug.Assert(_cancellationToken is not null, "RequestAborted property is missing.");
+        Debug.Assert(s_cancellationToken is not null, "RequestAborted property is missing.");
     }
 
     public ArgumentKind Kind => ArgumentKind.CancellationToken;
@@ -30,12 +29,19 @@ internal sealed class CancellationTokenParameterExpressionBuilder
     public bool CanHandle(ParameterInfo parameter)
         => typeof(CancellationToken) == parameter.ParameterType;
 
-    public Expression Build(ParameterExpressionBuilderContext context)
-        => Expression.Property(context.ResolverContext, _cancellationToken);
+    public bool CanHandle(ParameterDescriptor parameter)
+        => typeof(CancellationToken) == parameter.Type;
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public Expression Build(ParameterExpressionBuilderContext context)
+        => Expression.Property(context.ResolverContext, s_cancellationToken);
+
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)(object)context.RequestAborted;
+    {
+        Debug.Assert(typeof(T) == typeof(CancellationToken));
+        var ct = context.RequestAborted;
+        return Unsafe.As<CancellationToken, T>(ref ct);
+    }
 }

@@ -6,8 +6,6 @@ using HotChocolate.Properties;
 using static System.Linq.Expressions.Expression;
 using static HotChocolate.Utilities.NullableHelper;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class ClaimsPrincipalParameterExpressionBuilder
@@ -24,6 +22,9 @@ internal sealed class ClaimsPrincipalParameterExpressionBuilder
     public bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == typeof(ClaimsPrincipal);
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Type == typeof(ClaimsPrincipal);
+
     public Expression Build(ParameterExpressionBuilderContext context)
     {
         var parameter = context.Parameter;
@@ -39,8 +40,8 @@ internal sealed class ClaimsPrincipalParameterExpressionBuilder
         IResolverContext context,
         bool nullable)
     {
-        if (context.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var value) &&
-            value is ClaimsPrincipal user)
+        if (context.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var value)
+            && value is ClaimsPrincipal user)
         {
             return user;
         }
@@ -55,7 +56,7 @@ internal sealed class ClaimsPrincipalParameterExpressionBuilder
             nameof(context));
     }
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public T Execute<T>(IResolverContext context)

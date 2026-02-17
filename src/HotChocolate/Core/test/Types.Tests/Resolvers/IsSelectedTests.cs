@@ -829,7 +829,6 @@ public class IsSelectedTests
                     }
                     """);
 
-
         result.MatchMarkdownSnapshot();
     }
 
@@ -849,7 +848,6 @@ public class IsSelectedTests
                     }
                     """);
 
-
         result.MatchMarkdownSnapshot();
     }
 
@@ -863,7 +861,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
 
         public User GetUser_Attribute_1([IsSelected("email")] bool isSelected, IResolverContext context)
@@ -876,7 +874,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -890,7 +888,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -907,7 +905,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -924,7 +922,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -941,7 +939,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -958,7 +956,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -972,7 +970,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -988,7 +986,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -1004,7 +1002,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -1014,7 +1012,7 @@ public class IsSelectedTests
                 "isSelected",
                 context.IsSelected(new HashSet<string>
                 {
-                    "email", "password", "phoneNumber", "address",
+                    "email", "password", "phoneNumber", "address"
                 }));
             return new User
             {
@@ -1023,7 +1021,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -1040,7 +1038,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -1050,7 +1048,7 @@ public class IsSelectedTests
             IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
-            return new List<Book>();
+            return [];
         }
     }
 
@@ -1064,7 +1062,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
 
         public User GetUser_1(
@@ -1080,7 +1078,7 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
 
@@ -1097,47 +1095,47 @@ public class IsSelectedTests
                 Password = "c",
                 PhoneNumber = "d",
                 Address = "e",
-                City = "f",
+                City = "f"
             };
         }
     }
 
     public class User
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
-        public string Email { get; set; }
+        public required string Email { get; set; }
 
-        public string Password { get; set; }
+        public required string Password { get; set; }
 
-        public string PhoneNumber { get; set; }
+        public required string PhoneNumber { get; set; }
 
-        public string Address { get; set; }
+        public required string Address { get; set; }
 
-        public string City { get; set; }
+        public required string City { get; set; }
 
-        public Category Category { get; set; }
-        public List<UserTag> Tags { get; set; }
+        public Category? Category { get; set; }
+        public List<UserTag>? Tags { get; set; }
     }
 
     public class Category
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
-        public Category Next { get; set; }
+        public required Category Next { get; set; }
     }
 
     public class UserTag
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
         public int Value { get; set; }
-        public Audit Audit { get; set; }
+        public required Audit Audit { get; set; }
     }
 
     public class Audit
     {
-        public string EditedBy { get; set; }
-        public string EditedAt { get; set; }
+        public required string EditedBy { get; set; }
+        public required string EditedAt { get; set; }
     }
 
     public record Book(string Title, Author Author);

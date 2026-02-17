@@ -1,0 +1,20 @@
+type Object2 {
+  field1: ID!
+}
+
+type Object3 {
+  field1: ID!
+  field2(argument1: Int): Int
+}
+
+interface Interface2 {
+  field1: ID!
+}
+
+input Input2 {
+  field1: ID!
+}
+
+enum Enum2 {
+  VALUE1
+}

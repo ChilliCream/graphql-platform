@@ -1,4 +1,4 @@
-﻿{
+{
   "activities": [
     {
       "OperationName": "ExecuteRequest",
@@ -65,10 +65,6 @@
                 {
                   "Key": "exception.type",
                   "Value": "GRAPHQL_ERROR"
-                },
-                {
-                  "Key": "graphql.error.path",
-                  "Value": "/deep/deeper/deeps/deeper"
                 },
                 {
                   "Key": "graphql.error.location.column",

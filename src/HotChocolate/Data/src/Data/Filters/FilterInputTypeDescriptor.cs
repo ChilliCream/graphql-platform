@@ -1,8 +1,9 @@
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Data.Filters;
@@ -58,16 +59,20 @@ public class FilterInputTypeDescriptor
 
     protected BindableList<FilterOperationFieldDescriptor> Operations { get; } = [];
 
-    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
+    Type IRuntimeTypeProvider.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCreateConfiguration(FilterInputTypeConfiguration configuration)
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, EntityType: not null, })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.EntityType);
-            Configuration.AttributesAreApplied = true;
+            DescriptorAttributeHelper.ApplyConfiguration(
+                Context,
+                this,
+                Configuration.EntityType);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         var fields = new Dictionary<string, FilterFieldConfiguration>(StringComparer.Ordinal);

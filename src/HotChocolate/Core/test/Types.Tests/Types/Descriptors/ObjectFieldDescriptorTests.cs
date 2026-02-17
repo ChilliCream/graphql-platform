@@ -1,3 +1,4 @@
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Introspection;
@@ -53,7 +54,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         // act
         descriptor
             .Type<ListType<StringType>>()
-            .Type<NativeType<IReadOnlyDictionary<string, string>>>();
+            .Type<NamedRuntimeType<IReadOnlyDictionary<string, string>>>();
 
         // assert
         var description = descriptor.CreateConfiguration();
@@ -71,7 +72,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
 
         // act
         descriptor
-            .Type<NativeType<IReadOnlyDictionary<string, string>>>()
+            .Type<NamedRuntimeType<IReadOnlyDictionary<string, string>>>()
             .Type<ListType<StringType>>();
 
         // assert
@@ -165,7 +166,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
     }
 
     [Fact]
-    public void SetResolverAndInferTypeIsAlwaysRecognisedAsDotNetType()
+    public void SetResolverAndInferTypeIsAlwaysRecognizedAsDotNetType()
     {
         // arrange
         var descriptor =
@@ -177,8 +178,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         // act
         descriptor
             .Type<__Type>()
-            .Resolve(ctx => ctx.Schema
-                .GetType<INamedType>(ctx.ArgumentValue<string>("type")));
+            .Resolve(ctx => ctx.Schema.Types[ctx.ArgumentValue<string>("type")]);
 
         // assert
         var description = descriptor.CreateConfiguration();
@@ -192,15 +192,15 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
     [Fact]
     public void Type_Syntax_Type_Null()
     {
-        void Error() => ObjectFieldDescriptor.New(Context, "foo").Type((string)null);
+        void Error() => ObjectFieldDescriptor.New(Context, "foo").Type((string)null!);
         Assert.Throws<ArgumentNullException>(Error);
     }
 
     [Fact]
     public void Type_Syntax_Descriptor_Null()
     {
-        void Error() => default(IObjectFieldDescriptor).Type("foo");
-        Assert.Throws<ArgumentNullException>(Error);
+        void Error() => default(IObjectFieldDescriptor)!.Type("foo");
+        Assert.Throws<NullReferenceException>(Error);
     }
 
     [Fact]

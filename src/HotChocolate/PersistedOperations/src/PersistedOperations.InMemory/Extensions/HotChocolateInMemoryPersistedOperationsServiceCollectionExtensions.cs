@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Caching.Memory;
-using HotChocolate.Execution;
+using HotChocolate.PersistedOperations;
 using HotChocolate.PersistedOperations.FileSystem;
 using HotChocolate.Utilities;
 
@@ -20,16 +20,13 @@ public static class HotChocolateInMemoryPersistedOperationsServiceCollectionExte
     public static IServiceCollection AddInMemoryOperationDocumentStorage(
         this IServiceCollection services)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
         return services
             .RemoveService<IOperationDocumentStorage>()
             .AddSingleton<IOperationDocumentStorage>(
                 c => new InMemoryOperationDocumentStorage(
                     c.GetService<IMemoryCache>() ??
-                    c.GetApplicationService<IMemoryCache>()));
+                    c.GetRootServiceProvider().GetRequiredService<IMemoryCache>()));
     }
 }

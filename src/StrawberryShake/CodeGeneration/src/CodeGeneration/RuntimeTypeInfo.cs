@@ -55,9 +55,9 @@ public class RuntimeTypeInfo : IEquatable<RuntimeTypeInfo>
             return true;
         }
 
-        return Name == other.Name &&
-               Namespace == other.Namespace &&
-               IsValueType == other.IsValueType;
+        return Name == other.Name
+            && Namespace == other.Namespace
+            && IsValueType == other.IsValueType;
     }
 
     public override bool Equals(object? obj)

@@ -8,9 +8,9 @@ namespace HotChocolate.Data.Projections.Expressions;
 public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionContext>
 {
     protected override ISelectionVisitorAction VisitObjectType(
-        IOutputField field,
+        IOutputFieldDefinition field,
         ObjectType objectType,
-        ISelection selection,
+        Selection selection,
         QueryableProjectionContext context)
     {
         var isAbstractType = field.Type.NamedType().IsAbstractType();
@@ -20,9 +20,9 @@ public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionC
             return base.VisitObjectType(field, objectType, selection, context);
         }
 
-        var selections = context.ResolverContext.GetSelections(objectType, selection, true);
+        var selections = context.GetSelections(objectType, selection, true);
 
-        if (selections.Count == 0)
+        if (!selections.Any())
         {
             return Continue;
         }

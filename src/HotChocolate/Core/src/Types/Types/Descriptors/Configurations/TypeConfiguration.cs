@@ -1,6 +1,4 @@
-#nullable  enable
-
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// A definition that represents a type.
@@ -40,8 +38,7 @@ public abstract class TypeConfiguration : TypeSystemConfiguration, ITypeConfigur
     /// <summary>
     /// Gets the list of directives that are annotated to this type.
     /// </summary>
-    public IList<DirectiveConfiguration> Directives =>
-        _directives ??= [];
+    public IList<DirectiveConfiguration> Directives => _directives ??= [];
 
     /// <summary>
     /// Specifies if this definition has directives.
@@ -68,9 +65,9 @@ public abstract class TypeConfiguration : TypeSystemConfiguration, ITypeConfigur
         target._runtimeType = _runtimeType;
         target.ExtendsType = ExtendsType;
 
-        if (_directives is { Count: > 0 })
+        if (_directives?.Count > 0)
         {
-            target._directives = [.._directives];
+            target._directives = [.. _directives];
         }
     }
 
@@ -80,7 +77,7 @@ public abstract class TypeConfiguration : TypeSystemConfiguration, ITypeConfigur
 
         // Note: we will not change ExtendsType or _runtimeType on merge.
 
-        if (_directives is { Count: > 0 })
+        if (_directives?.Count > 0)
         {
             target._directives ??= [];
             target._directives.AddRange(Directives);

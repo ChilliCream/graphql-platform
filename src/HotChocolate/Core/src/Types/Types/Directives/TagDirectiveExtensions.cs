@@ -1,6 +1,6 @@
+using HotChocolate.Internal;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Helpers;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types;
 
@@ -416,10 +416,7 @@ public static class TagDirectiveExtensions
         this IDescriptor descriptor,
         string name)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         switch (descriptor)
         {

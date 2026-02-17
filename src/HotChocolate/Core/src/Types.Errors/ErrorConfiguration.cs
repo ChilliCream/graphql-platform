@@ -5,11 +5,11 @@ internal sealed class ErrorConfiguration(
     Type schemaType,
     CreateError? factory = null)
 {
-    private static readonly CreateError _empty = _ => null;
+    private static readonly CreateError s_empty = _ => null;
 
     public Type SchemaType { get; } = schemaType;
 
     public Type RuntimeType { get; } = runtimeType;
 
-    public CreateError Factory { get; } = factory ?? _empty;
+    public CreateError Factory { get; } = factory ?? s_empty;
 }

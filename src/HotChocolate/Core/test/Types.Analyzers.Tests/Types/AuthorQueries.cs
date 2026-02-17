@@ -3,7 +3,7 @@ using HotChocolate.Types.Relay;
 namespace HotChocolate.Types;
 
 [QueryType]
-public static class AuthorQueries
+public static partial class AuthorQueries
 {
     [UsePaging]
     public static async Task<IEnumerable<Author>> GetAuthorsAsync(

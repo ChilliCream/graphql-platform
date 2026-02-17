@@ -1,8 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -64,18 +62,18 @@ public sealed class DeprecatedDirective
     /// </returns>
     public static DirectiveNode CreateNode(string? reason = null)
     {
-        if (WellKnownDirectives.DeprecationDefaultReason.EqualsOrdinal(reason))
+        if (DirectiveNames.Deprecated.Arguments.DefaultReason.EqualsOrdinal(reason))
         {
             reason = null;
         }
 
         var arguments = reason is null
             ? Array.Empty<ArgumentNode>()
-            : [new ArgumentNode(WellKnownDirectives.DeprecationReasonArgument, reason)];
+            : [new ArgumentNode(DirectiveNames.Deprecated.Arguments.DefaultReason, reason)];
 
         return new DirectiveNode(
             null,
-            new NameNode(WellKnownDirectives.Deprecated),
+            new NameNode(DirectiveNames.Deprecated.Name),
             arguments);
     }
 }

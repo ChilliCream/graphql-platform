@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Spatial.Filters;
 [Collection("Postgres")]
 public class QueryableFilterVisitorOverlapsTests : SchemaCache
 {
-    private static readonly Polygon _truePolygon =
+    private static readonly Polygon s_truePolygon =
         new(new LinearRing(
         [
             new Coordinate(150, 150),
@@ -17,23 +17,23 @@ public class QueryableFilterVisitorOverlapsTests : SchemaCache
             new Coordinate(140, 20),
             new Coordinate(20, 20),
             new Coordinate(70, 70),
-            new Coordinate(150, 150),
+            new Coordinate(150, 150)
         ]));
 
-    private static readonly Polygon _falsePolygon =
+    private static readonly Polygon s_falsePolygon =
         new(new LinearRing(
         [
             new Coordinate(1000, 1000),
             new Coordinate(100000, 1000),
             new Coordinate(100000, 100000),
             new Coordinate(1000, 100000),
-            new Coordinate(1000, 1000),
+            new Coordinate(1000, 1000)
         ]));
 
-    private static readonly Foo[] _fooEntities =
+    private static readonly Foo[] s_fooEntities =
     [
-        new() { Id = 1, Bar = _truePolygon, },
-        new() { Id = 2, Bar = _falsePolygon, },
+        new() { Id = 1, Bar = s_truePolygon },
+        new() { Id = 2, Bar = s_falsePolygon }
     ];
 
     public QueryableFilterVisitorOverlapsTests(PostgreSqlResource<PostgisConfig> resource)
@@ -45,7 +45,7 @@ public class QueryableFilterVisitorOverlapsTests : SchemaCache
     public async Task Create_Overlaps_Query()
     {
         // arrange
-        var tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
+        var tester = await CreateSchemaAsync<Foo, FooFilterType>(s_fooEntities);
 
         // act
         var res1 = await tester.ExecuteAsync(
@@ -108,7 +108,10 @@ public class QueryableFilterVisitorOverlapsTests : SchemaCache
 
         // assert
         await Snapshot
-            .Create()
+            .Create(
+                postFix: TestEnvironment.TargetFramework == "NET10_0"
+                    ? TestEnvironment.TargetFramework
+                    : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .MatchAsync();
@@ -121,7 +124,5 @@ public class QueryableFilterVisitorOverlapsTests : SchemaCache
         public Polygon Bar { get; set; } = null!;
     }
 
-    public class FooFilterType : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterType : FilterInputType<Foo>;
 }

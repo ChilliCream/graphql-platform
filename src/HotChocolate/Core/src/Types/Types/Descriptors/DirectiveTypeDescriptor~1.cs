@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 
@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors;
 public class DirectiveTypeDescriptor<T>
     : DirectiveTypeDescriptor
     , IDirectiveTypeDescriptor<T>
-    , IHasRuntimeType
+    , IRuntimeTypeProvider
 {
     protected internal DirectiveTypeDescriptor(IDescriptorContext context)
         : base(context, typeof(T))
@@ -27,7 +27,7 @@ public class DirectiveTypeDescriptor<T>
         Configuration = definition;
     }
 
-    Type IHasRuntimeType.RuntimeType => Configuration.RuntimeType;
+    Type IRuntimeTypeProvider.RuntimeType => Configuration.RuntimeType;
 
     protected override void OnCompleteArguments(
         IDictionary<string, DirectiveArgumentConfiguration> arguments,
@@ -75,10 +75,7 @@ public class DirectiveTypeDescriptor<T>
     public IDirectiveArgumentDescriptor Argument(
         Expression<Func<T, object>> property)
     {
-        if (property is null)
-        {
-            throw new ArgumentNullException(nameof(property));
-        }
+        ArgumentNullException.ThrowIfNull(property);
 
         if (property.ExtractMember() is PropertyInfo p)
         {

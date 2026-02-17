@@ -1,8 +1,6 @@
 using HotChocolate.Resolvers;
 
-#nullable enable
-
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 /// <summary>
 /// Represents a result formatter configuration.
@@ -39,12 +37,12 @@ public sealed class ResultFormatterConfiguration : IRepeatableConfiguration
 
     /// <summary>
     /// Defines if the middleware or result converters is repeatable and
-    /// the same middleware is allowed to be occur multiple times.
+    /// the same middleware is allowed to occur multiple times.
     /// </summary>
     public bool IsRepeatable { get; }
 
     /// <summary>
-    /// The key is optional and is used to identify a middleware.
+    /// The key is optional and is used to identify middleware.
     /// </summary>
     public string? Key { get; }
 }

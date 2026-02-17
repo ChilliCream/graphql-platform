@@ -1,7 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 
-#nullable enable
-
 namespace HotChocolate.Utilities;
 
 public delegate bool ChangeTypeProvider(

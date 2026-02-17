@@ -5,17 +5,10 @@ namespace StrawberryShake.CodeGeneration.Utilities;
 
 public static class QueryDocumentRewriter
 {
-    public static DocumentNode Rewrite(DocumentNode document, ISchema schema)
+    public static DocumentNode Rewrite(DocumentNode document, ISchemaDefinition schema)
     {
-        if (document is null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
-
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(schema);
 
         var current = document;
         current = EntityIdRewriter.Rewrite(current, schema);

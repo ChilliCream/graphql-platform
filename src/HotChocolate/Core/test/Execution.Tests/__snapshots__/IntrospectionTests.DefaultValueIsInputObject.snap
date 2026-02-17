@@ -11,6 +11,7 @@
           "kind": "OBJECT",
           "name": "__Directive",
           "description": "A Directive provides a way to describe alternate runtime execution and type validation behavior in a GraphQL document.\n\nIn some cases, you need to provide options to alter GraphQL's execution behavior in ways field arguments will not suffice, such as conditionally including or skipping a field. Directives provide this by describing additional information to the executor.",
+          "specifiedByURL": null,
           "fields": [
             {
               "name": "name",
@@ -55,7 +56,8 @@
                     "name": null,
                     "ofType": {
                       "kind": "ENUM",
-                      "name": "__DirectiveLocation"
+                      "name": "__DirectiveLocation",
+                      "ofType": null
                     }
                   }
                 }
@@ -95,7 +97,8 @@
                     "name": null,
                     "ofType": {
                       "kind": "OBJECT",
-                      "name": "__InputValue"
+                      "name": "__InputValue",
+                      "ofType": null
                     }
                   }
                 }
@@ -177,6 +180,7 @@
           "kind": "ENUM",
           "name": "__DirectiveLocation",
           "description": "A Directive can be adjacent to many parts of the GraphQL language, a __DirectiveLocation describes one such possible adjacencies.",
+          "specifiedByURL": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -302,6 +306,7 @@
           "kind": "OBJECT",
           "name": "__EnumValue",
           "description": "One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is returned in a JSON response as a string.",
+          "specifiedByURL": null,
           "fields": [
             {
               "name": "name",
@@ -369,6 +374,7 @@
           "kind": "OBJECT",
           "name": "__Field",
           "description": "Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type.",
+          "specifiedByURL": null,
           "fields": [
             {
               "name": "name",
@@ -430,7 +436,8 @@
                     "name": null,
                     "ofType": {
                       "kind": "OBJECT",
-                      "name": "__InputValue"
+                      "name": "__InputValue",
+                      "ofType": null
                     }
                   }
                 }
@@ -492,6 +499,7 @@
           "kind": "OBJECT",
           "name": "__InputValue",
           "description": "Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value.",
+          "specifiedByURL": null,
           "fields": [
             {
               "name": "name",
@@ -587,6 +595,7 @@
           "kind": "OBJECT",
           "name": "__Schema",
           "description": "A GraphQL Schema defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, as well as the entry points for query, mutation, and subscription operations.",
+          "specifiedByURL": null,
           "fields": [
             {
               "name": "description",
@@ -615,7 +624,8 @@
                     "name": null,
                     "ofType": {
                       "kind": "OBJECT",
-                      "name": "__Type"
+                      "name": "__Type",
+                      "ofType": null
                     }
                   }
                 }
@@ -678,7 +688,8 @@
                     "name": null,
                     "ofType": {
                       "kind": "OBJECT",
-                      "name": "__Directive"
+                      "name": "__Directive",
+                      "ofType": null
                     }
                   }
                 }
@@ -696,6 +707,7 @@
           "kind": "OBJECT",
           "name": "__Type",
           "description": "The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.\n\nDepending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.",
+          "specifiedByURL": null,
           "fields": [
             {
               "name": "kind",
@@ -913,7 +925,7 @@
               "deprecationReason": null
             },
             {
-              "name": "oneOf",
+              "name": "isOneOf",
               "description": null,
               "args": [],
               "type": {
@@ -934,6 +946,7 @@
           "kind": "ENUM",
           "name": "__TypeKind",
           "description": "An enum describing what kind of type a given `__Type` is.",
+          "specifiedByURL": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -993,6 +1006,7 @@
           "kind": "OBJECT",
           "name": "Bar",
           "description": null,
+          "specifiedByURL": null,
           "fields": [
             {
               "name": "a",
@@ -1029,6 +1043,7 @@
           "kind": "SCALAR",
           "name": "String",
           "description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
+          "specifiedByURL": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1039,6 +1054,7 @@
           "kind": "SCALAR",
           "name": "Boolean",
           "description": "The `Boolean` scalar type represents `true` or `false`.",
+          "specifiedByURL": null,
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1049,6 +1065,7 @@
           "kind": "INPUT_OBJECT",
           "name": "Baz",
           "description": null,
+          "specifiedByURL": null,
           "fields": null,
           "inputFields": [
             {
@@ -1073,6 +1090,7 @@
         {
           "name": "skip",
           "description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
+          "isRepeatable": false,
           "args": [
             {
               "name": "if",
@@ -1091,6 +1109,11 @@
               "deprecationReason": null
             }
           ],
+          "locations": [
+            "FIELD",
+            "FRAGMENT_SPREAD",
+            "INLINE_FRAGMENT"
+          ],
           "onOperation": false,
           "onFragment": true,
           "onField": true
@@ -1098,6 +1121,7 @@
         {
           "name": "include",
           "description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
+          "isRepeatable": false,
           "args": [
             {
               "name": "if",
@@ -1116,6 +1140,11 @@
               "deprecationReason": null
             }
           ],
+          "locations": [
+            "FIELD",
+            "FRAGMENT_SPREAD",
+            "INLINE_FRAGMENT"
+          ],
           "onOperation": false,
           "onFragment": true,
           "onField": true
@@ -1123,6 +1152,7 @@
         {
           "name": "deprecated",
           "description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.",
+          "isRepeatable": false,
           "args": [
             {
               "name": "reason",
@@ -1136,6 +1166,12 @@
               "isDeprecated": false,
               "deprecationReason": null
             }
+          ],
+          "locations": [
+            "FIELD_DEFINITION",
+            "ARGUMENT_DEFINITION",
+            "ENUM_VALUE",
+            "INPUT_FIELD_DEFINITION"
           ],
           "onOperation": false,
           "onFragment": false,

@@ -24,11 +24,19 @@ public static class SnapshotExtensions
         return result;
     }
 
-    public static async ValueTask<ISchema> MatchSnapshotAsync(
-        this ValueTask<ISchema> task)
+    public static async ValueTask<ISchemaDefinition> MatchSnapshotAsync(
+        this ValueTask<Schema> task)
     {
         var result = await task;
-        result.Print().MatchSnapshot();
+        result.ToString().MatchSnapshot();
+        return result;
+    }
+
+    public static async ValueTask<ISchemaDefinition> MatchSnapshotAsync(
+        this ValueTask<ISchemaDefinition> task)
+    {
+        var result = await task;
+        result.ToString().MatchSnapshot();
         return result;
     }
 
@@ -40,6 +48,6 @@ public static class SnapshotExtensions
 
     public static void MatchSnapshot(this GraphQLException ex)
     {
-        OperationResultBuilder.CreateError(ex.Errors).MatchSnapshot();
+        OperationResult.FromError([.. ex.Errors]).MatchSnapshot();
     }
 }

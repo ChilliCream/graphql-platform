@@ -1,0 +1,7 @@
+{
+  "document": "{ foo }",
+  "contextData": {
+    "one": "foo",
+    "two": "bar"
+  }
+}

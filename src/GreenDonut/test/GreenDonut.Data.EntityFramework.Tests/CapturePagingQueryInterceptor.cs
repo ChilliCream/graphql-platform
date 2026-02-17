@@ -4,7 +4,7 @@ namespace GreenDonut.Data;
 
 public sealed class CapturePagingQueryInterceptor : PagingQueryInterceptor
 {
-    public List<QueryInfo> Queries { get; } = new();
+    public List<QueryInfo> Queries { get; } = [];
 
     public override void OnBeforeExecute<T>(IQueryable<T> query)
     {

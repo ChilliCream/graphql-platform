@@ -1,8 +1,6 @@
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 [AttributeUsage(
@@ -15,17 +13,23 @@ public abstract class UnionTypeDescriptorAttribute
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
-        if (descriptor is IUnionTypeDescriptor d
-            && element is Type t)
+        var type = attributeProvider as Type;
+
+        if (RequiresAttributeProvider && type is null)
         {
-            OnConfigure(context, d, t);
+            throw new InvalidOperationException("The attribute provider is required to be a type.");
+        }
+
+        if (descriptor is IUnionTypeDescriptor unionTypeDescriptor)
+        {
+            OnConfigure(context, unionTypeDescriptor, type);
         }
     }
 
     protected abstract void OnConfigure(
         IDescriptorContext context,
         IUnionTypeDescriptor descriptor,
-        Type type);
+        Type? type);
 }

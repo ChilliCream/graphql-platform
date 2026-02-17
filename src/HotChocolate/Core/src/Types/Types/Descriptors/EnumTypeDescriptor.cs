@@ -1,6 +1,8 @@
+#nullable disable
+
+using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Helpers;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -32,34 +34,30 @@ public class EnumTypeDescriptor
 
     protected internal override EnumTypeConfiguration Configuration { get; protected set; } = new();
 
-    protected ICollection<EnumValueDescriptor> Values { get; } =
-        new List<EnumValueDescriptor>();
+    protected ICollection<EnumValueDescriptor> Values { get; } = [];
 
     protected override void OnCreateConfiguration(
-        EnumTypeConfiguration definition)
+        EnumTypeConfiguration configuration)
     {
         Context.Descriptors.Push(this);
 
-        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
                 Configuration.RuntimeType);
-            Configuration.AttributesAreApplied = true;
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         var values = Values.Select(t => t.CreateConfiguration()).ToDictionary(t => t.RuntimeValue);
-        AddImplicitValues(definition, values);
+        AddImplicitValues(configuration, values);
 
-        definition.Values.Clear();
+        configuration.Values.Clear();
+        configuration.Values.AddRange(values.Values);
 
-        foreach (var value in values.Values)
-        {
-            definition.Values.Add(value);
-        }
-
-        base.OnCreateConfiguration(definition);
+        base.OnCreateConfiguration(configuration);
 
         Context.Descriptors.Pop();
     }
@@ -128,9 +126,8 @@ public class EnumTypeDescriptor
 
     public IEnumValueDescriptor Value<T>(T value)
     {
-        var descriptor = Values.FirstOrDefault(t =>
-            t.Configuration.RuntimeValue is not null &&
-            t.Configuration.RuntimeValue.Equals(value));
+        var descriptor = Values.FirstOrDefault(
+            t => t.Configuration.RuntimeValue?.Equals(value) == true);
 
         if (descriptor is not null)
         {

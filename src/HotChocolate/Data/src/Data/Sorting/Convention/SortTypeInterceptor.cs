@@ -3,14 +3,14 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Sorting;
 
 public sealed class SortTypeInterceptor : TypeInterceptor
 {
-    private readonly Dictionary<string, ISortConvention> _conventions = new();
+    private readonly Dictionary<string, ISortConvention> _conventions = [];
 
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
@@ -70,7 +70,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
             configuration.Scope);
 
         var typeReference =
-            TypeReference.Create( discoveryContext.Type, configuration.Scope);
+            TypeReference.Create(discoveryContext.Type, configuration.Scope);
 
         convention.ApplyConfigurations(typeReference, descriptor);
 
@@ -123,8 +123,8 @@ public sealed class SortTypeInterceptor : TypeInterceptor
             descriptor.CreateConfiguration(),
             configuration);
 
-        if (!string.IsNullOrEmpty(configuration.Name) &&
-            configuration is IHasScope { Scope: not null, })
+        if (!string.IsNullOrEmpty(configuration.Name)
+            && configuration is IHasScope { Scope: not null })
         {
             configuration.Name = completionContext.Scope + "_" + configuration.Name;
         }
@@ -152,8 +152,8 @@ public sealed class SortTypeInterceptor : TypeInterceptor
             descriptor.CreateConfiguration(),
             configuration);
 
-        if (!string.IsNullOrEmpty(configuration.Name) &&
-            configuration is IHasScope { Scope: not null, })
+        if (!string.IsNullOrEmpty(configuration.Name)
+            && configuration is IHasScope { Scope: not null })
         {
             configuration.Name = completionContext.Scope + "_" + configuration.Name;
         }
@@ -169,8 +169,8 @@ public sealed class SortTypeInterceptor : TypeInterceptor
         {
             if (field is SortFieldConfiguration sortFieldDefinition)
             {
-                if (completionContext.TryPredictTypeKind(sortFieldDefinition.Type!, out var kind) &&
-                    kind != TypeKind.Enum)
+                if (completionContext.TryPredictTypeKind(sortFieldDefinition.Type!, out var kind)
+                    && kind != TypeKind.Enum)
                 {
                     field.Type = field.Type!.With(scope: completionContext.Scope);
                 }

@@ -58,7 +58,11 @@ public class ObjectTypeInspector : ISyntaxInspector
 
         foreach (var member in members)
         {
-            if (member.DeclaredAccessibility is Accessibility.Public && !member.IsIgnored())
+            if (member.DeclaredAccessibility is
+                Accessibility.Public or
+                Accessibility.Internal or
+                Accessibility.ProtectedAndInternal
+                && !member.IsIgnored())
             {
                 if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
                 {
@@ -80,12 +84,17 @@ public class ObjectTypeInspector : ISyntaxInspector
 
                 if (member is IPropertySymbol)
                 {
+                    var compilation = context.SemanticModel.Compilation;
+
                     resolvers[i++] = new Resolver(
                         classSymbol.Name,
                         member,
+                        compilation.GetDescription(member, []),
+                        compilation.GetDeprecationReason(member),
                         ResolverResultKind.Pure,
-                        ImmutableArray<ResolverParameter>.Empty,
-                        member.GetMemberBindings());
+                        [],
+                        member.GetMemberBindings(),
+                        compilation.CreateTypeReference(member));
                 }
             }
         }
@@ -97,34 +106,42 @@ public class ObjectTypeInspector : ISyntaxInspector
 
         if (runtimeType is not null)
         {
-            syntaxInfo = new ObjectTypeInfo(
+            var objectTypeInfo = new ObjectTypeInfo(
                 classSymbol,
                 runtimeType,
                 nodeResolver,
                 possibleType,
-                i == 0
-                    ? ImmutableArray<Resolver>.Empty
-                    : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
+                i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
+                classSymbol.GetAttributes());
+            syntaxInfo = objectTypeInfo;
 
             if (diagnostics.Length > 0)
             {
-                syntaxInfo.AddDiagnosticRange(diagnostics);
+                objectTypeInfo.AddDiagnosticRange(diagnostics);
             }
+
             return true;
         }
 
-        syntaxInfo = new RootTypeInfo(
+        var rooType = new RootTypeInfo(
             classSymbol,
             operationType!.Value,
             possibleType,
-            i == 0
-                ? ImmutableArray<Resolver>.Empty
-                : ImmutableCollectionsMarshal.AsImmutableArray(resolvers));
+            i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
+            classSymbol.GetAttributes());
+
+        rooType.SourceSchemaDetected =
+            rooType.Shareable is not DirectiveScope.None
+                || rooType.Inaccessible is not DirectiveScope.None
+                || rooType.DescriptorAttributes.HasSourceSchemaAttribute()
+                || rooType.Resolvers.Any(r => r.HasSourceSchemaAttribute());
 
         if (diagnostics.Length > 0)
         {
-            syntaxInfo.AddDiagnosticRange(diagnostics);
+            rooType.AddDiagnosticRange(diagnostics);
         }
+
+        syntaxInfo = rooType;
         return true;
     }
 
@@ -134,7 +151,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         [NotNullWhen(true)] out INamedTypeSymbol? resolverTypeSymbol,
         [NotNullWhen(true)] out INamedTypeSymbol? runtimeType)
     {
-        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
+        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
         {
             foreach (var attributeListSyntax in possibleType.AttributeLists)
             {
@@ -152,10 +169,10 @@ public class ObjectTypeInspector : ISyntaxInspector
 
                     // We do a start with here to capture the generic and non-generic variant of
                     // the object type extension attribute.
-                    if (fullName.StartsWith(ObjectTypeAttribute, Ordinal) &&
-                        attributeContainingTypeSymbol.TypeArguments.Length == 1 &&
-                        attributeContainingTypeSymbol.TypeArguments[0] is INamedTypeSymbol rt &&
-                        ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rts)
+                    if (fullName.StartsWith(ObjectTypeAttribute, Ordinal)
+                        && attributeContainingTypeSymbol.TypeArguments.Length == 1
+                        && attributeContainingTypeSymbol.TypeArguments[0] is INamedTypeSymbol rt
+                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rts)
                     {
                         resolverTypeSyntax = possibleType;
                         resolverTypeSymbol = rts;
@@ -178,7 +195,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         [NotNullWhen(true)] out INamedTypeSymbol? resolverTypeSymbol,
         [NotNullWhen(true)] out OperationType? operationType)
     {
-        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
+        if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
         {
             foreach (var attributeListSyntax in possibleType.AttributeLists)
             {
@@ -194,8 +211,8 @@ public class ObjectTypeInspector : ISyntaxInspector
                     var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                     var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                    if (fullName.StartsWith(QueryTypeAttribute, Ordinal) &&
-                        ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtsq)
+                    if (fullName.StartsWith(QueryTypeAttribute, Ordinal)
+                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtsq)
                     {
                         resolverTypeSyntax = possibleType;
                         resolverTypeSymbol = rtsq;
@@ -203,8 +220,8 @@ public class ObjectTypeInspector : ISyntaxInspector
                         return true;
                     }
 
-                    if (fullName.StartsWith(MutationTypeAttribute, Ordinal) &&
-                        ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtsm)
+                    if (fullName.StartsWith(MutationTypeAttribute, Ordinal)
+                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtsm)
                     {
                         resolverTypeSyntax = possibleType;
                         resolverTypeSymbol = rtsm;
@@ -212,8 +229,8 @@ public class ObjectTypeInspector : ISyntaxInspector
                         return true;
                     }
 
-                    if (fullName.StartsWith(SubscriptionTypeAttribute, Ordinal) &&
-                        ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtss)
+                    if (fullName.StartsWith(SubscriptionTypeAttribute, Ordinal)
+                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol rtss)
                     {
                         resolverTypeSyntax = possibleType;
                         resolverTypeSymbol = rtss;
@@ -243,11 +260,21 @@ public class ObjectTypeInspector : ISyntaxInspector
         string? resolverTypeName = null)
     {
         var parameters = resolverMethod.Parameters;
-        var resolverParameters = new ResolverParameter[parameters.Length];
+        var buffer = new ResolverParameter[parameters.Length];
+        var resolverParameters = ImmutableCollectionsMarshal.AsImmutableArray(buffer);
 
         for (var i = 0; i < parameters.Length; i++)
         {
-            resolverParameters[i] = ResolverParameter.Create(parameters[i], compilation);
+            var parameter = parameters[i];
+            var parameterKind = compilation.GetParameterKind(parameter, out var key);
+
+            buffer[i] = new ResolverParameter(
+                parameter,
+                parameterKind,
+                compilation.CreateTypeReference(parameter),
+                parameter.GetDescriptionFromAttribute(),
+                compilation.GetDeprecationReason(parameter),
+                key);
         }
 
         resolverTypeName ??= resolverType.Name;
@@ -255,9 +282,12 @@ public class ObjectTypeInspector : ISyntaxInspector
         return new Resolver(
             resolverTypeName,
             resolverMethod,
+            compilation.GetDescription(resolverMethod, resolverParameters),
+            compilation.GetDeprecationReason(resolverMethod),
             resolverMethod.GetResultKind(),
-            [..resolverParameters],
+            resolverParameters,
             resolverMethod.GetMemberBindings(),
+            compilation.CreateTypeReference(resolverMethod),
             kind: compilation.IsConnectionType(resolverMethod.ReturnType)
                 ? ResolverKind.ConnectionResolver
                 : ResolverKind.Default);
@@ -271,17 +301,27 @@ public class ObjectTypeInspector : ISyntaxInspector
     {
         var compilation = context.SemanticModel.Compilation;
         var parameters = resolverMethod.Parameters;
-        var resolverParameters = new ResolverParameter[parameters.Length];
+        var buffer = new ResolverParameter[parameters.Length];
+        var resolverParameters = ImmutableCollectionsMarshal.AsImmutableArray(buffer);
 
         for (var i = 0; i < parameters.Length; i++)
         {
-            var parameter = ResolverParameter.Create(parameters[i], compilation);
+            var parameter = parameters[i];
+            var parameterKind = compilation.GetParameterKind(parameter, out var key);
 
-            if (parameter.Kind == ResolverParameterKind.Argument)
+            var resolverParameter = new ResolverParameter(
+                parameter,
+                parameterKind,
+                compilation.CreateTypeReference(parameter),
+                parameter.GetDescriptionFromAttribute(),
+                compilation.GetDeprecationReason(parameter),
+                key);
+
+            if (resolverParameter.Kind == ResolverParameterKind.Argument)
             {
-                if (parameter.Name != "id" && parameter.Key != "id")
+                if (resolverParameter.Name != "id" && resolverParameter.Key != "id")
                 {
-                    var location = parameters[i].Locations[0];
+                    var location = parameter.Locations[0];
 
                     diagnostics = diagnostics.Add(
                         Diagnostic.Create(
@@ -290,15 +330,22 @@ public class ObjectTypeInspector : ISyntaxInspector
                 }
             }
 
-            if (parameter.Kind is ResolverParameterKind.Unknown && (parameter.Name == "id" || parameter.Key == "id"))
+            if (resolverParameter.Kind is ResolverParameterKind.Unknown
+                && (resolverParameter.Name == "id" || resolverParameter.Key == "id"))
             {
-                parameter = new ResolverParameter(parameter.Parameter, parameter.Key, ResolverParameterKind.Argument);
+                resolverParameter = new ResolverParameter(
+                    parameter,
+                    ResolverParameterKind.Argument,
+                    compilation.CreateTypeReference(parameter),
+                    parameter.GetDescriptionFromAttribute(),
+                    compilation.GetDeprecationReason(parameter),
+                    key);
             }
 
-            resolverParameters[i] = parameter;
+            buffer[i] = resolverParameter;
         }
 
-        if (resolverParameters.Count(t => t.Kind == ResolverParameterKind.Argument) > 1)
+        if (buffer.Count(t => t.Kind == ResolverParameterKind.Argument) > 1)
         {
             var location = resolverMethod.Locations[0];
 
@@ -311,9 +358,12 @@ public class ObjectTypeInspector : ISyntaxInspector
         return new Resolver(
             resolverType.Name,
             resolverMethod,
+            compilation.GetDescription(resolverMethod, resolverParameters),
+            compilation.GetDeprecationReason(resolverMethod),
             resolverMethod.GetResultKind(),
-            resolverParameters.ToImmutableArray(),
+            resolverParameters,
             resolverMethod.GetMemberBindings(),
+            compilation.CreateTypeReference(resolverMethod),
             kind: ResolverKind.NodeResolver);
     }
 
@@ -323,6 +373,39 @@ public class ObjectTypeInspector : ISyntaxInspector
 
 file static class Extensions
 {
+    public static bool HasSourceSchemaAttribute(this Resolver resolver)
+    {
+        if (resolver.Shareable is not DirectiveScope.None)
+        {
+            return true;
+        }
+
+        if (resolver.Inaccessible is not DirectiveScope.None)
+        {
+            return true;
+        }
+
+        return resolver.DescriptorAttributes.HasSourceSchemaAttribute();
+    }
+
+    public static bool HasSourceSchemaAttribute(this ImmutableArray<AttributeData> attributes)
+    {
+        if (attributes.Length == 0)
+        {
+            return false;
+        }
+
+        return attributes.Any(
+            a => a.AttributeClass?.ToDisplayString() switch
+            {
+                InaccessibleAttribute => true,
+                InternalAttribute => true,
+                LookupAttribute => true,
+                ShareableAttribute => true,
+                _ => false
+            });
+    }
+
     public static bool IsNodeResolver(this IMethodSymbol methodSymbol)
     {
         foreach (var attribute in methodSymbol.GetAttributes())

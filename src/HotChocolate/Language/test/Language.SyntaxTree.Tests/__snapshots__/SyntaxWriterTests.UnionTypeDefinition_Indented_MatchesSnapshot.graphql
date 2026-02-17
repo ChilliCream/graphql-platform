@@ -1,0 +1,1 @@
+union SearchResult = User | Post | Comment

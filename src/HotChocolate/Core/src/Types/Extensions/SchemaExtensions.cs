@@ -1,14 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using TypeThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
-#nullable enable
-
 namespace HotChocolate;
 
 /// <summary>
-/// Provides extension methods to <see cref="ISchema"/>.
+/// Provides extension methods to <see cref="Schema"/>.
 /// </summary>
 public static class SchemaExtensions
 {
@@ -20,7 +19,7 @@ public static class SchemaExtensions
     /// <returns>
     /// Returns the root operation object type.
     /// </returns>
-    public static ObjectType? GetOperationType(this ISchema schema, OperationType operation)
+    public static ObjectType? GetOperationType(this Schema schema, OperationType operation)
         => operation switch
         {
             OperationType.Query => schema.QueryType,
@@ -45,11 +44,8 @@ public static class SchemaExtensions
     /// <c>true</c> if a type system member was found with the given
     /// <paramref name="coordinateString"/>; otherwise, <c>false</c>.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="schema"/> is <c>null</c>.
-    /// </exception>
     public static bool TryGetMember(
-        this ISchema schema,
+        this Schema schema,
         string coordinateString,
         [NotNullWhen(true)] out ITypeSystemMember? member)
     {
@@ -78,22 +74,14 @@ public static class SchemaExtensions
     /// <c>true</c> if a type system member was found with the given
     /// <paramref name="coordinate"/>; otherwise, <c>false</c>.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="schema"/> is <c>null</c>.
-    /// </exception>
     public static bool TryGetMember(
-        this ISchema schema,
+        this Schema schema,
         SchemaCoordinate coordinate,
         [NotNullWhen(true)] out ITypeSystemMember? member)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
         if (coordinate.OfDirective)
         {
-            if (schema.TryGetDirectiveType(coordinate.Name, out var directive))
+            if (schema.DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))
             {
                 if (coordinate.ArgumentName is null)
                 {
@@ -112,7 +100,7 @@ public static class SchemaExtensions
             return false;
         }
 
-        if (schema.TryGetType<INamedType>(coordinate.Name, out var type))
+        if (schema.Types.TryGetType(coordinate.Name, out var type))
         {
             if (coordinate.MemberName is null)
             {
@@ -124,8 +112,8 @@ public static class SchemaExtensions
             {
                 if (type.Kind is TypeKind.Enum)
                 {
-                    var enumType = (EnumType)type;
-                    if (enumType.TryGetValue(coordinate.MemberName, out var enumValue))
+                    var enumType = type.ExpectEnumType();
+                    if (enumType.Values.TryGetValue(coordinate.MemberName, out var enumValue))
                     {
                         member = enumValue;
                         return true;
@@ -134,7 +122,7 @@ public static class SchemaExtensions
 
                 if (type.Kind is TypeKind.InputObject)
                 {
-                    var inputType = (InputObjectType)type;
+                    var inputType = type.ExpectInputObjectType();
                     if (inputType.Fields.TryGetField(coordinate.MemberName, out var input))
                     {
                         member = input;
@@ -149,7 +137,7 @@ public static class SchemaExtensions
                 return false;
             }
 
-            var complexType = (IComplexOutputType)type;
+            var complexType = type.ExpectComplexType();
             if (complexType.Fields.TryGetField(coordinate.MemberName, out var field))
             {
                 if (coordinate.ArgumentName is null)
@@ -182,9 +170,6 @@ public static class SchemaExtensions
     /// <returns>
     /// Returns the resolved type system member.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="schema"/> is <c>null</c>.
-    /// </exception>
     /// <exception cref="SyntaxException">
     /// The <paramref name="coordinateString"/> has invalid syntax.
     /// </exception>
@@ -193,7 +178,7 @@ public static class SchemaExtensions
     /// specified <paramref name="coordinateString"/>.
     /// </exception>
     public static ITypeSystemMember GetMember(
-        this ISchema schema,
+        this Schema schema,
         string coordinateString)
         => GetMember(schema, SchemaCoordinate.Parse(coordinateString));
 
@@ -209,25 +194,17 @@ public static class SchemaExtensions
     /// <returns>
     /// Returns the resolved type system member.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="schema"/> is <c>null</c>.
-    /// </exception>
     /// <exception cref="InvalidSchemaCoordinateException">
     /// Unable to resolve a type system member with the
     /// specified <paramref name="coordinate"/>.
     /// </exception>
     public static ITypeSystemMember GetMember(
-        this ISchema schema,
+        this Schema schema,
         SchemaCoordinate coordinate)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
-
         if (coordinate.OfDirective)
         {
-            if (schema.TryGetDirectiveType(coordinate.Name, out var directive))
+            if (schema.DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))
             {
                 if (coordinate.ArgumentName is null)
                 {
@@ -245,7 +222,7 @@ public static class SchemaExtensions
             throw TypeThrowHelper.Schema_GetMember_DirectiveNotFound(coordinate);
         }
 
-        if (schema.TryGetType<INamedType>(coordinate.Name, out var type))
+        if (schema.Types.TryGetType(coordinate.Name, out var type))
         {
             if (coordinate.MemberName is null)
             {
@@ -282,7 +259,7 @@ public static class SchemaExtensions
                 throw TypeThrowHelper.Schema_GetMember_InvalidCoordinate(coordinate, type);
             }
 
-            var complexType = (IComplexOutputType)type;
+            var complexType = type.ExpectComplexType();
             if (complexType.Fields.TryGetField(coordinate.MemberName, out var field))
             {
                 if (coordinate.ArgumentName is null)
@@ -302,5 +279,19 @@ public static class SchemaExtensions
         }
 
         throw TypeThrowHelper.Schema_GetMember_TypeNotFound(coordinate);
+    }
+
+    /// <summary>
+    /// Gets the <see cref="IReadOnlySchemaOptions"/> of the <paramref name="schema"/>.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema to get the options for.
+    /// </param>
+    /// <returns>
+    /// The schema options.
+    /// </returns>
+    internal static IReadOnlySchemaOptions GetOptions(this ISchemaDefinition schema)
+    {
+        return schema.Features.GetRequired<IReadOnlySchemaOptions>();
     }
 }

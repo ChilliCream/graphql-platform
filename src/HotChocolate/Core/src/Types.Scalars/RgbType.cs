@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
@@ -11,10 +10,10 @@ namespace HotChocolate.Types;
 /// </summary>
 public partial class RgbType : RegexType
 {
-    private const string _validationPattern =
-        "((?:rgba?)\\((?:\\d+%?(?:,|\\s)+){2,3}[\\s\\/]*[\\d\\.]+%?\\))";
+    private const string ValidationPattern =
+        "rgb\\((?:[0-9]+%?(?:,|\\s)+){2}[0-9]+%?\\)";
 
-    [GeneratedRegex(_validationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    [GeneratedRegex(ValidationPattern, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
 
     /// <summary>
@@ -33,7 +32,7 @@ public partial class RgbType : RegexType
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="IPv6Type"/> class.
+    /// Initializes a new instance of the <see cref="RgbType"/> class.
     /// </summary>
     [ActivatorUtilitiesConstructor]
     public RgbType()
@@ -43,15 +42,6 @@ public partial class RgbType : RegexType
     {
     }
 
-    /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
-    {
-        return ThrowHelper.RgbType_ParseLiteral_IsInvalid(this);
-    }
-
-    /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
-    {
-        return ThrowHelper.RgbType_ParseValue_IsInvalid(this);
-    }
+    protected override LeafCoercionException FormatException(string runtimeValue)
+        => ThrowHelper.RgbType_InvalidFormat(this);
 }

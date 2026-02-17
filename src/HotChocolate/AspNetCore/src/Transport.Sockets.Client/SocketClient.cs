@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Net.WebSockets;
+using System.Text.Json;
 using HotChocolate.Transport.Sockets.Client.Protocols;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Utilities;
@@ -9,9 +10,9 @@ namespace HotChocolate.Transport.Sockets.Client;
 
 public sealed class SocketClient : ISocket
 {
-    private static readonly IProtocolHandler[] _protocolHandlers =
+    private static readonly IProtocolHandler[] s_protocolHandlers =
     [
-        new GraphQLOverWebSocketProtocolHandler(),
+        new GraphQLOverWebSocketProtocolHandler()
     ];
 
     private readonly CancellationTokenSource _cts = new();
@@ -28,16 +29,19 @@ public sealed class SocketClient : ISocket
         _protocol = protocol;
         _context = new SocketClientContext(socket);
         _pipeline = new MessagePipeline(this, new MessageHandler(_context, protocol));
-        _pipeline.Completed += (_, _) =>
-        {
-            if (_context.Socket.CloseStatus is not null)
+        _pipeline.OnCompleted(
+            static context =>
             {
-                _context.Messages.OnError(new SocketClosedException(
-                    _context.Socket.CloseStatusDescription ?? "Socket was closed.",
-                    _context.Socket.CloseStatus.Value));
-            }
-            _context.Messages.OnCompleted();
-        };
+                if (context.Socket.CloseStatus is not null)
+                {
+                    context.Messages.OnError(
+                        new SocketClosedException(
+                            context.Socket.CloseStatusDescription ?? "Socket was closed.",
+                            context.Socket.CloseStatus.Value));
+                }
+                context.Messages.OnCompleted();
+            },
+            _context);
         _ct = _cts.Token;
     }
 
@@ -46,16 +50,31 @@ public sealed class SocketClient : ISocket
     public static ValueTask<SocketClient> ConnectAsync(
         WebSocket socket,
         CancellationToken cancellationToken = default)
-        => ConnectAsync<object>(socket, null, cancellationToken);
+        => ConnectAsync(socket, default, cancellationToken);
 
-    public static async ValueTask<SocketClient> ConnectAsync<T>(
+    public static async ValueTask<SocketClient> ConnectAsync(
         WebSocket socket,
-        T? payload,
+        JsonElement payload,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(socket);
+
+        if (payload.ValueKind is not JsonValueKind.Object and not JsonValueKind.Null and not JsonValueKind.Undefined)
+        {
+            throw new ArgumentException(
+                "The payload must be an object, null, or undefined.",
+                nameof(payload));
+        }
+
+        if (socket.State != WebSocketState.Open)
+        {
+            throw new InvalidOperationException(
+                "The WebSocket must be in the open state to connect.");
+        }
+
         var protocolHandler =
             Array.Find(
-                _protocolHandlers,
+                s_protocolHandlers,
                 t => t.Name.EqualsOrdinal(socket.SubProtocol));
 
         if (protocolHandler is null)
@@ -69,7 +88,7 @@ public sealed class SocketClient : ISocket
         return client;
     }
 
-    private ValueTask InitializeAsync<T>(T payload, CancellationToken cancellationToken)
+    private ValueTask InitializeAsync(JsonElement payload, CancellationToken cancellationToken)
     {
         BeginRunPipeline();
         return _protocol.InitializeAsync(_context, payload, cancellationToken);
@@ -81,7 +100,11 @@ public sealed class SocketClient : ISocket
     public ValueTask<SocketResult> ExecuteAsync(
         OperationRequest request,
         CancellationToken cancellationToken = default)
-        => _protocol.ExecuteAsync(_context, request, cancellationToken);
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        return _protocol.ExecuteAsync(_context, request, cancellationToken);
+    }
 
     async Task<bool> ISocket.ReadMessageAsync(
         IBufferWriter<byte> writer,
@@ -104,10 +127,10 @@ public sealed class SocketClient : ISocket
                     break;
                 }
 
-                // get memory from writer
+                // get memory from a writer
                 var memory = writer.GetMemory(BufferSize);
 
-                // read message segment from socket.
+                // read a message segment from socket.
                 socketResult = await _socket.ReceiveAsync(memory, cancellationToken);
 
                 // advance writer
@@ -136,30 +159,24 @@ public sealed class SocketClient : ISocket
         return default;
     }
 
-    private sealed class MessageHandler : IMessageHandler
+    private sealed class MessageHandler(
+        SocketClientContext context,
+        IProtocolHandler protocolHandler)
+        : IMessageHandler
     {
-        private readonly SocketClientContext _context;
-        private readonly IProtocolHandler _protocolHandler;
-
-        public MessageHandler(SocketClientContext context, IProtocolHandler protocolHandler)
-        {
-            _context = context;
-            _protocolHandler = protocolHandler;
-        }
-
         public async ValueTask OnReceiveAsync(
             ReadOnlySequence<byte> message,
             CancellationToken cancellationToken = default)
         {
             try
             {
-                await _protocolHandler.OnReceiveAsync(_context, message, cancellationToken);
+                await protocolHandler.OnReceiveAsync(context, message, cancellationToken);
             }
             finally
             {
-                if (_context.Socket.IsClosed())
+                if (context.Socket.IsClosed())
                 {
-                    _context.Messages.OnCompleted();
+                    context.Messages.OnCompleted();
                 }
             }
         }

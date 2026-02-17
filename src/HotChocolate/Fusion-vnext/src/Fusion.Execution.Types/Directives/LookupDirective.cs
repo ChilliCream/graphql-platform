@@ -5,20 +5,23 @@ namespace HotChocolate.Fusion.Types.Directives;
 
 /*
 directive @fusion__lookup(
-    schema: fusion__Schema!
-    key: fusion__FieldSelectionSet!
-    field: fusion__FieldDefinition!
-    map: [fusion__FieldSelectionMap!]!
-) repeatable on OBJECT | INTERFACE
+     schema: fusion__Schema!
+     key: fusion__FieldSelectionSet!
+     field: fusion__FieldDefinition!
+     map: [fusion__FieldSelectionMap!]!
+     path: fusion__FieldSelectionPath
+     internal: Boolean! = false
+   ) repeatable on OBJECT | INTERFACE | UNION
 */
 internal sealed class LookupDirective(
-    string schemaName,
+    SchemaKey schemaKey,
     SelectionSetNode key,
     FieldDefinitionNode field,
     ImmutableArray<string> map,
-    ImmutableArray<string> path)
+    ImmutableArray<string> path,
+    bool @internal = false)
 {
-    public string SchemaName { get; } = schemaName;
+    public SchemaKey SchemaKey { get; } = schemaKey;
 
     public SelectionSetNode Key { get; } = key;
 
@@ -27,4 +30,6 @@ internal sealed class LookupDirective(
     public ImmutableArray<string> Map { get; } = map;
 
     public ImmutableArray<string> Path { get; } = path;
+
+    public bool Internal { get; } = @internal;
 }

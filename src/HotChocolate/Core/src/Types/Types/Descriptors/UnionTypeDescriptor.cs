@@ -1,6 +1,6 @@
+using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Helpers;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -11,10 +11,7 @@ public class UnionTypeDescriptor
     protected UnionTypeDescriptor(IDescriptorContext context, Type clrType)
         : base(context)
     {
-        if (clrType is null)
-        {
-            throw new ArgumentNullException(nameof(clrType));
-        }
+        ArgumentNullException.ThrowIfNull(clrType);
 
         Configuration.RuntimeType = clrType;
         Configuration.Name = context.Naming.GetTypeName(clrType, TypeKind.Union);
@@ -41,10 +38,14 @@ public class UnionTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (!Configuration.AttributesAreApplied && Configuration.RuntimeType != typeof(object))
+        if (!Configuration.ConfigurationsAreApplied && Configuration.RuntimeType != typeof(object))
         {
-            Context.TypeInspector.ApplyAttributes(Context, this, Configuration.RuntimeType);
-            Configuration.AttributesAreApplied = true;
+            DescriptorAttributeHelper.ApplyConfiguration(
+                Context,
+                this,
+                Configuration.RuntimeType);
+
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         base.OnCreateConfiguration(definition);
@@ -75,20 +76,14 @@ public class UnionTypeDescriptor
     public IUnionTypeDescriptor Type<TObjectType>(TObjectType objectType)
         where TObjectType : ObjectType
     {
-        if (objectType is null)
-        {
-            throw new ArgumentNullException(nameof(objectType));
-        }
+        ArgumentNullException.ThrowIfNull(objectType);
         Configuration.Types.Add(TypeReference.Create(objectType));
         return this;
     }
 
     public IUnionTypeDescriptor Type(NamedTypeNode objectType)
     {
-        if (objectType is null)
-        {
-            throw new ArgumentNullException(nameof(objectType));
-        }
+        ArgumentNullException.ThrowIfNull(objectType);
         Configuration.Types.Add(TypeReference.Create(objectType, TypeContext.Output));
         return this;
     }

@@ -5,7 +5,7 @@ namespace HotChocolate.Caching;
 
 internal static class ErrorHelper
 {
-    public static ISchemaError CacheControlInheritMaxAgeOnType(ITypeSystemObject type)
+    public static ISchemaError CacheControlInheritMaxAgeOnType(TypeSystemObject type)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_CacheControlInheritMaxAgeOnType,
@@ -14,8 +14,8 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError CacheControlInheritMaxAgeOnQueryTypeField(
-        ITypeSystemObject type,
-        IField field)
+        TypeSystemObject type,
+        IFieldDefinition field)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_CacheControlInheritMaxAgeOnQueryTypeField,
@@ -25,8 +25,8 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError CacheControlOnInterfaceField(
-        ITypeSystemObject type,
-        IField field)
+        TypeSystemObject type,
+        IFieldDefinition field)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_CacheControlOnInterfaceField,
@@ -35,8 +35,8 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError CacheControlNegativeMaxAge(
-        ITypeSystemObject type,
-        IField field)
+        TypeSystemObject type,
+        IFieldDefinition field)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_CacheControlNegativeMaxAge,
@@ -45,8 +45,8 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError CacheControlNegativeSharedMaxAge(
-        ITypeSystemObject type,
-        IField field)
+        TypeSystemObject type,
+        IFieldDefinition field)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_CacheControlNegativeSharedMaxAge,
@@ -55,8 +55,8 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError CacheControlBothMaxAgeAndInheritMaxAge(
-        ITypeSystemObject type,
-        IField field)
+        TypeSystemObject type,
+        IFieldDefinition field)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_CacheControlBothMaxAgeAndInheritMaxAge,
@@ -65,8 +65,8 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError CacheControlBothSharedMaxAgeAndInheritMaxAge(
-        ITypeSystemObject type,
-        IField field)
+        TypeSystemObject type,
+        IFieldDefinition field)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_CacheControlBothSharedMaxAgeAndInheritMaxAge,

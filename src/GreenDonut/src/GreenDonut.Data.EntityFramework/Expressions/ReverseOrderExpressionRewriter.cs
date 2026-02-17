@@ -5,16 +5,16 @@ namespace GreenDonut.Data.Expressions;
 
 public class ReverseOrderExpressionRewriter : ExpressionVisitor
 {
-    private static readonly MethodInfo _orderByMethod = typeof(Queryable).GetMethods()
+    private static readonly MethodInfo s_orderByMethod = typeof(Queryable).GetMethods()
         .First(m => m.Name == nameof(Queryable.OrderBy) && m.GetParameters().Length == 2);
 
-    private static readonly MethodInfo _orderByDescendingMethod = typeof(Queryable).GetMethods()
+    private static readonly MethodInfo s_orderByDescendingMethod = typeof(Queryable).GetMethods()
         .First(m => m.Name == nameof(Queryable.OrderByDescending) && m.GetParameters().Length == 2);
 
-    private static readonly MethodInfo _thenByMethod = typeof(Queryable).GetMethods()
+    private static readonly MethodInfo s_thenByMethod = typeof(Queryable).GetMethods()
         .First(m => m.Name == nameof(Queryable.ThenBy) && m.GetParameters().Length == 2);
 
-    private static readonly MethodInfo _thenByDescendingMethod = typeof(Queryable).GetMethods()
+    private static readonly MethodInfo s_thenByDescendingMethod = typeof(Queryable).GetMethods()
         .First(m => m.Name == nameof(Queryable.ThenByDescending) && m.GetParameters().Length == 2);
 
     protected override Expression VisitMethodCall(MethodCallExpression node)
@@ -24,28 +24,28 @@ public class ReverseOrderExpressionRewriter : ExpressionVisitor
         if (node.Method.Name == nameof(Queryable.OrderBy))
         {
             return Expression.Call(
-                _orderByDescendingMethod.MakeGenericMethod(node.Method.GetGenericArguments()),
+                s_orderByDescendingMethod.MakeGenericMethod(node.Method.GetGenericArguments()),
                 visitedArguments);
         }
 
         if (node.Method.Name == nameof(Queryable.OrderByDescending))
         {
             return Expression.Call(
-                _orderByMethod.MakeGenericMethod(node.Method.GetGenericArguments()),
+                s_orderByMethod.MakeGenericMethod(node.Method.GetGenericArguments()),
                 visitedArguments);
         }
 
         if (node.Method.Name == nameof(Queryable.ThenBy))
         {
             return Expression.Call(
-                _thenByDescendingMethod.MakeGenericMethod(node.Method.GetGenericArguments()),
+                s_thenByDescendingMethod.MakeGenericMethod(node.Method.GetGenericArguments()),
                 visitedArguments);
         }
 
         if (node.Method.Name == nameof(Queryable.ThenByDescending))
         {
             return Expression.Call(
-                _thenByMethod.MakeGenericMethod(node.Method.GetGenericArguments()),
+                s_thenByMethod.MakeGenericMethod(node.Method.GetGenericArguments()),
                 visitedArguments);
         }
 

@@ -20,6 +20,9 @@ partial class Build : NukeBuild
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly string Configuration = IsLocalBuild ? Debug : Release;
 
+    [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
+    readonly string RuntimeIdentifier;
+
     [CI] readonly AzurePipelines DevOpsPipeLine;
 
     Target Clean => _ => _
@@ -75,9 +78,9 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             DotNetBuildSonarSolution(AllSolutionFile);
-            var all = ProjectModelTasks.ParseSolution(AllSolutionFile);
+            var all = AllSolutionFile.ReadSolution();
 
-            var testProjects = all.GetProjects("*.Tests")
+            var testProjects = all.GetAllProjects("*.Tests")
                 .Select(p => new TestProject
                 {
                     Name = Path.GetFileNameWithoutExtension(p.Path),

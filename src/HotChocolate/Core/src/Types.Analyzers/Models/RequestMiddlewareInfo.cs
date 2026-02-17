@@ -31,13 +31,13 @@ public sealed class RequestMiddlewareInfo(
 
     private bool Equals(RequestMiddlewareInfo other)
     {
-        if (string.Equals(Name, other.Name, StringComparison.Ordinal) &&
-            string.Equals(TypeName, other.TypeName, StringComparison.Ordinal) &&
-            string.Equals(InvokeMethodName, other.InvokeMethodName, StringComparison.Ordinal) &&
-            Location.Equals(other.Location))
+        if (string.Equals(Name, other.Name, StringComparison.Ordinal)
+            && string.Equals(TypeName, other.TypeName, StringComparison.Ordinal)
+            && string.Equals(InvokeMethodName, other.InvokeMethodName, StringComparison.Ordinal)
+            && Location.Equals(other.Location))
         {
-            if (ReferenceEquals(CtorParameters, other.CtorParameters) &&
-                ReferenceEquals(InvokeParameters, other.InvokeParameters))
+            if (ReferenceEquals(CtorParameters, other.CtorParameters)
+                && ReferenceEquals(InvokeParameters, other.InvokeParameters))
             {
                 return true;
             }

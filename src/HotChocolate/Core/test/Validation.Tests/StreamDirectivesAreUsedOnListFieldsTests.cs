@@ -11,26 +11,30 @@ public class StreamDirectivesAreUsedOnListFieldsTests
     }
 
     [Fact]
-    public void Stream_On_String_Field_1()
+    public void Stream_On_Typename_Field()
     {
         ExpectErrors(
-            @"query {
-                __typename @stream
-            }",
+            """
+            query {
+              __typename @stream
+            }
+            """,
             t => Assert.Equal(
                 "@stream directive is only valid on list fields.",
                 t.Message));
     }
 
     [Fact]
-    public void Stream_On_String_Field_2()
+    public void Stream_On_String_Field()
     {
         ExpectErrors(
-            @"query {
-                __schema {
-                    description @stream
-                }
-            }",
+            """
+            query {
+              __schema {
+                description @stream
+              }
+            }
+            """,
             t => Assert.Equal(
                 "@stream directive is only valid on list fields.",
                 t.Message));
@@ -40,12 +44,15 @@ public class StreamDirectivesAreUsedOnListFieldsTests
     public void Stream_On_Types()
     {
         ExpectValid(
-            @"query {
-                __schema {
-                    types @stream {
-                        name
-                    }
+            """
+            query {
+              __schema {
+                types @stream {
+                  name
                 }
-            }");
+              }
+            }
+            """
+        );
     }
 }

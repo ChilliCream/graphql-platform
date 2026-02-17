@@ -19,9 +19,9 @@ internal sealed class FusionTypeMutableDirectiveDefinition : MutableDirectiveDef
 
         Arguments.Add(
             new MutableInputFieldDefinition(Schema, new NonNullType(schemaMutableEnumType))
-        {
-            Description = FusionTypeMutableDirectiveDefinition_Argument_Schema_Description
-        });
+            {
+                Description = FusionTypeMutableDirectiveDefinition_Argument_Schema_Description
+            });
 
         IsRepeatable = true;
 

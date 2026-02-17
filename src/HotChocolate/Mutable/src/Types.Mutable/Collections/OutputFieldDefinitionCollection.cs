@@ -6,6 +6,14 @@ public sealed class OutputFieldDefinitionCollection
     : FieldDefinitionCollection<MutableOutputFieldDefinition>
     , IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition>
 {
+    public OutputFieldDefinitionCollection(ITypeSystemMember declaringMember)
+        : base(declaringMember)
+    {
+    }
+
+    IOutputFieldDefinition IReadOnlyList<IOutputFieldDefinition>.this[int index]
+        => this[index];
+
     IOutputFieldDefinition IReadOnlyFieldDefinitionCollection<IOutputFieldDefinition>.this[string name]
         => this[name];
 
@@ -13,7 +21,7 @@ public sealed class OutputFieldDefinitionCollection
         string name,
         [NotNullWhen(true)] out IOutputFieldDefinition? field)
     {
-        if(TryGetField(name, out var outputField))
+        if (TryGetField(name, out var outputField))
         {
             field = outputField;
             return true;

@@ -29,8 +29,8 @@ public static class QueryableSortVisitorContextExtensions
 
         foreach (var operation in context.Operations)
         {
-            if (firstOperation &&
-                !OrderingMethodFinder.OrderMethodExists(source))
+            if (firstOperation
+                && !OrderingMethodFinder.OrderMethodExists(source))
             {
                 source = operation.CompileOrderBy(source);
             }
@@ -49,7 +49,7 @@ public static class QueryableSortVisitorContextExtensions
     // http://referencesource.microsoft.com/#System.Web/Util/OrderingMethodFinder.cs
     private sealed class OrderingMethodFinder : ExpressionVisitor
     {
-        private bool _orderingMethodFound = false;
+        private bool _orderingMethodFound;
 
         public override Expression? Visit(Expression? node)
         {
@@ -68,8 +68,8 @@ public static class QueryableSortVisitorContextExtensions
             var name = node.Method.Name;
 
             if (node.Method.DeclaringType == typeof(Queryable) && (
-                name.StartsWith(nameof(Queryable.OrderBy), StringComparison.Ordinal) ||
-                name.StartsWith(nameof(Queryable.ThenBy), StringComparison.Ordinal)))
+                name.StartsWith(nameof(Queryable.OrderBy), StringComparison.Ordinal)
+                || name.StartsWith(nameof(Queryable.ThenBy), StringComparison.Ordinal)))
             {
                 _orderingMethodFound = true;
             }

@@ -54,7 +54,7 @@ public class NatsIntegrationTests : SubscriptionIntegrationTestBase, IClassFixtu
         graphqlBuilder.Services
             .AddNats(poolSize: 1, options => options with
             {
-                Url = _natsResource.NatsConnectionString,
+                Url = _natsResource.NatsConnectionString
             })
             .AddLogging();
 

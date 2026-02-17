@@ -1,22 +1,22 @@
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.ApolloFederation.Types;
 
 public static class ServerFields
 {
-    private static readonly _Service _service = new();
+    private static readonly _Service s_service = new();
 
     internal static ObjectFieldConfiguration CreateServiceField(IDescriptorContext context)
     {
         var descriptor = ObjectFieldDescriptor.New(context, WellKnownFieldNames.Service);
-        descriptor.Type<NonNullType<ObjectType<_Service>>>().Resolve(_service);
+        descriptor.Type<NonNullType<ObjectType<_Service>>>().Resolve(s_service);
         descriptor.Configuration.PureResolver = Resolve;
 
         static _Service Resolve(IResolverContext ctx)
-            => _service;
+            => s_service;
 
         return descriptor.CreateConfiguration();
     }

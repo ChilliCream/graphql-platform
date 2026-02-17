@@ -11,20 +11,19 @@ public class QueryableProjectionFieldHandler
 {
     private static readonly NullabilityInfoContext _nullabilityInfoContext = new();
 
-    public override bool CanHandle(ISelection selection) =>
-        selection.Field.Member is { } &&
-        selection.SelectionSet is not null;
+    public override bool CanHandle(Selection selection)
+        => selection.Field.Member is not null && !selection.IsLeaf;
 
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
         Expression nestedProperty;
         Type memberType;
 
-        if (field.Member is PropertyInfo { CanWrite: true, } propertyInfo)
+        if (field.Member is PropertyInfo { CanWrite: true } propertyInfo)
         {
             memberType = propertyInfo.PropertyType;
             nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
@@ -50,7 +49,7 @@ public class QueryableProjectionFieldHandler
 
     public override bool TryHandleLeave(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
@@ -111,4 +110,6 @@ public class QueryableProjectionFieldHandler
 
         return true;
     }
+
+    public static QueryableProjectionFieldHandler Create(ProjectionProviderContext context) => new();
 }

@@ -47,11 +47,13 @@ public abstract class SubscriptionIntegrationTestBase
         }
 
         snapshot.MatchInline(
-            @"{
-              ""data"": {
-                ""onMessage"": ""bar""
+            """
+            {
+              "data": {
+                "onMessage": "bar"
               }
-            }");
+            }
+            """);
     }
 
     [Fact]
@@ -72,7 +74,7 @@ public abstract class SubscriptionIntegrationTestBase
         var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
 
         // assert
-        await sender.SendAsync("OnMessage", new Foo { Bar = "Hello", }, cts.Token);
+        await sender.SendAsync("OnMessage", new Foo { Bar = "Hello" }, cts.Token);
         await sender.CompleteAsync("OnMessage");
 
         var snapshot = new Snapshot();
@@ -83,13 +85,15 @@ public abstract class SubscriptionIntegrationTestBase
         }
 
         snapshot.MatchInline(
-            @"{
-              ""data"": {
-                ""onMessage"": {
-                  ""bar"": ""Hello""
+            """
+            {
+              "data": {
+                "onMessage": {
+                  "bar": "Hello"
                 }
               }
-            }");
+            }
+            """);
     }
 
     [Fact]
@@ -121,11 +125,13 @@ public abstract class SubscriptionIntegrationTestBase
         }
 
         snapshot.MatchInline(
-            @"{
-              ""data"": {
-                ""onMessage"": ""abc""
+            """
+            {
+              "data": {
+                "onMessage": "abc"
               }
-            }");
+            }
+            """);
     }
 
     [Fact]
@@ -169,11 +175,12 @@ public abstract class SubscriptionIntegrationTestBase
         }
 
         snapshot.MatchInline(
-            @"From Stream 1
+            """
+            From Stream 1
             ---------------
             {
-            ""data"": {
-                ""onMessage"": ""abc""
+            "data": {
+                "onMessage": "abc"
             }
             }
             ---------------
@@ -181,12 +188,13 @@ public abstract class SubscriptionIntegrationTestBase
             From Stream 2
             ---------------
             {
-            ""data"": {
-                ""onMessage"": ""abc""
+            "data": {
+                "onMessage": "abc"
             }
             }
             ---------------
-            ");
+
+            """);
     }
 
     [Fact]
@@ -233,11 +241,12 @@ public abstract class SubscriptionIntegrationTestBase
         }
 
         snapshot.MatchInline(
-            @"From Stream 1
+            """
+            From Stream 1
             ---------------
             {
-            ""data"": {
-                ""onMessage"": ""abc""
+            "data": {
+                "onMessage": "abc"
             }
             }
             ---------------
@@ -245,12 +254,13 @@ public abstract class SubscriptionIntegrationTestBase
             From Stream 2
             ---------------
             {
-            ""data"": {
-                ""onMessage"": ""def""
+            "data": {
+                "onMessage": "def"
             }
             }
             ---------------
-            ");
+
+            """);
     }
 
     [Fact]
@@ -282,11 +292,13 @@ public abstract class SubscriptionIntegrationTestBase
         }
 
         snapshot.MatchInline(
-            @"{
-              ""data"": {
-                ""onMessage2"": ""abc""
+            """
+            {
+              "data": {
+                "onMessage2": "abc"
               }
-            }");
+            }
+            """);
     }
 
     [Fact]
@@ -310,7 +322,7 @@ public abstract class SubscriptionIntegrationTestBase
         await Task.Delay(2000, cts.Token);
         await sender.CompleteAsync("OnMessage");
 
-        await foreach (var unused in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var _ in results.WithCancellation(cts.Token).ConfigureAwait(false))
         {
             Assert.Fail("Should not have any messages.");
         }
@@ -337,7 +349,7 @@ public abstract class SubscriptionIntegrationTestBase
         await Task.Delay(2000, cts.Token);
         await sender.CompleteAsync("OnMessage3");
 
-        await foreach (var unused in results.WithCancellation(cts.Token).ConfigureAwait(false))
+        await foreach (var _ in results.WithCancellation(cts.Token).ConfigureAwait(false))
         {
             Assert.Fail("Should not have any messages.");
         }
@@ -404,6 +416,6 @@ public abstract class SubscriptionIntegrationTestBase
 
     public enum FooEnum
     {
-        Bar,
+        Bar
     }
 }

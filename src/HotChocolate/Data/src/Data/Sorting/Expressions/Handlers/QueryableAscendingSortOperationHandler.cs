@@ -17,6 +17,8 @@ public class QueryableAscendingSortOperationHandler : QueryableOperationHandlerB
         return AscendingSortOperation.From(fieldSelector);
     }
 
+    public static QueryableAscendingSortOperationHandler Create(SortProviderContext context) => new();
+
     private sealed class AscendingSortOperation : QueryableSortOperation
     {
         private AscendingSortOperation(QueryableFieldSelector fieldSelector)
@@ -29,7 +31,7 @@ public class QueryableAscendingSortOperationHandler : QueryableOperationHandlerB
             return Expression.Call(
                 expression.GetEnumerableKind(),
                 nameof(Queryable.OrderBy),
-                [ParameterExpression.Type, Selector.Type,],
+                [ParameterExpression.Type, Selector.Type],
                 expression,
                 Expression.Lambda(Selector, ParameterExpression));
         }
@@ -39,7 +41,7 @@ public class QueryableAscendingSortOperationHandler : QueryableOperationHandlerB
             return Expression.Call(
                 expression.GetEnumerableKind(),
                 nameof(Queryable.ThenBy),
-                [ParameterExpression.Type, Selector.Type,],
+                [ParameterExpression.Type, Selector.Type],
                 expression,
                 Expression.Lambda(Selector, ParameterExpression));
         }

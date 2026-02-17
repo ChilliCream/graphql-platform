@@ -2,19 +2,13 @@
   "errors": [
     {
       "message": "The cursor specified in `after` has an invalid format.",
-      "locations": [
-        {
-          "line": 2,
-          "column": 3
-        }
-      ],
       "path": [
         "letters"
       ],
       "extensions": {
+        "code": "HC0078",
         "argument": "after",
-        "cursor": "",
-        "code": "HC0078"
+        "cursor": ""
       }
     }
   ],

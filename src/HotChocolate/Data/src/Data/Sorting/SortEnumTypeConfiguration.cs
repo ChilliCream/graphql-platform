@@ -1,5 +1,5 @@
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -9,5 +9,5 @@ public class SortEnumTypeConfiguration
 {
     public string? Scope { get; set; }
 
-    public Type EntityType { get; set; } = default!;
+    public Type EntityType { get; set; } = null!;
 }

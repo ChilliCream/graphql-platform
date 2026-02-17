@@ -9,17 +9,16 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers;
 public class QueryableProjectionListHandler
     : QueryableProjectionHandlerBase
 {
-    public override bool CanHandle(ISelection selection) =>
-        selection.Field.Member is { } &&
-        (selection.IsList ||
-            selection.Field.ContextData.ContainsKey(SelectionOptions.MemberIsList));
+    public override bool CanHandle(Selection selection) =>
+        selection.Field.Member is { }
+        && (selection.IsList || selection.IsMemberIsList());
 
     public override QueryableProjectionContext OnBeforeEnter(
         QueryableProjectionContext context,
-        ISelection selection)
+        Selection selection)
     {
         var field = selection.Field;
-        if (field.Member is PropertyInfo { CanWrite: true, })
+        if (field.Member is PropertyInfo { CanWrite: true })
         {
             var next = context.GetInstance().Append(field.Member);
 
@@ -31,12 +30,12 @@ public class QueryableProjectionListHandler
 
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
 
-        if (field.Member is not PropertyInfo { CanWrite: true, })
+        if (field.Member is not PropertyInfo { CanWrite: true })
         {
             action = SelectionVisitor.Skip;
 
@@ -59,7 +58,7 @@ public class QueryableProjectionListHandler
 
     public override bool TryHandleLeave(
         QueryableProjectionContext context,
-        ISelection selection,
+        Selection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         var field = selection.Field;
@@ -73,8 +72,8 @@ public class QueryableProjectionListHandler
 
         var scope = context.PopScope();
 
-        if (!(scope is QueryableProjectionScope queryableScope) ||
-            !context.TryGetQueryableScope(out var parentScope))
+        if (scope is not QueryableProjectionScope queryableScope
+            || !context.TryGetQueryableScope(out var parentScope))
         {
             action = null;
 
@@ -83,8 +82,8 @@ public class QueryableProjectionListHandler
 
         // in case the projection is empty we do not project. This can happen if the
         // field handler below skips fields
-        if (!queryableScope.HasAbstractTypes() &&
-            (queryableScope.Level.Count == 0 || queryableScope.Level.Peek().Count == 0))
+        if (!queryableScope.HasAbstractTypes()
+            && (queryableScope.Level.Count == 0 || queryableScope.Level.Peek().Count == 0))
         {
             action = SelectionVisitor.Continue;
 
@@ -101,4 +100,6 @@ public class QueryableProjectionListHandler
 
         return true;
     }
+
+    public static QueryableProjectionListHandler Create(ProjectionProviderContext context) => new();
 }

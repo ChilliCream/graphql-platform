@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using HotChocolate.Fusion.Types;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Types;
 

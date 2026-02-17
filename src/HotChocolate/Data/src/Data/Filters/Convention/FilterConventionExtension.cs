@@ -52,9 +52,9 @@ public class FilterConventionExtension
 
     public override void Merge(IConventionContext context, Convention convention)
     {
-        if (convention is FilterConvention filterConvention &&
-            Configuration is not null &&
-            filterConvention.Configuration is not null)
+        if (convention is FilterConvention filterConvention
+            && Configuration is not null
+            && filterConvention.Configuration is not null)
         {
             ExtensionHelpers.MergeDictionary(
                 Configuration.Bindings,

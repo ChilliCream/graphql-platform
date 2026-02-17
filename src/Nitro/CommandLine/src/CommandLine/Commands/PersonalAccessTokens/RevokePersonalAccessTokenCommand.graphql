@@ -1,0 +1,19 @@
+mutation RevokePersonalAccessTokenCommandMutation(
+  $input: RevokePersonalAccessTokenInput!
+) {
+  revokePersonalAccessToken(input: $input) {
+    personalAccessToken {
+      ...RevokePersonalAccessTokenCommand_PersonalAccessToken
+    }
+    errors {
+      ...PersonalAccessTokenNotFoundError
+      ...Error
+    }
+  }
+}
+
+fragment RevokePersonalAccessTokenCommand_PersonalAccessToken on PersonalAccessToken {
+  id
+  description
+  ...PersonalAccessTokenDetailPrompt_PersonalAccessToken
+}

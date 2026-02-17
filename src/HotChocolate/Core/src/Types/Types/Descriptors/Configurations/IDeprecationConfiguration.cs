@@ -1,4 +1,6 @@
-namespace HotChocolate.Types.Descriptors.Definitions;
+#nullable disable
+
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 public interface IDeprecationConfiguration
 {

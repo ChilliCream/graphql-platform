@@ -30,14 +30,15 @@ public partial class OperationExecutor<TData, TResult>
         IOperationStore operationStore,
         ExecutionStrategy strategy = ExecutionStrategy.NetworkOnly)
     {
-        _connection = connection ??
-            throw new ArgumentNullException(nameof(connection));
-        _resultBuilder = resultBuilder ??
-            throw new ArgumentNullException(nameof(resultBuilder));
-        _resultPatcher = resultPatcher ??
-            throw new ArgumentNullException(nameof(resultPatcher));
-        _operationStore = operationStore ??
-            throw new ArgumentNullException(nameof(operationStore));
+        ArgumentNullException.ThrowIfNull(connection);
+        ArgumentNullException.ThrowIfNull(resultBuilder);
+        ArgumentNullException.ThrowIfNull(resultPatcher);
+        ArgumentNullException.ThrowIfNull(operationStore);
+
+        _connection = connection;
+        _resultBuilder = resultBuilder;
+        _resultPatcher = resultPatcher;
+        _operationStore = operationStore;
         _strategy = strategy;
     }
 
@@ -57,10 +58,7 @@ public partial class OperationExecutor<TData, TResult>
         OperationRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         IOperationResult<TResult>? result = null;
         var resultBuilder = _resultBuilder();
@@ -109,10 +107,7 @@ public partial class OperationExecutor<TData, TResult>
         OperationRequest request,
         ExecutionStrategy? strategy = null)
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         return new OperationExecutorObservable(
             _connection,

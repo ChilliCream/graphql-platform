@@ -30,10 +30,7 @@ public static class EnumTypeDescriptorExtensions
         this IEnumTypeDescriptor<T> descriptor,
         T value)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (value is null)
         {
@@ -68,10 +65,7 @@ public static class EnumTypeDescriptorExtensions
         this IEnumTypeDescriptor descriptor,
         T value)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (value is null)
         {

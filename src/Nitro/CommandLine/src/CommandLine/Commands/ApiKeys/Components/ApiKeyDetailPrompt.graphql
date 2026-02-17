@@ -1,0 +1,7 @@
+fragment ApiKeyDetailPrompt_ApiKey on ApiKey {
+  id
+  name
+  workspace {
+    name
+  }
+}

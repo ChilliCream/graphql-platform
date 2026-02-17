@@ -4,36 +4,33 @@ using HotChocolate.Internal;
 using HotChocolate.Utilities;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
-#nullable enable
-
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal class ScopedStateParameterExpressionBuilder
     : IParameterExpressionBuilder
     , IParameterBindingFactory
-    , IParameterBinding
 {
-    private static readonly MethodInfo _getScopedState =
+    private static readonly MethodInfo s_getScopedState =
         typeof(ExpressionHelper).GetMethod(
             nameof(ExpressionHelper.GetScopedState))!;
-    private static readonly MethodInfo _getScopedStateWithDefault =
+    private static readonly MethodInfo s_getScopedStateWithDefault =
         typeof(ExpressionHelper).GetMethod(
             nameof(ExpressionHelper.GetScopedStateWithDefault))!;
-    private static readonly MethodInfo _setScopedState =
+    private static readonly MethodInfo s_setScopedState =
         typeof(ExpressionHelper).GetMethod(
             nameof(ExpressionHelper.SetScopedState))!;
-    private static readonly MethodInfo _setScopedStateGeneric =
+    private static readonly MethodInfo s_setScopedStateGeneric =
         typeof(ExpressionHelper).GetMethod(
             nameof(ExpressionHelper.SetScopedStateGeneric))!;
 
-    private static readonly PropertyInfo _contextDataProperty =
+    private static readonly PropertyInfo s_contextDataProperty =
         ContextType.GetProperty(nameof(IResolverContext.ScopedContextData))!;
 
-    protected virtual PropertyInfo ContextDataProperty => _contextDataProperty;
+    protected virtual PropertyInfo ContextDataProperty => s_contextDataProperty;
 
-    protected virtual MethodInfo SetStateMethod => _setScopedState;
+    protected virtual MethodInfo SetStateMethod => s_setScopedState;
 
-    protected virtual MethodInfo SetStateGenericMethod => _setScopedStateGeneric;
+    protected virtual MethodInfo SetStateGenericMethod => s_setScopedStateGeneric;
 
     public virtual ArgumentKind Kind => ArgumentKind.ScopedState;
 
@@ -43,6 +40,9 @@ internal class ScopedStateParameterExpressionBuilder
 
     public virtual bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(ScopedStateAttribute));
+
+    public virtual bool CanHandle(ParameterDescriptor parameter)
+        => parameter.Attributes.Any(t => t is ScopedStateAttribute);
 
     public virtual Expression Build(ParameterExpressionBuilderContext context)
     {
@@ -91,8 +91,8 @@ internal class ScopedStateParameterExpressionBuilder
 
         var getScopedState =
             parameter.HasDefaultValue
-                ? _getScopedStateWithDefault.MakeGenericMethod(targetType)
-                : _getScopedState.MakeGenericMethod(targetType);
+                ? s_getScopedStateWithDefault.MakeGenericMethod(targetType)
+                : s_getScopedState.MakeGenericMethod(targetType);
 
         return parameter.HasDefaultValue
             ? Expression.Call(
@@ -118,17 +118,46 @@ internal class ScopedStateParameterExpressionBuilder
     {
         var helper = new NullableHelper(targetType);
         var nullabilityFlags = helper.GetFlags(parameter);
-        if (nullabilityFlags.Length > 0 &&
-            nullabilityFlags[0] is { } f)
+        if (nullabilityFlags.Length > 0
+            && nullabilityFlags[0] is { } f)
         {
             return f;
         }
         return false;
     }
 
-    public IParameterBinding Create(ParameterBindingContext context)
-        => this;
+    public virtual IParameterBinding Create(ParameterDescriptor parameter)
+        => new ParameterBinding(this, parameter);
 
-    public T Execute<T>(IResolverContext context)
-        => throw new NotSupportedException();
+    private sealed class ParameterBinding : IParameterBinding
+    {
+        private readonly ScopedStateParameterExpressionBuilder _parent;
+        private readonly string _key;
+
+        public ParameterBinding(
+            ScopedStateParameterExpressionBuilder parent,
+            ParameterDescriptor parameter)
+        {
+            _parent = parent;
+
+            ScopedStateAttribute? globalState = null;
+            foreach (var attribute in parameter.Attributes)
+            {
+                if (attribute is ScopedStateAttribute casted)
+                {
+                    globalState = casted;
+                    break;
+                }
+            }
+
+            _key = globalState?.Key ?? parameter.Name;
+        }
+
+        public ArgumentKind Kind => _parent.Kind;
+
+        public bool IsPure => _parent.IsPure;
+
+        public T Execute<T>(IResolverContext context)
+            => context.GetScopedStateOrDefault<T>(_key, default!);
+    }
 }

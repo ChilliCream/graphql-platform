@@ -4,27 +4,28 @@ title: "Scalars"
 
 Strawberry Shake supports the following scalars out of the box:
 
-| Type        | Description                                                 |
-| ----------- | ----------------------------------------------------------- |
-| `Int`       | Signed 32-bit numeric non-fractional value                  |
-| `Float`     | Double-precision fractional values as specified by IEEE 754 |
-| `String`    | UTF-8 character sequences                                   |
-| `Boolean`   | Boolean type representing true or false                     |
-| `ID`        | Unique identifier                                           |
-| `Byte`      |                                                             |
-| `ByteArray` | Base64 encoded array of bytes                               |
-| `Short`     | Signed 16-bit numeric non-fractional value                  |
-| `Long`      | Signed 64-bit numeric non-fractional value                  |
-| `Decimal`   | .NET Floating Point Type                                    |
-| `Url`       | Url                                                         |
-| `DateTime`  | ISO-8601 date time                                          |
-| `Date`      | ISO-8601 date                                               |
-| `Uuid`      | GUID                                                        |
+| Type           | Description                                                 |
+| -------------- | ----------------------------------------------------------- |
+| `Base64String` | Base64 encoded array of bytes                               |
+| `Boolean`      | Boolean type representing true or false                     |
+| `Byte`         |                                                             |
+| `ByteArray`    | Base64 encoded array of bytes (DEPRECATED)                  |
+| `Date`         | ISO-8601 date                                               |
+| `DateTime`     | ISO-8601 date time                                          |
+| `Decimal`      | .NET Floating Point Type                                    |
+| `Float`        | Double-precision fractional values as specified by IEEE 754 |
+| `ID`           | Unique identifier                                           |
+| `Int`          | Signed 32-bit numeric non-fractional value                  |
+| `Long`         | Signed 64-bit numeric non-fractional value                  |
+| `Short`        | Signed 16-bit numeric non-fractional value                  |
+| `String`       | UTF-8 character sequences                                   |
+| `Url`          | Url                                                         |
+| `Uuid`         | GUID                                                        |
 
 # Custom Scalars
 
 As an addition to the scalars listed above, you can define your own scalars for the client.
-A scalar has two representation: the `runtimeType` and the `serializationType`.
+A scalar has two representations: the `runtimeType` and the `serializationType`.
 The `runtimeType` refers to the type you use in your dotnet application.
 The `serializationType` is the type that is used to transport the value.
 
@@ -61,13 +62,39 @@ If you want to change the `serializationType` or/and the `runtimeType` of a scal
 You can declare a scalar extension and add the `@serializationType` or/and the `@runtimeType` directive.
 
 ```graphql
-"Defines the serializationType of a scalar"
-directive @serializationType(name: String!) on SCALAR
+"""
+Defines the serialization type of a scalar.
+"""
+directive @serializationType(
+  """
+  The fully qualified .NET type name.
+  """
+  name: String!
 
-"Defines the runtimeType of a scalar"
-directive @runtimeType(name: String!) on SCALAR
+  """
+  Indicates whether the specified type is a value type (struct).
+  """
+  valueType: Boolean = false
+) on SCALAR
 
-"Represents a integer value that is greater or equal to 0"
+"""
+Defines the runtime type of a scalar.
+"""
+directive @runtimeType(
+  """
+  The fully qualified .NET type name.
+  """
+  name: String!
+
+  """
+  Indicates whether the specified type is a value type (struct).
+  """
+  valueType: Boolean = false
+) on SCALAR
+
+"""
+Represents an integer value that is greater or equal to 0.
+"""
 extend scalar PositiveInt
     @serializationType(name: "global::System.Int32")
     @runtimeType(name: "global::System.Int32")
@@ -79,7 +106,7 @@ As soon as you specify custom serialization and runtime types you also need to p
 
 A scalar identifies its serializer by the scalar name, runtime- and serialization type.
 You have to provide an `ISerializer` as soon as you change the `serializationType` or the `runtimeType`.
-Use the base class `ScalarSerializer<TValue>` or `ScalarSerializer<TSerializer, TRuntime>` to create you custom serializer.
+Use the base class `ScalarSerializer<TValue>` or `ScalarSerializer<TSerializer, TRuntime>` to create your custom serializer.
 
 ### Simple Example
 
@@ -112,6 +139,10 @@ _configuration_
 ```csharp
 serviceCollection.AddSerializer<PositiveIntSerializer>();
 ```
+
+> ⚠️ **Note:** When using a value type (struct) with `@serializationType` or `@runtimeType`, you must set `valueType: true` to ensure correct code generation.<br />
+> This is not required for intrinsic primitive value types already supported as built-in scalars by Strawberry Shake (e.g., `int`, `float`, `bool`).<br />
+> Example: `@serializationType(name: "global::System.Numerics.Vector2", valueType: true)`
 
 ### Any or JSON
 

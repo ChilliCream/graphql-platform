@@ -17,6 +17,8 @@ public class QueryableDescendingSortOperationHandler : QueryableOperationHandler
         return DescendingSortOperation.From(fieldSelector);
     }
 
+    public static QueryableDescendingSortOperationHandler Create(SortProviderContext context) => new();
+
     private sealed class DescendingSortOperation : QueryableSortOperation
     {
         private DescendingSortOperation(QueryableFieldSelector fieldSelector)
@@ -29,7 +31,7 @@ public class QueryableDescendingSortOperationHandler : QueryableOperationHandler
             return Expression.Call(
                 expression.GetEnumerableKind(),
                 nameof(Queryable.OrderByDescending),
-                [ParameterExpression.Type, Selector.Type,],
+                [ParameterExpression.Type, Selector.Type],
                 expression,
                 Expression.Lambda(Selector, ParameterExpression));
         }
@@ -39,7 +41,7 @@ public class QueryableDescendingSortOperationHandler : QueryableOperationHandler
             return Expression.Call(
                 expression.GetEnumerableKind(),
                 nameof(Queryable.ThenByDescending),
-                [ParameterExpression.Type, Selector.Type,],
+                [ParameterExpression.Type, Selector.Type],
                 expression,
                 Expression.Lambda(Selector, ParameterExpression));
         }

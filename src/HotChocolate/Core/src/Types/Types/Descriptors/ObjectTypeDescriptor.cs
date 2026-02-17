@@ -1,13 +1,12 @@
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.FieldBindingFlags;
-
-#nullable enable
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -20,10 +19,7 @@ public class ObjectTypeDescriptor
     protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
         : base(context)
     {
-        if (clrType is null)
-        {
-            throw new ArgumentNullException(nameof(clrType));
-        }
+        ArgumentNullException.ThrowIfNull(clrType);
 
         Configuration.RuntimeType = clrType;
         Configuration.Name = context.Naming.GetTypeName(clrType, TypeKind.Object);
@@ -58,25 +54,14 @@ public class ObjectTypeDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, FieldBindingType: not null })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
-                Configuration.FieldBindingType);
+                Configuration.FieldBindingType ?? Configuration.RuntimeType);
 
-            if (Configuration.AttributeBindingTypes.Length > 0)
-            {
-                foreach (var type in Configuration.AttributeBindingTypes)
-                {
-                    Context.TypeInspector.ApplyAttributes(
-                        Context,
-                        this,
-                        type);
-                }
-            }
-
-            Configuration.AttributesAreApplied = true;
+            Configuration.ConfigurationsAreApplied = true;
         }
 
         foreach (var field in _fields)
@@ -149,8 +134,8 @@ public class ObjectTypeDescriptor
         HashSet<string>? subscribeRes = null;
         Dictionary<MemberInfo, string>? subscribeResLook = null;
 
-        if (Configuration.Fields.IsImplicitBinding() &&
-            Configuration.FieldBindingType is not null)
+        if (Configuration.Fields.IsImplicitBinding()
+            && Configuration.FieldBindingType is not null)
         {
             var inspector = Context.TypeInspector;
             var naming = Context.Naming;
@@ -163,9 +148,9 @@ public class ObjectTypeDescriptor
             {
                 var name = naming.GetMemberName(member, MemberKind.ObjectField);
 
-                if (handledMembers.Add(member) &&
-                    !fields.ContainsKey(name) &&
-                    IncludeField(ref skip, ref subscribeRes, ref subscribeResLook, members, member))
+                if (handledMembers.Add(member)
+                    && !fields.ContainsKey(name)
+                    && IncludeField(ref skip, ref subscribeRes, ref subscribeResLook, members, member))
                 {
                     var descriptor = ObjectFieldDescriptor.New(
                         Context,
@@ -173,8 +158,8 @@ public class ObjectTypeDescriptor
                         Configuration.RuntimeType,
                         type);
 
-                    if (subscribeResLook is not null &&
-                        subscribeResLook.TryGetValue(member, out var with))
+                    if (subscribeResLook is not null
+                        && subscribeResLook.TryGetValue(member, out var with))
                     {
                         descriptor.Configuration.SubscribeWith = with;
                     }
@@ -215,11 +200,11 @@ public class ObjectTypeDescriptor
             {
                 foreach (var member in allMembers)
                 {
-                    if (member.IsDefined(typeof(SubscribeAttribute)) &&
-                        member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } a)
+                    if (member.IsDefined(typeof(SubscribeAttribute))
+                        && member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } a)
                     {
                         subscribeResolver ??= [];
-                        subscribeResolverLookup ??= new Dictionary<MemberInfo, string>();
+                        subscribeResolverLookup ??= [];
                         subscribeResolver.Add(a.With);
                         subscribeResolverLookup.Add(member, a.With);
                     }
@@ -266,10 +251,7 @@ public class ObjectTypeDescriptor
     public IObjectTypeDescriptor Implements<T>(T type)
         where T : InterfaceType
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         Configuration.Interfaces.Add(new SchemaTypeReference(type));
 
@@ -278,10 +260,7 @@ public class ObjectTypeDescriptor
 
     public IObjectTypeDescriptor Implements(NamedTypeNode type)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         Configuration.Interfaces.Add(TypeReference.Create(type, TypeContext.Output));
         return this;
@@ -314,41 +293,34 @@ public class ObjectTypeDescriptor
     public IObjectFieldDescriptor Field(
         MemberInfo propertyOrMethod)
     {
-        if (propertyOrMethod is null)
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
+
+        if (propertyOrMethod is not (PropertyInfo or MethodInfo))
         {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
+            throw new ArgumentException(
+                ObjectTypeDescriptor_MustBePropertyOrMethod,
+                nameof(propertyOrMethod));
         }
 
-        if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
+        var fieldDescriptor = _fields.Find(t => t.Configuration.Member == propertyOrMethod);
+        if (fieldDescriptor is not null)
         {
-            var fieldDescriptor = _fields.Find(t => t.Configuration.Member == propertyOrMethod);
-
-            if (fieldDescriptor is not null)
-            {
-                return fieldDescriptor;
-            }
-
-            fieldDescriptor = ObjectFieldDescriptor.New(
-                Context,
-                propertyOrMethod,
-                Configuration.RuntimeType,
-                propertyOrMethod.ReflectedType ?? Configuration.RuntimeType);
-            _fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
 
-        throw new ArgumentException(
-            ObjectTypeDescriptor_MustBePropertyOrMethod,
-            nameof(propertyOrMethod));
+        fieldDescriptor = ObjectFieldDescriptor.New(
+            Context,
+            propertyOrMethod,
+            Configuration.RuntimeType,
+            propertyOrMethod.ReflectedType ?? Configuration.RuntimeType);
+        _fields.Add(fieldDescriptor);
+        return fieldDescriptor;
     }
 
     public IObjectFieldDescriptor Field<TResolver, TPropertyType>(
         Expression<Func<TResolver, TPropertyType>> propertyOrMethod)
     {
-        if (propertyOrMethod is null)
-        {
-            throw new ArgumentNullException(nameof(propertyOrMethod));
-        }
+        ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
         var member = propertyOrMethod.TryExtractMember();
 

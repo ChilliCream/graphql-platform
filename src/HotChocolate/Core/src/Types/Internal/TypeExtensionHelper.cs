@@ -1,10 +1,8 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
-
-#nullable enable
 
 namespace HotChocolate.Internal;
 
@@ -87,7 +85,7 @@ public static class TypeExtensionHelper
                     extensionField.Directives,
                     typeField.Directives);
 
-                MergeContextData(extensionField, typeField);
+                MergeFeatures(extensionField, typeField);
 
                 action(typeFields, extensionField, typeField);
             }
@@ -149,13 +147,16 @@ public static class TypeExtensionHelper
         }
     }
 
-    public static void MergeContextData(
+    public static void MergeFeatures(
         TypeSystemConfiguration extension,
         TypeSystemConfiguration type)
     {
-        if (extension.GetContextData().Count > 0)
+        if (!extension.GetFeatures().IsEmpty)
         {
-            type.ContextData.AddRange(extension.GetContextData());
+            foreach (var feature in extension.GetFeatures())
+            {
+                type.Features[feature.Key] = feature.Value;
+            }
         }
     }
 
@@ -171,8 +172,8 @@ public static class TypeExtensionHelper
             }
         }
 
-        if (extension.FieldBindingType != null &&
-            extension.FieldBindingType != typeof(object))
+        if (extension.FieldBindingType != null
+            && extension.FieldBindingType != typeof(object))
         {
             type.KnownRuntimeTypes.Add(extension.FieldBindingType);
         }

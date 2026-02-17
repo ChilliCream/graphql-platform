@@ -1,8 +1,6 @@
 using HotChocolate.Configuration;
 
-#nullable enable
-
-namespace HotChocolate.Types.Descriptors.Definitions;
+namespace HotChocolate.Types.Descriptors.Configurations;
 
 public sealed class OnCompleteTypeSystemConfigurationTask<TDefinition>
     : OnCompleteTypeSystemConfigurationTask
@@ -66,15 +64,12 @@ public class OnCompleteTypeSystemConfigurationTask : ITypeSystemConfigurationTas
             throw new ArgumentOutOfRangeException(nameof(on));
         }
 
-        if (dependencies is null)
-        {
-            throw new ArgumentNullException(nameof(dependencies));
-        }
+        ArgumentNullException.ThrowIfNull(dependencies);
 
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         Owner = owner ?? throw new ArgumentNullException(nameof(owner));
         On = on;
-        _dependencies = [..dependencies];
+        _dependencies = [.. dependencies];
     }
 
     public ITypeSystemConfiguration Owner { get; }
@@ -86,10 +81,7 @@ public class OnCompleteTypeSystemConfigurationTask : ITypeSystemConfigurationTas
 
     public void AddDependency(TypeDependency dependency)
     {
-        if (dependency is null)
-        {
-            throw new ArgumentNullException(nameof(dependency));
-        }
+        ArgumentNullException.ThrowIfNull(dependency);
 
         _dependencies ??= [];
         _dependencies.Add(dependency);
@@ -100,10 +92,7 @@ public class OnCompleteTypeSystemConfigurationTask : ITypeSystemConfigurationTas
 
     public ITypeSystemConfigurationTask Copy(TypeSystemConfiguration newOwner)
     {
-        if (newOwner is null)
-        {
-            throw new ArgumentNullException(nameof(newOwner));
-        }
+        ArgumentNullException.ThrowIfNull(newOwner);
 
         return new OnCompleteTypeSystemConfigurationTask(_configure, newOwner, On, Dependencies);
     }

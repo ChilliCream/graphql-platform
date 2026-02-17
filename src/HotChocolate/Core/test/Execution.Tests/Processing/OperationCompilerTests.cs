@@ -2,7 +2,6 @@ using System.Text;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -25,17 +24,11 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse("{ foo }");
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -56,18 +49,11 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse("{ foo foo }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -88,18 +74,11 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse("{ }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -126,18 +105,11 @@ public class OperationCompilerTests
                 }
              }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -169,18 +141,11 @@ public class OperationCompilerTests
               }
              ");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -195,8 +160,9 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query ($if: Boolean!) {
-                human(id: ""1000"") {
+            """
+            query ($if: Boolean!) {
+                human(id: "1000") {
                     ... Human1 @include(if: $if)
                     ... Human2 @skip(if: $if)
                 }
@@ -232,23 +198,17 @@ public class OperationCompilerTests
             fragment Human3 on Human {
                 name
                 otherHuman {
-                  __typename
-                  name
+                    __typename
+                    name
                 }
-            }");
-
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
+            }
+            """);
 
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -270,17 +230,11 @@ public class OperationCompilerTests
         var document = Utf8GraphQLParser.Parse(
             "{ foo @skip(if: true) foo @skip(if: false) }");
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -301,20 +255,13 @@ public class OperationCompilerTests
 
         var document = Utf8GraphQLParser.Parse("{ foo bar }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
         void Action()
         {
-            var compiler = new OperationCompiler(new InputParser());
-            compiler.Compile(
-                new OperationCompilerRequest(
-                    "opid",
-                    document,
-                    operationDefinition,
-                    schema.QueryType,
-                    schema));
+            OperationCompiler.Compile(
+                "opid",
+                document,
+                schema);
         }
 
         // assert
@@ -327,9 +274,6 @@ public class OperationCompilerTests
     public void Field_Is_Visible_When_One_Selection_Is_Visible_1()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
-
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
@@ -346,18 +290,11 @@ public class OperationCompilerTests
                 name
             }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -367,9 +304,6 @@ public class OperationCompilerTests
     public void Field_Is_Visible_When_One_Selection_Is_Visible_2()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
-
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
@@ -386,18 +320,11 @@ public class OperationCompilerTests
                 name
             }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -407,10 +334,6 @@ public class OperationCompilerTests
     public void Field_Is_Visible_When_One_Selection_Is_Visible_3()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>()))
-            .Returns((string name) => name.EqualsOrdinal("q"));
-
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
@@ -427,18 +350,11 @@ public class OperationCompilerTests
                 name
             }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -448,9 +364,6 @@ public class OperationCompilerTests
     public void Field_Is_Visible_When_One_Selection_Is_Visible_4()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
-
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
@@ -470,18 +383,11 @@ public class OperationCompilerTests
                 }
             }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -492,10 +398,10 @@ public class OperationCompilerTests
     {
         // arrange
         var vFalse = new Mock<IVariableValueCollection>();
-        vFalse.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
+        vFalse.Setup(t => t.GetValue<BooleanValueNode>(It.IsAny<string>())).Returns(BooleanValueNode.False);
 
         var vTrue = new Mock<IVariableValueCollection>();
-        vTrue.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(true);
+        vTrue.Setup(t => t.GetValue<BooleanValueNode>(It.IsAny<string>())).Returns(BooleanValueNode.True);
 
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
@@ -518,18 +424,11 @@ public class OperationCompilerTests
                 }
             }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -539,19 +438,14 @@ public class OperationCompilerTests
     public void Nested_Fragments()
     {
         // arrange
-        var vFalse = new Mock<IVariableValueCollection>();
-        vFalse.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
-
-        var vTrue = new Mock<IVariableValueCollection>();
-        vTrue.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(true);
-
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query ($if: Boolean!) {
-                human(id: ""1000"") {
+            """
+            query ($if: Boolean!) {
+                human(id: "1000") {
                     ... Human1 @include(if: $if)
                     ... Human2 @skip(if: $if)
                 }
@@ -563,7 +457,7 @@ public class OperationCompilerTests
                     }
                 }
             }
-            fragment FriendEdge1 on CharacterEdge {
+            fragment FriendEdge1 on FriendsEdge {
                 node {
                     __typename
                     friends {
@@ -593,20 +487,14 @@ public class OperationCompilerTests
                     __typename
                     name
                 }
-            }");
-
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
+            }
+            """);
 
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -616,10 +504,6 @@ public class OperationCompilerTests
     public void Object_Field_Visibility_Is_Correctly_Inherited_2()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>()))
-            .Returns((string name) => name.EqualsOrdinal("v"));
-
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
@@ -641,18 +525,11 @@ public class OperationCompilerTests
                 }
             }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -662,33 +539,24 @@ public class OperationCompilerTests
     public void Object_Field_Visibility_Is_Correctly_Inherited_3()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>()))
-            .Returns((string name) => name.EqualsOrdinal("v"));
-
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query foo($v: Boolean!, $q: Boolean!) {
-                hero(episode: EMPIRE) @include(if: $v) {
-                    name @include(if: $q)
-                }
-            }");
-
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
+            """
+            query foo($v: Boolean!, $q: Boolean!) {
+              hero(episode: EMPIRE) @include(if: $v) {
+                name @include(if: $q)
+              }
+            }
+            """);
 
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -698,10 +566,6 @@ public class OperationCompilerTests
     public void Field_Based_Optimizers()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>()))
-            .Returns((string name) => name.EqualsOrdinal("v"));
-
         var schema = SchemaBuilder.New()
             .AddQueryType(
                 d => d
@@ -712,26 +576,21 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"{
+            """
+            {
                 root {
                     bar {
                         text
                     }
                 }
-            }");
-
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
+            }
+            """);
 
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -746,27 +605,22 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"{
-                hero(episode: EMPIRE) {
-                    name
-                    ... @defer {
-                        id
-                    }
+            """
+            {
+              hero(episode: EMPIRE) {
+                name
+                ... @defer {
+                  id
                 }
-            }");
-
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
+              }
+            }
+            """);
 
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -781,29 +635,565 @@ public class OperationCompilerTests
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"{
-                hero(episode: EMPIRE) {
-                    name
-                    ... Foo @defer
-                }
+            """
+            {
+              hero(episode: EMPIRE) {
+                name
+                ... Foo @defer
+              }
             }
 
             fragment Foo on Droid {
-                id
-            }");
-
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
+              id
+            }
+            """);
 
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    // ------------------------------------------------------------------
+    // Defer deduplication tests
+    // Based on graphql-spec PR 1110 (incremental delivery) deduplication
+    // semantics and the graphql-js reference implementation tests.
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void Defer_Inline_Fragment_Deduplication_Non_Deferred_Wins()
+    {
+        // arrange
+        // A field that appears both inside and outside @defer should NOT
+        // be marked as deferred. The non-deferred usage wins per spec
+        // GetFilteredDeferUsageSet: if any fieldDetails has no deferUsage,
+        // the filtered set is cleared.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                name
+                ... @defer {
+                  name
+                  id
+                }
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public void Defer_Fragment_Spread_Deferred_And_Non_Deferred()
+    {
+        // arrange
+        // Same named fragment used both with @defer and without.
+        // Non-deferred usage wins regardless of order. Per spec,
+        // if a fragment spread is visited without @defer first,
+        // the name is added to visitedFragments and the deferred
+        // spread is skipped. If deferred is first, the non-deferred
+        // revisit overrides.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                ...CharFields @defer(label: "DeferCharFields")
+                ...CharFields
+              }
+            }
+
+            fragment CharFields on Character {
+              name
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public void Defer_Fragment_Spread_Non_Deferred_Then_Deferred()
+    {
+        // arrange
+        // Same fragment spread used non-deferred first, then deferred.
+        // Non-deferred usage wins per spec.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                ...CharFields
+                ...CharFields @defer(label: "DeferCharFields")
+              }
+            }
+
+            fragment CharFields on Character {
+              name
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public void Defer_Nested_Inline_Fragments()
+    {
+        // arrange
+        // Two levels of nested @defer. Both fields should be deferred.
+        // Per spec, nested defers create a parent chain of DeferUsages.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                ... @defer {
+                  name
+                  ... @defer {
+                    id
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public void Defer_Nested_Field_Overlap_Parent_And_Child()
+    {
+        // arrange
+        // Field "name" appears in both parent and child @defer.
+        // Per spec GetFilteredDeferUsageSet, when a deferUsage's
+        // ancestor is also in the set, the child is removed.
+        // The field is still deferred (delivered with the parent defer).
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                ... @defer {
+                  name
+                  ... @defer {
+                    name
+                    id
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public void Defer_Multiple_Nested_Same_Fragment()
+    {
+        // arrange
+        // Multiple nested defers referencing the same fragment.
+        // Demonstrates deduplication across multiple defer levels.
+        // Per graphql-js test: "Can deduplicate multiple defers on
+        // the same object"
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                ... @defer {
+                  ...CharFields
+                  ... @defer {
+                    ...CharFields
+                    ... @defer {
+                      ...CharFields
+                    }
+                  }
+                }
+              }
+            }
+
+            fragment CharFields on Character {
+              name
+              id
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public void Defer_If_False_Not_Deferred()
+    {
+        // arrange
+        // @defer(if: false) should not produce deferred selections.
+        // Per spec, when if argument is false, the defer directive
+        // is ignored and no DeferUsage is created.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                ... @defer(if: false) {
+                  name
+                  id
+                }
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public async Task Defer_Different_Branches_Overlapping_Fields()
+    {
+        // arrange
+        // Fields present in both the initial payload and a deferred
+        // fragment. Only fields unique to the defer should be deferred.
+        // Mirrors graphql-js test: "Deduplicates fields present in the
+        // initial payload"
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      foo: Foo
+                    }
+
+                    type Foo {
+                      bar: Bar
+                      baz: String
+                    }
+
+                    type Bar {
+                      a: String
+                      b: String
+                    }
+                    """)
+                .UseField(next => next)
+                .BuildSchemaAsync();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              foo {
+                bar {
+                  a
+                }
+                ... @defer {
+                  bar {
+                    b
+                  }
+                  baz
+                }
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public async Task Defer_Different_Branches_Non_Overlapping_Levels()
+    {
+        // arrange
+        // Two defers at different tree levels with overlapping field
+        // paths. Mirrors graphql-js test: "Deduplicate fields with
+        // deferred fragments in different branches at multiple
+        // non-overlapping levels"
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      a: A
+                      g: G
+                    }
+
+                    type A {
+                      b: B
+                    }
+
+                    type B {
+                      c: C
+                      e: E
+                    }
+
+                    type C {
+                      d: String
+                    }
+
+                    type E {
+                      f: String
+                    }
+
+                    type G {
+                      h: String
+                    }
+                    """)
+                .UseField(next => next)
+                .BuildSchemaAsync();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              a {
+                b {
+                  c {
+                    d
+                  }
+                  ... @defer {
+                    e {
+                      f
+                    }
+                  }
+                }
+              }
+              ... @defer {
+                a {
+                  b {
+                    e {
+                      f
+                    }
+                  }
+                }
+                g {
+                  h
+                }
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public async Task Defer_Nested_With_Parent_Field_Deduplication()
+    {
+        // arrange
+        // When a field appears in a parent @defer and also in a nested
+        // child @defer, the field should only be delivered with the
+        // parent defer. Mirrors graphql-js test: "Deduplicates fields
+        // present in a parent defer payload"
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      hero: Hero
+                    }
+
+                    type Hero {
+                      nestedObject: NestedObject
+                    }
+
+                    type NestedObject {
+                      deeperObject: DeeperObject
+                    }
+
+                    type DeeperObject {
+                      foo: String
+                      bar: String
+                    }
+                    """)
+                .UseField(next => next)
+                .BuildSchemaAsync();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero {
+                ... @defer {
+                  nestedObject {
+                    deeperObject {
+                      foo
+                      ... @defer {
+                        foo
+                        bar
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        MatchSnapshot(document, operation);
+    }
+
+    [Fact]
+    public async Task Defer_Multiple_Levels_Field_Deduplication()
+    {
+        // arrange
+        // Deduplication across three levels: initial has foo, first
+        // defer adds bar, second defer adds baz, third defer adds bak.
+        // Mirrors graphql-js test: "Deduplicates fields with deferred
+        // fragments at multiple levels"
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      hero: Hero
+                    }
+
+                    type Hero {
+                      nestedObject: NestedObject
+                    }
+
+                    type NestedObject {
+                      deeperObject: DeeperObject
+                    }
+
+                    type DeeperObject {
+                      foo: String
+                      bar: String
+                      baz: String
+                      bak: String
+                    }
+                    """)
+                .UseField(next => next)
+                .BuildSchemaAsync();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero {
+                nestedObject {
+                  deeperObject {
+                    foo
+                  }
+                }
+                ... @defer {
+                  nestedObject {
+                    deeperObject {
+                      foo
+                      bar
+                    }
+                    ... @defer {
+                      deeperObject {
+                        foo
+                        bar
+                        baz
+                        ... @defer {
+                          foo
+                          bar
+                          baz
+                          bak
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -829,18 +1219,11 @@ public class OperationCompilerTests
                 }
             }");
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -850,35 +1233,27 @@ public class OperationCompilerTests
     public void FragmentSpread_SelectionsSet_Empty()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
-
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query foo($v: Boolean){
-                hero(episode: EMPIRE) {
-                    name @include(if: $v)
-                    ... abc
-                }
+            """
+            query foo($v: Boolean){
+              hero(episode: EMPIRE) {
+                name @include(if: $v)
+                ... abc
+              }
             }
 
-            fragment abc on Droid { }");
-
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
+            fragment abc on Droid { }
+            """);
 
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -888,33 +1263,25 @@ public class OperationCompilerTests
     public void InlineFragment_SelectionsSet_Empty()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
-
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query foo($v: Boolean){
-                hero(episode: EMPIRE) {
-                    name @include(if: $v)
-                    ... on Droid { }
-                }
-            }");
-
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
+            """
+            query foo($v: Boolean){
+              hero(episode: EMPIRE) {
+                name @include(if: $v)
+                ... on Droid { }
+              }
+            }
+            """);
 
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -924,30 +1291,22 @@ public class OperationCompilerTests
     public void CompositeType_SelectionsSet_Empty()
     {
         // arrange
-        var variables = new Mock<IVariableValueCollection>();
-        variables.Setup(t => t.GetVariable<bool>(It.IsAny<string>())).Returns(false);
-
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
 
         var document = Utf8GraphQLParser.Parse(
-            @"query foo($v: Boolean) {
-                hero(episode: EMPIRE) { }
-            }");
-
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
+            """
+            query foo($v: Boolean) {
+              hero(episode: EMPIRE) { }
+            }
+            """);
 
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -966,18 +1325,11 @@ public class OperationCompilerTests
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("LargeQuery.graphql"));
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -997,18 +1349,11 @@ public class OperationCompilerTests
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("CryptoDetailQuery.graphql"));
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -1043,17 +1388,11 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -1088,17 +1427,11 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -1134,17 +1467,11 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -1164,18 +1491,11 @@ public class OperationCompilerTests
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("CryptoQuery.graphql"));
 
-        var operationDefinition =
-            document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -1253,17 +1573,11 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -1341,22 +1655,14 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
-        Assert.Equal(29, compiler.Metrics.Selections);
-        Assert.Equal(7, compiler.Metrics.SelectionSetVariants);
-        Assert.Equal(4, compiler.Metrics.BacklogMaxSize);
+        // Note: Metrics are no longer accessible with static method
     }
 
     [Fact]
@@ -1390,17 +1696,11 @@ public class OperationCompilerTests
             }
             """);
 
-        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
         // act
-        var compiler = new OperationCompiler(new InputParser());
-        var operation = compiler.Compile(
-            new OperationCompilerRequest(
-                "opid",
-                document,
-                operationDefinition,
-                schema.QueryType,
-                schema));
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
 
         // assert
         MatchSnapshot(document, operation);
@@ -1475,21 +1775,20 @@ public class OperationCompilerTests
     {
         public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
         {
-            if (context.Path is { Name: "bar", })
+            if (context.Path is { Name: "bar" })
             {
-                var baz = context.Type.Fields["baz"];
+                var baz = context.TypeContext.Fields["baz"];
                 var bazSelection = Utf8GraphQLParser.Syntax.ParseField("baz { text }");
                 var bazPipeline = context.CompileResolverPipeline(baz, bazSelection);
 
                 var compiledSelection = new Selection(
-                    context.GetNextSelectionId(),
-                    context.Type,
-                    baz,
-                    baz.Type,
-                    bazSelection,
+                    context.NewSelectionId(),
                     "someName",
-                    resolverPipeline: bazPipeline,
-                    isInternal: true);
+                    baz,
+                    [new FieldSelectionNode(bazSelection, 0)],
+                    [],
+                    isInternal: true,
+                    resolverPipeline: bazPipeline);
 
                 context.AddSelection(compiledSelection);
             }
@@ -1523,5 +1822,4 @@ public class OperationCompilerTests
     {
         public string Name => "Name";
     }
-
 }

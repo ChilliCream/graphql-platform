@@ -1,70 +1,67 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Types;
-using static HotChocolate.Data.Projections.ProjectionConvention;
 
-namespace HotChocolate.Data.Projections.Handlers;
+namespace HotChocolate.Data.Projections.Optimizers;
 
 public class IsProjectedProjectionOptimizer : IProjectionOptimizer
 {
-    public bool CanHandle(ISelection field) =>
-        field.DeclaringType is ObjectType objectType &&
-        objectType.ContextData.ContainsKey(AlwaysProjectedFieldsKey);
+    public bool CanHandle(Selection field)
+        => field.DeclaringType is { } objectType
+            && objectType.Features.Get<ProjectionTypeFeature>()?.AlwaysProjectedFields.Length > 0;
 
     public Selection RewriteSelection(
         SelectionSetOptimizerContext context,
         Selection selection)
     {
-        if (!(context.Type is ObjectType type &&
-            type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out var fieldsObj) &&
-            fieldsObj is string[] fields))
+        if (!context.TypeContext.Features.TryGet(out ProjectionTypeFeature? feature))
         {
             return selection;
         }
 
-        for (var i = 0; i < fields.Length; i++)
+        for (var i = 0; i < feature.AlwaysProjectedFields.Length; i++)
         {
             var alias = "__projection_alias_" + i;
+            var fieldName = feature.AlwaysProjectedFields[i];
 
             // if the field is already in the selection set we do not need to project it
-            if (context.Selections.TryGetValue(fields[i], out var field) &&
-                field.Field.Name == fields[i])
+            if (context.TryGetSelection(fieldName, out var otherSelection)
+                && otherSelection.Field.Name == fieldName)
             {
                 continue;
             }
 
             // if the field is already added as an alias we do not need to add it
-            if (context.Selections.TryGetValue(alias, out field) &&
-                field.Field.Name == fields[i])
+            if (context.TryGetSelection(alias, out otherSelection)
+                && otherSelection.Field.Name == fieldName)
             {
                 continue;
             }
 
-            IObjectField nodesField = type.Fields[fields[i]];
-            var nodesFieldNode = new FieldNode(
+            var field = context.TypeContext.Fields[fieldName];
+            var fieldNode = new FieldNode(
                 null,
-                new NameNode(fields[i]),
+                new NameNode(fieldName),
                 new NameNode(alias),
-                Array.Empty<DirectiveNode>(),
-                Array.Empty<ArgumentNode>(),
+                [],
+                [],
                 null);
 
-            var nodesPipeline = context.CompileResolverPipeline(nodesField, nodesFieldNode);
+            var nodesPipeline = context.CompileResolverPipeline(field, fieldNode);
 
-            var compiledSelection = new Selection.Sealed(
-                context.GetNextSelectionId(),
-                context.Type,
-                nodesField,
-                nodesField.Type,
-                nodesFieldNode,
+            var compiledSelection = new Selection(
+                context.NewSelectionId(),
                 alias,
-                resolverPipeline: nodesPipeline,
-                arguments: selection.Arguments,
-                isInternal: true);
+                field,
+                [new FieldSelectionNode(fieldNode, 0)],
+                [],
+                isInternal: true,
+                resolverPipeline: nodesPipeline);
 
             context.AddSelection(compiledSelection);
         }
 
         return selection;
     }
+
+    public static IsProjectedProjectionOptimizer Create(ProjectionProviderContext context) => new();
 }

@@ -99,7 +99,7 @@ public class WebSocketConnectionTests
         }
 
         // assert
-        Assert.Single(results)!.Body!.RootElement.MatchSnapshot();
+        Assert.Single(results).Body!.RootElement.MatchSnapshot();
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public class WebSocketConnectionTests
 
         // assert
         var res = Assert.Single(results);
-        res?.Exception?.Message.MatchSnapshot();
+        res.Exception?.Message.MatchSnapshot();
     }
 
     [Fact]
@@ -167,7 +167,7 @@ public class WebSocketConnectionTests
 
         // assert
         var res = Assert.Single(results);
-        res?.Exception?.Message.MatchSnapshot();
+        res.Exception?.Message.MatchSnapshot();
     }
 
     [Fact]
@@ -205,7 +205,7 @@ public class WebSocketConnectionTests
 
     private sealed class GetHeroQueryDocument : IDocument
     {
-        private const string _bodyString =
+        private const string BodyString =
             @"query GetHero {
                 hero {
                     __typename
@@ -223,17 +223,17 @@ public class WebSocketConnectionTests
                 version
             }";
 
-        private static readonly byte[] _body = Encoding.UTF8.GetBytes(_bodyString);
+        private static readonly byte[] s_body = Encoding.UTF8.GetBytes(BodyString);
 
         private GetHeroQueryDocument() { }
 
         public OperationKind Kind => OperationKind.Query;
 
-        public ReadOnlySpan<byte> Body => _body;
+        public ReadOnlySpan<byte> Body => s_body;
 
         public DocumentHash Hash { get; } = new("MD5", "ABC");
 
-        public override string ToString() => _bodyString;
+        public override string ToString() => BodyString;
 
         public static GetHeroQueryDocument Instance { get; } = new();
     }
