@@ -155,14 +155,21 @@ internal sealed class __Type : ObjectType
 
                 var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
 
+                // If a field has no @requiresOptIn directives, it is always included.
                 // If a field requires opting into features "f1" and "f2", then `includeOptIn`
                 // must list at least one of the features in order for the field to be included.
                 return fields.Where(
-                    f => f
-                        .Directives
-                        .Where(d => d.Definition is RequiresOptInDirectiveType)
-                        .Select(d => d.ToValue<RequiresOptInDirective>().Feature)
-                        .Any(feature => includeOptIn.Contains(feature)));
+                    f =>
+                    {
+                        var requiredFeatures = f
+                            .Directives
+                            .Where(d => d.Definition is RequiresOptInDirectiveType)
+                            .Select(d => d.ToValue<RequiresOptInDirective>().Feature)
+                            .ToList();
+
+                        return requiredFeatures.Count == 0
+                            || requiredFeatures.Any(feature => includeOptIn.Contains(feature));
+                    });
             }
 
             return default;
@@ -210,14 +217,21 @@ internal sealed class __Type : ObjectType
 
                 var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
 
+                // If an enum value has no @requiresOptIn directives, it is always included.
                 // If an enum value requires opting into features "f1" and "f2", then `includeOptIn`
                 // must list at least one of the features in order for the value to be included.
                 return enumValues.Where(
-                    v => v
-                        .Directives
-                        .Where(d => d.Definition is RequiresOptInDirectiveType)
-                        .Select(d => d.ToValue<RequiresOptInDirective>().Feature)
-                        .Any(feature => includeOptIn.Contains(feature)));
+                    v =>
+                    {
+                        var requiredFeatures = v
+                            .Directives
+                            .Where(d => d.Definition is RequiresOptInDirectiveType)
+                            .Select(d => d.ToValue<RequiresOptInDirective>().Feature)
+                            .ToList();
+
+                        return requiredFeatures.Count == 0
+                            || requiredFeatures.Any(feature => includeOptIn.Contains(feature));
+                    });
             }
 
             return default;
@@ -245,15 +259,22 @@ internal sealed class __Type : ObjectType
 
                 var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
 
+                // If an input field has no @requiresOptIn directives, it is always included.
                 // If an input field requires opting into features "f1" and "f2", then
                 // `includeOptIn` must list at least one of the features in order for the field to
                 // be included.
                 return inputFields.Where(
-                    f => f
-                        .Directives
-                        .Where(d => d.Definition is RequiresOptInDirectiveType)
-                        .Select(d => d.ToValue<RequiresOptInDirective>().Feature)
-                        .Any(feature => includeOptIn.Contains(feature)));
+                    f =>
+                    {
+                        var requiredFeatures = f
+                            .Directives
+                            .Where(d => d.Definition is RequiresOptInDirectiveType)
+                            .Select(d => d.ToValue<RequiresOptInDirective>().Feature)
+                            .ToList();
+
+                        return requiredFeatures.Count == 0
+                            || requiredFeatures.Any(feature => includeOptIn.Contains(feature));
+                    });
             }
 
             return default;

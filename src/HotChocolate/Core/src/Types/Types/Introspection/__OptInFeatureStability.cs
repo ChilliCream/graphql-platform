@@ -34,15 +34,27 @@ internal sealed class __OptInFeatureStability : ObjectType<DirectiveNode>
 
     private static class Resolvers
     {
-        public static string Feature(IResolverContext context) =>
-            ((StringValueNode)context.Parent<DirectiveNode>()
+        public static string Feature(IResolverContext context)
+        {
+            var featureArg = context.Parent<DirectiveNode>()
                 .Arguments
-                .Single(a => a.Name.Value == Names.Feature).Value).Value;
+                .FirstOrDefault(a => a.Name.Value == Names.Feature);
 
-        public static string Stability(IResolverContext context) =>
-            ((StringValueNode)context.Parent<DirectiveNode>()
+            return featureArg?.Value is StringValueNode stringValue
+                ? stringValue.Value
+                : throw new InvalidOperationException("Feature argument is missing or has an invalid value.");
+        }
+
+        public static string Stability(IResolverContext context)
+        {
+            var stabilityArg = context.Parent<DirectiveNode>()
                 .Arguments
-                .Single(a => a.Name.Value == Names.Stability).Value).Value;
+                .FirstOrDefault(a => a.Name.Value == Names.Stability);
+
+            return stabilityArg?.Value is StringValueNode stringValue
+                ? stringValue.Value
+                : throw new InvalidOperationException("Stability argument is missing or has an invalid value.");
+        }
     }
 
     public static class Names

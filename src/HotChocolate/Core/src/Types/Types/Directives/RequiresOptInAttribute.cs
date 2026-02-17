@@ -18,7 +18,7 @@ public sealed class RequiresOptInAttribute : DescriptorAttribute
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="RequiresOptInAttribute"/>
-    /// with a specific feature name and stability.
+    /// with a specific feature name.
     /// </summary>
     /// <param name="feature">The name of the feature that requires opt in.</param>
     public RequiresOptInAttribute(string feature)

@@ -67,6 +67,7 @@ public sealed class OptInFeaturesIntrospectionTests
             {
                 __type(name: "Query") {
                     fields(includeOptIn: ["objectFieldFeature1"]) {
+                        name
                         requiresOptIn
                     }
                 }
@@ -86,10 +87,15 @@ public sealed class OptInFeaturesIntrospectionTests
                 "__type": {
                   "fields": [
                     {
+                      "name": "field1",
                       "requiresOptIn": [
                         "objectFieldFeature1",
                         "objectFieldFeature2"
                       ]
+                    },
+                    {
+                      "name": "field2",
+                      "requiresOptIn": []
                     }
                   ]
                 }
@@ -107,6 +113,7 @@ public sealed class OptInFeaturesIntrospectionTests
             {
                 __type(name: "Query") {
                     fields(includeOptIn: ["objectFieldFeatureDoesNotExist"]) {
+                        name
                         requiresOptIn
                     }
                 }
@@ -124,7 +131,12 @@ public sealed class OptInFeaturesIntrospectionTests
             {
               "data": {
                 "__type": {
-                  "fields": []
+                  "fields": [
+                    {
+                      "name": "field2",
+                      "requiresOptIn": []
+                    }
+                  ]
                 }
               }
             }
@@ -140,6 +152,7 @@ public sealed class OptInFeaturesIntrospectionTests
             {
                 __type(name: "Query") {
                     fields {
+                        name
                         requiresOptIn
                     }
                 }
@@ -157,7 +170,12 @@ public sealed class OptInFeaturesIntrospectionTests
             {
               "data": {
                 "__type": {
-                  "fields": []
+                  "fields": [
+                    {
+                      "name": "field2",
+                      "requiresOptIn": []
+                    }
+                  ]
                 }
               }
             }
@@ -173,7 +191,9 @@ public sealed class OptInFeaturesIntrospectionTests
             {
                 __type(name: "Query") {
                     fields(includeOptIn: ["objectFieldFeature1"]) {
+                        name
                         args(includeOptIn: ["objectFieldArgFeature1"]) {
+                            name
                             requiresOptIn
                         }
                     }
@@ -194,14 +214,24 @@ public sealed class OptInFeaturesIntrospectionTests
                 "__type": {
                   "fields": [
                     {
+                      "name": "field1",
                       "args": [
                         {
+                          "name": "argument1",
                           "requiresOptIn": [
                             "objectFieldArgFeature1",
                             "objectFieldArgFeature2"
                           ]
+                        },
+                        {
+                          "name": "argument2",
+                          "requiresOptIn": []
                         }
                       ]
+                    },
+                    {
+                      "name": "field2",
+                      "args": []
                     }
                   ]
                 }
@@ -219,7 +249,9 @@ public sealed class OptInFeaturesIntrospectionTests
             {
                 __type(name: "Query") {
                     fields(includeOptIn: ["objectFieldFeature1"]) {
+                        name
                         args(includeOptIn: ["objectFieldArgFeatureDoesNotExist"]) {
+                            name
                             requiresOptIn
                         }
                     }
@@ -240,6 +272,16 @@ public sealed class OptInFeaturesIntrospectionTests
                 "__type": {
                   "fields": [
                     {
+                      "name": "field1",
+                      "args": [
+                        {
+                          "name": "argument2",
+                          "requiresOptIn": []
+                        }
+                      ]
+                    },
+                    {
+                      "name": "field2",
                       "args": []
                     }
                   ]
@@ -258,7 +300,9 @@ public sealed class OptInFeaturesIntrospectionTests
             {
                 __type(name: "Query") {
                     fields(includeOptIn: ["objectFieldFeature1"]) {
+                        name
                         args {
+                            name
                             requiresOptIn
                         }
                     }
@@ -279,6 +323,16 @@ public sealed class OptInFeaturesIntrospectionTests
                 "__type": {
                   "fields": [
                     {
+                      "name": "field1",
+                      "args": [
+                        {
+                          "name": "argument2",
+                          "requiresOptIn": []
+                        }
+                      ]
+                    },
+                    {
+                      "name": "field2",
                       "args": []
                     }
                   ]
@@ -297,6 +351,7 @@ public sealed class OptInFeaturesIntrospectionTests
             {
                 __type(name: "ExampleInput") {
                     inputFields(includeOptIn: ["inputFieldFeature1"]) {
+                        name
                         requiresOptIn
                     }
                 }
@@ -316,10 +371,15 @@ public sealed class OptInFeaturesIntrospectionTests
                 "__type": {
                   "inputFields": [
                     {
+                      "name": "field1",
                       "requiresOptIn": [
                         "inputFieldFeature1",
                         "inputFieldFeature2"
                       ]
+                    },
+                    {
+                      "name": "field2",
+                      "requiresOptIn": []
                     }
                   ]
                 }
@@ -337,6 +397,7 @@ public sealed class OptInFeaturesIntrospectionTests
             {
                 __type(name: "ExampleInput") {
                     inputFields(includeOptIn: ["inputFieldFeatureDoesNotExist"]) {
+                        name
                         requiresOptIn
                     }
                 }
@@ -354,7 +415,12 @@ public sealed class OptInFeaturesIntrospectionTests
             {
               "data": {
                 "__type": {
-                  "inputFields": []
+                  "inputFields": [
+                    {
+                      "name": "field2",
+                      "requiresOptIn": []
+                    }
+                  ]
                 }
               }
             }
@@ -370,6 +436,7 @@ public sealed class OptInFeaturesIntrospectionTests
             {
                 __type(name: "ExampleInput") {
                     inputFields {
+                        name
                         requiresOptIn
                     }
                 }
@@ -387,7 +454,12 @@ public sealed class OptInFeaturesIntrospectionTests
             {
               "data": {
                 "__type": {
-                  "inputFields": []
+                  "inputFields": [
+                    {
+                      "name": "field2",
+                      "requiresOptIn": []
+                    }
+                  ]
                 }
               }
             }
@@ -403,6 +475,7 @@ public sealed class OptInFeaturesIntrospectionTests
             {
                 __type(name: "ExampleEnum") {
                     enumValues(includeOptIn: ["enumValueFeature1"]) {
+                        name
                         requiresOptIn
                     }
                 }
@@ -422,10 +495,15 @@ public sealed class OptInFeaturesIntrospectionTests
                 "__type": {
                   "enumValues": [
                     {
+                      "name": "VALUE1",
                       "requiresOptIn": [
                         "enumValueFeature1",
                         "enumValueFeature2"
                       ]
+                    },
+                    {
+                      "name": "VALUE2",
+                      "requiresOptIn": []
                     }
                   ]
                 }
@@ -443,6 +521,7 @@ public sealed class OptInFeaturesIntrospectionTests
             {
                 __type(name: "ExampleEnum") {
                     enumValues(includeOptIn: ["enumValueFeatureDoesNotExist"]) {
+                        name
                         requiresOptIn
                     }
                 }
@@ -460,7 +539,12 @@ public sealed class OptInFeaturesIntrospectionTests
             {
               "data": {
                 "__type": {
-                  "enumValues": []
+                  "enumValues": [
+                    {
+                      "name": "VALUE2",
+                      "requiresOptIn": []
+                    }
+                  ]
                 }
               }
             }
@@ -476,6 +560,7 @@ public sealed class OptInFeaturesIntrospectionTests
             {
                 __type(name: "ExampleEnum") {
                     enumValues {
+                        name
                         requiresOptIn
                     }
                 }
@@ -493,7 +578,12 @@ public sealed class OptInFeaturesIntrospectionTests
             {
               "data": {
                 "__type": {
-                  "enumValues": []
+                  "enumValues": [
+                    {
+                      "name": "VALUE2",
+                      "requiresOptIn": []
+                    }
+                  ]
                 }
               }
             }
@@ -511,6 +601,7 @@ public sealed class OptInFeaturesIntrospectionTests
             .AddType<ExampleInputType>()
             .AddType<ExampleEnumType>()
             .ModifyOptions(o => o.EnableOptInFeatures = true)
+            .Use(next => next)
             .Create();
     }
 
@@ -521,17 +612,33 @@ public sealed class OptInFeaturesIntrospectionTests
             descriptor.Name(OperationTypeNames.Query);
 
             descriptor
-                .Field("field")
+                .Field("field1")
                 .Type<IntType>()
                 .Argument(
-                    "argument",
+                    "argument1",
                     a => a
                         .Type<IntType>()
                         .RequiresOptIn("objectFieldArgFeature1")
                         .RequiresOptIn("objectFieldArgFeature2"))
-                .Resolve(() => 1)
+                .Argument(
+                    "argument2",
+                    a => a.Type<IntType>())
+                .Argument(
+                    "argument3",
+                    a => a
+                        .Type<IntType>()
+                        .Deprecated())
                 .RequiresOptIn("objectFieldFeature1")
                 .RequiresOptIn("objectFieldFeature2");
+
+            descriptor
+                .Field("field2")
+                .Type<IntType>();
+
+            descriptor
+                .Field("field3")
+                .Type<IntType>()
+                .Deprecated();
         }
     }
 
@@ -540,10 +647,19 @@ public sealed class OptInFeaturesIntrospectionTests
         protected override void Configure(IInputObjectTypeDescriptor descriptor)
         {
             descriptor
-                .Field("field")
+                .Field("field1")
                 .Type<IntType>()
                 .RequiresOptIn("inputFieldFeature1")
                 .RequiresOptIn("inputFieldFeature2");
+
+            descriptor
+                .Field("field2")
+                .Type<IntType>();
+
+            descriptor
+                .Field("field3")
+                .Type<IntType>()
+                .Deprecated();
         }
     }
 
@@ -551,11 +667,19 @@ public sealed class OptInFeaturesIntrospectionTests
     {
         protected override void Configure(IEnumTypeDescriptor descriptor)
         {
+            descriptor.Name("ExampleEnum");
+
             descriptor
-                .Name("ExampleEnum")
-                .Value("VALUE")
-                    .RequiresOptIn("enumValueFeature1")
-                    .RequiresOptIn("enumValueFeature2");
+                .Value("VALUE1")
+                .RequiresOptIn("enumValueFeature1")
+                .RequiresOptIn("enumValueFeature2");
+
+            descriptor
+                .Value("VALUE2");
+
+            descriptor
+                .Value("VALUE3")
+                .Deprecated();
         }
     }
 }

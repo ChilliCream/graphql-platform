@@ -27,7 +27,8 @@ public sealed class RequiresOptInDirectiveType : DirectiveType<RequiresOptInDire
             .Location(DirectiveLocation.ArgumentDefinition)
             .Location(DirectiveLocation.EnumValue)
             .Location(DirectiveLocation.FieldDefinition)
-            .Location(DirectiveLocation.InputFieldDefinition);
+            .Location(DirectiveLocation.InputFieldDefinition)
+            .Repeatable();
 
         descriptor
             .Argument(t => t.Feature)

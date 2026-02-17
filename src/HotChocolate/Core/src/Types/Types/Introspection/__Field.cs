@@ -93,14 +93,21 @@ internal sealed class __Field : ObjectType<IOutputFieldDefinition>
         {
             var includeOptIn = context.ArgumentValue<string[]?>(Names.IncludeOptIn) ?? [];
 
+            // If an argument has no @requiresOptIn directives, it is always included.
             // If an argument requires opting into features "f1" and "f2", then `includeOptIn`
             // must list at least one of the features in order for the argument to be included.
             return Arguments(context).Where(
-                a => a
-                    .Directives
-                    .Where(d => d.Definition is RequiresOptInDirectiveType)
-                    .Select(d => d.ToValue<RequiresOptInDirective>().Feature)
-                    .Any(feature => includeOptIn.Contains(feature)));
+                a =>
+                {
+                    var requiredFeatures = a
+                        .Directives
+                        .Where(d => d.Definition is RequiresOptInDirectiveType)
+                        .Select(d => d.ToValue<RequiresOptInDirective>().Feature)
+                        .ToList();
+
+                    return requiredFeatures.Count == 0
+                        || requiredFeatures.Any(feature => includeOptIn.Contains(feature));
+                });
         }
 
         public static IEnumerable<IInputValueDefinition> Arguments(IResolverContext context)
