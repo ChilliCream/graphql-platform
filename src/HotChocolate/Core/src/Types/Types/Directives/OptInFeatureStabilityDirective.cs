@@ -3,6 +3,10 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Represents the opt-in feature stability directive that allows
+/// specifying the stability level of a feature in the GraphQL schema.
+/// </summary>
 public sealed class OptInFeatureStabilityDirective
 {
     /// <summary>
