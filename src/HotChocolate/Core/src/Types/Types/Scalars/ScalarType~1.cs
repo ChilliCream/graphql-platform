@@ -48,7 +48,7 @@ public abstract class ScalarType<TRuntimeType> : ScalarType where TRuntimeType :
     /// <exception cref="LeafCoercionException">
     /// Unable to coerce the given <paramref name="runtimeValue"/> into an output value.
     /// </exception>
-    public abstract void OnCoerceOutputValue(TRuntimeType runtimeValue, ResultElement resultValue);
+    protected abstract void OnCoerceOutputValue(TRuntimeType runtimeValue, ResultElement resultValue);
 
     /// <inheritdoc />
     public override IValueNode ValueToLiteral(object runtimeValue)
@@ -74,7 +74,7 @@ public abstract class ScalarType<TRuntimeType> : ScalarType where TRuntimeType :
     /// <exception cref="LeafCoercionException">
     /// Unable to convert the given <paramref name="runtimeValue"/> into a literal.
     /// </exception>
-    public abstract IValueNode OnValueToLiteral(TRuntimeType runtimeValue);
+    protected abstract IValueNode OnValueToLiteral(TRuntimeType runtimeValue);
 
     /// <summary>
     /// Creates the exception to throw when <see cref="CoerceOutputValue(object, ResultElement)"/>

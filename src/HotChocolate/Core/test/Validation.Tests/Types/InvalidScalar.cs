@@ -21,9 +21,9 @@ public class InvalidScalar : ScalarType<string>
     public override object CoerceInputValue(JsonElement inputValue, IFeatureProvider context)
         => throw new InvalidOperationException();
 
-    public override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(string runtimeValue, ResultElement resultValue)
         => throw new InvalidOperationException();
 
-    public override IValueNode OnValueToLiteral(string runtimeValue)
+    protected override IValueNode OnValueToLiteral(string runtimeValue)
         => throw new InvalidOperationException();
 }

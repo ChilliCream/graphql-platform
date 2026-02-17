@@ -33,6 +33,7 @@
     },
     "date": {
       "type": "string",
+      "format": "date",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
       "description": "Date description",
       "default": "2000-01-01"
@@ -40,7 +41,7 @@
     "dateTime": {
       "type": "string",
       "format": "date-time",
-      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,7})?(?:[Zz]|[+-]\\d{2}:\\d{2})$",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?(?:[Zz]|[+-]\\d{2}:\\d{2})$",
       "description": "DateTime description",
       "default": "2000-01-01T12:00:00Z"
     },
@@ -95,13 +96,13 @@
     },
     "localDateTime": {
       "type": "string",
-      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
       "description": "LocalDateTime description",
       "default": "2000-01-01T12:00:00"
     },
     "localTime": {
       "type": "string",
-      "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+      "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
       "description": "LocalTime description",
       "default": "12:00:00"
     },
@@ -121,7 +122,7 @@
               "properties": {
                 "field1C": {
                   "type": "string",
-                  "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                  "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                   "description": "field1C description",
                   "default": "12:00:00"
                 }
@@ -164,6 +165,7 @@
     },
     "timeSpan": {
       "type": "string",
+      "format": "duration",
       "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
       "description": "TimeSpan description",
       "default": "PT5M"
@@ -175,16 +177,19 @@
     },
     "uri": {
       "type": "string",
+      "format": "uri",
       "description": "URI description",
       "default": "https://example.com"
     },
     "url": {
       "type": "string",
+      "format": "uri",
       "description": "URL description",
       "default": "https://example.com"
     },
     "uuid": {
       "type": "string",
+      "format": "uuid",
       "pattern": "^[\\da-fA-F]{8}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{12}$",
       "description": "UUID description",
       "default": "00000000-0000-0000-0000-000000000000"

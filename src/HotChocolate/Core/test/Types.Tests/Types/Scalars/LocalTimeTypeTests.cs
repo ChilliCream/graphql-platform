@@ -36,6 +36,38 @@ public class LocalTimeTypeTests
         Assert.Equal(expectedTimeOnly, timeOnly);
     }
 
+    [Theory]
+    [MemberData(nameof(ValidLocalTimeScalarStrings))]
+    public void CoerceInputLiteral_Valid(string time, TimeOnly result)
+    {
+        // arrange
+        var type = new LocalTimeType();
+        var literal = new StringValueNode(time);
+
+        // act
+        var timeOnly = (TimeOnly?)type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(result, timeOnly);
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidLocalTimeScalarStrings))]
+    public void CoerceInputLiteral_Invalid(string time)
+    {
+        // arrange
+        var type = new LocalTimeType();
+        var literal = new StringValueNode(time);
+
+        // act
+        void Action() => type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(
+            "LocalTime cannot coerce the given literal of type `StringValue` to a runtime value.",
+            Assert.Throws<LeafCoercionException>(Action).Message);
+    }
+
     [InlineData("en-US")]
     [InlineData("en-AU")]
     [InlineData("en-GB")]
@@ -250,6 +282,21 @@ public class LocalTimeTypeTests
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public void LocalTime_Relaxed_Format_Check()
+    {
+        // arrange
+        const string s = "15:30";
+
+        // act
+        var type = new LocalTimeType(disableFormatCheck: true);
+        var inputValue = JsonDocument.Parse($"\"{s}\"").RootElement;
+        var result = type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.IsType<TimeOnly>(result);
+    }
+
     public class Query
     {
         [GraphQLType(typeof(LocalTimeType))]
@@ -276,5 +323,43 @@ public class LocalTimeTypeTests
     public class Bar
     {
         public TimeOnly GetTime() => TimeOnly.MaxValue;
+    }
+
+    public static TheoryData<string, TimeOnly> ValidLocalTimeScalarStrings()
+    {
+        return new TheoryData<string, TimeOnly>
+        {
+            // https://scalars.graphql.org/chillicream/local-time.html#sec-Input-spec.Examples (Valid input values)
+            {
+                "09:00:00",
+                new TimeOnly(9, 0, 0)
+            },
+            {
+                "07:30:00.500",
+                new TimeOnly(7, 30, 0, 500)
+            }
+        };
+    }
+
+    public static TheoryData<string> InvalidLocalTimeScalarStrings()
+    {
+        return
+        [
+            // https://scalars.graphql.org/chillicream/local-time.html#sec-Input-spec.Examples (Invalid input values)
+            // Contains time zone indicator Z.
+            "15:30:00Z",
+            // Contains time zone offset.
+            "15:30:00+05:30",
+            // Contains date component.
+            "2023-12-24T15:30:00",
+            // Missing seconds component.
+            "15:30",
+            // Invalid hour (24).
+            "24:00:00",
+            // Invalid minute (60).
+            "15:60:00",
+            // More than 9 fractional second digits.
+            "15:30:00.1234567890"
+        ];
     }
 }

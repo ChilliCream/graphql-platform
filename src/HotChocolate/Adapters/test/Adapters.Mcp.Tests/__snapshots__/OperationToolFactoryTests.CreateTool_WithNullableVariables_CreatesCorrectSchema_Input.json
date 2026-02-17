@@ -40,6 +40,7 @@
         "string",
         "null"
       ],
+      "format": "date",
       "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
       "description": "Date description"
     },
@@ -49,7 +50,7 @@
         "null"
       ],
       "format": "date-time",
-      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,7})?(?:[Zz]|[+-]\\d{2}:\\d{2})$",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?(?:[Zz]|[+-]\\d{2}:\\d{2})$",
       "description": "DateTime description"
     },
     "decimal": {
@@ -120,7 +121,7 @@
         "string",
         "null"
       ],
-      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
       "description": "LocalDateTime description"
     },
     "localTime": {
@@ -128,7 +129,7 @@
         "string",
         "null"
       ],
-      "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+      "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
       "description": "LocalTime description"
     },
     "long": {
@@ -161,7 +162,7 @@
                     "string",
                     "null"
                   ],
-                  "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                  "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                   "description": "field1C description"
                 }
               },
@@ -195,6 +196,7 @@
         "string",
         "null"
       ],
+      "format": "duration",
       "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
       "description": "TimeSpan description"
     },
@@ -210,6 +212,7 @@
         "string",
         "null"
       ],
+      "format": "uri",
       "description": "URI description"
     },
     "url": {
@@ -217,6 +220,7 @@
         "string",
         "null"
       ],
+      "format": "uri",
       "description": "URL description"
     },
     "uuid": {
@@ -224,6 +228,7 @@
         "string",
         "null"
       ],
+      "format": "uuid",
       "pattern": "^[\\da-fA-F]{8}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{4}-[\\da-fA-F]{12}$",
       "description": "UUID description"
     }

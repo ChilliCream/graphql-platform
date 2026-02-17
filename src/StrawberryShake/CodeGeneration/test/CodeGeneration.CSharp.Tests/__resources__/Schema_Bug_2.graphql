@@ -125,7 +125,7 @@ type ProjectStep {
   timeInMinutes: Int
   groupClassification: String
   media: String
-  mediaLinks: [Url]
+  mediaLinks: [URL]
   goals: [ProjectStepGoal]
   evaluation: String
 }
@@ -142,7 +142,7 @@ type Project {
   createdAtUtc: DateTime!
   updatedAtUtc: DateTime
   userPermissions: ProjectUserPermissions
-  pdfExportUrl: Url
+  pdfExportUrl: URL
 }
 
 type Card {
@@ -157,7 +157,7 @@ type UserProfile {
   email: String
   emailConfirmed: Boolean!
   preferredLocale: String
-  avatarUrl: Url
+  avatarUrl: URL
   about: String
 }
 
@@ -249,7 +249,7 @@ input AddStepToProjectInput {
   "The media used for this step"
   media: String
   "The media links for this step"
-  mediaLinks: [Url]!
+  mediaLinks: [URL]!
   "The goals for this step"
   goals: [AddStepGoalInput]!
   "The evaluation for this step"
@@ -407,7 +407,7 @@ input UpdateStepInput {
   "The media used for this step"
   media: String
   "The media links for this step"
-  mediaLinks: [Url]!
+  mediaLinks: [URL]!
   "The goals for this step"
   goals: [UpdateStepGoalInput]!
   "The evaluation for this step"
@@ -471,7 +471,8 @@ input AddStepGoalInput {
   description: String
 }
 
-scalar Url
+"The `URL` scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986."
+scalar URL @specifiedBy(url: "https://scalars.graphql.org/chillicream/url.html")
 
 input AddStepTechniqueInput {
   "The name of the technique"
@@ -515,8 +516,8 @@ type ProjectUserPermissions {
   canLeave: Boolean!
 }
 
-"The `DateTime` scalar represents an exact point in time. This point in time is specified by having an offset to UTC and does not use a time zone."
-scalar DateTime
+"The `DateTime` scalar type represents a date and time with time zone offset information."
+scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/chillicream/date-time.html")
 
 type ProjectShareInvitation {
   id: Guid!
@@ -528,7 +529,7 @@ type ProjectMember {
   id: Guid!
   name: String
   type: ProjectUserRoleType!
-  avatarUrl: Url
+  avatarUrl: URL
 }
 
 type ProjectGeneralInfo {
@@ -558,3 +559,6 @@ enum ProjectUserRoleType {
 }
 
 directive @authorize("The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!] "Defines when when the resolver shall be executed.By default the resolver is executed after the policy has determined that the current user is allowed to access the field." apply: ApplyPolicy! = BEFORE_RESOLVER) repeatable on SCHEMA | OBJECT | FIELD_DEFINITION
+
+"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
+directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
