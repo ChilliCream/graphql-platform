@@ -7,7 +7,7 @@ Quick reference for all Fusion-related attributes and their GraphQL directive eq
 # Attribute and Directive Reference Table
 
 | Attribute | Directive | Description | Guide Page |
-|-----------|-----------|-------------|------------|
+|---|---|---|---|
 | `[ObjectType<T>]` | — | Maps static class as extension to entity type T | [Entities and Lookups](/docs/fusion/v16/entities-and-lookups) |
 | `[QueryType]` | — | Marks class as contributing Query root fields | [Getting Started](/docs/fusion/v16/getting-started) |
 | `[MutationType]` | — | Marks class as contributing Mutation root fields | [Getting Started](/docs/fusion/v16/getting-started) |

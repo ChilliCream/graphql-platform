@@ -40,7 +40,7 @@ nitro fusion compose [options]
 ### Options
 
 | Option | Description | Default |
-|--------|-------------|---------|
+|---|---|---|
 | `--source-schema-file <path>` | Path to a source schema `.graphqls` file (can be repeated) | Scans working directory for all `.graphql` and `.graphqls` files |
 | `--archive <path>` | Output path for the Fusion archive | `./gateway.far` |
 | `--environment <name>` | Environment name for variable substitution | `ASPNETCORE_ENVIRONMENT` or `Development` |
@@ -109,7 +109,7 @@ nitro fusion upload [options]
 ### Options
 
 | Option | Description | Required |
-|--------|-------------|----------|
+|---|---|---|
 | `--source-schema-file <path>` | Path to the source schema file | Yes |
 | `--tag <version>` | Version tag for this upload | Yes |
 | `--api-id <id>` | Nitro API identifier | Yes |
@@ -162,7 +162,7 @@ nitro fusion publish [options]
 #### Options
 
 | Option | Description | Required |
-|--------|-------------|----------|
+|---|---|---|
 | `--source-schema-file <path>` | Path to source schema files (can be repeated) | Yes (for this mode) |
 | `--tag <version>` | Version tag | Yes |
 | `--stage <name>` | Target deployment stage | Yes |
@@ -198,7 +198,7 @@ nitro fusion publish [options]
 #### Options
 
 | Option | Description | Required |
-|--------|-------------|----------|
+|---|---|---|
 | `--source-schema <name@version>` | Source schema identifiers (can be repeated) | Yes (for this mode) |
 | `--tag <version>` | Version tag | Yes |
 | `--stage <name>` | Target deployment stage | Yes |
@@ -244,7 +244,7 @@ nitro fusion publish [options]
 #### Options
 
 | Option | Description | Required |
-|--------|-------------|----------|
+|---|---|---|
 | `--archive <path>` | Path to a pre-composed Fusion archive | Yes (for this mode) |
 | `--tag <version>` | Version tag | Yes |
 | `--stage <name>` | Target deployment stage | Yes |
@@ -338,7 +338,7 @@ nitro fusion download [options]
 ### Options
 
 | Option | Description | Required |
-|--------|-------------|----------|
+|---|---|---|
 | `--stage <name>` | Stage to download from | Yes |
 | `--api-id <id>` | Nitro API identifier | Yes |
 | `--api-key <key>` | Nitro API key | Yes |
@@ -374,7 +374,7 @@ nitro fusion validate [options]
 ### Options
 
 | Option | Description | Required |
-|--------|-------------|----------|
+|---|---|---|
 | `--source-schema-file <path>` | Path to source schema files (can be repeated) | Yes (for this mode) |
 | `--archive <path>` | Path to a pre-composed archive | Yes (alternative mode) |
 | `--stage <name>` | Stage to validate against | Yes |
@@ -435,7 +435,7 @@ nitro fusion run <archive> [options]
 ### Options
 
 | Option | Description | Default |
-|--------|-------------|---------|
+|---|---|---|
 | `--port <number>` | Port to run the gateway on | `5000` |
 
 ### Examples
@@ -445,6 +445,7 @@ nitro fusion run gateway.far --port 5000
 ```
 
 This command:
+
 1. Starts a local Fusion gateway
 2. Loads the configuration from `gateway.far`
 3. Opens a browser with the Nitro IDE (Banana Cake Pop) at `http://localhost:5000/graphql`
@@ -471,7 +472,7 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 ### Options
 
 | Option | Description | Default |
-|--------|-------------|---------|
+|---|---|---|
 | `--archive <path>` | Path to the Fusion archive to modify | `./gateway.far` |
 
 ### Available Settings
@@ -495,6 +496,7 @@ nitro fusion settings set cache-control-merge-behavior include --archive gateway
 ```
 
 Values:
+
 - `ignore`: Ignore all cache control directives
 - `include`: Include cache control directives
 - `include-private`: Include cache control directives including private caches
@@ -508,6 +510,7 @@ nitro fusion settings set tag-merge-behavior include --archive gateway.far
 ```
 
 Values:
+
 - `ignore`: Ignore all tags
 - `include`: Include tags
 - `include-private`: Include tags including private tags
@@ -540,7 +543,7 @@ dotnet run -- schema export [options]
 ### Options
 
 | Option | Description | Default |
-|--------|-------------|---------|
+|---|---|---|
 | `--output <path>` | Output file path | `schema.graphqls` in project root |
 
 ### Examples
@@ -558,6 +561,7 @@ dotnet run -- schema export --output ./schemas/products.graphqls
 ```
 
 This command:
+
 1. Starts the subgraph application
 2. Extracts the GraphQL schema
 3. Writes it to the specified file
@@ -687,7 +691,7 @@ When composing with `--environment dev`, `{{API_URL}}` resolves to the dev URL. 
 The Nitro CLI respects these environment variables:
 
 | Variable | Purpose |
-|----------|---------|
+|---|---|
 | `NITRO_API_KEY` | Default API key (overrides `--api-key`) |
 | `NITRO_API_ID` | Default API ID (overrides `--api-id`) |
 | `NITRO_STAGE` | Default stage (overrides `--stage`) |

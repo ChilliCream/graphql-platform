@@ -22,7 +22,7 @@ You should be able to compose and run your existing project successfully. If com
 
 Every Fusion subgraph follows the same structure. Here is the canonical layout based on the fusion-demo patterns:
 
-```
+```text
 src/
   Shipping/
     Types/
@@ -39,7 +39,7 @@ The `Types/` directory holds your GraphQL type definitions. The `schema.graphqls
 
 For projects with data access, you would also have a `Data/` directory for your entity classes, DbContext, and DataLoaders:
 
-```
+```text
 src/
   Shipping/
     Data/
