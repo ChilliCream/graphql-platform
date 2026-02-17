@@ -138,18 +138,13 @@ sourceSchemas:
               }
             ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "errors": [
                   {
                     "message": "Could not resolve Product.name",
-                    "locations": [
-                      {
-                        "line": 5,
-                        "column": 5
-                      }
-                    ],
                     "path": [
                       "productById",
                       "name"
@@ -167,12 +162,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Could not resolve Product.name",
-                    "locations": [
-                      {
-                        "line": 5,
-                        "column": 5
-                      }
-                    ],
                     "path": [
                       "productById",
                       "name"
@@ -190,12 +179,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Could not resolve Product.name",
-                    "locations": [
-                      {
-                        "line": 5,
-                        "column": 5
-                      }
-                    ],
                     "path": [
                       "productById",
                       "name"
@@ -220,6 +203,7 @@ operationPlan:
         }
       hash: 67b3f75afa8d6eb979605a59d5462c1d
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

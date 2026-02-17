@@ -62,11 +62,11 @@ public sealed class TypeDefinitionCollection
             $"The type `{typeName}` is not a `{typeof(T).Name}`.");
     }
 
-    public bool TryGetType(string name, [NotNullWhen(true)] out ITypeDefinition? definition)
+    public bool TryGetType(string name, [NotNullWhen(true)] out ITypeDefinition? typeDefinition)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
 
-        return _types.TryGetValue(name, out definition);
+        return _types.TryGetValue(name, out typeDefinition);
     }
 
     public bool TryGetType<T>(string name, [NotNullWhen(true)] out T? type) where T : ITypeDefinition

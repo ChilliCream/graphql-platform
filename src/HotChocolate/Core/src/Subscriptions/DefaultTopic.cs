@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
@@ -193,10 +194,10 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
     }
 
-    private void BeginProcessing(IDisposable session)
+    private void BeginProcessing(IAsyncDisposable session)
         => ProcessMessagesSessionAsync(session).FireAndForget();
 
-    private async Task ProcessMessagesSessionAsync(IDisposable session)
+    private async Task ProcessMessagesSessionAsync(IAsyncDisposable session)
     {
         try
         {
@@ -208,14 +209,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
         finally
         {
-            if (session is IAsyncDisposable asyncDisposableSession)
-            {
-                await asyncDisposableSession.DisposeAsync().ConfigureAwait(false);
-            }
-            else
-            {
-                session.Dispose();
-            }
+            await session.DisposeAsync().ConfigureAwait(false);
 
             DiagnosticEvents.Disconnected(Name);
         }
@@ -338,6 +332,8 @@ public abstract class DefaultTopic<TMessage> : ITopic
     /// <param name="serializedMessage">
     /// The serialized message.
     /// </param>
+    [RequiresUnreferencedCode("Message deserialization might require types that cannot be statically analyzed.")]
+    [RequiresDynamicCode("Message deserialization might require types that cannot be statically analyzed and might need runtime code generation.")]
     protected void DispatchMessage(IMessageSerializer serializer, string? serializedMessage)
     {
         // we ensure that if there is noise on the channel we filter it out.
@@ -359,6 +355,8 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
     }
 
+    [RequiresUnreferencedCode("Message deserialization might require types that cannot be statically analyzed.")]
+    [RequiresDynamicCode("Message deserialization might require types that cannot be statically analyzed and might need runtime code generation.")]
     private MessageEnvelope<TMessage> DeserializeMessage(IMessageSerializer serializer, string serializedMessage)
     {
         try
@@ -381,7 +379,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
     /// <returns>
     /// Returns a session to dispose the subscription session.
     /// </returns>
-    protected virtual ValueTask<IDisposable> OnConnectAsync(
+    protected virtual ValueTask<IAsyncDisposable> OnConnectAsync(
         CancellationToken cancellationToken)
         => new(DefaultSession.Instance);
 
@@ -416,10 +414,10 @@ public abstract class DefaultTopic<TMessage> : ITopic
         }
     }
 
-    private sealed class DefaultSession : IDisposable
+    private sealed class DefaultSession : IAsyncDisposable
     {
         private DefaultSession() { }
-        public void Dispose() { }
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 
         public static readonly DefaultSession Instance = new();
     }

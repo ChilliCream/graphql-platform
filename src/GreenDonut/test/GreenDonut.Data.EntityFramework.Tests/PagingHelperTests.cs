@@ -241,7 +241,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await using var context = new CatalogContext(connectionString);
 
-        var page = await context.Products
+        await context.Products
             .With(query)
             .ToPageAsync(arguments);
 
@@ -271,7 +271,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await using var context = new CatalogContext(connectionString);
 
-        var page = await context.Products
+        await context.Products
             .With(query)
             .ToPageAsync(arguments);
 
@@ -301,7 +301,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await using var context = new CatalogContext(connectionString);
 
-        var page = await context.Brands
+        await context.Brands
             .With(query)
             .ToPageAsync(arguments);
 

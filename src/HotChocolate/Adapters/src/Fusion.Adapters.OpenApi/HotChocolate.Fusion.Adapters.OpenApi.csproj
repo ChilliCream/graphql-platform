@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>HotChocolate.Adapters.OpenApi</RootNamespace>
+    <PackageId>HotChocolate.Fusion.Adapters.OpenApi</PackageId>
+    <TargetFrameworks>$(OpenApiTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Adapters.OpenApi.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Fusion-vnext\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
+    <ProjectReference Include="..\Adapters.OpenApi.AspNetCore\HotChocolate.Adapters.OpenApi.AspNetCore.csproj" />
+  </ItemGroup>
+
+</Project>

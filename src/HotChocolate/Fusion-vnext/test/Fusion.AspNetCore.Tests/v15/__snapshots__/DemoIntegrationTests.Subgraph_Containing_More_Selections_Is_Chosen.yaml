@@ -28,7 +28,7 @@ sourceSchemas:
         query: Query
       }
 
-      type Product {
+      type Product @key(fields: "id") {
         id: ID!
       }
 
@@ -60,16 +60,16 @@ sourceSchemas:
       }
 
       type Author {
-        name: String!
+        name: String! @shareable
       }
 
       type Product {
         id: ID!
-        author: Author
+        author: Author @shareable
       }
 
       type Query {
-        productById(id: ID!): Product @lookup
+        productById(id: ID!): Product @lookup @shareable
       }
   - name: C
     schema: |
@@ -78,17 +78,17 @@ sourceSchemas:
       }
 
       type Author {
-        name: String!
+        name: String! @shareable
         rating: Int!
       }
 
       type Product {
         id: ID!
-        author: Author
+        author: Author @shareable
       }
 
       type Query {
-        productById(id: ID!): Product @lookup
+        productById(id: ID!): Product @lookup @shareable
       }
     interactions:
       - request:
@@ -134,6 +134,7 @@ operationPlan:
         }
       hash: 40bd37dfc9c3a0f05e5aebe75b3d61e4
       searchSpace: 1
+      expandedNodes: 3
   nodes:
     - id: 1
       type: Operation

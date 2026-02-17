@@ -74,6 +74,6 @@ public sealed class ProvidesAttribute : ObjectFieldDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
         => descriptor.Provides(Fields);
 }

@@ -1,0 +1,6 @@
+Headers:
+Content-Type: application/json
+-------------------------->
+Status Code: OK
+-------------------------->
+{"userId":"6","field":"Test","object":{"otherField":"Test2","field2":"DefaultValue"}}

@@ -1,0 +1,86 @@
+[
+  {
+    "DocumentId": {
+      "IsEmpty": false,
+      "HasValue": true,
+      "Value": "foo"
+    },
+    "DocumentHash": null,
+    "Document": {
+      "Kind": "Document",
+      "Location": {
+        "Start": 0,
+        "End": 35,
+        "Line": 1,
+        "Column": 1
+      },
+      "Definitions": [
+        {
+          "Kind": "OperationDefinition",
+          "Location": {
+            "Start": 0,
+            "End": 35,
+            "Line": 1,
+            "Column": 1
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 13,
+              "End": 22,
+              "Line": 1,
+              "Column": 14
+            },
+            "Value": "OnEvent"
+          },
+          "Description": null,
+          "Operation": "Subscription",
+          "VariableDefinitions": [],
+          "Directives": [],
+          "SelectionSet": {
+            "Kind": "SelectionSet",
+            "Location": {
+              "Start": 21,
+              "End": 35,
+              "Line": 1,
+              "Column": 22
+            },
+            "Selections": [
+              {
+                "Kind": "Field",
+                "Alias": null,
+                "Arguments": [],
+                "SelectionSet": null,
+                "Location": {
+                  "Start": 23,
+                  "End": 35,
+                  "Line": 1,
+                  "Column": 24
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 23,
+                    "End": 35,
+                    "Line": 1,
+                    "Column": 24
+                  },
+                  "Value": "fooChanged"
+                },
+                "Directives": []
+              }
+            ]
+          }
+        }
+      ],
+      "Count": 6,
+      "FieldsCount": 1
+    },
+    "OperationName": "OnEvent",
+    "ErrorHandlingMode": null,
+    "Variables": null,
+    "Extensions": null,
+    "VariablesMemoryOwner": null,
+    "ExtensionsMemoryOwner": null
+  }
+]

@@ -35,8 +35,7 @@ internal sealed class ResponseEnumerable : IAsyncEnumerable<Response<JsonDocumen
             transportError = CreateError(result);
         }
 
-        ConfiguredCancelableAsyncEnumerable<HotChocolate.Transport.OperationResult>.Enumerator
-            enumerator = default!;
+        ConfiguredCancelableAsyncEnumerable<HotChocolate.Transport.OperationResult>.Enumerator enumerator = default!;
         try
         {
             enumerator = result

@@ -39,6 +39,12 @@ public abstract class Batch
     public abstract BatchStatus Status { get; }
 
     /// <summary>
+    /// Gets a high-resolution timestamp representing when this batch was first created.
+    /// This value is used to enforce maximum batch age timeouts to prevent starvation.
+    /// </summary>
+    public abstract long CreatedTimestamp { get; }
+
+    /// <summary>
     /// Gets a high-resolution timestamp from representing the last time an item was added to this batch.
     /// This value is used for recency checks in scheduling decisions.
     /// </summary>

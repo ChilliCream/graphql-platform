@@ -12,41 +12,32 @@ public class InMemoryConnection : IInMemoryConnection
 {
     private readonly Func<CancellationToken, ValueTask<IInMemoryClient>> _createClientAsync;
 
-    public InMemoryConnection(
-        Func<CancellationToken, ValueTask<IInMemoryClient>> createClientAsync)
+    public InMemoryConnection(Func<CancellationToken, ValueTask<IInMemoryClient>> createClientAsync)
     {
-        _createClientAsync = createClientAsync ??
-            throw new ArgumentNullException(nameof(createClientAsync));
+        ArgumentNullException.ThrowIfNull(createClientAsync);
+        _createClientAsync = createClientAsync;
     }
 
     public IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(
         OperationRequest request)
         => new ResponseStream(_createClientAsync, request);
 
-    private sealed class ResponseStream : IAsyncEnumerable<Response<JsonDocument>>
+    private sealed class ResponseStream(
+        Func<CancellationToken, ValueTask<IInMemoryClient>> createClient,
+        OperationRequest request)
+        : IAsyncEnumerable<Response<JsonDocument>>
     {
-        private readonly Func<CancellationToken, ValueTask<IInMemoryClient>> _createClientAsync;
-        private readonly OperationRequest _request;
-
-        public ResponseStream(
-            Func<CancellationToken, ValueTask<IInMemoryClient>> createClientAsync,
-            OperationRequest request)
-        {
-            _createClientAsync = createClientAsync;
-            _request = request;
-        }
-
         public async IAsyncEnumerator<Response<JsonDocument>> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
-            var client = await _createClientAsync(cancellationToken);
+            var client = await createClient(cancellationToken);
 
             Exception? exception = null;
             IExecutionResult? result = null;
 
             try
             {
-                result = await client.ExecuteAsync(_request, cancellationToken);
+                result = await client.ExecuteAsync(request, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -78,7 +69,7 @@ public class InMemoryConnection : IInMemoryConnection
 
             switch (executionResult)
             {
-                case HotChocolate.Execution.IOperationResult queryResult:
+                case OperationResult queryResult:
                     queryResult.WriteTo(writer);
                     yield return new Response<JsonDocument>(Parse(writer.GetWrittenMemory()), null);
                     break;

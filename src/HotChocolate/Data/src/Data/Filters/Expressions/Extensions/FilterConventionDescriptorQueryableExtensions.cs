@@ -22,45 +22,45 @@ public static class FilterConventionDescriptorQueryableExtensions
     public static IFilterProviderDescriptor<QueryableFilterContext> AddDefaultFieldHandlers(
         this IFilterProviderDescriptor<QueryableFilterContext> descriptor)
     {
-        descriptor.AddFieldHandler<QueryableBooleanEqualsHandler>();
-        descriptor.AddFieldHandler<QueryableBooleanNotEqualsHandler>();
+        descriptor.AddFieldHandler(QueryableBooleanEqualsHandler.Create);
+        descriptor.AddFieldHandler(QueryableBooleanNotEqualsHandler.Create);
 
-        descriptor.AddFieldHandler<QueryableComparableEqualsHandler>();
-        descriptor.AddFieldHandler<QueryableComparableNotEqualsHandler>();
-        descriptor.AddFieldHandler<QueryableComparableInHandler>();
-        descriptor.AddFieldHandler<QueryableComparableNotInHandler>();
-        descriptor.AddFieldHandler<QueryableComparableGreaterThanHandler>();
-        descriptor.AddFieldHandler<QueryableComparableNotGreaterThanHandler>();
-        descriptor.AddFieldHandler<QueryableComparableGreaterThanOrEqualsHandler>();
-        descriptor.AddFieldHandler<QueryableComparableNotGreaterThanOrEqualsHandler>();
-        descriptor.AddFieldHandler<QueryableComparableLowerThanHandler>();
-        descriptor.AddFieldHandler<QueryableComparableNotLowerThanHandler>();
-        descriptor.AddFieldHandler<QueryableComparableLowerThanOrEqualsHandler>();
-        descriptor.AddFieldHandler<QueryableComparableNotLowerThanOrEqualsHandler>();
+        descriptor.AddFieldHandler(QueryableComparableEqualsHandler.Create);
+        descriptor.AddFieldHandler(QueryableComparableNotEqualsHandler.Create);
+        descriptor.AddFieldHandler(QueryableComparableInHandler.Create);
+        descriptor.AddFieldHandler(QueryableComparableNotInHandler.Create);
+        descriptor.AddFieldHandler(QueryableComparableGreaterThanHandler.Create);
+        descriptor.AddFieldHandler(QueryableComparableNotGreaterThanHandler.Create);
+        descriptor.AddFieldHandler(QueryableComparableGreaterThanOrEqualsHandler.Create);
+        descriptor.AddFieldHandler(QueryableComparableNotGreaterThanOrEqualsHandler.Create);
+        descriptor.AddFieldHandler(QueryableComparableLowerThanHandler.Create);
+        descriptor.AddFieldHandler(QueryableComparableNotLowerThanHandler.Create);
+        descriptor.AddFieldHandler(QueryableComparableLowerThanOrEqualsHandler.Create);
+        descriptor.AddFieldHandler(QueryableComparableNotLowerThanOrEqualsHandler.Create);
 
-        descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
-        descriptor.AddFieldHandler<QueryableStringNotEqualsHandler>();
-        descriptor.AddFieldHandler<QueryableStringStartsWithHandler>();
-        descriptor.AddFieldHandler<QueryableStringNotStartsWithHandler>();
-        descriptor.AddFieldHandler<QueryableStringEndsWithHandler>();
-        descriptor.AddFieldHandler<QueryableStringNotEndsWithHandler>();
-        descriptor.AddFieldHandler<QueryableStringInHandler>();
-        descriptor.AddFieldHandler<QueryableStringNotInHandler>();
-        descriptor.AddFieldHandler<QueryableStringContainsHandler>();
-        descriptor.AddFieldHandler<QueryableStringNotContainsHandler>();
+        descriptor.AddFieldHandler(QueryableStringEqualsHandler.Create);
+        descriptor.AddFieldHandler(QueryableStringNotEqualsHandler.Create);
+        descriptor.AddFieldHandler(QueryableStringStartsWithHandler.Create);
+        descriptor.AddFieldHandler(QueryableStringNotStartsWithHandler.Create);
+        descriptor.AddFieldHandler(QueryableStringEndsWithHandler.Create);
+        descriptor.AddFieldHandler(QueryableStringNotEndsWithHandler.Create);
+        descriptor.AddFieldHandler(QueryableStringInHandler.Create);
+        descriptor.AddFieldHandler(QueryableStringNotInHandler.Create);
+        descriptor.AddFieldHandler(QueryableStringContainsHandler.Create);
+        descriptor.AddFieldHandler(QueryableStringNotContainsHandler.Create);
 
-        descriptor.AddFieldHandler<QueryableEnumEqualsHandler>();
-        descriptor.AddFieldHandler<QueryableEnumNotEqualsHandler>();
-        descriptor.AddFieldHandler<QueryableEnumInHandler>();
-        descriptor.AddFieldHandler<QueryableEnumNotInHandler>();
+        descriptor.AddFieldHandler(QueryableEnumEqualsHandler.Create);
+        descriptor.AddFieldHandler(QueryableEnumNotEqualsHandler.Create);
+        descriptor.AddFieldHandler(QueryableEnumInHandler.Create);
+        descriptor.AddFieldHandler(QueryableEnumNotInHandler.Create);
 
-        descriptor.AddFieldHandler<QueryableListAnyOperationHandler>();
-        descriptor.AddFieldHandler<QueryableListAllOperationHandler>();
-        descriptor.AddFieldHandler<QueryableListNoneOperationHandler>();
-        descriptor.AddFieldHandler<QueryableListSomeOperationHandler>();
+        descriptor.AddFieldHandler(QueryableListAnyOperationHandler.Create);
+        descriptor.AddFieldHandler(QueryableListAllOperationHandler.Create);
+        descriptor.AddFieldHandler(QueryableListNoneOperationHandler.Create);
+        descriptor.AddFieldHandler(QueryableListSomeOperationHandler.Create);
 
-        descriptor.AddFieldHandler<QueryableDataOperationHandler>();
-        descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+        descriptor.AddFieldHandler(QueryableDataOperationHandler.Create);
+        descriptor.AddFieldHandler(QueryableDefaultFieldHandler.Create);
 
         return descriptor;
     }

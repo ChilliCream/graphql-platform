@@ -1,17 +1,28 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The `LocalDateTime` scalar type is a local date/time string (i.e., with no associated timezone)
-/// with the format `YYYY-MM-DDThh:mm:ss`.
+/// The <c>LocalDateTime</c> scalar type represents a date and time without time zone information.
+/// It is intended for scenarios where time zone context is either unnecessary or managed
+/// separately, such as recording birthdates and times (where the event occurred in a specific local
+/// context), displaying timestamps in a user's local time zone (where the time zone is known from
+/// context), or recording historical timestamps where the time zone was not captured.
 /// </summary>
-public class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
+/// <seealso href="https://scalars.graphql.org/chillicream/local-date-time.html">Specification</seealso>
+public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
 {
-    private const string LocalFormat = "yyyy-MM-ddTHH\\:mm\\:ss";
+    private const string LocalFormat = "yyyy-MM-ddTHH\\:mm\\:ss.FFFFFFF";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/local-date-time.html";
+
+    private readonly bool _enforceSpecFormat;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalDateTimeType"/> class.
@@ -19,10 +30,26 @@ public class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
     public LocalDateTimeType(
         string name,
         string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
+        BindingBehavior bind = BindingBehavior.Explicit,
+        bool disableFormatCheck = false)
         : base(name, bind)
     {
         Description = description;
+        Pattern = @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?$";
+        SpecifiedBy = new Uri(SpecifiedByUri);
+        _enforceSpecFormat = !disableFormatCheck;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalDateTimeType"/> class.
+    /// </summary>
+    public LocalDateTimeType(bool disableFormatCheck)
+        : this(
+            ScalarNames.LocalDateTime,
+            TypeResources.LocalDateTimeType_Description,
+            BindingBehavior.Implicit,
+            disableFormatCheck: disableFormatCheck)
+    {
     }
 
     /// <summary>
@@ -36,99 +63,60 @@ public class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
     {
     }
 
-    public override IValueNode ParseResult(object? resultValue)
+    /// <inheritdoc />
+    protected override DateTime OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        return resultValue switch
+        if (TryParseStringValue(valueLiteral.Value, out var value))
         {
-            null => NullValueNode.Default,
-            string s => new StringValueNode(s),
-            DateTimeOffset o => ParseValue(o.DateTime),
-            DateTime dt => ParseValue(dt),
-            _ => throw new SerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()), this)
-        };
-    }
-
-    protected override DateTime ParseLiteral(StringValueNode valueSyntax)
-    {
-        if (TryDeserializeFromString(valueSyntax.Value, out var value))
-        {
-            return value.Value;
+            return value;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
-            this);
+        throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
     }
 
-    protected override StringValueNode ParseValue(DateTime runtimeValue)
+    /// <inheritdoc />
+    protected override DateTime OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        return new(Serialize(runtimeValue));
-    }
-
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-    {
-        switch (runtimeValue)
+        if (TryParseStringValue(inputValue.GetString()!, out var value))
         {
-            case null:
-                resultValue = null;
-                return true;
-            case DateTimeOffset o:
-                resultValue = Serialize(o);
-                return true;
-            case DateTime dt:
-                resultValue = Serialize(dt);
-                return true;
-            default:
-                resultValue = null;
-                return false;
+            return value;
         }
+
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
 
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+    /// <inheritdoc />
+    protected override void OnCoerceOutputValue(DateTime runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
+
+    /// <inheritdoc />
+    protected override StringValueNode OnValueToLiteral(DateTime runtimeValue)
+        => new StringValueNode(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
+
+    private bool TryParseStringValue(string serialized, out DateTime value)
     {
-        switch (resultValue)
+        // Check format.
+        if (_enforceSpecFormat && !LocalDateTimeRegex().IsMatch(serialized))
         {
-            case null:
-                runtimeValue = null;
-                return true;
-            case string s when TryDeserializeFromString(s, out var d):
-                runtimeValue = d;
-                return true;
-            case DateTimeOffset o:
-                runtimeValue = o.DateTime;
-                return true;
-            case DateTime dt:
-                runtimeValue = dt;
-                return true;
-            default:
-                runtimeValue = null;
-                return false;
+            value = default;
+            return false;
         }
-    }
 
-    private static string Serialize(IFormattable value)
-    {
-        return value.ToString(LocalFormat, CultureInfo.InvariantCulture);
-    }
-
-    private static bool TryDeserializeFromString(
-        string? serialized,
-        [NotNullWhen(true)] out DateTime? value)
-    {
-        if (serialized is not null
-            && DateTime.TryParseExact(
-                serialized,
-                LocalFormat,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.None,
-                out var dateTime))
+        if (DateTime.TryParse(
+            serialized,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out var dateTime))
         {
             value = dateTime;
             return true;
         }
 
-        value = null;
+        value = default;
         return false;
     }
+
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex LocalDateTimeRegex();
 }

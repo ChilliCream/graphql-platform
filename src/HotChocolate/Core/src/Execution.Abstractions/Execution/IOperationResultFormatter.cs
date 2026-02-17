@@ -4,7 +4,7 @@ using System.IO.Pipelines;
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Represents a formatter for <see cref="IOperationResult"/>s.
+/// Represents a formatter for <see cref="OperationResult"/>s.
 /// </summary>
 public interface IOperationResultFormatter
 {
@@ -26,7 +26,7 @@ public interface IOperationResultFormatter
     /// <paramref name="writer"/> is <c>null</c>.
     /// </exception>
     ValueTask FormatAsync(
-        IOperationResult result,
+        OperationResult result,
         PipeWriter writer,
         CancellationToken cancellationToken = default);
 
@@ -45,6 +45,6 @@ public interface IOperationResultFormatter
     /// <paramref name="writer"/> is <c>null</c>.
     /// </exception>
     void Format(
-        IOperationResult result,
+        OperationResult result,
         IBufferWriter<byte> writer);
 }

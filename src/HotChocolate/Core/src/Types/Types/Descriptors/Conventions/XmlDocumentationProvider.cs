@@ -369,7 +369,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
             "\n" + documentation.Replace("\r", string.Empty).Trim('\n');
 
         var whitespace =
-            Regex.Match(documentation, "(\\n[ \\t]*)").Value;
+            Regex.Match(documentation, "\\n[ \\t]*").Value;
 
         documentation = documentation.Replace(whitespace, "\n");
 

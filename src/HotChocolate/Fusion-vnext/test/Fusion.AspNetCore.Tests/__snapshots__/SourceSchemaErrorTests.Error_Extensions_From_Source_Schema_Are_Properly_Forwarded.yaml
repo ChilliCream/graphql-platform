@@ -14,6 +14,7 @@ response:
             "someField"
           ],
           "extensions": {
+            "code": "SOME_ERROR",
             "exception": {
               "message": "Some exception",
               "stackTrace": null
@@ -45,16 +46,11 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Something went wrong",
-                    "locations": [
-                      {
-                        "line": 2,
-                        "column": 3
-                      }
-                    ],
                     "path": [
                       "someField"
                     ],
                     "extensions": {
+                      "code": "SOME_ERROR",
                       "exception": {
                         "message": "Some exception",
                         "stackTrace": null
@@ -72,6 +68,7 @@ operationPlan:
         }
       hash: 5fcd7a626721773e96fbf2314c0d132d
       searchSpace: 1
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Operation

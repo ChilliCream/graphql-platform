@@ -69,7 +69,7 @@ sourceSchemas:
       }
 
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
@@ -130,7 +130,7 @@ sourceSchemas:
       }
 
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
@@ -158,6 +158,7 @@ sourceSchemas:
               }
             ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -206,6 +207,7 @@ operationPlan:
       name: testQuery
       hash: 70eb13080ba34e01a2aca487ab0f3a22
       searchSpace: 1
+      expandedNodes: 3
   nodes:
     - id: 1
       type: Node

@@ -1,0 +1,71 @@
+operation:
+  - document: |
+      {
+        product {
+          canAffordWithDiscount
+          id @fusion__requirement
+          isExpensiveWithDiscount @fusion__requirement
+          hasDiscount @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 8
+nodes:
+  - id: 1
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_1 {
+        product {
+          id
+          hasDiscount
+        }
+      }
+  - id: 3
+    type: Operation
+    schema: d
+    operation: |
+      query Op_123456789101112_3(
+        $__fusion_2_isExpensiveWithDiscount: Boolean!
+          $__fusion_3_id: ID!
+      ) {
+        productById(id: $__fusion_3_id) {
+          canAffordWithDiscount(isExpensiveWithDiscount: $__fusion_2_isExpensiveWithDiscount)
+        }
+      }
+    source: $.productById
+    target: $.product
+    requirements:
+      - name: __fusion_2_isExpensiveWithDiscount
+        selectionMap: >-
+          isExpensiveWithDiscount
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+      - id: 4
+  - id: 4
+    type: Operation
+    schema: c
+    operation: |
+      query Op_123456789101112_4(
+        $__fusion_4_id: ID!
+          $__fusion_5_hasDiscount: Boolean!
+      ) {
+        productById(id: $__fusion_4_id) {
+          isExpensiveWithDiscount(hasDiscount: $__fusion_5_hasDiscount)
+        }
+      }
+    source: $.productById
+    target: $.product
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+      - name: __fusion_5_hasDiscount
+        selectionMap: >-
+          hasDiscount
+    dependencies:
+      - id: 1

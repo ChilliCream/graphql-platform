@@ -103,10 +103,9 @@ public class InterfaceTypeAttributeTests
 
         public object DefaultValue { get; }
 
-        protected override void OnConfigure(
-            IDescriptorContext context,
+        protected override void OnConfigure(IDescriptorContext context,
             IArgumentDescriptor descriptor,
-            ParameterInfo parameter)
+            ParameterInfo? parameter)
         {
             descriptor.DefaultValue(DefaultValue);
         }
@@ -124,7 +123,7 @@ public class InterfaceTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IInterfaceFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
             descriptor.Extend().OnBeforeCompletion(
                 (c, d) => d.Features.Set(new CustomFeature()));
@@ -143,7 +142,7 @@ public class InterfaceTypeAttributeTests
         protected override void OnConfigure(
             IDescriptorContext context,
             IInterfaceTypeDescriptor descriptor,
-            Type type)
+            Type? type)
         {
             descriptor.Field("abc").Type<StringType>();
         }

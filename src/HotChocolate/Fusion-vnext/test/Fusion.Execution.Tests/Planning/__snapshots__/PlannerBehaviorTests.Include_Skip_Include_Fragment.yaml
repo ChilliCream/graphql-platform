@@ -1,0 +1,77 @@
+operation:
+  - document: |
+      query(
+        $include: Boolean
+      ) {
+        product {
+          price
+          price @fusion__requirement
+          id @fusion__requirement
+          isExpensive @fusion__requirement
+          neverCalledInclude @include(if: $include)
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 8
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        product {
+          price
+          id
+        }
+      }
+  - id: 3
+    type: Operation
+    schema: c
+    operation: |
+      query Op_123456789101112_3(
+        $__fusion_2_isExpensive: Boolean!
+          $__fusion_3_id: ID!
+      ) {
+        productById(id: $__fusion_3_id) {
+          neverCalledInclude(isExpensive: $__fusion_2_isExpensive)
+        }
+      }
+    source: $.productById
+    target: $.product
+    requirements:
+      - name: __fusion_2_isExpensive
+        selectionMap: >-
+          isExpensive
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    conditions:
+      - variable: $include
+        passingValue: true
+    dependencies:
+      - id: 1
+      - id: 4
+  - id: 4
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_4(
+        $__fusion_4_id: ID!
+          $__fusion_5_price: Float!
+      ) {
+        productById(id: $__fusion_4_id) {
+          isExpensive(price: $__fusion_5_price)
+        }
+      }
+    source: $.productById
+    target: $.product
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+      - name: __fusion_5_price
+        selectionMap: >-
+          price
+    dependencies:
+      - id: 1

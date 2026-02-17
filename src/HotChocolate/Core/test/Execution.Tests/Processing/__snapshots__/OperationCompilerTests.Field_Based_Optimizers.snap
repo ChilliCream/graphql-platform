@@ -10,14 +10,14 @@
 
 {
   ... on Query {
-    root @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
+    root @__execute(id: 2, kind: DEFAULT, type: COMPOSITE) {
       ... on Foo {
-        bar @__execute(id: 1, kind: PURE, type: COMPOSITE) {
+        bar @__execute(id: 4, kind: PURE, type: COMPOSITE) {
           ... on Bar {
-            text @__execute(id: 2, kind: PURE, type: LEAF)
-            baz @conditional @__execute(id: 3, kind: DEFAULT, type: COMPOSITE, internal: true) {
+            text @__execute(id: 6, kind: PURE, type: LEAF)
+            baz @__execute(id: 7, kind: DEFAULT, type: COMPOSITE, internal: true) {
               ... on Baz {
-                text @__execute(id: 4, kind: PURE, type: LEAF)
+                text @__execute(id: 9, kind: PURE, type: LEAF)
               }
             }
           }

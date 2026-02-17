@@ -1,7 +1,6 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
-using Microsoft.CodeAnalysis.Text;
 using static HotChocolate.Types.Analyzers.WellKnownTypes;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
@@ -281,9 +280,6 @@ public sealed class RequestMiddlewareFileBuilder : IDisposable
 
     public override string ToString()
         => _sb.ToString();
-
-    public SourceText ToSourceText()
-        => SourceText.From(ToString(), Encoding.UTF8);
 
     public void Dispose()
     {

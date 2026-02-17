@@ -1,10 +1,10 @@
 using HotChocolate.Configuration;
 using HotChocolate.Features;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
-using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Relay.NodeConstants;
@@ -21,8 +21,10 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
     private ObjectTypeConfiguration? _queryTypeConfig;
     private TypeReference _nodeType = null!;
     private TypeReference _lookupRef = null!;
+    private TypeReference _shareableRef = null!;
     private bool _registeredTypes;
     private GlobalObjectIdentificationOptions _options = null!;
+    private IReadOnlySchemaOptions _schemaOptions = null!;
 
     internal override uint Position => uint.MaxValue - 100;
 
@@ -41,7 +43,9 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
     {
         _nodeType = context.TypeInspector.GetTypeRef(typeof(NodeType));
         _lookupRef = context.TypeInspector.GetTypeRef(typeof(Lookup));
+        _shareableRef = context.TypeInspector.GetTypeRef(typeof(Shareable));
         _options = context.Features.GetRequired<NodeSchemaFeature>().Options;
+        _schemaOptions = context.Options;
     }
 
     public override IEnumerable<TypeReference> RegisterMoreTypes(
@@ -54,6 +58,11 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             if (_options.MarkNodeFieldAsLookup)
             {
                 yield return _lookupRef;
+            }
+
+            if (_options.MarkNodeFieldAsLookup || _schemaOptions.ApplyShareableToNodeFields)
+            {
+                yield return _shareableRef;
             }
 
             _registeredTypes = true;
@@ -77,7 +86,6 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         if (_queryContext is not null && _queryTypeConfig is not null)
         {
             var typeInspector = _queryContext.TypeInspector;
-
             var serializer = _queryContext.DescriptorContext.NodeIdSerializerAccessor;
 
             // the nodes fields shall be chained in after the introspection fields,
@@ -93,7 +101,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                 serializer,
                 _queryTypeConfig.Fields,
                 index + 1,
-                _options.MarkNodeFieldAsLookup);
+                _options.MarkNodeFieldAsLookup,
+                _schemaOptions.ApplyShareableToNodeFields);
 
             if (_options.AddNodesField)
             {
@@ -102,7 +111,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                     serializer,
                     _queryTypeConfig.Fields,
                     index + 2,
-                    maxAllowedNodes);
+                    maxAllowedNodes,
+                    _schemaOptions.ApplyShareableToNodeFields);
             }
         }
     }
@@ -112,7 +122,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         INodeIdSerializerAccessor serializerAccessor,
         IList<ObjectFieldConfiguration> fields,
         int index,
-        bool markNodeFieldAsLookup)
+        bool markNodeFieldAsLookup,
+        bool markNodeFieldSharable)
     {
         var node = typeInspector.GetTypeRef(typeof(NodeType));
         var id = typeInspector.GetTypeRef(typeof(NonNullType<IdType>));
@@ -122,7 +133,10 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Relay_NodeField_Description,
             node)
         {
-            Arguments = { new ArgumentConfiguration(Id, Relay_NodeField_Id_Description, id) },
+            Arguments =
+            {
+                new ArgumentConfiguration(Id, Relay_NodeField_Id_Description, id)
+            },
             MiddlewareConfigurations =
             {
                 new FieldMiddlewareConfiguration(_ =>
@@ -143,6 +157,11 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             field.AddDirective(Lookup.Instance, typeInspector);
         }
 
+        if (markNodeFieldSharable || markNodeFieldAsLookup)
+        {
+            field.AddDirective(Shareable.Instance, typeInspector);
+        }
+
         // In the projection interceptor we want to change the context data on this field
         // after the field is completed. We need at least 1 element on the context data to avoid
         // it being replaced with ReadOnlyFeatureCollection.Default
@@ -156,7 +175,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         INodeIdSerializerAccessor serializerAccessor,
         IList<ObjectFieldConfiguration> fields,
         int index,
-        int maxAllowedNodes)
+        int maxAllowedNodes,
+        bool markNodeFieldSharable)
     {
         var nodes = typeInspector.GetTypeRef(typeof(NonNullType<ListType<NodeType>>));
         var ids = typeInspector.GetTypeRef(typeof(NonNullType<ListType<NonNullType<IdType>>>));
@@ -166,7 +186,10 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Relay_NodesField_Description,
             nodes)
         {
-            Arguments = { new ArgumentConfiguration(Ids, Relay_NodesField_Ids_Description, ids) },
+            Arguments =
+            {
+                new ArgumentConfiguration(Ids, Relay_NodesField_Ids_Description, ids)
+            },
             MiddlewareConfigurations =
             {
                 new FieldMiddlewareConfiguration(_ =>
@@ -181,6 +204,11 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             },
             Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodesField
         };
+
+        if (markNodeFieldSharable)
+        {
+            field.AddDirective(Shareable.Instance, typeInspector);
+        }
 
         // In the projection interceptor we want to change the context data on this field
         // after the field is completed. We need at least 1 element on the context data to avoid

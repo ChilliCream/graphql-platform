@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -65,8 +64,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         SourceSchemaClientRequest originalRequest)
     {
         var defaultAccept = originalRequest.OperationType is OperationType.Subscription
-            ? AcceptContentTypes.Subscription
-            : AcceptContentTypes.Default;
+            ? _configuration.SubscriptionAcceptHeaderValues
+            : _configuration.DefaultAcceptHeaderValues;
         var operationSourceText = originalRequest.OperationSourceText;
 
         switch (originalRequest.Variables.Length)
@@ -80,10 +79,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
             case 1:
                 var variableValues = originalRequest.Variables[0].Values;
-                return new GraphQLHttpRequest(CreateSingleRequest(
-                    operationSourceText,
-                    variableValues,
-                    originalRequest.RequiresFileUpload))
+                return new GraphQLHttpRequest(CreateSingleRequest(operationSourceText, variableValues))
                 {
                     Uri = _configuration.BaseAddress,
                     Accept = defaultAccept,
@@ -91,24 +87,29 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 };
 
             default:
-                return new GraphQLHttpRequest(CreateBatchRequest(operationSourceText, originalRequest))
+                if (_configuration.BatchingMode == SourceSchemaHttpClientBatchingMode.ApolloRequestBatching)
+                {
+                    return new GraphQLHttpRequest(CreateOperationBatchRequest(operationSourceText, originalRequest))
+                    {
+                        Uri = _configuration.BaseAddress,
+                        Accept = _configuration.BatchingAcceptHeaderValues,
+                        EnableFileUploads = originalRequest.RequiresFileUpload
+                    };
+                }
+
+                return new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, originalRequest))
                 {
                     Uri = _configuration.BaseAddress,
-                    Accept = AcceptContentTypes.VariableBatching
+                    Accept = _configuration.BatchingAcceptHeaderValues,
+                    EnableFileUploads = originalRequest.RequiresFileUpload
                 };
         }
     }
 
     private static OperationRequest CreateSingleRequest(
         string operationSourceText,
-        ObjectValueNode? variables = null,
-        bool requiresFileUpload = false)
+        ObjectValueNode? variables = null)
     {
-        if (requiresFileUpload && variables is not null)
-        {
-            variables = RewriteFileReferencesInVariables(variables);
-        }
-
         return new OperationRequest(
             operationSourceText,
             id: null,
@@ -118,7 +119,23 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             extensions: null);
     }
 
-    private static VariableBatchRequest CreateBatchRequest(
+    private static OperationBatchRequest CreateOperationBatchRequest(
+        string operationSourceText,
+        SourceSchemaClientRequest originalRequest)
+    {
+        var requests = new OperationRequest[originalRequest.Variables.Length];
+
+        for (var i = 0; i < requests.Length; i++)
+        {
+            requests[i] = CreateSingleRequest(
+                operationSourceText,
+                originalRequest.Variables[i].Values);
+        }
+
+        return new OperationBatchRequest(requests);
+    }
+
+    private static VariableBatchRequest CreateVariableBatchRequest(
         string operationSourceText,
         SourceSchemaClientRequest originalRequest)
     {
@@ -149,20 +166,6 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         _disposed = true;
 
         return ValueTask.CompletedTask;
-    }
-
-    private static ObjectValueNode RewriteFileReferencesInVariables(ObjectValueNode variables)
-    {
-        var newFields = new ObjectFieldNode[variables.Fields.Count];
-
-        for (var i = 0; i < variables.Fields.Count; i++)
-        {
-            var field = variables.Fields[i];
-            var newValue = FileVariableRewriter.Rewrite(field.Value);
-            newFields[i] = new ObjectFieldNode(field.Name.Value, newValue);
-        }
-
-        return new ObjectValueNode(newFields);
     }
 
     private sealed class Response(
@@ -207,11 +210,20 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     case 1:
                     {
                         var result = await response.ReadAsResultAsync(cancellationToken);
-                        var sourceSchemaResult = new SourceSchemaResult(variables[0].Path, result);
+                        var variable = variables[0];
+                        var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
 
                         configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
                         yield return sourceSchemaResult;
+
+                        foreach (var additionalPath in variable.AdditionalPaths)
+                        {
+                            var alias = sourceSchemaResult.WithPath(additionalPath);
+                            configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                            yield return alias;
+                        }
+
                         break;
                     }
 
@@ -219,34 +231,84 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     {
                         SourceSchemaResult? errorResult = null;
 
-                        await foreach (var result in response.ReadAsResultStreamAsync()
-                            .WithCancellation(cancellationToken))
+                        if (configuration.BatchingMode == SourceSchemaHttpClientBatchingMode.ApolloRequestBatching)
                         {
-                            if (!result.Root.TryGetProperty(VariableIndex, out var variableIndex)
-                                || variableIndex.ValueKind is not JsonValueKind.Number)
+                            var requestIndex = 0;
+                            await foreach (var result in response.ReadAsResultStreamAsync()
+                                .WithCancellation(cancellationToken))
                             {
-                                errorResult = new SourceSchemaResult(variables[0].Path, result);
-                                configuration.OnSourceSchemaResult?.Invoke(context, node, errorResult);
-                                break;
+                                var variable = variables[requestIndex];
+                                var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
+
+                                configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+
+                                yield return sourceSchemaResult;
+
+                                foreach (var additionalPath in variable.AdditionalPaths)
+                                {
+                                    var alias = sourceSchemaResult.WithPath(additionalPath);
+                                    configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                                    yield return alias;
+                                }
+
+                                requestIndex++;
                             }
+                        }
+                        else
+                        {
+                            await foreach (var result in response.ReadAsResultStreamAsync()
+                                .WithCancellation(cancellationToken))
+                            {
+                                if (!result.Root.TryGetProperty(VariableIndex, out var variableIndex)
+                                    || variableIndex.ValueKind is not JsonValueKind.Number)
+                                {
+                                    errorResult = new SourceSchemaResult(variables[0].Path, result);
+                                    configuration.OnSourceSchemaResult?.Invoke(context, node, errorResult);
+                                    break;
+                                }
 
-                            var index = variableIndex.GetInt32();
-                            var (path, _) = variables[index];
-                            var sourceSchemaResult = new SourceSchemaResult(path, result);
+                                var index = variableIndex.GetInt32();
+                                var variable = variables[index];
+                                var sourceSchemaResult = new SourceSchemaResult(variable.Path, result);
 
-                            configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+                                configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
-                            yield return sourceSchemaResult;
+                                yield return sourceSchemaResult;
+
+                                foreach (var additionalPath in variable.AdditionalPaths)
+                                {
+                                    var alias = sourceSchemaResult.WithPath(additionalPath);
+                                    configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                                    yield return alias;
+                                }
+                            }
                         }
 
                         if (errorResult is not null)
                         {
                             yield return errorResult;
 
+                            foreach (var additionalPath in variables[0].AdditionalPaths)
+                            {
+                                var alias = errorResult.WithPath(additionalPath);
+                                configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                                yield return alias;
+                            }
+
                             for (var i = 1; i < variables.Length; i++)
                             {
-                                var (path, _) = variables[i];
-                                yield return new SourceSchemaResult(path, SourceResultDocument.CreateEmptyObject());
+                                var variable = variables[i];
+                                var sourceSchemaResult = new SourceSchemaResult(
+                                    variable.Path,
+                                    SourceResultDocument.CreateEmptyObject());
+                                yield return sourceSchemaResult;
+
+                                foreach (var additionalPath in variable.AdditionalPaths)
+                                {
+                                    var alias = sourceSchemaResult.WithPath(additionalPath);
+                                    configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
+                                    yield return alias;
+                                }
                             }
                         }
 
@@ -263,28 +325,5 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         public override bool IsSuccessful => response.IsSuccessStatusCode;
 
         public override void Dispose() => response.Dispose();
-    }
-
-    private static class AcceptContentTypes
-    {
-        public static readonly ImmutableArray<MediaTypeWithQualityHeaderValue> Default =
-        [
-            new("application/graphql-response+json") { CharSet = "utf-8" },
-            new("application/json") { CharSet = "utf-8" },
-            new("application/jsonl") { CharSet = "utf-8" },
-            new("text/event-stream") { CharSet = "utf-8" }
-        ];
-
-        public static ImmutableArray<MediaTypeWithQualityHeaderValue> VariableBatching { get; } =
-        [
-            new("application/jsonl") { CharSet = "utf-8" },
-            new("text/event-stream") { CharSet = "utf-8" }
-        ];
-
-        public static ImmutableArray<MediaTypeWithQualityHeaderValue> Subscription { get; } =
-        [
-            new("application/jsonl") { CharSet = "utf-8" },
-            new("text/event-stream") { CharSet = "utf-8" }
-        ];
     }
 }

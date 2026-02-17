@@ -22,7 +22,7 @@ response:
         "posts": [
           {
             "product": {
-              "subgraph2": "Product: UHJvZHVjdDo2"
+              "subgraph2": "Product: UHJvZHVjdDo0"
             }
           },
           {
@@ -32,7 +32,7 @@ response:
           },
           {
             "product": {
-              "subgraph2": "Product: UHJvZHVjdDo0"
+              "subgraph2": "Product: UHJvZHVjdDo2"
             }
           }
         ]
@@ -55,7 +55,7 @@ sourceSchemas:
         product: Product
       }
 
-      type Product {
+      type Product @key(fields: "id") {
         id: ID!
       }
 
@@ -91,7 +91,7 @@ sourceSchemas:
                     {
                       "__typename": "Photo",
                       "product": {
-                        "id": "UHJvZHVjdDo2"
+                        "id": "UHJvZHVjdDo0"
                       }
                     },
                     {
@@ -103,7 +103,7 @@ sourceSchemas:
                     {
                       "__typename": "Photo",
                       "product": {
-                        "id": "UHJvZHVjdDo0"
+                        "id": "UHJvZHVjdDo2"
                       }
                     }
                   ]
@@ -159,19 +159,20 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "UHJvZHVjdDo2"
+                "__fusion_2_id": "UHJvZHVjdDo0"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDo0"
+                "__fusion_2_id": "UHJvZHVjdDo2"
               }
             ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo2"
+                    "subgraph2": "Product: UHJvZHVjdDo0"
                   }
                 }
               }
@@ -179,7 +180,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo0"
+                    "subgraph2": "Product: UHJvZHVjdDo2"
                   }
                 }
               }
@@ -206,6 +207,7 @@ operationPlan:
       name: testQuery
       hash: 9b3b2942c1fefa10ff166b89f628b2b4
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

@@ -29,11 +29,10 @@ public sealed partial class ExtendedType
                 if (definition == typeof(ListType<>))
                 {
                     return cache.GetOrCreateType(
-                        source is not null ? source : type,
+                        source ?? type,
                         () =>
                         {
-                            var elementType =
-                                FromType(type.GetGenericArguments()[0], null, true, cache);
+                            var elementType = FromType(type.GetGenericArguments()[0], null, true, cache);
 
                             return new ExtendedType(
                                 type,

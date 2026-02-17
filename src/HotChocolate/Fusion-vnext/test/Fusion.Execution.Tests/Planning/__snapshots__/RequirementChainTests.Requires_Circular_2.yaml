@@ -1,0 +1,94 @@
+operation:
+  - document: |
+      {
+        feed {
+          byExpert
+          id @fusion__requirement
+          byNovice @fusion__requirement
+          author @fusion__requirement {
+            yearsOfExperience
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 8
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        feed {
+          id
+          author {
+            yearsOfExperience
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_byNovice: Boolean!
+          $__fusion_2_id: ID!
+      ) {
+        postById(id: $__fusion_2_id) {
+          byExpert(byNovice: $__fusion_1_byNovice)
+        }
+      }
+    source: $.postById
+    target: $.feed
+    requirements:
+      - name: __fusion_1_byNovice
+        selectionMap: >-
+          byNovice
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 3
+      - id: 4
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3(
+        $__fusion_3_id: ID!
+          $__fusion_4_yearsOfExperience: Int!
+      ) {
+        postById(id: $__fusion_3_id) {
+          byNovice(yearsOfExperience: $__fusion_4_yearsOfExperience)
+        }
+      }
+    source: $.postById
+    target: $.feed
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+      - name: __fusion_4_yearsOfExperience
+        selectionMap: >-
+          author.yearsOfExperience
+    dependencies:
+      - id: 1
+  - id: 4
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_4(
+        $__fusion_5_id: ID!
+      ) {
+        postById(id: $__fusion_5_id) {
+          id
+        }
+      }
+    source: $.postById
+    target: $.feed
+    requirements:
+      - name: __fusion_5_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

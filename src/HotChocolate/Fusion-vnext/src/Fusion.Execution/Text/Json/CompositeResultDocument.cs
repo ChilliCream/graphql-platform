@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -12,8 +13,6 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly List<SourceResultDocument> _sources = [];
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
-    private List<IError>? _errors;
-    private Dictionary<string, object?>? _extensions;
     internal MetaDb _metaDb;
     private bool _disposed;
 
@@ -27,24 +26,6 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     public CompositeResultElement Data { get; }
-
-    public List<IError> Errors
-    {
-        get
-        {
-            _errors ??= [];
-            return _errors;
-        }
-    }
-
-    public Dictionary<string, object?> Extensions
-    {
-        get
-        {
-            _extensions ??= [];
-            return _extensions;
-        }
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ElementTokenType GetElementTokenType(Cursor cursor)
@@ -99,7 +80,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        (var start, var tokenType) = _metaDb.GetStartCursor(current);
+        var (start, tokenType) = _metaDb.GetStartCursor(current);
 
         CheckExpectedType(ElementTokenType.StartArray, tokenType);
 
@@ -348,17 +329,17 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         if (row.TokenType == ElementTokenType.Null)
         {
-            return "null"u8;
+            return JsonConstants.NullValue;
         }
 
         if (row.TokenType == ElementTokenType.True)
         {
-            return "true"u8;
+            return JsonConstants.TrueValue;
         }
 
         if (row.TokenType == ElementTokenType.False)
         {
-            return "false"u8;
+            return JsonConstants.FalseValue;
         }
 
         if (row.TokenType == ElementTokenType.PropertyName)
@@ -429,6 +410,23 @@ public sealed partial class CompositeResultDocument : IDisposable
         }
 
         Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
+
+        var tokenType = source.TokenType.ToElementTokenType();
+
+        if (tokenType is ElementTokenType.StartObject or ElementTokenType.StartArray)
+        {
+            var sourceCursor = source._cursor;
+
+            _metaDb.Replace(
+                cursor: target.Cursor,
+                tokenType: source.TokenType.ToElementTokenType(),
+                location: sourceCursor.Chunk,
+                sizeOrLength: sourceCursor.Row,
+                sourceDocumentId: parent.Id,
+                parentRow: _metaDb.GetParent(target.Cursor),
+                flags: ElementFlags.SourceResult);
+            return;
+        }
 
         _metaDb.Replace(
             cursor: target.Cursor,

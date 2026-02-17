@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Extensions;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -14,21 +15,22 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Key-Fields-Has-Arguments">
 /// Specification
 /// </seealso>
-internal sealed class KeyFieldsHasArgumentsRule : IEventHandler<KeyFieldEvent>
+internal sealed class KeyFieldsHasArgumentsRule : IEventHandler<ComplexTypeEvent>
 {
-    public void Handle(KeyFieldEvent @event, CompositionContext context)
+    public void Handle(ComplexTypeEvent @event, CompositionContext context)
     {
-        var (keyField, keyFieldDeclaringType, keyDirective, type, schema) = @event;
+        var (complexType, schema) = @event;
 
-        if (keyField.Arguments.Count != 0)
+        foreach (var (keyDirective, keyInfo) in complexType.KeyInfoByDirective)
         {
-            context.Log.Write(
-                KeyFieldsHasArguments(
-                    keyField.Name,
-                    keyFieldDeclaringType.Name,
-                    keyDirective,
-                    type,
-                    schema));
+            foreach (var keyField in keyInfo.Fields)
+            {
+                if (keyField.Arguments.Count != 0)
+                {
+                    context.Log.Write(
+                        KeyFieldsHasArguments(keyField, keyDirective, complexType, schema));
+                }
+            }
         }
     }
 }

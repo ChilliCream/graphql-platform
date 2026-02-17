@@ -12,9 +12,9 @@ For more details look at the `Errors` property.
    at HotChocolate.Types.Descriptors.DescriptorBase`1.<>c__DisplayClass21_0.<OnBeforeCreate>b__0(IDescriptorContext c, ITypeSystemConfiguration d) in DescriptorBase~1.cs:line 97
    at HotChocolate.Types.Descriptors.Configurations.OnCreateTypeSystemConfigurationTask.Configure(IDescriptorContext context) in OnCreateTypeSystemConfigurationTask.cs:line 26
    at HotChocolate.Types.Descriptors.DescriptorBase`1.CreateConfiguration() in DescriptorBase~1.cs:line 57
-   at HotChocolate.Types.Descriptors.ObjectTypeDescriptor.OnCreateConfiguration(ObjectTypeConfiguration definition) in ObjectTypeDescriptor.cs:line 94
+   at HotChocolate.Types.Descriptors.ObjectTypeDescriptor.OnCreateConfiguration(ObjectTypeConfiguration definition) in ObjectTypeDescriptor.cs:line 84
    at HotChocolate.Types.Descriptors.DescriptorBase`1.CreateConfiguration() in DescriptorBase~1.cs:line 45
    at HotChocolate.Types.ObjectType.CreateConfiguration(ITypeDiscoveryContext context) in ObjectType.Initialization.cs:line 37
    at HotChocolate.Types.TypeSystemObject`1.Initialize(ITypeDiscoveryContext context) in TypeSystemObjectBase~1.cs:line 29
-   at HotChocolate.Configuration.TypeRegistrar.InitializeType(TypeSystemObject typeSystemObject, String scope, Boolean isInferred) in TypeRegistrar.cs:line 177
+   at HotChocolate.Configuration.TypeRegistrar.InitializeType(TypeSystemObject typeSystemObject, String scope, Boolean isInferred) in TypeRegistrar.cs:line 171
 

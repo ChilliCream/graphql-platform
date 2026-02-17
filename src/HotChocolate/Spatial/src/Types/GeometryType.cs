@@ -1,4 +1,7 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types.Spatial.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using NetTopologySuite.Geometries;
@@ -7,7 +10,7 @@ using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 namespace HotChocolate.Types.Spatial;
 
 public sealed class GeometryType
-    : ScalarType<Geometry>
+    : ScalarType<Geometry, ObjectValueNode>
     , IGeoJsonObjectType
     , IGeoJsonInputType
 {
@@ -23,24 +26,15 @@ public sealed class GeometryType
     {
     }
 
-    public override object? Deserialize(object? resultValue)
-        => GeoJsonGeometrySerializer.Default.Deserialize(this, resultValue);
+    protected override Geometry OnCoerceInputLiteral(ObjectValueNode valueLiteral)
+        => (Geometry)GeoJsonGeometrySerializer.Default.CoerceInputLiteral(this, valueLiteral)!;
 
-    public override object? Serialize(object? runtimeValue)
-        => GeoJsonGeometrySerializer.Default.Serialize(this, runtimeValue);
+    protected override Geometry OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        => (Geometry)GeoJsonGeometrySerializer.Default.CoerceInputValue(this, inputValue, context)!;
 
-    public override bool IsInstanceOfType(IValueNode valueSyntax)
-        => GeoJsonGeometrySerializer.Default.IsInstanceOfType(this, valueSyntax);
+    protected override void OnCoerceOutputValue(Geometry runtimeValue, ResultElement resultValue)
+        => GeoJsonGeometrySerializer.Default.CoerceOutputValue(this, runtimeValue, resultValue);
 
-    public override bool IsInstanceOfType(object? runtimeValue)
-        => GeoJsonGeometrySerializer.Default.IsInstanceOfType(this, runtimeValue);
-
-    public override object? ParseLiteral(IValueNode valueSyntax)
-        => GeoJsonGeometrySerializer.Default.ParseLiteral(this, valueSyntax);
-
-    public override IValueNode ParseValue(object? runtimeValue)
-        => GeoJsonGeometrySerializer.Default.ParseValue(this, runtimeValue);
-
-    public override IValueNode ParseResult(object? resultValue)
-        => GeoJsonGeometrySerializer.Default.ParseResult(this, resultValue);
+    protected override ObjectValueNode OnValueToLiteral(Geometry runtimeValue)
+        => (ObjectValueNode)GeoJsonGeometrySerializer.Default.ValueToLiteral(this, runtimeValue);
 }

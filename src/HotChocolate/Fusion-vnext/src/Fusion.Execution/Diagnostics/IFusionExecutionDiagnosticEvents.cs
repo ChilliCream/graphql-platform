@@ -290,4 +290,28 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
         string schemaName,
         ulong subscriptionId,
         Exception exception);
+
+    /// <summary>
+    /// Called when a subscription event is raised and a new subscription result is being produced.
+    /// </summary>
+    /// <param name="context">
+    /// The operation plan context.
+    /// </param>
+    /// <param name="node">
+    /// The execution node.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the source schema.
+    /// </param>
+    /// <param name="subscriptionId">
+    /// An internal identifier for the subscription instance.
+    /// </param>
+    /// <returns>
+    /// A scope that will be disposed when the subscription event execution has completed.
+    /// </returns>
+    IDisposable OnSubscriptionEvent(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId);
 }

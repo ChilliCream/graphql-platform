@@ -33,12 +33,12 @@ public class MartenQueryableFilterProvider : QueryableFilterProvider
     /// <inheritdoc cref="FilterProvider{TContext}"/>
     protected override void Configure(IFilterProviderDescriptor<QueryableFilterContext> descriptor)
     {
-        descriptor.AddFieldHandler<MartenQueryableComparableInHandler>();
-        descriptor.AddFieldHandler<MartenQueryableComparableNotInHandler>();
-        descriptor.AddFieldHandler<MartenQueryableEnumInHandler>();
-        descriptor.AddFieldHandler<MartenQueryableEnumNotInHandler>();
-        descriptor.AddFieldHandler<MartenQueryableStringInHandler>();
-        descriptor.AddFieldHandler<MartenQueryableStringNotInHandler>();
+        descriptor.AddFieldHandler(MartenQueryableComparableInHandler.Create);
+        descriptor.AddFieldHandler(MartenQueryableComparableNotInHandler.Create);
+        descriptor.AddFieldHandler(MartenQueryableEnumInHandler.Create);
+        descriptor.AddFieldHandler(MartenQueryableEnumNotInHandler.Create);
+        descriptor.AddFieldHandler(MartenQueryableStringInHandler.Create);
+        descriptor.AddFieldHandler(MartenQueryableStringNotInHandler.Create);
         descriptor.AddDefaultFieldHandlers();
     }
 

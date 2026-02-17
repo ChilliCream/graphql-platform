@@ -13,8 +13,8 @@ public class SortConventionTests
         var provider = new QueryableSortProvider(
             descriptor =>
             {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
             });
 
         var convention = new SortConvention(
@@ -55,7 +55,7 @@ public class SortConventionTests
     {
         // arrange
         var provider = new QueryableSortProvider(
-            descriptor => descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>());
+            descriptor => descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create));
 
         var convention = new SortConvention(
             descriptor =>
@@ -79,7 +79,7 @@ public class SortConventionTests
     {
         // arrange
         var provider = new QueryableSortProvider(
-            descriptor => descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>());
+            descriptor => descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create));
 
         var convention = new SortConvention(
             descriptor =>
@@ -106,8 +106,8 @@ public class SortConventionTests
         var provider = new QueryableSortProvider(
             descriptor =>
             {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
             });
 
         var convention = new SortConvention(
@@ -134,8 +134,8 @@ public class SortConventionTests
         var provider = new QueryableSortProvider(
             descriptor =>
             {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
             });
 
         var convention = new SortConvention(
@@ -158,13 +158,6 @@ public class SortConventionTests
     public void SortConvention_Should_Fail_When_NoProviderWasRegistered()
     {
         // arrange
-        var provider = new QueryableSortProvider(
-            descriptor =>
-            {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
-            });
-
         var convention = new SortConvention(
             descriptor =>
             {
@@ -189,8 +182,8 @@ public class SortConventionTests
         var provider = new QueryableSortProvider(
             descriptor =>
             {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
             });
 
         var convention = new SortConvention(
@@ -217,8 +210,8 @@ public class SortConventionTests
         var provider = new QueryableSortProvider(
             descriptor =>
             {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
             });
 
         var convention = new SortConvention(
@@ -268,8 +261,8 @@ public class SortConventionTests
         var provider = new QueryableSortProvider(
             descriptor =>
             {
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
+                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
             });
 
         var convention = new SortConvention(
@@ -312,7 +305,7 @@ public class SortConventionTests
     {
         // arrange
         var provider = new QueryableSortProvider(
-            descriptor => descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>());
+            descriptor => descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create));
 
         var convention = new SortConvention(
             descriptor =>
@@ -360,8 +353,8 @@ public class SortConventionTests
         var provider = new QueryableSortProvider(
             descriptor =>
             {
-                descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
-                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
+                descriptor.AddFieldHandler(QueryableDefaultSortFieldHandler.Create);
+                descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
             });
         var convention = new SortConvention(descriptor =>
         {
@@ -435,7 +428,7 @@ public class SortConventionTests
         protected override void Configure(
             ISortProviderDescriptor<QueryableSortContext> descriptor)
         {
-            descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
+            descriptor.AddOperationHandler(QueryableAscendingSortOperationHandler.Create);
         }
     }
 

@@ -21,9 +21,7 @@ internal sealed class ExternalMissingOnBaseRule : IEventHandler<OutputFieldGroup
     {
         var fieldGroup = @event.FieldGroup;
 
-        var externalFields = fieldGroup
-            .Where(i => i.Field.HasExternalDirective())
-            .ToImmutableArray();
+        var externalFields = fieldGroup.Where(i => i.Field.IsExternal).ToImmutableArray();
 
         var nonExternalFieldCount = fieldGroup.Length - externalFields.Length;
 

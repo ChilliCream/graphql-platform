@@ -1,22 +1,19 @@
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
-public class ByteType : IntegerTypeBase<byte>
+/// <summary>
+/// The <c>Byte</c> scalar type represents a signed 8-bit integer. It is intended for scenarios
+/// where values are constrained to the range -128 to 127, such as representing small offsets,
+/// temperature differences, or compact signed counters.
+/// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/byte.html">Specification</seealso>
+public class ByteType : IntegerTypeBase<sbyte>
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ByteType"/> class.
-    /// </summary>
-    public ByteType(byte min, byte max)
-        : this(
-            ScalarNames.Byte,
-            TypeResources.ByteType_Description,
-            min,
-            max,
-            BindingBehavior.Implicit)
-    {
-    }
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/byte.html";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ByteType"/> class.
@@ -24,12 +21,11 @@ public class ByteType : IntegerTypeBase<byte>
     public ByteType(
         string name,
         string? description = null,
-        byte min = byte.MinValue,
-        byte max = byte.MaxValue,
-        BindingBehavior bind = BindingBehavior.Explicit)
-        : base(name, min, max, bind)
+        BindingBehavior bind = BindingBehavior.Implicit)
+        : base(name, sbyte.MinValue, sbyte.MaxValue, bind)
     {
         Description = description;
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>
@@ -37,13 +33,25 @@ public class ByteType : IntegerTypeBase<byte>
     /// </summary>
     [ActivatorUtilitiesConstructor]
     public ByteType()
-        : this(byte.MinValue, byte.MaxValue)
+        : this(
+            ScalarNames.Byte,
+            TypeResources.ByteType_Description)
     {
     }
 
-    protected override byte ParseLiteral(IntValueNode valueSyntax) =>
-        valueSyntax.ToByte();
+    /// <inheritdoc />
+    protected override sbyte OnCoerceInputLiteral(IntValueNode valueLiteral)
+        => valueLiteral.ToSByte();
 
-    protected override IntValueNode ParseValue(byte runtimeValue) =>
-        new(runtimeValue);
+    /// <inheritdoc />
+    protected override sbyte OnCoerceInputValue(JsonElement inputValue)
+        => inputValue.GetSByte();
+
+    /// <inheritdoc />
+    protected override void OnCoerceOutputValue(sbyte runtimeValue, ResultElement resultValue)
+        => resultValue.SetNumberValue(runtimeValue);
+
+    /// <inheritdoc />
+    protected override IValueNode OnValueToLiteral(sbyte runtimeValue)
+        => new IntValueNode(runtimeValue);
 }

@@ -297,6 +297,7 @@ public class AbstractTypeTests : FusionTestBase
         }
 
         [InterfaceType]
+        [EntityKey("id")]
         public interface SharedType
         {
             int Id { get; }

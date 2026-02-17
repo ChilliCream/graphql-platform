@@ -1,4 +1,3 @@
-using System.CommandLine;
 using static ChilliCream.Nitro.CommandLine.CommandLineResources;
 
 namespace ChilliCream.Nitro.CommandLine;

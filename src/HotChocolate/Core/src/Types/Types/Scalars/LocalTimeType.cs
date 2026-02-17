@@ -1,17 +1,26 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The `LocalTime` scalar type is a local time string (i.e., with no associated timezone)
-/// in 24-hr HH:mm:ss.
+/// The <c>LocalTime</c> scalar type represents a time of day without date or time zone information.
+/// It is intended for scenarios where only the time component matters, such as business operating
+/// hours (e.g., "opens at 09:00"), daily schedules, or recurring time-based events where the
+/// specific date is irrelevant.
 /// </summary>
-public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
+/// <seealso href="https://scalars.graphql.org/chillicream/local-time.html">Specification</seealso>
+public partial class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
 {
-    private const string LocalFormat = "HH:mm:ss";
+    private const string LocalFormat = "HH:mm:ss.FFFFFFF";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/local-time.html";
+
     private readonly bool _enforceSpecFormat;
 
     /// <summary>
@@ -25,6 +34,8 @@ public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+        Pattern = @"^\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?$";
+        SpecifiedBy = new Uri(SpecifiedByUri);
         _enforceSpecFormat = !disableFormatCheck;
     }
 
@@ -51,107 +62,46 @@ public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
     {
     }
 
-    public override IValueNode ParseResult(object? resultValue)
+    /// <inheritdoc />
+    protected override TimeOnly OnCoerceInputLiteral(StringValueNode valueLiteral)
     {
-        return resultValue switch
+        if (TryParseStringValue(valueLiteral.Value, out var value))
         {
-            null => NullValueNode.Default,
-            string s => new StringValueNode(s),
-            TimeOnly t => ParseValue(t),
-            DateTimeOffset d => ParseValue(TimeOnly.FromDateTime(d.DateTime)),
-            DateTime dt => ParseValue(TimeOnly.FromDateTime(dt)),
-            _ => throw new SerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()), this)
-        };
-    }
-
-    protected override TimeOnly ParseLiteral(StringValueNode valueSyntax)
-    {
-        if (TryDeserializeFromString(valueSyntax.Value, out var value))
-        {
-            return value.Value;
+            return value;
         }
 
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
-            this);
+        throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
     }
 
-    protected override StringValueNode ParseValue(TimeOnly runtimeValue)
+    /// <inheritdoc />
+    protected override TimeOnly OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        return new(Serialize(runtimeValue));
-    }
-
-    public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-    {
-        switch (runtimeValue)
+        if (TryParseStringValue(inputValue.GetString()!, out var value))
         {
-            case null:
-                resultValue = null;
-                return true;
-            case TimeOnly t:
-                resultValue = Serialize(t);
-                return true;
-            case DateTimeOffset dt:
-                resultValue = Serialize(dt);
-                return true;
-            case DateTime dt:
-                resultValue = Serialize(dt);
-                return true;
-            default:
-                resultValue = null;
-                return false;
+            return value;
         }
+
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
     }
 
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+    /// <inheritdoc />
+    protected override void OnCoerceOutputValue(TimeOnly runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
+
+    /// <inheritdoc />
+    protected override StringValueNode OnValueToLiteral(TimeOnly runtimeValue)
+        => new StringValueNode(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
+
+    private bool TryParseStringValue(string serialized, out TimeOnly value)
     {
-        switch (resultValue)
+        // Check format.
+        if (_enforceSpecFormat && !LocalTimeRegex().IsMatch(serialized))
         {
-            case null:
-                runtimeValue = null;
-                return true;
-            case string s when TryDeserializeFromString(s, out var t):
-                runtimeValue = t;
-                return true;
-            case TimeOnly t:
-                runtimeValue = t;
-                return true;
-            case DateTimeOffset d:
-                runtimeValue = TimeOnly.FromDateTime(d.DateTime);
-                return true;
-            case DateTime d:
-                runtimeValue = TimeOnly.FromDateTime(d);
-                return true;
-            default:
-                runtimeValue = null;
-                return false;
+            value = default;
+            return false;
         }
-    }
 
-    private static string Serialize(IFormattable value)
-    {
-        return value.ToString(LocalFormat, CultureInfo.InvariantCulture);
-    }
-
-    private bool TryDeserializeFromString(
-        string? serialized,
-        [NotNullWhen(true)] out TimeOnly? value)
-    {
-        if (_enforceSpecFormat)
-        {
-            if (TimeOnly.TryParseExact(
-                serialized,
-                LocalFormat,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.None,
-                out var time))
-            {
-                value = time;
-                return true;
-            }
-        }
-        else if (TimeOnly.TryParse(
+        if (TimeOnly.TryParse(
             serialized,
             CultureInfo.InvariantCulture,
             out var time))
@@ -160,7 +110,10 @@ public class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
             return true;
         }
 
-        value = null;
+        value = default;
         return false;
     }
+
+    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?\z", RegexOptions.ExplicitCapture)]
+    private static partial Regex LocalTimeRegex();
 }

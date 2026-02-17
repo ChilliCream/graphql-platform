@@ -19,7 +19,7 @@ LIMIT @p
 ## SQL 1
 
 ```sql
--- @keys={ '2', '1' } (DbType = Object)
+-- @keys={ '1', '2' } (DbType = Object)
 SELECT p1."BrandId", p3."Id", p3."AvailableStock", p3."BrandId", p3."Description", p3."ImageFileName", p3."MaxStockThreshold", p3."Name", p3."OnReorder", p3."Price", p3."RestockThreshold", p3."TypeId"
 FROM (
     SELECT p."BrandId"

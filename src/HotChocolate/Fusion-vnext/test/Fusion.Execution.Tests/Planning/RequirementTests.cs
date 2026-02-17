@@ -16,7 +16,7 @@ public class RequirementTests : FusionTestBase
               books: [Book]
             }
 
-            type Book {
+            type Book @key(fields: "id") {
               id: String!
               title: String!
             }
@@ -66,7 +66,7 @@ public class RequirementTests : FusionTestBase
               name: String!
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: Int!
               name: String!
               brand: Brand
@@ -122,7 +122,7 @@ public class RequirementTests : FusionTestBase
               name: String!
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: Int!
               name: String!
               brand: Brand

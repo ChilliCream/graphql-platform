@@ -1,3 +1,4 @@
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
@@ -26,7 +27,7 @@ public class ArgumentDescriptorTests
         // act
         descriptor
             .Type<ListType<StringType>>()
-            .Type<NativeType<IReadOnlyDictionary<string, string>>>();
+            .Type<NamedRuntimeType<IReadOnlyDictionary<string, string>>>();
 
         // assert
         var description = descriptor.CreateConfiguration();
@@ -93,7 +94,7 @@ public class ArgumentDescriptorTests
 
         // act
         ((IArgumentDescriptor)descriptor)
-            .Type<NativeType<IReadOnlyDictionary<string, string>>>()
+            .Type<NamedRuntimeType<IReadOnlyDictionary<string, string>>>()
             .Type<ListType<StringType>>();
 
         // assert
@@ -253,6 +254,6 @@ public class ArgumentDescriptorTests
     public void Type_Syntax_Descriptor_Null()
     {
         void Error() => default(ArgumentDescriptor)!.Type("foo");
-        Assert.Throws<ArgumentNullException>(Error);
+        Assert.Throws<NullReferenceException>(Error);
     }
 }

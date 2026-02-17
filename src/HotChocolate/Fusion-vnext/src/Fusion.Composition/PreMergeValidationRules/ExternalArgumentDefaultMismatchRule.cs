@@ -20,10 +20,9 @@ internal sealed class ExternalArgumentDefaultMismatchRule : IEventHandler<Output
 {
     public void Handle(OutputFieldGroupEvent @event, CompositionContext context)
     {
-        var (fieldName, fieldGroup, typeName) = @event;
+        var (_, fieldGroup, _) = @event;
 
-        var externalFieldGroup =
-            fieldGroup.Where(i => i.Field.HasExternalDirective()).ToImmutableHashSet();
+        var externalFieldGroup = fieldGroup.Where(i => i.Field.IsExternal).ToImmutableHashSet();
 
         if (externalFieldGroup.IsEmpty)
         {
