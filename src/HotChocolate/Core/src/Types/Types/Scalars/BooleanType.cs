@@ -1,14 +1,19 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
 /// <summary>
+/// <para>
 /// The Boolean scalar type represents true or false.
-///
-/// http://facebook.github.io/graphql/June2018/#sec-Boolean
+/// </para>
+/// <para>
+/// https://spec.graphql.org/September2025/#sec-Boolean
+/// </para>
 /// </summary>
-[SpecScalar]
 public class BooleanType : ScalarType<bool, BooleanValueNode>
 {
     /// <summary>
@@ -35,30 +40,19 @@ public class BooleanType : ScalarType<bool, BooleanValueNode>
     {
     }
 
-    protected override bool ParseLiteral(BooleanValueNode valueSyntax)
-    {
-        return valueSyntax.Value;
-    }
+    /// <inheritdoc />
+    protected override bool OnCoerceInputLiteral(BooleanValueNode valueLiteral)
+        => valueLiteral.Value;
 
-    protected override BooleanValueNode ParseValue(bool runtimeValue)
-    {
-        return runtimeValue ? BooleanValueNode.True : BooleanValueNode.False;
-    }
+    /// <inheritdoc />
+    protected override bool OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        => inputValue.ValueKind is JsonValueKind.True;
 
-    public override IValueNode ParseResult(object? resultValue)
-    {
-        if (resultValue is null)
-        {
-            return NullValueNode.Default;
-        }
+    /// <inheritdoc />
+    protected override void OnCoerceOutputValue(bool runtimeValue, ResultElement resultValue)
+        => resultValue.SetBooleanValue(runtimeValue);
 
-        if (resultValue is bool b)
-        {
-            return b ? BooleanValueNode.True : BooleanValueNode.False;
-        }
-
-        throw new SerializationException(
-            TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
-            this);
-    }
+    /// <inheritdoc />
+    protected override BooleanValueNode OnValueToLiteral(bool runtimeValue)
+        => runtimeValue ? BooleanValueNode.True : BooleanValueNode.False;
 }

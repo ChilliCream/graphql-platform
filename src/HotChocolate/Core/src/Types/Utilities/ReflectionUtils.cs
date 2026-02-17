@@ -15,11 +15,7 @@ public static class ReflectionUtils
     public static MemberInfo TryExtractMember<T, TPropertyType>(
         this Expression<Func<T, TPropertyType>> memberExpression,
         bool allowStatic = false)
-    {
-        ArgumentNullException.ThrowIfNull(memberExpression);
-
-        return TryExtractMemberInternal<T>(UnwrapFunc(memberExpression), allowStatic);
-    }
+        => TryExtractMemberInternal<T>(UnwrapFunc(memberExpression), allowStatic);
 
     internal static MemberInfo TryExtractCallMember(
         this Expression expression)
@@ -56,20 +52,12 @@ public static class ReflectionUtils
     public static MemberInfo ExtractMember<T>(
         this Expression<Action<T>> memberExpression,
         bool allowStatic = false)
-    {
-        ArgumentNullException.ThrowIfNull(memberExpression);
-
-        return ExtractMemberInternal<T>(UnwrapAction(memberExpression), allowStatic);
-    }
+        => ExtractMemberInternal<T>(UnwrapAction(memberExpression), allowStatic);
 
     public static MemberInfo ExtractMember<T, TPropertyType>(
         this Expression<Func<T, TPropertyType>> memberExpression,
         bool allowStatic = false)
-    {
-        ArgumentNullException.ThrowIfNull(memberExpression);
-
-        return ExtractMemberInternal<T>(UnwrapFunc(memberExpression), allowStatic);
-    }
+        => ExtractMemberInternal<T>(UnwrapFunc(memberExpression), allowStatic);
 
     private static MemberInfo ExtractMemberInternal<T>(
         Expression expression,
@@ -184,13 +172,9 @@ public static class ReflectionUtils
         => method.IsStatic;
 
     public static string GetTypeName(this Type type)
-    {
-        ArgumentNullException.ThrowIfNull(type);
-
-        return type.IsGenericType
+        => type.IsGenericType
             ? CreateGenericTypeName(type)
             : CreateTypeName(type, type.Name);
-    }
 
     private static string CreateGenericTypeName(Type type)
     {

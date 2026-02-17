@@ -23,7 +23,7 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<TMessage>
         _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
     }
 
-    protected override async ValueTask<IDisposable> OnConnectAsync(
+    protected override async ValueTask<IAsyncDisposable> OnConnectAsync(
         CancellationToken cancellationToken)
     {
         // We ensure that the processing is not started before the context is fully initialized.
@@ -39,7 +39,7 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<TMessage>
         return new Session(Name, natsSession, DiagnosticEvents);
     }
 
-    private sealed class Session : IDisposable
+    private sealed class Session : IAsyncDisposable
     {
         private readonly string _name;
         private readonly IDisposable _natsSession;
@@ -56,7 +56,7 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<TMessage>
             _diagnosticEvents = diagnosticEvents;
         }
 
-        public void Dispose()
+        public ValueTask DisposeAsync()
         {
             if (!_disposed)
             {
@@ -64,6 +64,8 @@ internal sealed class NatsTopic<TMessage> : DefaultTopic<TMessage>
                 _diagnosticEvents.ProviderTopicInfo(_name, Session_Dispose_UnsubscribedFromNats);
                 _disposed = true;
             }
+
+            return ValueTask.CompletedTask;
         }
     }
 }

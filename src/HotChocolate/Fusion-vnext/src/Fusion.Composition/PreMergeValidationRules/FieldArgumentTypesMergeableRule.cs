@@ -22,9 +22,9 @@ internal sealed class FieldArgumentTypesMergeableRule : IEventHandler<FieldArgum
     {
         var argumentGroup = @event.ArgumentGroup;
 
-        // Filter out arguments in inaccessible types and fields.
+        // Filter out inaccessible arguments.
         var argumentGroupAccessible = argumentGroup
-            .Where(i => !i.Type.HasInaccessibleDirective() && !i.Field.HasInaccessibleDirective())
+            .Where(i => !i.Argument.IsInaccessible)
             .ToImmutableArray();
 
         for (var i = 0; i < argumentGroupAccessible.Length - 1; i++)

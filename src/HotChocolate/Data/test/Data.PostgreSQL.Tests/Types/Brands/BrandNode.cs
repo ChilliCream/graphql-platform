@@ -1,7 +1,7 @@
 using GreenDonut.Data;
 using HotChocolate.Data.Models;
 using HotChocolate.Data.Services;
-using HotChocolate.Execution.Processing;
+using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 

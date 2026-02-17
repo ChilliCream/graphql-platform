@@ -23,4 +23,6 @@ public class QueryableBooleanNotEqualsHandler
         var property = context.GetInstance();
         return FilterExpressionBuilder.NotEquals(property, parsedValue);
     }
+
+    public static QueryableBooleanNotEqualsHandler Create(FilterProviderContext context) => new(context.InputParser);
 }

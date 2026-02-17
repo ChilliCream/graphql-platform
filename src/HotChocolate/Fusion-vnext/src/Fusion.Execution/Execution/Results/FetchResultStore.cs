@@ -27,6 +27,7 @@ internal sealed class FetchResultStore : IDisposable
     private readonly ConcurrentStack<IDisposable> _memory = [];
     private CompositeResultDocument _result;
     private ValueCompletion _valueCompletion;
+    private List<IError>? _errors;
     private bool _disposed;
 
     public FetchResultStore(
@@ -48,11 +49,13 @@ internal sealed class FetchResultStore : IDisposable
         _result = new CompositeResultDocument(operation, includeFlags);
 
         _valueCompletion = new ValueCompletion(
+            this,
             _schema,
-            _result,
             _errorHandler,
             _errorHandlingMode,
             maxDepth: 32);
+
+        _memory.Push(_result);
     }
 
     public void Reset()
@@ -60,16 +63,21 @@ internal sealed class FetchResultStore : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         _result = new CompositeResultDocument(_operation, _includeFlags);
+        _errors?.Clear();
 
         _valueCompletion = new ValueCompletion(
+            this,
             _schema,
-            _result,
             _errorHandler,
             _errorHandlingMode,
             maxDepth: 32);
+
+        _memory.Push(_result);
     }
 
     public CompositeResultDocument Result => _result;
+
+    public IReadOnlyList<IError>? Errors => _errors;
 
     public ConcurrentStack<IDisposable> MemoryOwners => _memory;
 
@@ -107,7 +115,8 @@ internal sealed class FetchResultStore : IDisposable
 
                 if (result.Errors?.RootErrors is { Length: > 0 } rootErrors)
                 {
-                    _result.Errors.AddRange(rootErrors);
+                    _errors ??= [];
+                    _errors.AddRange(rootErrors);
                 }
 
                 dataElement = GetDataElement(sourcePath, result.Data);
@@ -162,6 +171,12 @@ internal sealed class FetchResultStore : IDisposable
         {
             _lock.ExitWriteLock();
         }
+    }
+
+    public void AddError(IError error)
+    {
+        _errors ??= [];
+        _errors.Add(error);
     }
 
     public bool AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
@@ -347,6 +362,8 @@ SaveSafe_Next:
 
             PooledArrayWriter? buffer = null;
             VariableValues[]? variableValueSets = null;
+            Dictionary<ObjectValueNode, int>? seen = null;
+            List<Path>?[]? additionalPaths = null;
             var nextIndex = 0;
 
             foreach (var result in current)
@@ -357,10 +374,44 @@ SaveSafe_Next:
                     requiredData,
                     ref buffer);
 
-                if (variables is not null)
+                if (variables is null)
                 {
-                    variableValueSets ??= new VariableValues[current.Count];
-                    variableValueSets[nextIndex++] = new VariableValues(result.Path, variables);
+                    continue;
+                }
+
+                variableValueSets ??= new VariableValues[current.Count];
+
+                if (nextIndex > 0)
+                {
+                    seen ??= new Dictionary<ObjectValueNode, int>(VariableValueComparer.Instance)
+                    {
+                        [variableValueSets[0].Values] = 0
+                    };
+
+                    if (seen.TryGetValue(variables, out var existingIndex))
+                    {
+                        additionalPaths ??= new List<Path>?[current.Count];
+                        (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                        continue;
+                    }
+
+                    seen[variables] = nextIndex;
+                }
+
+                variableValueSets[nextIndex++] = new VariableValues(result.Path, variables);
+            }
+
+            if (additionalPaths is not null)
+            {
+                for (var i = 0; i < nextIndex; i++)
+                {
+                    if (additionalPaths[i] is { } paths)
+                    {
+                        variableValueSets![i] = variableValueSets[i] with
+                        {
+                            AdditionalPaths = [.. paths]
+                        };
+                    }
                 }
             }
 

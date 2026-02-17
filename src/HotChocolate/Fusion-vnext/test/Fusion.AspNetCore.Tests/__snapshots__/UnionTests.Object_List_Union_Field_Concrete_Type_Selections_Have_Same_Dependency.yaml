@@ -25,7 +25,7 @@ response:
           {
             "node": {
               "product": {
-                "subgraph2": "Product: UHJvZHVjdDo3"
+                "subgraph2": "Product: UHJvZHVjdDo5"
               }
             }
           },
@@ -39,7 +39,7 @@ response:
           {
             "node": {
               "product": {
-                "subgraph2": "Product: UHJvZHVjdDo5"
+                "subgraph2": "Product: UHJvZHVjdDo3"
               }
             }
           }
@@ -67,7 +67,7 @@ sourceSchemas:
         node: Post
       }
 
-      type Product {
+      type Product @key(fields: "id") {
         id: ID!
       }
 
@@ -106,7 +106,7 @@ sourceSchemas:
                       "node": {
                         "__typename": "Photo",
                         "product": {
-                          "id": "UHJvZHVjdDo3"
+                          "id": "UHJvZHVjdDo5"
                         }
                       }
                     },
@@ -122,7 +122,7 @@ sourceSchemas:
                       "node": {
                         "__typename": "Photo",
                         "product": {
-                          "id": "UHJvZHVjdDo5"
+                          "id": "UHJvZHVjdDo3"
                         }
                       }
                     }
@@ -156,22 +156,23 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_2_id": "UHJvZHVjdDo3"
+                "__fusion_2_id": "UHJvZHVjdDo5"
               },
               {
                 "__fusion_2_id": "UHJvZHVjdDo4"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDo5"
+                "__fusion_2_id": "UHJvZHVjdDo3"
               }
             ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo3"
+                    "subgraph2": "Product: UHJvZHVjdDo5"
                   }
                 }
               }
@@ -187,7 +188,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo5"
+                    "subgraph2": "Product: UHJvZHVjdDo3"
                   }
                 }
               }
@@ -216,6 +217,7 @@ operationPlan:
       name: testQuery
       hash: ec963286207c06ae16e0e35aba2876f9
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

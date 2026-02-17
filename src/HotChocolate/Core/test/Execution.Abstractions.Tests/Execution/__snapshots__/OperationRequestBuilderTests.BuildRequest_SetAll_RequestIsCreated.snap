@@ -1,27 +1,11 @@
 {
-  "Document": {
-    "SourceText": "{ foo }"
-  },
-  "DocumentId": {
-    "IsEmpty": true,
-    "Value": null
-  },
-  "DocumentHash": {
-    "Value": null,
-    "AlgorithmName": null,
-    "Format": "Base64",
-    "IsEmpty": true
-  },
-  "OperationName": "bar",
-  "ErrorHandlingMode": null,
-  "VariableValues": {
-    "two": "bar"
-  },
-  "Extensions": null,
-  "ContextData": {
+  "document": "{ foo }",
+  "operationName": "bar",
+  "contextData": {
     "one": "foo"
   },
-  "Features": [],
-  "Services": {},
-  "Flags": "AllowAll"
+  "hasServices": true,
+  "variableValues": {
+    "two": "bar"
+  }
 }

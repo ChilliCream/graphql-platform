@@ -134,12 +134,12 @@ public class SourceSchemaErrorTests : FusionTestBase
             "A",
             b => b.AddQueryType<SourceSchema5.Query>()
                 .InsertUseRequest(
-                    before: "OperationExecutionMiddleware",
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
                     middleware: (_, _) =>
                     {
                         return context =>
                         {
-                            context.Result = OperationResultBuilder.CreateError(
+                            context.Result = OperationResult.FromError(
                                 ErrorBuilder.New()
                                     .SetMessage("A global error")
                                     .Build());
@@ -186,12 +186,12 @@ public class SourceSchemaErrorTests : FusionTestBase
             "A",
             b => b.AddQueryType<SourceSchema6.Query>()
                 .InsertUseRequest(
-                    before: "OperationExecutionMiddleware",
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
                     middleware: (_, _) =>
                     {
                         return context =>
                         {
-                            context.Result = OperationResultBuilder.CreateError(
+                            context.Result = OperationResult.FromError(
                                 ErrorBuilder.New()
                                     .SetMessage("A global error")
                                     .Build());
@@ -666,12 +666,12 @@ public class SourceSchemaErrorTests : FusionTestBase
             "B",
             b => b.AddQueryType<SourceSchema5.Query>()
                 .InsertUseRequest(
-                    before: "OperationExecutionMiddleware",
+                    before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
                     middleware: (_, _) =>
                     {
                         return context =>
                         {
-                            context.Result = OperationResultBuilder.CreateError(
+                            context.Result = OperationResult.FromError(
                                 ErrorBuilder.New()
                                     .SetMessage("A global error")
                                     .Build());
@@ -1046,6 +1046,7 @@ public class SourceSchemaErrorTests : FusionTestBase
                 throw new GraphQLException(
                     ErrorBuilder.New()
                         .SetMessage("Something went wrong")
+                        .SetCode("SOME_ERROR")
                         .SetPath(context.Path)
                         .SetException(new Exception("Some exception"))
                         .Build());

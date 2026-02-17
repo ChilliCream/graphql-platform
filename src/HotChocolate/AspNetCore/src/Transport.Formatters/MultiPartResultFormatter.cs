@@ -59,7 +59,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 
         return result switch
         {
-            IOperationResult operationResult
+            OperationResult operationResult
                 => FormatOperationResultAsync(operationResult, writer, cancellationToken),
             OperationResultBatch resultBatch
                 => FormatResultBatchAsync(resultBatch, writer, cancellationToken),
@@ -70,7 +70,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
     }
 
     private async ValueTask FormatOperationResultAsync(
-        IOperationResult result,
+        OperationResult result,
         PipeWriter writer,
         CancellationToken ct = default)
     {
@@ -98,7 +98,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
         {
             switch (result)
             {
-                case IOperationResult operationResult:
+                case OperationResult operationResult:
                     buffer ??= new PooledArrayWriter();
                     MessageHelper.WriteNext(buffer);
                     MessageHelper.WriteResultHeader(buffer);
@@ -127,6 +127,8 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 
         while (await enumerator.MoveNextAsync().ConfigureAwait(false))
         {
+            var current = enumerator.Current;
+
             try
             {
                 if (first || responseStream.Kind is not DeferredResult)
@@ -139,9 +141,9 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
                 MessageHelper.WriteResultHeader(writer);
 
                 // Next, we write the payload of the part.
-                MessageHelper.WritePayload(writer, enumerator.Current, _payloadFormatter);
+                MessageHelper.WritePayload(writer, current, _payloadFormatter);
 
-                if (responseStream.Kind is DeferredResult && (enumerator.Current.HasNext ?? false))
+                if (responseStream.Kind is DeferredResult && (current.HasNext ?? false))
                 {
                     // If the result is a deferred result and has a next result, we need to
                     // write a new part so that the client knows that there is more to come.
@@ -155,7 +157,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
             {
                 // The result objects use pooled memory, so we need to ensure that they
                 // return the memory by disposing them.
-                await enumerator.Current.DisposeAsync().ConfigureAwait(false);
+                await current.DisposeAsync().ConfigureAwait(false);
             }
         }
 
@@ -186,7 +188,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 
         public static void WritePayload(
             IBufferWriter<byte> writer,
-            IOperationResult result,
+            OperationResult result,
             IOperationResultFormatter payloadFormatter)
             => payloadFormatter.Format(result, writer);
 

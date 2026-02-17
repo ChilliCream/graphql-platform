@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,9 +7,10 @@ namespace HotChocolate.Execution.Pipeline;
 
 internal sealed class PersistedOperationNotFoundMiddleware
 {
+    private static readonly ImmutableDictionary<string, object?> s_statusCode =
+        ImmutableDictionary<string, object?>.Empty.Add(ExecutionContextData.HttpStatusCode, 400);
     private readonly RequestDelegate _next;
     private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly Dictionary<string, object?> _statusCode = new() { { ExecutionContextData.HttpStatusCode, 400 } };
 
     private PersistedOperationNotFoundMiddleware(
         RequestDelegate next,
@@ -41,7 +43,7 @@ internal sealed class PersistedOperationNotFoundMiddleware
         // must be present, otherwise the request would not have been routed to this middleware.
         _diagnosticEvents.DocumentNotFoundInStorage(context, context.Request.DocumentId);
         var error = PersistedOperationNotFound(context.Request.DocumentId);
-        context.Result = OperationResultBuilder.CreateError(error, _statusCode);
+        context.Result = new OperationResult([error]) { ContextData = s_statusCode };
 
         return default;
     }
@@ -54,9 +56,9 @@ internal sealed class PersistedOperationNotFoundMiddleware
                 var middleware = new PersistedOperationNotFoundMiddleware(next, diagnosticEvents);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(PersistedOperationNotFoundMiddleware));
+            WellKnownRequestMiddleware.PersistedOperationNotFoundMiddleware);
 
-    public static IError PersistedOperationNotFound(OperationDocumentId requestedKey)
+    private static IError PersistedOperationNotFound(OperationDocumentId requestedKey)
         => ErrorBuilder.New()
             .SetMessage("The specified persisted operation key is invalid.")
             .SetCode(ErrorCodes.Execution.PersistedOperationNotFound)

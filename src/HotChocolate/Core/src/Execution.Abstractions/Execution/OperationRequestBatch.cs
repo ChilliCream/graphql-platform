@@ -24,6 +24,8 @@ public sealed class OperationRequestBatch(
     IServiceProvider? services = null)
     : IExecutionRequest
 {
+    private bool _disposed;
+
     /// <summary>
     /// The requests within this batch.
     /// </summary>
@@ -43,4 +45,17 @@ public sealed class OperationRequestBatch(
     /// Gets the services that shall be used while executing the GraphQL request.
     /// </summary>
     public IServiceProvider? Services { get; } = services;
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            foreach (var request in Requests)
+            {
+                request.Dispose();
+            }
+            _disposed = true;
+        }
+    }
 }

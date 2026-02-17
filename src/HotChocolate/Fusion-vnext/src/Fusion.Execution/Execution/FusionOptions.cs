@@ -1,10 +1,11 @@
 using HotChocolate.Caching.Memory;
 using HotChocolate.Execution.Relay;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution;
 
-public sealed class FusionOptions : ICloneable
+public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
 {
     private bool _isReadOnly;
 
@@ -103,7 +104,7 @@ public sealed class FusionOptions : ICloneable
     /// the load of the Fusion configuration, is deferred until the request executor
     /// is first requested.
     /// This can significantly slow down and block initial requests.
-    /// Therefore it is recommended to not use this option for production environments.
+    /// Therefore, it is recommended to not use this option for production environments.
     /// </remarks>
     public bool LazyInitialization
     {
@@ -132,6 +133,20 @@ public sealed class FusionOptions : ICloneable
     } = NodeIdSerializerFormat.Base64;
 
     /// <summary>
+    /// Applies the @serializeAs directive to scalar types that specify a serialization format.
+    /// </summary>
+    public bool ApplySerializeAsToScalars
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Clones the options into a new mutable instance.
     /// </summary>
     /// <returns>
@@ -147,7 +162,8 @@ public sealed class FusionOptions : ICloneable
             OperationDocumentCacheSize = OperationDocumentCacheSize,
             DefaultErrorHandlingMode = DefaultErrorHandlingMode,
             LazyInitialization = LazyInitialization,
-            NodeIdSerializerFormat = NodeIdSerializerFormat
+            NodeIdSerializerFormat = NodeIdSerializerFormat,
+            ApplySerializeAsToScalars = ApplySerializeAsToScalars
         };
     }
 

@@ -43,7 +43,7 @@ sourceSchemas:
         subscription: Subscription
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         id: Int!
       }
 
@@ -63,6 +63,7 @@ sourceSchemas:
               }
             }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -154,6 +155,7 @@ operationPlan:
         }
       hash: a6fc02fcd58c513d69d75983869b251f
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

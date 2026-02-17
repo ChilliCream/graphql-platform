@@ -3,7 +3,7 @@ request:
   document: |
     query testQuery(
       $skip1: Boolean!
-      $skip2: Boolean!
+        $skip2: Boolean!
     ) {
       ... @skip(if: $skip1) {
         ... @skip(if: $skip2) {
@@ -30,16 +30,16 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Discussion implements Node {
         id: ID!
         title: String
       }
-      
+
       type Query {
         node(id: ID!): Node @lookup
       }
@@ -48,7 +48,7 @@ operationPlan:
     - document: |
         query testQuery(
           $skip1: Boolean!
-          $skip2: Boolean!
+            $skip2: Boolean!
         ) {
           ... @skip(if: $skip1) {
             ... @skip(if: $skip2) {
@@ -62,6 +62,7 @@ operationPlan:
       name: testQuery
       hash: 77cabf0dee8ded4914c8a472c2afabb0
       searchSpace: 1
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Node

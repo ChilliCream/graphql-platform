@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>HotChocolate.Adapters.OpenApi</RootNamespace>
+    <PackageId>HotChocolate.Adapters.OpenApi.Core</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Adapters.OpenApi.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Adapters.OpenApi" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Adapters.OpenApi" />
+    <InternalsVisibleTo Include="HotChocolate.Adapters.OpenApi.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Pipeline\HotChocolate.AspNetCore.Pipeline.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Validation\HotChocolate.Validation.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -19,8 +19,13 @@ type Foo implements Bar & Baz {
   """ argument: InputType!): Type
   three(argument: InputType other: String): Int
   four(argument: String = "string"): String
-  five(argument: [String] = [ "string", "string" ]): String
-  six(argument: InputType = { key: "value" }): Type
+  five(argument: [String] = [
+    "string",
+    "string"
+  ]): String
+  six(argument: InputType = {
+    key: "value"
+  }): Type
   seven(argument: Int): Type
 }
 

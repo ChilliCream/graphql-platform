@@ -34,24 +34,24 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface {
+      interface IInterface @key(fields: "id") {
         id: Int!
       }
 
       type Product implements IInterface {
         id: Int!
         schema1: String!
-        shared: SharedProduct
+        shared: SharedProduct @shareable
       }
 
       type Query {
         productById(id: Int!): Product @lookup
-        viewer: Viewer!
+        viewer: Viewer! @shareable
         schema1: String!
-        interface: IInterface!
+        interface: IInterface! @shareable
         unsharedInterface: IInterface!
-        union: IUnion!
-        topReview: Review!
+        union: IUnion! @shareable
+        topReview: Review! @shareable
       }
 
       type Review implements IInterface {
@@ -61,7 +61,7 @@ sourceSchemas:
 
       type SharedProduct {
         schema1: String!
-        shared2: SharedProduct2
+        shared2: SharedProduct2 @shareable
       }
 
       type SharedProduct2 {
@@ -70,7 +70,7 @@ sourceSchemas:
 
       type Viewer {
         schema1: String!
-        settings: ViewerSettings!
+        settings: ViewerSettings! @shareable
       }
 
       type ViewerSettings {
@@ -81,25 +81,9 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query Op_2deb87e6_3 {
+            query Op_2deb87e6_1 {
               viewer {
                 schema1
-              }
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "viewer": {
-                    "schema1": "schema1"
-                  }
-                }
-              }
-      - request:
-          document: |
-            query Op_2deb87e6_4 {
-              viewer {
                 settings {
                   schema1
                 }
@@ -111,6 +95,7 @@ sourceSchemas:
               {
                 "data": {
                   "viewer": {
+                    "schema1": "schema1",
                     "settings": {
                       "schema1": "schema1"
                     }
@@ -123,23 +108,23 @@ sourceSchemas:
         query: Query
       }
 
-      interface IInterface {
+      interface IInterface @key(fields: "id") {
         id: Int!
       }
 
       type Product implements IInterface {
         id: Int!
         schema2: String!
-        shared: SharedProduct
+        shared: SharedProduct @shareable
       }
 
       type Query {
         product(id: Int!): Product @lookup
-        viewer: Viewer!
+        viewer: Viewer! @shareable
         schema2: String!
-        interface: IInterface!
-        union: IUnion!
-        topReview: Review!
+        interface: IInterface! @shareable
+        union: IUnion! @shareable
+        topReview: Review! @shareable
       }
 
       type Review implements IInterface {
@@ -149,7 +134,7 @@ sourceSchemas:
 
       type SharedProduct {
         schema2: String!
-        shared2: SharedProduct2
+        shared2: SharedProduct2 @shareable
       }
 
       type SharedProduct2 {
@@ -158,7 +143,7 @@ sourceSchemas:
 
       type Viewer {
         schema2: String!
-        settings: ViewerSettings!
+        settings: ViewerSettings! @shareable
       }
 
       type ViewerSettings {
@@ -171,10 +156,26 @@ sourceSchemas:
           document: |
             query Op_2deb87e6_2 {
               viewer {
+                schema2
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "schema2": "schema2"
+                  }
+                }
+              }
+      - request:
+          document: |
+            query Op_2deb87e6_4 {
+              viewer {
                 settings {
                   schema2
                 }
-                schema2
               }
             }
         response:
@@ -185,8 +186,7 @@ sourceSchemas:
                   "viewer": {
                     "settings": {
                       "schema2": "schema2"
-                    },
-                    "schema2": "schema2"
+                    }
                   }
                 }
               }
@@ -197,7 +197,7 @@ sourceSchemas:
       }
 
       type Query {
-        viewer: Viewer!
+        viewer: Viewer! @shareable
       }
 
       type Viewer {
@@ -206,7 +206,7 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query Op_2deb87e6_1 {
+            query Op_2deb87e6_3 {
               viewer {
                 schema3
               }
@@ -236,15 +236,19 @@ operationPlan:
           }
         }
       hash: 2deb87e6f5d5d06a553c1cfedc981172
-      searchSpace: 5
+      searchSpace: 3
+      expandedNodes: 3
   nodes:
     - id: 1
       type: Operation
-      schema: C
+      schema: A
       operation: |
         query Op_2deb87e6_1 {
           viewer {
-            schema3
+            schema1
+            settings {
+              schema1
+            }
           }
         }
     - id: 2
@@ -253,29 +257,26 @@ operationPlan:
       operation: |
         query Op_2deb87e6_2 {
           viewer {
-            settings {
-              schema2
-            }
             schema2
           }
         }
     - id: 3
       type: Operation
-      schema: A
+      schema: C
       operation: |
         query Op_2deb87e6_3 {
           viewer {
-            schema1
+            schema3
           }
         }
     - id: 4
       type: Operation
-      schema: A
+      schema: B
       operation: |
         query Op_2deb87e6_4 {
           viewer {
             settings {
-              schema1
+              schema2
             }
           }
         }

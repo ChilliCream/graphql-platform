@@ -11,7 +11,7 @@ public class BatchDispatcherTests
     {
         // arrange
         var observer = new TestObserver();
-        var scheduler = new BatchDispatcher();
+        var scheduler = new BatchDispatcher(new DataLoaderDiagnosticEventListener());
         using var session = scheduler.Subscribe(observer);
         scheduler.Schedule(new TestBatch());
         Assert.Equal(BatchDispatchEventType.Enqueued, observer.Events[0]);
@@ -30,6 +30,10 @@ public class BatchDispatcherTests
             }
         }
 
+        scheduler.Dispose();
+
+        await Task.Delay(10);
+
         Assert.Collection(
             observer.Events.Take(5),
             t => Assert.Equal(BatchDispatchEventType.Enqueued, t),
@@ -44,7 +48,7 @@ public class BatchDispatcherTests
     {
         // arrange
         var observer = new TestObserver();
-        var scheduler = new BatchDispatcher();
+        var scheduler = new BatchDispatcher(new DataLoaderDiagnosticEventListener());
         using var session = scheduler.Subscribe(observer);
 
         // act
@@ -71,7 +75,7 @@ public class BatchDispatcherTests
     {
         // arrange
         var observer = new TestObserver();
-        var scheduler = new BatchDispatcher();
+        var scheduler = new BatchDispatcher(new DataLoaderDiagnosticEventListener());
 
         // act
         using var session = scheduler.Subscribe(observer);
@@ -108,6 +112,8 @@ public class BatchDispatcherTests
         public override BatchStatus Status => _status;
 
         public override long ModifiedTimestamp { get; } = Stopwatch.GetTimestamp();
+
+        public override long CreatedTimestamp { get; } = Stopwatch.GetTimestamp();
 
         public override bool Touch()
         {

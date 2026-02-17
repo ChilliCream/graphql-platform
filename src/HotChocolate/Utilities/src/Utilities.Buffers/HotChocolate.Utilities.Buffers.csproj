@@ -12,9 +12,18 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <IsAotCompliant>true</IsAotCompliant>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Pipeline" />
+    <InternalsVisibleTo Include="HotChocolate.Language.Web" />
+    <InternalsVisibleTo Include="HotChocolate.Types" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Abstractions" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Benchmarks" />
+    <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
+  </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Microsoft.Bcl.HashCode" />

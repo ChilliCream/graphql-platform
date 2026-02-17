@@ -32,18 +32,18 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Discussion implements Node {
         id: ID!
         title: String
       }
-      
+
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
     interactions:
       - request:
@@ -80,18 +80,18 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       interface Node {
         id: ID!
       }
-      
+
       type Author implements Node {
         id: ID!
         username: String
       }
-      
+
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
       }
 operationPlan:
   operation:
@@ -110,6 +110,7 @@ operationPlan:
       name: testQuery
       hash: 61fcbd495c197032b027f7fa03bb8d27
       searchSpace: 1
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Node

@@ -9,12 +9,14 @@ using static HotChocolate.Language.Utf8GraphQLParser.Syntax;
 
 namespace HotChocolate.Fusion.Satisfiability;
 
-internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
+internal sealed class RequirementsValidator(
+    MutableSchemaDefinition schema,
+    bool includeSatisfiabilityPaths = false)
 {
     public ImmutableArray<SatisfiabilityError> Validate(
         SelectionSetNode requirements,
         MutableObjectTypeDefinition contextType,
-        SatisfiabilityPathItem parentPathItem,
+        SatisfiabilityPathItem? parentPathItem,
         string excludeSchemaName,
         SatisfiabilityPath? cycleDetectionPath = null)
     {
@@ -62,14 +64,19 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
                     if (fieldErrors.Length != 0)
                     {
                         var type = context.TypeContext.Peek();
+                        var message =
+                            includeSatisfiabilityPaths
+                                ? string.Format(
+                                    RequirementsValidator_UnableToAccessFieldOnPath,
+                                    type.Name,
+                                    fieldNode.Name.Value,
+                                    context.Path)
+                                : string.Format(
+                                    RequirementsValidator_UnableToAccessField,
+                                    type.Name,
+                                    fieldNode.Name.Value);
 
-                        errors.Add(new SatisfiabilityError(
-                            string.Format(
-                                RequirementsValidator_UnableToAccessFieldOnPath,
-                                type.Name,
-                                fieldNode.Name.Value,
-                                context.Path),
-                            [.. fieldErrors]));
+                        errors.Add(new SatisfiabilityError(message, [.. fieldErrors]));
                     }
 
                     break;
@@ -191,7 +198,7 @@ internal sealed class RequirementsValidator(MutableSchemaDefinition schema)
             if (requirements is not null)
             {
                 var requirementErrors =
-                    new RequirementsValidator(schema).Validate(
+                    new RequirementsValidator(schema, includeSatisfiabilityPaths).Validate(
                         requirements,
                         type,
                         context.Path.Peek(),
@@ -377,12 +384,17 @@ internal sealed class RequirementsValidatorContext
 {
     public RequirementsValidatorContext(
         MutableObjectTypeDefinition contextType,
-        SatisfiabilityPathItem parentPathItem,
+        SatisfiabilityPathItem? parentPathItem,
         string excludeSchemaName,
         SatisfiabilityPath? cycleDetectionPath = null)
     {
         TypeContext.Push(contextType);
-        Path.Push(parentPathItem);
+
+        if (parentPathItem is not null)
+        {
+            Path.Push(parentPathItem);
+        }
+
         ExcludeSchemaName = excludeSchemaName;
         CycleDetectionPath = cycleDetectionPath ?? [];
     }

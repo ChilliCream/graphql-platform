@@ -1,4 +1,4 @@
-﻿{
+{
   "errors": [
     {
       "message": "The value provided for `arg` is not in a valid format.",
@@ -7,9 +7,6 @@
           "line": 1,
           "column": 31
         }
-      ],
-      "path": [
-        "echo"
       ],
       "extensions": {
         "code": "HC0001",

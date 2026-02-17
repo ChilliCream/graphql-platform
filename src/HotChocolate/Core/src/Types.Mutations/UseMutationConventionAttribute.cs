@@ -90,13 +90,13 @@ public class UseMutationConventionAttribute : ObjectFieldDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
     {
         var returnType = member.GetReturnType();
 
         if (returnType == typeof(void) || returnType == typeof(Task) || returnType == typeof(ValueTask))
         {
-            throw ThrowHelper.MutationMustReturnValue(member.Name);
+            throw ThrowHelper.MutationMustReturnValue(descriptor.Extend().Configuration.Name);
         }
 
         descriptor.Extend().OnBeforeNaming(

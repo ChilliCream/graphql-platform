@@ -24,11 +24,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
-      
+
       type Viewer {
         fieldA: String!
       }
@@ -37,11 +37,11 @@ sourceSchemas:
       schema {
         query: Query
       }
-      
+
       type Query {
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
-      
+
       type Viewer {
         fieldB: String!
       }
@@ -59,6 +59,7 @@ operationPlan:
       name: testQuery
       hash: 23031ae0670c2e1a0d2f3b9f006622d9
       searchSpace: 2
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

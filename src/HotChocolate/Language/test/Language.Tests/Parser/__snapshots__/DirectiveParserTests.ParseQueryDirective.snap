@@ -1,4 +1,4 @@
-﻿{
+{
   "Kind": "Document",
   "Location": {
     "Start": 0,
@@ -16,6 +16,7 @@
         "Column": 17
       },
       "Name": null,
+      "Description": null,
       "Operation": "Query",
       "VariableDefinitions": [
         {
@@ -45,6 +46,7 @@
               "Value": "var"
             }
           },
+          "Description": null,
           "Type": {
             "Kind": "NamedType",
             "Location": {

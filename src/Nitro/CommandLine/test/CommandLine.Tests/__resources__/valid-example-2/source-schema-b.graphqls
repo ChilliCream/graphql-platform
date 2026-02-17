@@ -1,0 +1,16 @@
+type Query {
+  tagById(id: ID!): Tag @lookup
+}
+
+type Product @key(fields: "id") {
+  id: ID!
+}
+
+type Category @key(fields: "id") {
+  id: ID!
+  name: String!
+}
+
+type Tag {
+  id: ID!
+}

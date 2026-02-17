@@ -68,5 +68,5 @@ internal sealed class OperationPlanCacheMiddleware
                 var middleware = new OperationPlanCacheMiddleware(cache, diagnosticEvents);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },
-            nameof(OperationPlanCacheMiddleware));
+            WellKnownRequestMiddleware.OperationPlanCacheMiddleware);
 }

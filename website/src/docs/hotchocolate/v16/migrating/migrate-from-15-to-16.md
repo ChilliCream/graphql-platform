@@ -38,10 +38,50 @@ builder.Services.AddGraphQLServer()
     .ModifyOptions(options => options.LazyInitialization = true);
 ```
 
+## Clearer separation between schema and application services
+
+Hot Chocolate has long maintained a second `IServiceProvider` for schema services, separate from the application service provider where you register your services and configuration. This schema service provider is scoped to a particular schema and contains all of Hot Chocolate's internal services.
+
+To access application services within schema services like diagnostic event listeners or error filters, we previously used a combined service provider for activating various Hot Chocolate components. However, this approach made it difficult to track service origins and created challenges for AOT compatibility.
+
+Starting with v16, we're introducing a more explicit model where Hot Chocolate configuration is instantiated exclusively through the internal schema service provider. Application services must now be explicitly cross-registered in the schema service provider to be accessible.
+
+```diff
+builder.Services.AddSingleton<MyService>();
+builder.Services.AddGraphQLServer()
++   .AddApplicationService<MyService>()
+    .AddDiagnosticEventListener<MyDiagnosticEventListener>()
+    // or
+    .AddDiagnosticEventListener(sp => new MyService(sp.GetRequiredService<MyService>()));
+
+public class MyDiagnosticEventListener(MyService service) : ExecutionDiagnosticEventListener;
+```
+
+Services registered via `AddApplicationService<T>()` are resolved once during schema initialization from the application service provider and registered as singletons in the schema service provider.
+
+If you're using any of the following configuration APIs, ensure that the application services required for their activation are registered via `AddApplicationService<T>()`:
+
+- `AddHttpRequestInterceptor`
+- `AddSocketSessionInterceptor`
+- `AddErrorFilter`
+- `AddDiagnosticEventListener`
+- `AddOperationCompilerOptimizer`
+- `AddTransactionScopeHandler`
+- `AddRedisOperationDocumentStorage`
+- `AddAzureBlobStorageOperationDocumentStorage`
+- `AddInstrumentation` with a custom `ActivityEnricher`
+
+**Note:** Service injection into resolvers is not affected by this change.
+
+If you need to access the application service provider from within the schema service provider, you can use:
+
+```csharp
+IServiceProvider applicationServices = schemaServices.GetRootServiceProvider();
+```
+
 ## Cache size configuration
 
-Previously, configuring document and operation cache sizes required calling methods directly on `IServiceCollection` rather than using the standard `IRequestExecutorBuilder` pattern. We've now consolidated cache configuration with other GraphQL options for consistency.
-If you're currently using `AddOperationCache` or `AddDocumentCache`, update your code as follows:
+Previously, document and operation cache sizes were globally configured through the `IServiceCollection`. In an effort to align and properly scope our configuration APIs, we've moved the configuration of these caches to the `IRequestExecutorBuilder`. If you're currently calling `AddDocumentCache` or `AddOperationCache` directly on the `IServiceCollection`, move the configuration to `ModifyOptions` on the `IRequestExecutorBuilder`:
 
 ```diff
 -builder.Services.AddDocumentCache(200);
@@ -54,6 +94,8 @@ builder.Services.AddGraphQLServer()
 +        options.PreparedOperationCacheSize = 100;
 +    });
 ```
+
+If your application contains multiple GraphQL servers, the cache configuration has to be repeated for each one as the configuration is now scoped to a particular GraphQL server.
 
 If you were previously accessing `IDocumentCache` or `IPreparedOperationCache` through the root service provider, you now need to access it through the schema-specific service provider instead.
 For instance, to populate the document cache during startup, create a custom `IRequestExecutorWarmupTask` that injects `IDocumentCache`:
@@ -75,6 +117,19 @@ public class MyWarmupTask(IDocumentCache cache) : IRequestExecutorWarmupTask
     }
 }
 ```
+
+## Document hash provider configuration
+
+Previously, document hash providers were globally configured through the `IServiceCollection`. In an effort to align and properly scope our configuration APIs, we've moved the configuration of the hash provider to the `IRequestExecutorBuilder`. If you're currently calling `AddMD5DocumentHashProvider`, `AddSha256DocumentHashProvider` or `AddSha1DocumentHashProvider` directly on the `IServiceCollection`, move the call to the `IRequestExecutorBuilder`:
+
+```diff
+-builder.Services.AddSha256DocumentHashProvider();
+
+builder.Services.AddGraphQLServer()
++    .AddSha256DocumentHashProvider()
+```
+
+If your application contains multiple GraphQL servers, the hash provider configuration has to be repeated for each one as the configuration is now scoped to a particular GraphQL server.
 
 ## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
 
@@ -198,9 +253,98 @@ In addition, the default output for such errors has been standardized: earlier, 
 }
 ```
 
+## Generic `ID<Type>`-attribute now infers the actual GraphQL type name
+
+Previously, `[ID<Type>]` used the CLR type name (`nameof(Type)`), even when a different GraphQL type name was configured via `[GraphQLName]` or `descriptor.Name()`.
+It now uses the actual GraphQL type name if one is defined, for example:
+
+```csharp
+[GraphQLName("Book")]
+public sealed class BookDTO
+{
+    [ID]
+    public int Id { get; set; }
+
+    public string Title { get; set; }
+}
+
+[ID<BookDTO>] // uses "Book" now, not "BookDTO" anymore
+```
+
+Note that this change implies that all type parameters of the generic `ID<Type>`-attribute must now be valid GraphQL types.
+If you need the old behavior, use can still use the non-generic `ID`-attribute and set the type name explicitly: `[ID("BookDTO")]`.
+
+## DescriptorAttribute attributeProvider is nullable
+
+Previously the `TryConfigure` or `OnConfigure` methods carried a non-nullable parameter of the member the descriptor attribute was annotated to. With the new source generator we moved away from pure reflection based APIs. This means that when you use the source generator
+
+## Merged Assemblies HotChocolate.Types, HotChocolate.Execution, HotChocolate.Fetching
+
+With Hot Chocolate 16 we introduced a lot more abstractions, meaning we pulled out abstractions of the type system or the execution into separate libraries. But at the same time we simplified the implementation of the type system and the execution by moving the implementations of HotChocolate.Execution and HotChocolate.Fetching into HotChocolate.Types. This allowed us to simplify the implementation and make it more efficient.
+
+So, if you were referencing HotChocolate.Execution or HotChocolate.Fetching directly make sure to remove references to these libraries and replace them with HotChocolate.Types.
+
+## Simpler Scalar Type
+
+TODO
+
+## Removed Scalars
+
+TODO
+
+NegativeFloat
+NonNegativeFloat
+NegativeInt
+NonPositiveInt
+NonEmptyString
+NonNegativeInt
+
+## OperationRequestBuilder
+
+TODO
+
+## AnyType
+
+TODO
+`JsonElement` is now inferred as `Any` instead of `Json`.
+
+## `Byte` and `SignedByte` types renamed
+
+- The GraphQL type `Byte` has been renamed to `UnsignedByte` (CLR type: `byte`).
+- The GraphQL type `SignedByte` has been renamed to `Byte` (CLR type: `sbyte`).
+
+This is to align the GraphQL type names with the core types (`Int`, etc.), which are signed.
+
+## Byte arrays now mapped to `Base64String`
+
+C# byte arrays (`byte[]`) are now mapped to the GraphQL `Base64String` type by default, as the `ByteArray` type has been deprecated.
+
+## `Uri` now mapped to `URI` scalar instead of `URL`
+
+The CLR type `Uri` is now mapped to a new `URI` scalar, instead of the `URL` scalar.
+
+- The `URI` scalar should be used for absolute or relative URIs.
+- The `URL` scalar should be used for absolute URIs/URLs only.
+
+For backwards compatibility, you can set `allowRelativeUris` to `true`:
+
+```csharp
+AddGraphQL().AddType(new UrlType(allowRelativeUris: true))
+```
+
+Note that this option is likely to be removed in a later release, so it's recommended that you switch types as soon as possible.
+
+## DateTime scalar serialization
+
+The `DateTime` scalar now serializes with up to 7 fractional seconds (`FFFFFFF`) as opposed to exactly 3 (`fff`).
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.
+
+## `ByteArray`
+
+The GraphQL `ByteArray` type has been deprecated. Use the `Base64String` type instead.
 
 # Noteworthy changes
 

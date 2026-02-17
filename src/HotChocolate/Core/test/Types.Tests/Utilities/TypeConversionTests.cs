@@ -465,9 +465,7 @@ public class TypeConverterTests
 
         // act
         Action action = () =>
-            TypeConverterExtensions.TryConvert<string[], List<FooOrBar?>>(
-                null,
-                list, out var output);
+            TypeConverterExtensions.TryConvert<string[], List<FooOrBar?>>(null, list, out _);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -505,6 +503,44 @@ public class TypeConverterTests
 
         // assert
         Assert.Equal("Bar", converted);
+    }
+
+    [Fact]
+    public void Convert_DateTimeOffset_TimeOnly()
+    {
+        // arrange
+        var source = new DateTimeOffset(2024, 1, 1, 12, 45, 10, TimeSpan.Zero);
+
+        // act
+        var success = DefaultTypeConverter.Default.TryConvert(
+            typeof(DateTimeOffset), typeof(TimeOnly),
+            source, out var output,
+            out var conversionException);
+
+        // assert
+        Assert.True(success);
+        Assert.Null(conversionException);
+        Assert.IsType<TimeOnly>(output);
+        Assert.Equal(new TimeOnly(12, 45, 10), output);
+    }
+
+    [Fact]
+    public void Convert_DateTime_TimeOnly()
+    {
+        // arrange
+        var source = new DateTime(2024, 1, 1, 12, 45, 10, DateTimeKind.Utc);
+
+        // act
+        var success = DefaultTypeConverter.Default.TryConvert(
+            typeof(DateTime), typeof(TimeOnly),
+            source, out var output,
+            out var conversionException);
+
+        // assert
+        Assert.True(success);
+        Assert.Null(conversionException);
+        Assert.IsType<TimeOnly>(output);
+        Assert.Equal(new TimeOnly(12, 45, 10), output);
     }
 
     public enum FooOrBar

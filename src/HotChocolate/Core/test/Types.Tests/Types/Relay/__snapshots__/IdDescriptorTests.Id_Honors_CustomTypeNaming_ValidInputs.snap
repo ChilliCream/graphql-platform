@@ -1,0 +1,28 @@
+{
+  "data": {
+    "validAnyIdInput1": {
+      "int": 100
+    },
+    "validAnyIdInput2": {
+      "int": 300
+    },
+    "validAnyIdInput3": {
+      "int": 500
+    },
+    "validAnyIdInput4": {
+      "int": 600
+    },
+    "validUserIdInput": {
+      "int": 100
+    },
+    "validFooIdInput": {
+      "int": 300
+    },
+    "validFluentFooIdInput": {
+      "int": 500
+    },
+    "validSingleTypeFluentFooIdInput": {
+      "int": 600
+    }
+  }
+}

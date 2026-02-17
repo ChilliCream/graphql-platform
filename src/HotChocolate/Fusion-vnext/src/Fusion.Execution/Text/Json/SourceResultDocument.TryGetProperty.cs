@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.Text.Json;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -145,7 +146,7 @@ public sealed partial class SourceResultDocument
             row = _parsedData.Get(cursor);
             Debug.Assert(row.TokenType == JsonTokenType.PropertyName);
 
-            var currentPropertyName = ReadRawValue(row);
+            var currentPropertyName = ReadRawValue(row, includeQuotes: false);
 
             if (row.HasComplexChildren)
             {

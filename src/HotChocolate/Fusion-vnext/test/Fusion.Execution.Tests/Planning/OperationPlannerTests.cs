@@ -111,7 +111,7 @@ public class OperationPlannerTests : FusionTestBase
               topProducts: [Product!]
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
               name: String!
             }
@@ -273,7 +273,7 @@ public class OperationPlannerTests : FusionTestBase
               topProducts: [Product!]
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
               name: String!
               region: String!
@@ -325,7 +325,7 @@ public class OperationPlannerTests : FusionTestBase
               topProducts: [Product!]
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
               name: String!
               region: String!
@@ -377,7 +377,7 @@ public class OperationPlannerTests : FusionTestBase
               topProducts: [Product!]
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
               region: String!
             }
@@ -393,7 +393,7 @@ public class OperationPlannerTests : FusionTestBase
 
             type Product {
               id: ID!
-              sku(region: String! @require(field: "region")): String!
+              sku(region: String! @require(field: "region")): String! @shareable
             }
             """,
             """

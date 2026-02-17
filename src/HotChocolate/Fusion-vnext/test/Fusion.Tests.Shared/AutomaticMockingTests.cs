@@ -123,12 +123,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "obj"
                   ]
@@ -342,12 +336,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "objs",
                     1
@@ -449,12 +437,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 3,
-                      "column": 5
-                    }
-                  ],
                   "path": [
                     "objs",
                     1,
@@ -637,12 +619,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "intrface"
                   ]
@@ -901,12 +877,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "interfaces"
                   ]
@@ -1027,12 +997,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "interfaces",
                     1
@@ -1173,12 +1137,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 7,
-                      "column": 7
-                    }
-                  ],
                   "path": [
                     "interfaces",
                     1,
@@ -1407,12 +1365,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "unon"
                   ]
@@ -1641,12 +1593,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "unions"
                   ]
@@ -1755,12 +1701,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "unions",
                     1
@@ -1886,12 +1826,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 6,
-                      "column": 7
-                    }
-                  ],
                   "path": [
                     "unions",
                     1,
@@ -2015,12 +1949,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "str"
                   ]
@@ -2126,12 +2054,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "scalars"
                   ]
@@ -2206,12 +2128,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "scalars",
                     1
@@ -2334,12 +2250,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "enm"
                   ]
@@ -2461,12 +2371,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "enums",
                     1
@@ -2597,12 +2501,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "productById"
                   ]
@@ -2733,12 +2631,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "productsById"
                   ]
@@ -2826,12 +2718,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "productsById",
                     1
@@ -3044,12 +2930,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "node"
                   ]
@@ -3235,12 +3115,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Cannot return null for non-nullable field.",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "nodes"
                   ],
@@ -3295,12 +3169,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "nodes"
                   ]
@@ -3403,12 +3271,6 @@ public class AutomaticMockingTests
               "errors": [
                 {
                   "message": "Unexpected Execution Error",
-                  "locations": [
-                    {
-                      "line": 2,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "nodes",
                     1

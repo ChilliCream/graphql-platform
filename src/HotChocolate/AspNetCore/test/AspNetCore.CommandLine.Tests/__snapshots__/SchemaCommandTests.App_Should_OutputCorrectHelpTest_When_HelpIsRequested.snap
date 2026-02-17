@@ -9,6 +9,6 @@ Options:
 
 Commands:
   export  Export the graphql schema to a schema file
-  print   Prints the graphql schema to the console output
   list    List all registered GraphQL schemas.
+  print   Prints the graphql schema to the console output
 

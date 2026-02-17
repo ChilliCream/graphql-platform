@@ -1,7 +1,6 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
-using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
@@ -109,6 +108,9 @@ public sealed class ModuleFileBuilder : IDisposable
         }
     }
 
+    public void WriteAddSourceSchemaDefaults()
+        => _writer.WriteIndentedLine("builder.AddSourceSchemaDefaults();");
+
     public void WriteRegisterDataLoader(string typeName)
         => _writer.WriteIndentedLine("builder.AddDataLoader<global::{0}>();", typeName);
 
@@ -162,9 +164,6 @@ public sealed class ModuleFileBuilder : IDisposable
 
     public override string ToString()
         => _sb.ToString();
-
-    public SourceText ToSourceText()
-        => SourceText.From(ToString(), Encoding.UTF8);
 
     public void Dispose()
     {

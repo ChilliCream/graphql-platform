@@ -21,7 +21,7 @@ internal sealed class OperationPlanMiddleware
         IEnumerable<IOperationPlannerInterceptor>? interceptors,
         IFusionExecutionDiagnosticEvents diagnosticsEvents)
     {
-        _documentRewriter = new(schema, removeStaticallyExcludedSelections: true);
+        _documentRewriter = new DocumentRewriter(schema, removeStaticallyExcludedSelections: true);
         _planner = planner;
         _interceptors = interceptors?.ToArray() ?? [];
         _diagnosticsEvents = diagnosticsEvents;
@@ -107,5 +107,5 @@ internal sealed class OperationPlanMiddleware
                 var middleware = new OperationPlanMiddleware(fc.Schema, planner, interceptors, diagnosticEvents);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },
-            nameof(OperationPlanMiddleware));
+            WellKnownRequestMiddleware.OperationPlanMiddleware);
 }

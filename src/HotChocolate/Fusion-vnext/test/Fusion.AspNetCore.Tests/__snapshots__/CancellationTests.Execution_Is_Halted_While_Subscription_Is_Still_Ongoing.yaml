@@ -54,6 +54,7 @@ sourceSchemas:
               }
             }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -68,12 +69,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Could not produce review",
-                    "locations": [
-                      {
-                        "line": 2,
-                        "column": 3
-                      }
-                    ],
                     "path": [
                       "onReviewCreated"
                     ]
@@ -93,6 +88,7 @@ operationPlan:
         }
       hash: 1c7b790e223d28e348d3e04a33527c96
       searchSpace: 1
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Operation

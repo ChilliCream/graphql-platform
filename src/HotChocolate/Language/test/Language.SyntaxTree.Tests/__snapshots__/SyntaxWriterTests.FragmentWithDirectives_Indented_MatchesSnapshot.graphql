@@ -1,0 +1,11 @@
+fragment UserFields on User @custom(value: "test") {
+  id
+  name @include(if: true)
+  email
+}
+
+{
+  user {
+    ... UserFields @defer
+  }
+}
