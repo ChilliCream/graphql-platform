@@ -99,11 +99,13 @@ Internal lookups typically construct a stub object from the key without checking
 ### When to Use Internal vs. Public Lookups
 
 Use a **public lookup** when:
+
 - Your subgraph is the primary owner of the entity (the Products subgraph for `Product`, the Accounts subgraph for `User`)
 - Clients should be able to query for this entity directly from your subgraph
 - The lookup validates that the entity exists and returns `null` if it does not
 
 Use an **internal lookup** when:
+
 - Your subgraph extends an entity from another subgraph (the Reviews subgraph extending `Product`)
 - You do not want clients to enter your subgraph through this lookup
 - The lookup just constructs a stub -- it does not need to validate existence
@@ -231,7 +233,7 @@ Both subgraphs mark `GetName` with `[Shareable]`. This tells Fusion: "this field
 
 If you forget `[Shareable]` on any definition, composition fails:
 
-```
+```text
 Error: Field "User.name" is defined in subgraphs "accounts-api" and "reviews-api"
 without [Shareable]. Mark the field as [Shareable] in all subgraphs that define it,
 or remove the duplicate definition.
@@ -381,22 +383,26 @@ You can have at most one `[NodeResolver]` per entity type per subgraph. If an en
 Here is a summary of the patterns for the most common entity scenarios:
 
 **You own the entity (primary subgraph):**
+
 - Define the full type with all fields
 - Add a public `[Lookup]` resolver (with `[NodeResolver]` if using Relay)
 - Use `[DataLoader]` for batch resolution
 
 **You extend the entity (secondary subgraph):**
+
 - Create an entity stub with just the key field and your new fields
 - Add an internal `[Lookup, Internal]` resolver
 - Use `[BindMember]` if replacing a foreign key with an entity reference
 - Mark any duplicated non-key fields with `[Shareable]`
 
 **You need data from another subgraph in a resolver:**
+
 - Use `[Require(...)]` on the resolver argument to declare the dependency
 - The gateway fetches the required data automatically
 - Required arguments are hidden from the composite schema
 
 **Your entity can be identified by multiple keys:**
+
 - Add multiple `[Lookup]` resolvers (by ID, by username, by SKU, etc.)
 - The gateway uses whichever key is available
 
