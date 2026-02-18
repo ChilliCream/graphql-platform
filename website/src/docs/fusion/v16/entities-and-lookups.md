@@ -233,7 +233,7 @@ Both subgraphs mark `GetName` with `[Shareable]`. This tells Fusion: "this field
 
 If you forget `[Shareable]` on any definition, composition fails:
 
-```
+```text
 Error: Field "User.name" is defined in subgraphs "accounts-api" and "reviews-api"
 without [Shareable]. Mark the field as [Shareable] in all subgraphs that define it,
 or remove the duplicate definition.

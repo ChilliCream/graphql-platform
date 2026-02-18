@@ -553,7 +553,7 @@ After merging, the `Purchasable` interface has both `price` and `refundPolicy`. 
 
 **Fix:** Ensure both files exist and share the same prefix:
 
-```
+```text
 Products/
 ├── schema.graphqls
 └── schema-settings.json

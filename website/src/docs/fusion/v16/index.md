@@ -18,7 +18,7 @@ The architecture has three parts:
                          ▼
                 ┌────────────────┐
                 │ Fusion Gateway │
-                └──┬──────┬──┬──┘
+                └──┬──────┬──┬───┘
                    │      │  │
           ┌────────┘      │  └────────┐
           ▼               ▼           ▼
@@ -41,9 +41,9 @@ The architecture has three parts:
 
 The result: a client sends a single query, the gateway fans it out to the relevant subgraphs, and the response comes back as if it were a monolithic API.
 
+<!-- prettier-ignore-start -->
 ```graphql
 # This query touches three subgraphs, but the client doesn't know or care.
-<!-- prettier-ignore-start -->
 query {
   products(first: 5) {
     nodes {
@@ -58,8 +58,8 @@ query {
     }
   }
 }
-<!-- prettier-ignore-end -->
 ```
+<!-- prettier-ignore-end -->
 
 ## Three Things That Make Fusion Different
 

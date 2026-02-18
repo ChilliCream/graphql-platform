@@ -652,7 +652,7 @@ Composition is handled by the Nitro CLI. It reads each subgraph's `.graphqls` sc
 
 Before running composition, make sure your project looks like this:
 
-```
+```text
 fusion-getting-started/
 ├── Products/
 │   ├── Product.cs
@@ -696,7 +696,7 @@ nitro fusion compose --source-schema-file Products/schema.graphqls --source-sche
 
 If composition succeeds, you will see output similar to:
 
-```
+```text
 Validating source schemas...
 Merging schemas...
 Fusion archive created: gateway.far
@@ -845,7 +845,7 @@ dotnet run
 
 Wait for all three services to start. You should see output like this in each terminal:
 
-```
+```text
 info: Microsoft.Hosting.Lifetime[14]
       Now listening on: http://localhost:5001
 info: Microsoft.Hosting.Lifetime[0]
