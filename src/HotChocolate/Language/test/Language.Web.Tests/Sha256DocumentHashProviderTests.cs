@@ -1,3 +1,5 @@
+using System.Buffers;
+
 namespace HotChocolate.Language;
 
 public class Sha256DocumentHashProviderTests
@@ -20,6 +22,62 @@ public class Sha256DocumentHashProviderTests
     public void HashAsHex()
     {
         var content = "abc"u8.ToArray();
+        var hashProvider = new Sha256DocumentHashProvider(HashFormat.Hex);
+
+        var hash = hashProvider.ComputeHash(content);
+
+        Snapshot
+            .Create()
+            .Add(hash.Value)
+            .MatchInline("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+    }
+
+    [Fact]
+    public void HashSequenceSingleSegmentAsBase64()
+    {
+        var content = new ReadOnlySequence<byte>("abc"u8.ToArray());
+        var hashProvider = new Sha256DocumentHashProvider(HashFormat.Base64);
+
+        var hash = hashProvider.ComputeHash(content);
+
+        Snapshot
+            .Create()
+            .Add(hash.Value)
+            .MatchInline("ungWv48Bz-pBQUDeXa4iI7ADYaOWF3qctBD_YfIAFa0");
+    }
+
+    [Fact]
+    public void HashSequenceMultiSegmentAsBase64()
+    {
+        var content = SequenceHelper.CreateMultiSegment("abc"u8.ToArray());
+        var hashProvider = new Sha256DocumentHashProvider(HashFormat.Base64);
+
+        var hash = hashProvider.ComputeHash(content);
+
+        Snapshot
+            .Create()
+            .Add(hash.Value)
+            .MatchInline("ungWv48Bz-pBQUDeXa4iI7ADYaOWF3qctBD_YfIAFa0");
+    }
+
+    [Fact]
+    public void HashSequenceSingleSegmentAsHex()
+    {
+        var content = new ReadOnlySequence<byte>("abc"u8.ToArray());
+        var hashProvider = new Sha256DocumentHashProvider(HashFormat.Hex);
+
+        var hash = hashProvider.ComputeHash(content);
+
+        Snapshot
+            .Create()
+            .Add(hash.Value)
+            .MatchInline("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+    }
+
+    [Fact]
+    public void HashSequenceMultiSegmentAsHex()
+    {
+        var content = SequenceHelper.CreateMultiSegment("abc"u8.ToArray());
         var hashProvider = new Sha256DocumentHashProvider(HashFormat.Hex);
 
         var hash = hashProvider.ComputeHash(content);
