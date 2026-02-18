@@ -1,0 +1,19 @@
+{
+  "data": {
+    "person": {
+      "friends": {
+        "nodes": [
+          {
+            "name": "Charlie"
+          },
+          {
+            "name": "Bob"
+          },
+          {
+            "name": "Alice"
+          }
+        ]
+      }
+    }
+  }
+}
