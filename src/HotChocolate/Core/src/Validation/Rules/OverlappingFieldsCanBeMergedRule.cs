@@ -41,15 +41,17 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 continue;
             }
 
-            var fieldMap = new Dictionary<string, HashSet<FieldAndType>>();
-            var visitedFragmentSpreads = new HashSet<string>();
+            var fieldMap = context.RentFieldMap();
+            var visitedFragmentSpreads = context.RentStringSet();
             CollectFields(context, fieldMap, operationDef.SelectionSet, rootType, visitedFragmentSpreads);
-            var conflicts = FindConflicts(context, fieldMap);
+
+            var conflicts = context.RentConflictList();
+            FindConflicts(context, fieldMap, conflicts);
             List<FieldNode>? fieldNodes = null;
 
             foreach (var conflict in conflicts)
             {
-                if (context.ConflictsReported.Any(r => r.SetEquals(conflict.Fields)))
+                if (context.ConflictsReported.Contains(conflict.Fields))
                 {
                     continue;
                 }
@@ -68,6 +70,10 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                         .SpecifiedBy("sec-Field-Selection-Merging")
                         .Build());
             }
+
+            context.ReturnConflictList(conflicts);
+            context.ReturnFieldMap(fieldMap);
+            context.ReturnStringSet(visitedFragmentSpreads);
         }
     }
 
@@ -145,16 +151,13 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         }
     }
 
-    private static List<Conflict> FindConflicts(
+    private static void FindConflicts(
         MergeContext context,
-        Dictionary<string, HashSet<FieldAndType>> fieldMap)
+        Dictionary<string, HashSet<FieldAndType>> fieldMap,
+        List<Conflict> result)
     {
-        var result = new List<Conflict>();
-
         SameResponseShapeByName(context, fieldMap, Path.Root, result);
         SameForCommonParentsByName(context, fieldMap, Path.Root, result);
-
-        return result;
     }
 
     private static void SameResponseShapeByName(
@@ -165,7 +168,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
     {
         foreach (var entry in fieldMap)
         {
-            if (context.SameResponseShapeChecked.Any(set => set.SetEquals(entry.Value)))
+            if (context.SameResponseShapeChecked.Contains(entry.Value))
             {
                 continue;
             }
@@ -183,6 +186,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
             var subSelections = MergeSubSelections(context, entry.Value);
             SameResponseShapeByName(context, subSelections, newPath, conflictsResult);
+            context.ReturnFieldMap(subSelections);
         }
     }
 
@@ -199,7 +203,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
             foreach (var group in groups)
             {
-                if (context.SameForCommonParentsChecked.Any(g => g.SetEquals(group)))
+                if (context.SameForCommonParentsChecked.Contains(group))
                 {
                     continue;
                 }
@@ -222,6 +226,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
                 var subSelections = MergeSubSelections(context, group);
                 SameForCommonParentsByName(context, subSelections, newPath, conflictsResult);
+                context.ReturnFieldMap(subSelections);
             }
         }
     }
@@ -292,13 +297,17 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
             return null;
         }
 
-        var first = fieldGroup.First();
+        using var enumerator = fieldGroup.GetEnumerator();
+        enumerator.MoveNext();
+        var first = enumerator.Current;
         var name = first.Field.Name.Value;
         var arguments = first.Field.Arguments;
         var responseName = first.Field.Alias?.Value ?? name;
 
-        foreach (var (field, _, _) in fieldGroup.Skip(1))
+        while (enumerator.MoveNext())
         {
+            var (field, _, _) = enumerator.Current;
+
             if (field.Name.Value != name)
             {
                 return NameMismatchConflict(name, field.Name.Value, path, fieldGroup, context);
@@ -328,7 +337,17 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         for (var i = 0; i < a.Count; i++)
         {
             var argA = a[i];
-            var argB = b.FirstOrDefault(x => x.Name.Value == argA.Name.Value);
+            ArgumentNode? argB = null;
+
+            for (var j = 0; j < b.Count; j++)
+            {
+                if (b[j].Name.Value.Equals(argA.Name.Value, StringComparison.Ordinal))
+                {
+                    argB = b[j];
+                    break;
+                }
+            }
+
             if (argB is null || !argA.Value.Equals(argB.Value, SyntaxComparison.Syntax))
             {
                 return false;
@@ -342,7 +361,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         MergeContext context,
         HashSet<FieldAndType> fields)
     {
-        var merged = new Dictionary<string, HashSet<FieldAndType>>();
+        var merged = context.RentFieldMap();
         HashSet<string>? visited = null;
 
         foreach (var item in fields)
@@ -352,10 +371,21 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
                 continue;
             }
 
-            visited ??= [];
-            visited.Clear();
+            if (visited is null)
+            {
+                visited = context.RentStringSet();
+            }
+            else
+            {
+                visited.Clear();
+            }
 
             CollectFields(context, merged, item.Field.SelectionSet, item.Type, visited);
+        }
+
+        if (visited is not null)
+        {
+            context.ReturnStringSet(visited);
         }
 
         return merged;
@@ -371,10 +401,13 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
             return null;
         }
 
-        var baseField = fields.First();
+        using var enumerator = fields.GetEnumerator();
+        enumerator.MoveNext();
+        var baseField = enumerator.Current;
 
-        foreach (var current in fields.Skip(1))
+        while (enumerator.MoveNext())
         {
+            var current = enumerator.Current;
             var a = baseField.Type;
             var b = current.Type;
 
@@ -519,9 +552,16 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
             return null;
         }
 
-        var baseField = fields.FirstOrDefault(
-            f => f.Field.Directives.Any(
-                d => d.Name.Value == DirectiveNames.Stream.Name));
+        FieldAndType? baseField = null;
+
+        foreach (var f in fields)
+        {
+            if (HasStreamDirective(f.Field))
+            {
+                baseField = f;
+                break;
+            }
+        }
 
         // if there is no stream directive on any field in this group we can skip this check.
         if (baseField is null)
@@ -549,26 +589,64 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         return null;
     }
 
-    private static IntValueNode? GetStreamInitialCount(FieldNode field)
+    private static bool HasStreamDirective(FieldNode field)
     {
-        var streamDirective = field.Directives.First(
-            d => d.Name.Value == DirectiveNames.Stream.Name);
+        for (var i = 0; i < field.Directives.Count; i++)
+        {
+            if (field.Directives[i].Name.Value.Equals(
+                DirectiveNames.Stream.Name, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
 
-        return GetStreamInitialCount(streamDirective);
+        return false;
     }
 
-    private static bool TryGetStreamDirective(FieldNode field, [NotNullWhen(true)] out DirectiveNode? streamDirective)
+    private static IntValueNode? GetStreamInitialCount(FieldNode field)
     {
-        streamDirective = field.Directives.FirstOrDefault(
-            d => d.Name.Value == DirectiveNames.Stream.Name);
-        return streamDirective is not null;
+        for (var i = 0; i < field.Directives.Count; i++)
+        {
+            if (field.Directives[i].Name.Value.Equals(
+                DirectiveNames.Stream.Name, StringComparison.Ordinal))
+            {
+                return GetStreamInitialCount(field.Directives[i]);
+            }
+        }
+
+        return null;
+    }
+
+    private static bool TryGetStreamDirective(
+        FieldNode field,
+        [NotNullWhen(true)] out DirectiveNode? streamDirective)
+    {
+        for (var i = 0; i < field.Directives.Count; i++)
+        {
+            if (field.Directives[i].Name.Value.Equals(
+                DirectiveNames.Stream.Name, StringComparison.Ordinal))
+            {
+                streamDirective = field.Directives[i];
+                return true;
+            }
+        }
+
+        streamDirective = null;
+        return false;
     }
 
     private static IntValueNode? GetStreamInitialCount(DirectiveNode streamDirective)
     {
-        var initialCountArgument = streamDirective.Arguments.FirstOrDefault(
-            a => a.Name.Value == DirectiveNames.Stream.Arguments.InitialCount);
-        return initialCountArgument?.Value as IntValueNode;
+        for (var i = 0; i < streamDirective.Arguments.Count; i++)
+        {
+            if (streamDirective.Arguments[i].Name.Value.Equals(
+                DirectiveNames.Stream.Arguments.InitialCount, StringComparison.Ordinal))
+            {
+                return streamDirective.Arguments[i].Value as IntValueNode;
+            }
+        }
+
+        return null;
     }
 
     private static Conflict StreamDirectiveMismatch(
@@ -636,7 +714,7 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         public Path? Path { get; } = path;
     }
 
-    private class HashSetComparer<T> : IEqualityComparer<HashSet<T>> where T : notnull
+    private sealed class HashSetComparer<T> : IEqualityComparer<HashSet<T>> where T : notnull
     {
         public static readonly HashSetComparer<T> Instance = new();
 
@@ -645,37 +723,81 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
         public int GetHashCode(HashSet<T> obj)
         {
-            var hash = new HashCode();
+            // XOR is commutative + associative, so iteration order does not matter.
+            var hash = 0;
 
             foreach (var item in obj)
             {
-                hash.Add(item);
+                hash ^= item.GetHashCode();
             }
 
-            return hash.ToHashCode();
+            return hash;
         }
     }
 
     private sealed class MergeContext(DocumentValidatorContext context)
     {
+        private readonly Stack<Dictionary<string, HashSet<FieldAndType>>> _fieldMapPool = new();
+        private readonly Stack<HashSet<string>> _stringSetPool = new();
+        private readonly Stack<List<Conflict>> _conflictListPool = new();
+
         public ISchemaDefinition Schema => context.Schema;
 
         public int MaxLocationsPerError => context.MaxLocationsPerError;
 
         public IType TypenameFieldType { get; } = new NonNullType(context.Schema.Types["String"]);
 
-        public HashSet<HashSet<FieldAndType>> SameResponseShapeChecked { get; }
-            = new(HashSetComparer<FieldAndType>.Instance);
+        public HashSet<HashSet<FieldAndType>> SameResponseShapeChecked { get; } = new HashSet<HashSet<FieldAndType>>(HashSetComparer<FieldAndType>.Instance);
 
-        public HashSet<HashSet<FieldAndType>> SameForCommonParentsChecked { get; }
-            = new(HashSetComparer<FieldAndType>.Instance);
+        public HashSet<HashSet<FieldAndType>> SameForCommonParentsChecked { get; } = new HashSet<HashSet<FieldAndType>>(HashSetComparer<FieldAndType>.Instance);
 
-        public HashSet<HashSet<FieldNode>> ConflictsReported { get; }
-            = new(HashSetComparer<FieldNode>.Instance);
+        public HashSet<HashSet<FieldNode>> ConflictsReported { get; } = new HashSet<HashSet<FieldNode>>(HashSetComparer<FieldNode>.Instance);
 
         public DocumentValidatorContext.FragmentContext Fragments => context.Fragments;
 
         public bool IsStreamEnabled { get; } = context.Schema.DirectiveDefinitions.ContainsName(DirectiveNames.Stream.Name);
+
+        public Dictionary<string, HashSet<FieldAndType>> RentFieldMap()
+        {
+            if (_fieldMapPool.TryPop(out var dict))
+            {
+                dict.Clear();
+                return dict;
+            }
+
+            return new(StringComparer.Ordinal);
+        }
+
+        public void ReturnFieldMap(Dictionary<string, HashSet<FieldAndType>> dict)
+            => _fieldMapPool.Push(dict);
+
+        public HashSet<string> RentStringSet()
+        {
+            if (_stringSetPool.TryPop(out var set))
+            {
+                set.Clear();
+                return set;
+            }
+
+            return new(StringComparer.Ordinal);
+        }
+
+        public void ReturnStringSet(HashSet<string> set)
+            => _stringSetPool.Push(set);
+
+        public List<Conflict> RentConflictList()
+        {
+            if (_conflictListPool.TryPop(out var list))
+            {
+                list.Clear();
+                return list;
+            }
+
+            return [];
+        }
+
+        public void ReturnConflictList(List<Conflict> list)
+            => _conflictListPool.Push(list);
 
         public void ReportError(IError error)
         {
