@@ -737,31 +737,39 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
 
     private sealed class MergeContext(DocumentValidatorContext context)
     {
+        private const int MaxPoolSize = 8;
+
         private readonly Stack<Dictionary<string, HashSet<FieldAndType>>> _fieldMapPool = new();
         private readonly Stack<HashSet<string>> _stringSetPool = new();
         private readonly Stack<List<Conflict>> _conflictListPool = new();
 
-        public ISchemaDefinition Schema => context.Schema;
+        public ISchemaDefinition Schema
+            => context.Schema;
 
-        public int MaxLocationsPerError => context.MaxLocationsPerError;
+        public int MaxLocationsPerError
+            => context.MaxLocationsPerError;
 
-        public IType TypenameFieldType { get; } = new NonNullType(context.Schema.Types["String"]);
+        public IType TypenameFieldType { get; } =
+            new NonNullType(context.Schema.Types["String"]);
 
-        public HashSet<HashSet<FieldAndType>> SameResponseShapeChecked { get; } = new HashSet<HashSet<FieldAndType>>(HashSetComparer<FieldAndType>.Instance);
+        public HashSet<HashSet<FieldAndType>> SameResponseShapeChecked { get; } =
+            new HashSet<HashSet<FieldAndType>>(HashSetComparer<FieldAndType>.Instance);
 
-        public HashSet<HashSet<FieldAndType>> SameForCommonParentsChecked { get; } = new HashSet<HashSet<FieldAndType>>(HashSetComparer<FieldAndType>.Instance);
+        public HashSet<HashSet<FieldAndType>> SameForCommonParentsChecked { get; } =
+            new HashSet<HashSet<FieldAndType>>(HashSetComparer<FieldAndType>.Instance);
 
-        public HashSet<HashSet<FieldNode>> ConflictsReported { get; } = new HashSet<HashSet<FieldNode>>(HashSetComparer<FieldNode>.Instance);
+        public HashSet<HashSet<FieldNode>> ConflictsReported { get; } =
+            new HashSet<HashSet<FieldNode>>(HashSetComparer<FieldNode>.Instance);
 
         public DocumentValidatorContext.FragmentContext Fragments => context.Fragments;
 
-        public bool IsStreamEnabled { get; } = context.Schema.DirectiveDefinitions.ContainsName(DirectiveNames.Stream.Name);
+        public bool IsStreamEnabled { get; } =
+            context.Schema.DirectiveDefinitions.ContainsName(DirectiveNames.Stream.Name);
 
         public Dictionary<string, HashSet<FieldAndType>> RentFieldMap()
         {
             if (_fieldMapPool.TryPop(out var dict))
             {
-                dict.Clear();
                 return dict;
             }
 
@@ -769,13 +777,20 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         }
 
         public void ReturnFieldMap(Dictionary<string, HashSet<FieldAndType>> dict)
-            => _fieldMapPool.Push(dict);
+        {
+            if (_fieldMapPool.Count >= MaxPoolSize)
+            {
+                return;
+            }
+
+            dict.Clear();
+            _fieldMapPool.Push(dict);
+        }
 
         public HashSet<string> RentStringSet()
         {
             if (_stringSetPool.TryPop(out var set))
             {
-                set.Clear();
                 return set;
             }
 
@@ -783,13 +798,20 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         }
 
         public void ReturnStringSet(HashSet<string> set)
-            => _stringSetPool.Push(set);
+        {
+            if (_stringSetPool.Count >= MaxPoolSize)
+            {
+                return;
+            }
+
+            set.Clear();
+            _stringSetPool.Push(set);
+        }
 
         public List<Conflict> RentConflictList()
         {
             if (_conflictListPool.TryPop(out var list))
             {
-                list.Clear();
                 return list;
             }
 
@@ -797,12 +819,18 @@ internal sealed class OverlappingFieldsCanBeMergedRule : IDocumentValidatorRule
         }
 
         public void ReturnConflictList(List<Conflict> list)
-            => _conflictListPool.Push(list);
+        {
+            if (_conflictListPool.Count >= MaxPoolSize)
+            {
+                return;
+            }
+
+            list.Clear();
+            _conflictListPool.Push(list);
+        }
 
         public void ReportError(IError error)
-        {
-            context.ReportError(error);
-        }
+            => context.ReportError(error);
     }
 
     private sealed class FieldLocationComparer : IComparer<FieldNode>
