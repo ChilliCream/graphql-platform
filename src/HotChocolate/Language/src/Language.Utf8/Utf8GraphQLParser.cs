@@ -36,6 +36,24 @@ public ref partial struct Utf8GraphQLParser
         _description = null;
     }
 
+    public Utf8GraphQLParser(
+        ReadOnlySequence<byte> sourceText,
+        ParserOptions? options = null)
+    {
+        if (sourceText.Length == 0)
+        {
+            throw new ArgumentException(GraphQLData_Empty, nameof(sourceText));
+        }
+
+        options ??= ParserOptions.Default;
+        _createLocation = !options.NoLocations;
+        _allowFragmentVars = options.Experimental.AllowFragmentVariables;
+        _maxAllowedNodes = options.MaxAllowedNodes;
+        _maxAllowedFields = options.MaxAllowedFields;
+        _reader = new Utf8GraphQLReader(sourceText, options.MaxAllowedTokens);
+        _description = null;
+    }
+
     internal Utf8GraphQLParser(
         Utf8GraphQLReader reader,
         ParserOptions? options = null)
@@ -196,6 +214,45 @@ public ref partial struct Utf8GraphQLParser
     }
 
     public static DocumentNode Parse(
+        ReadOnlySequence<byte> sourceText)
+    {
+        if (sourceText.Length == 0)
+        {
+            return new DocumentNode([]);
+        }
+
+        var parser = new Utf8GraphQLParser(sourceText);
+        try
+        {
+            return parser.Parse();
+        }
+        finally
+        {
+            parser._reader.Dispose();
+        }
+    }
+
+    public static DocumentNode Parse(
+        ReadOnlySequence<byte> sourceText,
+        ParserOptions options)
+    {
+        if (sourceText.Length == 0)
+        {
+            return new DocumentNode([]);
+        }
+
+        var parser = new Utf8GraphQLParser(sourceText, options);
+        try
+        {
+            return parser.Parse();
+        }
+        finally
+        {
+            parser._reader.Dispose();
+        }
+    }
+
+    public static DocumentNode Parse(
 #if NETSTANDARD2_0
         string sourceText) =>
 #else
@@ -224,7 +281,7 @@ public ref partial struct Utf8GraphQLParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLCharacters.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 

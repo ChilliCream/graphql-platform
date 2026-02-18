@@ -25,7 +25,7 @@ internal static class Utf8Helper
         }
 
         // Fast path: no escapes just copy.
-        var firstBackslash = escapedString.IndexOf(GraphQLConstants.Backslash);
+        var firstBackslash = escapedString.IndexOf(GraphQLCharacters.Backslash);
         if (firstBackslash == -1)
         {
             escapedString.CopyTo(unescapedString);
@@ -59,7 +59,7 @@ internal static class Utf8Helper
         {
             ref var srcStart = ref MemoryMarshal.GetReference(escapedString);
             ref var dstStart = ref MemoryMarshal.GetReference(unescapedString);
-            var backslashVec = Vector256.Create(GraphQLConstants.Backslash);
+            var backslashVec = Vector256.Create(GraphQLCharacters.Backslash);
 
             while (readPos <= escapedString.Length - Vector256<byte>.Count)
             {
@@ -98,7 +98,7 @@ internal static class Utf8Helper
         {
             ref var srcStart = ref MemoryMarshal.GetReference(escapedString);
             ref var dstStart = ref MemoryMarshal.GetReference(unescapedString);
-            var backslashVec = Vector128.Create(GraphQLConstants.Backslash);
+            var backslashVec = Vector128.Create(GraphQLCharacters.Backslash);
 
             while (readPos <= escapedString.Length - Vector128<byte>.Count)
             {
@@ -139,7 +139,7 @@ internal static class Utf8Helper
         {
             var code = escapedString[readPos];
 
-            if (code == GraphQLConstants.Backslash)
+            if (code == GraphQLCharacters.Backslash)
             {
                 ProcessEscapeSequence(
                     escapedString, unescapedString,
@@ -178,16 +178,16 @@ internal static class Utf8Helper
         readPos++;
         var code = escaped[readPos++];
 
-        if (isBlockString && code == GraphQLConstants.Quote)
+        if (isBlockString && code == GraphQLCharacters.Quote)
         {
             if (readPos + 1 < escaped.Length
-                && escaped[readPos] == GraphQLConstants.Quote
-                && escaped[readPos + 1] == GraphQLConstants.Quote)
+                && escaped[readPos] == GraphQLCharacters.Quote
+                && escaped[readPos + 1] == GraphQLCharacters.Quote)
             {
                 readPos += 2;
-                unescaped[writePos++] = GraphQLConstants.Quote;
-                unescaped[writePos++] = GraphQLConstants.Quote;
-                unescaped[writePos++] = GraphQLConstants.Quote;
+                unescaped[writePos++] = GraphQLCharacters.Quote;
+                unescaped[writePos++] = GraphQLCharacters.Quote;
+                unescaped[writePos++] = GraphQLCharacters.Quote;
             }
             else
             {
@@ -196,7 +196,7 @@ internal static class Utf8Helper
         }
         else if (code.IsValidEscapeCharacter())
         {
-            if (code == GraphQLConstants.U)
+            if (code == GraphQLCharacters.U)
             {
                 if (readPos + 3 >= escaped.Length)
                 {

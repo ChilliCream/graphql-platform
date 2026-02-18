@@ -149,11 +149,11 @@ When the same field appears in multiple subgraphs with different nullability, th
 
 For output fields -- fields returned by resolvers -- the merged type uses the **least restrictive** nullability. Nullable wins:
 
-| Subgraph A | Subgraph B | Composed Result |
-|------------|------------|-----------------|
+| Subgraph A      | Subgraph B      | Composed Result |
+| --------------- | --------------- | --------------- |
 | `name: String!` | `name: String!` | `name: String!` |
-| `name: String!` | `name: String` | `name: String` |
-| `name: String` | `name: String` | `name: String` |
+| `name: String!` | `name: String`  | `name: String`  |
+| `name: String`  | `name: String`  | `name: String`  |
 
 Why? If one subgraph says a field can be null, the gateway must account for that possibility. The composed schema reflects the reality that the field might be null from at least one source.
 
@@ -161,11 +161,11 @@ Why? If one subgraph says a field can be null, the gateway must account for that
 
 For arguments and input object fields -- values provided by clients -- the merged type uses the **most restrictive** nullability. Non-nullable wins:
 
-| Subgraph A | Subgraph B | Composed Result |
-|------------|------------|-----------------|
-| `limit: Int!` | `limit: Int!` | `limit: Int!` |
-| `limit: Int!` | `limit: Int` | `limit: Int!` |
-| `limit: Int` | `limit: Int` | `limit: Int` |
+| Subgraph A    | Subgraph B    | Composed Result |
+| ------------- | ------------- | --------------- |
+| `limit: Int!` | `limit: Int!` | `limit: Int!`   |
+| `limit: Int!` | `limit: Int`  | `limit: Int!`   |
+| `limit: Int`  | `limit: Int`  | `limit: Int`    |
 
 Why? If one subgraph requires a non-nullable argument, the gateway must always provide it. Clients must supply a value that satisfies the strictest subgraph.
 
@@ -482,10 +482,19 @@ public static partial class ProductQueries
 
 ```graphql
 # Orders subgraph
-enum OrderStatus { PENDING, SHIPPED, DELIVERED, CANCELLED }
+enum OrderStatus {
+  PENDING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
 
 # Payments subgraph (used as input)
-enum OrderStatus { PENDING, SHIPPED, DELIVERED }
+enum OrderStatus {
+  PENDING
+  SHIPPED
+  DELIVERED
+}
 # Missing CANCELLED!
 ```
 
@@ -520,7 +529,7 @@ type DigitalProduct implements Purchasable {
 # Payments subgraph
 interface Purchasable {
   price: Float!
-  refundPolicy: String!  # New field added here
+  refundPolicy: String! # New field added here
 }
 ```
 
@@ -544,7 +553,7 @@ After merging, the `Purchasable` interface has both `price` and `refundPolicy`. 
 
 **Fix:** Ensure both files exist and share the same prefix:
 
-```
+```text
 Products/
 ├── schema.graphqls
 └── schema-settings.json

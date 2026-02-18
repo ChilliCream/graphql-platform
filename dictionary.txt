@@ -5,8 +5,10 @@ accessibilities
 agrc
 Alderaan
 Andi
+appsettings
 ASPDEPR004
 ASPDEPR008
+aspnet
 aspnetcore
 Astromech
 automagically
@@ -37,6 +39,7 @@ combinators
 contentfiles
 Contoso
 CQRS
+creds
 dataloaders
 debuggable
 decompile
@@ -157,6 +160,7 @@ runbooks
 Satisfiability
 Senn
 shoooe
+SHORTSHA
 Silmarillion
 skybridge
 Skywalker
@@ -184,6 +188,7 @@ Tatooine
 Tengler
 Testcontainers
 Toub
+Touchpoint
 TOWGS
 Trimmable
 Tzdb

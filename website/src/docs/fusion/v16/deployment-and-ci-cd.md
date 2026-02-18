@@ -76,6 +76,7 @@ nitro fusion publish \
 ```
 
 This command:
+
 1. Downloads all source schemas for the specified stage
 2. Composes them into a gateway configuration
 3. Validates compatibility
@@ -171,6 +172,7 @@ nitro fusion validate \
 ```
 
 Exit codes:
+
 - `0`: Validation passed
 - Non-zero: Validation failed (breaking change detected)
 
@@ -376,14 +378,17 @@ jobs:
 ## Workflow Explanation
 
 ### Version Job
+
 Generates a timestamp-based tag and version string from the current git commit SHA.
 
 ### Build Job
+
 1. **Restore and publish** — `dotnet publish` produces a container image and pushes to Azure Container Registry
 2. **Export schema** — `dotnet run -- schema export` generates the `.graphqls` file
 3. **Upload to Nitro** — `nitro fusion upload` versions the schema in Nitro cloud
 
 ### Deploy Job
+
 1. **Create or update App Service** — Deploys the container image to Azure App Service
 2. **Publish to Nitro** — `nitro fusion publish` triggers server-side composition and deploys the new configuration to the specified stage
 3. **Gateway hot-reloads** — The gateway automatically downloads the new config from Nitro
@@ -397,10 +402,10 @@ For simpler pipelines, use the pre-built action:
   uses: ChilliCream/nitro-fusion-publish-action@v1
   with:
     tag: ${{ github.ref_name }}
-    stage: 'production'
-    api-id: 'QXBpCmcwMTk5MGUzNDVlMWU3MjMyYjc2MjYxYzFiNjRkMGQzYg=='
+    stage: "production"
+    api-id: "QXBpCmcwMTk5MGUzNDVlMWU3MjMyYjc2MjYxYzFiNjRkMGQzYg=="
     api-key: ${{ secrets.NITRO_API_KEY }}
-    source-schema-file: './src/Products/schema.graphqls'
+    source-schema-file: "./src/Products/schema.graphqls"
 ```
 
 # Gateway Configuration
@@ -468,6 +473,7 @@ For bidirectional subscriptions, configure WebSocket transport. Subscriptions co
 ## Defaults
 
 By default:
+
 - All HTTP requests use the `"fusion"` named HTTP client
 - Requests are not batched unless explicitly enabled
 - Subscriptions use SSE if available, otherwise HTTP polling
@@ -554,12 +560,14 @@ This lets you develop and test new features without exposing them to clients unt
 ## Breaking vs. Non-Breaking Changes
 
 ### Non-Breaking Changes
+
 - Adding a new type
 - Adding a new field to an existing type (nullable or with a default)
 - Adding a new optional argument to a field
 - Marking a field as `[Shareable]` (allowing multiple subgraphs to resolve it)
 
 ### Breaking Changes
+
 - Removing a type or field
 - Changing a field's return type
 - Changing a field's arguments
