@@ -36,12 +36,14 @@ internal sealed class SelectionExpressionBuilder
         typeof(char?)
     ];
 
-    public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(Selection selection)
+    public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(
+        Selection selection,
+        ulong includeFlags = 0)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
-        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext());
+        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags);
         var root = new TypeContainer();
 
         CollectTypes(context, selection, root);
@@ -56,12 +58,14 @@ internal sealed class SelectionExpressionBuilder
         return Expression.Lambda<Func<TRoot, TRoot>>(selectionSetExpression, parameter);
     }
 
-    public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(Selection selection)
+    public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(
+        Selection selection,
+        ulong includeFlags = 0)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
-        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext());
+        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags);
         var root = new TypeContainer();
 
         var entityType = selection.DeclaringOperation
@@ -272,6 +276,11 @@ internal sealed class SelectionExpressionBuilder
     {
         foreach (var selection in selectionSet.Selections)
         {
+            if (!selection.IsIncluded(context.IncludeFlags))
+            {
+                continue;
+            }
+
             var requirements = context.GetRequirements(selection);
             if (requirements is not null)
             {
@@ -342,7 +351,8 @@ internal sealed class SelectionExpressionBuilder
         Expression Parent,
         Type ParentType,
         FieldRequirementsMetadata Requirements,
-        NullabilityInfoContext NullabilityInfoContext)
+        NullabilityInfoContext NullabilityInfoContext,
+        ulong IncludeFlags)
     {
         public TypeNode? GetRequirements(Selection selection)
         {
