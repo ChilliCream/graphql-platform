@@ -41,7 +41,7 @@ jobs:
         with:
           path: |
             website/.yarn/cache
-            website/.cache/yarn
+            website/.next/cache
           key: ${{ runner.os }}-yarn-${{ hashFiles('website/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
@@ -66,7 +66,7 @@ jobs:
         working-directory: website
 
       - name: Build Website
-        run: yarn build --prefix-paths
+        run: yarn build
         working-directory: website
 
       - name: Build WebSite Container
@@ -81,7 +81,7 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: ccc-p-us1-website
-          slot-name: "production"
+          slot-name: "next"
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           images: ${{ secrets.CONTAINER_REG_DOMAIN }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
 

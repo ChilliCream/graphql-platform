@@ -46,7 +46,7 @@ export const Promo: FC = () => {
       aria-live="polite"
       aria-label="promo"
       aria-describedby="promo:desc"
-      show={!showCookieConsent && show}
+      $show={!showCookieConsent && show}
     >
       {!showCookieConsent && show && (
         <Boundary>

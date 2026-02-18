@@ -33,7 +33,7 @@ export const CookieConsent: FC = () => {
       aria-live="polite"
       aria-label="cookieconsent"
       aria-describedby="cookieconsent:desc"
-      show
+      $show
     >
       <Container>
         <Message id="cookieconsent:desc">

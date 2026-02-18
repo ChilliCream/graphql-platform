@@ -1,5 +1,4 @@
 import { SupportPlan } from "@/types/support";
-import { navigate } from "gatsby";
 import { useCallback, useState } from "react";
 
 export interface SupportFormData {
@@ -68,7 +67,7 @@ export function useFormSubmission({
         if (onSuccess) {
           onSuccess();
         } else {
-          navigate("/services/support/thank-you");
+          window.location.href = "/services/support/thank-you";
         }
       } catch (error) {
         const errorObj =

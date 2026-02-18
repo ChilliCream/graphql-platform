@@ -213,7 +213,7 @@ internal sealed class VariableCoercionHelper
 
                     foreach (var field in inputObjectType.Fields)
                     {
-                        if (field.DefaultValue is not (null or NullValueNode) && !processedFields.Contains(field.Name))
+                        if (field is { IsOptional: false, DefaultValue: not (null or NullValueNode) } && !processedFields.Contains(field.Name))
                         {
                             fields.Add(new ObjectFieldNode(field.Name, field.DefaultValue));
                         }

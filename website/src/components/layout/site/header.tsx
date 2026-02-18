@@ -1,6 +1,4 @@
 import { useDocSearchKeyboardEvents } from "@docsearch/react";
-import { graphql, useStaticQuery } from "gatsby";
-import { GatsbyImage } from "gatsby-plugin-image";
 import React, {
   FC,
   MouseEventHandler,
@@ -11,6 +9,7 @@ import React, {
 } from "react";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
+import { useLatestBlogPost } from "@/lib/providers";
 
 import {
   WorkshopNdcCopenhagenImage,
@@ -20,12 +19,8 @@ import {
 import { IconContainer, Link, SearchModal } from "@/components/misc";
 import { Icon, Logo } from "@/components/sprites";
 import { GitHubStarButton } from "@/components/widgets";
-import {
-  DocsJson,
-  GetHeaderDataQuery,
-  Maybe,
-  SiteSiteMetadataTools,
-} from "@/graphql-types";
+import { siteMetadata, Tools } from "@/lib/site-config";
+import docsConfig from "@/docs/docs.json";
 import { State, WorkshopsState } from "@/state";
 import {
   ApplyBackdropBlur,
@@ -56,67 +51,22 @@ import XmarkIconSvg from "@/images/icons/xmark.svg";
 import YouTubeIconSvg from "@/images/icons/youtube.svg";
 import LogoIconSvg from "@/images/logo/chillicream-winking.svg";
 
+interface Product {
+  path: string;
+  title: string;
+  latestStableVersion: string;
+}
+
+const tools = siteMetadata.tools;
+const products: Product[] = docsConfig.map((p: any) => ({
+  path: p.path,
+  title: p.title,
+  latestStableVersion: p.latestStableVersion,
+}));
+
 export const Header: FC = () => {
   const [topNavOpen, setTopNavOpen] = useState<boolean>(false);
   const [searchOpen, setSearchOpen] = useState<boolean>(false);
-  const data = useStaticQuery<GetHeaderDataQuery>(graphql`
-    query getHeaderData {
-      site {
-        siteMetadata {
-          siteUrl
-          tools {
-            blog
-            github
-            linkedIn
-            nitro
-            shop
-            slack
-            youtube
-            x
-          }
-        }
-      }
-      docNav: file(
-        sourceInstanceName: { eq: "docs" }
-        relativePath: { eq: "docs.json" }
-      ) {
-        products: childrenDocsJson {
-          path
-          title
-          latestStableVersion
-        }
-      }
-      allMdx(
-        limit: 1
-        filter: { frontmatter: { path: { glob: "/blog/**/*" } } }
-        sort: { fields: [frontmatter___date], order: DESC }
-      ) {
-        edges {
-          node {
-            id
-            fields {
-              readingTime {
-                text
-              }
-            }
-            frontmatter {
-              featuredImage {
-                childImageSharp {
-                  gatsbyImageData(layout: CONSTRAINED, width: 400, quality: 100)
-                }
-              }
-              path
-              title
-              date(formatString: "MMMM DD, YYYY")
-            }
-          }
-        }
-      }
-    }
-  `);
-  const { siteUrl, tools } = data.site!.siteMetadata!;
-  const products = data.docNav!.products!;
-  const firstBlogPost = data.allMdx.edges[0].node;
 
   const handleTopNavClose = useCallback(() => {
     setTopNavOpen(false);
@@ -165,43 +115,42 @@ export const Header: FC = () => {
           </NavigationHeader>
           <Nav>
             <PlatformNavItem
-              firstBlogPost={firstBlogPost}
-              tools={tools!}
+              tools={tools}
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
             />
             <ServicesNavItem
-              tools={tools!}
+              tools={tools}
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
             />
             <DeveloperNavItem
               products={products}
-              tools={tools!}
+              tools={tools}
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
             />
             <CompanyNavItem
-              tools={tools!}
+              tools={tools}
               onTopNavClose={handleTopNavClose}
               onSearchOpen={handleSearchOpen}
             />
             <PricingNavItem />
             <HelpNavItem />
             <NavItemContainer className="mobile-only double-height">
-              <DemoAndLaunch tools={tools!} />
+              <DemoAndLaunch tools={tools} />
             </NavItemContainer>
           </Nav>
         </Navigation>
-        <Tools>
+        <ToolsContainer>
           <GitHubStarButton />
-          <DemoAndLaunch tools={tools!} />
+          <DemoAndLaunch tools={tools} />
           <SearchButton onClick={handleSearchOpen}>
             <IconContainer $size={20}>
               <Icon {...SearchIconSvg} />
             </IconContainer>
           </SearchButton>
-        </Tools>
+        </ToolsContainer>
         <MobileMenu>
           <SearchButton onClick={handleSearchOpen}>
             <IconContainer $size={20}>
@@ -215,7 +164,7 @@ export const Header: FC = () => {
       </ContainerWrapper>
       <SearchModal
         open={searchOpen}
-        siteUrl={siteUrl!}
+        siteUrl={siteMetadata.siteUrl}
         onClose={handleSearchClose}
       />
     </Container>
@@ -312,9 +261,7 @@ const Navigation = styled.nav<{
     flex-direction: row;
     height: 100%;
     max-height: initial;
-    //background-color: initial;
     opacity: initial;
-    //box-shadow: initial;
   }
 `;
 
@@ -409,20 +356,17 @@ const Nav = styled.ol`
 `;
 
 interface PlatformNavItemProps {
-  readonly firstBlogPost: any;
-  readonly tools: Pick<SiteSiteMetadataTools, "nitro">;
+  readonly tools: Pick<Tools, "nitro">;
   readonly onTopNavClose: () => void;
   readonly onSearchOpen: () => void;
 }
 
 const PlatformNavItem: FC<PlatformNavItemProps> = ({
-  firstBlogPost,
   tools,
   onTopNavClose,
   onSearchOpen,
 }) => {
-  const featuredImage =
-    firstBlogPost.frontmatter!.featuredImage?.childImageSharp?.gatsbyImageData;
+  const latestBlogPost = useLatestBlogPost();
 
   const [subNav, navHandlers, linkHandlers] = useSubNav(
     (hideTopAndSubNav, hideSubNav) => (
@@ -512,23 +456,28 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
           </SubNavTools>
         </SubNavMain>
         <SubNavAdditionalInfo>
-          <SubNavTitle>Latest Blog Post</SubNavTitle>
-          <TeaserLink to={firstBlogPost.frontmatter!.path!}>
-            {featuredImage && (
-              <TeaserImage>
-                <GatsbyImage
-                  image={featuredImage}
-                  alt={firstBlogPost.frontmatter!.title}
-                />
-              </TeaserImage>
-            )}
-            <TeaserMetadata>
-              {firstBlogPost.frontmatter?.date}
-              {firstBlogPost?.readingTime?.text &&
-                " ・ " + firstBlogPost.readingTime.text}
-            </TeaserMetadata>
-            <TeaserTitle>{firstBlogPost.frontmatter!.title}</TeaserTitle>
-          </TeaserLink>
+          {latestBlogPost && (
+            <>
+              <SubNavTitle>Latest Blog Post</SubNavTitle>
+              <TeaserLink to={latestBlogPost.path}>
+                {latestBlogPost.featuredImage && (
+                  <TeaserImage>
+                    <img
+                      src={latestBlogPost.featuredImage}
+                      alt={latestBlogPost.title}
+                      style={{ width: "100%", borderRadius: "var(--box-border-radius)" }}
+                    />
+                  </TeaserImage>
+                )}
+                <TeaserMetadata>
+                  {latestBlogPost.date}
+                  {latestBlogPost.readingTime &&
+                    " ・ " + latestBlogPost.readingTime}
+                </TeaserMetadata>
+                <TeaserTitle>{latestBlogPost.title}</TeaserTitle>
+              </TeaserLink>
+            </>
+          )}
         </SubNavAdditionalInfo>
       </>
     ),
@@ -548,7 +497,7 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
 };
 
 interface ServicesNavItemProps {
-  readonly tools: Pick<SiteSiteMetadataTools, "nitro">;
+  readonly tools: Pick<Tools, "nitro">;
   readonly onTopNavClose: () => void;
   readonly onSearchOpen: () => void;
 }
@@ -643,20 +592,8 @@ const ServicesNavItem: FC<ServicesNavItemProps> = ({
 };
 
 interface DeveloperNavItemProps {
-  readonly products: Maybe<
-    Pick<DocsJson, "path" | "title" | "latestStableVersion">
-  >[];
-  readonly tools: Pick<
-    SiteSiteMetadataTools,
-    | "blog"
-    | "github"
-    | "linkedIn"
-    | "nitro"
-    | "shop"
-    | "slack"
-    | "x"
-    | "youtube"
-  >;
+  readonly products: Product[];
+  readonly tools: Tools;
   readonly onTopNavClose: () => void;
   readonly onSearchOpen: () => void;
 }
@@ -689,8 +626,8 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({
             {products.map((product, index) => (
               <SubNavLink
                 key={index}
-                to={`/docs/${product!.path!}${product?.latestStableVersion
-                  ? "/" + product?.latestStableVersion
+                to={`/docs/${product.path}${product.latestStableVersion
+                  ? "/" + product.latestStableVersion
                   : ""
                   }`}
                 onClick={hideTopAndSubNav}
@@ -698,44 +635,44 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({
                 <IconContainer $size={16}>
                   <Icon {...AngleRightIconSvg} />
                 </IconContainer>
-                {product!.title}
+                {product.title}
               </SubNavLink>
             ))}
           </SubNavGroup>
           <SubNavSeparator />
           <SubNavGroup>
             <SubNavTitle>Additional Resources</SubNavTitle>
-            <SubNavLink to={tools.blog!} onClick={hideTopAndSubNav}>
+            <SubNavLink to={tools.blog} onClick={hideTopAndSubNav}>
               <IconContainer $size={20}>
                 <Icon {...BlogIconSvg} />
               </IconContainer>
               Blog
             </SubNavLink>
-            <SubNavLink to={tools.github!} onClick={hideTopAndSubNav}>
+            <SubNavLink to={tools.github} onClick={hideTopAndSubNav}>
               <IconContainer $size={20}>
                 <Icon {...GithubIconSvg} />
               </IconContainer>
               GitHub
             </SubNavLink>
-            <SubNavLink to={tools.slack!} onClick={hideTopAndSubNav}>
+            <SubNavLink to={tools.slack} onClick={hideTopAndSubNav}>
               <IconContainer $size={20}>
                 <Icon {...SlackIconSvg} />
               </IconContainer>
               Slack / Community
             </SubNavLink>
-            <SubNavLink to={tools.youtube!} onClick={hideTopAndSubNav}>
+            <SubNavLink to={tools.youtube} onClick={hideTopAndSubNav}>
               <IconContainer $size={20}>
                 <Icon {...YouTubeIconSvg} />
               </IconContainer>
               YouTube Channel
             </SubNavLink>
-            <SubNavLink to={tools.x!} onClick={hideTopAndSubNav}>
+            <SubNavLink to={tools.x} onClick={hideTopAndSubNav}>
               <IconContainer $size={20}>
                 <Icon {...XIconSvg} />
               </IconContainer>
               Formerly Twitter
             </SubNavLink>
-            <SubNavLink to={tools.linkedIn!} onClick={hideTopAndSubNav}>
+            <SubNavLink to={tools.linkedIn} onClick={hideTopAndSubNav}>
               <IconContainer $size={20}>
                 <Icon {...LinkedInIconSvg} />
               </IconContainer>
@@ -781,10 +718,7 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({
 };
 
 interface CompanyNavItemProps {
-  readonly tools: Pick<
-    SiteSiteMetadataTools,
-    "github" | "linkedIn" | "nitro" | "shop" | "slack" | "x" | "youtube"
-  >;
+  readonly tools: Tools;
   readonly onTopNavClose: () => void;
   readonly onSearchOpen: () => void;
 }
@@ -915,7 +849,7 @@ const HelpNavItem: FC = () => {
 };
 
 interface DemoAndLaunchProps {
-  readonly tools: Pick<SiteSiteMetadataTools, "nitro">;
+  readonly tools: Pick<Tools, "nitro">;
 }
 
 const DemoAndLaunch: FC<DemoAndLaunchProps> = ({ tools }) => {
@@ -927,7 +861,7 @@ const DemoAndLaunch: FC<DemoAndLaunchProps> = ({ tools }) => {
       >
         Request a Demo
       </RequestDemoLink>
-      <LaunchLink to={tools!.nitro!}>Launch</LaunchLink>
+      <LaunchLink to={tools.nitro}>Launch</LaunchLink>
     </>
   );
 };
@@ -1320,43 +1254,6 @@ const SubNavLinkTextGroup = styled.div`
   }
 `;
 
-const TileLinkTitle = styled.h1`
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 1.6em;
-  letter-spacing: normal;
-  transition: color 0.2s ease-in-out;
-`;
-
-const TileLinkDescription = styled.p`
-  color: ${THEME_COLORS.primary};
-  transition: color 0.2s ease-in-out;
-`;
-
-const TileLink = styled(Link)`
-  display: flex;
-  flex-direction: column;
-  border-radius: var(--box-border-radius);
-  width: auto;
-  min-height: 72px;
-  background-color: ${THEME_COLORS.background};
-  transition: background-color 0.2s ease-in-out;
-
-  &:hover {
-    background-color: ${THEME_COLORS.primary};
-
-    ${TileLinkTitle},
-    ${TileLinkDescription} {
-      color: ${THEME_COLORS.background};
-    }
-  }
-
-  //@media only screen and ((min-width: 600px) and (min-height: 430px)) {
-  //  margin: 5px 20px;
-  //  padding: 10px;
-  //}
-`;
-
 const SubNavAdditionalInfo = styled.div`
   display: none;
   flex: 1 1 45%;
@@ -1386,33 +1283,18 @@ const TeaserHero = styled.h2`
   color: ${THEME_COLORS.textContrast};
   background-color: ${THEME_COLORS.primary};
   background: linear-gradient(180deg, ${THEME_COLORS.primary} 0%, #3d5f9f 100%);
-
-  //@media only screen and ((min-width: 600px) and (min-height: 430px)) {
-  //  max-width: 400px;
-  //}
 `;
 
 const TeaserLink = styled(Link)`
-  .gatsby-image-wrapper {
-    pointer-events: none;
-  }
-
   &:hover {
     > * {
       color: ${THEME_COLORS.menuLinkHover};
-    }
-
-    .gatsby-image-wrapper {
     }
 
     ${TeaserHero} {
       color: ${THEME_COLORS.menuLink};
     }
   }
-
-  //@media only screen and ((min-width: 600px) and (min-height: 430px)) {
-  //  margin: 5px 30px;
-  //}
 `;
 
 interface WorkshopHeroProps {
@@ -1439,14 +1321,6 @@ const TeaserImage = styled.div`
   overflow: visible;
   max-width: fit-content;
   margin-bottom: 16px;
-
-  .gatsby-image-wrapper {
-    border-radius: var(--box-border-radius);
-  }
-
-  //@media only screen and ((min-width: 600px) and (min-height: 430px)) {
-  //  max-width: fit-content;
-  //}
 `;
 
 const TeaserMetadata = styled.div`
@@ -1471,12 +1345,6 @@ const TeaserTitle = styled.h3`
   transition: color 0.2s ease-in-out;
 `;
 
-const TeaserMessage = styled.div`
-  margin-bottom: 16px;
-  color: ${THEME_COLORS.menuLink};
-  transition: color 0.2s ease-in-out;
-`;
-
 const TeaserDescription = styled.div`
   color: ${THEME_COLORS.menuLink};
   transition: color 0.2s ease-in-out;
@@ -1495,7 +1363,7 @@ const MobileMenu = styled.div`
   }
 `;
 
-const Tools = styled.div`
+const ToolsContainer = styled.div`
   display: none;
   flex: 0 0 auto;
   flex-direction: row;

@@ -1,43 +1,40 @@
-import { graphql } from "gatsby";
 import React, { FC } from "react";
 
-import { BlogArticleTeaserFragment } from "@/graphql-types";
-import { GatsbyImage } from "gatsby-plugin-image";
 import { BlogArticleTeaserMetadata } from "./blog-article-teaser-metadata";
 import { Box, BoxLink } from "./box-elements";
 
+interface BlogArticleTeaserData {
+  id: string;
+  frontmatter?: {
+    featuredImage?: string;
+    path?: string;
+    title?: string;
+    author?: string;
+    authorImageUrl?: string;
+    date?: string;
+  };
+  fields?: {
+    readingTime?: {
+      text?: string;
+    };
+  };
+}
+
 export interface BlogArticleTeaserProps {
-  readonly data: BlogArticleTeaserFragment;
+  readonly data: BlogArticleTeaserData;
 }
 
 export const BlogArticleTeaser: FC<BlogArticleTeaserProps> = ({ data }) => {
-  const featuredImage =
-    data.frontmatter!.featuredImage?.childImageSharp?.gatsbyImageData;
+  const featuredImage = data.frontmatter?.featuredImage;
 
   return (
     <Box key={`article-${data.id}`}>
-      <BoxLink to={data.frontmatter!.path!}>
+      <BoxLink to={data.frontmatter?.path || "#"}>
         {featuredImage && (
-          <GatsbyImage image={featuredImage} alt={data.frontmatter!.title} />
+          <img src={featuredImage} alt={data.frontmatter?.title || ""} />
         )}
-        <BlogArticleTeaserMetadata data={data!} />
+        <BlogArticleTeaserMetadata data={data} />
       </BoxLink>
     </Box>
   );
 };
-
-export const BlogArticleTeaserGraphQLFragment = graphql`
-  fragment BlogArticleTeaser on Mdx {
-    id
-    frontmatter {
-      featuredImage {
-        childImageSharp {
-          gatsbyImageData(layout: CONSTRAINED, width: 800, quality: 100)
-        }
-      }
-      path
-      title
-    }
-    ...BlogArticleTeaserMetadata
-  }
-`;

@@ -75,21 +75,21 @@ src/GreenDonut/                # Data fetching primitives
 src/StrawberryShake/           # GraphQL client
 src/CookieCrumble/             # Snapshot testing
 
-website/                       # Documentation (Gatsby)
+website/                       # Documentation (Next.js)
 templates/                     # Project templates
 .build/                        # Build scripts (Nuke)
 ```
 
 ## Tech Stack
 
-| Component | Technology     |
-| --------- | -------------- |
-| Runtime   | .NET 8/9/10    |
-| SDK       | 10.0.102       |
-| Build     | Nuke.Build     |
-| Tests     | xUnit          |
-| Snapshots | CookieCrumble  |
-| Docs      | Gatsby + React |
+| Component | Technology      |
+| --------- | --------------- |
+| Runtime   | .NET 8/9/10     |
+| SDK       | 10.0.102        |
+| Build     | Nuke.Build      |
+| Tests     | xUnit           |
+| Snapshots | CookieCrumble   |
+| Docs      | Next.js + React |
 
 ## Coding Standards
 

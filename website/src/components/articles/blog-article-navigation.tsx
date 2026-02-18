@@ -1,11 +1,9 @@
-import { graphql } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
 
 import { ScrollContainer } from "@/components/article-elements";
 import { IconContainer, Link } from "@/components/misc";
 import { Icon } from "@/components/sprites";
-import { BlogArticleNavigationFragment } from "@/graphql-types";
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/style";
 
 // Icons
@@ -17,8 +15,23 @@ import {
   NavigationTitle,
 } from "./article-navigation-elements";
 
+interface Post {
+  readonly slug: string;
+  readonly title: string;
+}
+
+interface BlogArticleNavigationData {
+  latestPosts?: {
+    posts?: Array<{
+      fields?: { slug?: string } | null;
+      frontmatter?: { title?: string } | null;
+    }>;
+  } | null;
+  [key: string]: any;
+}
+
 export interface BlogArticleNavigationProps {
-  readonly data: BlogArticleNavigationFragment;
+  readonly data: BlogArticleNavigationData;
   readonly selectedPath: string;
 }
 
@@ -27,7 +40,7 @@ export const BlogArticleNavigation: FC<BlogArticleNavigationProps> = ({
   selectedPath,
 }) => {
   const posts: Post[] =
-    data.latestPosts.posts.map((post) => ({
+    (data.latestPosts?.posts ?? []).map((post) => ({
       slug: post.fields?.slug ?? "",
       title: post.frontmatter?.title ?? "",
     })) ?? [];
@@ -57,30 +70,6 @@ export const BlogArticleNavigation: FC<BlogArticleNavigationProps> = ({
     </>
   );
 };
-
-interface Post {
-  readonly slug: string;
-  readonly title: string;
-}
-
-export const BlogArticleNavigationGraphQLFragment = graphql`
-  fragment BlogArticleNavigation on Query {
-    latestPosts: allMdx(
-      limit: 10
-      filter: { frontmatter: { path: { regex: "//blog(/.*)?/" } } }
-      sort: { order: DESC, fields: [frontmatter___date] }
-    ) {
-      posts: nodes {
-        fields {
-          slug
-        }
-        frontmatter {
-          title
-        }
-      }
-    }
-  }
-`;
 
 const BackButton = styled(Link)`
   display: flex;
