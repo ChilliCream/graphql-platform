@@ -1,6 +1,7 @@
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Introspection;
 using Moq;
 
@@ -218,5 +219,101 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         // assert
         var description = descriptor.CreateConfiguration();
         Assert.Equal(typeof(string), description.ResolverType);
+    }
+
+    [Fact]
+    public void ExpressionSelectionSetFormatter_Format_PrimitiveProperty()
+    {
+        // arrange & act
+        // When the property type is a value type (int), the compiler wraps
+        // the member access in a Convert expression to box it to object.
+        // The formatter must unwrap this to extract the member name.
+        var result = ObjectFieldDescriptor.ExpressionSelectionSetFormatter
+            .Format<ParentRequiresTestEntity, object>(e => e.Type);
+
+        // assert
+        Assert.Equal("Type", result);
+    }
+
+    [Fact]
+    public void ExpressionSelectionSetFormatter_Format_EnumProperty()
+    {
+        // arrange & act
+        var result = ObjectFieldDescriptor.ExpressionSelectionSetFormatter
+            .Format<ParentRequiresTestEntity, object>(e => e.Provider);
+
+        // assert
+        Assert.Equal("Provider", result);
+    }
+
+    [Fact]
+    public void ExpressionSelectionSetFormatter_Format_StringProperty()
+    {
+        // arrange & act
+        // String is a reference type, so no Convert wrapping occurs.
+        var result = ObjectFieldDescriptor.ExpressionSelectionSetFormatter
+            .Format<ParentRequiresTestEntity, object>(e => e.Name);
+
+        // assert
+        Assert.Equal("Name", result);
+    }
+
+    [Fact]
+    public void ExpressionSelectionSetFormatter_Format_AnonymousObject()
+    {
+        // arrange & act
+        var result = ObjectFieldDescriptor.ExpressionSelectionSetFormatter
+            .Format<ParentRequiresTestEntity, object>(e => new { e.Type, e.Provider });
+
+        // assert
+        Assert.Equal("Type Provider", result);
+    }
+
+    [Fact]
+    public void ParentRequires_WithPrimitiveProperty_SetsRequirements()
+    {
+        // arrange
+        var descriptor = ObjectFieldDescriptor.New(Context, "field");
+
+        // act
+        descriptor.ParentRequires<ParentRequiresTestEntity>(e => e.Type);
+
+        // assert
+        var config = descriptor.CreateConfiguration();
+        Assert.True(config.Flags.HasFlag(CoreFieldFlags.WithRequirements));
+        var feature = config.Features.Get<FieldRequirementFeature>();
+        Assert.NotNull(feature);
+        Assert.Equal("Type", feature.Requirements);
+    }
+
+    [Fact]
+    public void ParentRequires_WithEnumProperty_SetsRequirements()
+    {
+        // arrange
+        var descriptor = ObjectFieldDescriptor.New(Context, "field");
+
+        // act
+        descriptor.ParentRequires<ParentRequiresTestEntity>(e => e.Provider);
+
+        // assert
+        var config = descriptor.CreateConfiguration();
+        Assert.True(config.Flags.HasFlag(CoreFieldFlags.WithRequirements));
+        var feature = config.Features.Get<FieldRequirementFeature>();
+        Assert.NotNull(feature);
+        Assert.Equal("Provider", feature.Requirements);
+    }
+
+    private enum TestProvider
+    {
+        None,
+        Google,
+        Facebook
+    }
+
+    private sealed class ParentRequiresTestEntity
+    {
+        public int Type { get; set; }
+        public TestProvider Provider { get; set; }
+        public string Name { get; set; } = default!;
     }
 }
