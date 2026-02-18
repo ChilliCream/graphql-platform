@@ -90,11 +90,6 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     }
 
     /// <summary>
-    /// Empty Operation Request.
-    /// </summary>
-    public static OperationRequest Empty { get; } = new();
-
-    /// <summary>
     /// Gets the ID of a previously persisted operation that should be executed.
     /// </summary>
     public string? Id { get; }
