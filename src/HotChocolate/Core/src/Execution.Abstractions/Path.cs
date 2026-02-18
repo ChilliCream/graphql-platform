@@ -134,7 +134,7 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
             return "/";
         }
 
-        // First pass: calculate the total length
+        // On first pass we calculate the total length
         var totalLength = 0;
         var current = this;
 
@@ -157,7 +157,7 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
             current = current.Parent;
         }
 
-        // Second pass: fill from right to left using string.Create
+        // On second pass we fill from right to left using string.Create
         return string.Create(totalLength, this, static (span, path) =>
         {
             var pos = span.Length;
@@ -315,8 +315,12 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
         return segments;
     }
 
-    /// <summary>Returns a string that represents the current <see cref="Path"/>.</summary>
-    /// <returns>A string that represents the current <see cref="Path"/>.</returns>
+    /// <summary>
+    /// Returns a string that represents the current <see cref="Path"/>.
+    /// </summary>
+    /// <returns>
+    /// A string that represents the current <see cref="Path"/>.
+    /// </returns>
     public override string ToString() => Print();
 
     public virtual bool Equals(Path? other)
@@ -373,7 +377,7 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
             return 1;
         }
 
-        // 1. Align to the same depth
+        // First we align the paths to the the same depth
         var a = this;
         var b = other;
 
@@ -389,14 +393,13 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
             b = b.Skip(lenB - lenA);
         }
 
-        // 2. Walk aligned segments from root to leaf
+        // Then we walk aligned segments from root to leaf
         var cmp = CompareFromRoot(a, b);
         if (cmp != 0)
         {
             return cmp;
         }
 
-        // 3. Same segments → shorter path wins
         return Length.CompareTo(other.Length);
     }
 
