@@ -371,7 +371,7 @@ operationPlan:
           }
         }
       hash: b1ca18ebff5564cc20147d0129664e5d
-      searchSpace: 1
+      searchSpace: 2
       expandedNodes: 6
   nodes:
     - id: 1

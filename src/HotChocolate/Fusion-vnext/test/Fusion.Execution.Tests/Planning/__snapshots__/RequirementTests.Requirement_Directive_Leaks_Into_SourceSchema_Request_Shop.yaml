@@ -60,7 +60,7 @@ operation:
       }
     name: findMe
     hash: 123456789101112
-    searchSpace: 3
+    searchSpace: 4
     expandedNodes: 11
 nodes:
   - id: 1
