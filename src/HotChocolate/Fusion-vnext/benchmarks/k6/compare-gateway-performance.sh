@@ -110,17 +110,10 @@ cat > "$OUTPUT_MD" <<EOF
 <details>
 <summary>Response Times & Query</summary>
 
-**Constant Load**
-
-| Min | Med | Avg | P90 | P95 | Max |
-|--:|--:|--:|--:|--:|--:|
-| ${NO_REC_MIN}ms | ${NO_REC_P50}ms | ${NO_REC_AVG}ms | ${NO_REC_P90}ms | ${NO_REC_P95}ms | ${NO_REC_MAX}ms |
-
-**Ramping Load**
-
-| Min | Med | Avg | P90 | P95 | Max |
-|--:|--:|--:|--:|--:|--:|
-| ${NO_REC_RAMP_MIN}ms | ${NO_REC_RAMP_P50}ms | ${NO_REC_RAMP_AVG}ms | ${NO_REC_RAMP_P90}ms | ${NO_REC_RAMP_P95}ms | ${NO_REC_RAMP_MAX}ms |
+| | Min | Med | Avg | P90 | P95 | Max |
+|:--|--:|--:|--:|--:|--:|--:|
+| **Constant** | ${NO_REC_MIN}ms | ${NO_REC_P50}ms | ${NO_REC_AVG}ms | ${NO_REC_P90}ms | ${NO_REC_P95}ms | ${NO_REC_MAX}ms |
+| **Ramping** | ${NO_REC_RAMP_MIN}ms | ${NO_REC_RAMP_P50}ms | ${NO_REC_RAMP_AVG}ms | ${NO_REC_RAMP_P90}ms | ${NO_REC_RAMP_P95}ms | ${NO_REC_RAMP_MAX}ms |
 
 \`\`\`graphql
 query TestQuery {
@@ -158,17 +151,10 @@ query TestQuery {
 <details>
 <summary>Response Times & Query</summary>
 
-**Constant Load**
-
-| Min | Med | Avg | P90 | P95 | Max |
-|--:|--:|--:|--:|--:|--:|
-| ${DEEP_REC_MIN}ms | ${DEEP_REC_P50}ms | ${DEEP_REC_AVG}ms | ${DEEP_REC_P90}ms | ${DEEP_REC_P95}ms | ${DEEP_REC_MAX}ms |
-
-**Ramping Load**
-
-| Min | Med | Avg | P90 | P95 | Max |
-|--:|--:|--:|--:|--:|--:|
-| ${DEEP_REC_RAMP_MIN}ms | ${DEEP_REC_RAMP_P50}ms | ${DEEP_REC_RAMP_AVG}ms | ${DEEP_REC_RAMP_P90}ms | ${DEEP_REC_RAMP_P95}ms | ${DEEP_REC_RAMP_MAX}ms |
+| | Min | Med | Avg | P90 | P95 | Max |
+|:--|--:|--:|--:|--:|--:|--:|
+| **Constant** | ${DEEP_REC_MIN}ms | ${DEEP_REC_P50}ms | ${DEEP_REC_AVG}ms | ${DEEP_REC_P90}ms | ${DEEP_REC_P95}ms | ${DEEP_REC_MAX}ms |
+| **Ramping** | ${DEEP_REC_RAMP_MIN}ms | ${DEEP_REC_RAMP_P50}ms | ${DEEP_REC_RAMP_AVG}ms | ${DEEP_REC_RAMP_P90}ms | ${DEEP_REC_RAMP_P95}ms | ${DEEP_REC_RAMP_MAX}ms |
 
 \`\`\`graphql
 query TestQuery {
@@ -256,17 +242,10 @@ query TestQuery {
 <details>
 <summary>Response Times & Query</summary>
 
-**Constant Load**
-
-| Min | Med | Avg | P90 | P95 | Max |
-|--:|--:|--:|--:|--:|--:|
-| ${VAR_BATCH_MIN}ms | ${VAR_BATCH_P50}ms | ${VAR_BATCH_AVG}ms | ${VAR_BATCH_P90}ms | ${VAR_BATCH_P95}ms | ${VAR_BATCH_MAX}ms |
-
-**Ramping Load**
-
-| Min | Med | Avg | P90 | P95 | Max |
-|--:|--:|--:|--:|--:|--:|
-| ${VAR_BATCH_RAMP_MIN}ms | ${VAR_BATCH_RAMP_P50}ms | ${VAR_BATCH_RAMP_AVG}ms | ${VAR_BATCH_RAMP_P90}ms | ${VAR_BATCH_RAMP_P95}ms | ${VAR_BATCH_RAMP_MAX}ms |
+| | Min | Med | Avg | P90 | P95 | Max |
+|:--|--:|--:|--:|--:|--:|--:|
+| **Constant** | ${VAR_BATCH_MIN}ms | ${VAR_BATCH_P50}ms | ${VAR_BATCH_AVG}ms | ${VAR_BATCH_P90}ms | ${VAR_BATCH_P95}ms | ${VAR_BATCH_MAX}ms |
+| **Ramping** | ${VAR_BATCH_RAMP_MIN}ms | ${VAR_BATCH_RAMP_P50}ms | ${VAR_BATCH_RAMP_AVG}ms | ${VAR_BATCH_RAMP_P90}ms | ${VAR_BATCH_RAMP_P95}ms | ${VAR_BATCH_RAMP_MAX}ms |
 
 \`\`\`graphql
 query TestQuery(\$upc: ID!, \$price: Long!, \$weight: Long!) {
