@@ -112,7 +112,7 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
     {
         byte[]? rented = null;
         var initialSize = hash.Length * 3;
-        var buffer = initialSize <= GraphQLConstants.StackallocThreshold
+        var buffer = initialSize <= GraphQLCharacters.StackallocThreshold
             ? stackalloc byte[initialSize]
             : rented = ArrayPool<byte>.Shared.Rent(initialSize);
         int written;
@@ -133,15 +133,15 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
         {
             switch (buffer[i])
             {
-                case GraphQLConstants.Plus:
-                    buffer[i] = GraphQLConstants.Minus;
+                case GraphQLCharacters.Plus:
+                    buffer[i] = GraphQLCharacters.Minus;
                     break;
 
-                case GraphQLConstants.ForwardSlash:
-                    buffer[i] = GraphQLConstants.Underscore;
+                case GraphQLCharacters.ForwardSlash:
+                    buffer[i] = GraphQLCharacters.Underscore;
                     break;
 
-                case GraphQLConstants.Equal:
+                case GraphQLCharacters.Equal:
                     written--;
                     break;
             }

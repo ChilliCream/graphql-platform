@@ -75,6 +75,9 @@
     <Compile Update="Utf8GraphQLReader.Utilities.cs">
       <DependentUpon>Utf8GraphQLReader.cs</DependentUpon>
     </Compile>
+    <Compile Update="Utf8GraphQLReader.MultiSegment.cs">
+      <DependentUpon>Utf8GraphQLReader.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>
