@@ -65,7 +65,13 @@ internal sealed class OperationPlanMiddleware
             var operation = rewritten.GetOperation(context.Request.OperationName);
 
             // After optimizing the query structure we can begin the planning process.
-            var operationPlan = _planner.CreatePlan(operationId, operationHash, operationShortHash, operation);
+            var operationPlan =
+                _planner.CreatePlan(
+                    operationId,
+                    operationHash,
+                    operationShortHash,
+                    operation,
+                    context.RequestAborted);
             OnAfterPlanCompleted(operationDocumentInfo, operationPlan);
             context.SetOperationPlan(operationPlan);
         }

@@ -176,6 +176,7 @@ internal sealed class FusionRequestExecutorManager
 
         var options = CreateOptions(setup);
         var requestOptions = CreateRequestOptions(setup);
+        var plannerOptions = CreatePlannerOptions(setup);
         var parserOptions = CreateParserOptions(setup);
         var clientConfigurations = CreateClientConfigurations(setup, configuration.Settings.Document);
         var features = CreateSchemaFeatures(
@@ -184,7 +185,7 @@ internal sealed class FusionRequestExecutorManager
             requestOptions,
             parserOptions,
             clientConfigurations);
-        var schemaServices = CreateSchemaServices(setup, options, requestOptions);
+        var schemaServices = CreateSchemaServices(setup, options, requestOptions, plannerOptions);
 
         var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
         var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
@@ -250,6 +251,20 @@ internal sealed class FusionRequestExecutorManager
         var options = new FusionRequestOptions();
 
         foreach (var configure in setup.RequestOptionsModifiers)
+        {
+            configure.Invoke(options);
+        }
+
+        options.MakeReadOnly();
+
+        return options;
+    }
+
+    private static OperationPlannerOptions CreatePlannerOptions(FusionGatewaySetup setup)
+    {
+        var options = new OperationPlannerOptions();
+
+        foreach (var configure in setup.PlannerOptionsModifiers)
         {
             configure.Invoke(options);
         }
@@ -373,12 +388,13 @@ internal sealed class FusionRequestExecutorManager
     private ServiceProvider CreateSchemaServices(
         FusionGatewaySetup setup,
         FusionOptions options,
-        FusionRequestOptions requestOptions)
+        FusionRequestOptions requestOptions,
+        OperationPlannerOptions plannerOptions)
     {
         var schemaServices = new ServiceCollection();
 
         AddCoreServices(schemaServices, options, requestOptions);
-        AddOperationPlanner(schemaServices);
+        AddOperationPlanner(schemaServices, plannerOptions);
         AddParserServices(schemaServices);
         AddDocumentValidator(setup, schemaServices);
         AddDiagnosticEvents(schemaServices);
@@ -428,7 +444,9 @@ internal sealed class FusionRequestExecutorManager
         services.AddTransient<CompositeTypeInterceptor>(static _ => new IntrospectionFieldInterceptor());
     }
 
-    private static void AddOperationPlanner(IServiceCollection services)
+    private static void AddOperationPlanner(
+        IServiceCollection services,
+        OperationPlannerOptions plannerOptions)
     {
         services.TryAddSingleton<ObjectPoolProvider>(
             static _ => new DefaultObjectPoolProvider());
@@ -450,10 +468,13 @@ internal sealed class FusionRequestExecutorManager
                 sp.GetRequiredService<FusionSchemaDefinition>(),
                 sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>()));
 
+        services.AddSingleton(plannerOptions);
+
         services.AddSingleton(
             static sp => new OperationPlanner(
                 sp.GetRequiredService<FusionSchemaDefinition>(),
-                sp.GetRequiredService<OperationCompiler>()));
+                sp.GetRequiredService<OperationCompiler>(),
+                sp.GetRequiredService<OperationPlannerOptions>()));
     }
 
     private static void AddParserServices(IServiceCollection services)

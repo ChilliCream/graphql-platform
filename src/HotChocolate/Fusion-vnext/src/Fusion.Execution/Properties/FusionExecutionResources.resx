@@ -39,4 +39,7 @@
   <data name="FixedSizeArrayPool_Return_InvalidArraySize" xml:space="preserve">
     <value>Buffer size {0} does not match expected chunk size {1}</value>
   </data>
+  <data name="OperationPlannerGuardrailException_GuardrailExceeded" xml:space="preserve">
+    <value>Planner guardrail exceeded for operation '{0}': {1} (Limit={2}, Observed={3}).</value>
+  </data>
 </root>
