@@ -101,7 +101,7 @@ public sealed class OperationPlannerOptions
         {
             ExpectMutableOptions();
 
-            if (value is { } maxExpandedNodes && maxExpandedNodes < 1)
+            if (value is < 1)
             {
                 throw new ArgumentException(
                     "The planner max expanded nodes must be at least 1.");
@@ -122,7 +122,7 @@ public sealed class OperationPlannerOptions
         {
             ExpectMutableOptions();
 
-            if (value is { } maxQueueSize && maxQueueSize < 1)
+            if (value is < 1)
             {
                 throw new ArgumentException(
                     "The planner max queue size must be at least 1.");
@@ -143,7 +143,7 @@ public sealed class OperationPlannerOptions
         {
             ExpectMutableOptions();
 
-            if (value is { } maxGeneratedOptions && maxGeneratedOptions < 1)
+            if (value is < 1)
             {
                 throw new ArgumentException(
                     "The planner max generated options per work item must be at least 1.");

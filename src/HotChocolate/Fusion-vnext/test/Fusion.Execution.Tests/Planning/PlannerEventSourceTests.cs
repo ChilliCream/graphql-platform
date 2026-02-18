@@ -162,7 +162,7 @@ public sealed class PlannerEventSourceTests : FusionTestBase
             schema,
             new OperationPlannerOptions
             {
-                MaxExpandedNodes = 0
+                MaxExpandedNodes = 1
             });
         var operation = ParseOperation(
             """
@@ -187,10 +187,10 @@ public sealed class PlannerEventSourceTests : FusionTestBase
 
         Assert.Equal(operationId, guardrail.GetStringPayload(0));
         Assert.Equal(
-            OperationPlannerGuardrailReason.MaxExpandedNodesExceeded.ToString(),
+            nameof(OperationPlannerGuardrailReason.MaxExpandedNodesExceeded),
             guardrail.GetStringPayload(1));
-        Assert.Equal(0, guardrail.GetInt64Payload(2));
-        Assert.Equal(1, guardrail.GetInt64Payload(3));
+        Assert.Equal(1, guardrail.GetInt64Payload(2));
+        Assert.True(guardrail.GetInt64Payload(3) > 1);
 
         Assert.Equal(operationId, plannerError.GetStringPayload(0));
         Assert.Equal("Query", plannerError.GetStringPayload(1));

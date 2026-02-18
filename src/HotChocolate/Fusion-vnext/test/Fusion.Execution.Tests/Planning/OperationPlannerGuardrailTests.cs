@@ -35,18 +35,18 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
     public void CreatePlan_Throws_When_MaxQueueSize_Guardrail_Is_Exceeded()
     {
         // arrange
-        var schema = CreateCompositeSchema();
+        var schema = CreateMultiBranchSchema();
         var planner = CreatePlanner(
             schema,
             new OperationPlannerOptions
             {
                 MaxQueueSize = 1
             });
-        var operation = ParseOperation(TestOperationText);
+        var operation = ParseOperation(MultiBranchOperationText);
 
         // act
         var error = Assert.Throws<OperationPlannerGuardrailException>(
-            () => planner.CreatePlan("guardrail-queue", "hash", "hash", operation));
+            () => planner.CreatePlan("guardrail-queue", "guardrail-queue", "12345678", operation));
 
         // assert
         Assert.Equal(OperationPlannerGuardrailReason.MaxQueueSizeExceeded, error.Reason);
@@ -79,19 +79,20 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
     [Fact]
     public void CreatePlan_Throws_When_MaxGeneratedOptions_Guardrail_Is_Exceeded()
     {
-        // arrange
-        var schema = CreateCompositeSchema();
+        // arrange — use a 3-schema setup where a lookup work item produces
+        // multiple candidate schemas, so expansion generates > 1 option.
+        var schema = CreateMultiBranchSchema();
         var planner = CreatePlanner(
             schema,
             new OperationPlannerOptions
             {
                 MaxGeneratedOptionsPerWorkItem = 1
             });
-        var operation = ParseOperation(TestOperationText);
+        var operation = ParseOperation(MultiBranchOperationText);
 
         // act
         var error = Assert.Throws<OperationPlannerGuardrailException>(
-            () => planner.CreatePlan("guardrail-generated", "hash", "hash", operation));
+            () => planner.CreatePlan("guardrail-generated", "guardrail-generated", "12345678", operation));
 
         // assert
         Assert.Equal(
@@ -122,6 +123,40 @@ public sealed class OperationPlannerGuardrailTests : FusionTestBase
             id
             name
             estimatedDelivery(postCode: "12345")
+          }
+        }
+        """;
+
+    /// <summary>
+    /// Composes a 3-schema setup where the root field is available in all schemas
+    /// and a non-shared field forces lookup branching with multiple targets.
+    /// This guarantees root expansion creates 3 branches and lookup expansion
+    /// produces 2+ options per work item.
+    /// </summary>
+    private static FusionSchemaDefinition CreateMultiBranchSchema()
+        => ComposeSchema(
+            """
+            schema { query: Query }
+            type Query { itemById(id: ID!): Item @lookup @shareable }
+            type Item @key(fields: "id") { id: ID! a: String! }
+            """,
+            """
+            schema { query: Query }
+            type Query { itemById(id: ID!): Item @lookup @shareable }
+            type Item @key(fields: "id") { id: ID! b: String! @shareable }
+            """,
+            """
+            schema { query: Query }
+            type Query { itemById(id: ID!): Item @lookup @shareable }
+            type Item @key(fields: "id") { id: ID! b: String! @shareable }
+            """);
+
+    private const string MultiBranchOperationText =
+        """
+        {
+          itemById(id: "1") {
+            a
+            b
           }
         }
         """;
