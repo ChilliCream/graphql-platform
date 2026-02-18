@@ -551,6 +551,9 @@ public class ObjectFieldDescriptor
 
             switch (expression)
             {
+                case UnaryExpression { NodeType: ExpressionType.Convert } unaryExpr:
+                    return ProcessExpression(unaryExpr.Operand);
+
                 case MemberExpression memberExpr:
                     var parent = ProcessExpression(memberExpr.Expression);
                     return string.IsNullOrEmpty(parent)
