@@ -12,23 +12,23 @@ This guide maps Apollo Federation concepts to their Fusion equivalents, explains
 
 The table below maps Apollo Federation concepts to their Fusion equivalents. Some are straightforward renames; others involve meaningful behavioral changes. The "Key Difference" column flags which is which.
 
-| Apollo Federation | HotChocolate Fusion | Key Difference |
-|---|---|---|
-| `@key(fields: "id")` | `[Lookup]` on a Query field | Fusion uses explicit, typed lookup fields instead of implicit `_entities`. No `@key` directive needed. |
-| `__resolveReference` / `_entities` query | Regular Query fields with `[Lookup]` | Lookups are real fields you can call and test directly. |
-| `@external` | `[External]` (rarely needed) | Same concept, but less frequently needed in Fusion. |
-| `@requires(fields: "...")` on a field | `[Require("...")]` on an argument | Argument-level, not field-level. Required arguments are hidden from the composite schema. |
-| `@provides(fields: "...")` | `[Provides("...")]` / `[Parent(requires: "...")]` | Same optimization concept. |
-| `@shareable` | `[Shareable]` | Same concept and semantics. Key fields are automatically shareable. |
-| `@override(from: "...")` | `[Override(from: "...")]` | Same concept. |
-| `@inaccessible` | `[Inaccessible]` | Same concept. |
-| `@tag` | `[Tag]` | Same concept. |
-| Apollo Router / Gateway | Fusion Gateway (`AddGraphQLGateway()`) | A .NET ASP.NET Core app, not a separate binary. |
-| `rover` CLI | Nitro CLI (`nitro fusion ...`) | Schema composition, validation, and delivery. |
-| GraphOS managed federation | Nitro cloud or local CI/CD composition | Build-time composition. Works fully offline. |
-| Supergraph schema (SDL) | Composite schema + `.far` archive | Binary archive containing the composed schema and subgraph metadata. |
-| Federation subgraph library (`@apollo/subgraph`) | No equivalent needed | Subgraphs are standard HotChocolate servers. No federation library. |
-| `_service { sdl }` introspection | `dotnet run -- schema export` | Schema export is a CLI command, not a runtime introspection field. |
+| Apollo Federation                                | HotChocolate Fusion                               | Key Difference                                                                                         |
+| ------------------------------------------------ | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `@key(fields: "id")`                             | `[Lookup]` on a Query field                       | Fusion uses explicit, typed lookup fields instead of implicit `_entities`. No `@key` directive needed. |
+| `__resolveReference` / `_entities` query         | Regular Query fields with `[Lookup]`              | Lookups are real fields you can call and test directly.                                                |
+| `@external`                                      | `[External]` (rarely needed)                      | Same concept, but less frequently needed in Fusion.                                                    |
+| `@requires(fields: "...")` on a field            | `[Require("...")]` on an argument                 | Argument-level, not field-level. Required arguments are hidden from the composite schema.              |
+| `@provides(fields: "...")`                       | `[Provides("...")]` / `[Parent(requires: "...")]` | Same optimization concept.                                                                             |
+| `@shareable`                                     | `[Shareable]`                                     | Same concept and semantics. Key fields are automatically shareable.                                    |
+| `@override(from: "...")`                         | `[Override(from: "...")]`                         | Same concept.                                                                                          |
+| `@inaccessible`                                  | `[Inaccessible]`                                  | Same concept.                                                                                          |
+| `@tag`                                           | `[Tag]`                                           | Same concept.                                                                                          |
+| Apollo Router / Gateway                          | Fusion Gateway (`AddGraphQLGateway()`)            | A .NET ASP.NET Core app, not a separate binary.                                                        |
+| `rover` CLI                                      | Nitro CLI (`nitro fusion ...`)                    | Schema composition, validation, and delivery.                                                          |
+| GraphOS managed federation                       | Nitro cloud or local CI/CD composition            | Build-time composition. Works fully offline.                                                           |
+| Supergraph schema (SDL)                          | Composite schema + `.far` archive                 | Binary archive containing the composed schema and subgraph metadata.                                   |
+| Federation subgraph library (`@apollo/subgraph`) | No equivalent needed                              | Subgraphs are standard HotChocolate servers. No federation library.                                    |
+| `_service { sdl }` introspection                 | `dotnet run -- schema export`                     | Schema export is a CLI command, not a runtime introspection field.                                     |
 
 ## What Fusion Does Not Need
 
@@ -618,11 +618,11 @@ Navigate to `http://localhost:5000/graphql` to open the Nitro IDE and run cross-
 
 Replace Apollo's `rover` commands with Nitro CLI equivalents.
 
-| Apollo (`rover`) | Fusion (`nitro`) |
-|---|---|
-| `rover subgraph check` | `nitro fusion validate` |
-| `rover subgraph publish` | `nitro fusion upload` + `nitro fusion publish` |
-| `rover supergraph compose` | `nitro fusion compose` |
+| Apollo (`rover`)           | Fusion (`nitro`)                               |
+| -------------------------- | ---------------------------------------------- |
+| `rover subgraph check`     | `nitro fusion validate`                        |
+| `rover subgraph publish`   | `nitro fusion upload` + `nitro fusion publish` |
+| `rover supergraph compose` | `nitro fusion compose`                         |
 
 #### Schema Upload (Replaces `rover subgraph publish`)
 

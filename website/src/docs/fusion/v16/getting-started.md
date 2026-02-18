@@ -34,7 +34,7 @@ This seems reasonable, but it creates a problem: your subgraphs become coupled. 
 
 **How Fusion actually works:**
 
-> "My Users subgraph knows that each User has a `tenantId`, and I declare that `user.tenant` returns a `Tenant` identified by that ID. I don't need to know *how* or *where* the Tenant gets resolved -- the gateway handles that."
+> "My Users subgraph knows that each User has a `tenantId`, and I declare that `user.tenant` returns a `Tenant` identified by that ID. I don't need to know _how_ or _where_ the Tenant gets resolved -- the gateway handles that."
 
 In Fusion, your subgraph never calls another subgraph. Instead, it says: "this field returns a Tenant with this ID" and trusts the gateway to figure out the rest. The gateway knows which subgraph can resolve a Tenant by ID (using a **lookup** -- a query field that resolves an entity by its key). The Tenants subgraph provides this lookup resolver, and the gateway calls it when it needs to turn a tenant ID into a full Tenant object. The Users subgraph never talks to the Tenants subgraph directly -- the gateway handles all coordination.
 
@@ -922,17 +922,13 @@ You should see:
         "id": 2,
         "name": "Couch",
         "price": 1299.5,
-        "reviews": [
-          { "body": "Very comfortable!", "stars": 5 }
-        ]
+        "reviews": [{ "body": "Very comfortable!", "stars": 5 }]
       },
       {
         "id": 3,
         "name": "Chair",
         "price": 54,
-        "reviews": [
-          { "body": "Good value for the price.", "stars": 4 }
-        ]
+        "reviews": [{ "body": "Good value for the price.", "stars": 4 }]
       }
     ]
   }
