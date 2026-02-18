@@ -27,7 +27,6 @@ public static class RequestExecutorBuilderExtensions
         builder.ConfigureSchemaServices(
             services => services.AddMcpSchemaServices(configureServerOptions, configureServer));
 
-        // TODO: MST we need to make sure that this directive is hidden in the introspection
         builder.AddDirectiveType<McpToolAnnotationsDirectiveType>();
 
         builder.ConfigureOnRequestExecutorCreatedAsync(
