@@ -5,6 +5,7 @@
 // ReSharper disable MoveLocalFunctionAfterJumpStatement
 
 using GreenDonut.Data;
+using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
@@ -1067,6 +1068,31 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .Match();
     }
 
+    [Fact]
+    public async Task AsSortDefinition_QueryContext_Custom_Field_Without_Member_Does_Not_Fail()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddSorting()
+            .AddQueryType<QueryContextCustomSortQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                customSortBooks(order: [{ metadata: { fieldId: 42, direction: ASC } }]) {
+                    id
+                    title
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
     [QueryType]
     public static class StaticQuery
     {
@@ -1352,6 +1378,74 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 ? throw new InvalidOperationException("Name should not be accessed for skipped selections.")
                 : _name;
             set => _name = value;
+        }
+    }
+
+    public class QueryContextCustomSortQuery
+    {
+        [UseSorting(typeof(CustomSortBookSortType))]
+        public IQueryable<CustomSortBook> GetCustomSortBooks(QueryContext<CustomSortBook> context)
+            => new[]
+                {
+                    new CustomSortBook
+                    {
+                        Id = 1,
+                        Title = "Zebra",
+                        Metadata = []
+                    },
+                    new CustomSortBook
+                    {
+                        Id = 2,
+                        Title = "Apple",
+                        Metadata = []
+                    }
+                }.AsQueryable().With(context);
+    }
+
+    public class CustomSortBook
+    {
+        public int Id { get; set; }
+
+        public string Title { get; set; } = string.Empty;
+
+        public List<CustomSortBookMetadata> Metadata { get; set; } = [];
+    }
+
+    public class CustomSortBookMetadata
+    {
+        public int FieldId { get; set; }
+
+        public string Value { get; set; } = string.Empty;
+    }
+
+    public class CustomSortMetadataInputType : InputObjectType
+    {
+        protected override void Configure(IInputObjectTypeDescriptor descriptor)
+        {
+            descriptor.Field("fieldId").Type<IntType>();
+            descriptor.Field("direction").Type<DefaultSortEnumType>();
+        }
+    }
+
+    public class CustomSortFieldHandler : ISortFieldHandler
+    {
+        public bool CanHandle(
+            ITypeCompletionContext context,
+            ISortInputTypeConfiguration typeConfiguration,
+            ISortFieldConfiguration fieldConfiguration)
+            => true;
+    }
+
+    public class CustomSortBookSortType : SortInputType<CustomSortBook>
+    {
+        protected override void Configure(ISortInputTypeDescriptor<CustomSortBook> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(b => b.Title);
+            descriptor.Field("metadata")
+                .Type<CustomSortMetadataInputType>()
+                .Extend()
+                .OnBeforeCreate(d => d.Handler = new CustomSortFieldHandler());
         }
     }
 }
