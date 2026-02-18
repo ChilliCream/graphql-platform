@@ -46,6 +46,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
+      - name: Cache Optimized Images
+        uses: actions/cache@v5
+        with:
+          path: website/.next/cache/images
+          key: ${{ runner.os }}-optimized-images-${{ hashFiles('website/public/images/**', 'website/public/docs/**/*.png', 'website/public/docs/**/*.jpg', 'website/public/docs/**/*.webp') }}
+          restore-keys: |
+            ${{ runner.os }}-optimized-images-
+
       - name: Install Packages
         run: yarn --immutable --network-timeout 100000
         working-directory: website
@@ -63,6 +71,10 @@ jobs:
 
       - name: Clean Website
         run: yarn clean
+        working-directory: website
+
+      - name: Optimize Images
+        run: yarn optimize-images
         working-directory: website
 
       - name: Build Website
