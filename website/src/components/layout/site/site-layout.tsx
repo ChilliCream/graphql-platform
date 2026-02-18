@@ -115,7 +115,7 @@ function Stars(): ReactElement {
     window.addEventListener("resize", () => {
       setCanvasSize();
       initStars();
-    });
+    }, { passive: true });
 
     setCanvasSize();
     initStars();
@@ -126,7 +126,7 @@ function Stars(): ReactElement {
     <canvas
       ref={canvasRef}
       style={{
-        position: "absolute",
+        position: "fixed",
         top: 0,
         right: 0,
         bottom: 0,

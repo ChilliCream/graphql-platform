@@ -181,6 +181,7 @@ const Container = styled.header`
   border-bottom: 1px solid ${THEME_COLORS.boxBorder};
   width: 100vw;
   height: 72px;
+  overflow: hidden;
 
   ${ApplyBackdropBlur(48, `background-color: ${THEME_COLORS.backgroundMenu};`)}
 `;
