@@ -95,7 +95,7 @@ public ref partial struct Utf8GraphQLParser
                 Print(ref _reader));
         }
 
-        var items = new List<IValueNode>();
+        var items = new List<IValueNode>(4);
 
         // skip opening token
         MoveNext();
@@ -140,7 +140,7 @@ public ref partial struct Utf8GraphQLParser
                 Print(ref _reader));
         }
 
-        var fields = new List<ObjectFieldNode>();
+        var fields = new List<ObjectFieldNode>(4);
 
         // skip opening token
         MoveNext();

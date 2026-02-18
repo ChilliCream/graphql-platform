@@ -153,7 +153,10 @@ public ref partial struct Utf8GraphQLReader
         return GetString(_value);
     }
 
-    public readonly string GetName() => GetString(_value);
+    public readonly string GetName()
+        => WellKnownNames.TryGetWellKnownName(_value, out var name)
+            ? name
+            : GetString(_value);
 
     public readonly string GetScalarValue() => GetString(_value);
 

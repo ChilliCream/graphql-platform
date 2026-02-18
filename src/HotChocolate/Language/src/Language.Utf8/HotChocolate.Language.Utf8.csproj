@@ -20,6 +20,7 @@
     <InternalsVisibleTo Include="HotChocolate.Types" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Utilities.Introspection" />
+    <InternalsVisibleTo Include="HotChocolate.Language.Benchmarks" />
   </ItemGroup>
 
   <ItemGroup>

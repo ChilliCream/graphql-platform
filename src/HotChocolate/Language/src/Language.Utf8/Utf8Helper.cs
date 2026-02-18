@@ -52,10 +52,8 @@ internal static class Utf8Helper
             ref highSurrogate, isBlockString);
 
 #if NET8_0_OR_GREATER
-        var remaining = escapedString.Length - readPos;
-
-        // Vector256 path (32 bytes at a time) if we have enough bytes remain
-        if (Vector256.IsHardwareAccelerated && remaining >= Vector256<byte>.Count)
+        // Vector256 path (32 bytes at a time)
+        if (Vector256.IsHardwareAccelerated && (escapedString.Length - readPos) >= Vector256<byte>.Count)
         {
             ref var srcStart = ref MemoryMarshal.GetReference(escapedString);
             ref var dstStart = ref MemoryMarshal.GetReference(unescapedString);
@@ -93,8 +91,9 @@ internal static class Utf8Helper
                 }
             }
         }
-        // Vector128 fallback (16 bytes at a time), if we have enough bytes remaining
-        else if (Vector128.IsHardwareAccelerated && remaining >= Vector128<byte>.Count)
+
+        // Vector128 path (16 bytes at a time) — processes remainder after V256 or runs standalone
+        if (Vector128.IsHardwareAccelerated && (escapedString.Length - readPos) >= Vector128<byte>.Count)
         {
             ref var srcStart = ref MemoryMarshal.GetReference(escapedString);
             ref var dstStart = ref MemoryMarshal.GetReference(unescapedString);
@@ -134,22 +133,33 @@ internal static class Utf8Helper
         }
 #endif
 
-        // Scalar tail for remaining bytes
+        // Scalar tail for remaining bytes — bulk-copy up to next backslash
         while (readPos < escapedString.Length)
         {
-            var code = escapedString[readPos];
+            var tail = escapedString.Slice(readPos);
+            var nextBackslash = tail.IndexOf(GraphQLCharacters.Backslash);
 
-            if (code == GraphQLCharacters.Backslash)
+            if (nextBackslash == -1)
             {
+                // No more escapes — copy all remaining and we're done
+                tail.CopyTo(unescapedString.Slice(writePos));
+                writePos += tail.Length;
+                readPos += tail.Length;
+            }
+            else
+            {
+                // Copy bytes before the backslash
+                if (nextBackslash > 0)
+                {
+                    tail.Slice(0, nextBackslash).CopyTo(unescapedString.Slice(writePos));
+                    writePos += nextBackslash;
+                    readPos += nextBackslash;
+                }
+
                 ProcessEscapeSequence(
                     escapedString, unescapedString,
                     ref readPos, ref writePos,
                     ref highSurrogate, isBlockString);
-            }
-            else
-            {
-                unescapedString[writePos++] = code;
-                readPos++;
             }
         }
 
@@ -178,6 +188,27 @@ internal static class Utf8Helper
         readPos++;
         var code = escaped[readPos++];
 
+        // Hot path: simple escape characters (most common)
+        if (code != GraphQLCharacters.U && !isBlockString && code.IsValidEscapeCharacter())
+        {
+            unescaped[writePos++] = code.EscapeCharacter();
+            return;
+        }
+
+        // Cold path: unicode, block strings, and error handling
+        ProcessEscapeSequenceCold(escaped, unescaped, ref readPos, ref writePos, ref highSurrogate, isBlockString, code);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void ProcessEscapeSequenceCold(
+        in ReadOnlySpan<byte> escaped,
+        Span<byte> unescaped,
+        ref int readPos,
+        ref int writePos,
+        ref int highSurrogate,
+        bool isBlockString,
+        byte code)
+    {
         if (isBlockString && code == GraphQLCharacters.Quote)
         {
             if (readPos + 1 < escaped.Length
@@ -194,58 +225,56 @@ internal static class Utf8Helper
                 throw new Utf8EncodingException(Utf8Helper_InvalidQuoteEscapeCount);
             }
         }
-        else if (code.IsValidEscapeCharacter())
+        else if (code == GraphQLCharacters.U)
         {
-            if (code == GraphQLCharacters.U)
+            if (readPos + 3 >= escaped.Length)
             {
-                if (readPos + 3 >= escaped.Length)
-                {
-                    throw new Utf8EncodingException(
-                        string.Format(Utf8Helper_InvalidEscapeChar, 'u'));
-                }
+                throw new Utf8EncodingException(
+                    string.Format(Utf8Helper_InvalidEscapeChar, 'u'));
+            }
 
-                var unicodeDecimal = UnescapeUtf8Hex(
-                    escaped[readPos],
-                    escaped[readPos + 1],
-                    escaped[readPos + 2],
-                    escaped[readPos + 3]);
-                readPos += 4;
+            var unicodeDecimal = UnescapeUtf8Hex(
+                escaped[readPos],
+                escaped[readPos + 1],
+                escaped[readPos + 2],
+                escaped[readPos + 3]);
+            readPos += 4;
 
-                if (unicodeDecimal >= 0xD800 && unicodeDecimal <= 0xDBFF)
+            if (unicodeDecimal >= 0xD800 && unicodeDecimal <= 0xDBFF)
+            {
+                // High surrogate
+                if (highSurrogate >= 0)
                 {
-                    // High surrogate
-                    if (highSurrogate >= 0)
-                    {
-                        throw new Utf8EncodingException("Unexpected high surrogate.");
-                    }
-                    highSurrogate = unicodeDecimal;
+                    throw new Utf8EncodingException("Unexpected high surrogate.");
                 }
-                else if (unicodeDecimal >= 0xDC00 && unicodeDecimal <= 0xDFFF)
+                highSurrogate = unicodeDecimal;
+            }
+            else if (unicodeDecimal >= 0xDC00 && unicodeDecimal <= 0xDFFF)
+            {
+                // Low surrogate
+                if (highSurrogate < 0)
                 {
-                    // Low surrogate
-                    if (highSurrogate < 0)
-                    {
-                        throw new Utf8EncodingException("Unexpected low surrogate.");
-                    }
-                    var fullUnicode = ((highSurrogate - 0xD800) << 10)
-                        + (unicodeDecimal - 0xDC00)
-                        + 0x10000;
-                    UnescapeUtf8Hex(fullUnicode, ref writePos, unescaped);
-                    highSurrogate = -1;
+                    throw new Utf8EncodingException("Unexpected low surrogate.");
                 }
-                else
-                {
-                    if (highSurrogate >= 0)
-                    {
-                        throw new Utf8EncodingException("High surrogate not followed by low surrogate.");
-                    }
-                    UnescapeUtf8Hex(unicodeDecimal, ref writePos, unescaped);
-                }
+                var fullUnicode = ((highSurrogate - 0xD800) << 10)
+                    + (unicodeDecimal - 0xDC00)
+                    + 0x10000;
+                UnescapeUtf8Hex(fullUnicode, ref writePos, unescaped);
+                highSurrogate = -1;
             }
             else
             {
-                unescaped[writePos++] = code.EscapeCharacter();
+                if (highSurrogate >= 0)
+                {
+                    throw new Utf8EncodingException("High surrogate not followed by low surrogate.");
+                }
+                UnescapeUtf8Hex(unicodeDecimal, ref writePos, unescaped);
             }
+        }
+        else if (code.IsValidEscapeCharacter())
+        {
+            // Block string with non-quote, non-unicode escape
+            unescaped[writePos++] = code.EscapeCharacter();
         }
         else
         {
@@ -290,15 +319,36 @@ internal static class Utf8Helper
         }
     }
 
+    private static readonly byte[] s_hexLookup = CreateHexLookup();
+
+    private static byte[] CreateHexLookup()
+    {
+        var table = new byte[256];
+        // Initialize all entries to 0xFF (invalid)
+        table.AsSpan().Fill(0xFF);
+
+        // '0'-'9' => 0-9
+        for (var c = '0'; c <= '9'; c++)
+        {
+            table[c] = (byte)(c - '0');
+        }
+
+        // 'A'-'F' => 10-15
+        for (var c = 'A'; c <= 'F'; c++)
+        {
+            table[c] = (byte)(c - 'A' + 10);
+        }
+
+        // 'a'-'f' => 10-15
+        for (var c = 'a'; c <= 'f'; c++)
+        {
+            table[c] = (byte)(c - 'a' + 10);
+        }
+
+        return table;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int HexToDecimal(int a)
-    {
-        return a switch
-        {
-            >= 48 and <= 57 => a - 48,
-            >= 65 and <= 70 => a - 55,
-            >= 97 and <= 102 => a - 87,
-            _ => -1
-        };
-    }
+        => s_hexLookup[(byte)a];
 }
