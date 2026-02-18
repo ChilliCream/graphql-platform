@@ -12,17 +12,17 @@ This guide is self-contained. You can complete the migration by following the st
 
 If you have worked with Schema Stitching, you already understand the core idea: multiple GraphQL services combined into one schema. Fusion keeps that idea but changes how it works under the hood. Here is how the concepts translate:
 
-| Schema Stitching | Fusion | What Changed |
-|---|---|---|
-| Remote schemas (`AddRemoteSchema()`) | Subgraphs (source schemas) | Each remote schema becomes its own standalone ASP.NET Core project with HotChocolate. No stitching middleware needed. |
-| Stitching gateway (`AddGraphQLServer()` + `AddRemoteSchema()`) | Fusion gateway (`AddGraphQLGateway()`) | The gateway is stateless. No custom resolvers, no delegation logic, no type extensions in the gateway project. |
-| Schema extensions (`.graphql` extension files) | Entity stubs with `[ObjectType<T>]` | Instead of writing SDL extension files with `@delegate` directives, you define C# types in the subgraph that extends the entity. |
-| Delegating resolvers (`@delegate` directive) | Lookups (`[Lookup]` attribute) | The gateway handles cross-subgraph resolution automatically. You declare a lookup field in each subgraph; composition wires them together. |
-| `@delegate(path: "...")` field references | `[Require]` attribute | When a field needs data from another subgraph, you declare the dependency as a method parameter with `[Require]`. |
-| Auto-stitching / runtime schema merging | Build-time composition (`nitro fusion compose`) | Schemas are merged offline by the Nitro CLI, producing a static configuration file. Conflicts are caught before deployment. |
-| `PublishSchemaDefinition()` + Redis | `schema export` + `nitro fusion upload` | Schema distribution uses the Nitro CLI or .NET Aspire instead of Redis pub/sub. |
-| `RenameType()` / `RenameField()` / `IgnoreType()` | Composition rules + `[Internal]` / `@inaccessible` | Type conflicts are resolved by composition rules. Fields you want to hide use `[Internal]` on lookups or `@inaccessible` on types. |
-| `SchemaDefinition` / `SchemaExtension` | `schema.graphqls` + `schema-settings.json` | Exported automatically by the subgraph on startup. You do not write these by hand. |
+| Schema Stitching                                               | Fusion                                             | What Changed                                                                                                                               |
+| -------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Remote schemas (`AddRemoteSchema()`)                           | Subgraphs (source schemas)                         | Each remote schema becomes its own standalone ASP.NET Core project with HotChocolate. No stitching middleware needed.                      |
+| Stitching gateway (`AddGraphQLServer()` + `AddRemoteSchema()`) | Fusion gateway (`AddGraphQLGateway()`)             | The gateway is stateless. No custom resolvers, no delegation logic, no type extensions in the gateway project.                             |
+| Schema extensions (`.graphql` extension files)                 | Entity stubs with `[ObjectType<T>]`                | Instead of writing SDL extension files with `@delegate` directives, you define C# types in the subgraph that extends the entity.           |
+| Delegating resolvers (`@delegate` directive)                   | Lookups (`[Lookup]` attribute)                     | The gateway handles cross-subgraph resolution automatically. You declare a lookup field in each subgraph; composition wires them together. |
+| `@delegate(path: "...")` field references                      | `[Require]` attribute                              | When a field needs data from another subgraph, you declare the dependency as a method parameter with `[Require]`.                          |
+| Auto-stitching / runtime schema merging                        | Build-time composition (`nitro fusion compose`)    | Schemas are merged offline by the Nitro CLI, producing a static configuration file. Conflicts are caught before deployment.                |
+| `PublishSchemaDefinition()` + Redis                            | `schema export` + `nitro fusion upload`            | Schema distribution uses the Nitro CLI or .NET Aspire instead of Redis pub/sub.                                                            |
+| `RenameType()` / `RenameField()` / `IgnoreType()`              | Composition rules + `[Internal]` / `@inaccessible` | Type conflicts are resolved by composition rules. Fields you want to hide use `[Internal]` on lookups or `@inaccessible` on types.         |
+| `SchemaDefinition` / `SchemaExtension`                         | `schema.graphqls` + `schema-settings.json`         | Exported automatically by the subgraph on startup. You do not write these by hand.                                                         |
 
 ## What Changes Architecturally
 
@@ -42,9 +42,15 @@ In stitching, it was common to define type extensions and delegating resolvers i
 # Stitching.graphql (in the gateway project)
 extend type Product {
   inStock: Boolean
-    @delegate(schema: "inventory", path: "inventoryInfo(upc: $fields:upc).isInStock")
+    @delegate(
+      schema: "inventory"
+      path: "inventoryInfo(upc: $fields:upc).isInStock"
+    )
   shippingEstimate: Int
-    @delegate(schema: "inventory", path: "shippingEstimate(price: $fields:price, weight: $fields:weight)")
+    @delegate(
+      schema: "inventory"
+      path: "shippingEstimate(price: $fields:price, weight: $fields:weight)"
+    )
 }
 ```
 
@@ -196,9 +202,15 @@ In stitching, when you want to add fields from one service to a type owned by an
 # Stitching.graphql
 extend type Product {
   inStock: Boolean
-    @delegate(schema: "inventory", path: "inventoryInfo(upc: $fields:upc).isInStock")
+    @delegate(
+      schema: "inventory"
+      path: "inventoryInfo(upc: $fields:upc).isInStock"
+    )
   shippingEstimate: Int
-    @delegate(schema: "inventory", path: "shippingEstimate(price: $fields:price, weight: $fields:weight)")
+    @delegate(
+      schema: "inventory"
+      path: "shippingEstimate(price: $fields:price, weight: $fields:weight)"
+    )
 }
 ```
 

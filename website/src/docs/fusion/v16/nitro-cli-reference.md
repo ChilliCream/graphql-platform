@@ -39,16 +39,16 @@ nitro fusion compose [options]
 
 ### Options
 
-| Option | Description | Default |
-|---|---|---|
-| `--source-schema-file <path>` | Path to a source schema `.graphqls` file (can be repeated) | Scans working directory for all `.graphql` and `.graphqls` files |
-| `--archive <path>` | Output path for the Fusion archive | `./gateway.far` |
-| `--environment <name>` | Environment name for variable substitution | `ASPNETCORE_ENVIRONMENT` or `Development` |
-| `--enable-global-object-identification` | Enable Relay-style node queries | `false` |
-| `--include-satisfiability-paths` | Include satisfiability diagnostic paths | `false` |
-| `--watch` | Watch mode: recomposes on file changes | `false` |
-| `--working-directory <path>` | Working directory for resolving relative paths | Current directory |
-| `--exclude-tag <tag>` | Exclude fields/types by tag during composition (can be repeated) | None |
+| Option                                  | Description                                                      | Default                                                          |
+| --------------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `--source-schema-file <path>`           | Path to a source schema `.graphqls` file (can be repeated)       | Scans working directory for all `.graphql` and `.graphqls` files |
+| `--archive <path>`                      | Output path for the Fusion archive                               | `./gateway.far`                                                  |
+| `--environment <name>`                  | Environment name for variable substitution                       | `ASPNETCORE_ENVIRONMENT` or `Development`                        |
+| `--enable-global-object-identification` | Enable Relay-style node queries                                  | `false`                                                          |
+| `--include-satisfiability-paths`        | Include satisfiability diagnostic paths                          | `false`                                                          |
+| `--watch`                               | Watch mode: recomposes on file changes                           | `false`                                                          |
+| `--working-directory <path>`            | Working directory for resolving relative paths                   | Current directory                                                |
+| `--exclude-tag <tag>`                   | Exclude fields/types by tag during composition (can be repeated) | None                                                             |
 
 ### Schema File Resolution
 
@@ -108,13 +108,13 @@ nitro fusion upload [options]
 
 ### Options
 
-| Option | Description | Required |
-|---|---|---|
-| `--source-schema-file <path>` | Path to the source schema file | Yes |
-| `--tag <version>` | Version tag for this upload | Yes |
-| `--api-id <id>` | Nitro API identifier | Yes |
-| `--api-key <key>` | Nitro API key for authentication | Yes |
-| `--working-directory <path>` | Working directory | No (defaults to current directory) |
+| Option                        | Description                      | Required                           |
+| ----------------------------- | -------------------------------- | ---------------------------------- |
+| `--source-schema-file <path>` | Path to the source schema file   | Yes                                |
+| `--tag <version>`             | Version tag for this upload      | Yes                                |
+| `--api-id <id>`               | Nitro API identifier             | Yes                                |
+| `--api-key <key>`             | Nitro API key for authentication | Yes                                |
+| `--working-directory <path>`  | Working directory                | No (defaults to current directory) |
 
 ### Examples
 
@@ -161,15 +161,15 @@ nitro fusion publish [options]
 
 #### Options
 
-| Option | Description | Required |
-|---|---|---|
-| `--source-schema-file <path>` | Path to source schema files (can be repeated) | Yes (for this mode) |
-| `--tag <version>` | Version tag | Yes |
-| `--stage <name>` | Target deployment stage | Yes |
-| `--api-id <id>` | Nitro API identifier | Yes |
-| `--api-key <key>` | Nitro API key | Yes |
-| `--environment <name>` | Environment name for variable substitution | No |
-| `--enable-global-object-identification` | Enable Relay-style node queries | No |
+| Option                                  | Description                                   | Required            |
+| --------------------------------------- | --------------------------------------------- | ------------------- |
+| `--source-schema-file <path>`           | Path to source schema files (can be repeated) | Yes (for this mode) |
+| `--tag <version>`                       | Version tag                                   | Yes                 |
+| `--stage <name>`                        | Target deployment stage                       | Yes                 |
+| `--api-id <id>`                         | Nitro API identifier                          | Yes                 |
+| `--api-key <key>`                       | Nitro API key                                 | Yes                 |
+| `--environment <name>`                  | Environment name for variable substitution    | No                  |
+| `--enable-global-object-identification` | Enable Relay-style node queries               | No                  |
 
 #### Example
 
@@ -197,13 +197,13 @@ nitro fusion publish [options]
 
 #### Options
 
-| Option | Description | Required |
-|---|---|---|
+| Option                           | Description                                 | Required            |
+| -------------------------------- | ------------------------------------------- | ------------------- |
 | `--source-schema <name@version>` | Source schema identifiers (can be repeated) | Yes (for this mode) |
-| `--tag <version>` | Version tag | Yes |
-| `--stage <name>` | Target deployment stage | Yes |
-| `--api-id <id>` | Nitro API identifier | Yes |
-| `--api-key <key>` | Nitro API key | Yes |
+| `--tag <version>`                | Version tag                                 | Yes                 |
+| `--stage <name>`                 | Target deployment stage                     | Yes                 |
+| `--api-id <id>`                  | Nitro API identifier                        | Yes                 |
+| `--api-key <key>`                | Nitro API key                               | Yes                 |
 
 #### Example
 
@@ -243,13 +243,13 @@ nitro fusion publish [options]
 
 #### Options
 
-| Option | Description | Required |
-|---|---|---|
+| Option             | Description                           | Required            |
+| ------------------ | ------------------------------------- | ------------------- |
 | `--archive <path>` | Path to a pre-composed Fusion archive | Yes (for this mode) |
-| `--tag <version>` | Version tag | Yes |
-| `--stage <name>` | Target deployment stage | Yes |
-| `--api-id <id>` | Nitro API identifier | Yes |
-| `--api-key <key>` | Nitro API key | Yes |
+| `--tag <version>`  | Version tag                           | Yes                 |
+| `--stage <name>`   | Target deployment stage               | Yes                 |
+| `--api-id <id>`    | Nitro API identifier                  | Yes                 |
+| `--api-key <key>`  | Nitro API key                         | Yes                 |
 
 #### Example
 
@@ -337,12 +337,12 @@ nitro fusion download [options]
 
 ### Options
 
-| Option | Description | Required |
-|---|---|---|
-| `--stage <name>` | Stage to download from | Yes |
-| `--api-id <id>` | Nitro API identifier | Yes |
-| `--api-key <key>` | Nitro API key | Yes |
-| `--output <path>` | Output file path | No (defaults to `gateway.fgp`) |
+| Option            | Description            | Required                       |
+| ----------------- | ---------------------- | ------------------------------ |
+| `--stage <name>`  | Stage to download from | Yes                            |
+| `--api-id <id>`   | Nitro API identifier   | Yes                            |
+| `--api-key <key>` | Nitro API key          | Yes                            |
+| `--output <path>` | Output file path       | No (defaults to `gateway.fgp`) |
 
 ### Examples
 
@@ -373,13 +373,13 @@ nitro fusion validate [options]
 
 ### Options
 
-| Option | Description | Required |
-|---|---|---|
-| `--source-schema-file <path>` | Path to source schema files (can be repeated) | Yes (for this mode) |
-| `--archive <path>` | Path to a pre-composed archive | Yes (alternative mode) |
-| `--stage <name>` | Stage to validate against | Yes |
-| `--api-id <id>` | Nitro API identifier | Yes |
-| `--api-key <key>` | Nitro API key | Yes |
+| Option                        | Description                                   | Required               |
+| ----------------------------- | --------------------------------------------- | ---------------------- |
+| `--source-schema-file <path>` | Path to source schema files (can be repeated) | Yes (for this mode)    |
+| `--archive <path>`            | Path to a pre-composed archive                | Yes (alternative mode) |
+| `--stage <name>`              | Stage to validate against                     | Yes                    |
+| `--api-id <id>`               | Nitro API identifier                          | Yes                    |
+| `--api-key <key>`             | Nitro API key                                 | Yes                    |
 
 ### Examples
 
@@ -434,9 +434,9 @@ nitro fusion run <archive> [options]
 
 ### Options
 
-| Option | Description | Default |
-|---|---|---|
-| `--port <number>` | Port to run the gateway on | `5000` |
+| Option            | Description                | Default |
+| ----------------- | -------------------------- | ------- |
+| `--port <number>` | Port to run the gateway on | `5000`  |
 
 ### Examples
 
@@ -471,8 +471,8 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 
 ### Options
 
-| Option | Description | Default |
-|---|---|---|
+| Option             | Description                          | Default         |
+| ------------------ | ------------------------------------ | --------------- |
 | `--archive <path>` | Path to the Fusion archive to modify | `./gateway.far` |
 
 ### Available Settings
@@ -542,8 +542,8 @@ dotnet run -- schema export [options]
 
 ### Options
 
-| Option | Description | Default |
-|---|---|---|
+| Option            | Description      | Default                           |
+| ----------------- | ---------------- | --------------------------------- |
 | `--output <path>` | Output file path | `schema.graphqls` in project root |
 
 ### Examples
@@ -690,11 +690,11 @@ When composing with `--environment dev`, `{{API_URL}}` resolves to the dev URL. 
 
 The Nitro CLI respects these environment variables:
 
-| Variable | Purpose |
-|---|---|
-| `NITRO_API_KEY` | Default API key (overrides `--api-key`) |
-| `NITRO_API_ID` | Default API ID (overrides `--api-id`) |
-| `NITRO_STAGE` | Default stage (overrides `--stage`) |
+| Variable                 | Purpose                                 |
+| ------------------------ | --------------------------------------- |
+| `NITRO_API_KEY`          | Default API key (overrides `--api-key`) |
+| `NITRO_API_ID`           | Default API ID (overrides `--api-id`)   |
+| `NITRO_STAGE`            | Default stage (overrides `--stage`)     |
 | `ASPNETCORE_ENVIRONMENT` | Default environment for `--environment` |
 
 Set these in CI/CD to avoid passing credentials as command-line arguments.

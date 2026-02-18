@@ -23,7 +23,7 @@ public ref partial struct Utf8GraphQLReader
         var length = escapedValue.Length;
         byte[]? unescapedArray = null;
 
-        var unescapedSpan = length <= GraphQLConstants.StackallocThreshold
+        var unescapedSpan = length <= GraphQLCharacters.StackallocThreshold
             ? stackalloc byte[length]
             : unescapedArray = ArrayPool<byte>.Shared.Rent(length);
 
@@ -59,7 +59,7 @@ public ref partial struct Utf8GraphQLReader
         var length = escapedValue.Length;
         byte[]? unescapedArray = null;
 
-        var unescapedSpan = length <= GraphQLConstants.StackallocThreshold
+        var unescapedSpan = length <= GraphQLCharacters.StackallocThreshold
             ? stackalloc byte[length]
             : unescapedArray = ArrayPool<byte>.Shared.Rent(length);
 
@@ -102,7 +102,7 @@ public ref partial struct Utf8GraphQLReader
         var length = escapedValue.Length;
         byte[]? unescapedArray = null;
 
-        var unescapedSpan = length <= GraphQLConstants.StackallocThreshold
+        var unescapedSpan = length <= GraphQLCharacters.StackallocThreshold
             ? stackalloc byte[length]
             : unescapedArray = ArrayPool<byte>.Shared.Rent(length);
 

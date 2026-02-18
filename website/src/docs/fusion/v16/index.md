@@ -18,7 +18,7 @@ The architecture has three parts:
                          ▼
                 ┌────────────────┐
                 │ Fusion Gateway │
-                └──┬──────┬──┬──┘
+                └──┬──────┬──┬───┘
                    │      │  │
           ┌────────┘      │  └────────┐
           ▼               ▼           ▼
@@ -41,6 +41,7 @@ The architecture has three parts:
 
 The result: a client sends a single query, the gateway fans it out to the relevant subgraphs, and the response comes back as if it were a monolithic API.
 
+<!-- prettier-ignore-start -->
 ```graphql
 # This query touches three subgraphs, but the client doesn't know or care.
 query {
@@ -58,6 +59,7 @@ query {
   }
 }
 ```
+<!-- prettier-ignore-end -->
 
 ## Three Things That Make Fusion Different
 
@@ -82,15 +84,15 @@ public static partial class ProductQueries
 
 # Key Terminology
 
-| Term | Definition |
-|------|-----------|
-| **Subgraph** | A HotChocolate server that owns a portion of the overall schema. Each subgraph manages its own data and resolvers. |
-| **Source schema** | The GraphQL schema exported by a single subgraph. This is what gets fed into composition. |
-| **Composite schema** | The unified, client-facing schema produced by merging all source schemas. Clients query this schema as if it were a single API. |
-| **Gateway** | The entry point for client requests. It receives queries against the composite schema, plans execution across subgraphs, and assembles responses. |
-| **Entity** | A type that appears in more than one subgraph. For example, both the Products and Reviews subgraphs may define a `Product` type, each contributing different fields. |
-| **Lookup** | A Query field annotated with `[Lookup]` that the gateway uses to resolve an entity from a subgraph. It is a standard, callable query field -- not a hidden internal mechanism. |
-| **Composition** | The offline process of validating and merging source schemas into a composite schema and gateway configuration. Runs via the Nitro CLI or Aspire, not at runtime. |
+| Term                 | Definition                                                                                                                                                                     |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Subgraph**         | A HotChocolate server that owns a portion of the overall schema. Each subgraph manages its own data and resolvers.                                                             |
+| **Source schema**    | The GraphQL schema exported by a single subgraph. This is what gets fed into composition.                                                                                      |
+| **Composite schema** | The unified, client-facing schema produced by merging all source schemas. Clients query this schema as if it were a single API.                                                |
+| **Gateway**          | The entry point for client requests. It receives queries against the composite schema, plans execution across subgraphs, and assembles responses.                              |
+| **Entity**           | A type that appears in more than one subgraph. For example, both the Products and Reviews subgraphs may define a `Product` type, each contributing different fields.           |
+| **Lookup**           | A Query field annotated with `[Lookup]` that the gateway uses to resolve an entity from a subgraph. It is a standard, callable query field -- not a hidden internal mechanism. |
+| **Composition**      | The offline process of validating and merging source schemas into a composite schema and gateway configuration. Runs via the Nitro CLI or Aspire, not at runtime.              |
 
 # When to Use Fusion
 

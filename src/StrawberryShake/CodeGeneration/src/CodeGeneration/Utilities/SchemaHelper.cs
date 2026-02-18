@@ -90,7 +90,6 @@ public static class SchemaHelper
                     o.EnableDefer = true;
                     o.EnableStream = true;
                     o.EnableTag = false;
-                    o.EnableOneOf = true;
                     o.EnableFlagEnums = false;
                 })
             .SetSchema(d => d.Extend().OnBeforeCreate(
