@@ -11,7 +11,6 @@ rulers = 120
 
 # ReSharper properties
 resharper_align_multiline_statement_conditions = false
-resharper_braces_for_ifelse = not_required
 resharper_keep_existing_initializer_arrangement = false
 resharper_trailing_comma_in_multiline_lists = false
 resharper_wrap_object_and_collection_initializer_style = wrap_if_long
@@ -199,6 +198,8 @@ csharp_style_var_for_built_in_types = true
 csharp_style_var_when_type_is_apparent = true
 csharp_style_var_elsewhere = true
 dotnet_diagnostic.RCS1264.severity = none
+# Add braces.
+dotnet_diagnostic.IDE0011.severity = warning
 # Use collection initializers or expressions.
 dotnet_diagnostic.IDE0028.severity = warning
 # Order modifiers.

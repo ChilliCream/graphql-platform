@@ -1,4 +1,6 @@
+#if !NETSTANDARD2_0
 using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language;

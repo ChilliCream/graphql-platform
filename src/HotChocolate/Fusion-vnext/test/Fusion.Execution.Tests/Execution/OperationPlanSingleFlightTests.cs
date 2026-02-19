@@ -3,7 +3,6 @@ using System.Diagnostics.Tracing;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Planning;
 using Microsoft.Extensions.DependencyInjection;
 
