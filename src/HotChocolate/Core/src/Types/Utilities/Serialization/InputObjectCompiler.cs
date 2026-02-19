@@ -204,6 +204,11 @@ internal static class InputObjectCompiler
                 {
                     value = CreateOptional(value, field.RuntimeType);
                 }
+                else if (parameter.ParameterType.IsValueType
+                    && System.Nullable.GetUnderlyingType(parameter.ParameterType) == null)
+                {
+                    value = Expression.Coalesce(value, Expression.Default(parameter.ParameterType));
+                }
 
                 expressions[i] = Expression.Convert(value, parameter.ParameterType);
             }

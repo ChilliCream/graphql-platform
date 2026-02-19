@@ -535,6 +535,65 @@ public class InputParserTests
     }
 
     [Fact]
+    public void Force_NonNull_Struct_Constructor_Parameter_To_Be_Optional()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<Test5Input>(d =>
+            {
+                d.Field(t => t.Field2).Type<IntType>();
+                d.Field(t => t.Field3).Type<BooleanType>();
+            })
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = schema.Types.GetType<InputObjectType>("Test5Input");
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
+
+        var parser = new InputParser(new DefaultTypeConverter());
+
+        using var missingFieldsData = JsonDocument.Parse(
+            """
+            {
+                "field1": "abc"
+            }
+            """);
+
+        using var explicitNullData = JsonDocument.Parse(
+            """
+            {
+                "field1": "abc",
+                "field2": null,
+                "field3": null
+            }
+            """);
+
+        // act
+        var missingFields = Assert.IsType<Test5Input>(
+            parser.ParseInputValue(
+                missingFieldsData.RootElement,
+                type,
+                context.Object,
+                Path.Root));
+        var explicitNull = Assert.IsType<Test5Input>(
+            parser.ParseInputValue(
+                explicitNullData.RootElement,
+                type,
+                context.Object,
+                Path.Root));
+
+        // assert
+        Assert.Equal("abc", missingFields.Field1);
+        Assert.Equal(0, missingFields.Field2);
+        Assert.False(missingFields.Field3);
+        Assert.Equal("abc", explicitNull.Field1);
+        Assert.Equal(0, explicitNull.Field2);
+        Assert.False(explicitNull.Field3);
+    }
+
+    [Fact]
     public async Task Integration_CodeFirst_InputObjectNoDefaultValue_NoRuntimeTypeDefaultValueIsInitialized()
     {
         // arrange
@@ -653,6 +712,22 @@ public class InputParserTests
         public string Field1 { get; set; } = null!;
 
         public int Field2 { get; set; }
+    }
+
+    public class Test5Input
+    {
+        public Test5Input(string field1, int field2, bool field3)
+        {
+            Field1 = field1;
+            Field2 = field2;
+            Field3 = field3;
+        }
+
+        public string Field1 { get; }
+
+        public int Field2 { get; }
+
+        public bool Field3 { get; }
     }
 
     public class MyInputType : InputObjectType
