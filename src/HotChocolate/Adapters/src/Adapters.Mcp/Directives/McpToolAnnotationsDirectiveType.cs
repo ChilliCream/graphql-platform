@@ -15,7 +15,8 @@ public sealed class McpToolAnnotationsDirectiveType : DirectiveType<McpToolAnnot
         descriptor
             .Name(DirectiveName)
             .Description("Additional properties describing a Tool to clients.")
-            .Location(DirectiveLocation.FieldDefinition);
+            .Location(DirectiveLocation.FieldDefinition)
+            .Internal();
 
         descriptor
             .Argument(d => d.DestructiveHint)
@@ -38,7 +39,5 @@ public sealed class McpToolAnnotationsDirectiveType : DirectiveType<McpToolAnnot
                 "If `true`, this tool may interact with an “open world” of external entities. If "
                 + "`false`, the tool’s domain of interaction is closed. For example, the world of "
                 + "a web search tool is open, whereas that of a memory tool is not.");
-
-        descriptor.Location(DirectiveLocation.FieldDefinition);
     }
 }

@@ -77,6 +77,11 @@ export const ArticleTitle = styled.h1`
 export const ArticleContent = styled.div`
   overflow: visible;
 
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
   > * {
     font-size: 1.125rem;
     line-height: 1.6em;
@@ -88,6 +93,7 @@ export const ArticleContent = styled.div`
   > h4,
   > h5,
   > h6 {
+    position: relative;
     line-height: 1.12em;
     margin: 48px 16px 24px;
   }

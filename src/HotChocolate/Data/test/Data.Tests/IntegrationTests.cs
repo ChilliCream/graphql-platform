@@ -5,6 +5,7 @@
 // ReSharper disable MoveLocalFunctionAfterJumpStatement
 
 using GreenDonut.Data;
+using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
@@ -960,6 +961,138 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task QueryContext_Selector_Respects_Include_Directive()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                conditionalAuthors {
+                    id
+                    name @include(if: false)
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task QueryContext_Selector_Respects_Skip_Directive()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                conditionalAuthors {
+                    id
+                    name @skip(if: true)
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task QueryContext_Selector_Respects_Variable_Include_Directive_Across_Requests()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<AsPredicateQuery>()
+            .BuildRequestExecutorAsync();
+
+        const string query =
+            """
+            query Test($withName: Boolean!, $empty: Boolean!) {
+                conditionalAuthors(empty: $empty) {
+                    id
+                    name @include(if: $withName)
+                }
+            }
+            """;
+
+        // act
+        var warmupResult = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(query)
+                .SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        ["withName"] = true,
+                        ["empty"] = true
+                    })
+                .Build());
+
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(query)
+                .SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        ["withName"] = false,
+                        ["empty"] = false
+                    })
+                .Build());
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(warmupResult, "Warmup")
+            .Add(result, "Result")
+            .Match();
+    }
+
+    [Fact]
+    public async Task AsSortDefinition_QueryContext_Custom_Field_Without_Member_Does_Not_Fail()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddSorting()
+            .AddQueryType<QueryContextCustomSortQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                customSortBooks(order: [{ metadata: { fieldId: 42, direction: ASC } }]) {
+                    id
+                    title
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
     [QueryType]
     public static class StaticQuery
     {
@@ -1210,8 +1343,109 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                         Id = 5,
                         Name = "Author2",
                         Books = []
-                    }
-                }.AsQueryable()
+                }
+            }.AsQueryable()
                 .With(context, t => t with { Operations = t.Operations.Add(SortBy<Author>.Ascending(t => t.Id)) });
+
+        [UseSorting]
+        public IQueryable<ConditionalAuthor> GetConditionalAuthors(
+            QueryContext<ConditionalAuthor> context,
+            bool empty = false)
+            => (empty
+                    ? Array.Empty<ConditionalAuthor>()
+                    : [
+                        new ConditionalAuthor
+                        {
+                            Id = 1,
+                            ThrowOnNameRead = true
+                        }
+                    ])
+                .AsQueryable()
+                .With(context);
+    }
+
+    public sealed class ConditionalAuthor
+    {
+        private string _name = "author";
+
+        public int Id { get; set; }
+
+        public bool ThrowOnNameRead { get; set; }
+
+        public string Name
+        {
+            get => ThrowOnNameRead
+                ? throw new InvalidOperationException("Name should not be accessed for skipped selections.")
+                : _name;
+            set => _name = value;
+        }
+    }
+
+    public class QueryContextCustomSortQuery
+    {
+        [UseSorting(typeof(CustomSortBookSortType))]
+        public IQueryable<CustomSortBook> GetCustomSortBooks(QueryContext<CustomSortBook> context)
+            => new[]
+                {
+                    new CustomSortBook
+                    {
+                        Id = 1,
+                        Title = "Zebra",
+                        Metadata = []
+                    },
+                    new CustomSortBook
+                    {
+                        Id = 2,
+                        Title = "Apple",
+                        Metadata = []
+                    }
+                }.AsQueryable().With(context);
+    }
+
+    public class CustomSortBook
+    {
+        public int Id { get; set; }
+
+        public string Title { get; set; } = string.Empty;
+
+        public List<CustomSortBookMetadata> Metadata { get; set; } = [];
+    }
+
+    public class CustomSortBookMetadata
+    {
+        public int FieldId { get; set; }
+
+        public string Value { get; set; } = string.Empty;
+    }
+
+    public class CustomSortMetadataInputType : InputObjectType
+    {
+        protected override void Configure(IInputObjectTypeDescriptor descriptor)
+        {
+            descriptor.Field("fieldId").Type<IntType>();
+            descriptor.Field("direction").Type<DefaultSortEnumType>();
+        }
+    }
+
+    public class CustomSortFieldHandler : ISortFieldHandler
+    {
+        public bool CanHandle(
+            ITypeCompletionContext context,
+            ISortInputTypeConfiguration typeConfiguration,
+            ISortFieldConfiguration fieldConfiguration)
+            => true;
+    }
+
+    public class CustomSortBookSortType : SortInputType<CustomSortBook>
+    {
+        protected override void Configure(ISortInputTypeDescriptor<CustomSortBook> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(b => b.Title);
+            descriptor.Field("metadata")
+                .Type<CustomSortMetadataInputType>()
+                .Extend()
+                .OnBeforeCreate(d => d.Handler = new CustomSortFieldHandler());
+        }
     }
 }

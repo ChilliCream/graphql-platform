@@ -6,13 +6,19 @@ import {
 } from "@/components/article-elements";
 
 export interface VideoProps {
-  readonly videoId: string;
+  readonly videoId?: string;
+  // rehype-raw lowercases HTML attributes, so accept both casings
+  readonly videoid?: string;
 }
 
-export const Video: FC<VideoProps> = ({ videoId }) => {
+export const Video: FC<VideoProps> = ({ videoId, videoid }) => {
+  const id = videoId || videoid;
+
+  if (!id) return null;
+
   return (
     <ArticleContentVideoContainer>
-      <ArticleVideo videoId={videoId} />
+      <ArticleVideo videoId={id} />
     </ArticleContentVideoContainer>
   );
 };

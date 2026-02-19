@@ -1,11 +1,10 @@
-import { graphql } from "gatsby";
 import React, { FC } from "react";
 import styled from "styled-components";
 
 import { IconContainer } from "@/components/misc/icon-container";
 import { Link } from "@/components/misc/link";
 import { Icon } from "@/components/sprites";
-import { DocArticleCommunityFragment } from "@/graphql-types";
+import { siteMetadata } from "@/lib/site-config";
 import { THEME_COLORS } from "@/style";
 
 // Icons
@@ -13,16 +12,13 @@ import GitHubIconSvg from "@/images/icons/github.svg";
 import SlackIconSvg from "@/images/icons/slack.svg";
 
 export interface DocArticleCommunityProps {
-  readonly data: DocArticleCommunityFragment;
   readonly originPath: string;
 }
 
 export const DocArticleCommunity: FC<DocArticleCommunityProps> = ({
-  data,
   originPath,
 }) => {
-  const metadata = data.site!.siteMetadata!;
-  const docPath = `${metadata.repositoryUrl!}/blob/master/website/src/docs/${originPath}`;
+  const docPath = `${siteMetadata.repositoryUrl}/blob/main/website/src/docs/${originPath}`;
 
   return (
     <Container>
@@ -37,7 +33,7 @@ export const DocArticleCommunity: FC<DocArticleCommunityProps> = ({
           </CommunityLink>
         </CommunityItem>
         <CommunityItem>
-          <CommunityLink to={metadata.tools!.slack!}>
+          <CommunityLink to={siteMetadata.tools.slack}>
             <IconContainer $size={20}>
               <Icon {...SlackIconSvg} />
             </IconContainer>
@@ -48,19 +44,6 @@ export const DocArticleCommunity: FC<DocArticleCommunityProps> = ({
     </Container>
   );
 };
-
-export const DocArticleCommunityGraphQLFragment = graphql`
-  fragment DocArticleCommunity on Query {
-    site {
-      siteMetadata {
-        repositoryUrl
-        tools {
-          slack
-        }
-      }
-    }
-  }
-`;
 
 const Container = styled.section.attrs({
   className: "text-3",

@@ -11,88 +11,88 @@ public static class Scalars
 {
     private static readonly Dictionary<Type, Type> s_lookup = new()
     {
-        { typeof(string), typeof(StringType) },
         { typeof(bool), typeof(BooleanType) },
         { typeof(byte), typeof(UnsignedByteType) },
-        { typeof(short), typeof(ShortType) },
-        { typeof(int), typeof(IntType) },
-        { typeof(long), typeof(LongType) },
-        { typeof(sbyte), typeof(ByteType) },
-
-        { typeof(float), typeof(FloatType) },
-        { typeof(double), typeof(FloatType) },
-        { typeof(decimal), typeof(DecimalType) },
-
-        { typeof(Uri), typeof(UriType) },
-        { typeof(Guid), typeof(UuidType) },
+        { typeof(byte[]), typeof(Base64StringType) },
+        { typeof(DateOnly), typeof(LocalDateType) },
         { typeof(DateTime), typeof(DateTimeType) },
         { typeof(DateTimeOffset), typeof(DateTimeType) },
-        { typeof(byte[]), typeof(Base64StringType) },
-        { typeof(TimeSpan), typeof(TimeSpanType) },
-
-        { typeof(DateOnly), typeof(LocalDateType) },
+        { typeof(decimal), typeof(DecimalType) },
+        { typeof(double), typeof(FloatType) },
+        { typeof(float), typeof(FloatType) },
+        { typeof(Guid), typeof(UuidType) },
+        { typeof(int), typeof(IntType) },
+        { typeof(JsonElement), typeof(AnyType) },
+        { typeof(long), typeof(LongType) },
+        { typeof(sbyte), typeof(ByteType) },
+        { typeof(short), typeof(ShortType) },
+        { typeof(string), typeof(StringType) },
         { typeof(TimeOnly), typeof(LocalTimeType) },
-        { typeof(JsonElement), typeof(AnyType) }
+        { typeof(TimeSpan), typeof(TimeSpanType) },
+        { typeof(uint), typeof(UnsignedIntType) },
+        { typeof(ulong), typeof(UnsignedLongType) },
+        { typeof(Uri), typeof(UriType) },
+        { typeof(ushort), typeof(UnsignedShortType) }
     };
 
     private static readonly Dictionary<string, Type> s_nameLookup = new()
     {
-        { ScalarNames.String, typeof(StringType) },
-        { ScalarNames.ID, typeof(IdType) },
+        { ScalarNames.Any, typeof(AnyType) },
+        { ScalarNames.Base64String, typeof(Base64StringType) },
         { ScalarNames.Boolean, typeof(BooleanType) },
         { ScalarNames.Byte, typeof(ByteType) },
-        { ScalarNames.UnsignedByte, typeof(UnsignedByteType) },
-        { ScalarNames.Short, typeof(ShortType) },
-        { ScalarNames.Int, typeof(IntType) },
-        { ScalarNames.Long, typeof(LongType) },
-
-        { ScalarNames.Float, typeof(FloatType) },
-        { ScalarNames.Decimal, typeof(DecimalType) },
-
-        { ScalarNames.URI, typeof(UriType) },
-        { ScalarNames.URL, typeof(UrlType) },
-        { ScalarNames.UUID, typeof(UuidType) },
-        { ScalarNames.DateTime, typeof(DateTimeType) },
+#pragma warning disable CS0618 // Type or member is obsolete
+        { ScalarNames.ByteArray, typeof(ByteArrayType) },
+#pragma warning restore CS0618 // Type or member is obsolete
         { ScalarNames.Date, typeof(DateType) },
-        { ScalarNames.TimeSpan, typeof(TimeSpanType) },
-        { ScalarNames.Any, typeof(AnyType) },
+        { ScalarNames.DateTime, typeof(DateTimeType) },
+        { ScalarNames.Decimal, typeof(DecimalType) },
+        { ScalarNames.Float, typeof(FloatType) },
+        { ScalarNames.ID, typeof(IdType) },
+        { ScalarNames.Int, typeof(IntType) },
         { ScalarNames.LocalDate, typeof(LocalDateType) },
         { ScalarNames.LocalDateTime, typeof(LocalDateTimeType) },
         { ScalarNames.LocalTime, typeof(LocalTimeType) },
-
-        { ScalarNames.Base64String, typeof(Base64StringType) },
-#pragma warning disable CS0618 // Type or member is obsolete
-        { ScalarNames.ByteArray, typeof(ByteArrayType) }
-#pragma warning restore CS0618 // Type or member is obsolete
+        { ScalarNames.Long, typeof(LongType) },
+        { ScalarNames.Short, typeof(ShortType) },
+        { ScalarNames.String, typeof(StringType) },
+        { ScalarNames.TimeSpan, typeof(TimeSpanType) },
+        { ScalarNames.UnsignedByte, typeof(UnsignedByteType) },
+        { ScalarNames.UnsignedInt, typeof(UnsignedIntType) },
+        { ScalarNames.UnsignedLong, typeof(UnsignedLongType) },
+        { ScalarNames.UnsignedShort, typeof(UnsignedShortType) },
+        { ScalarNames.URI, typeof(UriType) },
+        { ScalarNames.URL, typeof(UrlType) },
+        { ScalarNames.UUID, typeof(UuidType) }
     };
 
     private static readonly Dictionary<Type, ValueKind> s_scalarKinds = new()
     {
-        { typeof(string), ValueKind.String },
-        { typeof(long), ValueKind.Integer },
-        { typeof(int), ValueKind.Integer },
-        { typeof(short), ValueKind.Integer },
-        { typeof(long?), ValueKind.Integer },
-        { typeof(int?), ValueKind.Integer },
-        { typeof(short?), ValueKind.Integer },
-        { typeof(ulong), ValueKind.Integer },
-        { typeof(uint), ValueKind.Integer },
-        { typeof(ushort), ValueKind.Integer },
-        { typeof(ulong?), ValueKind.Integer },
-        { typeof(uint?), ValueKind.Integer },
-        { typeof(ushort?), ValueKind.Integer },
-        { typeof(byte), ValueKind.Integer },
+        { typeof(bool?), ValueKind.Boolean },
+        { typeof(bool), ValueKind.Boolean },
         { typeof(byte?), ValueKind.Integer },
-        { typeof(sbyte), ValueKind.Integer },
-        { typeof(sbyte?), ValueKind.Integer },
-        { typeof(float), ValueKind.Float },
-        { typeof(double), ValueKind.Float },
-        { typeof(decimal), ValueKind.Float },
-        { typeof(float?), ValueKind.Float },
-        { typeof(double?), ValueKind.Float },
+        { typeof(byte), ValueKind.Integer },
         { typeof(decimal?), ValueKind.Float },
-        { typeof(bool), ValueKind.Float },
-        { typeof(bool?), ValueKind.Float }
+        { typeof(decimal), ValueKind.Float },
+        { typeof(double?), ValueKind.Float },
+        { typeof(double), ValueKind.Float },
+        { typeof(float?), ValueKind.Float },
+        { typeof(float), ValueKind.Float },
+        { typeof(int?), ValueKind.Integer },
+        { typeof(int), ValueKind.Integer },
+        { typeof(long?), ValueKind.Integer },
+        { typeof(long), ValueKind.Integer },
+        { typeof(sbyte?), ValueKind.Integer },
+        { typeof(sbyte), ValueKind.Integer },
+        { typeof(short?), ValueKind.Integer },
+        { typeof(short), ValueKind.Integer },
+        { typeof(string), ValueKind.String },
+        { typeof(uint?), ValueKind.Integer },
+        { typeof(uint), ValueKind.Integer },
+        { typeof(ulong?), ValueKind.Integer },
+        { typeof(ulong), ValueKind.Integer },
+        { typeof(ushort?), ValueKind.Integer },
+        { typeof(ushort), ValueKind.Integer }
     };
 
     private static readonly HashSet<string> s_specScalars =

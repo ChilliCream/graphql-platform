@@ -1,0 +1,16 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /docs/hotchocolate/v10/
+Disallow: /docs/hotchocolate/v11/
+
+# Algolia Crawler
+User-agent: Algolia Crawler
+Allow: /
+
+# Host
+Host: https://chillicream.com
+
+# Sitemaps
+Sitemap: https://chillicream.com/sitemap.xml
+Sitemap: https://chillicream.com/sitemap-index.xml
