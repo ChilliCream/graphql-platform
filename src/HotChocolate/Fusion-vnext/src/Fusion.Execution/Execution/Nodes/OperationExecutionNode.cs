@@ -15,6 +15,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
+    private readonly int? _batchingGroupId;
     private readonly string? _schemaName;
     private readonly SelectionPath _target;
     private readonly SelectionPath _source;
@@ -29,10 +30,12 @@ public sealed class OperationExecutionNode : ExecutionNode
         string[] forwardedVariables,
         string[] responseNames,
         ExecutionNodeCondition[] conditions,
+        int? batchingGroupId,
         bool requiresFileUpload)
     {
         Id = id;
         _operation = operation;
+        _batchingGroupId = batchingGroupId;
         _schemaName = schemaName;
         _target = target;
         _source = source;
@@ -56,6 +59,11 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// Gets the operation definition that this execution node represents.
     /// </summary>
     public OperationSourceText Operation => _operation;
+
+    /// <summary>
+    /// Gets the deterministic batching group identifier assigned at planning time.
+    /// </summary>
+    public int? BatchingGroupId => _batchingGroupId;
 
     /// <summary>
     /// Gets the response names of the <see cref="Target"/> selection set that are fulfilled by this operation.
@@ -113,6 +121,9 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         var request = new SourceSchemaClientRequest
         {
+            Node = this,
+            SchemaName = schemaName,
+            BatchingGroupId = _batchingGroupId,
             OperationType = _operation.Type,
             OperationSourceText = _operation.SourceText,
             Variables = variables,
@@ -126,10 +137,12 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         try
         {
-            var client = context.GetClient(schemaName, _operation.Type);
-
             // we execute the GraphQL request against a source schema
-            var response = await client.ExecuteAsync(context, this, request, cancellationToken);
+            var response =
+                await context.SourceSchemaScheduler.ExecuteAsync(
+                    context,
+                    request,
+                    cancellationToken);
             context.TrackSourceSchemaClientResponse(this, response);
 
             // we read the responses from the response stream.
@@ -226,6 +239,8 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         var request = new SourceSchemaClientRequest
         {
+            Node = this,
+            SchemaName = schemaName,
             OperationType = _operation.Type,
             OperationSourceText = _operation.SourceText,
             Variables = variables
@@ -237,7 +252,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         {
             var client = context.GetClient(schemaName, _operation.Type);
 
-            var response = await client.ExecuteAsync(context, this, request, cancellationToken);
+            var response = await client.ExecuteAsync(context, request, cancellationToken);
 
             var stream = new SubscriptionEnumerable(
                 context,

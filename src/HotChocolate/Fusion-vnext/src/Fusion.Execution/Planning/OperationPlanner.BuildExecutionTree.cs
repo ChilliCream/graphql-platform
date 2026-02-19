@@ -11,6 +11,7 @@ namespace HotChocolate.Fusion.Planning;
 public sealed partial class OperationPlanner
 {
     private const string UploadScalarName = "Upload";
+    private const string DynamicSchemaNameMarker = "__dynamic__";
 
     /// <summary>
     /// Builds the actual execution plan from the provided <paramref name="planSteps"/>.
@@ -49,6 +50,7 @@ public sealed partial class OperationPlanner
             completedNodes,
             dependencyLookup,
             _schema,
+            _options.EnableRequestGrouping,
             hasVariables);
         BuildDependencyStructure(completedNodes, dependencyLookup, branchesLookup, fallbackLookup);
 
@@ -229,10 +231,15 @@ public sealed partial class OperationPlanner
         Dictionary<int, ExecutionNode> completedNodes,
         Dictionary<int, HashSet<int>> dependencyLookup,
         ISchemaDefinition schema,
+        bool enableRequestGrouping,
         bool hasVariables)
     {
         var hasUploadScalar = schema.Types.TryGetType(UploadScalarName, out var uploadType)
             && uploadType.IsScalarType();
+        var batchingGroupLookup = CreateBatchingGroupLookup(
+            planSteps,
+            dependencyLookup,
+            enableRequestGrouping);
         var readySteps = planSteps.Where(t => !dependencyLookup.ContainsKey(t.Id)).ToList();
         List<string>? variables = null;
 
@@ -281,9 +288,13 @@ public sealed partial class OperationPlanner
                     var requiresFileUpload = hasUploadScalar
                         && DoVariablesContainUploadScalar(operationStep.Definition.VariableDefinitions, schema);
 
+                    var operation = RemoveEmptyTypeNames(operationStep.Definition);
+                    var operationSource = operation.ToSourceText();
+                    int? batchingGroupId = batchingGroupLookup.TryGetValue(step.Id, out var groupId) ? groupId : null;
+
                     var node = new OperationExecutionNode(
                         operationStep.Id,
-                        RemoveEmptyTypeNames(operationStep.Definition).ToSourceText(),
+                        operationSource,
                         operationStep.SchemaName,
                         operationStep.Target,
                         operationStep.Source,
@@ -291,6 +302,7 @@ public sealed partial class OperationPlanner
                         variables?.Count > 0 ? variables.ToArray() : [],
                         GetResponseNamesFromPath(operationStep.Definition, operationStep.Source),
                         operationStep.Conditions,
+                        batchingGroupId,
                         requiresFileUpload);
 
                     completedNodes.Add(step.Id, node);
@@ -323,6 +335,169 @@ public sealed partial class OperationPlanner
                 break;
             }
         }
+    }
+
+    internal static Dictionary<int, int> CreateBatchingGroupLookup(
+        ImmutableList<PlanStep> planSteps,
+        Dictionary<int, HashSet<int>> dependencyLookup,
+        bool enableRequestGrouping)
+    {
+        if (!enableRequestGrouping)
+        {
+            return [];
+        }
+
+        var queryStepsByService = new Dictionary<string, List<OperationPlanStep>>(StringComparer.Ordinal);
+
+        foreach (var operationStep in planSteps.OfType<OperationPlanStep>())
+        {
+            if (operationStep.Definition.Operation is not OperationType.Query)
+            {
+                continue;
+            }
+
+            var schemaKey = operationStep.SchemaName ?? DynamicSchemaNameMarker;
+
+            if (!queryStepsByService.TryGetValue(schemaKey, out var serviceSteps))
+            {
+                serviceSteps = [];
+                queryStepsByService[schemaKey] = serviceSteps;
+            }
+
+            serviceSteps.Add(operationStep);
+        }
+
+        if (queryStepsByService.Count == 0)
+        {
+            return [];
+        }
+
+        foreach (var serviceSteps in queryStepsByService.Values)
+        {
+            serviceSteps.Sort((a, b) => a.Id.CompareTo(b.Id));
+        }
+
+        var transitiveDependencies = new Dictionary<int, HashSet<int>>();
+        var recursionStack = new HashSet<int>();
+
+        foreach (var serviceSteps in queryStepsByService.Values)
+        {
+            foreach (var step in serviceSteps)
+            {
+                GetTransitiveDependencies(
+                    step.Id,
+                    dependencyLookup,
+                    transitiveDependencies,
+                    recursionStack);
+            }
+        }
+
+        var serviceGroups = new Dictionary<string, List<List<int>>>(StringComparer.Ordinal);
+
+        foreach (var (schemaKey, serviceSteps) in queryStepsByService.OrderBy(t => t.Key, StringComparer.Ordinal))
+        {
+            var groups = new List<List<int>>();
+
+            foreach (var step in serviceSteps)
+            {
+                var stepId = step.Id;
+                List<int>? targetGroup = null;
+
+                foreach (var group in groups)
+                {
+                    if (group.All(groupStepId => !AreTransitivelyDependent(stepId, groupStepId, transitiveDependencies)))
+                    {
+                        targetGroup = group;
+                        break;
+                    }
+                }
+
+                if (targetGroup is null)
+                {
+                    targetGroup = [];
+                    groups.Add(targetGroup);
+                }
+
+                targetGroup.Add(stepId);
+            }
+
+            serviceGroups[schemaKey] = groups;
+        }
+
+        var lookup = new Dictionary<int, int>();
+        var nextGroupId = 0;
+
+        foreach (var (_, groups) in serviceGroups.OrderBy(t => t.Key, StringComparer.Ordinal))
+        {
+            foreach (var group in groups.Where(t => t.Count > 1))
+            {
+                var groupId = ++nextGroupId;
+
+                foreach (var stepId in group)
+                {
+                    lookup.Add(stepId, groupId);
+                }
+            }
+        }
+
+        return lookup;
+    }
+
+    private static bool AreTransitivelyDependent(
+        int stepId,
+        int otherStepId,
+        Dictionary<int, HashSet<int>> transitiveDependencies)
+    {
+        if (transitiveDependencies.TryGetValue(stepId, out var stepDependencies)
+            && stepDependencies.Contains(otherStepId))
+        {
+            return true;
+        }
+
+        return transitiveDependencies.TryGetValue(otherStepId, out var otherStepDependencies)
+            && otherStepDependencies.Contains(stepId);
+    }
+
+    private static HashSet<int> GetTransitiveDependencies(
+        int stepId,
+        Dictionary<int, HashSet<int>> dependencyLookup,
+        Dictionary<int, HashSet<int>> transitiveDependencies,
+        HashSet<int> recursionStack)
+    {
+        if (transitiveDependencies.TryGetValue(stepId, out var existingDependencies))
+        {
+            return existingDependencies;
+        }
+
+        if (!dependencyLookup.TryGetValue(stepId, out var directDependencies)
+            || directDependencies.Count == 0)
+        {
+            var noDependencies = new HashSet<int>();
+            transitiveDependencies[stepId] = noDependencies;
+            return noDependencies;
+        }
+
+        if (!recursionStack.Add(stepId))
+        {
+            throw new InvalidOperationException("The execution dependency graph contains a cycle.");
+        }
+
+        var dependencies = new HashSet<int>();
+
+        foreach (var dependency in directDependencies.OrderBy(t => t))
+        {
+            dependencies.Add(dependency);
+            dependencies.UnionWith(
+                GetTransitiveDependencies(
+                    dependency,
+                    dependencyLookup,
+                    transitiveDependencies,
+                    recursionStack));
+        }
+
+        recursionStack.Remove(stepId);
+        transitiveDependencies[stepId] = dependencies;
+        return dependencies;
     }
 
     private static void BuildDependencyStructure(

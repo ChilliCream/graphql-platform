@@ -169,6 +169,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         string[]? forwardedVariables = null;
         string[]? responseNames = null;
         int[]? dependencies = null;
+        int? batchingGroupId = null;
 
         if (nodeElement.TryGetProperty("source", out var sourceElement))
         {
@@ -223,6 +224,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 .ToArray();
         }
 
+        if (nodeElement.TryGetProperty("batchingGroupId", out var batchingGroupIdElement))
+        {
+            batchingGroupId = batchingGroupIdElement.GetInt32();
+        }
+
         var conditions = TryParseConditions(nodeElement);
 
         var requiresFileUpload = nodeElement.TryGetProperty("requiresFileUpload", out var requiresFileUploadElement)
@@ -242,6 +248,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             forwardedVariables ?? [],
             responseNames ?? [],
             conditions,
+            batchingGroupId,
             requiresFileUpload);
 
         return (node, dependencies, null, null);

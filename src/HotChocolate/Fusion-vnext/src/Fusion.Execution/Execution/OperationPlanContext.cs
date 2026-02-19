@@ -25,6 +25,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
     private readonly FetchResultStore _resultStore;
     private readonly ExecutionState _executionState;
+    private readonly SourceSchemaRequestDispatcher _sourceSchemaDispatcher;
     private readonly INodeIdParser _nodeIdParser;
     private readonly bool _collectTelemetry;
     private ISourceSchemaClientScope _clientScope;
@@ -69,6 +70,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             IncludeFlags);
 
         _executionState = new ExecutionState(_collectTelemetry, cancellationTokenSource);
+        _sourceSchemaDispatcher = new SourceSchemaRequestDispatcher(
+            static (context, schemaName, operationType) => context.GetClient(schemaName, operationType));
     }
 
     public OperationPlan OperationPlan { get; }
@@ -80,6 +83,10 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     public RequestContext RequestContext { get; }
 
     public ISourceSchemaClientScope ClientScope => _clientScope;
+
+    public ISourceSchemaScheduler SourceSchemaScheduler => _sourceSchemaDispatcher;
+
+    public ISourceSchemaDispatcher SourceSchemaDispatcher => _sourceSchemaDispatcher;
 
     internal ExecutionState ExecutionState => _executionState;
 
@@ -375,6 +382,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         if (!_disposed)
         {
             _disposed = true;
+            _sourceSchemaDispatcher.Abort();
             _resultStore.Dispose();
             await _clientScope.DisposeAsync();
         }

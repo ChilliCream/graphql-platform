@@ -170,6 +170,11 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteString("target", node.Target.ToString());
         }
 
+        if (node.BatchingGroupId.HasValue)
+        {
+            jsonWriter.WriteNumber("batchingGroupId", node.BatchingGroupId.Value);
+        }
+
         if (node.Requirements.Length > 0)
         {
             jsonWriter.WritePropertyName("requirements");

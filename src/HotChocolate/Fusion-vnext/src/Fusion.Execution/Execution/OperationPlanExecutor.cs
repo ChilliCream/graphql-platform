@@ -21,26 +21,39 @@ internal sealed class OperationPlanExecutor
         await using var context = new OperationPlanContext(requestContext, variables, operationPlan, executionCts);
         context.Begin();
 
-        switch (operationPlan.Operation.Definition.Operation)
+        try
         {
-            case OperationType.Query:
-                await ExecuteQueryAsync(context, operationPlan, executionCts.Token);
-                break;
+            switch (operationPlan.Operation.Definition.Operation)
+            {
+                case OperationType.Query:
+                    await ExecuteQueryAsync(context, operationPlan, executionCts.Token);
+                    break;
 
-            case OperationType.Mutation:
-                await ExecuteMutationAsync(context, operationPlan, executionCts.Token);
-                break;
+                case OperationType.Mutation:
+                    await ExecuteMutationAsync(context, operationPlan, executionCts.Token);
+                    break;
 
-            default:
-                throw new InvalidOperationException("Only queries and mutations can be executed.");
+                default:
+                    throw new InvalidOperationException("Only queries and mutations can be executed.");
+            }
+
+            if (executionCts.IsCancellationRequested)
+            {
+                context.SourceSchemaDispatcher.Abort();
+            }
+
+            // If the original CancellationToken of the request was cancelled,
+            // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
+            // so we throw here to properly cancel the request execution.
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return context.Complete();
         }
-
-        // If the original CancellationToken of the request was cancelled,
-        // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
-        // so we throw here to properly cancel the request execution.
-        cancellationToken.ThrowIfCancellationRequested();
-
-        return context.Complete();
+        catch (Exception ex)
+        {
+            context.SourceSchemaDispatcher.Abort(ex);
+            throw;
+        }
     }
 
     public async Task<IExecutionResult> SubscribeAsync(
@@ -62,14 +75,20 @@ internal sealed class OperationPlanExecutor
         // We create a new CancellationTokenSource that can be used to halt the execution engine,
         // without also cancelling the entire request pipeline.
         var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        OperationPlanContext? context = null;
 
         try
         {
-            var context = new OperationPlanContext(requestContext, operationPlan, executionCts);
+            context = new OperationPlanContext(requestContext, operationPlan, executionCts);
             var subscriptionResult = await subscriptionNode.SubscribeAsync(context, executionCts.Token);
             var executionState = context.ExecutionState;
 
-            executionCts.Token.Register(() => executionState.Signal.TryResetToIdle());
+            executionCts.Token.Register(
+                () =>
+                {
+                    executionState.Signal.TryResetToIdle();
+                    context.SourceSchemaDispatcher.Abort();
+                });
 
             if (subscriptionResult.Status is not ExecutionStatus.Success)
             {
@@ -88,8 +107,9 @@ internal sealed class OperationPlanExecutor
             stream.RegisterForCleanup(executionCts);
             return stream;
         }
-        catch
+        catch (Exception ex)
         {
+            context?.SourceSchemaDispatcher.Abort(ex);
             executionCts.Dispose();
 
             throw;
@@ -103,7 +123,14 @@ internal sealed class OperationPlanExecutor
     {
         var executionState = context.ExecutionState;
 
-        cancellationToken.Register(() => executionState.Signal.TryResetToIdle());
+        await using var cancellationRegistration = cancellationToken.Register(
+            () =>
+            {
+                executionState.Signal.TryResetToIdle();
+                context.SourceSchemaDispatcher.Abort();
+            });
+
+        RegisterBatchingGroups(context, plan);
 
         // GraphQL queries allow us to execute the plan by using full parallelism.
         // We fill the backlog with all nodes from the operation plan.
@@ -120,7 +147,7 @@ internal sealed class OperationPlanExecutor
             while (executionState.TryDequeueCompletedResult(out var result))
             {
                 var node = plan.GetNodeById(result.Id);
-                executionState.CompleteNode(node, result);
+                executionState.CompleteNode(context, node, result);
             }
 
             executionState.EnqueueNextNodes(context, cancellationToken);
@@ -148,7 +175,14 @@ internal sealed class OperationPlanExecutor
     {
         var executionState = context.ExecutionState;
 
-        cancellationToken.Register(() => executionState.Signal.TryResetToIdle());
+        await using var cancellationRegistration = cancellationToken.Register(
+            () =>
+            {
+                executionState.Signal.TryResetToIdle();
+                context.SourceSchemaDispatcher.Abort();
+            });
+
+        RegisterBatchingGroups(context, plan);
 
         // For mutations, we fill the backlog with all nodes from the operation plan just like for queries.
         executionState.FillBacklog(plan);
@@ -170,7 +204,7 @@ internal sealed class OperationPlanExecutor
                 while (executionState.TryDequeueCompletedResult(out var result))
                 {
                     var node = plan.GetNodeById(result.Id);
-                    executionState.CompleteNode(node, result);
+                    executionState.CompleteNode(context, node, result);
                 }
 
                 executionState.EnqueueNextNodes(context, cancellationToken);
@@ -208,6 +242,12 @@ internal sealed class OperationPlanExecutor
         var executionState = context.ExecutionState;
         var stream = subscriptionResult.ReadStreamAsync()
             .WithCancellation(executionCancellationToken);
+        await using var cancellationRegistration = executionCancellationToken.Register(
+            () =>
+            {
+                executionState.Signal.TryResetToIdle();
+                context.SourceSchemaDispatcher.Abort();
+            });
 
         await foreach (var eventArgs in stream)
         {
@@ -224,6 +264,7 @@ internal sealed class OperationPlanExecutor
                 context.Begin(eventArgs.StartTimestamp, eventArgs.Activity?.TraceId.ToHexString());
 
                 executionState.Reset();
+                RegisterBatchingGroups(context, plan);
                 executionState.FillBacklog(plan);
                 executionState.EnqueueForCompletion(
                     new ExecutionNodeResult(
@@ -240,7 +281,7 @@ internal sealed class OperationPlanExecutor
                     while (executionState.TryDequeueCompletedResult(out var nodeResult))
                     {
                         var node = plan.GetNodeById(nodeResult.Id);
-                        executionState.CompleteNode(node, nodeResult);
+                        executionState.CompleteNode(context, node, nodeResult);
                     }
 
                     executionState.EnqueueNextNodes(context, executionCancellationToken);
@@ -264,6 +305,7 @@ internal sealed class OperationPlanExecutor
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
+                context.SourceSchemaDispatcher.Abort(ex);
                 context.DiagnosticEvents.SubscriptionEventError(
                     context,
                     subscriptionNode,
@@ -279,6 +321,39 @@ internal sealed class OperationPlanExecutor
             }
 
             yield return result;
+        }
+    }
+
+    private static void RegisterBatchingGroups(OperationPlanContext context, OperationPlan plan)
+    {
+        Dictionary<int, List<int>>? groups = null;
+
+        foreach (var executionNode in plan.AllNodes)
+        {
+            if (executionNode is not OperationExecutionNode { BatchingGroupId: { } groupId } operationNode)
+            {
+                continue;
+            }
+
+            groups ??= [];
+
+            if (!groups.TryGetValue(groupId, out var nodeIds))
+            {
+                nodeIds = [];
+                groups.Add(groupId, nodeIds);
+            }
+
+            nodeIds.Add(operationNode.Id);
+        }
+
+        if (groups is null)
+        {
+            return;
+        }
+
+        foreach (var (groupId, nodeIds) in groups)
+        {
+            context.SourceSchemaDispatcher.RegisterGroup(groupId, nodeIds);
         }
     }
 }

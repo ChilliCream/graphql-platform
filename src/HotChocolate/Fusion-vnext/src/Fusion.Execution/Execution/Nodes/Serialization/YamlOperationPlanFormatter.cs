@@ -124,6 +124,11 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("target: {0}", node.Target.ToString());
         }
 
+        if (node.BatchingGroupId.HasValue)
+        {
+            writer.WriteLine("batchingGroupId: {0}", node.BatchingGroupId.Value);
+        }
+
         if (node.Requirements.Length > 0)
         {
             writer.WriteLine("requirements:");

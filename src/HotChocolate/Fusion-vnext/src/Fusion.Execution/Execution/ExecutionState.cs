@@ -102,7 +102,10 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         }
     }
 
-    public void CompleteNode(ExecutionNode node, ExecutionNodeResult result)
+    public void CompleteNode(
+        OperationPlanContext context,
+        ExecutionNode node,
+        ExecutionNodeResult result)
     {
         Interlocked.Decrement(ref _activeNodes);
 
@@ -138,7 +141,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
                 {
                     if (!result.DependentsToExecute.Contains(dependent))
                     {
-                        SkipNode(dependent);
+                        SkipNode(context, dependent);
                     }
                 }
             }
@@ -146,17 +149,19 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
         if (result.Status is ExecutionStatus.Skipped or ExecutionStatus.Failed)
         {
-            SkipNode(node);
+            SkipNode(context, node);
         }
     }
 
-    public void SkipNode(ExecutionNode node)
+    public void SkipNode(OperationPlanContext context, ExecutionNode node)
     {
         _stack.Clear();
         _stack.Push(node);
 
         while (_stack.TryPop(out var current))
         {
+            context.SourceSchemaDispatcher.SkipNode(current.Id);
+
             if (_backlog.Remove(current)
                 && collectTelemetry
                 && !_completed.Contains(current)
