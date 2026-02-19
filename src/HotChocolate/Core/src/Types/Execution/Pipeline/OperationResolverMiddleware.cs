@@ -37,16 +37,27 @@ internal sealed class OperationResolverMiddleware
         var documentInfo = context.OperationDocumentInfo;
         if (documentInfo.Document is not null && documentInfo.IsValidated)
         {
+            var inFlightOperation = context.Features.Get<TaskCompletionSource<Operation>>();
+
             using (_diagnosticEvents.CompileOperation(context))
             {
-                operation = _operationPlanner.Compile(
-                    operationId ?? Guid.NewGuid().ToString("N"),
-                    documentInfo.Hash.Value,
-                    context.Request.OperationName,
-                    documentInfo.Document,
-                    context);
+                try
+                {
+                    operation = _operationPlanner.Compile(
+                        operationId ?? Guid.NewGuid().ToString("N"),
+                        documentInfo.Hash.Value,
+                        context.Request.OperationName,
+                        documentInfo.Document,
+                        context);
 
-                context.SetOperation(operation);
+                    context.SetOperation(operation);
+                    inFlightOperation?.TrySetResult(operation);
+                }
+                catch (Exception ex)
+                {
+                    inFlightOperation?.TrySetException(ex);
+                    throw;
+                }
             }
 
             await _next(context).ConfigureAwait(false);
