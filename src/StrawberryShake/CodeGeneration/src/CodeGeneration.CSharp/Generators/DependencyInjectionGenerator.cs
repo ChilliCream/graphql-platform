@@ -42,6 +42,10 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         ShortSerializer,
         StringSerializer,
         TimeSpanSerializer,
+        UnsignedByteSerializer,
+        UnsignedIntSerializer,
+        UnsignedLongSerializer,
+        UnsignedShortSerializer,
         UriSerializer,
         UrlSerializer,
         UUIDSerializer

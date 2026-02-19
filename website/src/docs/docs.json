@@ -2481,10 +2481,6 @@
                 "title": "Blazor"
               },
               {
-                "path": "xamarin",
-                "title": "Xamarin"
-              },
-              {
                 "path": "console",
                 "title": "Console"
               }
@@ -2589,12 +2585,12 @@
                 "title": "Blazor"
               },
               {
-                "path": "xamarin",
-                "title": "Xamarin"
-              },
-              {
                 "path": "console",
                 "title": "Console"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
               }
             ]
           },
@@ -2697,12 +2693,12 @@
                 "title": "Blazor"
               },
               {
-                "path": "xamarin",
-                "title": "Xamarin"
-              },
-              {
                 "path": "console",
                 "title": "Console"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
               }
             ]
           },
@@ -2801,12 +2797,12 @@
                 "title": "Blazor"
               },
               {
-                "path": "xamarin",
-                "title": "Xamarin"
-              },
-              {
                 "path": "console",
                 "title": "Console"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
               }
             ]
           },
@@ -2901,12 +2897,12 @@
                 "title": "Blazor"
               },
               {
-                "path": "xamarin",
-                "title": "Xamarin"
-              },
-              {
                 "path": "console",
                 "title": "Console"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
               }
             ]
           },

@@ -26,10 +26,14 @@ internal sealed class TestSequenceSegment : ReadOnlySequenceSegment<byte>
     public static ReadOnlySequence<byte> CreateMultiSegment(byte[] data, int chunkSize)
     {
         if (data.Length == 0)
+        {
             throw new ArgumentException("Data cannot be empty.", nameof(data));
+        }
 
         if (chunkSize <= 0)
+        {
             throw new ArgumentException("Chunk size must be positive.", nameof(chunkSize));
+        }
 
         if (chunkSize >= data.Length)
         {
@@ -58,14 +62,20 @@ internal sealed class TestSequenceSegment : ReadOnlySequenceSegment<byte>
     public static ReadOnlySequence<byte> CreateMultiSegment(byte[] data, params int[] splitPositions)
     {
         if (data.Length == 0)
+        {
             throw new ArgumentException("Data cannot be empty.", nameof(data));
+        }
 
         if (splitPositions.Length == 0)
+        {
             return new ReadOnlySequence<byte>(data);
+        }
 
         var positions = splitPositions.OrderBy(p => p).Where(p => p > 0 && p < data.Length).Distinct().ToArray();
         if (positions.Length == 0)
+        {
             return new ReadOnlySequence<byte>(data);
+        }
 
         var first = new TestSequenceSegment(
             new ReadOnlyMemory<byte>(data, 0, positions[0]), 0);
