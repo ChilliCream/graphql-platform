@@ -55,7 +55,7 @@ public sealed class OperationPlannerOptions
             ExpectMutableOptions();
             field = value;
         }
-    }
+    } = true;
 
     /// <summary>
     /// Gets or sets the weight applied for each operation beyond the fan-out penalty threshold.
