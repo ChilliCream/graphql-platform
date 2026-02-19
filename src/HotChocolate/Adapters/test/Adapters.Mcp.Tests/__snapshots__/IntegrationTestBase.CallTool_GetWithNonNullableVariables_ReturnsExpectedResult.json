@@ -8,7 +8,7 @@
       "boolean": true,
       "byte": 1,
       "date": "2000-01-01",
-      "dateTime": "2000-01-01T12:00:00.000Z",
+      "dateTime": "2000-01-01T12:00:00Z",
       "decimal": 79228162514264337593543950335,
       "enum": "VALUE1",
       "float": 1.5,

@@ -2117,7 +2117,7 @@
         {
           "Kind": "Scalar",
           "Name": "Any",
-          "Description": null,
+          "Description": "The `Any` scalar type represents any valid GraphQL value.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -2531,6 +2531,29 @@
                 "OfType": null
               },
               "DefaultValue": "true"
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": false
+        },
+        {
+          "Name": "specifiedBy",
+          "Description": "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.",
+          "Args": [
+            {
+              "Name": "url",
+              "Description": "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.",
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "String",
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
             }
           ],
           "OnOperation": false,
@@ -6294,7 +6317,7 @@
           "__typename": "__Type",
           "Name": "Any",
           "Kind": "Scalar",
-          "Description": null,
+          "Description": "The `Any` scalar type represents any valid GraphQL value.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -7012,6 +7035,45 @@
                 "OfType": null
               },
               "DefaultValue": "true"
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": false
+        },
+        {
+          "__typename": "__Directive",
+          "Name": "specifiedBy",
+          "Description": "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.",
+          "Args": [
+            {
+              "__typename": "__InputValue",
+              "Name": "url",
+              "Description": "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.",
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "String",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
             }
           ],
           "OnOperation": false,

@@ -114,6 +114,105 @@ public class OperationPlannerTopologyCacheTests : FusionTestBase
         Assert.Equal(withCache, withoutCache);
     }
 
+    [Fact]
+    public void PlannerPlan_UnionOverfetching_Fallback_Without_TopologyCache_Is_Equivalent()
+    {
+        var schema = ComposeSchema(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              review: Review
+            }
+
+            union Review = AnonymousReview | UserReview
+
+            type UserReview {
+              product: Product
+            }
+
+            type AnonymousReview {
+              product: Product
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            """,
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              b: String!
+            }
+            """,
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              c: String!
+            }
+            """,
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              d: String!
+            }
+            """);
+
+        const string operation =
+            """
+            {
+              review {
+                ... on AnonymousReview {
+                  product {
+                    b
+                  }
+                }
+                ... on UserReview {
+                  product {
+                    c
+                    d
+                  }
+                }
+              }
+            }
+            """;
+
+        var formatter = new YamlOperationPlanFormatter();
+        var withCache = formatter.Format(PlanOperation(schema, operation));
+
+        DisableTopologyCache(schema);
+
+        var withoutCache = formatter.Format(PlanOperation(schema, operation));
+
+        Assert.Equal(withCache, withoutCache);
+    }
+
     private static (bool Found, string? Signature) TryGetLookupSignature(
         FusionSchemaDefinition schema,
         FusionComplexTypeDefinition type,

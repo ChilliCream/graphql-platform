@@ -59,10 +59,14 @@ typings/
 # dotenv environment variable files
 .env*
 
-# gatsby files
+# gatsby files (legacy)
 .cache/
-public
 /graphql-types.ts
+
+# next.js
+.next/
+out/
+next-env.d.ts
 
 # Mac files
 .DS_Store

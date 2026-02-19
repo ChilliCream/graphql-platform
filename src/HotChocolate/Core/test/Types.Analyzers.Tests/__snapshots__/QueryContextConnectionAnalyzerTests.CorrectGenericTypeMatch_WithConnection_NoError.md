@@ -163,7 +163,7 @@ namespace TestNamespace
                 var args1_filter = global::HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);
                 var args1_sorting = global::HotChocolate.Data.Sorting.SortingContextResolverContextExtensions.GetSortingContext(context);
                 var args1 = new global::GreenDonut.Data.QueryContext<global::TestNamespace.Product>(
-                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Product>(args1_selection),
+                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Product>(args1_selection, context.IncludeFlags),
                     args1_filter?.AsPredicate<global::TestNamespace.Product>(),
                     args1_sorting?.AsSortDefinition<global::TestNamespace.Product>());
                 var args2 = _binding_GetProductsAsync_productService.Execute<global::TestNamespace.ProductService>(context);

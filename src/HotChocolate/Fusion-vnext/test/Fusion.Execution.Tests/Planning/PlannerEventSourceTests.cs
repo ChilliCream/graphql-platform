@@ -151,13 +151,62 @@ public sealed class PlannerEventSourceTests : FusionTestBase
         Assert.Equal(stopEvents.Sum(t => t.GetInt32Payload(3)), dequeueEvents.Length);
     }
 
-    private static OperationPlanner CreatePlanner(FusionSchemaDefinition schema)
+    [Fact]
+    public void PlannerEventSource_Emits_Guardrail_Event_When_Guardrail_Is_Exceeded()
+    {
+        // arrange
+        using var listener = new PlannerEventListener();
+        var schema = CreateCompositeSchema();
+        const string operationId = "planner-etw-guardrail";
+        var planner = CreatePlanner(
+            schema,
+            new OperationPlannerOptions
+            {
+                MaxExpandedNodes = 1
+            });
+        var operation = ParseOperation(
+            """
+            {
+              productBySlug(slug: "1") {
+                id
+                name
+                estimatedDelivery(postCode: "12345")
+              }
+            }
+            """);
+
+        // act
+        var error = Assert.Throws<OperationPlannerGuardrailException>(
+            () => planner.CreatePlan(operationId, operationId, "12345678", operation));
+
+        // assert
+        Assert.Equal(OperationPlannerGuardrailReason.MaxExpandedNodesExceeded, error.Reason);
+
+        var guardrail = listener.Single(PlannerEventSource.PlanGuardrailExceededEventId, operationId);
+        var plannerError = listener.Single(PlannerEventSource.PlanErrorEventId, operationId);
+
+        Assert.Equal(operationId, guardrail.GetStringPayload(0));
+        Assert.Equal(
+            nameof(OperationPlannerGuardrailReason.MaxExpandedNodesExceeded),
+            guardrail.GetStringPayload(1));
+        Assert.Equal(1, guardrail.GetInt64Payload(2));
+        Assert.True(guardrail.GetInt64Payload(3) > 1);
+
+        Assert.Equal(operationId, plannerError.GetStringPayload(0));
+        Assert.Equal("Query", plannerError.GetStringPayload(1));
+    }
+
+    private static OperationPlanner CreatePlanner(
+        FusionSchemaDefinition schema,
+        OperationPlannerOptions? options = null)
     {
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
             new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
         var compiler = new OperationCompiler(schema, pool);
 
-        return new OperationPlanner(schema, compiler);
+        return options is null
+            ? new OperationPlanner(schema, compiler)
+            : new OperationPlanner(schema, compiler, options);
     }
 
     private static OperationPlan CreatePlan(

@@ -111,7 +111,7 @@ namespace TestNamespace
                 var args0_filter = global::HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);
                 var args0_sorting = global::HotChocolate.Data.Sorting.SortingContextResolverContextExtensions.GetSortingContext(context);
                 var args0 = new global::GreenDonut.Data.QueryContext<global::TestNamespace.Foo>(
-                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Foo>(args0_selection),
+                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Foo>(args0_selection, context.IncludeFlags),
                     args0_filter?.AsPredicate<global::TestNamespace.Foo>(),
                     args0_sorting?.AsSortDefinition<global::TestNamespace.Foo>());
                 var result = global::TestNamespace.Query.GetTest(args0);

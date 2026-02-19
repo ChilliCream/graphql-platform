@@ -9,9 +9,16 @@ using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// The <c>Date</c> scalar type represents a date in UTC. Unlike <c>LocalDate</c>, which represents
+/// a calendar date with local context (such as where a contract was signed), <c>Date</c> always
+/// represents the UTC date without any local context.
+/// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/date.html">Specification</seealso>
 public class DateType : ScalarType<DateOnly, StringValueNode>
 {
     private const string DateFormat = "yyyy-MM-dd";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/date.html";
     private readonly bool _enforceSpecFormat;
 
     /// <summary>
@@ -26,6 +33,7 @@ public class DateType : ScalarType<DateOnly, StringValueNode>
     {
         Description = description;
         Pattern = @"^\d{4}-\d{2}-\d{2}$";
+        SpecifiedBy = new Uri(SpecifiedByUri);
         _enforceSpecFormat = !disableFormatCheck;
     }
 

@@ -1,18 +1,21 @@
 using System.Text.Json;
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Text.Json;
 using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The URL scalar type represents a valid URL as defined by RFC 3986.
-/// The scalar serializes as a string.
+/// The <c>URL</c> scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986.
+/// It is intended for scenarios where a field must contain a valid URL, such as links to external
+/// resources, API endpoints, image sources, or any web-accessible resource.
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/url.html">Specification</seealso>
 public class UrlType : ScalarType<Uri, StringValueNode>
 {
-    private const string SpecifiedByUri = "https://tools.ietf.org/html/rfc3986";
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/url.html";
     // TODO: This is for backwards compatibility. The UriType should be used for relative URIs.
     private readonly bool _allowRelativeUris;
 
@@ -34,7 +37,7 @@ public class UrlType : ScalarType<Uri, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="UrlType"/> class.
     /// </summary>
-    public UrlType(bool allowRelativeUris = false) : this(ScalarNames.URL)
+    public UrlType(bool allowRelativeUris = false) : this(ScalarNames.URL, TypeResources.UrlType_Description)
     {
         _allowRelativeUris = allowRelativeUris;
     }
@@ -43,7 +46,7 @@ public class UrlType : ScalarType<Uri, StringValueNode>
     /// Initializes a new instance of the <see cref="UrlType"/> class.
     /// </summary>
     [ActivatorUtilitiesConstructor]
-    public UrlType() : this(ScalarNames.URL)
+    public UrlType() : this(ScalarNames.URL, TypeResources.UrlType_Description)
     {
     }
 

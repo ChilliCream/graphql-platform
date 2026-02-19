@@ -11,6 +11,7 @@ internal sealed class PlannerEventSource : EventSource
     public const int PlanStopEventId = 2;
     public const int PlanErrorEventId = 3;
     public const int PlanDequeueEventId = 4;
+    public const int PlanGuardrailExceededEventId = 5;
 
     public static readonly PlannerEventSource Log = new();
 
@@ -94,6 +95,27 @@ internal sealed class PlannerEventSource : EventSource
                 queueLength,
                 nextWorkItem,
                 schemaName);
+        }
+    }
+
+    [Event(
+        eventId: PlanGuardrailExceededEventId,
+        Level = EventLevel.Warning,
+        Message = "Planner guardrail exceeded (OperationId={0}, Reason={1}, Limit={2}, Observed={3})")]
+    public void PlanGuardrailExceeded(
+        string operationId,
+        string reason,
+        long limit,
+        long observed)
+    {
+        if (IsEnabled())
+        {
+            WriteEvent(
+                PlanGuardrailExceededEventId,
+                operationId,
+                reason,
+                limit,
+                observed);
         }
     }
 }

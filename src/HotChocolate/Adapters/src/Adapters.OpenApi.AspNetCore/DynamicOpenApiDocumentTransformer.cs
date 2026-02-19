@@ -526,8 +526,13 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     {
         var format = scalarType.SpecifiedBy?.OriginalString switch
         {
-            "https://scalars.graphql.org/andimarek/date-time.html" => "date-time",
-            "https://scalars.graphql.org/andimarek/local-date.html" => "date",
+            "https://scalars.graphql.org/chillicream/date.html" => "date",
+            "https://scalars.graphql.org/chillicream/date-time.html" => "date-time",
+            "https://scalars.graphql.org/chillicream/local-date.html" => "date",
+            "https://scalars.graphql.org/chillicream/time-span.html" => "duration",
+            "https://scalars.graphql.org/chillicream/uuid.html" => "uuid",
+            "https://scalars.graphql.org/chillicream/uri.html" => "uri",
+            "https://scalars.graphql.org/chillicream/url.html" => "uri",
             _ => null
         };
 
@@ -550,10 +555,22 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
     {
         var pattern = scalarType.SpecifiedBy?.OriginalString switch
         {
-            "https://scalars.graphql.org/andimarek/date-time.html"
-                => @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:[Zz]|[+-]\d{2}:\d{2})$",
-            "https://scalars.graphql.org/andimarek/local-date.html"
+            "https://scalars.graphql.org/chillicream/base64-string.html"
+                => @"^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$",
+            "https://scalars.graphql.org/chillicream/date.html"
                 => @"^\d{4}-\d{2}-\d{2}$",
+            "https://scalars.graphql.org/chillicream/date-time.html"
+                => @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:[Zz]|[+-]\d{2}:\d{2})$",
+            "https://scalars.graphql.org/chillicream/local-date.html"
+                => @"^\d{4}-\d{2}-\d{2}$",
+            "https://scalars.graphql.org/chillicream/local-date-time.html"
+                => @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?$",
+            "https://scalars.graphql.org/chillicream/local-time.html"
+                => @"^\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?$",
+            "https://scalars.graphql.org/chillicream/time-span.html"
+                => @"^-?P(?:\d+W|(?=\d|T(?:\d|$))(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?)$",
+            "https://scalars.graphql.org/chillicream/uuid.html"
+                => @"^[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}$",
             _ => null
         };
 

@@ -308,7 +308,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         var length = checked(sourceText.Length * 4);
         byte[]? source = null;
 
-        var sourceSpan = length <= GraphQLConstants.StackallocThreshold
+        var sourceSpan = length <= GraphQLCharacters.StackallocThreshold
             ? stackalloc byte[length]
             : source = ArrayPool<byte>.Shared.Rent(length);
 

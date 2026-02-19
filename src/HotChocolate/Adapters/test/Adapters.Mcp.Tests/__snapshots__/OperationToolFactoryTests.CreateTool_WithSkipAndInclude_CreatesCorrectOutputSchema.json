@@ -45,7 +45,7 @@
                       "properties": {
                         "field1C": {
                           "type": "string",
-                          "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                          "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                           "description": "field1C description"
                         }
                       },
@@ -79,7 +79,7 @@
                       "properties": {
                         "field1C": {
                           "type": "string",
-                          "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                          "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                           "description": "field1C description"
                         }
                       },
@@ -113,7 +113,7 @@
                       "properties": {
                         "field1C": {
                           "type": "string",
-                          "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                          "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                           "description": "field1C description"
                         }
                       },
@@ -147,7 +147,7 @@
                       "properties": {
                         "field1C": {
                           "type": "string",
-                          "pattern": "^\\d{2}:\\d{2}:\\d{2}$",
+                          "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
                           "description": "field1C description"
                         }
                       },

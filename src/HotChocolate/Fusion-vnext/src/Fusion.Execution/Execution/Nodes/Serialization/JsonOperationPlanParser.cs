@@ -20,15 +20,15 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
     {
         using var document = JsonDocument.Parse(planSourceText);
         var rootElement = document.RootElement;
-        uint searchSpace = 0;
-        int expandedNodes = 0;
+        var searchSpace = 0;
+        var expandedNodes = 0;
 
         var id = rootElement.GetProperty("id").GetString()!;
         var operation = ParseOperation(rootElement.GetProperty("operation"));
 
         if (rootElement.TryGetProperty("searchSpace", out var searchSpaceElement))
         {
-            searchSpace = searchSpaceElement.GetUInt32();
+            searchSpace = searchSpaceElement.GetInt32();
         }
 
         if (rootElement.TryGetProperty("expandedNodes", out var expandedNodesElement))

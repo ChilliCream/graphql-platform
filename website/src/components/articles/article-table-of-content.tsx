@@ -1,4 +1,4 @@
-import { graphql, Link } from "gatsby";
+import { Link } from "@/components/misc";
 import GithubSlugger from "github-slugger";
 import React, { FC, useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
@@ -7,15 +7,21 @@ import { throttleTime } from "rxjs/operators";
 import styled, { css } from "styled-components";
 
 import { ScrollContainer } from "@/components/article-elements";
-import { ArticleSectionsFragment } from "@/graphql-types";
 import { useObservable } from "@/state";
 import { closeAside } from "@/state/common";
 import { THEME_COLORS } from "@/style";
 
 const MAX_TOC_DEPTH = 2;
 
+interface ArticleSectionsData {
+  headings?: Array<{
+    depth?: number;
+    value?: string;
+  } | null>;
+}
+
 export interface ArticleTableOfContentProps {
-  readonly data: ArticleSectionsFragment;
+  readonly data: ArticleSectionsData;
 }
 
 export const ArticleTableOfContent: FC<ArticleTableOfContentProps> = ({
@@ -82,15 +88,6 @@ interface TableOfContentItem {
   readonly items?: TableOfContentItem[];
 }
 
-export const ArticleSectionsGraphQLFragment = graphql`
-  fragment ArticleSections on Mdx {
-    headings {
-      depth
-      value
-    }
-  }
-`;
-
 const TocItemContainer = styled.ul.attrs({
   className: "text-3",
 })`
@@ -104,7 +101,7 @@ const TocItemContainer = styled.ul.attrs({
   }
 `;
 
-const TocLink = styled((props) => <Link {...props} />)`
+const TocLink = styled(Link)`
   color: ${THEME_COLORS.text};
   transition: color 0.2s ease-in-out;
 
@@ -140,7 +137,10 @@ const TocListItem = styled.li<TocListItemProps>`
 `;
 
 function getTocItemsFromHeadings(
-  headings: ArticleSectionsFragment["headings"]
+  headings?: Array<{
+    depth?: number;
+    value?: string;
+  } | null>
 ): TableOfContentItem[] {
   const items: TableOfContentItem[] = [];
 

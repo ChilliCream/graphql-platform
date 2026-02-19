@@ -82,7 +82,7 @@ public sealed class UploadType : ScalarType<IFile>
     /// <param name="runtimeValue">The runtime value (not used).</param>
     /// <param name="resultValue">The result element (not used).</param>
     /// <exception cref="NotSupportedException">Always thrown as output coercion is not supported.</exception>
-    public override void OnCoerceOutputValue(IFile runtimeValue, ResultElement resultValue)
+    protected override void OnCoerceOutputValue(IFile runtimeValue, ResultElement resultValue)
         => throw new NotSupportedException();
 
     /// <summary>
@@ -91,7 +91,7 @@ public sealed class UploadType : ScalarType<IFile>
     /// <param name="runtimeValue">The runtime value (not used).</param>
     /// <returns>Never returns; always throws.</returns>
     /// <exception cref="NotSupportedException">Always thrown as value to literal conversion is not supported.</exception>
-    public override IValueNode OnValueToLiteral(IFile runtimeValue)
+    protected override IValueNode OnValueToLiteral(IFile runtimeValue)
         => throw new NotSupportedException();
 
     /// <inheritdoc />

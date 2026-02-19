@@ -1,5 +1,21 @@
+"use client";
+
 import Highlight, { Language } from "prism-react-renderer";
 import Prism from "prismjs";
+
+// Load additional Prism language components
+// Must set Prism globally first - language components modify the global Prism
+(typeof globalThis !== "undefined" ? globalThis : window).Prism = Prism;
+import "prismjs/components/prism-csharp";
+import "prismjs/components/prism-graphql";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-bash";
+import "prismjs/components/prism-sql";
+import "prismjs/components/prism-diff";
+
+// Import Prism syntax highlighting theme
+import "@/style/prism-theme.css";
+
 import React, { FC } from "react";
 import styled, { css } from "styled-components";
 

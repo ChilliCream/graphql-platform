@@ -11,10 +11,9 @@ namespace HotChocolate.Fusion.Planning;
 internal sealed record PlanNode
 {
     /// <summary>
-    /// The previous plan node.
+    /// Placeholder value for <see cref="SchemaName"/> when no schema has been resolved yet.
     /// </summary>
-    public PlanNode? Previous { get; init; }
-
+    public const string UnresolvedSchemaName = "None";
     /// <summary>
     /// The original operation definitions that is being planned.
     /// </summary>
@@ -60,19 +59,14 @@ internal sealed record PlanNode
         }
     }
 
-    public required ImmutableStack<WorkItem> Backlog { get; init; }
-
-    /// <summary>
-    /// Incremental backlog projection state for optimistic lower-bound estimation.
-    /// </summary>
-    public BacklogCostState BacklogCostState { get; init; } = BacklogCostState.Empty;
+    public required Backlog Backlog { get; init; }
 
     /// <summary>
     /// The optimistic lower bound for all work currently in <see cref="Backlog"/>.
     /// This includes operation, remaining-depth, and projected excess-fanout components.
     /// It is updated incrementally by planner transitions.
     /// </summary>
-    public double BacklogLowerBound { get; init; }
+    public double RemainingCost { get; init; }
 
     public ImmutableList<PlanStep> Steps { get; init; } = [];
 
@@ -106,15 +100,21 @@ internal sealed record PlanNode
     public uint LastRequirementId { get; init; }
 
     public double PathCost
-        => MaxDepth * Options.DepthWeight
-            + OperationStepCount * Options.OperationWeight
-            + ExcessFanout * Options.ExcessFanoutWeight;
-
-    public double BacklogCost => BacklogLowerBound;
+        => (MaxDepth * Options.DepthWeight)
+            + (OperationStepCount * Options.OperationWeight)
+            + (ExcessFanout * Options.ExcessFanoutWeight);
 
     public double ResolutionCost { get; init; }
 
-    public double TotalCost => PathCost + BacklogLowerBound + ResolutionCost;
+    public double TotalCost => PathCost + RemainingCost + ResolutionCost;
+
+    /// <summary>
+    /// The cheapest this plan can possibly finish at, assuming every remaining
+    /// work item resolves perfectly. Used to prune branches that can't beat
+    /// the current best complete plan.
+    /// </summary>
+    public double BestCaseCost
+        => PathCost + RemainingCost;
 
     public string CreateOperationName(int stepId)
     {

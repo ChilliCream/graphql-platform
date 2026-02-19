@@ -22,9 +22,6 @@ public sealed class SelectionSetIndex : ISelectionSetIndex
     public uint GetId(SelectionSetNode selectionSet)
         => _selectionSets[selectionSet];
 
-    public bool TryGetId(SelectionSetNode selectionSet, out uint id)
-        => _selectionSets.TryGetValue(selectionSet, out id);
-
     public bool TryGetOriginalIdFromCloned(uint clonedId, out uint originalId)
         => _clonedToOriginalMap.TryGetValue(clonedId, out originalId);
 

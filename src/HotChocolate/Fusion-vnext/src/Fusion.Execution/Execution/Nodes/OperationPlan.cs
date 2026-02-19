@@ -21,7 +21,7 @@ public sealed record OperationPlan
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        uint searchSpace,
+        int searchSpace,
         int expandedNodes)
     {
         Id = id;
@@ -67,7 +67,7 @@ public sealed record OperationPlan
     /// <summary>
     /// Gets a number specifying how many possible plans were considered during planning.
     /// </summary>
-    public uint SearchSpace { get; }
+    public int SearchSpace { get; }
 
     /// <summary>
     /// Gets the number of nodes expanded (dequeued) during the A* search.
@@ -101,8 +101,8 @@ public sealed record OperationPlan
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        uint searchSpace,
-        int expandedNodes = 0)
+        int searchSpace,
+        int expandedNodes)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(operation);
@@ -128,8 +128,8 @@ public sealed record OperationPlan
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        uint searchSpace,
-        int expandedNodes = 0)
+        int searchSpace,
+        int expandedNodes)
     {
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentOutOfRangeException.ThrowIfLessThan(rootNodes.Length, 0);

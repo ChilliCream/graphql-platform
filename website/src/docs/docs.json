@@ -177,32 +177,44 @@
             "title": "Overview"
           },
           {
-            "path": "quick-start",
-            "title": "Quick Start"
+            "path": "getting-started",
+            "title": "Getting Started"
           },
           {
-            "path": "entities",
-            "title": "Entities"
+            "path": "adding-a-subgraph",
+            "title": "Adding a Subgraph"
           },
           {
-            "path": "lookups",
-            "title": "Lookups"
+            "path": "entities-and-lookups",
+            "title": "Entities and Lookups"
           },
           {
-            "path": "devops",
-            "title": "DevOps"
+            "path": "composition",
+            "title": "Composition"
           },
           {
-            "path": "node",
-            "title": "Node Pattern"
+            "path": "authentication-and-authorization",
+            "title": "Authentication and Authorization"
           },
           {
-            "path": "aspire",
-            "title": "Aspire"
+            "path": "deployment-and-ci-cd",
+            "title": "Deployment and CI/CD"
           },
           {
-            "path": "cli",
-            "title": "CLI"
+            "path": "nitro-cli-reference",
+            "title": "Nitro CLI Reference"
+          },
+          {
+            "path": "attribute-and-directive-reference",
+            "title": "Attribute and Directive Reference"
+          },
+          {
+            "path": "coming-from-apollo-federation",
+            "title": "Coming from Apollo Federation"
+          },
+          {
+            "path": "migrating-from-schema-stitching",
+            "title": "Migrating from Schema Stitching"
           }
         ]
       },
