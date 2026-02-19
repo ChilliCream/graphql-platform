@@ -68,8 +68,8 @@ public static class Scalars
 
     private static readonly Dictionary<Type, ValueKind> s_scalarKinds = new()
     {
-        { typeof(bool?), ValueKind.Float },
-        { typeof(bool), ValueKind.Float },
+        { typeof(bool?), ValueKind.Boolean },
+        { typeof(bool), ValueKind.Boolean },
         { typeof(byte?), ValueKind.Integer },
         { typeof(byte), ValueKind.Integer },
         { typeof(decimal?), ValueKind.Float },
