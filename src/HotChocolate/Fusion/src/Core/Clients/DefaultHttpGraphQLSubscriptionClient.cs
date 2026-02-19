@@ -43,9 +43,12 @@ internal sealed class DefaultHttpGraphQLSubscriptionClient : IGraphQLSubscriptio
         var request = new GraphQLHttpRequest(subgraphRequest, _config.EndpointUri);
         using var response = await _client.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
-        await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken).ConfigureAwait(false))
+        var resultStream = response.ReadAsResultStreamAsync(cancellationToken);
+        await using var resultEnumerator = resultStream.GetAsyncEnumerator(cancellationToken);
+
+        while (await resultEnumerator.MoveNextAsync().ConfigureAwait(false))
         {
-            yield return new GraphQLResponse(result);
+            yield return new GraphQLResponse(resultEnumerator.Current);
         }
     }
 
