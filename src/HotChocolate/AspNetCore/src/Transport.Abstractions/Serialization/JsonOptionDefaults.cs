@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace HotChocolate.Transport.Serialization;
@@ -11,11 +12,18 @@ internal static class JsonOptionDefaults
     /// Gets the default <see cref="JsonWriterOptions"/>.
     /// </summary>
     public static JsonWriterOptions WriterOptions { get; } =
-        new() { Indented = false };
+        new()
+        {
+            Indented = false,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
 
     /// <summary>
     /// Gets the default <see cref="JsonSerializerOptions"/>.
     /// </summary>
     public static JsonSerializerOptions SerializerOptions { get; } =
-        new(JsonSerializerDefaults.Web);
+        new(JsonSerializerDefaults.Web)
+        {
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
 }
