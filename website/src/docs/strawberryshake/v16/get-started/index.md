@@ -66,7 +66,7 @@ dotnet add Demo package StrawberryShake.Blazor
 
 # Step 4: Add a GraphQL client to your project using the CLI tools
 
-To add a client to your project, you need to run `dotnet graphql init {{ServerUrl}} -n {{ClientName}}`.
+To add a client to your project, you need to run `dotnet graphql init {{ServerUrl}} --clientName {{ClientName}}`.
 
 In this tutorial we will use our ChilliCream demo project to create a list of cryptocurrencies that we will add to our Blazor application.
 
@@ -78,7 +78,7 @@ In this tutorial we will use our ChilliCream demo project to create a list of cr
 dotnet graphql init https://demo.chillicream.com/graphql/ --clientName CryptoClient --Path ./Demo
 ```
 
-2. Customize the namespace of the generated client to be `Demo.GraphQL`. For this head over to the `.graphqlrc.json` and insert a namespace property to the `StrawberryShake` section.
+2. Customize the namespace of the generated client to be `Demo.GraphQL`. For this head over to the `.graphqlrc.json` and insert a namespace property in the `StrawberryShake` section.
 
 ```json
 {
