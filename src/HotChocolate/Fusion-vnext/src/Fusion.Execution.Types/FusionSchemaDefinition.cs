@@ -560,10 +560,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
 
     internal void InitializePlannerTopologyCache()
     {
-        if (_plannerTopologyCache is null)
-        {
-            _plannerTopologyCache = PlannerTopologyCache.Build(this);
-        }
+        _plannerTopologyCache ??= PlannerTopologyCache.Build(this);
     }
 
     public override string ToString()
