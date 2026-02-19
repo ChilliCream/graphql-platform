@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
 using GreenDonut.Data;
-using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;

@@ -46,7 +46,7 @@ public sealed class PlannerEventSourceTests : FusionTestBase
         var dequeueEvents = listener.ByEventId(PlannerEventSource.PlanDequeueEventId, operationId);
 
         Assert.True(elapsedMilliseconds >= 0);
-        Assert.Equal((int)plan.SearchSpace, searchSpace);
+        Assert.Equal(plan.SearchSpace, searchSpace);
         Assert.True(expandedNodes > 0);
         Assert.True(stepCount > 0);
         Assert.Equal(expandedNodes, dequeueEvents.Count);
