@@ -64,6 +64,24 @@ public sealed partial class JsonWriter
     }
 
     /// <summary>
+    /// Resets the writer so it can be reused with a new buffer,
+    /// avoiding allocations when the writer is pooled.
+    /// </summary>
+    /// <param name="writer">The new buffer writer to write to.</param>
+    public void Reset(IBufferWriter<byte> writer)
+    {
+        ArgumentNullException.ThrowIfNull(writer);
+
+        _writer = writer;
+        _currentDepth = 0;
+        _tokenType = default;
+        _containerTypeStack = 0;
+        _realWriter = null;
+        _savedCurrentDepth = 0;
+        _savedTokenType = default;
+    }
+
+    /// <summary>
     /// Gets the custom behavior when writing JSON using
     /// the <see cref="Utf8JsonWriter"/> which indicates whether to format the output
     /// while writing and whether to skip structural JSON validation or not.
@@ -77,7 +95,7 @@ public sealed partial class JsonWriter
     public JsonNullIgnoreCondition NullIgnoreCondition { get; set; }
 
     /// <summary>
-    /// Getswha a value indicating whether null fields should be omitted
+    /// Gets a value indicating whether null fields should be omitted
     /// when writing JSON objects.
     /// </summary>
     public bool IgnoreNullFields

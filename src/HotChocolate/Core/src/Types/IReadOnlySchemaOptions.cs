@@ -107,7 +107,7 @@ public interface IReadOnlySchemaOptions
     IsOfTypeFallback? DefaultIsOfTypeCheck { get; }
 
     /// <summary>
-    /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
+    /// Defines if the one-of feature shall be enabled.
     /// </summary>
     bool EnableOneOf { get; }
 

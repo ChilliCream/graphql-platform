@@ -8,7 +8,7 @@ For more details look at the `Errors` property.
    at HotChocolate.Data.SortDescriptorContextExtensions.<>c__DisplayClass1_0.<GetSortConvention>b__0() in SortDescriptorContextExtensions.cs:line 20
    at HotChocolate.Types.Descriptors.DescriptorContext.GetConventionOrDefault[T](Func`1 factory, String scope) in DescriptorContext.cs:line 158
    at HotChocolate.Data.SortDescriptorContextExtensions.GetSortConvention(IDescriptorContext context, String scope) in SortDescriptorContextExtensions.cs:line 19
-   at HotChocolate.Types.SortingObjectFieldDescriptorExtensions.<>c__DisplayClass5_0.<UseSortingInternal>b__1(IDescriptorContext c, ObjectFieldConfiguration definition) in SortingObjectFieldDescriptorExtensions.cs:line 130
+   at HotChocolate.Types.SortingObjectFieldDescriptorExtensions.<>c__DisplayClass9_0.<UseSortingInternal>b__1(IDescriptorContext c, ObjectFieldConfiguration definition) in SortingObjectFieldDescriptorExtensions.cs:line 210
    at HotChocolate.Types.Descriptors.DescriptorBase`1.<>c__DisplayClass21_0.<OnBeforeCreate>b__0(IDescriptorContext c, ITypeSystemConfiguration d) in DescriptorBase~1.cs:line 97
    at HotChocolate.Types.Descriptors.Configurations.OnCreateTypeSystemConfigurationTask.Configure(IDescriptorContext context) in OnCreateTypeSystemConfigurationTask.cs:line 26
    at HotChocolate.Types.Descriptors.DescriptorBase`1.CreateConfiguration() in DescriptorBase~1.cs:line 57

@@ -86,5 +86,11 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("FixedSizeArrayPool_Return_InvalidArraySize", resourceCulture);
             }
         }
+
+        internal static string OperationPlannerGuardrailException_GuardrailExceeded {
+            get {
+                return ResourceManager.GetString("OperationPlannerGuardrailException_GuardrailExceeded", resourceCulture);
+            }
+        }
     }
 }

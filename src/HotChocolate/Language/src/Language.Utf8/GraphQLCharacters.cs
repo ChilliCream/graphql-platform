@@ -7,7 +7,7 @@ namespace HotChocolate.Language;
 /// that are used to tokenize a GraphQL source text.
 /// These utilities are used by the lexer default implementation.
 /// </summary>
-internal static class GraphQLConstants
+internal static class GraphQLCharacters
 {
     public const int StackallocThreshold = 256;
 
@@ -85,26 +85,79 @@ internal static class GraphQLConstants
     public const byte Quote = (byte)'"';
     public const byte Comma = (byte)',';
 
+    // Bit flags for the character classification lookup table.
+    private const byte FlagLetter = 1;
+    private const byte FlagDigit = 2;
+    private const byte FlagUnderscore = 4;
+    private const byte FlagMinus = 8;
+    private const byte FlagPunctuator = 16;
+    private const byte FlagEscapeChar = 32;
+
+    // 256-byte lookup table: indexed by byte value, each entry contains
+    // combined flags for that character. Using 256 entries avoids bounds checks.
+    private static readonly byte[] s_charFlags = CreateCharFlags();
+
+    private static byte[] CreateCharFlags()
+    {
+        var flags = new byte[256];
+
+        // Letters: a-z (97-122), A-Z (65-90)
+        for (var c = (byte)'a'; c <= (byte)'z'; c++)
+        {
+            flags[c] |= FlagLetter;
+        }
+
+        for (var c = (byte)'A'; c <= (byte)'Z'; c++)
+        {
+            flags[c] |= FlagLetter;
+        }
+
+        // Digits: 0-9 (48-57)
+        for (var c = (byte)'0'; c <= (byte)'9'; c++)
+        {
+            flags[c] |= FlagDigit;
+        }
+
+        // Underscore
+        flags[Underscore] |= FlagUnderscore;
+
+        // Minus/Hyphen
+        flags[Hyphen] |= FlagMinus;
+
+        // Punctuators: ! $ & ( ) . : = ? @ [ ] { | }
+        flags[Bang] |= FlagPunctuator;
+        flags[Dollar] |= FlagPunctuator;
+        flags[Ampersand] |= FlagPunctuator;
+        flags[LeftParenthesis] |= FlagPunctuator;
+        flags[RightParenthesis] |= FlagPunctuator;
+        flags[Dot] |= FlagPunctuator;
+        flags[Colon] |= FlagPunctuator;
+        flags[Equal] |= FlagPunctuator;
+        flags[QuestionMark] |= FlagPunctuator;
+        flags[At] |= FlagPunctuator;
+        flags[LeftBracket] |= FlagPunctuator;
+        flags[RightBracket] |= FlagPunctuator;
+        flags[LeftBrace] |= FlagPunctuator;
+        flags[Pipe] |= FlagPunctuator;
+        flags[RightBrace] |= FlagPunctuator;
+
+        // Valid escape characters: " / \ b f n r t u
+        flags[Quote] |= FlagEscapeChar;
+        flags[ForwardSlash] |= FlagEscapeChar;
+        flags[Backslash] |= FlagEscapeChar;
+        flags[B] |= FlagEscapeChar;
+        flags[F] |= FlagEscapeChar;
+        flags[N] |= FlagEscapeChar;
+        flags[R] |= FlagEscapeChar;
+        flags[T] |= FlagEscapeChar;
+        flags[U] |= FlagEscapeChar;
+
+        return flags;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLetterOrDigitOrUnderscore(this byte c)
-    {
-        if (c > 96 && c < 123 || c > 64 && c < 91)
-        {
-            return true;
-        }
-
-        if (c > 47 && c < 58)
-        {
-            return true;
-        }
-
-        if (Underscore == c)
-        {
-            return true;
-        }
-
-        return false;
-    }
+        => (s_charFlags[c] & (FlagLetter | FlagDigit | FlagUnderscore)) != 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLetterOrDigitOrUnderscore(this char c)
@@ -112,19 +165,7 @@ internal static class GraphQLConstants
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLetterOrUnderscore(this byte c)
-    {
-        if (c > 96 && c < 123 || c > 64 && c < 91)
-        {
-            return true;
-        }
-
-        if (Underscore == c)
-        {
-            return true;
-        }
-
-        return false;
-    }
+        => (s_charFlags[c] & (FlagLetter | FlagUnderscore)) != 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLetterOrUnderscore(this char c)
@@ -132,70 +173,54 @@ internal static class GraphQLConstants
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsDigit(this byte c)
-        => c > 47 && c < 58;
+        => (s_charFlags[c] & FlagDigit) != 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsDigitOrMinus(this byte c)
-    {
-        if (c > 47 && c < 58)
-        {
-            return true;
-        }
-
-        if (c is Hyphen)
-        {
-            return true;
-        }
-
-        return false;
-    }
+        => (s_charFlags[c] & (FlagDigit | FlagMinus)) != 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsPunctuator(this byte c)
-    {
-        switch (c)
-        {
-            case Bang:
-            case Dollar:
-            case Ampersand:
-            case LeftParenthesis:
-            case RightParenthesis:
-            case Dot:
-            case Colon:
-            case Equal:
-            case QuestionMark:
-            case At:
-            case LeftBracket:
-            case RightBracket:
-            case LeftBrace:
-            case Pipe:
-            case RightBrace:
-                return true;
-
-            default:
-                return false;
-        }
-    }
+        => (s_charFlags[c] & FlagPunctuator) != 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsValidEscapeCharacter(this byte c)
-    {
-        switch (c)
-        {
-            case Quote:
-            case ForwardSlash:
-            case Backslash:
-            case B:
-            case F:
-            case N:
-            case R:
-            case T:
-            case U:
-                return true;
+        => (s_charFlags[c] & FlagEscapeChar) != 0;
 
-            default:
-                return false;
-        }
+    /// <summary>
+    /// Checks whether the byte is a control character that is not valid
+    /// within GraphQL strings, comments, and block strings.
+    /// Control characters are 0x00-0x1F (excluding HorizontalTab 0x09) and DEL (0x7F).
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsControlCharacter(this byte c)
+        => (c < 0x20 && c != HorizontalTab) || c == Delete;
+
+    /// <summary>
+    /// Lookup table mapping punctuator byte values to their TokenKind.
+    /// Non-punctuator bytes map to TokenKind.StartOfFile (zero).
+    /// </summary>
+    public static readonly TokenKind[] PunctuatorKind = CreatePunctuatorKindTable();
+
+    private static TokenKind[] CreatePunctuatorKindTable()
+    {
+        var table = new TokenKind[128];
+        table[Bang] = TokenKind.Bang;
+        table[Dollar] = TokenKind.Dollar;
+        table[Ampersand] = TokenKind.Ampersand;
+        table[LeftParenthesis] = TokenKind.LeftParenthesis;
+        table[RightParenthesis] = TokenKind.RightParenthesis;
+        table[Dot] = TokenKind.Dot;
+        table[Colon] = TokenKind.Colon;
+        table[Equal] = TokenKind.Equal;
+        table[QuestionMark] = TokenKind.QuestionMark;
+        table[At] = TokenKind.At;
+        table[LeftBracket] = TokenKind.LeftBracket;
+        table[RightBracket] = TokenKind.RightBracket;
+        table[LeftBrace] = TokenKind.LeftBrace;
+        table[Pipe] = TokenKind.Pipe;
+        table[RightBrace] = TokenKind.RightBrace;
+        return table;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

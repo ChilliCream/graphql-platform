@@ -4,23 +4,59 @@ title: "Scalars"
 
 Strawberry Shake supports the following scalars out of the box:
 
-| Type           | Description                                                 |
-| -------------- | ----------------------------------------------------------- |
-| `Base64String` | Base64 encoded array of bytes                               |
-| `Boolean`      | Boolean type representing true or false                     |
-| `Byte`         |                                                             |
-| `ByteArray`    | Base64 encoded array of bytes (DEPRECATED)                  |
-| `Date`         | ISO-8601 date                                               |
-| `DateTime`     | ISO-8601 date time                                          |
-| `Decimal`      | .NET Floating Point Type                                    |
-| `Float`        | Double-precision fractional values as specified by IEEE 754 |
-| `ID`           | Unique identifier                                           |
-| `Int`          | Signed 32-bit numeric non-fractional value                  |
-| `Long`         | Signed 64-bit numeric non-fractional value                  |
-| `Short`        | Signed 16-bit numeric non-fractional value                  |
-| `String`       | UTF-8 character sequences                                   |
-| `Url`          | Url                                                         |
-| `Uuid`         | GUID                                                        |
+| Type          | Description                                                                                                     |
+| ------------- | --------------------------------------------------------------------------------------------------------------- |
+| Any           | The [Any][1] scalar type represents any valid GraphQL value.                                                    |
+| Base64String  | The [Base64String][2] scalar type represents an array of bytes encoded as a Base64 string.                      |
+| Boolean       | The [Boolean][3] scalar type represents `true` or `false`.                                                      |
+| Byte          | The [Byte][4] scalar type represents a signed 8-bit integer.                                                    |
+| ByteArray     | Base64-encoded array of bytes. (DEPRECATED, use `Base64String`)                                                 |
+| Date          | The [Date][5] scalar type represents a date in UTC.                                                             |
+| DateTime      | The [DateTime][6] scalar type represents a date and time with time zone offset information.                     |
+| Decimal       | The [Decimal][7] scalar type represents a decimal floating-point number with high precision.                    |
+| Float         | The [Float][8] scalar type represents signed double-precision fractional values as specified by [IEEE 754][9].  |
+| ID            | The [ID][10] scalar type represents a unique identifier, often used to refetch an object or as key for a cache. |
+| Int           | The [Int][11] scalar type represents a signed 32-bit numeric non-fractional value.                              |
+| LocalDate     | The [LocalDate][12] scalar type represents a date without time or time zone information.                        |
+| LocalDateTime | The [LocalDateTime][13] scalar type represents a date and time without time zone information.                   |
+| LocalTime     | The [LocalTime][14] scalar type represents a time of day without date or time zone information.                 |
+| Long          | The [Long][15] scalar type represents a signed 64-bit integer.                                                  |
+| Short         | The [Short][16] scalar type represents a signed 16-bit integer.                                                 |
+| String        | The [String][17] scalar type represents textual data, represented as a sequence of Unicode code points.         |
+| TimeSpan      | The [TimeSpan][18] scalar type represents a duration of time.                                                   |
+| UnsignedByte  | The [UnsignedByte][19] scalar type represents an unsigned 8-bit integer.                                        |
+| UnsignedInt   | The [UnsignedInt][20] scalar type represents an unsigned 32-bit integer.                                        |
+| UnsignedLong  | The [UnsignedLong][21] scalar type represents an unsigned 64-bit integer.                                       |
+| UnsignedShort | The [UnsignedShort][22] scalar type represents an unsigned 16-bit integer.                                      |
+| URI           | The [URI][23] scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986.                |
+| URL           | The [URL][24] scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986.                   |
+| UUID          | The [UUID][25] scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562.            |
+
+[1]: https://scalars.graphql.org/chillicream/any.html
+[2]: https://scalars.graphql.org/chillicream/base64-string.html
+[3]: https://spec.graphql.org/September2025/#sec-Boolean
+[4]: https://scalars.graphql.org/chillicream/byte.html
+[5]: https://scalars.graphql.org/chillicream/date.html
+[6]: https://scalars.graphql.org/chillicream/date-time.html
+[7]: https://scalars.graphql.org/chillicream/decimal.html
+[8]: https://spec.graphql.org/September2025/#sec-Float
+[9]: https://en.wikipedia.org/wiki/IEEE_floating_point
+[10]: https://spec.graphql.org/September2025/#sec-ID
+[11]: https://spec.graphql.org/September2025/#sec-Int
+[12]: https://scalars.graphql.org/chillicream/local-date.html
+[13]: https://scalars.graphql.org/chillicream/local-date-time.html
+[14]: https://scalars.graphql.org/chillicream/local-time.html
+[15]: https://scalars.graphql.org/chillicream/long.html
+[16]: https://scalars.graphql.org/chillicream/short.html
+[17]: https://spec.graphql.org/September2025/#sec-String
+[18]: https://scalars.graphql.org/chillicream/time-span.html
+[19]: https://scalars.graphql.org/chillicream/unsigned-byte.html
+[20]: https://scalars.graphql.org/chillicream/unsigned-int.html
+[21]: https://scalars.graphql.org/chillicream/unsigned-long.html
+[22]: https://scalars.graphql.org/chillicream/unsigned-short.html
+[23]: https://scalars.graphql.org/chillicream/uri.html
+[24]: https://scalars.graphql.org/chillicream/url.html
+[25]: https://scalars.graphql.org/chillicream/uuid.html
 
 # Custom Scalars
 
