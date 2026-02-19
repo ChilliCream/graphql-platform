@@ -15,7 +15,7 @@
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0 --port 3000",
     "build": "next build",
-    "optimize-images": "npx tsx -e \"import { optimizeDirectory } from './lib/image-optimization'; await optimizeDirectory(['./public/images', './public/docs']);\"",
+    "optimize-images": "npx tsx -e \"import { optimizeDirectory } from './lib/image-optimization'; (async () => { await optimizeDirectory(['./public/images', './public/docs']); })();\"",
     "start": "next start",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "clean": "rm -rf .next out",
