@@ -1,9 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Validation;
 using HotChocolate.Validation.Rules;
 
 namespace HotChocolate.Validation.Benchmarks;
