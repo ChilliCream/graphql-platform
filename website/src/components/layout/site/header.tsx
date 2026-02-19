@@ -218,11 +218,13 @@ const LogoIcon = styled(Logo)`
   transition: fill 0.2s ease-in-out;
 `;
 
-const HamburgerOpenButton = styled.div.attrs({
-  role: "button",
-  tabIndex: 0,
+const HamburgerOpenButton = styled.button.attrs({
+  type: "button",
   "aria-label": "Open navigation menu",
 })`
+  appearance: none;
+  border: none;
+  background: none;
   display: flex;
   flex: 0 0 auto;
   align-items: center;
@@ -290,11 +292,13 @@ const NavigationHeader = styled.div`
   }
 `;
 
-const HamburgerCloseButton = styled.div.attrs({
-  role: "button",
-  tabIndex: 0,
+const HamburgerCloseButton = styled.button.attrs({
+  type: "button",
   "aria-label": "Close navigation menu",
 })`
+  appearance: none;
+  border: none;
+  background: none;
   display: flex;
   flex: 0 0 auto;
   align-items: center;
@@ -304,10 +308,12 @@ const HamburgerCloseButton = styled.div.attrs({
   cursor: pointer;
 `;
 
-const BackButton = styled.div.attrs({
-  role: "button",
-  tabIndex: 0,
+const BackButton = styled.button.attrs({
+  type: "button",
 })`
+  appearance: none;
+  border: none;
+  background: none;
   display: flex;
   flex: 0 0 84px;
   flex-direction: row;
@@ -1188,7 +1194,10 @@ const SubNavGroup = styled.div`
   }
 `;
 
-const SubNavTitle = styled.div`
+const SubNavTitle = styled.div.attrs({
+  role: "heading",
+  "aria-level": 2,
+})`
   padding-right: 24px;
   padding-left: 24px;
   font-size: 0.75rem;
@@ -1369,7 +1378,7 @@ const NoWrap = styled.span`
   white-space: nowrap;
 `;
 
-const TeaserTitle = styled.div`
+const TeaserTitle = styled.h3`
   font-size: 1rem;
   line-height: 1.6em;
   color: ${THEME_COLORS.menuLink};

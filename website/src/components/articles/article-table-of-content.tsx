@@ -256,7 +256,7 @@ function useActiveHeadingLink(items: TableOfContentItem[]): string | undefined {
   return activeHeadingLink;
 }
 
-export const Title = styled.div`
+export const Title = styled.h3`
   margin-bottom: 12px;
   padding: 0 25px;
   font-size: 0.875rem;

@@ -104,7 +104,7 @@ const GraphContent = styled.div`
   padding: 40px;
 `;
 
-const GraphTitle = styled.div`
+const GraphTitle = styled.h2`
   font-weight: 700;
   flex: 0 0 auto;
 

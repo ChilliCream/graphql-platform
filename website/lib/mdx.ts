@@ -14,7 +14,7 @@ import rehypeRaw from "rehype-raw";
 const BLOCK_COMPONENTS = [
   "video",
   "packageinstallation",
-  "surveypromt",
+  "surveyprompt",
   "exampletabs",
   "inputchoicetabs",
   "inputchoicetabs-cli",

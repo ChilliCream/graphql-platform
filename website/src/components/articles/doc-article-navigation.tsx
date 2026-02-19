@@ -499,9 +499,8 @@ const VersionLink = styled(Link).withConfig<LinkProps>({
   }
 `;
 
-const ProductTitle = styled.div`
+const ProductTitle = styled.h6`
   font-size: 1em;
-  font-weight: 600;
 `;
 
 const ProductDescription = styled.p`

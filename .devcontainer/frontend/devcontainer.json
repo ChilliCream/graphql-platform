@@ -1,6 +1,7 @@
 {
   "name": "ChilliCream Frontend",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:22-bookworm",
+  "runArgs": ["--shm-size=512m"],
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },

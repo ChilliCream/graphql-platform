@@ -338,7 +338,7 @@ const NavLink = styled(Link)`
   }
 `;
 
-const Title = styled.div`
+const Title = styled.h3`
   display: flex;
   align-items: flex-end;
   box-sizing: border-box;
