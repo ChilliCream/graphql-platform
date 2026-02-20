@@ -373,7 +373,7 @@ public class MultiSegmentReaderTests
     public void MultiSegment_EmptySequence_Throws()
     {
         // arrange
-        var sequence = new ReadOnlySequence<byte>(Array.Empty<byte>());
+        var sequence = new ReadOnlySequence<byte>([]);
 
         // act & assert
         Assert.Throws<ArgumentException>(() => new Utf8GraphQLReader(sequence));

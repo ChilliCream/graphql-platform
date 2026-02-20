@@ -94,7 +94,8 @@ const Message = styled.div`
   }
 `;
 
-const Title = styled.h5`
+const Title = styled.div`
+  font-weight: 700;
   color: #0b0722;
 `;
 

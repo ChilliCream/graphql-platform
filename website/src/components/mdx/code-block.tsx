@@ -51,18 +51,25 @@ export const CodeBlock: FC<CodeBlockProps> = ({
       >
         {({ className, style, tokens, getLineProps, getTokenProps }) => (
           <Pre className={className} style={style}>
-            {tokens.map((line, i) => (
-              <Line
-                highlight={shouldHighlightLine(i)}
-                {...getLineProps({ line, key: i })}
-              >
-                <LineContent>
-                  {line.map((token, key) => (
-                    <span key={key} {...getTokenProps({ token, key })} />
-                  ))}
-                </LineContent>
-              </Line>
-            ))}
+            {tokens.map((line, i) => {
+              const { key: lineKey, ...lineProps } = getLineProps({
+                line,
+                key: i,
+              });
+              return (
+                <Line key={i} highlight={shouldHighlightLine(i)} {...lineProps}>
+                  <LineContent>
+                    {line.map((token, j) => {
+                      const { key: tokenKey, ...tokenProps } = getTokenProps({
+                        token,
+                        key: j,
+                      });
+                      return <span key={j} {...tokenProps} />;
+                    })}
+                  </LineContent>
+                </Line>
+              );
+            })}
           </Pre>
         )}
       </Highlight>

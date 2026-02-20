@@ -46,6 +46,7 @@ decompile
 depersist
 deprioritization
 deprioritized
+Diagnoser
 Dispatchable
 DOCKERHUB
 drawio

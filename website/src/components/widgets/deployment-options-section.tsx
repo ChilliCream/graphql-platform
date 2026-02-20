@@ -122,7 +122,8 @@ const OptionBox = styled(Box)`
   }
 `;
 
-const Title = styled.h4`
+const Title = styled.div`
+  font-weight: 700;
   display: flex;
   flex-direction: row;
   align-items: center;

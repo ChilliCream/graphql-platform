@@ -7,7 +7,15 @@ export const ShipWithConfidenceImage: FC = () => {
     <img
       src="/images/startpage/ship-with-confidence.png"
       alt="Ship With Confidence"
-      style={{ maxWidth: SHIP_WITH_CONFIDENCE_IMAGE_WIDTH + "px", width: "100%", height: "auto" }}
+      width={1300}
+      height={906}
+      loading="lazy"
+      decoding="async"
+      style={{
+        maxWidth: SHIP_WITH_CONFIDENCE_IMAGE_WIDTH + "px",
+        width: "100%",
+        height: "auto",
+      }}
     />
   );
 };

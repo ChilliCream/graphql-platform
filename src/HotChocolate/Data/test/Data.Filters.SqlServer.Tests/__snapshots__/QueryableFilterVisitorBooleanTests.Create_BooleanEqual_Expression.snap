@@ -13,11 +13,9 @@ true Result:
 
 true SQL:
 ---------------
-.param set @__p_0 1
-
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" = @__p_0
+WHERE "d"."Bar"
 ---------------
 
 false Result:
@@ -35,9 +33,7 @@ false Result:
 
 false SQL:
 ---------------
-.param set @__p_0 0
-
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" = @__p_0
+WHERE NOT ("d"."Bar")
 ---------------

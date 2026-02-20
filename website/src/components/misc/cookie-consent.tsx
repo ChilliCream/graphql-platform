@@ -40,16 +40,10 @@ export const CookieConsent: FC = () => {
           This website uses cookies to ensure you get the best experience on our
           website.{" "}
           <LearnMoreLink prefetch={false} to="/legal/cookie-policy.html">
-            Learn more
+            Learn more about our cookie policy
           </LearnMoreLink>
         </Message>
-        <DialogButton
-          aria-label="dismiss cookie message"
-          role="button"
-          onClick={clickDismiss}
-        >
-          Got it!
-        </DialogButton>
+        <DialogButton onClick={clickDismiss}>Got it!</DialogButton>
       </Container>
     </Dialog>
   ) : null;
