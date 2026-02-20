@@ -1019,7 +1019,7 @@ public readonly partial struct ResultElement
 
         var requiredBytes = s_utf8Encoding.GetByteCount(value);
         byte[]? rented = null;
-        var buffer = JsonConstants.StackallocByteThreshold <= requiredBytes
+        var buffer = requiredBytes <= JsonConstants.StackallocByteThreshold
             ? stackalloc byte[requiredBytes]
             : (rented = ArrayPool<byte>.Shared.Rent(requiredBytes));
 
