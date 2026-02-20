@@ -24,6 +24,9 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
 
     private readonly bool _enforceSpecFormat;
     private readonly DateTimeOptions _options;
+    private readonly string _utcFormat;
+    private readonly string _localFormat;
+    private readonly Regex _dateTimeRegex;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DateTimeType"/> class.
@@ -37,14 +40,14 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         : base(name, bind)
     {
         options ??= new DateTimeOptions();
+        _options = options.Value;
         Description = description;
-        Pattern =
-            @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,"
-            + options.Value.InputPrecision
-            + @"})?(?:[Zz]|[+-]\d{2}:\d{2})$";
+        Pattern = GetPattern();
         SpecifiedBy = new Uri(SpecifiedByUri);
         _enforceSpecFormat = !disableFormatCheck;
-        _options = options.Value;
+        _utcFormat = GetUtcFormat();
+        _localFormat = GetLocalFormat();
+        _dateTimeRegex = GetDateTimeRegex();
     }
 
     /// <summary>
@@ -108,7 +111,7 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     {
         resultValue.SetStringValue(
             runtimeValue.ToString(
-                runtimeValue.Offset == TimeSpan.Zero ? GetUtcFormat() : GetLocalFormat(),
+                runtimeValue.Offset == TimeSpan.Zero ? _utcFormat : _localFormat,
                 CultureInfo.InvariantCulture));
     }
 
@@ -116,14 +119,14 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     {
         return new StringValueNode(
             runtimeValue.ToString(
-                runtimeValue.Offset == TimeSpan.Zero ? GetUtcFormat() : GetLocalFormat(),
+                runtimeValue.Offset == TimeSpan.Zero ? _utcFormat : _localFormat,
                 CultureInfo.InvariantCulture));
     }
 
     private bool TryParseStringValue(string serialized, out DateTimeOffset value)
     {
         // Check format.
-        if (_enforceSpecFormat && !GetDateTimeRegex().IsMatch(serialized))
+        if (_enforceSpecFormat && !_dateTimeRegex.IsMatch(serialized))
         {
             value = default;
             return false;
@@ -142,6 +145,13 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         value = default;
         return false;
     }
+
+    private string GetPattern()
+        => _options.InputPrecision == 0
+            ? @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:[Zz]|[+-]\d{2}:\d{2})$"
+            : @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,"
+                + _options.InputPrecision
+                + @"})?(?:[Zz]|[+-]\d{2}:\d{2})$";
 
     private string GetUtcFormat()
         => _options.OutputPrecision switch

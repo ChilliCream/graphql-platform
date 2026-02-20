@@ -24,6 +24,8 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
 
     private readonly bool _enforceSpecFormat;
     private readonly DateTimeOptions _options;
+    private readonly string _localFormat;
+    private readonly Regex _localDateTimeRegex;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalDateTimeType"/> class.
@@ -37,11 +39,13 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
         : base(name, bind)
     {
         options ??= new DateTimeOptions();
+        _options = options.Value;
         Description = description;
-        Pattern = @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1," + options.Value.InputPrecision + "})?$";
+        Pattern = GetPattern();
         SpecifiedBy = new Uri(SpecifiedByUri);
         _enforceSpecFormat = !disableFormatCheck;
-        _options = options.Value;
+        _localFormat = GetLocalFormat();
+        _localDateTimeRegex = GetLocalDateTimeRegex();
     }
 
     /// <summary>
@@ -103,16 +107,16 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
 
     /// <inheritdoc />
     protected override void OnCoerceOutputValue(DateTime runtimeValue, ResultElement resultValue)
-        => resultValue.SetStringValue(runtimeValue.ToString(GetLocalFormat(), CultureInfo.InvariantCulture));
+        => resultValue.SetStringValue(runtimeValue.ToString(_localFormat, CultureInfo.InvariantCulture));
 
     /// <inheritdoc />
     protected override StringValueNode OnValueToLiteral(DateTime runtimeValue)
-        => new StringValueNode(runtimeValue.ToString(GetLocalFormat(), CultureInfo.InvariantCulture));
+        => new StringValueNode(runtimeValue.ToString(_localFormat, CultureInfo.InvariantCulture));
 
     private bool TryParseStringValue(string serialized, out DateTime value)
     {
         // Check format.
-        if (_enforceSpecFormat && !GetLocalDateTimeRegex().IsMatch(serialized))
+        if (_enforceSpecFormat && !_localDateTimeRegex.IsMatch(serialized))
         {
             value = default;
             return false;
@@ -131,6 +135,11 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
         value = default;
         return false;
     }
+
+    private string GetPattern()
+        => _options.InputPrecision == 0
+            ? @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}$"
+            : @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1," + _options.InputPrecision + "})?$";
 
     private string GetLocalFormat()
         => _options.OutputPrecision switch

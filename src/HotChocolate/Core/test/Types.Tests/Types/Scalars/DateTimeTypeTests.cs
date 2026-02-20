@@ -319,6 +319,24 @@ public class DateTimeTypeTests
         Assert.IsType<DateTimeOffset>(result);
     }
 
+    [Theory]
+    [InlineData(0, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(1, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,1})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(2, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,2})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(3, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(4, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,4})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(5, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,5})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(6, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    [InlineData(7, @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:[Zz]|[+-]\d{2}:\d{2})$")]
+    public void Pattern_Should_Match_InputPrecision(byte precision, string expectedPattern)
+    {
+        // arrange & act
+        var type = new DateTimeType(new DateTimeOptions { InputPrecision = precision });
+
+        // assert
+        Assert.Equal(expectedPattern, type.Pattern);
+    }
+
     public class DefaultDateTime
     {
         public DateTime Test => default;

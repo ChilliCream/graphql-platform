@@ -314,6 +314,24 @@ public class LocalTimeTypeTests
         Assert.IsType<TimeOnly>(result);
     }
 
+    [Theory]
+    [InlineData(0, @"^\d{2}:\d{2}:\d{2}$")]
+    [InlineData(1, @"^\d{2}:\d{2}:\d{2}(?:\.\d{1,1})?$")]
+    [InlineData(2, @"^\d{2}:\d{2}:\d{2}(?:\.\d{1,2})?$")]
+    [InlineData(3, @"^\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?$")]
+    [InlineData(4, @"^\d{2}:\d{2}:\d{2}(?:\.\d{1,4})?$")]
+    [InlineData(5, @"^\d{2}:\d{2}:\d{2}(?:\.\d{1,5})?$")]
+    [InlineData(6, @"^\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?$")]
+    [InlineData(7, @"^\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?$")]
+    public void Pattern_Should_Match_InputPrecision(byte precision, string expectedPattern)
+    {
+        // arrange & act
+        var type = new LocalTimeType(new DateTimeOptions { InputPrecision = precision });
+
+        // assert
+        Assert.Equal(expectedPattern, type.Pattern);
+    }
+
     public class Query
     {
         [GraphQLType(typeof(LocalTimeType))]
