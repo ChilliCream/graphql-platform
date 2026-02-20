@@ -11,7 +11,7 @@ builder.Services.AddHttpClient("Fusion")
 
 builder
     .AddGraphQLGateway()
-    .ModifyPlannerOptions(o => o.EnableRequestGrouping = true)
+    .ModifyPlannerOptions(o => o.EnableRequestGrouping = false)
     .AddFileSystemConfiguration("./gateway.far");
 
 var app = builder.Build();
