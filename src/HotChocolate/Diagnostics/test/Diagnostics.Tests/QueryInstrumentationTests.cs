@@ -62,7 +62,7 @@ public partial class QueryInstrumentationTests
     [Fact]
     public async Task Track_events_of_a_simple_query_default_rename_root()
     {
-        using (CaptureActivities(out var activities))
+        using (CaptureActivities(out _))
         {
             // arrange & act
             await new ServiceCollection()
@@ -83,7 +83,7 @@ public partial class QueryInstrumentationTests
     [Fact]
     public async Task Parsing_error_when_rename_root_is_activated()
     {
-        using (CaptureActivities(out var activities))
+        using (CaptureActivities(out _))
         {
             // arrange & act
             await new ServiceCollection()
@@ -104,7 +104,7 @@ public partial class QueryInstrumentationTests
     [Fact]
     public async Task Validation_error_when_rename_root_is_activated()
     {
-        using (CaptureActivities(out var activities))
+        using (CaptureActivities(out _))
         {
             // arrange & act
             await new ServiceCollection()

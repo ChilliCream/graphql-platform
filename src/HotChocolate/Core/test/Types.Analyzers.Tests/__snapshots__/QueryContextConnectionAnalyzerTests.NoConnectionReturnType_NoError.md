@@ -70,7 +70,9 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Product>>>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product")))));
                     configuration.ResultType = typeof(global::System.Collections.Generic.IEnumerable<global::TestNamespace.Product>);
 
                     configuration.SetSourceGeneratorFlags();
@@ -84,7 +86,9 @@ namespace TestNamespace
                         var argumentConfiguration = new global::HotChocolate.Types.Descriptors.Configurations.ArgumentConfiguration
                         {
                             Name = naming.GetMemberName("productService", global::HotChocolate.Types.MemberKind.Argument),
-                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.ProductService>>>), HotChocolate.Types.TypeContext.Input),
+                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                                typeInspector.GetTypeRef(typeof(global::TestNamespace.ProductService), HotChocolate.Types.TypeContext.Input),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_ProductService"))),
                             RuntimeType = typeof(global::TestNamespace.ProductService)
                         };
 
@@ -126,7 +130,7 @@ namespace TestNamespace
                 var args0_filter = global::HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);
                 var args0_sorting = global::HotChocolate.Data.Sorting.SortingContextResolverContextExtensions.GetSortingContext(context);
                 var args0 = new global::GreenDonut.Data.QueryContext<global::TestNamespace.Brand>(
-                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Brand>(args0_selection),
+                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Brand>(args0_selection, context.IncludeFlags),
                     args0_filter?.AsPredicate<global::TestNamespace.Brand>(),
                     args0_sorting?.AsSortDefinition<global::TestNamespace.Brand>());
                 var args1 = _binding_GetProductsAsync_productService.Execute<global::TestNamespace.ProductService>(context);

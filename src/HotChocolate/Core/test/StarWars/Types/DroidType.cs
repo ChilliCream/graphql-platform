@@ -20,7 +20,7 @@ public class DroidType
         descriptor.Field(t => t.AppearsIn)
             .Type<ListType<EpisodeType>>();
 
-        descriptor.Field<SharedResolvers>(r => r.GetCharacter(null!, null!))
+        descriptor.Field<SharedResolvers>(r => r.GetCharacters(null!, null!))
             .UsePaging<CharacterType>()
             .Name("friends");
 

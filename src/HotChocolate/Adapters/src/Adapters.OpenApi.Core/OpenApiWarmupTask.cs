@@ -2,12 +2,12 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Adapters.OpenApi;
 
-internal sealed class OpenApiWarmupTask(OpenApiDocumentManager manager) : IRequestExecutorWarmupTask
+internal sealed class OpenApiWarmupTask(OpenApiDefinitionRegistry registry) : IRequestExecutorWarmupTask
 {
     public bool ApplyOnlyOnStartup => false;
 
     public async Task WarmupAsync(IRequestExecutor executor, CancellationToken cancellationToken)
     {
-        await manager.UpdateSchemaAsync(executor.Schema, cancellationToken);
+        await registry.UpdateSchemaAsync(executor.Schema, cancellationToken);
     }
 }

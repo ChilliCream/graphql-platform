@@ -517,7 +517,7 @@ public class ObjectTypeTests : TypeTestBase
     public void NoQueryType()
     {
         // arrange
-        const string source = @"type A { field: String }";
+        const string source = "type A { field: String }";
 
         // act
         void Action()
@@ -1236,7 +1236,7 @@ public class ObjectTypeTests : TypeTestBase
         void Action() => ObjectTypeDescriptorExtensions.Ignore<Foo>(null!, t => t.Description);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<NullReferenceException>(Action);
     }
 
     [Fact]

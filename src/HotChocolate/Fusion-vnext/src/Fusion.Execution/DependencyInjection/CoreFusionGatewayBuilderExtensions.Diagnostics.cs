@@ -20,6 +20,11 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <returns>
     /// The fusion gateway builder.
     /// </returns>
+    /// <remarks>
+    /// The <typeparamref name="T"/> will be activated with the <see cref="IServiceProvider"/> of the schema services.
+    /// If your <typeparamref name="T"/> needs to access application services you need to
+    /// make the services available in the schema services via <see cref="AddApplicationService"/>.
+    /// </remarks>
     public static IFusionGatewayBuilder AddDiagnosticEventListener<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder)
@@ -29,19 +34,30 @@ public static partial class CoreFusionGatewayBuilderExtensions
 
         if (typeof(IFusionExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
-            builder.Services.TryAddSingleton<T>();
             builder.ConfigureSchemaServices(static (_, s) =>
-                s.AddSingleton(static sp => (IFusionExecutionDiagnosticEventListener)sp.GetRequiredService<T>()));
+            {
+                s.TryAddSingleton<T>();
+                s.AddSingleton(static sp => (IFusionExecutionDiagnosticEventListener)sp.GetRequiredService<T>());
+            });
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
-            builder.Services.TryAddSingleton<T>();
-            builder.ConfigureSchemaServices(static (_, s) =>
+            var attribute = (DiagnosticEventSourceAttribute)typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
+            var listener = attribute.Listener;
+
+            if (attribute.IsSchemaService)
             {
-                var attribute = typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
-                var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
-                s.AddSingleton(listener, sp => sp.GetRequiredService<T>());
-            });
+                builder.ConfigureSchemaServices((_, s) =>
+                {
+                    s.TryAddSingleton<T>();
+                    s.AddSingleton(listener, sp => sp.GetRequiredService<T>());
+                });
+            }
+            else
+            {
+                builder.Services.TryAddSingleton<T>();
+                builder.Services.AddSingleton(listener, sp => sp.GetRequiredService<T>());
+            }
         }
         else
         {
@@ -66,7 +82,16 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <returns>
     /// The fusion gateway builder.
     /// </returns>
-    public static IFusionGatewayBuilder AddDiagnosticEventListener<T>(
+    /// <remarks>
+    /// The <see cref="IServiceProvider"/> passed to the <paramref name="factory"/>
+    /// is for the schema services. If you need to access application services
+    /// you need to either make the services available in the schema services
+    /// via <see cref="AddApplicationService"/> or use
+    /// <see cref="ExecutionServiceProviderExtensions.GetRootServiceProvider(IServiceProvider)"/>
+    /// to access the application services from within the schema service provider.
+    /// </remarks>
+    public static IFusionGatewayBuilder AddDiagnosticEventListener<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, T> factory)
         where T : class
@@ -81,22 +106,15 @@ public static partial class CoreFusionGatewayBuilderExtensions
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
-            var attribute =
-                (DiagnosticEventSourceAttribute)typeof(T)
-                    .GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true)
-                    .First();
+            var attribute = (DiagnosticEventSourceAttribute)typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true).First();
+            var listener = attribute.Listener;
 
             if (attribute.IsSchemaService)
             {
-                builder.ConfigureSchemaServices((_, s) =>
-                {
-                    var listener = attribute.Listener;
-                    s.AddSingleton(listener, factory);
-                });
+                builder.ConfigureSchemaServices((_, s) => s.AddSingleton(listener, factory));
             }
             else
             {
-                var listener = attribute.Listener;
                 builder.Services.AddSingleton(listener, factory);
             }
         }

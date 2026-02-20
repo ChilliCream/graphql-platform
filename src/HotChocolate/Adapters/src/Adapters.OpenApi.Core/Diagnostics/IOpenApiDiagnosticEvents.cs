@@ -9,5 +9,5 @@ public interface IOpenApiDiagnosticEvents
     /// Called when errors occur while parsing or validating an OpenAPI document.
     /// </summary>
     /// <param name="errors">The errors.</param>
-    void ValidationErrors(IReadOnlyList<IOpenApiError> errors);
+    void ValidationErrors(IReadOnlyList<OpenApiDefinitionValidationError> errors);
 }

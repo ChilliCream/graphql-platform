@@ -1,25 +1,29 @@
-using Microsoft.Extensions.DependencyInjection;
-
 namespace HotChocolate.Adapters.OpenApi;
 
-// TODO: Test with arrays, custom scalars, enum, interface, union, etc., introspection fields
-// TODO: @skip and such needs to be treated as optional
-// TODO: Test different serialization types, patterns and formats of scalars
 public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
 {
+    protected virtual string? SnapshotSuffix => null;
+
     [Fact]
     public async Task OpenApi_Includes_Initial_Routes()
     {
         // arrange
-        var storage = CreateBasicTestDocumentStorage();
+        var storage = CreateBasicTestDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
 
         // act
         var openApiDocument = await GetOpenApiDocumentAsync(client);
 
+        var postFix = TestEnvironment.TargetFramework;
+
+        if (!string.IsNullOrEmpty(SnapshotSuffix))
+        {
+            postFix = $"{postFix}_{SnapshotSuffix}";
+        }
+
         // assert
-        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+        openApiDocument.MatchSnapshot(postFix: postFix, extension: ".json");
     }
 
     [Fact]
@@ -33,6 +37,33 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
               userById(id: $userId) {
                 name
                 email
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task OperationDocument_With_Default_Value_For_Variable()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetFullUser($userId: ID!, $includeAddress: Boolean! = true)
+              @http(method: GET, route: "/users/{userId}/details", queryParameters: ["includeAddress"]) {
+              userById(id: $userId) {
+                id
+                name
+                address @include(if: $includeAddress) {
+                  street
+                }
               }
             }
             """);
@@ -444,6 +475,66 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
         openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
 
+    [Fact]
+    public async Task OperationDocument_With_List_Of_Unions()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a list of pets"
+            query GetPets @http(method: GET, route: "/pets") {
+              withUnionTypeList {
+                petType: __typename
+                ... on Cat {
+                  name
+                }
+                ... on Cat {
+                  isPurring
+                }
+                ... on Dog {
+                  name
+                  isBarking
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task OperationDocument_With_List_With_Nullable_And_NonNull_Items()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            "Fetches a list with nullable items"
+            query GetListNullableItems @http(method: GET, route: "/list-nullable") {
+              listWithNullableItems
+            }
+            """,
+            """
+            "Fetches a list with non-null items"
+            query GetListNonNullItems @http(method: GET, route: "/list-nonnull") {
+              listWithNonNullItems
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
     #region Hot Reload
 
     [Fact]
@@ -453,17 +544,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
         var storage = new TestOpenApiDefinitionStorage();
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
-        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
-        {
-            if (@event.Type == OpenApiDocumentEventType.Updated)
-            {
-                documentUpdatedResetEvent.Set();
-            }
-        }));
 
         // act
         // assert
@@ -479,12 +560,14 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             }
             """);
 
-        documentUpdatedResetEvent.Wait(cts.Token);
+        string? openApiDocument2 = null;
+        await SpinWaitAsync(async () =>
+        {
+            openApiDocument2 = await GetOpenApiDocumentAsync(client);
+            return openApiDocument2 != openApiDocument1;
+        }, cts.Token);
 
-        var openApiDocument2 = await GetOpenApiDocumentAsync(client);
-
-        Assert.NotEqual(openApiDocument1, openApiDocument2);
-        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+        openApiDocument2!.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
 
     [Fact]
@@ -503,17 +586,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
-        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
-        {
-            if (@event.Type == OpenApiDocumentEventType.Updated)
-            {
-                documentUpdatedResetEvent.Set();
-            }
-        }));
 
         // act
         // assert
@@ -530,12 +603,14 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             }
             """);
 
-        documentUpdatedResetEvent.Wait(cts.Token);
+        string? openApiDocument2 = null;
+        await SpinWaitAsync(async () =>
+        {
+            openApiDocument2 = await GetOpenApiDocumentAsync(client);
+            return openApiDocument2 != openApiDocument1;
+        }, cts.Token);
 
-        var openApiDocument2 = await GetOpenApiDocumentAsync(client);
-
-        Assert.NotEqual(openApiDocument2, openApiDocument1);
-        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+        openApiDocument2!.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
 
     [Fact]
@@ -554,17 +629,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
-        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
-        {
-            if (@event.Type == OpenApiDocumentEventType.Updated)
-            {
-                documentUpdatedResetEvent.Set();
-            }
-        }));
 
         // act
         // assert
@@ -581,12 +646,14 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             }
             """);
 
-        documentUpdatedResetEvent.Wait(cts.Token);
+        string? openApiDocument2 = null;
+        await SpinWaitAsync(async () =>
+        {
+            openApiDocument2 = await GetOpenApiDocumentAsync(client);
+            return openApiDocument2 != openApiDocument1;
+        }, cts.Token);
 
-        var openApiDocument2 = await GetOpenApiDocumentAsync(client);
-
-        Assert.NotEqual(openApiDocument2, openApiDocument1);
-        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+        openApiDocument2!.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
 
     [Fact(Skip = "Need to determine what best behavior should be")]
@@ -608,7 +675,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
 
         // act
         // assert
-        var openApiDocument1 = await GetOpenApiDocumentAsync(client);
+        await GetOpenApiDocumentAsync(client);
 
         storage.AddOrUpdateDocument(
             "users",
@@ -640,17 +707,7 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
             """);
         var server = CreateTestServer(storage);
         var client = server.CreateClient();
-        var registry = server.Services.GetRequiredKeyedService<OpenApiDocumentManager>(ISchemaDefinition.DefaultName);
-        var documentUpdatedResetEvent = new ManualResetEventSlim(false);
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        using var subscription = registry.Subscribe(new OpenApiDocumentEventObserver(@event =>
-        {
-            if (@event.Type == OpenApiDocumentEventType.Updated)
-            {
-                documentUpdatedResetEvent.Set();
-            }
-        }));
 
         // act
         // assert
@@ -658,12 +715,14 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
 
         storage.RemoveDocument("users");
 
-        documentUpdatedResetEvent.Wait(cts.Token);
+        string? openApiDocument2 = null;
+        await SpinWaitAsync(async () =>
+        {
+            openApiDocument2 = await GetOpenApiDocumentAsync(client);
+            return openApiDocument2 != openApiDocument1;
+        }, cts.Token);
 
-        var openApiDocument2 = await GetOpenApiDocumentAsync(client);
-
-        Assert.NotEqual(openApiDocument2, openApiDocument1);
-        openApiDocument2.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+        openApiDocument2!.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
 
     [Fact]
@@ -693,6 +752,188 @@ public abstract class OpenApiIntegrationTestBase : OpenApiTestBase
         var openApiDocument2 = await GetOpenApiDocumentAsync(client);
 
         Assert.Equal(openApiDocument2, openApiDocument1);
+    }
+
+    #endregion
+
+    #region Invalid
+
+    [Fact]
+    public async Task Missing_Field()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              nonExistentField(id: $userId) {
+                id
+              }
+            }
+            """,
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task Missing_Model_References()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUser($userId: ID!) @http(method: GET, route: "/users/{userId}") {
+              nonExistentField(id: $userId) {
+                ...User
+              }
+            }
+            """,
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task Duplicated_Field()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task Duplicated_Routes()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsersWithName @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+                name
+              }
+            }
+            """,
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                address {
+                  street
+                }
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task Duplicated_Operation_Names()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+                name
+              }
+            }
+            """,
+            """
+            query GetUsers @http(method: GET, route: "/users/v2") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
+    }
+
+    [Fact]
+    public async Task Duplicated_Model_Names()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                ...User
+              }
+            }
+            """,
+            """
+            fragment User on User {
+              address {
+                street
+              }
+            }
+            """,
+            """
+            fragment User on User {
+              id
+              name
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var openApiDocument = await GetOpenApiDocumentAsync(client);
+
+        // assert
+        openApiDocument.MatchSnapshot(postFix: TestEnvironment.TargetFramework, extension: ".json");
     }
 
     #endregion

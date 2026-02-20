@@ -32,7 +32,9 @@ a stable key.
 """
 directive @lookup on FIELD_DEFINITION
 
-directive @semanticNonNull(levels: [Int!] = [ 0 ]) on FIELD_DEFINITION
+directive @semanticNonNull(levels: [Int!] = [
+  0
+]) on FIELD_DEFINITION
 
 """
 By default, only a single source schema is allowed to contribute

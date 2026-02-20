@@ -2,7 +2,6 @@ using System.Diagnostics;
 using HotChocolate.Diagnostics.Scopes;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Http;
 using OpenTelemetry.Trace;

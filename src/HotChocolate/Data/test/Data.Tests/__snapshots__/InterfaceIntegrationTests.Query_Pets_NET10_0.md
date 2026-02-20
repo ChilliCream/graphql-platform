@@ -4,7 +4,7 @@
 
 ```sql
 -- @p='11'
-SELECT p."AnimalType" = 'Cat', p."Id", p."Name", p."AnimalType" = 'Dog'
+SELECT p."AnimalType" = 'Dog', p."Id", p."Name", p."AnimalType" = 'Cat'
 FROM "Pets" AS p
 ORDER BY p."Name", p."Id"
 LIMIT @p
@@ -13,7 +13,7 @@ LIMIT @p
 ## Expression 0
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Name).ThenBy(t => t.Id).Select(root => IIF((root Is Cat), Convert(new Cat() {Id = Convert(root, Cat).Id, Name = Convert(root, Cat).Name}, Animal), IIF((root Is Dog), Convert(new Dog() {Id = Convert(root, Dog).Id, Name = Convert(root, Dog).Name}, Animal), null))).Take(11)
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Name).ThenBy(t => t.Id).Select(root => IIF((root Is Dog), Convert(new Dog() {Id = Convert(root, Dog).Id, Name = Convert(root, Dog).Name}, Animal), IIF((root Is Cat), Convert(new Cat() {Id = Convert(root, Cat).Id, Name = Convert(root, Cat).Name}, Animal), null))).Take(11)
 ```
 
 ## Result 3

@@ -65,6 +65,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.WriteLine("hash: {0}", plan.Operation.Id);
         writer.WriteLine("searchSpace: {0}", plan.SearchSpace);
+        writer.WriteLine("expandedNodes: {0}", plan.ExpandedNodes);
 
         if (trace is not null)
         {

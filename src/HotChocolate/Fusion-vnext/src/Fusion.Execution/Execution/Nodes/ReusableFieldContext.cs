@@ -42,12 +42,10 @@ internal sealed class ReusableFieldContext(
                 return casted;
             }
 
-            // todo: add proper exception.
-            throw new Exception("Invalid argument value!");
+            throw new InvalidCastException($"The argument value is not of type {typeof(T).Name}.");
         }
 
-        // todo: add proper exception.
-        throw new Exception("Invalid argument name!");
+        throw new KeyNotFoundException($"The argument `{name}` does not exist.");
     }
 
     public override void AddRuntimeResult<T>(T result)

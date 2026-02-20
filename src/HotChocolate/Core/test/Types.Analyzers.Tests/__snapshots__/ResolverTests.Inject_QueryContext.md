@@ -70,7 +70,9 @@ namespace TestNamespace
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<global::TestNamespace.Entity>>>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(global::TestNamespace.Entity), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Entity")))));
                     configuration.ResultType = typeof(global::System.Linq.IQueryable<global::TestNamespace.Entity>);
 
                     configuration.SetSourceGeneratorFlags();
@@ -96,7 +98,7 @@ namespace TestNamespace
                 var args0_filter = global::HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);
                 var args0_sorting = global::HotChocolate.Data.Sorting.SortingContextResolverContextExtensions.GetSortingContext(context);
                 var args0 = new global::GreenDonut.Data.QueryContext<global::TestNamespace.Entity>(
-                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Entity>(args0_selection),
+                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Entity>(args0_selection, context.IncludeFlags),
                     args0_filter?.AsPredicate<global::TestNamespace.Entity>(),
                     args0_sorting?.AsSortDefinition<global::TestNamespace.Entity>());
                 var result = global::TestNamespace.TestType.GetTest(args0);

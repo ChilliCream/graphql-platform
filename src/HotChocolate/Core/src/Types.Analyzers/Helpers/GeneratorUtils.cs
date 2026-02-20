@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Analyzers.Helpers;
 internal static class GeneratorUtils
 {
     private static readonly Regex s_invalidCharsRegex = new("[^a-zA-Z0-9]", RegexOptions.Compiled);
-    private static readonly Regex s_xmlWhitespaceRegex = new(@"(\n[ \t]*)", RegexOptions.Compiled);
+    private static readonly Regex s_xmlWhitespaceRegex = new(@"\n[ \t]*", RegexOptions.Compiled);
 
     public static ModuleInfo GetModuleInfo(
         this ImmutableArray<SyntaxInfo> syntaxInfos,
@@ -106,7 +106,33 @@ internal static class GeneratorUtils
             return $"{defaultValue}L";
         }
 
-        return defaultValue.ToString()!;
+        if (type is INamedTypeSymbol namedTypeSymbol)
+        {
+            if (type.TypeKind == TypeKind.Enum)
+            {
+                var enumType = namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+                // Find the enum member that matches the default value
+                foreach (var member in namedTypeSymbol.GetMembers())
+                {
+                    if (member is IFieldSymbol { HasConstantValue: true } field
+                        && Equals(field.ConstantValue, defaultValue))
+                    {
+                        return $"{enumType}.{field.Name}";
+                    }
+                }
+
+                // Fallback to integer value if no matching member found
+                return defaultValue.ToString()!;
+            }
+
+            if (type.IsNullableValueType())
+            {
+                return ConvertDefaultValueToString(defaultValue, namedTypeSymbol.TypeArguments[0]);
+            }
+        }
+
+        return defaultValue.ToString();
     }
 
     public static string SanitizeIdentifier(string input)
@@ -133,7 +159,11 @@ internal static class GeneratorUtils
         }
 
         // Normalize line endings and trim outer newlines
-        var normalized = "\n" + documentation!.Replace("\r", string.Empty).Trim('\n');
+        var normalized = documentation!.Replace("\r", string.Empty);
+        if (normalized[0] == ' ')
+        {
+            normalized = "\n" + normalized;
+        }
 
         // Find common leading whitespace pattern
         var whitespace = s_xmlWhitespaceRegex.Match(normalized).Value;

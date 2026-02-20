@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Sorting;
 
 public interface ISortField
     : IInputValueDefinition
-    , IHasRuntimeType
+    , IRuntimeTypeProvider
 {
     /// <summary>
     /// The type which declares this field.

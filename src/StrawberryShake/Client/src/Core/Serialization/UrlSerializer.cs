@@ -1,11 +1,11 @@
 namespace StrawberryShake.Serialization;
 
 /// <summary>
-/// This serializer handles url scalars.
+/// This serializer handles URL scalars.
 /// </summary>
 public class UrlSerializer : ScalarSerializer<string, Uri>
 {
-    public UrlSerializer(string typeName = BuiltInScalarNames.Url)
+    public UrlSerializer(string typeName = BuiltInScalarNames.URL)
         : base(typeName)
     {
     }

@@ -1,8 +1,8 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.Text.Json;
-using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
@@ -10,7 +10,7 @@ using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 namespace HotChocolate.Fusion.Text.Json;
 
-public readonly partial struct CompositeResultElement : IRawJsonFormatter
+public readonly partial struct CompositeResultElement
 {
     private readonly CompositeResultDocument _parent;
     private readonly CompositeResultDocument.Cursor _cursor;
@@ -24,10 +24,20 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         _cursor = cursor;
     }
 
+    /// <summary>
+    /// Writes this element as JSON to the specified buffer writer.
+    /// </summary>
+    /// <param name="writer">The buffer writer to write to.</param>
+    /// <param name="indented">
+    /// <c>true</c> to write indented JSON; otherwise, <c>false</c>.
+    /// </param>
     public void WriteTo(IBufferWriter<byte> writer, bool indented = false)
     {
-        var formatter = new CompositeResultDocument.RawJsonFormatter(_parent, writer, indented);
-
+        var options = new JsonWriterOptions { Indented = indented };
+        var jsonWriter = new JsonWriter(writer, options);
+        var formatter = new CompositeResultDocument.RawJsonFormatter(
+            _parent,
+            jsonWriter);
         var row = _parent._metaDb.Get(_cursor);
         formatter.WriteValue(_cursor, row);
     }
@@ -41,25 +51,19 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
     private ElementTokenType TokenType => _parent?.GetElementTokenType(_cursor) ?? ElementTokenType.None;
 
     /// <summary>
-    ///   The <see cref="JsonValueKind"/> that the value is.
+    /// Gets the <see cref="JsonValueKind"/> of this element.
     /// </summary>
-    /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
-    /// </exception>
     public JsonValueKind ValueKind => TokenType.ToValueKind();
 
     /// <summary>
-    ///   Get the value at a specified index when the current value is a
-    ///   <see cref="JsonValueKind.Array"/>.
+    /// Gets the element at the specified index when the current element is an array.
     /// </summary>
+    /// <param name="index">The zero-based index of the element to get.</param>
     /// <exception cref="InvalidOperationException">
-    ///   This value's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>.
+    /// This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>.
     /// </exception>
     /// <exception cref="IndexOutOfRangeException">
-    ///   <paramref name="index"/> is not in the range [0, <see cref="GetArrayLength"/>()).
-    /// </exception>
-    /// <exception cref="ObjectDisposedException">
-    ///   The parent <see cref="JsonDocument"/> has been disposed.
+    /// <paramref name="index"/> is not in the range [0, <see cref="GetArrayLength"/>()).
     /// </exception>
     public CompositeResultElement this[int index]
     {
@@ -71,6 +75,9 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         }
     }
 
+    /// <summary>
+    /// Gets the operation this element belongs to.
+    /// </summary>
     public Operation Operation
     {
         get
@@ -81,6 +88,10 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         }
     }
 
+    /// <summary>
+    /// Gets the <see cref="SelectionSet"/> if this element represents the data of a selection set;
+    /// otherwise, <c>null</c>.
+    /// </summary>
     public SelectionSet? SelectionSet
     {
         get
@@ -91,6 +102,10 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         }
     }
 
+    /// <summary>
+    /// Gets the <see cref="Selection"/> if this element represents the data of a field selection;
+    /// otherwise, <c>null</c>.
+    /// </summary>
     public Selection? Selection
     {
         get
@@ -107,6 +122,10 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         }
     }
 
+    /// <summary>
+    /// Gets the <see cref="IType"/> if this element represents the data of a field selection;
+    /// otherwise, <c>null</c>.
+    /// </summary>
     public IType? Type
     {
         get
@@ -134,6 +153,9 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         }
     }
 
+    /// <summary>
+    /// Gets a value indicating whether this element has been invalidated during null propagation.
+    /// </summary>
     public bool IsInvalidated
     {
         get
@@ -144,6 +166,9 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         }
     }
 
+    /// <summary>
+    /// Gets a value indicating whether this element is either null or was invalidated during null propagation.
+    /// </summary>
     public bool IsNullOrInvalidated
     {
         get
@@ -157,6 +182,9 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         }
     }
 
+    /// <summary>
+    /// Gets the path to this element within the result document.
+    /// </summary>
     public Path Path
     {
         get
@@ -167,6 +195,9 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         }
     }
 
+    /// <summary>
+    /// Gets the parent element that contains this element.
+    /// </summary>
     public CompositeResultElement Parent
     {
         get
@@ -177,6 +208,9 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         }
     }
 
+    /// <summary>
+    /// Gets a value indicating whether this element is nullable according to the GraphQL type system.
+    /// </summary>
     public bool IsNullable
     {
         get
@@ -192,6 +226,10 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         }
     }
 
+    /// <summary>
+    /// Gets a value indicating whether this element represents internal data
+    /// that is required for processing and must not be written to the GraphQL response.
+    /// </summary>
     public bool IsInternal
     {
         get
@@ -202,6 +240,15 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         }
     }
 
+    /// <summary>
+    /// Gets the <see cref="SelectionSet"/> for this element.
+    /// </summary>
+    /// <returns>
+    /// The <see cref="SelectionSet"/> instance.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// This element does not represent the data of a selection set.
+    /// </exception>
     public SelectionSet AssertSelectionSet()
     {
         var selectionSet = SelectionSet;
@@ -214,6 +261,15 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return selectionSet;
     }
 
+    /// <summary>
+    /// Gets the <see cref="Selection"/> for this element.
+    /// </summary>
+    /// <returns>
+    /// The <see cref="Selection"/> instance.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// This element does not represent the data of a field selection.
+    /// </exception>
     public Selection AssertSelection()
     {
         var selection = Selection;
@@ -226,6 +282,15 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return selection;
     }
 
+    /// <summary>
+    /// Gets the <see cref="IType"/> for this element.
+    /// </summary>
+    /// <returns>
+    /// The <see cref="IType"/> instance.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// This element does not represent the data of a field selection.
+    /// </exception>
     public IType AssertType()
     {
         var type = Type;
@@ -238,6 +303,10 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return type;
     }
 
+    /// <summary>
+    /// Marks this element as invalidated, which occurs during null propagation
+    /// when a non-nullable field returns null.
+    /// </summary>
     public void Invalidate()
     {
         CheckValidInstance();
@@ -246,8 +315,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
     }
 
     /// <summary>
-    /// Get the number of values contained within the current array value.
+    /// Gets the number of elements contained within the current array element.
     /// </summary>
+    /// <returns>
+    /// The number of elements in the array.
+    /// </returns>
     public int GetArrayLength()
     {
         CheckValidInstance();
@@ -256,8 +328,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
     }
 
     /// <summary>
-    ///   Get the number of properties contained within the current object value.
+    /// Gets the number of properties contained within the current object element.
     /// </summary>
+    /// <returns>
+    /// The number of properties in the object.
+    /// </returns>
     public int GetPropertyCount()
     {
         CheckValidInstance();
@@ -265,6 +340,14 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.GetPropertyCount(_cursor);
     }
 
+    /// <summary>
+    /// Gets a property by name when the current element is an object.
+    /// </summary>
+    /// <param name="propertyName">The name of the property to find.</param>
+    /// <returns>The property value.</returns>
+    /// <exception cref="KeyNotFoundException">
+    /// No property with the specified name was found.
+    /// </exception>
     public CompositeResultElement GetProperty(string propertyName)
     {
         ArgumentNullException.ThrowIfNull(propertyName);
@@ -277,6 +360,14 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         throw new KeyNotFoundException();
     }
 
+    /// <summary>
+    /// Gets a property by UTF-8 encoded name when the current element is an object.
+    /// </summary>
+    /// <param name="utf8PropertyName">The UTF-8 encoded name of the property to find.</param>
+    /// <returns>The property value.</returns>
+    /// <exception cref="KeyNotFoundException">
+    /// No property with the specified name was found.
+    /// </exception>
     public CompositeResultElement GetProperty(ReadOnlySpan<byte> utf8PropertyName)
     {
         if (TryGetProperty(utf8PropertyName, out var property))
@@ -287,6 +378,16 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         throw new KeyNotFoundException();
     }
 
+    /// <summary>
+    /// Attempts to get a property by name when the current element is an object.
+    /// </summary>
+    /// <param name="propertyName">The name of the property to find.</param>
+    /// <param name="value">
+    /// When this method returns, contains the property value if found; otherwise, the default value.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the property was found; otherwise, <c>false</c>.
+    /// </returns>
     public bool TryGetProperty(string propertyName, out CompositeResultElement value)
     {
         ArgumentNullException.ThrowIfNull(propertyName);
@@ -294,6 +395,16 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.TryGetNamedPropertyValue(_cursor, propertyName, out value);
     }
 
+    /// <summary>
+    /// Attempts to get a property by UTF-8 encoded name when the current element is an object.
+    /// </summary>
+    /// <param name="utf8PropertyName">The UTF-8 encoded name of the property to find.</param>
+    /// <param name="value">
+    /// When this method returns, contains the property value if found; otherwise, the default value.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the property was found; otherwise, <c>false</c>.
+    /// </returns>
     public bool TryGetProperty(ReadOnlySpan<byte> utf8PropertyName, out CompositeResultElement value)
     {
         CheckValidInstance();
@@ -301,6 +412,13 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value);
     }
 
+    /// <summary>
+    /// Gets the value as a <see cref="bool"/>.
+    /// </summary>
+    /// <returns>The boolean value.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.True"/> or <see cref="JsonValueKind.False"/>.
+    /// </exception>
     public bool GetBoolean()
     {
         var type = TokenType;
@@ -324,6 +442,10 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         }
     }
 
+    /// <summary>
+    /// Gets the value as a <see cref="string"/>.
+    /// </summary>
+    /// <returns>The string value, or <c>null</c> if this element is a JSON null.</returns>
     public string? GetString()
     {
         CheckValidInstance();
@@ -331,6 +453,13 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.GetString(_cursor, ElementTokenType.String);
     }
 
+    /// <summary>
+    /// Gets the value as a non-null <see cref="string"/>.
+    /// </summary>
+    /// <returns>The string value.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// This element is a JSON null.
+    /// </exception>
     public string AssertString()
     {
         CheckValidInstance();
@@ -338,6 +467,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.GetRequiredString(_cursor, ElementTokenType.String);
     }
 
+    /// <summary>
+    /// Attempts to get the value as an <see cref="sbyte"/>.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the parsed value.</param>
+    /// <returns><c>true</c> if the value could be parsed; otherwise, <c>false</c>.</returns>
     public bool TryGetSByte(out sbyte value)
     {
         CheckValidInstance();
@@ -345,8 +479,18 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.TryGetValue(_cursor, out value);
     }
 
+    /// <summary>
+    /// Gets the value as an <see cref="sbyte"/>.
+    /// </summary>
+    /// <returns>The value.</returns>
+    /// <exception cref="FormatException">The value cannot be parsed as an <see cref="sbyte"/>.</exception>
     public sbyte GetSByte() => TryGetSByte(out var value) ? value : throw new FormatException();
 
+    /// <summary>
+    /// Attempts to get the value as a <see cref="byte"/>.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the parsed value.</param>
+    /// <returns><c>true</c> if the value could be parsed; otherwise, <c>false</c>.</returns>
     public bool TryGetByte(out byte value)
     {
         CheckValidInstance();
@@ -354,6 +498,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.TryGetValue(_cursor, out value);
     }
 
+    /// <summary>
+    /// Gets the value as a <see cref="byte"/>.
+    /// </summary>
+    /// <returns>The value.</returns>
+    /// <exception cref="FormatException">The value cannot be parsed as a <see cref="byte"/>.</exception>
     public byte GetByte()
     {
         if (TryGetByte(out var value))
@@ -364,6 +513,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         throw new FormatException();
     }
 
+    /// <summary>
+    /// Attempts to get the value as a <see cref="short"/>.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the parsed value.</param>
+    /// <returns><c>true</c> if the value could be parsed; otherwise, <c>false</c>.</returns>
     public bool TryGetInt16(out short value)
     {
         CheckValidInstance();
@@ -371,6 +525,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.TryGetValue(_cursor, out value);
     }
 
+    /// <summary>
+    /// Gets the value as a <see cref="short"/>.
+    /// </summary>
+    /// <returns>The value.</returns>
+    /// <exception cref="FormatException">The value cannot be parsed as a <see cref="short"/>.</exception>
     public short GetInt16()
     {
         if (TryGetInt16(out var value))
@@ -381,6 +540,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         throw new FormatException();
     }
 
+    /// <summary>
+    /// Attempts to get the value as a <see cref="ushort"/>.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the parsed value.</param>
+    /// <returns><c>true</c> if the value could be parsed; otherwise, <c>false</c>.</returns>
     public bool TryGetUInt16(out ushort value)
     {
         CheckValidInstance();
@@ -388,6 +552,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.TryGetValue(_cursor, out value);
     }
 
+    /// <summary>
+    /// Gets the value as a <see cref="ushort"/>.
+    /// </summary>
+    /// <returns>The value.</returns>
+    /// <exception cref="FormatException">The value cannot be parsed as a <see cref="ushort"/>.</exception>
     public ushort GetUInt16()
     {
         if (TryGetUInt16(out var value))
@@ -398,6 +567,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         throw new FormatException();
     }
 
+    /// <summary>
+    /// Attempts to get the value as an <see cref="int"/>.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the parsed value.</param>
+    /// <returns><c>true</c> if the value could be parsed; otherwise, <c>false</c>.</returns>
     public bool TryGetInt32(out int value)
     {
         CheckValidInstance();
@@ -405,6 +579,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.TryGetValue(_cursor, out value);
     }
 
+    /// <summary>
+    /// Gets the value as an <see cref="int"/>.
+    /// </summary>
+    /// <returns>The value.</returns>
+    /// <exception cref="FormatException">The value cannot be parsed as an <see cref="int"/>.</exception>
     public int GetInt32()
     {
         if (!TryGetInt32(out var value))
@@ -415,6 +594,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return value;
     }
 
+    /// <summary>
+    /// Attempts to get the value as a <see cref="uint"/>.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the parsed value.</param>
+    /// <returns><c>true</c> if the value could be parsed; otherwise, <c>false</c>.</returns>
     public bool TryGetUInt32(out uint value)
     {
         CheckValidInstance();
@@ -422,6 +606,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.TryGetValue(_cursor, out value);
     }
 
+    /// <summary>
+    /// Gets the value as a <see cref="uint"/>.
+    /// </summary>
+    /// <returns>The value.</returns>
+    /// <exception cref="FormatException">The value cannot be parsed as a <see cref="uint"/>.</exception>
     public uint GetUInt32()
     {
         if (!TryGetUInt32(out var value))
@@ -432,6 +621,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return value;
     }
 
+    /// <summary>
+    /// Attempts to get the value as a <see cref="long"/>.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the parsed value.</param>
+    /// <returns><c>true</c> if the value could be parsed; otherwise, <c>false</c>.</returns>
     public bool TryGetInt64(out long value)
     {
         CheckValidInstance();
@@ -439,6 +633,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.TryGetValue(_cursor, out value);
     }
 
+    /// <summary>
+    /// Gets the value as a <see cref="long"/>.
+    /// </summary>
+    /// <returns>The value.</returns>
+    /// <exception cref="FormatException">The value cannot be parsed as a <see cref="long"/>.</exception>
     public long GetInt64()
     {
         if (!TryGetInt64(out var value))
@@ -449,6 +648,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return value;
     }
 
+    /// <summary>
+    /// Attempts to get the value as a <see cref="ulong"/>.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the parsed value.</param>
+    /// <returns><c>true</c> if the value could be parsed; otherwise, <c>false</c>.</returns>
     public bool TryGetUInt64(out ulong value)
     {
         CheckValidInstance();
@@ -456,6 +660,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.TryGetValue(_cursor, out value);
     }
 
+    /// <summary>
+    /// Gets the value as a <see cref="ulong"/>.
+    /// </summary>
+    /// <returns>The value.</returns>
+    /// <exception cref="FormatException">The value cannot be parsed as a <see cref="ulong"/>.</exception>
     public ulong GetUInt64()
     {
         if (!TryGetUInt64(out var value))
@@ -466,6 +675,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return value;
     }
 
+    /// <summary>
+    /// Attempts to get the value as a <see cref="double"/>.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the parsed value.</param>
+    /// <returns><c>true</c> if the value could be parsed; otherwise, <c>false</c>.</returns>
     public bool TryGetDouble(out double value)
     {
         CheckValidInstance();
@@ -473,6 +687,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.TryGetValue(_cursor, out value);
     }
 
+    /// <summary>
+    /// Gets the value as a <see cref="double"/>.
+    /// </summary>
+    /// <returns>The value.</returns>
+    /// <exception cref="FormatException">The value cannot be parsed as a <see cref="double"/>.</exception>
     public double GetDouble()
     {
         if (!TryGetDouble(out var value))
@@ -483,6 +702,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return value;
     }
 
+    /// <summary>
+    /// Attempts to get the value as a <see cref="float"/>.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the parsed value.</param>
+    /// <returns><c>true</c> if the value could be parsed; otherwise, <c>false</c>.</returns>
     public bool TryGetSingle(out float value)
     {
         CheckValidInstance();
@@ -490,6 +714,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.TryGetValue(_cursor, out value);
     }
 
+    /// <summary>
+    /// Gets the value as a <see cref="float"/>.
+    /// </summary>
+    /// <returns>The value.</returns>
+    /// <exception cref="FormatException">The value cannot be parsed as a <see cref="float"/>.</exception>
     public float GetSingle()
     {
         if (!TryGetSingle(out var value))
@@ -500,6 +729,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return value;
     }
 
+    /// <summary>
+    /// Attempts to get the value as a <see cref="decimal"/>.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the parsed value.</param>
+    /// <returns><c>true</c> if the value could be parsed; otherwise, <c>false</c>.</returns>
     public bool TryGetDecimal(out decimal value)
     {
         CheckValidInstance();
@@ -507,6 +741,11 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.TryGetValue(_cursor, out value);
     }
 
+    /// <summary>
+    /// Gets the value as a <see cref="decimal"/>.
+    /// </summary>
+    /// <returns>The value.</returns>
+    /// <exception cref="FormatException">The value cannot be parsed as a <see cref="decimal"/>.</exception>
     public decimal GetDecimal()
     {
         if (!TryGetDecimal(out var value))
@@ -531,6 +770,10 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.GetPropertyNameRaw(_cursor);
     }
 
+    /// <summary>
+    /// Gets the raw JSON text representing this element.
+    /// </summary>
+    /// <returns>The raw JSON text.</returns>
     public string GetRawText()
     {
         CheckValidInstance();
@@ -545,6 +788,13 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.GetRawValue(_cursor, includeQuotes: true);
     }
 
+    /// <summary>
+    /// Compares the text of this element to the specified string.
+    /// </summary>
+    /// <param name="text">The text to compare against.</param>
+    /// <returns>
+    /// <c>true</c> if this element's value equals the specified text; otherwise, <c>false</c>.
+    /// </returns>
     public bool ValueEquals(string? text)
     {
         if (TokenType == ElementTokenType.Null)
@@ -555,6 +805,13 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return TextEqualsHelper(text.AsSpan(), isPropertyName: false);
     }
 
+    /// <summary>
+    /// Compares the text of this element to the specified UTF-8 encoded text.
+    /// </summary>
+    /// <param name="utf8Text">The UTF-8 encoded text to compare against.</param>
+    /// <returns>
+    /// <c>true</c> if this element's value equals the specified text; otherwise, <c>false</c>.
+    /// </returns>
     public bool ValueEquals(ReadOnlySpan<byte> utf8Text)
     {
         if (TokenType == ElementTokenType.Null)
@@ -567,6 +824,13 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return TextEqualsHelper(utf8Text, isPropertyName: false, shouldUnescape: true);
     }
 
+    /// <summary>
+    /// Compares the text of this element to the specified character span.
+    /// </summary>
+    /// <param name="text">The text to compare against.</param>
+    /// <returns>
+    /// <c>true</c> if this element's value equals the specified text; otherwise, <c>false</c>.
+    /// </returns>
     public bool ValueEquals(ReadOnlySpan<char> text)
     {
         if (TokenType == ElementTokenType.Null)
@@ -600,6 +864,13 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return _parent.GetPropertyRawValueAsString(_cursor);
     }
 
+    /// <summary>
+    /// Gets an enumerator to enumerate the elements of this array.
+    /// </summary>
+    /// <returns>An enumerator for the array elements.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Array"/>.
+    /// </exception>
     public ArrayEnumerator EnumerateArray()
     {
         CheckValidInstance();
@@ -620,6 +891,13 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         return new ArrayEnumerator(this);
     }
 
+    /// <summary>
+    /// Gets an enumerator to enumerate the properties of this object.
+    /// </summary>
+    /// <returns>An enumerator for the object properties.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// This element's <see cref="ValueKind"/> is not <see cref="JsonValueKind.Object"/>.
+    /// </exception>
     public ObjectEnumerator EnumerateObject()
     {
         CheckValidInstance();
@@ -671,6 +949,7 @@ public readonly partial struct CompositeResultElement : IRawJsonFormatter
         _parent.AssignNullValue(this);
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
         switch (TokenType)

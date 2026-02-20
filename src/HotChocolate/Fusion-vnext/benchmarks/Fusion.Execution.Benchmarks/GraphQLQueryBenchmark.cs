@@ -9,11 +9,11 @@ using BenchmarkDotNet.Jobs;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using HotChocolate.Fusion.Text.Json;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Exporters.Csv;
 using BenchmarkDotNet.Exporters;
+using HotChocolate.Buffers;
 
 namespace Fusion.Execution.Benchmarks;
 
@@ -61,8 +61,12 @@ public class GraphQLQueryBenchmark
         _transportFewItemsRequest = new TransportGraphQLHttpRequest(fewItems, _requestUri);
         _transportClient = new TransportClient(_client);
 
-        JsonMemory.Return(JsonMemory.Rent());
-        MetaDbMemory.Return(MetaDbMemory.Rent());
+        JsonMemory.Reconfigure(
+            static () => new FixedSizeArrayPool(
+                FixedSizeArrayPoolKinds.JsonMemory,
+                JsonMemory.BufferSize,
+                128,
+                preAllocate: true));
     }
 
     [GlobalCleanup]

@@ -141,12 +141,6 @@ public class AuthorizationTests(TestServerFactory serverFactory) : ServerTestBas
               "Errors": [
                 {
                   "message": "The `HasAgeDefined` authorization policy does not exist.",
-                  "locations": [
-                    {
-                      "line": 1,
-                      "column": 3
-                    }
-                  ],
                   "path": [
                     "age"
                   ],

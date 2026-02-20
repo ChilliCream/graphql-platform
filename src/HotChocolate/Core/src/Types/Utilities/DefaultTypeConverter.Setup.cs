@@ -78,14 +78,14 @@ public partial class DefaultTypeConverter
         registry.Register<DateOnly, DateTimeOffset>(from => from.ToDateTime(default));
         registry.Register<DateTimeOffset, DateOnly>(from => DateOnly.FromDateTime(from.Date));
         registry.Register<DateOnly, DateTime>(from => from.ToDateTime(default));
-        registry.Register<DateTime, DateOnly>(from => DateOnly.FromDateTime(from.Date));
+        registry.Register<DateTime, DateOnly>(DateOnly.FromDateTime);
         registry.Register<DateOnly, string>(from => from.ToShortDateString());
         registry.Register<string, DateOnly>(from => DateOnly.Parse(from, InvariantCulture));
 
         registry.Register<TimeOnly, DateTimeOffset>(from => default(DateOnly).ToDateTime(from));
-        registry.Register<DateTimeOffset, TimeOnly>(from => TimeOnly.FromDateTime(from.Date));
+        registry.Register<DateTimeOffset, TimeOnly>(from => TimeOnly.FromDateTime(from.DateTime));
         registry.Register<TimeOnly, DateTime>(from => default(DateOnly).ToDateTime(from));
-        registry.Register<DateTime, TimeOnly>(from => TimeOnly.FromDateTime(from.Date));
+        registry.Register<DateTime, TimeOnly>(TimeOnly.FromDateTime);
         registry.Register<TimeOnly, TimeSpan>(from => from.ToTimeSpan());
         registry.Register<TimeSpan, TimeOnly>(TimeOnly.FromTimeSpan);
         registry.Register<TimeOnly, string>(from => from.ToShortTimeString());
@@ -146,7 +146,7 @@ public partial class DefaultTypeConverter
                 var length = checked(from.Length * 4);
                 byte[]? jsonText = null;
 
-                var jsonTextSpan = length <= GraphQLConstants.StackallocThreshold
+                var jsonTextSpan = length <= GraphQLCharacters.StackallocThreshold
                     ? stackalloc byte[length]
                     : jsonText = ArrayPool<byte>.Shared.Rent(length);
 
@@ -364,5 +364,18 @@ public partial class DefaultTypeConverter
 
         registry.Register<List<string>, ImmutableArray<string>>(
             from => from.ToImmutableArray());
+    }
+
+    private static void RegisterJsonElementConversions(
+        DefaultTypeConverter registry)
+    {
+        registry.Register<IReadOnlyDictionary<string, object?>, JsonElement>(
+            DictionaryToJsonDocumentConverter.FromDictionary);
+        registry.Register<JsonElement, IReadOnlyDictionary<string, object?>>(
+            DictionaryToJsonDocumentConverter.ToDictionary);
+        registry.Register<IReadOnlyList<object?>, JsonElement>(
+            DictionaryToJsonDocumentConverter.FromList);
+        registry.Register<JsonElement, IReadOnlyList<object?>>(
+            DictionaryToJsonDocumentConverter.ToList);
     }
 }

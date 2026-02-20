@@ -1,3 +1,6 @@
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
@@ -5,47 +8,37 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate.Adapters.OpenApi;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 internal static class InternalServiceCollectionExtensions
 {
-    public static IServiceCollection AddOpenApiExporterServices(this IServiceCollection services, string schemaName)
+    public static IServiceCollection AddOpenApiServices(
+        this IServiceCollection applicationServices,
+        string schemaName)
     {
-        services.TryAddKeyedSingleton<DynamicEndpointDataSource>(schemaName);
-        services.TryAddKeyedSingleton<DynamicOpenApiDocumentTransformer>(schemaName);
-        services.TryAddKeyedSingleton(
+        applicationServices.TryAddKeyedSingleton(
             schemaName,
-            static (sp, name) => new OpenApiDocumentManager(
+            static (sp, name) => new OpenApiDefinitionRegistry(
                 sp.GetRequiredKeyedService<IOpenApiDefinitionStorage>(name),
-                sp.GetRequiredKeyedService<DynamicOpenApiDocumentTransformer>(name),
-                sp.GetRequiredKeyedService<DynamicEndpointDataSource>(name)
-                ));
-        services.TryAddKeyedSingleton(
+                sp.GetRequiredKeyedService<IDynamicOpenApiDocumentTransformer>(name),
+                sp.GetRequiredKeyedService<IDynamicEndpointDataSource>(name)));
+
+        applicationServices.TryAddKeyedSingleton(
             schemaName,
             static (sp, name) => new HttpRequestExecutorProxy(
                 sp.GetRequiredService<IRequestExecutorProvider>(),
                 sp.GetRequiredService<IRequestExecutorEvents>(),
                 (string)name));
 
-        return services;
+        return applicationServices;
     }
 
-    public static IServiceCollection AddOpenApiExporterSchemaServices(
-        this IServiceCollection services,
-        string schemaName,
-        IServiceProvider applicationServices)
+    public static IServiceCollection AddOpenApiSchemaServices(
+        this IServiceCollection schemaServices)
     {
-        services.TryAddSingleton(
-            _ => applicationServices.GetRequiredKeyedService<IOpenApiDefinitionStorage>(schemaName));
-
-        services.TryAddSingleton(
-            _ => applicationServices.GetRequiredKeyedService<OpenApiDocumentManager>(schemaName));
-
-        services.TryAddSingleton<IDynamicEndpointDataSource>(
-            _ => applicationServices.GetRequiredKeyedService<DynamicEndpointDataSource>(schemaName));
-
-        services.TryAddSingleton(
-            _ => applicationServices.GetRequiredKeyedService<DynamicOpenApiDocumentTransformer>(schemaName));
-
-        services.TryAddSingleton<IOpenApiDiagnosticEvents>(sp =>
+        schemaServices.TryAddSingleton<IOpenApiDiagnosticEvents>(sp =>
         {
             var listeners = sp.GetServices<IOpenApiDiagnosticEventListener>().ToArray();
             return listeners.Length switch
@@ -56,6 +49,6 @@ internal static class InternalServiceCollectionExtensions
             };
         });
 
-        return services;
+        return schemaServices;
     }
 }

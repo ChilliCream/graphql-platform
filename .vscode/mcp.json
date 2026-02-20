@@ -3,6 +3,16 @@
     "microsoft.docs.mcp": {
       "type": "http",
       "url": "https://learn.microsoft.com/api/mcp"
+    },
+    "nuget": {
+      "type": "stdio",
+      "command": "dnx",
+      "args": [
+        "NuGet.Mcp.Server",
+        "--source",
+        "https://api.nuget.org/v3/index.json",
+        "--yes"
+      ]
     }
   }
 }

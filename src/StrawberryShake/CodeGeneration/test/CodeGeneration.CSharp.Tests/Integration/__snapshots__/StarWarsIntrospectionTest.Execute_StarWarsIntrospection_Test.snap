@@ -1027,7 +1027,7 @@
                     "Name": null,
                     "OfType": {
                       "Kind": "Scalar",
-                      "Name": "JSON",
+                      "Name": "Any",
                       "OfType": null
                     }
                   },
@@ -1508,7 +1508,7 @@
               "Args": [],
               "Type": {
                 "Kind": "Scalar",
-                "Name": "JSON",
+                "Name": "Any",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1673,7 +1673,7 @@
               "Args": [],
               "Type": {
                 "Kind": "Scalar",
-                "Name": "JSON",
+                "Name": "Any",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1862,7 +1862,7 @@
               "Args": [],
               "Type": {
                 "Kind": "Scalar",
-                "Name": "JSON",
+                "Name": "Any",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -2116,8 +2116,8 @@
         },
         {
           "Kind": "Scalar",
-          "Name": "JSON",
-          "Description": null,
+          "Name": "Any",
+          "Description": "The `Any` scalar type represents any valid GraphQL value.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -2526,15 +2526,34 @@
               "Name": "requireOneSlicingArgument",
               "Description": "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error.",
               "Type": {
+                "Kind": "Scalar",
+                "Name": "Boolean",
+                "OfType": null
+              },
+              "DefaultValue": "true"
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": false
+        },
+        {
+          "Name": "specifiedBy",
+          "Description": "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.",
+          "Args": [
+            {
+              "Name": "url",
+              "Description": "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.",
+              "Type": {
                 "Kind": "NonNull",
                 "Name": null,
                 "OfType": {
                   "Kind": "Scalar",
-                  "Name": "Boolean",
+                  "Name": "String",
                   "OfType": null
                 }
               },
-              "DefaultValue": "true"
+              "DefaultValue": null
             }
           ],
           "OnOperation": false,
@@ -4364,7 +4383,7 @@
                     "PossibleTypes": null,
                     "OfType": {
                       "__typename": "__Type",
-                      "Name": "JSON",
+                      "Name": "Any",
                       "Kind": "Scalar",
                       "Description": null,
                       "Fields": null,
@@ -5276,7 +5295,7 @@
               "Args": [],
               "Type": {
                 "__typename": "__Type",
-                "Name": "JSON",
+                "Name": "Any",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -5567,7 +5586,7 @@
               "Args": [],
               "Type": {
                 "__typename": "__Type",
-                "Name": "JSON",
+                "Name": "Any",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -5869,7 +5888,7 @@
               "Args": [],
               "Type": {
                 "__typename": "__Type",
-                "Name": "JSON",
+                "Name": "Any",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -6296,9 +6315,9 @@
         },
         {
           "__typename": "__Type",
-          "Name": "JSON",
+          "Name": "Any",
           "Kind": "Scalar",
-          "Description": null,
+          "Description": "The `Any` scalar type represents any valid GraphQL value.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -7005,6 +7024,34 @@
               "Description": "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error.",
               "Type": {
                 "__typename": "__Type",
+                "Name": "Boolean",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "DefaultValue": "true"
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": false
+        },
+        {
+          "__typename": "__Directive",
+          "Name": "specifiedBy",
+          "Description": "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.",
+          "Args": [
+            {
+              "__typename": "__InputValue",
+              "Name": "url",
+              "Description": "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.",
+              "Type": {
+                "__typename": "__Type",
                 "Name": null,
                 "Kind": "NonNull",
                 "Description": null,
@@ -7015,7 +7062,7 @@
                 "PossibleTypes": null,
                 "OfType": {
                   "__typename": "__Type",
-                  "Name": "Boolean",
+                  "Name": "String",
                   "Kind": "Scalar",
                   "Description": null,
                   "Fields": null,
@@ -7026,7 +7073,7 @@
                   "OfType": null
                 }
               },
-              "DefaultValue": "true"
+              "DefaultValue": null
             }
           ],
           "OnOperation": false,

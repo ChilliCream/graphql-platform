@@ -1,15 +1,21 @@
+using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Represents a scalar type for 64-bit signed integers (long) in GraphQL.
-/// This type serializes as an integer and supports values from -9,223,372,036,854,775,808
-/// to 9,223,372,036,854,775,807.
+/// The <c>Long</c> scalar type represents a signed 64-bit integer. It is intended for scenarios
+/// where values exceed the range of the built-in <c>Int</c> scalar, such as representing large
+/// identifiers, timestamps in milliseconds, file sizes in bytes, or any integer values requiring
+/// more than 32 bits.
 /// </summary>
+/// <seealso href="https://scalars.graphql.org/chillicream/long.html">Specification</seealso>
 public class LongType : IntegerTypeBase<long>
 {
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/long.html";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="LongType"/> class.
     /// </summary>
@@ -35,7 +41,7 @@ public class LongType : IntegerTypeBase<long>
         : base(name, min, max, bind)
     {
         Description = description;
-        SerializationType = ScalarSerializationType.Int;
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>
@@ -47,9 +53,19 @@ public class LongType : IntegerTypeBase<long>
     {
     }
 
-    protected override long ParseLiteral(IntValueNode valueSyntax) =>
-        valueSyntax.ToInt64();
+    /// <inheritdoc />
+    protected override long OnCoerceInputLiteral(IntValueNode valueSyntax)
+        => valueSyntax.ToInt64();
 
-    protected override IntValueNode ParseValue(long runtimeValue) =>
-        new(runtimeValue);
+    /// <inheritdoc />
+    protected override long OnCoerceInputValue(JsonElement inputValue)
+        => inputValue.GetInt64();
+
+    /// <inheritdoc />
+    protected override void OnCoerceOutputValue(long runtimeValue, ResultElement resultValue)
+        => resultValue.SetNumberValue(runtimeValue);
+
+    /// <inheritdoc />
+    protected override IValueNode OnValueToLiteral(long runtimeValue)
+        => new IntValueNode(runtimeValue);
 }

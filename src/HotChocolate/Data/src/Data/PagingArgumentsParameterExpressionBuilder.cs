@@ -42,6 +42,6 @@ internal sealed class PagingArgumentsParameterExpressionBuilder()
     private static PagingArguments MapArguments(CursorPagingArguments arguments, bool includeTotalCount)
         => new(arguments.First, arguments.After, arguments.Last, arguments.Before, includeTotalCount);
 
-    private static bool IncludeTotalCount(ISelection selection)
+    private static bool IncludeTotalCount(Selection selection)
         => selection.Field.Features.Get<PagingOptions>()?.IncludeTotalCount is true;
 }

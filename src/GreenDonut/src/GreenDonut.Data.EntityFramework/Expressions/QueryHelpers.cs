@@ -74,12 +74,19 @@ internal static class QueryHelpers
         }
     }
 
-    private static Expression<Func<T, T>>? ExtractCurrentSelector<T>(
+    public static Expression<Func<T, T>>? ExtractCurrentSelector<T>(
         IQueryable<T> query)
     {
         var visitor = new ExtractSelectExpressionVisitor();
         visitor.Visit(query.Expression);
         return visitor.Selector as Expression<Func<T, T>>;
+    }
+
+    public static IQueryable<T> RemoveSelector<T>(IQueryable<T> query)
+    {
+        var visitor = new RemoveSelectorVisitor();
+        var newExpression = visitor.Visit(query.Expression);
+        return query.Provider.CreateQuery<T>(newExpression);
     }
 
     private static Expression<Func<T, T>> AddPropertiesInSelector<T>(
@@ -109,6 +116,51 @@ internal static class QueryHelpers
         return query.Provider.CreateQuery<T>(newExpression);
     }
 
+    private sealed class RemoveSelectorVisitor : ExpressionVisitor
+    {
+        private const string SelectMethod = "Select";
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            if (node.Method.Name != SelectMethod || node.Arguments.Count != 2)
+            {
+                return base.VisitMethodCall(node);
+            }
+
+            var lambda = ConvertToLambda(node.Arguments[1]);
+            if (!lambda.Type.IsGenericType || lambda.Type.GetGenericTypeDefinition() != typeof(Func<,>))
+            {
+                return base.VisitMethodCall(node);
+            }
+
+            var genericArgs = lambda.Type.GetGenericArguments();
+            // remove selectors of type Func<T, T>
+            if (genericArgs[0] == genericArgs[1])
+            {
+                // return the source expression, effectively removing the Select
+                return Visit(node.Arguments[0]);
+            }
+
+            return base.VisitMethodCall(node);
+        }
+
+        private static LambdaExpression ConvertToLambda(Expression e)
+        {
+            while (e.NodeType == ExpressionType.Quote)
+            {
+                e = ((UnaryExpression)e).Operand;
+            }
+
+            if (e.NodeType != ExpressionType.MemberAccess)
+            {
+                return (LambdaExpression)e;
+            }
+
+            var typeArguments = e.Type.GetGenericArguments()[0].GetGenericArguments();
+            return Expression.Lambda(e, Expression.Parameter(typeArguments[0]));
+        }
+    }
+
     public class AddPropertiesVisitorRewriter : ExpressionVisitor
     {
         private readonly List<MemberExpression> _propertiesToAdd;
@@ -120,6 +172,38 @@ internal static class QueryHelpers
         {
             _propertiesToAdd = propertiesToAdd;
             _parameter = parameter;
+        }
+
+        protected override Expression VisitConditional(ConditionalExpression node)
+        {
+            // recursively visit conditional branches to handle type switches in inheritance scenarios
+            var test = Visit(node.Test);
+            var ifTrue = Visit(node.IfTrue);
+            var ifFalse = Visit(node.IfFalse);
+
+            if (test != node.Test || ifTrue != node.IfTrue || ifFalse != node.IfFalse)
+            {
+                return Expression.Condition(test, ifTrue, ifFalse, node.Type);
+            }
+
+            return node;
+        }
+
+        protected override Expression VisitUnary(UnaryExpression node)
+        {
+            // handle convert expressions that wrap member init expressions in inheritance scenarios
+            if (node.NodeType != ExpressionType.Convert)
+            {
+                return base.VisitUnary(node);
+            }
+
+            var operand = Visit(node.Operand);
+            if (operand != node.Operand)
+            {
+                return Expression.Convert(operand, node.Type);
+            }
+
+            return base.VisitUnary(node);
         }
 
         protected override Expression VisitMemberInit(MemberInitExpression node)

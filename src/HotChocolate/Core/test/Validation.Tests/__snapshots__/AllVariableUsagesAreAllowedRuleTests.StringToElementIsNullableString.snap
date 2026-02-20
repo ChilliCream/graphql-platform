@@ -1,34 +1,19 @@
-[
-  {
-    "Message": "The variable `stringListVar` is not compatible with the type of the current location.",
-    "Code": null,
-    "Path": {
-      "Name": "stringListNonNullArgField",
-      "Parent": {
-        "Name": "arguments",
-        "Parent": {
-          "Parent": null,
-          "Length": 0,
-          "IsRoot": true
-        },
-        "Length": 1,
-        "IsRoot": false
-      },
-      "Length": 2,
-      "IsRoot": false
-    },
-    "Locations": [
-      {
-        "Line": 4,
-        "Column": 53
-      }
-    ],
-    "Extensions": {
-      "variable": "stringListVar",
-      "variableType": "[String]",
-      "locationType": "[String]!",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Usages-are-Allowed"
-    },
-    "Exception": null
+{
+  "message": "The variable \u0060stringListVar\u0060 is not compatible with the type of the current location.",
+  "locations": [
+    {
+      "line": 4,
+      "column": 53
+    }
+  ],
+  "path": [
+    "arguments",
+    "stringListNonNullArgField"
+  ],
+  "extensions": {
+    "variable": "stringListVar",
+    "variableType": "[String]",
+    "locationType": "[String]!",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-All-Variable-Usages-Are-Allowed"
   }
-]
+}

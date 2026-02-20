@@ -3,5 +3,6 @@ namespace HotChocolate.Types.Analyzers.Models;
 public enum SchemaTypeReferenceKind
 {
     ExtendedTypeReference = 0,
-    SyntaxTypeReference = 1
+    SyntaxTypeReference = 1,
+    FactoryTypeReference = 2
 }

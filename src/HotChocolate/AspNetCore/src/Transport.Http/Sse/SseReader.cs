@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Text.Json;
 #else
 using System.Buffers;
@@ -107,14 +108,14 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
                                 case SseEventType.Complete:
                                     reader.AdvanceTo(buffer.GetPosition(1, position.Value));
 #if FUSION
-                                    JsonMemory.Return(eventBuffers);
                                     eventBuffers.Clear();
+                                    JsonMemory.Return(JsonMemoryKind.Json, eventBuffers);
 #endif
                                     yield break;
 
                                 case SseEventType.Next when eventMessage.Data is not null:
 #if FUSION
-                                    var leftOver = eventBuffers.Count - eventMessage.Data.Length;
+                                    var leftOver = eventBuffers.Count - eventMessage.UsedChunks;
                                     currentPosition = 0;
 
                                     if (leftOver == 0)
@@ -130,7 +131,6 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
                                         eventMessage.Data,
                                         eventMessage.LastChunkSize,
                                         eventMessage.UsedChunks,
-                                        options: default,
                                         pooledMemory: true);
 #else
                                     eventBuffer.Reset();
@@ -162,7 +162,7 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
             await reader.CompleteAsync().ConfigureAwait(false);
 #if FUSION
             // we return whatever is in here.
-            JsonMemory.Return(eventBuffers);
+            JsonMemory.Return(JsonMemoryKind.Json, eventBuffers);
 #endif
         }
     }
@@ -232,7 +232,7 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
             if (chunks.Count == 0 || currentPosition >= JsonMemory.BufferSize)
             {
                 currentPosition = 0;
-                chunks.Add(JsonMemory.Rent());
+                chunks.Add(JsonMemory.Rent(JsonMemoryKind.Json));
             }
 
             var currentChunk = chunks[^1];

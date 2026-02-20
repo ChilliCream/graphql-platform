@@ -83,7 +83,9 @@ namespace TestNamespace
                     var naming = field.Context.Naming;
 
                     configuration.Description = "Executes a complex query with:\n- Multiple lines\n- Special chars: \"quotes\", 'apostrophes', `backticks`\n- Paths: C:\\Program Files\\App\n- Tab\tseparated\tvalues";
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<string>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
                     configuration.ResultType = typeof(string);
 
                     configuration.SetSourceGeneratorFlags();
@@ -98,7 +100,9 @@ namespace TestNamespace
                         {
                             Name = naming.GetMemberName("query", global::HotChocolate.Types.MemberKind.Argument),
                             Description = "SQL query like: SELECT * FROM \"Users\" WHERE name = 'John'",
-                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<string>>>), HotChocolate.Types.TypeContext.Input),
+                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                                typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Input),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string"))),
                             RuntimeType = typeof(string)
                         };
 
@@ -115,7 +119,9 @@ namespace TestNamespace
                             Name = naming.GetMemberName("timeout", global::HotChocolate.Types.MemberKind.Argument),
                             Description = "Timeout in ms (default: 30000)",
                             RuntimeDefaultValue = 30000,
-                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<int>>>), HotChocolate.Types.TypeContext.Input),
+                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                                typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int"))),
                             RuntimeType = typeof(int)
                         };
 

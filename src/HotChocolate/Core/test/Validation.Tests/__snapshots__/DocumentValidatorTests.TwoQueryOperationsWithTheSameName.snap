@@ -1,18 +1,13 @@
-[
-  {
-    "Message": "The operation name `getName` is not unique.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 7,
-        "Column": 1
-      }
-    ],
-    "Extensions": {
-      "operation": "getName",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Operation-Name-Uniqueness"
-    },
-    "Exception": null
+{
+  "message": "The operation name \u0060getName\u0060 is not unique.",
+  "locations": [
+    {
+      "line": 7,
+      "column": 1
+    }
+  ],
+  "extensions": {
+    "operation": "getName",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Operation-Name-Uniqueness"
   }
-]
+}

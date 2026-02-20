@@ -2,6 +2,8 @@ namespace HotChocolate.Fusion.Types;
 
 internal static class FusionBuiltIns
 {
+    private const string Prefix = "fusion__";
+
     public const string FieldDefinition = "fusion__FieldDefinition";
     public const string FieldSelectionMap = "fusion__FieldSelectionMap";
     public const string FieldSelectionSet = "fusion__FieldSelectionSet";
@@ -20,21 +22,8 @@ internal static class FusionBuiltIns
     public const string SchemaMetadata = "fusion__schema_metadata";
 
     public static bool IsBuiltInType(string typeName)
-        => typeName == FieldDefinition
-        || typeName == FieldSelectionMap
-        || typeName == FieldSelectionSet
-        || typeName == SelectionPath
-        || typeName == Schema;
+        => typeName.StartsWith(Prefix, StringComparison.Ordinal);
 
     public static bool IsBuiltInDirective(string directiveName)
-        => directiveName == Type
-        || directiveName == Field
-        || directiveName == InputField
-        || directiveName == Requires
-        || directiveName == Lookup
-        || directiveName == Implements
-        || directiveName == UnionMember
-        || directiveName == EnumValue
-        || directiveName == Inaccessible
-        || directiveName == SchemaMetadata;
+        => directiveName.StartsWith(Prefix, StringComparison.Ordinal);
 }

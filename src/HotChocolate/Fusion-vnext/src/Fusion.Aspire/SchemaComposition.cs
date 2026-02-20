@@ -2,7 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
+using Aspire.Hosting.Eventing;
 using Aspire.Hosting.Lifecycle;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -11,47 +13,54 @@ namespace HotChocolate.Fusion.Aspire;
 internal sealed class SchemaComposition(
     IHostApplicationLifetime lifetime,
     ILogger<SchemaComposition> logger)
-    : IDistributedApplicationLifecycleHook
+    : IDistributedApplicationEventingSubscriber
 {
-    public async Task AfterResourcesCreatedAsync(
-        DistributedApplicationModel appModel,
-        CancellationToken cancellationToken = default)
+    public Task SubscribeAsync(
+        IDistributedApplicationEventing eventing,
+        DistributedApplicationExecutionContext executionContext,
+        CancellationToken cancellationToken)
     {
-        var compositionFailed = false;
-
-        try
+        eventing.Subscribe<AfterResourcesCreatedEvent>(async (@event, ct) =>
         {
-            // Find all resources that need schema composition
-            var compositionResources = appModel.GetGraphQLCompositionResources().ToList();
+            var model = @event.Services.GetRequiredService<DistributedApplicationModel>();
+            var compositionFailed = false;
 
-            if (compositionResources.Count == 0)
+            try
             {
-                logger.LogDebug("No resources found that need GraphQL schema composition");
-                return;
-            }
+                // Find all resources that need schema composition
+                var compositionResources = model.GetGraphQLCompositionResources().ToList();
 
-            logger.LogInformation("Starting GraphQL schema composition...");
-
-            // Process each composition resource
-            foreach (var compositionResource in compositionResources)
-            {
-                if (!await ComposeSchemaAsync(compositionResource, appModel, cancellationToken))
+                if (compositionResources.Count == 0)
                 {
-                    compositionFailed = true;
+                    logger.LogDebug("No resources found that need GraphQL schema composition");
+                    return;
+                }
+
+                logger.LogInformation("Starting GraphQL schema composition...");
+
+                // Process each composition resource
+                foreach (var compositionResource in compositionResources)
+                {
+                    if (!await ComposeSchemaAsync(compositionResource, model, ct))
+                    {
+                        compositionFailed = true;
+                    }
                 }
             }
-        }
-        catch
-        {
-            compositionFailed = true;
-        }
+            catch
+            {
+                compositionFailed = true;
+            }
 
-        if (compositionFailed)
-        {
-            logger.LogCritical("GraphQL schema composition failed - stopping application");
-            lifetime.StopApplication();
-            throw new InvalidOperationException("GraphQL schema composition failed");
-        }
+            if (compositionFailed)
+            {
+                logger.LogCritical("GraphQL schema composition failed - stopping application");
+                lifetime.StopApplication();
+                throw new InvalidOperationException("GraphQL schema composition failed");
+            }
+        });
+
+        return Task.CompletedTask;
     }
 
     private async Task<bool> ComposeSchemaAsync(
@@ -82,9 +91,19 @@ internal sealed class SchemaComposition(
                 return true;
             }
 
-            var gatewayDirectory = GetProjectPath(compositionResource)!;
-            var archivePath = Path.Combine(Path.GetDirectoryName(gatewayDirectory)!, settings.OutputFileName);
-            return await ComposeSchemaAsync(archivePath, sourceSchemas, settings, cancellationToken);
+            try
+            {
+                var gatewayDirectory = GetProjectPath(compositionResource)!;
+                var archivePath = Path.Combine(Path.GetDirectoryName(gatewayDirectory)!, settings.OutputFileName);
+                return await ComposeSchemaAsync(archivePath, sourceSchemas, settings, cancellationToken);
+            }
+            finally
+            {
+                foreach (var sourceSchema in sourceSchemas)
+                {
+                    sourceSchema.SchemaSettings.Dispose();
+                }
+            }
         }
         catch (OperationCanceledException)
         {
@@ -237,8 +256,8 @@ internal sealed class SchemaComposition(
             Name = sourceSchemaName,
             ResourceName = resource.Name,
             HttpEndpointUrl = new Uri(schemaUrl),
-            Schema = new SourceSchemaText(resource.Name, schemaText),
-            SchemaSettings = schemaSettings.Value
+            Schema = new SourceSchemaText(sourceSchemaName, schemaText),
+            SchemaSettings = schemaSettings
         };
     }
 
@@ -247,6 +266,8 @@ internal sealed class SchemaComposition(
         GraphQLSourceSchemaAnnotation annotation,
         CancellationToken cancellationToken)
     {
+        var sourceSchemaName = resource.GetGraphQLSourceSchemaName() ?? resource.Name;
+
         var schemaFromFile = await ReadSchemaFromProjectDirectoryAsync(resource, annotation.SchemaPath, cancellationToken);
         if (schemaFromFile == null)
         {
@@ -266,15 +287,15 @@ internal sealed class SchemaComposition(
 
         return new SourceSchemaInfo
         {
-            Name = resource.Name,
+            Name = sourceSchemaName,
             ResourceName = resource.Name,
             HttpEndpointUrl = null, // No HTTP endpoint for file-based schemas
-            Schema = new SourceSchemaText(resource.Name, schemaFromFile),
-            SchemaSettings = schemaSettings.Value
+            Schema = new SourceSchemaText(sourceSchemaName, schemaFromFile),
+            SchemaSettings = schemaSettings
         };
     }
 
-    private async Task<JsonElement?> GetSourceSchemaSettingsAsync(
+    private async Task<JsonDocument?> GetSourceSchemaSettingsAsync(
         IResourceWithEndpoints resource,
         string settingsFileName,
         CancellationToken cancellationToken)
@@ -298,8 +319,7 @@ internal sealed class SchemaComposition(
             }
 
             var settingsJson = await File.ReadAllTextAsync(settingsFile, cancellationToken);
-            using var document = JsonDocument.Parse(settingsJson);
-            return document.RootElement.Clone();
+            return JsonDocument.Parse(settingsJson);
         }
         catch (Exception ex)
         {
@@ -476,7 +496,7 @@ internal sealed class SchemaComposition(
                 File.Copy(archivePath, tempArchivePath);
             }
 
-            if (await CompositionHelper.TryComposeAsync(
+            if (await AspireCompositionHelper.TryComposeAsync(
                 tempArchivePath,
                 [.. sourceSchemas],
                 settings.Settings,

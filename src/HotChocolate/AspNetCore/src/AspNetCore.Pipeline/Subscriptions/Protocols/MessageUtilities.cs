@@ -1,17 +1,20 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Buffers;
+using HotChocolate.Text.Json;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
 
 internal static class MessageUtilities
 {
     public static JsonWriterOptions WriterOptions { get; } =
-        new() { Indented = false };
-
-    public static JsonSerializerOptions SerializerOptions { get; } =
-        new(JsonSerializerDefaults.Web);
+        new()
+        {
+            Indented = false,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
 
     public static void SerializeMessage(
         PooledArrayWriter pooledArrayWriter,
@@ -20,24 +23,25 @@ internal static class MessageUtilities
         IReadOnlyDictionary<string, object?>? payload = null,
         string? id = null)
     {
-        using var jsonWriter = new Utf8JsonWriter(pooledArrayWriter, WriterOptions);
+        var jsonWriter = new JsonWriter(pooledArrayWriter, WriterOptions);
         jsonWriter.WriteStartObject();
 
         if (id is not null)
         {
-            jsonWriter.WriteString("id", id);
+            jsonWriter.WritePropertyName("id"u8);
+            jsonWriter.WriteStringValue(id);
         }
 
-        jsonWriter.WriteString("type", type);
+        jsonWriter.WritePropertyName("type"u8);
+        jsonWriter.WriteStringValue(type);
 
         if (payload is not null)
         {
-            jsonWriter.WritePropertyName("payload");
+            jsonWriter.WritePropertyName("payload"u8);
             formatter.Format(payload, jsonWriter);
         }
 
         jsonWriter.WriteEndObject();
-        jsonWriter.Flush();
     }
 
     public static bool TryGetPayload(JsonElement root, out JsonElement payload)

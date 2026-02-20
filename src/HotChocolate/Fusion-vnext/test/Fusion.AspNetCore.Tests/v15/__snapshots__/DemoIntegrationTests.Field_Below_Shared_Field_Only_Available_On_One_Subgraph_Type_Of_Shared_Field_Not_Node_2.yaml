@@ -151,9 +151,12 @@ sourceSchemas:
             query Op_90079d4b_3(
               $__fusion_2_id: ID!
             ) {
-              productAvailabilityById(id: $__fusion_2_id) {
-                sharedLinked {
-                  subgraph2Only
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on ProductAvailability {
+                  sharedLinked {
+                    subgraph2Only
+                  }
                 }
               }
             }
@@ -166,7 +169,8 @@ sourceSchemas:
             - |
               {
                 "data": {
-                  "productAvailabilityById": {
+                  "node": {
+                    "__typename": "ProductAvailability",
                     "sharedLinked": {
                       "subgraph2Only": true
                     }
@@ -192,6 +196,7 @@ operationPlan:
         }
       hash: 90079d4b5c5cadf6c4ff7cd99819d1cd
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -237,13 +242,16 @@ operationPlan:
         query Op_90079d4b_3(
           $__fusion_2_id: ID!
         ) {
-          productAvailabilityById(id: $__fusion_2_id) {
-            sharedLinked {
-              subgraph2Only
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on ProductAvailability {
+              sharedLinked {
+                subgraph2Only
+              }
             }
           }
         }
-      source: $.productAvailabilityById
+      source: $.node<ProductAvailability>
       target: $.productById.subgraph1Only
       requirements:
         - name: __fusion_2_id

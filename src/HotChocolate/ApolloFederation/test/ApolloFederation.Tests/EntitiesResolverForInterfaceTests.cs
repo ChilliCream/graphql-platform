@@ -474,7 +474,7 @@ public class EntitiesResolverForInterfaceTests
 
         [ReferenceResolver]
         static IFederatedTypeWithRequiredDetail ReferenceResolver([Map("detail.id")] string detailId)
-            => new FederatedTypeWithRequiredDetail()
+            => new FederatedTypeWithRequiredDetail
             {
                 Id = detailId,
                 Detail = new FederatedTypeDetail
@@ -510,7 +510,7 @@ public class EntitiesResolverForInterfaceTests
 
         [ReferenceResolver]
         static IFederatedTypeWithOptionalDetail ReferenceResolver([Map("detail.id")] string detailId)
-            => new FederatedTypeWithOptionalDetail()
+            => new FederatedTypeWithOptionalDetail
             {
                 Id = detailId,
                 Detail = new FederatedTypeDetail

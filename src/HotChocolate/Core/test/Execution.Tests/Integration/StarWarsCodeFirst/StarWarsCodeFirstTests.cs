@@ -1,637 +1,815 @@
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Language;
 using HotChocolate.Tests;
 using Xunit.Abstractions;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.StarWarsCodeFirst;
 
-public class StarWarsCodeFirstTests
+public class StarWarsCodeFirstTests(ITestOutputHelper output)
 {
-    private readonly ITestOutputHelper _output;
-
-    public StarWarsCodeFirstTests(ITestOutputHelper output)
-    {
-        _output = output;
-    }
-
     [Fact]
     public async Task Schema()
     {
         // arrange
+        var snapshot = Snapshot.Create();
         var executor = await CreateExecutorAsync();
 
         // act
         var schema = executor.Schema.ToString();
+        snapshot.Add(schema);
 
         // assert
-        schema.MatchSnapshot();
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GetHeroName()
     {
-        await ExpectValid(
-                @"
-                {
-                    hero {
-                        name
-                    }
-                }")
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            {
+              hero {
+                name
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgFieldExample()
     {
-        await ExpectValid(
-                @"
-                {
-                    hero {
-                        name
-                        # Queries can have comments!
-                        friends {
-                            nodes {
-                                name
-                            }
-                        }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            {
+              hero {
+                name
+                # Queries can have comments!
+                friends {
+                  nodes {
+                    name
+                  }
+                }
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgFieldArgumentExample1()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             {
-                human(id: "1000") {
-                    name
-                    height
-                }
+              human(id: "1000") {
+                name
+                height
+              }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgFieldArgumentExample2()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
             """
             {
-                human(id: "1000") {
-                    name
-                    height(unit: FOOT)
-                }
+              human(id: "1000") {
+                name
+                height(unit: FOOT)
+              }
             }
-            """)
-            .MatchSnapshotAsync();
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgAliasExample()
     {
-        await ExpectValid(
-                @"
-                {
-                    empireHero: hero(episode: EMPIRE) {
-                        name
-                    }
-                    jediHero: hero(episode: JEDI) {
-                        name
-                    }
-                }")
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            {
+              empireHero: hero(episode: EMPIRE) {
+                name
+              }
+              jediHero: hero(episode: JEDI) {
+                name
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgFragmentExample()
     {
-        await ExpectValid(
-                @"{
-                leftComparison: hero(episode: EMPIRE) {
-                    ...comparisonFields
-                }
-                rightComparison: hero(episode: JEDI) {
-                    ...comparisonFields
-                }
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            {
+              leftComparison: hero(episode: EMPIRE) {
+                ...comparisonFields
+              }
+              rightComparison: hero(episode: JEDI) {
+                ...comparisonFields
+              }
             }
 
             fragment comparisonFields on Character {
-                name
-                appearsIn
-                friends {
-                    nodes {
-                        name
-                    }
+              name
+              appearsIn
+              friends {
+                nodes {
+                  name
                 }
-            }")
-            .MatchSnapshotAsync();
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgOperationNameExample()
     {
-        await ExpectValid(
-                @"
-                query HeroNameAndFriends {
-                    hero {
-                        name
-                        friends {
-                            nodes {
-                                name
-                            }
-                        }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query HeroNameAndFriends {
+              hero {
+                name
+                friends {
+                  nodes {
+                    name
+                  }
+                }
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgVariableExample()
     {
-        await ExpectValid(
-                @"
-                query HeroNameAndFriends($episode: Episode) {
-                    hero(episode: $episode) {
-                        name
-                        friends {
-                            nodes {
-                                name
-                            }
-                        }
-                    }
-                }",
-                request: c => c.SetVariableValues(
-                    new Dictionary<string, object?> { { "episode", new EnumValueNode("JEDI") } }))
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query HeroNameAndFriends($episode: Episode) {
+              hero(episode: $episode) {
+                name
+                friends {
+                  nodes {
+                    name
+                  }
+                }
+              }
+            }
+            """,
+            request: c => c.SetVariableValues(
+                """
+                {
+                  "episode": "JEDI"
+                }
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgVariableWithDefaultValueExample()
     {
-        await ExpectValid(
-                @"
-                query HeroNameAndFriends($episode: Episode = JEDI) {
-                    hero(episode: $episode) {
-                        name
-                        friends {
-                            nodes {
-                                name
-                            }
-                        }
-                    }
-                }")
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query HeroNameAndFriends($episode: Episode = JEDI) {
+              hero(episode: $episode) {
+                name
+                friends {
+                  nodes {
+                    name
+                  }
+                }
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgDirectiveIncludeExample1()
     {
-        await ExpectValid(
-                @"
-                query Hero($episode: Episode, $withFriends: Boolean!) {
-                    hero(episode: $episode) {
-                        name
-                        friends @include(if: $withFriends) {
-                            nodes {
-                                name
-                            }
-                        }
-                    }
-                }",
-                request: c => c.SetVariableValues(
-                    new Dictionary<string, object?>
-                    {
-                        { "episode", new EnumValueNode("JEDI") },
-                        { "withFriends", new BooleanValueNode(false) }
-                    }))
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query Hero($episode: Episode, $withFriends: Boolean!) {
+              hero(episode: $episode) {
+                name
+                friends @include(if: $withFriends) {
+                  nodes {
+                    name
+                  }
+                }
+              }
+            }
+            """,
+            request: c => c.SetVariableValues(
+                """
+                {
+                  "episode": "JEDI",
+                  "withFriends": false
+                }
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgDirectiveIncludeExample2()
     {
-        await ExpectValid(
-                @"
-                query Hero($episode: Episode, $withFriends: Boolean!) {
-                    hero(episode: $episode) {
-                        name
-                        friends @include(if: $withFriends) {
-                            nodes {
-                                name
-                            }
-                        }
-                    }
-                }",
-                request: r => r.SetVariableValues(
-                    new Dictionary<string, object?>
-                    {
-                        { "episode", new EnumValueNode("JEDI") },
-                        { "withFriends", new BooleanValueNode(true) }
-                    }))
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query Hero($episode: Episode, $withFriends: Boolean!) {
+              hero(episode: $episode) {
+                name
+                friends @include(if: $withFriends) {
+                  nodes {
+                    name
+                  }
+                }
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
+                """
+                {
+                  "episode": "JEDI",
+                  "withFriends": true
+                }
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgDirectiveSkipExample1()
     {
-        await ExpectValid(
-                @"
-                query Hero($episode: Episode, $withFriends: Boolean!) {
-                    hero(episode: $episode) {
-                        name
-                        friends @skip(if: $withFriends) {
-                            nodes {
-                                name
-                            }
-                        }
-                    }
-                }",
-                request: r => r.SetVariableValues(
-                    new Dictionary<string, object?>
-                    {
-                        { "episode", new EnumValueNode("JEDI") },
-                        { "withFriends", new BooleanValueNode(false) }
-                    }))
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query Hero($episode: Episode, $withFriends: Boolean!) {
+              hero(episode: $episode) {
+                name
+                friends @skip(if: $withFriends) {
+                  nodes {
+                    name
+                  }
+                }
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
+                """
+                {
+                  "episode": "JEDI",
+                  "withFriends": false
+                }
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgDirectiveSkipExample2()
     {
-        await ExpectValid(
-                @"
-                query Hero($episode: Episode, $withFriends: Boolean!) {
-                    hero(episode: $episode) {
-                        name
-                        friends @skip(if: $withFriends) {
-                            nodes {
-                                name
-                            }
-                        }
-                    }
-                }",
-                request: r => r.SetVariableValues(
-                    new Dictionary<string, object?>
-                    {
-                        { "episode", new EnumValueNode("JEDI") },
-                        { "withFriends", new BooleanValueNode(true) }
-                    }))
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query Hero($episode: Episode, $withFriends: Boolean!) {
+              hero(episode: $episode) {
+                name
+                friends @skip(if: $withFriends) {
+                  nodes {
+                    name
+                  }
+                }
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
+                """
+                {
+                  "episode": "JEDI",
+                  "withFriends": true
+                }
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgDirectiveSkipExample1WithPlainClrVarTypes()
     {
-        await ExpectValid(
-                @"
-                query Hero($episode: Episode, $withFriends: Boolean!) {
-                    hero(episode: $episode) {
-                        name
-                        friends @skip(if: $withFriends) {
-                            nodes {
-                                name
-                            }
-                        }
-                    }
-                }",
-                request: r => r.SetVariableValues(
-                    new Dictionary<string, object?>
-                    {
-                        { "episode", new EnumValueNode("JEDI") },
-                        { "withFriends", new BooleanValueNode(false) }
-                    }))
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query Hero($episode: Episode, $withFriends: Boolean!) {
+              hero(episode: $episode) {
+                name
+                friends @skip(if: $withFriends) {
+                  nodes {
+                    name
+                  }
+                }
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
+                """
+                {
+                  "episode": "JEDI",
+                  "withFriends": false
+                }
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgMutationExample()
     {
-        await ExpectValid(
-                @"
-                mutation CreateReviewForEpisode(
-                    $ep: Episode!, $review: ReviewInput!) {
-                    createReview(episode: $ep, review: $review) {
-                        stars
-                        commentary
-                    }
-                }",
-                request: r => r
-                    .SetVariableValues(
-                        new Dictionary<string, object?>
-                        {
-                            { "ep", new EnumValueNode("JEDI") },
-                            {
-                                "review",
-                                new ObjectValueNode(
-                                    new ObjectFieldNode("stars", new IntValueNode(5)),
-                                    new ObjectFieldNode(
-                                        "commentary",
-                                        new StringValueNode("This is a great movie!")))
-                            }
-                        }))
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) {
+              createReview(episode: $ep, review: $review) {
+                stars
+                commentary
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
+                """
+                {
+                  "ep": "JEDI",
+                  "review": {
+                    "stars": 5,
+                    "commentary": "This is a great movie!"
+                  }
+                }
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgMutationIgnoreAdditionalInputFieldsExample()
     {
-        await ExpectValid(
-                @"
-                mutation CreateReviewForEpisode(
-                    $ep: Episode!, $review: ReviewInput!) {
-                    createReview(episode: $ep, review: $review) {
-                        stars
-                        commentary
-                    }
-                }",
-                configure: c =>
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) {
+              createReview(episode: $ep, review: $review) {
+                stars
+                commentary
+              }
+            }
+            """,
+            configure: c =>
+            {
+                c.AddInputParser(options => options.IgnoreAdditionalInputFields = true);
+                AddDefaultConfiguration(c);
+            },
+            request: r => r.SetVariableValues(
+                """
                 {
-                    c.AddInputParser(options => options.IgnoreAdditionalInputFields = true);
-                    AddDefaultConfiguration(c);
-                },
-                request: r => r
-                    .SetVariableValues(
-                        new Dictionary<string, object?>
-                        {
-                            { "ep", new EnumValueNode("JEDI") },
-                            {
-                                "review",
-                                new ObjectValueNode(
-                                    // Invalid fields
-                                    new ObjectFieldNode("foo", new IntValueNode(1)),
-                                    new ObjectFieldNode("ignoreMe", new StringValueNode("ignored")),
-                                    // Valid fields
-                                    new ObjectFieldNode("stars", new IntValueNode(5)),
-                                    new ObjectFieldNode(
-                                        "commentary",
-                                        new StringValueNode("This is a great movie!")))
-                            }
-                        }))
-            .MatchSnapshotAsync();
+                  "ep": "JEDI",
+                  "review": {
+                    "foo": 1,
+                    "ignoreMe": "ignored",
+                    "stars": 5,
+                    "commentary": "This is a great movie!"
+                  }
+                }
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgTwoMutationsExample()
     {
-        await ExpectValid(
-                @"
-                mutation CreateReviewForEpisode(
-                    $ep: Episode!, $ep2: Episode!, $review: ReviewInput!) {
-                    createReview(episode: $ep, review: $review) {
-                        stars
-                        commentary
-                    }
-                    b: createReview(episode: $ep2, review: $review) {
-                        stars
-                        commentary
-                    }
-                }",
-                request: r => r
-                    .SetVariableValues(
-                        new Dictionary<string, object?>
-                        {
-                            { "ep", new EnumValueNode("JEDI") },
-                            { "ep2", new EnumValueNode("JEDI") },
-                            {
-                                "review",
-                                new ObjectValueNode(
-                                    new ObjectFieldNode("stars", new IntValueNode(5)),
-                                    new ObjectFieldNode(
-                                        "commentary",
-                                        new StringValueNode("This is a great movie!")))
-                            }
-                        }))
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            mutation CreateReviewForEpisode($ep: Episode!, $ep2: Episode!, $review: ReviewInput!) {
+              createReview(episode: $ep, review: $review) {
+                stars
+                commentary
+              }
+              b: createReview(episode: $ep2, review: $review) {
+                stars
+                commentary
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
+                """
+                {
+                  "ep": "JEDI",
+                  "ep2": "JEDI",
+                  "review": {
+                    "stars": 5,
+                    "commentary": "This is a great movie!"
+                  }
+                }
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgMutationExample_With_ValueVariables()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            mutation CreateReviewForEpisode(
+                $ep: Episode!
+                $stars: Int!
+                $commentary: String!) {
+              createReview(
+                  episode: $ep
+                  review: { stars: $stars commentary: $commentary }) {
+                stars
+                commentary
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
                 """
-                mutation CreateReviewForEpisode(
-                    $ep: Episode!
-                    $stars: Int!
-                    $commentary: String!) {
-                    createReview(
-                        episode: $ep
-                        review: { stars: $stars commentary: $commentary }) {
-                        stars
-                        commentary
-                    }
+                {
+                  "ep": "JEDI",
+                  "stars": 5,
+                  "commentary": "This is a great movie!"
                 }
-                """,
-                request: r => r
-                    .SetVariableValues(
-                        new Dictionary<string, object?>
-                        {
-                            { "ep", new EnumValueNode("JEDI") },
-                            { "stars", new IntValueNode(5) },
-                            { "commentary", new StringValueNode("This is a great movie!") }
-                        }))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgInlineFragmentExample1()
     {
-        await ExpectValid(
-                """
-                query HeroForEpisode($ep: Episode!) {
-                    hero(episode: $ep) {
-                        name
-                        ... on Droid {
-                            primaryFunction
-                        }
-                        ... on Human {
-                            height
-                        }
-                    }
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query HeroForEpisode($ep: Episode!) {
+              hero(episode: $ep) {
+                name
+                ... on Droid {
+                  primaryFunction
                 }
-                """,
-                request: r => r.SetVariableValues(
-                    new Dictionary<string, object?> { { "ep", new EnumValueNode("JEDI") } }))
-            .MatchSnapshotAsync();
+                ... on Human {
+                  height
+                }
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
+                """
+                {
+                  "ep": "JEDI"
+                }
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgInlineFragmentExample2()
     {
-        await ExpectValid(
-                """
-                query HeroForEpisode($ep: Episode!) {
-                    hero(episode: $ep) {
-                        name
-                        ... on Droid {
-                            primaryFunction
-                        }
-                        ... on Human {
-                            height
-                        }
-                    }
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query HeroForEpisode($ep: Episode!) {
+              hero(episode: $ep) {
+                name
+                ... on Droid {
+                  primaryFunction
                 }
-                """,
-                request: r => r.SetVariableValues(
-                    new Dictionary<string, object?> { { "ep", new EnumValueNode("EMPIRE") } }))
-            .MatchSnapshotAsync();
+                ... on Human {
+                  height
+                }
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
+                """
+                {
+                  "ep": "EMPIRE"
+                }
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task GraphQLOrgMetaFieldAndUnionExample()
     {
-        await ExpectValid(
-                """
-                {
-                    search(text: "an") {
-                        __typename
-                        ... on Human {
-                            name
-                            height
-                        }
-                        ... on Droid {
-                            name
-                            primaryFunction
-                        }
-                        ... on Starship {
-                            name
-                            length
-                        }
-                    }
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            {
+              search(text: "an") {
+                __typename
+                ... on Human {
+                  name
+                  height
                 }
-                """)
-            .MatchSnapshotAsync();
+                ... on Droid {
+                  name
+                  primaryFunction
+                }
+                ... on Starship {
+                  name
+                  length
+                }
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task NonNullListVariableValues()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query op($ep: [Episode!]!) {
+              heroes(episodes: $ep) {
+                name
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
                 """
-                query op($ep: [Episode!]!)
                 {
-                    heroes(episodes: $ep) {
-                        name
-                    }
+                  "ep": ["EMPIRE"]
                 }
-                """,
-                request: r => r.SetVariableValues(
-                    new Dictionary<string, object?>
-                    {
-                        { "ep", new ListValueNode(new EnumValueNode("EMPIRE")) }
-                    }))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task ConditionalInlineFragment()
     {
-        await ExpectValid(
-                """
-                {
-                    heroes(episodes: [EMPIRE]) {
-                        name
-                        ... @include(if: true) {
-                            height
-                        }
-                    }
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            {
+              heroes(episodes: [EMPIRE]) {
+                name
+                ... @include(if: true) {
+                  height
                 }
-                """)
-            .MatchSnapshotAsync();
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task NonNullEnumsSerializeCorrectlyFromVariables()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query getHero($episode: Episode!) {
+              hero(episode: $episode) {
+                name
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
                 """
-                query getHero($episode: Episode!) {
-                    hero(episode: $episode) {
-                        name
-                    }
+                {
+                  "episode": "NEW_HOPE"
                 }
-                """,
-                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task EnumValueIsCoercedToListValue()
     {
-        await ExpectValid(
-                """
-                {
-                    heroes(episodes: EMPIRE) {
-                        name
-                    }
-                }
-                """)
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            {
+              heroes(episodes: EMPIRE) {
+                name
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task TypeNameFieldIsCorrectlyExecutedOnInterfaces()
     {
-        await ExpectValid(
-                """
-                query foo {
-                    hero(episode: NEW_HOPE) {
-                        __typename
-                        id
-                        name
-                        ... on Human {
-                            __typename
-                            homePlanet
-                        }
-                        ... on Droid {
-                            __typename
-                            primaryFunction
-                        }
-                        friends {
-                            nodes {
-                                __typename
-                                ... on Human {
-                                    __typename
-                                    homePlanet
-                                }
-                                ... on Droid {
-                                    __typename
-                                    primaryFunction
-                                }
-                            }
-                        }
-                    }
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query foo {
+              hero(episode: NEW_HOPE) {
+                __typename
+                id
+                name
+                ... on Human {
+                  __typename
+                  homePlanet
                 }
-                """)
-            .MatchSnapshotAsync();
+                ... on Droid {
+                  __typename
+                  primaryFunction
+                }
+                friends {
+                  nodes {
+                    __typename
+                    ... on Human {
+                      __typename
+                      homePlanet
+                    }
+                    ... on Droid {
+                      __typename
+                      primaryFunction
+                    }
+                  }
+                }
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task Execute_ListWithNullValues_ResultContainsNullElement()
     {
-        await ExpectValid(
-                """
-                query {
-                    human(id: "1001") {
-                        id
-                        name
-                        otherHuman {
-                            name
-                        }
-                    }
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query {
+              human(id: "1001") {
+                id
+                name
+                otherHuman {
+                  name
                 }
-                """)
-            .MatchSnapshotAsync();
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SubscribeToReview()
     {
         // arrange
-        var executor = await CreateExecutorAsync(output: _output);
+        var snapshot = Snapshot.Create();
+        var executor = await CreateExecutorAsync(output: output);
 
         // act
         var subscriptionResult =
@@ -646,19 +824,17 @@ public class StarWarsCodeFirstTests
 
         var results = subscriptionResult.ReadResultsAsync();
 
-        // assert
         await executor.ExecuteAsync(
             """
             mutation {
-                createReview(episode: NEW_HOPE,
-                    review: { stars: 5 commentary: "foo" }) {
-                    stars
-                    commentary
-                }
+              createReview(episode: NEW_HOPE, review: { stars: 5 commentary: "foo" }) {
+                stars
+                commentary
+              }
             }
             """);
 
-        IOperationResult? eventResult = null;
+        OperationResult? eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {
@@ -670,41 +846,43 @@ public class StarWarsCodeFirstTests
             }
         }
 
-        eventResult?.MatchSnapshot();
+        snapshot.Add(eventResult);
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SubscribeToReview_WithInlineFragment()
     {
         // arrange
-        var executor = await CreateExecutorAsync(output: _output);
+        var snapshot = Snapshot.Create();
+        var executor = await CreateExecutorAsync(output: output);
 
         // act
         var subscriptionResult =
             (IResponseStream)await executor.ExecuteAsync(
                 """
                 subscription {
-                    onReview(episode: NEW_HOPE) {
-                        ... on Review {
-                            stars
-                        }
+                  onReview(episode: NEW_HOPE) {
+                    ... on Review {
+                      stars
                     }
+                  }
                 }
                 """);
 
-        // assert
         await executor.ExecuteAsync(
             """
             mutation {
-                createReview(episode: NEW_HOPE,
-                    review: { stars: 5 commentary: "foo" }) {
-                    stars
-                    commentary
-                }
+              createReview(episode: NEW_HOPE, review: { stars: 5 commentary: "foo" }) {
+                stars
+                commentary
+              }
             }
             """);
 
-        IOperationResult? eventResult = null;
+        OperationResult? eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {
@@ -716,43 +894,45 @@ public class StarWarsCodeFirstTests
             }
         }
 
-        eventResult?.MatchSnapshot();
+        snapshot.Add(eventResult);
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SubscribeToReview_FragmentDefinition()
     {
         // arrange
-        var executor = await CreateExecutorAsync(output: _output);
+        var snapshot = Snapshot.Create();
+        var executor = await CreateExecutorAsync(output: output);
 
         // act
         var subscriptionResult =
             (IResponseStream)await executor.ExecuteAsync(
                 """
                 subscription {
-                    onReview(episode: NEW_HOPE) {
-                        ... SomeFrag
-                    }
+                  onReview(episode: NEW_HOPE) {
+                    ... SomeFrag
+                  }
                 }
 
                 fragment SomeFrag on Review {
-                    stars
+                  stars
                 }
                 """);
 
-        // assert
         await executor.ExecuteAsync(
             """
             mutation {
-                createReview(episode: NEW_HOPE,
-                    review: { stars: 5 commentary: "foo" }) {
-                    stars
-                    commentary
-                }
+              createReview(episode: NEW_HOPE, review: { stars: 5 commentary: "foo" }) {
+                stars
+                commentary
+              }
             }
             """);
 
-        IOperationResult? eventResult = null;
+        OperationResult? eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {
@@ -764,41 +944,51 @@ public class StarWarsCodeFirstTests
             }
         }
 
-        eventResult?.MatchSnapshot();
+        snapshot.Add(eventResult);
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SubscribeToReview_With_Variables()
     {
         // arrange
+        var snapshot = Snapshot.Create();
         var executor = await CreateExecutorAsync();
 
         // act
         var subscriptionResult =
             (IResponseStream)await executor.ExecuteAsync(
-                """
-                subscription ($ep: Episode!) {
-                    onReview(episode: $ep) {
-                        stars
-                    }
-                }
-                """,
-                new Dictionary<string, object?> { { "ep", "NEW_HOPE" } },
-                CancellationToken.None);
+                OperationRequestBuilder
+                    .New()
+                    .SetDocument(
+                        """
+                        subscription ($ep: Episode!) {
+                          onReview(episode: $ep) {
+                            stars
+                          }
+                        }
+                        """)
+                    .SetVariableValues(
+                        """
+                        {
+                          "ep": "NEW_HOPE"
+                        }
+                        """)
+                    .Build());
 
-        // assert
         await executor.ExecuteAsync(
             """
             mutation {
-                createReview(episode: NEW_HOPE,
-                    review: { stars: 5 commentary: "foo" }) {
-                    stars
-                    commentary
-                }
+              createReview(episode: NEW_HOPE, review: { stars: 5 commentary: "foo" }) {
+                stars
+                commentary
+              }
             }
             """);
 
-        IOperationResult? eventResult = null;
+        OperationResult? eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {
@@ -810,7 +1000,10 @@ public class StarWarsCodeFirstTests
             }
         }
 
-        eventResult?.MatchSnapshot();
+        snapshot.Add(eventResult);
+
+        // assert
+        snapshot.Match();
     }
 
     /// <summary>
@@ -823,44 +1016,46 @@ public class StarWarsCodeFirstTests
     public async Task ExecutionDepthShouldNotLeadToEmptyObjects()
     {
         await ExpectError(
-            @"query ExecutionDepthShouldNotLeadToEmptyObjects {
-                hero(episode: NEW_HOPE) {
+            """
+            query ExecutionDepthShouldNotLeadToEmptyObjects {
+              hero(episode: NEW_HOPE) {
+                __typename
+                id
+                name
+                ... on Human {
+                  __typename
+                  homePlanet
+                }
+                ... on Droid {
+                  __typename
+                  primaryFunction
+                }
+                friends {
+                  nodes {
                     __typename
-                    id
-                    name
                     ... on Human {
-                        __typename
-                        homePlanet
+                      __typename
+                      homePlanet
+                      friends {
+                        nodes {
+                          __typename
+                        }
+                      }
                     }
                     ... on Droid {
-                        __typename
-                        primaryFunction
-                    }
-                    friends {
+                      __typename
+                      primaryFunction
+                      friends {
                         nodes {
-                            __typename
-                            ... on Human {
-                                __typename
-                                homePlanet
-                                friends {
-                                    nodes {
-                                        __typename
-                                    }
-                                }
-                            }
-                            ... on Droid {
-                                __typename
-                                primaryFunction
-                                friends {
-                                    nodes {
-                                        __typename
-                                    }
-                                }
-                            }
+                          __typename
                         }
+                      }
                     }
+                  }
                 }
-            }",
+              }
+            }
+            """,
             configure: c =>
             {
                 AddDefaultConfiguration(c);
@@ -872,44 +1067,46 @@ public class StarWarsCodeFirstTests
     public async Task OverrideExecutionDepth()
     {
         await ExpectValid(
-            @"query ExecutionDepthShouldNotLeadToEmptyObjects {
-                hero(episode: NEW_HOPE) {
+            """
+            query ExecutionDepthShouldNotLeadToEmptyObjects {
+              hero(episode: NEW_HOPE) {
+                __typename
+                id
+                name
+                ... on Human {
+                  __typename
+                  homePlanet
+                }
+                ... on Droid {
+                  __typename
+                  primaryFunction
+                }
+                friends {
+                  nodes {
                     __typename
-                    id
-                    name
                     ... on Human {
-                        __typename
-                        homePlanet
+                      __typename
+                      homePlanet
+                      friends {
+                        nodes {
+                          __typename
+                        }
+                      }
                     }
                     ... on Droid {
-                        __typename
-                        primaryFunction
-                    }
-                    friends {
+                      __typename
+                      primaryFunction
+                      friends {
                         nodes {
-                            __typename
-                            ... on Human {
-                                __typename
-                                homePlanet
-                                friends {
-                                    nodes {
-                                        __typename
-                                    }
-                                }
-                            }
-                            ... on Droid {
-                                __typename
-                                primaryFunction
-                                friends {
-                                    nodes {
-                                        __typename
-                                    }
-                                }
-                            }
+                          __typename
                         }
+                      }
                     }
+                  }
                 }
-            }",
+              }
+            }
+            """,
             configure: c =>
             {
                 AddDefaultConfiguration(c);
@@ -922,44 +1119,46 @@ public class StarWarsCodeFirstTests
     public async Task SkipExecutionDepth()
     {
         await ExpectValid(
-            @"query ExecutionDepthShouldNotLeadToEmptyObjects {
-                hero(episode: NEW_HOPE) {
+            """
+            query ExecutionDepthShouldNotLeadToEmptyObjects {
+              hero(episode: NEW_HOPE) {
+                __typename
+                id
+                name
+                ... on Human {
+                  __typename
+                  homePlanet
+                }
+                ... on Droid {
+                  __typename
+                  primaryFunction
+                }
+                friends {
+                  nodes {
                     __typename
-                    id
-                    name
                     ... on Human {
-                        __typename
-                        homePlanet
+                      __typename
+                      homePlanet
+                      friends {
+                        nodes {
+                          __typename
+                        }
+                      }
                     }
                     ... on Droid {
-                        __typename
-                        primaryFunction
-                    }
-                    friends {
+                      __typename
+                      primaryFunction
+                      friends {
                         nodes {
-                            __typename
-                            ... on Human {
-                                __typename
-                                homePlanet
-                                friends {
-                                    nodes {
-                                        __typename
-                                    }
-                                }
-                            }
-                            ... on Droid {
-                                __typename
-                                primaryFunction
-                                friends {
-                                    nodes {
-                                        __typename
-                                    }
-                                }
-                            }
+                          __typename
                         }
+                      }
                     }
+                  }
                 }
-            }",
+              }
+            }
+            """,
             configure: c =>
             {
                 AddDefaultConfiguration(c);
@@ -974,44 +1173,46 @@ public class StarWarsCodeFirstTests
     {
         // arrange
         const string queryText =
-            @"query ExecutionDepthShouldNotLeadToEmptyObjects {
-                hero(episode: NEW_HOPE) {
+            """
+            query ExecutionDepthShouldNotLeadToEmptyObjects {
+              hero(episode: NEW_HOPE) {
+                __typename
+                id
+                name
+                ... on Human {
+                  __typename
+                  homePlanet
+                }
+                ... on Droid {
+                  __typename
+                  primaryFunction
+                }
+                friends {
+                  nodes {
                     __typename
-                    id
-                    name
                     ... on Human {
-                        __typename
-                        homePlanet
+                      __typename
+                      homePlanet
+                      friends {
+                        nodes {
+                          __typename
+                        }
+                      }
                     }
                     ... on Droid {
-                        __typename
-                        primaryFunction
-                    }
-                    friends {
+                      __typename
+                      primaryFunction
+                      friends {
                         nodes {
-                            __typename
-                            ... on Human {
-                                __typename
-                                homePlanet
-                                friends {
-                                    nodes {
-                                        __typename
-                                    }
-                                }
-                            }
-                            ... on Droid {
-                                __typename
-                                primaryFunction
-                                friends {
-                                    nodes {
-                                        __typename
-                                    }
-                                }
-                            }
+                          __typename
                         }
+                      }
                     }
+                  }
                 }
-            }";
+              }
+            }
+            """;
 
         var configurationA = new TestConfiguration
         {
@@ -1035,7 +1236,7 @@ public class StarWarsCodeFirstTests
         var resultB = await executor.ExecuteAsync(requestB);
 
         // assert
-        Assert.Null(Assert.IsType<OperationResult>(resultA).Errors);
+        Assert.Empty(Assert.IsType<OperationResult>(resultA).Errors);
         Assert.NotNull(Assert.IsType<OperationResult>(resultB).Errors);
     }
 
@@ -1043,30 +1244,32 @@ public class StarWarsCodeFirstTests
     public async Task Execution_Depth_Is_Skipped_For_Introspection()
     {
         await ExpectValid(
-            @"query {
-                __schema {
-                    types {
-                        fields {
-                            type {
-                                kind
-                                name
-                                ofType {
-                                    kind
-                                    name
-                                    ofType {
-                                        kind
-                                        name
-                                        ofType {
-                                            kind
-                                            name
-                                        }
-                                    }
-                                }
-                            }
+            """
+            query {
+              __schema {
+                types {
+                  fields {
+                    type {
+                      kind
+                      name
+                      ofType {
+                        kind
+                        name
+                        ofType {
+                          kind
+                          name
+                          ofType {
+                            kind
+                            name
+                          }
                         }
+                      }
                     }
+                  }
                 }
-            }",
+              }
+            }
+            """,
             configure: c =>
             {
                 AddDefaultConfiguration(c);
@@ -1079,16 +1282,22 @@ public class StarWarsCodeFirstTests
     [Theory]
     public async Task Include_With_Literal(string ifValue)
     {
-        await ExpectValid(
-                $$"""
-                  {
-                      human(id: "1000") {
-                          name @include(if: {{ifValue}})
-                          height
-                      }
-                  }
-                  """)
-            .MatchSnapshotAsync(postFix: ifValue);
+        // arrange
+        var snapshot = Snapshot.Create(postFix: ifValue);
+
+        // act
+        snapshot.Add(await ExpectValid(
+            $$"""
+            {
+              human(id: "1000") {
+                name @include(if: {{ifValue}})
+                height
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [InlineData(true)]
@@ -1096,17 +1305,28 @@ public class StarWarsCodeFirstTests
     [Theory]
     public async Task Include_With_Variable(bool ifValue)
     {
-        await ExpectValid(
-                """
-                query ($if: Boolean!) {
-                    human(id: "1000") {
-                        name @include(if: $if)
-                        height
-                    }
+        // arrange
+        var snapshot = Snapshot.Create(postFix: ifValue.ToString());
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query ($if: Boolean!) {
+              human(id: "1000") {
+                name @include(if: $if)
+                height
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
+                $$"""
+                {
+                  "if": {{ifValue.ToString().ToLowerInvariant()}}
                 }
-                """,
-                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", ifValue } }))
-            .MatchSnapshotAsync(postFix: ifValue);
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [InlineData("true")]
@@ -1114,16 +1334,22 @@ public class StarWarsCodeFirstTests
     [Theory]
     public async Task Skip_With_Literal(string ifValue)
     {
-        await ExpectValid(
-                $$"""
-                  {
-                      human(id: "1000") {
-                          name @skip(if: {{ifValue}})
-                          height
-                      }
-                  }
-                  """)
-            .MatchSnapshotAsync(postFix: ifValue);
+        // arrange
+        var snapshot = Snapshot.Create(postFix: ifValue);
+
+        // act
+        snapshot.Add(await ExpectValid(
+            $$"""
+            {
+              human(id: "1000") {
+                name @skip(if: {{ifValue}})
+                height
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [InlineData(true)]
@@ -1131,173 +1357,263 @@ public class StarWarsCodeFirstTests
     [Theory]
     public async Task Skip_With_Variable(bool ifValue)
     {
-        await ExpectValid(
-                """
-                query ($if: Boolean!) {
-                    human(id: "1000") {
-                        name @skip(if: $if)
-                        height
-                    }
+        // arrange
+        var snapshot = Snapshot.Create(postFix: ifValue.ToString());
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query ($if: Boolean!) {
+              human(id: "1000") {
+                name @skip(if: $if)
+                height
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
+                $$"""
+                {
+                  "if": {{ifValue.ToString().ToLowerInvariant()}}
                 }
-                """,
-                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", ifValue } }))
-            .MatchSnapshotAsync(postFix: ifValue);
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SkipAll()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query ($if: Boolean!) {
+              human(id: "1000") @skip(if: $if) {
+                name
+                height
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
                 """
-                query ($if: Boolean!) {
-                    human(id: "1000") @skip(if: $if) {
-                        name
-                        height
-                    }
+                {
+                  "if": true
                 }
-                """,
-                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", true } }))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SkipAll_Default_False()
     {
-        await ExpectValid(
-                """
-                query ($if: Boolean! = false) {
-                    human(id: "1000") @skip(if: $if) {
-                        name
-                        height
-                    }
-                }
-                """)
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query ($if: Boolean! = false) {
+              human(id: "1000") @skip(if: $if) {
+                name
+                height
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SkipAll_Default_True()
     {
-        await ExpectValid(
-                """
-                query ($if: Boolean! = true) {
-                    human(id: "1000") @skip(if: $if) {
-                        name
-                        height
-                    }
-                }
-                """)
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query ($if: Boolean! = true) {
+              human(id: "1000") @skip(if: $if) {
+                name
+                height
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task SkipAllSecondLevelFields()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query ($if: Boolean!) {
+              human(id: "1000") {
+                name @skip(if: $if)
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
                 """
-                query ($if: Boolean!) {
-                    human(id: "1000")  {
-                        name @skip(if: $if)
-                    }
+                {
+                  "if": true
                 }
-                """,
-                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", true } }))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task Ensure_Type_Introspection_Returns_Null_If_Type_Not_Found()
     {
-        await ExpectValid(
-                """
-                query {
-                    a: __type(name: "Foo") {
-                        name
-                    }
-                    b: __type(name: "Query") {
-                        name
-                    }
-                }
-                """)
-            .MatchSnapshotAsync();
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query {
+              a: __type(name: "Foo") {
+                name
+              }
+              b: __type(name: "Query") {
+                name
+              }
+            }
+            """));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task Ensure_Benchmark_Query_GetHeroQuery()
     {
+        // arrange
+        var snapshot = Snapshot.Create();
         var query = FileResource.Open("GetHeroQuery.graphql");
-        await ExpectValid(query).MatchSnapshotAsync();
+
+        // act
+        snapshot.Add(await ExpectValid(query));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task Ensure_Benchmark_Query_GetHeroWithFriendsQuery()
     {
+        // arrange
+        var snapshot = Snapshot.Create();
         var query = FileResource.Open("GetHeroWithFriendsQuery.graphql");
-        await ExpectValid(query).MatchSnapshotAsync();
+
+        // act
+        snapshot.Add(await ExpectValid(query));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task Ensure_Benchmark_Query_GetTwoHeroesWithFriendsQuery()
     {
+        // arrange
+        var snapshot = Snapshot.Create();
         var query = FileResource.Open("GetTwoHeroesWithFriendsQuery.graphql");
-        await ExpectValid(query).MatchSnapshotAsync();
+
+        // act
+        snapshot.Add(await ExpectValid(query));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task Ensure_Benchmark_Query_LargeQuery()
     {
+        // arrange
+        var snapshot = Snapshot.Create();
         var query = FileResource.Open("LargeQuery.graphql");
-        await ExpectValid(query).MatchSnapshotAsync();
+
+        // act
+        snapshot.Add(await ExpectValid(query));
+
+        // assert
+        snapshot.Match();
     }
 
     [Fact]
     public async Task NestedFragmentsWithNestedObjectFieldsAndSkip()
     {
-        await ExpectValid(
+        // arrange
+        var snapshot = Snapshot.Create();
+
+        // act
+        snapshot.Add(await ExpectValid(
+            """
+            query ($if: Boolean!) {
+              human(id: "1000") {
+                ... Human1 @include(if: $if)
+                ... Human2 @skip(if: $if)
+              }
+            }
+            fragment Human1 on Human {
+              friends {
+                edges {
+                  ... FriendEdge1
+                }
+              }
+            }
+            fragment FriendEdge1 on FriendsEdge {
+              node {
+                __typename
+                friends {
+                  nodes {
+                    __typename
+                    ... Human3
+                  }
+                }
+              }
+            }
+            fragment Human2 on Human {
+              friends {
+                edges {
+                  node {
+                    __typename
+                    ... Human3
+                  }
+                }
+              }
+            }
+            fragment Human3 on Human {
+              name
+              otherHuman {
+                __typename
+                name
+              }
+            }
+            """,
+            request: r => r.SetVariableValues(
                 """
-                query ($if: Boolean!) {
-                    human(id: "1000") {
-                        ... Human1 @include(if: $if)
-                        ... Human2 @skip(if: $if)
-                    }
+                {
+                  "if": true
                 }
-                fragment Human1 on Human {
-                    friends {
-                        edges {
-                            ... FriendEdge1
-                        }
-                    }
-                }
-                fragment FriendEdge1 on FriendsEdge {
-                    node {
-                        __typename
-                        friends {
-                            nodes {
-                                __typename
-                                ... Human3
-                            }
-                        }
-                    }
-                }
-                fragment Human2 on Human {
-                    friends {
-                        edges {
-                            node {
-                                __typename
-                                ... Human3
-                            }
-                        }
-                    }
-                }
-                fragment Human3 on Human {
-                    name
-                    otherHuman {
-                      __typename
-                      name
-                    }
-                }
-                """,
-                request: r => r.SetVariableValues(new Dictionary<string, object?> { { "if", true } }))
-            .MatchSnapshotAsync();
+                """)));
+
+        // assert
+        snapshot.Match();
     }
 }

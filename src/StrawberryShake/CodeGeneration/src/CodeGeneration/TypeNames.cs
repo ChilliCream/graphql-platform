@@ -144,6 +144,7 @@ public static class TypeNames
 
     public const string String = "global::System.String";
     public const string Byte = "global::System.Byte";
+    public const string SByte = "global::System.SByte";
     public const string ByteArray = "global::System.Byte[]";
     public const string Array = "global::System.Array";
     public const string Int16 = "global::System.Int16";
@@ -268,6 +269,9 @@ public static class TypeNames
     public const string DecimalSerializer =
         StrawberryShakeNamespace + "Serialization.DecimalSerializer";
 
+    public const string UriSerializer =
+        StrawberryShakeNamespace + "Serialization.UriSerializer";
+
     public const string UrlSerializer =
         StrawberryShakeNamespace + "Serialization.UrlSerializer";
 
@@ -291,11 +295,26 @@ public static class TypeNames
     public const string LocalTimeSerializer =
         StrawberryShakeNamespace + "Serialization.LocalTimeSerializer";
 
+    public const string Base64StringSerializer =
+        StrawberryShakeNamespace + "Serialization.Base64StringSerializer";
+
     public const string ByteArraySerializer =
         StrawberryShakeNamespace + "Serialization.ByteArraySerializer";
 
     public const string TimeSpanSerializer =
         StrawberryShakeNamespace + "Serialization.TimeSpanSerializer";
+
+    public const string UnsignedByteSerializer =
+        StrawberryShakeNamespace + "Serialization.UnsignedByteSerializer";
+
+    public const string UnsignedIntSerializer =
+        StrawberryShakeNamespace + "Serialization.UnsignedIntSerializer";
+
+    public const string UnsignedLongSerializer =
+        StrawberryShakeNamespace + "Serialization.UnsignedLongSerializer";
+
+    public const string UnsignedShortSerializer =
+        StrawberryShakeNamespace + "Serialization.UnsignedShortSerializer";
 
     public const string JsonSerializer =
         StrawberryShakeNamespace + "Serialization.JsonSerializer";

@@ -21,6 +21,16 @@ public class QueryableBooleanNotEqualsHandler
         object? parsedValue)
     {
         var property = context.GetInstance();
+
+        if (parsedValue is bool boolValue && property.Type == typeof(bool))
+        {
+            return boolValue
+                ? FilterExpressionBuilder.Not(property)
+                : property;
+        }
+
         return FilterExpressionBuilder.NotEquals(property, parsedValue);
     }
+
+    public static QueryableBooleanNotEqualsHandler Create(FilterProviderContext context) => new(context.InputParser);
 }

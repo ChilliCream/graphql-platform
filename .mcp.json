@@ -1,8 +1,12 @@
 {
   "mcpServers": {
-    "microsoft.docs.mcp": {
-      "type": "http",
-      "url": "https://learn.microsoft.com/api/mcp"
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "lighthouse": {
+      "command": "npx",
+      "args": ["-y", "@danielsogl/lighthouse-mcp@latest"]
     }
   }
 }

@@ -1,7 +1,11 @@
+using System.Text.Json;
 using CookieCrumble.Xunit.Attributes;
 using HotChocolate.Execution;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace HotChocolate.Types;
 
@@ -37,150 +41,94 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         StringValueNode valueSyntax = new("89° 0' 0.000\" S");
 
         // act
-        var result = scalar.IsInstanceOfType(valueSyntax);
+        var result = scalar.IsValueCompatible(valueSyntax);
 
         // assert
         Assert.True(result);
     }
 
     [Fact]
-    protected void Latitude_ExpectIsDoubleInstanceToMatch()
-    {
-        // arrange
-        var scalar = CreateType<LatitudeType>();
-        const double valueSyntax = 89d;
-
-        // act
-        var result = scalar.IsInstanceOfType(valueSyntax);
-
-        // assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    protected void Latitude_ExpectIsDoubleInstanceToFail_LessThanMin()
-    {
-        // arrange
-        var scalar = CreateType<LatitudeType>();
-        const double valueSyntax = -91d;
-
-        // act
-        var result = scalar.IsInstanceOfType(valueSyntax);
-
-        // assert
-        Assert.False(result);
-    }
-
-    [Fact]
-    protected void Latitude_ExpectIsDoubleInstanceToFail_GreaterThanMax()
-    {
-        // arrange
-        var scalar = CreateType<LatitudeType>();
-        const double valueSyntax = 91d;
-
-        // act
-        var result = scalar.IsInstanceOfType(valueSyntax);
-
-        // assert
-        Assert.False(result);
-    }
-
-    [Fact]
-    protected void Latitude_ExpectParseResultToMatchNull()
-    {
-        // arrange
-        ScalarType scalar = new LatitudeType();
-        object valueSyntax = null!;
-
-        // act
-        var result = scalar.ParseResult(valueSyntax);
-
-        // assert
-        Assert.Equal(typeof(NullValueNode), result.GetType());
-    }
-
-    [Fact]
-    protected void Latitude_ExpectParseResultToThrowOnInvalidString()
+    protected void Latitude_ExpectValueToLiteralToThrowOnInvalidString()
     {
         // arrange
         ScalarType scalar = new LatitudeType();
         const string valueSyntax = "92° 0' 0.000\" S";
 
         // act
-        var result = Record.Exception(() => scalar.ParseResult(valueSyntax));
+        var result = Record.Exception(() => scalar.ValueToLiteral(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
-    protected void Latitude_ExpectParseResultToMatchInt()
+    protected void Latitude_ExpectValueToLiteralToMatchInt()
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const int valueSyntax = 89;
+        const double valueSyntax = 89;
 
         // act
-        var result = scalar.ParseResult(valueSyntax);
+        var result = scalar.ValueToLiteral(valueSyntax);
 
         // assert
         Assert.Equal(typeof(StringValueNode), result.GetType());
     }
 
     [Fact]
-    protected void Latitude_ExpectParseResultToThrowOnInvalidInt()
+    protected void Latitude_ExpectValueToLiteralToThrowOnInvalidInt()
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const int valueSyntax = 92;
+        const double valueSyntax = 92;
 
         // act
-        var result = Record.Exception(() => scalar.ParseResult(valueSyntax));
+        var result = Record.Exception(() => scalar.ValueToLiteral(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
-    protected void Latitude_ExpectParseResultToMatchDouble()
+    protected void Latitude_ExpectValueToLiteralToMatchDouble()
     {
         // arrange
         ScalarType scalar = new LatitudeType();
         const double valueSyntax = 89d;
 
         // act
-        var result = scalar.ParseResult(valueSyntax);
+        var result = scalar.ValueToLiteral(valueSyntax);
 
         // assert
         Assert.Equal(typeof(StringValueNode), result.GetType());
     }
 
     [Fact]
-    protected void Latitude_ExpectParseResultToThrowOnInvalidDouble()
+    protected void Latitude_ExpectValueToLiteralToThrowOnInvalidDouble()
     {
         // arrange
         ScalarType scalar = new LatitudeType();
         const double valueSyntax = 92d;
 
         // act
-        var result = Record.Exception(() => scalar.ParseResult(valueSyntax));
+        var result = Record.Exception(() => scalar.ValueToLiteral(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
-    protected void Latitude_ExpectParseResultToThrowOnInvalidType()
+    protected void Latitude_ExpectValueToLiteralToThrowOnInvalidType()
     {
         // arrange
         ScalarType scalar = new LatitudeType();
         const char valueSyntax = 'c';
 
         // act
-        var result = Record.Exception(() => scalar.ParseResult(valueSyntax));
+        var result = Record.Exception(() => scalar.ValueToLiteral(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Theory]
@@ -211,7 +159,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         StringValueNode valueSyntax = new(literal);
 
         // act
-        object result = ToPrecision(scalar, valueSyntax, precision);
+        var result = ToPrecision(scalar, valueSyntax, precision);
 
         // assert
         Assert.Equal(runtime, result);
@@ -225,35 +173,21 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         StringValueNode valueSyntax = new("foo");
 
         // act
-        var result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
+        var result = Record.Exception(() => scalar.CoerceInputLiteral(valueSyntax));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
-    public void Latitude_ParseLiteral_NullValueNode()
-    {
-        // arrange
-        var scalar = CreateType<LatitudeType>();
-        var literal = NullValueNode.Default;
-
-        // act
-        var value = scalar.ParseLiteral(literal)!;
-
-        // assert
-        Assert.Null(value);
-    }
-
-    [Fact]
-    protected void Latitude_ExpectParseValueToMatchType()
+    protected void Latitude_ExpectValueToLiteralToMatchType()
     {
         // arrange
         var scalar = CreateType<LatitudeType>();
         const double valueSyntax = 74.3;
 
         // act
-        var result = scalar.ParseValue(valueSyntax);
+        var result = scalar.ValueToLiteral(valueSyntax);
 
         // assert
         Assert.Equal(typeof(StringValueNode), result.GetType());
@@ -276,177 +210,199 @@ public class LatitudeTypeTests : ScalarTypeTestBase
     [InlineData(-23.3220703, "23° 19' 19.45308\" S")]
     [InlineData(66.00610639, "66° 0' 21.983004\" N")]
     [InlineData(76.82079028, "76° 49' 14.845008\" N")]
-    protected void Latitude_ExpectParseValueToMatch(double runtime, string literal)
+    protected void Latitude_ExpectValueToLiteralToMatch(double runtime, string literal)
     {
         // arrange
         var scalar = CreateType<LatitudeType>();
         StringValueNode expected = new(literal);
 
         // act
-        var result = scalar.ParseValue(runtime);
+        var result = scalar.ValueToLiteral(runtime);
 
         // assert
         Assert.Equal(expected, result, SyntaxComparer.BySyntax);
     }
 
     [Fact]
-    protected void Latitude_ExpectParseValueToThrowSerializationException_GreaterThanMax()
+    protected void Latitude_ExpectValueToLiteralToThrowSerializationException_GreaterThanMax()
     {
         // arrange
         var scalar = CreateType<LatitudeType>();
         const double runtimeValue = 91d;
 
         // act
-        var result = Record.Exception(() => scalar.ParseValue(runtimeValue));
+        var result = Record.Exception(() => scalar.ValueToLiteral(runtimeValue));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
-    protected void Latitude_ExpectParseValueToThrowSerializationException_LessThanMin()
+    protected void Latitude_ExpectValueToLiteralToThrowSerializationException_LessThanMin()
     {
         // arrange
         var scalar = CreateType<LatitudeType>();
         const double runtimeValue = -91d;
 
         // act
-        var result = Record.Exception(() => scalar.ParseValue(runtimeValue));
+        var result = Record.Exception(() => scalar.ValueToLiteral(runtimeValue));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
-    protected void Latitude_ExpectDeserializeStringToMatch()
+    protected void Latitude_ExpectCoerceInputValueToMatch()
     {
         // arrange
         ScalarType scalar = new LatitudeType();
         const double expectedValue = -89d;
+        var inputValue = JsonDocument.Parse("\"89° 0' 0.000\\\" S\"").RootElement;
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
 
         // act
-        var success = scalar.TryDeserialize("89° 0' 0.000\" S",
-            out var deserialized);
+        var result = scalar.CoerceInputValue(inputValue, context.Object);
 
         // assert
-        Assert.True(success);
-        Assert.Equal(expectedValue, deserialized);
+        Assert.Equal(expectedValue, result);
     }
 
     [Fact]
-    protected void Latitude_ExpectDeserializeStringToThrowSerializationException_LessThanMin()
+    protected void Latitude_ExpectCoerceInputValueToThrowSerializationException_LessThanMin()
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const string valueSyntax = "91° 0' 0.000\" S";
+        var inputValue = JsonDocument.Parse("\"91° 0' 0.000\\\" S\"").RootElement;
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
 
         // act
-
-        var result = Record.Exception(() => scalar.Deserialize(valueSyntax));
+        var result = Record.Exception(() => scalar.CoerceInputValue(inputValue, context.Object));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
-    protected void
-        Latitude_ExpectDeserializeStringToThrowSerializationException_GreaterThanMax()
+    protected void Latitude_ExpectCoerceInputValueToThrowSerializationException_GreaterThanMax()
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const string? valueSyntax = "92° 0' 0.000\" N";
+        var inputValue = JsonDocument.Parse("\"92° 0' 0.000\\\" N\"").RootElement;
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
 
         // act
-        var result = Record.Exception(() => scalar.Deserialize(valueSyntax));
+        var result = Record.Exception(() => scalar.CoerceInputValue(inputValue, context.Object));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
-    public void Latitude_ExpectSerializeInt()
+    public void Latitude_ExpectCoerceOutputValueInt()
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const int valueSyntax = 89;
+        const double runtimeValue = 89;
 
         // act
-        var success = scalar.TrySerialize(valueSyntax, out var s);
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultElement = resultDocument.Data.GetProperty("first");
+        scalar.CoerceOutputValue(runtimeValue, resultElement);
 
         // assert
-        Assert.True(success);
-        Assert.IsType<string>(s);
+        resultElement.MatchSnapshot();
     }
 
     [Fact]
-    protected void Latitude_ExpectSerializeIntToThrowSerializationException_LessThanMin()
+    protected void Latitude_ExpectCoerceOutputValueIntToThrowSerializationException_LessThanMin()
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const int valueSyntax = -91;
+        const double runtimeValue = -91;
 
         // act
-        var result = Record.Exception(() => scalar.Serialize(valueSyntax));
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultElement = resultDocument.Data.GetProperty("first");
+        var result = Record.Exception(() => scalar.CoerceOutputValue(runtimeValue, resultElement));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
-    protected void Latitude_ExpectSerializeIntToThrowSerializationException_GreaterThanMax()
+    protected void Latitude_ExpectCoerceOutputValueIntToThrowSerializationException_GreaterThanMax()
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const int valueSyntax = 91;
+        const double runtimeValue = 91;
 
         // act
-        var result = Record.Exception(() => scalar.Serialize(valueSyntax));
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultElement = resultDocument.Data.GetProperty("first");
+        var result = Record.Exception(() => scalar.CoerceOutputValue(runtimeValue, resultElement));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
-    public void Latitude_ExpectSerializeDouble()
+    public void Latitude_ExpectCoerceOutputValueDouble()
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const double valueSyntax = 89d;
+        const double runtimeValue = 89d;
 
         // act
-        var success = scalar.TrySerialize(valueSyntax, out var d);
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultElement = resultDocument.Data.GetProperty("first");
+        scalar.CoerceOutputValue(runtimeValue, resultElement);
 
         // assert
-        Assert.True(success);
-        Assert.IsType<string>(d);
+        resultElement.MatchSnapshot();
     }
 
     [Fact]
-    protected void Latitude_ExpectSerializeDoubleToThrowSerializationException_LessThanMin()
+    protected void Latitude_ExpectCoerceOutputValueDoubleToThrowSerializationException_LessThanMin()
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const double valueSyntax = -91d;
+        const double runtimeValue = -91d;
 
         // act
-        var result = Record.Exception(() => scalar.Serialize(valueSyntax));
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultElement = resultDocument.Data.GetProperty("first");
+        var result = Record.Exception(() => scalar.CoerceOutputValue(runtimeValue, resultElement));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
-    protected void Latitude_ExpectSerializeDoubleToThrowSerializationException_GreaterThanMax()
+    protected void Latitude_ExpectCoerceOutputValueDoubleToThrowSerializationException_GreaterThanMax()
     {
         // arrange
         ScalarType scalar = new LatitudeType();
-        const double valueSyntax = 91d;
+        const double runtimeValue = 91d;
 
         // act
-        var result = Record.Exception(() => scalar.Serialize(valueSyntax));
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(operation, 0);
+        var resultElement = resultDocument.Data.GetProperty("first");
+        var result = Record.Exception(() => scalar.CoerceOutputValue(runtimeValue, resultElement));
 
         // assert
-        Assert.IsType<SerializationException>(result);
+        Assert.IsType<LeafCoercionException>(result);
     }
 
     [Fact]
@@ -484,7 +440,7 @@ public class LatitudeTypeTests : ScalarTypeTestBase
         int precision = 8)
     {
         return Math.Round(
-            (double)scalar.ParseLiteral(valueSyntax)!,
+            (double)scalar.CoerceInputLiteral(valueSyntax)!,
             precision,
             MidpointRounding.AwayFromZero);
     }

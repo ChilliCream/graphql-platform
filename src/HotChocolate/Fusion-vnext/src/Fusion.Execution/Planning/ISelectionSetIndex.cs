@@ -15,8 +15,6 @@ public interface ISelectionSetIndex
     /// <returns></returns>
     uint GetId(SelectionSetNode selectionSet);
 
-    bool TryGetId(SelectionSetNode selectionSet, out uint id);
-
     bool TryGetOriginalIdFromCloned(uint clonedId, out uint originalId);
 
     bool IsRegistered(SelectionSetNode selectionSet);

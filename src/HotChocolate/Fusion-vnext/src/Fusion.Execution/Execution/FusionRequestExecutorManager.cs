@@ -176,6 +176,7 @@ internal sealed class FusionRequestExecutorManager
 
         var options = CreateOptions(setup);
         var requestOptions = CreateRequestOptions(setup);
+        var plannerOptions = CreatePlannerOptions(setup);
         var parserOptions = CreateParserOptions(setup);
         var clientConfigurations = CreateClientConfigurations(setup, configuration.Settings.Document);
         var features = CreateSchemaFeatures(
@@ -184,7 +185,7 @@ internal sealed class FusionRequestExecutorManager
             requestOptions,
             parserOptions,
             clientConfigurations);
-        var schemaServices = CreateSchemaServices(setup, options, requestOptions);
+        var schemaServices = CreateSchemaServices(setup, options, requestOptions, plannerOptions);
 
         var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
         var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
@@ -259,6 +260,20 @@ internal sealed class FusionRequestExecutorManager
         return options;
     }
 
+    private static OperationPlannerOptions CreatePlannerOptions(FusionGatewaySetup setup)
+    {
+        var options = new OperationPlannerOptions();
+
+        foreach (var configure in setup.PlannerOptionsModifiers)
+        {
+            configure.Invoke(options);
+        }
+
+        options.MakeReadOnly();
+
+        return options;
+    }
+
     private static ParserOptions CreateParserOptions(FusionGatewaySetup setup)
     {
         var options = new FusionParserOptions();
@@ -290,12 +305,21 @@ internal sealed class FusionRequestExecutorManager
                 {
                     if (transports.TryGetProperty("http", out var http))
                     {
-                        var hasClientName = http.TryGetProperty("clientName", out var clientName);
+                        var clientName = SourceSchemaHttpClientConfiguration.DefaultClientName;
+
+                        if (http.TryGetProperty("clientName", out var clientNameProperty)
+                            && clientNameProperty.ValueKind is JsonValueKind.String
+                            && clientNameProperty.GetString() is { } customClientName
+                            && !string.IsNullOrEmpty(customClientName))
+                        {
+                            clientName = customClientName;
+                        }
 
                         var httpClient = new SourceSchemaHttpClientConfiguration(
-                            sourceSchema.Name,
-                            httpClientName: hasClientName ? clientName.GetString()! : "fusion",
-                            new Uri(http.GetProperty("url").GetString()!));
+                            name: sourceSchema.Name,
+                            httpClientName: clientName,
+                            baseAddress: new Uri(http.GetProperty("url").GetString()!),
+                            batchingMode: GetBatchingMode(http));
 
                         configurations.Add(httpClient);
                     }
@@ -309,6 +333,18 @@ internal sealed class FusionRequestExecutorManager
         }
 
         return new SourceSchemaClientConfigurations(configurations);
+    }
+
+    private static SourceSchemaHttpClientBatchingMode GetBatchingMode(JsonElement httpSettings)
+    {
+        if (httpSettings.TryGetProperty("batchingMode", out var batchingMode)
+            && batchingMode.ValueKind == JsonValueKind.String
+            && batchingMode.GetString() == "REQUEST_BATCHING")
+        {
+            return SourceSchemaHttpClientBatchingMode.ApolloRequestBatching;
+        }
+
+        return SourceSchemaHttpClientBatchingMode.VariableBatching;
     }
 
     private FeatureCollection CreateSchemaFeatures(
@@ -352,12 +388,13 @@ internal sealed class FusionRequestExecutorManager
     private ServiceProvider CreateSchemaServices(
         FusionGatewaySetup setup,
         FusionOptions options,
-        FusionRequestOptions requestOptions)
+        FusionRequestOptions requestOptions,
+        OperationPlannerOptions plannerOptions)
     {
         var schemaServices = new ServiceCollection();
 
         AddCoreServices(schemaServices, options, requestOptions);
-        AddOperationPlanner(schemaServices);
+        AddOperationPlanner(schemaServices, plannerOptions);
         AddParserServices(schemaServices);
         AddDocumentValidator(setup, schemaServices);
         AddDiagnosticEvents(schemaServices);
@@ -407,7 +444,9 @@ internal sealed class FusionRequestExecutorManager
         services.AddTransient<CompositeTypeInterceptor>(static _ => new IntrospectionFieldInterceptor());
     }
 
-    private static void AddOperationPlanner(IServiceCollection services)
+    private static void AddOperationPlanner(
+        IServiceCollection services,
+        OperationPlannerOptions plannerOptions)
     {
         services.TryAddSingleton<ObjectPoolProvider>(
             static _ => new DefaultObjectPoolProvider());
@@ -429,10 +468,13 @@ internal sealed class FusionRequestExecutorManager
                 sp.GetRequiredService<FusionSchemaDefinition>(),
                 sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>()));
 
+        services.AddSingleton(plannerOptions);
+
         services.AddSingleton(
             static sp => new OperationPlanner(
                 sp.GetRequiredService<FusionSchemaDefinition>(),
-                sp.GetRequiredService<OperationCompiler>()));
+                sp.GetRequiredService<OperationCompiler>(),
+                sp.GetRequiredService<OperationPlannerOptions>()));
     }
 
     private static void AddParserServices(IServiceCollection services)
@@ -560,7 +602,7 @@ internal sealed class FusionRequestExecutorManager
         public FusionSchemaDefinition Schema { get; set; } = null!;
     }
 
-    public sealed class RequestExecutorRegistration : IAsyncDisposable
+    private sealed class RequestExecutorRegistration : IAsyncDisposable
     {
         private readonly CancellationTokenSource _cancellationTokenSource = new();
         private readonly CancellationToken _cancellationToken;

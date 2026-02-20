@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.Directives;
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Fusion.Info;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
@@ -25,7 +26,7 @@ internal class TagDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
 
     public override void MergeDirectives(
         IDirectivesProvider mergedMember,
-        ImmutableArray<IDirectivesProvider> memberDefinitions,
+        ImmutableArray<DirectivesProviderInfo> memberDefinitions,
         MutableSchemaDefinition mergedSchema)
     {
         if (MergeBehavior is DirectiveMergeBehavior.Ignore)
@@ -41,7 +42,7 @@ internal class TagDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
 
         var uniqueTagDirectives =
             memberDefinitions
-                .SelectMany(d => d.Directives.Where(dir => dir.Name == DirectiveNames.Tag))
+                .SelectMany(d => d.Member.Directives.Where(dir => dir.Name == DirectiveNames.Tag))
                 .Select(TagDirective.From)
                 .DistinctBy(d => d.Name);
 

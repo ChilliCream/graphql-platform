@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
@@ -21,7 +21,9 @@ public class RequiredAttributeTests
     {
         // arrange
         var inspector = new DefaultTypeInspector(ignoreRequiredAttribute: true);
-        var services = new DictionaryServiceProvider(typeof(ITypeInspector), inspector);
+        var services = new ServiceCollection()
+            .AddSingleton(typeof(ITypeInspector), inspector)
+            .BuildServiceProvider();
 
         // act & assert
         SchemaBuilder.New()

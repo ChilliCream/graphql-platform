@@ -83,7 +83,9 @@ namespace TestNamespace
                     var naming = field.Context.Naming;
 
                     configuration.Description = "Gets a user by ID.\nReturns null if not found.";
-                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<string>>>), HotChocolate.Types.TypeContext.Output);
+                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                        typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
                     configuration.ResultType = typeof(string);
 
                     configuration.SetSourceGeneratorFlags();
@@ -98,7 +100,9 @@ namespace TestNamespace
                         {
                             Name = naming.GetMemberName("userId", global::HotChocolate.Types.MemberKind.Argument),
                             Description = "The user's unique identifier with \"quotes\"",
-                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<int>>>), HotChocolate.Types.TypeContext.Input),
+                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                                typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Input),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int"))),
                             RuntimeType = typeof(int)
                         };
 
@@ -115,7 +119,9 @@ namespace TestNamespace
                             Name = naming.GetMemberName("includeDeleted", global::HotChocolate.Types.MemberKind.Argument),
                             Description = "Include deleted users (default: false)",
                             RuntimeDefaultValue = false,
-                            Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Internal.SourceGeneratedType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Internal.NamedRuntimeType<bool>>>), HotChocolate.Types.TypeContext.Input),
+                            Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
+                                typeInspector.GetTypeRef(typeof(bool), HotChocolate.Types.TypeContext.Input),
+                                new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("bool"))),
                             RuntimeType = typeof(bool)
                         };
 

@@ -5,7 +5,7 @@ using static HotChocolate.AspNetCore.Tests.Utilities.TestServerExtensions;
 
 namespace HotChocolate.Transport.Http;
 
-public class VariableBatchRequestTestss(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
+public class VariableBatchRequestTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
     [Fact]
     public async Task Should_WriteNullValues()

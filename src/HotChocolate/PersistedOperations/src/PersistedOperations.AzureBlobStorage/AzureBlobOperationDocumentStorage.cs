@@ -8,7 +8,7 @@ using HotChocolate.Language;
 namespace HotChocolate.PersistedOperations.AzureBlobStorage;
 
 /// <summary>
-/// An implementation of <see cref="IOperationDocumentStorage"/> that uses Redis as a storage.
+/// An implementation of <see cref="IOperationDocumentStorage"/> that uses Azure Blob Storage.
 /// </summary>
 public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
 {
@@ -71,10 +71,10 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
                     buffer = newBuffer;
                 }
 
-                var read = await blobStream.ReadAsync(buffer, position, 256, ct);
+                var read = await blobStream.ReadAsync(buffer.AsMemory(position, 256), ct);
                 position += read;
 
-                if (read < 256)
+                if (read == 0)
                 {
                     break;
                 }
