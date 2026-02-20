@@ -294,6 +294,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to InputPrecision must be less than or equal to 7..
+        /// </summary>
+        internal static string DateTimeOptions_InputPrecision_InvalidValue {
+            get {
+                return ResourceManager.GetString("DateTimeOptions_InputPrecision_InvalidValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OutputPrecision must be less than or equal to 7..
+        /// </summary>
+        internal static string DateTimeOptions_OutputPrecision_InvalidValue {
+            get {
+                return ResourceManager.GetString("DateTimeOptions_OutputPrecision_InvalidValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The `DateTime` scalar type represents a date and time with time zone offset information..
         /// </summary>
         internal static string DateTimeType_Description {

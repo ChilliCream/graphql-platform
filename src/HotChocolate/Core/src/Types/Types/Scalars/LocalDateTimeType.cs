@@ -23,6 +23,7 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
     private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/local-date-time.html";
 
     private readonly bool _enforceSpecFormat;
+    private readonly DateTimeOptions _options;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalDateTimeType"/> class.
@@ -31,13 +32,16 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
         string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit,
-        bool disableFormatCheck = false)
+        bool disableFormatCheck = false,
+        DateTimeOptions? options = null)
         : base(name, bind)
     {
+        options ??= new DateTimeOptions();
         Description = description;
-        Pattern = @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?$";
+        Pattern = @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1," + options.Value.InputPrecision + "})?$";
         SpecifiedBy = new Uri(SpecifiedByUri);
         _enforceSpecFormat = !disableFormatCheck;
+        _options = options.Value;
     }
 
     /// <summary>
@@ -49,6 +53,18 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
             TypeResources.LocalDateTimeType_Description,
             BindingBehavior.Implicit,
             disableFormatCheck: disableFormatCheck)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalDateTimeType"/> class.
+    /// </summary>
+    public LocalDateTimeType(DateTimeOptions options)
+        : this(
+            ScalarNames.LocalDateTime,
+            TypeResources.LocalDateTimeType_Description,
+            BindingBehavior.Implicit,
+            options: options)
     {
     }
 
@@ -87,16 +103,16 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
 
     /// <inheritdoc />
     protected override void OnCoerceOutputValue(DateTime runtimeValue, ResultElement resultValue)
-        => resultValue.SetStringValue(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
+        => resultValue.SetStringValue(runtimeValue.ToString(GetLocalFormat(), CultureInfo.InvariantCulture));
 
     /// <inheritdoc />
     protected override StringValueNode OnValueToLiteral(DateTime runtimeValue)
-        => new StringValueNode(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
+        => new StringValueNode(runtimeValue.ToString(GetLocalFormat(), CultureInfo.InvariantCulture));
 
     private bool TryParseStringValue(string serialized, out DateTime value)
     {
         // Check format.
-        if (_enforceSpecFormat && !LocalDateTimeRegex().IsMatch(serialized))
+        if (_enforceSpecFormat && !GetLocalDateTimeRegex().IsMatch(serialized))
         {
             value = default;
             return false;
@@ -116,7 +132,56 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
         return false;
     }
 
-    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?\z",
+    private string GetLocalFormat()
+        => _options.OutputPrecision switch
+        {
+            DateTimeOptions.DefaultOutputPrecision => LocalFormat,
+            0 => @"yyyy-MM-ddTHH\:mm\:ss",
+            _ => @$"yyyy-MM-ddTHH\:mm\:ss.{new string('F', _options.OutputPrecision)}"
+        };
+
+    private Regex GetLocalDateTimeRegex()
+        => _options.InputPrecision switch
+        {
+            0 => LocalDateTimeRegex0(),
+            1 => LocalDateTimeRegex1(),
+            2 => LocalDateTimeRegex2(),
+            3 => LocalDateTimeRegex3(),
+            4 => LocalDateTimeRegex4(),
+            5 => LocalDateTimeRegex5(),
+            6 => LocalDateTimeRegex6(),
+            _ => LocalDateTimeRegex7()
+        };
+
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
-    private static partial Regex LocalDateTimeRegex();
+    private static partial Regex LocalDateTimeRegex0();
+
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9])?\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex LocalDateTimeRegex1();
+
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,2})?\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex LocalDateTimeRegex2();
+
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,3})?\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex LocalDateTimeRegex3();
+
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,4})?\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex LocalDateTimeRegex4();
+
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,5})?\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex LocalDateTimeRegex5();
+
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,6})?\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex LocalDateTimeRegex6();
+
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex LocalDateTimeRegex7();
 }

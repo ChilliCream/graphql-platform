@@ -23,6 +23,7 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/date-time.html";
 
     private readonly bool _enforceSpecFormat;
+    private readonly DateTimeOptions _options;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DateTimeType"/> class.
@@ -31,13 +32,19 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit,
-        bool disableFormatCheck = false)
+        bool disableFormatCheck = false,
+        DateTimeOptions? options = null)
         : base(name, bind)
     {
+        options ??= new DateTimeOptions();
         Description = description;
-        Pattern = @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:[Zz]|[+-]\d{2}:\d{2})$";
+        Pattern =
+            @"^\d{4}-\d{2}-\d{2}[Tt]\d{2}:\d{2}:\d{2}(?:\.\d{1,"
+            + options.Value.InputPrecision
+            + @"})?(?:[Zz]|[+-]\d{2}:\d{2})$";
         SpecifiedBy = new Uri(SpecifiedByUri);
         _enforceSpecFormat = !disableFormatCheck;
+        _options = options.Value;
     }
 
     /// <summary>
@@ -49,6 +56,18 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
             TypeResources.DateTimeType_Description,
             BindingBehavior.Implicit,
             disableFormatCheck: disableFormatCheck)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DateTimeType"/> class.
+    /// </summary>
+    public DateTimeType(DateTimeOptions options)
+        : this(
+            ScalarNames.DateTime,
+            TypeResources.DateTimeType_Description,
+            BindingBehavior.Implicit,
+            options: options)
     {
     }
 
@@ -87,32 +106,24 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
 
     protected override void OnCoerceOutputValue(DateTimeOffset runtimeValue, ResultElement resultValue)
     {
-        if (runtimeValue.Offset == TimeSpan.Zero)
-        {
-            resultValue.SetStringValue(runtimeValue.ToString(UtcFormat, CultureInfo.InvariantCulture));
-        }
-        else
-        {
-            resultValue.SetStringValue(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
-        }
+        resultValue.SetStringValue(
+            runtimeValue.ToString(
+                runtimeValue.Offset == TimeSpan.Zero ? GetUtcFormat() : GetLocalFormat(),
+                CultureInfo.InvariantCulture));
     }
 
     protected override StringValueNode OnValueToLiteral(DateTimeOffset runtimeValue)
     {
-        if (runtimeValue.Offset == TimeSpan.Zero)
-        {
-            return new StringValueNode(runtimeValue.ToString(UtcFormat, CultureInfo.InvariantCulture));
-        }
-        else
-        {
-            return new StringValueNode(runtimeValue.ToString(LocalFormat, CultureInfo.InvariantCulture));
-        }
+        return new StringValueNode(
+            runtimeValue.ToString(
+                runtimeValue.Offset == TimeSpan.Zero ? GetUtcFormat() : GetLocalFormat(),
+                CultureInfo.InvariantCulture));
     }
 
     private bool TryParseStringValue(string serialized, out DateTimeOffset value)
     {
         // Check format.
-        if (_enforceSpecFormat && !DateTimeRegex().IsMatch(serialized))
+        if (_enforceSpecFormat && !GetDateTimeRegex().IsMatch(serialized))
         {
             value = default;
             return false;
@@ -132,8 +143,72 @@ public partial class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
         return false;
     }
 
+    private string GetUtcFormat()
+        => _options.OutputPrecision switch
+        {
+            DateTimeOptions.DefaultOutputPrecision => UtcFormat,
+            0 => @"yyyy-MM-ddTHH\:mm\:ssZ",
+            _ => @$"yyyy-MM-ddTHH\:mm\:ss.{new string('F', _options.OutputPrecision)}Z"
+        };
+
+    private string GetLocalFormat()
+        => _options.OutputPrecision switch
+        {
+            DateTimeOptions.DefaultOutputPrecision => LocalFormat,
+            0 => @"yyyy-MM-ddTHH\:mm\:sszzz",
+            _ => @$"yyyy-MM-ddTHH\:mm\:ss.{new string('F', _options.OutputPrecision)}zzz"
+        };
+
+    private Regex GetDateTimeRegex()
+        => _options.InputPrecision switch
+        {
+            0 => DateTimeRegex0(),
+            1 => DateTimeRegex1(),
+            2 => DateTimeRegex2(),
+            3 => DateTimeRegex3(),
+            4 => DateTimeRegex4(),
+            5 => DateTimeRegex5(),
+            6 => DateTimeRegex6(),
+            _ => DateTimeRegex7()
+        };
+
     [GeneratedRegex(
-        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(Z|[+-][0-9]{2}:[0-9]{2})\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
-    private static partial Regex DateTimeRegex();
+    private static partial Regex DateTimeRegex0();
+
+    [GeneratedRegex(
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9])?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex DateTimeRegex1();
+
+    [GeneratedRegex(
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,2})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex DateTimeRegex2();
+
+    [GeneratedRegex(
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,3})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex DateTimeRegex3();
+
+    [GeneratedRegex(
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,4})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex DateTimeRegex4();
+
+    [GeneratedRegex(
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,5})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex DateTimeRegex5();
+
+    [GeneratedRegex(
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,6})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex DateTimeRegex6();
+
+    [GeneratedRegex(
+        @"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?(Z|[+-][0-9]{2}:[0-9]{2})\z",
+        RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
+    private static partial Regex DateTimeRegex7();
 }
