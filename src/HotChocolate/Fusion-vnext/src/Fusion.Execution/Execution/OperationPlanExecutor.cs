@@ -264,6 +264,8 @@ internal sealed class OperationPlanExecutor
                 context.Begin(eventArgs.StartTimestamp, eventArgs.Activity?.TraceId.ToHexString());
 
                 executionState.Reset();
+                context.SourceSchemaDispatcher.Reset();
+
                 RegisterBatchingGroups(context, plan);
                 executionState.FillBacklog(plan);
                 executionState.EnqueueForCompletion(
@@ -353,6 +355,7 @@ internal sealed class OperationPlanExecutor
 
         foreach (var (groupId, nodeIds) in groups)
         {
+            nodeIds.TrimExcess();
             context.SourceSchemaDispatcher.RegisterGroup(groupId, nodeIds);
         }
     }

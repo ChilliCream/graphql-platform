@@ -13,12 +13,10 @@ public interface ISourceSchemaScheduler
     /// the returned task may not complete until all other members of the group have
     /// submitted or been skipped.
     /// </summary>
-    /// <param name="context">The current operation plan execution context.</param>
     /// <param name="request">The request to execute.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The response from the source schema.</returns>
     ValueTask<SourceSchemaClientResponse> ExecuteAsync(
-        OperationPlanContext context,
         SourceSchemaClientRequest request,
         CancellationToken cancellationToken);
 }

@@ -34,4 +34,10 @@ public interface ISourceSchemaDispatcher
     /// default <see cref="OperationCanceledException"/>.
     /// </param>
     void Abort(Exception? error = null);
+
+    /// <summary>
+    /// Resets the dispatcher to its initial state, clearing all groups and the aborted flag.
+    /// Must be called between subscription events so that groups can be re-registered.
+    /// </summary>
+    void Reset();
 }

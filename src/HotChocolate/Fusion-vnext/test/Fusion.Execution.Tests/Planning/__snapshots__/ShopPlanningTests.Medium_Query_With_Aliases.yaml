@@ -194,6 +194,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.b.nodes.product
+    batchingGroupId: 4
     requirements:
       - name: __fusion_2_id
         selectionMap: >-
@@ -218,6 +219,7 @@ nodes:
       }
     source: $.productByIdAsync
     target: $.products.nodes.b.nodes.product
+    batchingGroupId: 3
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -238,6 +240,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.b.nodes.product
+    batchingGroupId: 7
     requirements:
       - name: __fusion_4_id
         selectionMap: >-
@@ -274,6 +277,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.b.nodes.product.item.product
+    batchingGroupId: 6
     requirements:
       - name: __fusion_6_id
         selectionMap: >-
@@ -299,6 +303,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.b.nodes.product.item.product
+    batchingGroupId: 5
     requirements:
       - name: __fusion_7_id
         selectionMap: >-
@@ -319,6 +324,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.b.nodes.product.item.product
+    batchingGroupId: 8
     requirements:
       - name: __fusion_8_id
         selectionMap: >-
@@ -347,6 +353,7 @@ nodes:
       }
     source: $.userById
     target: $.products.nodes.b.nodes.product.item.product.reviews.edges.node.author
+    batchingGroupId: 2
     requirements:
       - name: __fusion_10_id
         selectionMap: >-
@@ -366,6 +373,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.b.nodes.b
+    batchingGroupId: 4
     requirements:
       - name: __fusion_11_id
         selectionMap: >-
@@ -386,6 +394,7 @@ nodes:
       }
     source: $.userById
     target: $.products.nodes.b.nodes.author
+    batchingGroupId: 1
     requirements:
       - name: __fusion_12_id
         selectionMap: >-
@@ -412,6 +421,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.reviews.nodes.product
+    batchingGroupId: 4
     requirements:
       - name: __fusion_13_id
         selectionMap: >-
@@ -436,6 +446,7 @@ nodes:
       }
     source: $.productByIdAsync
     target: $.products.nodes.reviews.nodes.product
+    batchingGroupId: 3
     requirements:
       - name: __fusion_14_id
         selectionMap: >-
@@ -456,6 +467,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.reviews.nodes.product
+    batchingGroupId: 7
     requirements:
       - name: __fusion_15_id
         selectionMap: >-
@@ -492,6 +504,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.reviews.nodes.product.item.product
+    batchingGroupId: 6
     requirements:
       - name: __fusion_17_id
         selectionMap: >-
@@ -517,6 +530,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.reviews.nodes.product.item.product
+    batchingGroupId: 5
     requirements:
       - name: __fusion_18_id
         selectionMap: >-
@@ -537,6 +551,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.reviews.nodes.product.item.product
+    batchingGroupId: 8
     requirements:
       - name: __fusion_19_id
         selectionMap: >-
@@ -565,6 +580,7 @@ nodes:
       }
     source: $.userById
     target: $.products.nodes.reviews.nodes.product.item.product.reviews.edges.node.author
+    batchingGroupId: 2
     requirements:
       - name: __fusion_21_id
         selectionMap: >-
@@ -584,6 +600,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.reviews.nodes.b
+    batchingGroupId: 4
     requirements:
       - name: __fusion_22_id
         selectionMap: >-
@@ -604,6 +621,7 @@ nodes:
       }
     source: $.userById
     target: $.products.nodes.reviews.nodes.author
+    batchingGroupId: 1
     requirements:
       - name: __fusion_23_id
         selectionMap: >-

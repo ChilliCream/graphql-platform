@@ -75,6 +75,82 @@ public sealed class RequestGroupingExecutionTests : FusionTestBase
         AssertAllRequestsAreOperationBatches(cInteractions, expectedBatchSize: 2);
     }
 
+    [Fact]
+    public async Task Execute_With_RequestGrouping_Enabled_Does_Not_Deadlock_Across_Depths()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "a",
+            builder => builder.AddQueryType<DeadlockSourceSchemaA.Query>());
+
+        using var serverC = CreateSourceSchema(
+            "c",
+            builder => builder.AddQueryType<DeadlockSourceSchemaC.Query>());
+
+        using var serverD = CreateSourceSchema(
+            "d",
+            builder => builder.AddQueryType<DeadlockSourceSchemaD.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", serverA),
+                ("c", serverC),
+                ("d", serverD)
+            ],
+            configureGatewayBuilder: builder =>
+                builder.ModifyPlannerOptions(options => options.EnableRequestGrouping = true));
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        // act
+        using var result = await client.PostAsync(
+            """
+            {
+              users {
+                id
+                reviews {
+                  id
+                  author {
+                    id
+                    name
+                  }
+                }
+              }
+              topProducts {
+                id
+                reviews {
+                  id
+                  author {
+                    id
+                    name
+                  }
+                }
+              }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql")).WaitAsync(TimeSpan.FromSeconds(5));
+
+        using var response = await result.ReadAsResultAsync();
+
+        // assert
+        Assert.Equal(JsonValueKind.Object, response.Data.ValueKind);
+
+        var users = response.Data.GetProperty("users");
+        Assert.Equal(JsonValueKind.Array, users.ValueKind);
+        Assert.True(users.GetArrayLength() > 0);
+
+        var firstUser = users[0];
+        var firstUserReview = firstUser.GetProperty("reviews")[0];
+        var firstAuthor = firstUserReview.GetProperty("author");
+        var firstAuthorId = firstAuthor.GetProperty("id").GetInt32();
+        Assert.Equal($"User {firstAuthorId + 100}", firstAuthor.GetProperty("name").GetString());
+
+        var topProducts = response.Data.GetProperty("topProducts");
+        Assert.Equal(JsonValueKind.Array, topProducts.ValueKind);
+        Assert.True(topProducts.GetArrayLength() > 0);
+        Assert.Equal(JsonValueKind.Array, topProducts[0].GetProperty("reviews").ValueKind);
+    }
+
     private static ConcurrentDictionary<int, SourceSchemaInteraction> AssertSchemaInteractions(
         ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> interactions,
         string schemaName)
@@ -149,6 +225,64 @@ public sealed class RequestGroupingExecutionTests : FusionTestBase
             [Lookup]
             [Internal]
             public Product GetProductById(int id) => s_products[id];
+        }
+    }
+
+    public static class DeadlockSourceSchemaA
+    {
+        [EntityKey("id")]
+        public record User(int Id, string Name);
+
+        public sealed class Query
+        {
+            public IReadOnlyList<User> GetUsers() => [new(1, "User 1")];
+
+            [Lookup]
+            [Internal]
+            public User GetUserById(int id) => new(id, $"User {id + 100}");
+        }
+    }
+
+    public static class DeadlockSourceSchemaC
+    {
+        [EntityKey("id")]
+        public record Product(int Id);
+
+        public sealed class Query
+        {
+            public IReadOnlyList<Product> GetTopProducts() => [new(10)];
+
+            [Lookup]
+            [Internal]
+            public Product GetProductById(int id) => new(id);
+        }
+    }
+
+    public static class DeadlockSourceSchemaD
+    {
+        [EntityKey("id")]
+        public record User(int Id)
+        {
+            public IReadOnlyList<Review> Reviews => [new(Id * 10, new User(Id + 1))];
+        }
+
+        [EntityKey("id")]
+        public record Product(int Id)
+        {
+            public IReadOnlyList<Review> Reviews => [new(Id * 10, new User(Id + 2))];
+        }
+
+        public record Review(int Id, User Author);
+
+        public sealed class Query
+        {
+            [Lookup]
+            [Internal]
+            public User GetUserById(int id) => new(id);
+
+            [Lookup]
+            [Internal]
+            public Product GetProductById(int id) => new(id);
         }
     }
 }

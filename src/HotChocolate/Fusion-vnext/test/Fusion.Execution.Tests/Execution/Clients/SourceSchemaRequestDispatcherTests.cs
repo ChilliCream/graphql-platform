@@ -1,22 +1,33 @@
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Errors;
+using HotChocolate.Features;
+using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
-using System.Runtime.CompilerServices;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Fusion.Execution;
+namespace HotChocolate.Fusion;
 
-public sealed class SourceSchemaRequestDispatcherTests
+public sealed class SourceSchemaRequestDispatcherTests : FusionTestBase
 {
     [Fact]
     public async Task ExecuteAsync_Ungrouped_Request_Remains_Pass_Through()
     {
         // arrange
         var client = new TestSourceSchemaClient();
-        var dispatcher = new SourceSchemaRequestDispatcher((_, _, _) => client);
+        await using var context = CreateContext(client);
         var request = CreateRequest(nodeId: 1);
 
         // act
-        var response = await dispatcher.ExecuteAsync(null!, request, CancellationToken.None);
+        var response = await context.SourceSchemaScheduler.ExecuteAsync(
+            request,
+            CancellationToken.None);
 
         // assert
         Assert.Equal(1, client.ExecuteCount);
@@ -29,18 +40,16 @@ public sealed class SourceSchemaRequestDispatcherTests
     {
         // arrange
         var client = new TestSourceSchemaClient();
-        var dispatcher = new SourceSchemaRequestDispatcher((_, _, _) => client);
+        await using var context = CreateContext(client);
 
-        dispatcher.RegisterGroup(7, [1, 2, 3]);
+        context.SourceSchemaDispatcher.RegisterGroup(7, [1, 2, 3]);
 
         // act
-        var first = dispatcher.ExecuteAsync(
-                null!,
+        var first = context.SourceSchemaScheduler.ExecuteAsync(
                 CreateRequest(nodeId: 1, groupId: 7),
                 CancellationToken.None)
             .AsTask();
-        var second = dispatcher.ExecuteAsync(
-                null!,
+        var second = context.SourceSchemaScheduler.ExecuteAsync(
                 CreateRequest(nodeId: 2, groupId: 7),
                 CancellationToken.None)
             .AsTask();
@@ -49,7 +58,7 @@ public sealed class SourceSchemaRequestDispatcherTests
         Assert.False(first.IsCompleted);
         Assert.False(second.IsCompleted);
 
-        dispatcher.SkipNode(3);
+        context.SourceSchemaDispatcher.SkipNode(3);
 
         await first.WaitAsync(TimeSpan.FromSeconds(2));
         await second.WaitAsync(TimeSpan.FromSeconds(2));
@@ -64,19 +73,18 @@ public sealed class SourceSchemaRequestDispatcherTests
     {
         // arrange
         var client = new TestSourceSchemaClient();
-        var dispatcher = new SourceSchemaRequestDispatcher((_, _, _) => client);
+        await using var context = CreateContext(client);
 
-        dispatcher.RegisterGroup(11, [10, 11, 12]);
+        context.SourceSchemaDispatcher.RegisterGroup(11, [10, 11, 12]);
 
         // act
-        var pending = dispatcher.ExecuteAsync(
-                null!,
+        var pending = context.SourceSchemaScheduler.ExecuteAsync(
                 CreateRequest(nodeId: 10, groupId: 11),
                 CancellationToken.None)
             .AsTask();
 
-        dispatcher.SkipNode(11);
-        dispatcher.SkipNode(12);
+        context.SourceSchemaDispatcher.SkipNode(11);
+        context.SourceSchemaDispatcher.SkipNode(12);
 
         var response = await pending.WaitAsync(TimeSpan.FromSeconds(2));
 
@@ -91,23 +99,20 @@ public sealed class SourceSchemaRequestDispatcherTests
     {
         // arrange
         var client = new TestSourceSchemaClient();
-        var dispatcher = new SourceSchemaRequestDispatcher((_, _, _) => client);
+        await using var context = CreateContext(client);
 
-        dispatcher.RegisterGroup(13, [1, 2]);
+        context.SourceSchemaDispatcher.RegisterGroup(13, [1, 2]);
 
         // act
-        var ungrouped = await dispatcher.ExecuteAsync(
-            null!,
+        var ungrouped = await context.SourceSchemaScheduler.ExecuteAsync(
             CreateRequest(nodeId: 9),
             CancellationToken.None);
 
-        var groupedFirst = dispatcher.ExecuteAsync(
-                null!,
+        var groupedFirst = context.SourceSchemaScheduler.ExecuteAsync(
                 CreateRequest(nodeId: 1, groupId: 13),
                 CancellationToken.None)
             .AsTask();
-        var groupedSecond = dispatcher.ExecuteAsync(
-                null!,
+        var groupedSecond = context.SourceSchemaScheduler.ExecuteAsync(
                 CreateRequest(nodeId: 2, groupId: 13),
                 CancellationToken.None)
             .AsTask();
@@ -122,28 +127,23 @@ public sealed class SourceSchemaRequestDispatcherTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_Grouped_Batch_Correlates_Responses_By_NodeId()
+    public async Task ExecuteAsync_Grouped_Batch_Correlates_Responses_Positionally()
     {
         // arrange
         var client = new TestSourceSchemaClient();
-        var responses = new Dictionary<int, SourceSchemaClientResponse>
-        {
-            [1] = new TestResponse("batch-1"),
-            [2] = new TestResponse("batch-2")
-        };
-        client.OnBatch = _ => responses;
+        var response1 = new TestResponse("batch-1");
+        var response2 = new TestResponse("batch-2");
+        client.OnBatch = _ => [response1, response2];
 
-        var dispatcher = new SourceSchemaRequestDispatcher((_, _, _) => client);
-        dispatcher.RegisterGroup(17, [1, 2]);
+        await using var context = CreateContext(client);
+        context.SourceSchemaDispatcher.RegisterGroup(17, [1, 2]);
 
-        // act
-        var firstTask = dispatcher.ExecuteAsync(
-                null!,
+        // act — node 1 submits first, node 2 second → responses[0] goes to node 1, responses[1] to node 2
+        var firstTask = context.SourceSchemaScheduler.ExecuteAsync(
                 CreateRequest(nodeId: 1, groupId: 17),
                 CancellationToken.None)
             .AsTask();
-        var secondTask = dispatcher.ExecuteAsync(
-                null!,
+        var secondTask = context.SourceSchemaScheduler.ExecuteAsync(
                 CreateRequest(nodeId: 2, groupId: 17),
                 CancellationToken.None)
             .AsTask();
@@ -151,9 +151,9 @@ public sealed class SourceSchemaRequestDispatcherTests
         var first = await firstTask.WaitAsync(TimeSpan.FromSeconds(2));
         var second = await secondTask.WaitAsync(TimeSpan.FromSeconds(2));
 
-        // assert
-        Assert.Same(responses[1], first);
-        Assert.Same(responses[2], second);
+        // assert — positional correlation: first submitted gets responses[0], second gets responses[1]
+        Assert.Same(response1, first);
+        Assert.Same(response2, second);
     }
 
     [Fact]
@@ -161,17 +161,16 @@ public sealed class SourceSchemaRequestDispatcherTests
     {
         // arrange
         var client = new TestSourceSchemaClient();
-        var dispatcher = new SourceSchemaRequestDispatcher((_, _, _) => client);
-        dispatcher.RegisterGroup(19, [1, 2]);
+        await using var context = CreateContext(client);
+        context.SourceSchemaDispatcher.RegisterGroup(19, [1, 2]);
 
-        var pending = dispatcher.ExecuteAsync(
-                null!,
+        var pending = context.SourceSchemaScheduler.ExecuteAsync(
                 CreateRequest(nodeId: 1, groupId: 19),
                 CancellationToken.None)
             .AsTask();
 
         // act
-        dispatcher.Abort(new InvalidOperationException("aborted"));
+        context.SourceSchemaDispatcher.Abort(new InvalidOperationException("aborted"));
 
         // assert
         await Assert.ThrowsAsync<InvalidOperationException>(
@@ -183,8 +182,8 @@ public sealed class SourceSchemaRequestDispatcherTests
     {
         // arrange
         var client = new TestSourceSchemaClient();
-        var dispatcher = new SourceSchemaRequestDispatcher((_, _, _) => client);
-        dispatcher.RegisterGroup(23, [1, 2]);
+        await using var context = CreateContext(client);
+        context.SourceSchemaDispatcher.RegisterGroup(23, [1, 2]);
 
         var request = CreateRequest(
             nodeId: 1,
@@ -192,8 +191,7 @@ public sealed class SourceSchemaRequestDispatcherTests
             operationType: OperationType.Subscription);
 
         // act
-        var response = await dispatcher.ExecuteAsync(
-            null!,
+        var response = await context.SourceSchemaScheduler.ExecuteAsync(
             request,
             CancellationToken.None);
 
@@ -207,17 +205,14 @@ public sealed class SourceSchemaRequestDispatcherTests
     public async Task ExecuteAsync_Grouped_When_ClientResolver_Throws_All_Waiters_Are_Faulted()
     {
         // arrange
-        var dispatcher = new SourceSchemaRequestDispatcher((_, _, _) =>
-            throw new InvalidOperationException("resolver-failed"));
-        dispatcher.RegisterGroup(29, [1, 2]);
+        await using var context = CreateContext(new FailingSourceSchemaClient());
+        context.SourceSchemaDispatcher.RegisterGroup(29, [1, 2]);
 
-        var first = dispatcher.ExecuteAsync(
-                null!,
+        var first = context.SourceSchemaScheduler.ExecuteAsync(
                 CreateRequest(nodeId: 1, groupId: 29),
                 CancellationToken.None)
             .AsTask();
-        var second = dispatcher.ExecuteAsync(
-                null!,
+        var second = context.SourceSchemaScheduler.ExecuteAsync(
                 CreateRequest(nodeId: 2, groupId: 29),
                 CancellationToken.None)
             .AsTask();
@@ -230,6 +225,43 @@ public sealed class SourceSchemaRequestDispatcherTests
 
         Assert.Equal("resolver-failed", firstError.Message);
         Assert.Equal("resolver-failed", secondError.Message);
+    }
+
+    private static OperationPlanContext CreateContext(ISourceSchemaClient client)
+    {
+        var schemaServices = new ServiceCollection()
+            .AddSingleton<INodeIdParser>(new TestNodeIdParser())
+            .AddSingleton<IFusionExecutionDiagnosticEvents>(
+                NoopFusionExecutionDiagnosticEvents.Instance)
+            .AddSingleton<IErrorHandler>(new DefaultErrorHandler([]))
+            .BuildServiceProvider();
+
+        var schemaFeatures = new FeatureCollection();
+        schemaFeatures.Set(new FusionOptions());
+        schemaFeatures.Set(new FusionRequestOptions());
+
+        var doc = ComposeSchemaDocument("type Query { hello: String }");
+        var schema = FusionSchemaDefinition.Create(doc, schemaServices, schemaFeatures);
+
+        var plan = PlanOperation(schema, "{ hello }");
+
+        var requestServices = new ServiceCollection()
+            .AddSingleton<ISourceSchemaClientScopeFactory>(
+                new TestClientScopeFactory(client))
+            .BuildServiceProvider();
+
+        var request = OperationRequest.FromId("test-doc-id");
+
+        var requestContext = new PooledRequestContext();
+        requestContext.Initialize(
+            schema, 0, request, 0, requestServices, CancellationToken.None);
+        requestContext.VariableValues = [VariableValueCollection.Empty];
+
+        return new OperationPlanContext(
+            requestContext,
+            VariableValueCollection.Empty,
+            plan,
+            new CancellationTokenSource());
     }
 
     private static SourceSchemaClientRequest CreateRequest(
@@ -246,15 +278,43 @@ public sealed class SourceSchemaRequestDispatcherTests
             Variables = []
         };
 
+    private sealed class TestNodeIdParser : INodeIdParser
+    {
+        public bool TryParseTypeName(
+            string id,
+            [NotNullWhen(true)] out string? typeName)
+        {
+            typeName = null;
+            return false;
+        }
+    }
+
+    private sealed class TestClientScopeFactory(
+        ISourceSchemaClient client) : ISourceSchemaClientScopeFactory
+    {
+        public ISourceSchemaClientScope CreateScope(ISchemaDefinition schemaDefinition)
+            => new TestClientScope(client);
+    }
+
+    private sealed class TestClientScope(
+        ISourceSchemaClient client) : ISourceSchemaClientScope
+    {
+        public ISourceSchemaClient GetClient(
+            string schemaName, OperationType operationType)
+            => client;
+
+        public ValueTask DisposeAsync()
+            => ValueTask.CompletedTask;
+    }
+
     private sealed class TestSourceSchemaClient : ISourceSchemaClient
     {
         public int ExecuteCount { get; private set; }
 
         public int ExecuteBatchCount { get; private set; }
 
-        public Func<SourceSchemaClientRequest, SourceSchemaClientResponse>? OnExecute { get; set; }
-
-        public Func<IReadOnlyList<SourceSchemaClientRequest>, IReadOnlyDictionary<int, SourceSchemaClientResponse>>? OnBatch { get; set; }
+        public Func<ImmutableArray<SourceSchemaClientRequest>,
+            ImmutableArray<SourceSchemaClientResponse>>? OnBatch { get; set; }
 
         public ValueTask<SourceSchemaClientResponse> ExecuteAsync(
             OperationPlanContext context,
@@ -263,31 +323,52 @@ public sealed class SourceSchemaRequestDispatcherTests
         {
             ExecuteCount++;
 
-            var response = OnExecute?.Invoke(request) ?? new TestResponse($"single-{request.Node.Id}");
+            var response = new TestResponse($"single-{request.Node.Id}");
             return new ValueTask<SourceSchemaClientResponse>(response);
         }
 
-        public ValueTask<IReadOnlyDictionary<int, SourceSchemaClientResponse>> ExecuteBatchAsync(
+        public ValueTask<ImmutableArray<SourceSchemaClientResponse>> ExecuteBatchAsync(
             OperationPlanContext context,
-            IReadOnlyList<SourceSchemaClientRequest> requests,
+            ImmutableArray<SourceSchemaClientRequest> requests,
             CancellationToken cancellationToken)
         {
             ExecuteBatchCount++;
 
             if (OnBatch is not null)
             {
-                return new ValueTask<IReadOnlyDictionary<int, SourceSchemaClientResponse>>(OnBatch(requests));
+                return new ValueTask<ImmutableArray<SourceSchemaClientResponse>>(
+                    OnBatch(requests));
             }
 
-            var responses = new Dictionary<int, SourceSchemaClientResponse>(requests.Count);
+            var builder = ImmutableArray.CreateBuilder<SourceSchemaClientResponse>(
+                requests.Length);
 
-            for (var i = 0; i < requests.Count; i++)
+            for (var i = 0; i < requests.Length; i++)
             {
-                responses[requests[i].Node.Id] = new TestResponse($"batch-{requests[i].Node.Id}");
+                builder.Add(new TestResponse($"batch-{requests[i].Node.Id}"));
             }
 
-            return new ValueTask<IReadOnlyDictionary<int, SourceSchemaClientResponse>>(responses);
+            return new ValueTask<ImmutableArray<SourceSchemaClientResponse>>(
+                builder.MoveToImmutable());
         }
+
+        public ValueTask DisposeAsync()
+            => ValueTask.CompletedTask;
+    }
+
+    private sealed class FailingSourceSchemaClient : ISourceSchemaClient
+    {
+        public ValueTask<SourceSchemaClientResponse> ExecuteAsync(
+            OperationPlanContext context,
+            SourceSchemaClientRequest request,
+            CancellationToken cancellationToken)
+            => throw new InvalidOperationException("resolver-failed");
+
+        public ValueTask<ImmutableArray<SourceSchemaClientResponse>> ExecuteBatchAsync(
+            OperationPlanContext context,
+            ImmutableArray<SourceSchemaClientRequest> requests,
+            CancellationToken cancellationToken)
+            => throw new InvalidOperationException("resolver-failed");
 
         public ValueTask DisposeAsync()
             => ValueTask.CompletedTask;

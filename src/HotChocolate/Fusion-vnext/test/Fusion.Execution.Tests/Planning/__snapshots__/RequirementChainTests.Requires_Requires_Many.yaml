@@ -65,6 +65,7 @@ nodes:
       }
     source: $.productById
     target: $.product
+    batchingGroupId: 3
     requirements:
       - name: __fusion_3_isExpensiveWithDiscount
         selectionMap: >-
@@ -89,6 +90,7 @@ nodes:
       }
     source: $.productById
     target: $.product
+    batchingGroupId: 1
     requirements:
       - name: __fusion_5_id
         selectionMap: >-
@@ -112,6 +114,7 @@ nodes:
       }
     source: $.productById
     target: $.product
+    batchingGroupId: 3
     requirements:
       - name: __fusion_7_isExpensiveWithDiscount
         selectionMap: >-
@@ -136,6 +139,7 @@ nodes:
       }
     source: $.productById
     target: $.product
+    batchingGroupId: 1
     requirements:
       - name: __fusion_10_hasDiscount
         selectionMap: >-
@@ -159,6 +163,7 @@ nodes:
       }
     source: $.productById
     target: $.product
+    batchingGroupId: 4
     requirements:
       - name: __fusion_11_isExpensive
         selectionMap: >-
@@ -183,6 +188,7 @@ nodes:
       }
     source: $.productById
     target: $.product
+    batchingGroupId: 2
     requirements:
       - name: __fusion_13_id
         selectionMap: >-
@@ -207,6 +213,7 @@ nodes:
       }
     source: $.productById
     target: $.product
+    batchingGroupId: 4
     requirements:
       - name: __fusion_15_isExpensive
         selectionMap: >-
@@ -231,6 +238,7 @@ nodes:
       }
     source: $.productById
     target: $.product
+    batchingGroupId: 2
     requirements:
       - name: __fusion_17_id
         selectionMap: >-
@@ -257,6 +265,7 @@ nodes:
       }
     source: $.productById
     target: $.product
+    batchingGroupId: 2
     requirements:
       - name: __fusion_19_id
         selectionMap: >-

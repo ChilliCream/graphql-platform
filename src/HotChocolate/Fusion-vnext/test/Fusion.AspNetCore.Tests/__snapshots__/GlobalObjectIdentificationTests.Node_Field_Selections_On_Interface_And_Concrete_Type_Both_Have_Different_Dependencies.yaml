@@ -153,22 +153,48 @@ sourceSchemas:
       }
     interactions:
       - request:
-          document: |
-            query testQuery_f7a0a31d_4(
-              $__fusion_1_id: ID!
-            ) {
-              node(id: $__fusion_1_id) {
-                __typename
-                ... on Product {
-                  name
+          kind: OperationBatch
+          items:
+            - document: |
+                query testQuery_f7a0a31d_4(
+                  $__fusion_1_id: ID!
+                ) {
+                  node(id: $__fusion_1_id) {
+                    __typename
+                    ... on Product {
+                      name
+                    }
+                  }
                 }
-              }
-            }
-          variables: |
-            {
-              "__fusion_1_id": "UHJvZHVjdDo0"
-            }
+              variables: |
+                {
+                  "__fusion_1_id": "UHJvZHVjdDo0"
+                }
+            - document: |
+                query testQuery_f7a0a31d_5(
+                  $__fusion_2_id: ID!
+                ) {
+                  node(id: $__fusion_2_id) {
+                    __typename
+                    ... on Product {
+                      name
+                    }
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDox"
+                  },
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoy"
+                  },
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoz"
+                  }
+                ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -180,41 +206,49 @@ sourceSchemas:
                 }
               }
       - request:
-          document: |
-            query testQuery_f7a0a31d_5(
-              $__fusion_2_id: ID!
-            ) {
-              node(id: $__fusion_2_id) {
-                __typename
-                ... on Product {
-                  name
+          kind: OperationBatch
+          items:
+            - document: |
+                query testQuery_f7a0a31d_4(
+                  $__fusion_1_id: ID!
+                ) {
+                  node(id: $__fusion_1_id) {
+                    __typename
+                    ... on Product {
+                      name
+                    }
+                  }
                 }
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_2_id": "UHJvZHVjdDox"
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoy"
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoz"
-              }
-            ]
+              variables: |
+                {
+                  "__fusion_1_id": "UHJvZHVjdDo0"
+                }
+            - document: |
+                query testQuery_f7a0a31d_5(
+                  $__fusion_2_id: ID!
+                ) {
+                  node(id: $__fusion_2_id) {
+                    __typename
+                    ... on Product {
+                      name
+                    }
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDox"
+                  },
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoy"
+                  },
+                  {
+                    "__fusion_2_id": "UHJvZHVjdDoz"
+                  }
+                ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "Product",
-                    "name": "Product: UHJvZHVjdDox"
-                  }
-                }
-              }
             - |
               {
                 "data": {
@@ -230,6 +264,15 @@ sourceSchemas:
                   "node": {
                     "__typename": "Product",
                     "name": "Product: UHJvZHVjdDoz"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDox"
                   }
                 }
               }
@@ -306,6 +349,7 @@ operationPlan:
             }
           }
         }
+      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:
@@ -326,6 +370,7 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Item2>.singularProduct
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -348,6 +393,7 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Item2>.products
+      batchingGroupId: 2
       requirements:
         - name: __fusion_2_id
           selectionMap: >-
@@ -372,6 +418,7 @@ operationPlan:
             }
           }
         }
+      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:
@@ -392,6 +439,7 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Item1>.products
+      batchingGroupId: 2
       requirements:
         - name: __fusion_3_id
           selectionMap: >-

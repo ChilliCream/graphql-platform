@@ -70,8 +70,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             IncludeFlags);
 
         _executionState = new ExecutionState(_collectTelemetry, cancellationTokenSource);
-        _sourceSchemaDispatcher = new SourceSchemaRequestDispatcher(
-            static (context, schemaName, operationType) => context.GetClient(schemaName, operationType));
+        _sourceSchemaDispatcher = new SourceSchemaRequestDispatcher(this);
     }
 
     public OperationPlan OperationPlan { get; }

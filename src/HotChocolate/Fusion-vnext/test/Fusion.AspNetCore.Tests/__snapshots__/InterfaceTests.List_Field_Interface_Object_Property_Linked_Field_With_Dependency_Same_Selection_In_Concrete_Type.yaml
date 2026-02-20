@@ -141,29 +141,59 @@ sourceSchemas:
       }
     interactions:
       - request:
-          document: |
-            query testQuery_4bfbec17_2(
-              $__fusion_1_id: ID!
-            ) {
-              authorById(id: $__fusion_1_id) {
-                displayName
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_1_id": "QXV0aG9yOjk="
-              },
-              {
-                "__fusion_1_id": "QXV0aG9yOjg="
-              },
-              {
-                "__fusion_1_id": "QXV0aG9yOjc="
-              }
-            ]
+          kind: OperationBatch
+          items:
+            - document: |
+                query testQuery_4bfbec17_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    displayName
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_1_id": "QXV0aG9yOjk="
+                  },
+                  {
+                    "__fusion_1_id": "QXV0aG9yOjg="
+                  },
+                  {
+                    "__fusion_1_id": "QXV0aG9yOjc="
+                  }
+                ]
+            - document: |
+                query testQuery_4bfbec17_3(
+                  $__fusion_2_id: ID!
+                ) {
+                  authorById(id: $__fusion_2_id) {
+                    displayName
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_2_id": "QXV0aG9yOjk="
+                  },
+                  {
+                    "__fusion_2_id": "QXV0aG9yOjg="
+                  },
+                  {
+                    "__fusion_2_id": "QXV0aG9yOjc="
+                  }
+                ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjc="
+                  }
+                }
+              }
             - |
               {
                 "data": {
@@ -177,49 +207,55 @@ sourceSchemas:
                 "data": {
                   "authorById": {
                     "displayName": "Author: QXV0aG9yOjg="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "displayName": "Author: QXV0aG9yOjc="
                   }
                 }
               }
       - request:
-          document: |
-            query testQuery_4bfbec17_3(
-              $__fusion_2_id: ID!
-            ) {
-              authorById(id: $__fusion_2_id) {
-                displayName
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_2_id": "QXV0aG9yOjk="
-              },
-              {
-                "__fusion_2_id": "QXV0aG9yOjg="
-              },
-              {
-                "__fusion_2_id": "QXV0aG9yOjc="
-              }
-            ]
+          kind: OperationBatch
+          items:
+            - document: |
+                query testQuery_4bfbec17_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    displayName
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_1_id": "QXV0aG9yOjk="
+                  },
+                  {
+                    "__fusion_1_id": "QXV0aG9yOjg="
+                  },
+                  {
+                    "__fusion_1_id": "QXV0aG9yOjc="
+                  }
+                ]
+            - document: |
+                query testQuery_4bfbec17_3(
+                  $__fusion_2_id: ID!
+                ) {
+                  authorById(id: $__fusion_2_id) {
+                    displayName
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_2_id": "QXV0aG9yOjk="
+                  },
+                  {
+                    "__fusion_2_id": "QXV0aG9yOjg="
+                  },
+                  {
+                    "__fusion_2_id": "QXV0aG9yOjc="
+                  }
+                ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "displayName": "Author: QXV0aG9yOjk="
-                  }
-                }
-              }
             - |
               {
                 "data": {
@@ -233,6 +269,14 @@ sourceSchemas:
                 "data": {
                   "authorById": {
                     "displayName": "Author: QXV0aG9yOjc="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjk="
                   }
                 }
               }
@@ -293,6 +337,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.wrappers.authorable<Discussion>.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -312,6 +357,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.wrappers.authorable.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

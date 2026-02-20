@@ -1,4 +1,7 @@
+using System.Collections.Immutable;
+using HotChocolate.Fusion.Properties;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -12,90 +15,129 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// are dispatched together via <see cref="ISourceSchemaClient.ExecuteBatchAsync"/>.
 /// </para>
 /// </summary>
-internal sealed class SourceSchemaRequestDispatcher(
-    Func<OperationPlanContext, string, OperationType, ISourceSchemaClient> clientResolver)
+internal sealed class SourceSchemaRequestDispatcher
     : ISourceSchemaScheduler
     , ISourceSchemaDispatcher
 {
     private readonly object _sync = new();
+    private readonly OperationPlanContext _context;
+    private readonly ISourceSchemaClientScope _clientScope;
+    private readonly CancellationToken _requestAborted;
     private readonly Dictionary<int, GroupState> _groups = [];
     private readonly Dictionary<int, int> _groupByNodeId = [];
     private Exception? _abortError;
     private bool _aborted;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="SourceSchemaRequestDispatcher"/>
+    /// using the given <paramref name="context"/> to obtain the client scope and
+    /// cancellation token for all downstream requests.
+    /// </summary>
+    /// <param name="context">
+    /// The operation plan context that owns this dispatcher. The dispatcher uses
+    /// <see cref="OperationPlanContext.ClientScope"/> to resolve clients and
+    /// <see cref="HotChocolate.Execution.RequestContext.RequestAborted"/> to propagate cancellation.
+    /// </param>
+    public SourceSchemaRequestDispatcher(OperationPlanContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        _context = context;
+        _clientScope = context.ClientScope;
+        _requestAborted = context.RequestContext.RequestAborted;
+    }
+
+    /// <summary>
+    /// Executes a source schema request. If the request belongs to a batching group,
+    /// it is held until all nodes in that group have submitted or been skipped, then
+    /// dispatched as a batch. Otherwise, it is forwarded immediately.
+    /// </summary>
+    /// <param name="request">The source schema request to execute.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The response from the source schema.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// The request's node was not registered in the expected batching group.
+    /// </exception>
     public ValueTask<SourceSchemaClientResponse> ExecuteAsync(
-        OperationPlanContext context,
         SourceSchemaClientRequest request,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
 
+        // TODO: we need to somehow detect if the client is able to do request batching.
+        // if the request is not part of a batch group or if it is a mutation or subscription
+        // we will dispatch it right away without waiting for other requests.
         if (request.BatchingGroupId is not int groupId
-            || request.OperationType is OperationType.Subscription)
+            || request.OperationType is OperationType.Mutation or OperationType.Subscription)
         {
-            var client = clientResolver(context, request.SchemaName, request.OperationType);
-            return client.ExecuteAsync(context, request, cancellationToken);
+            var client = _clientScope.GetClient(request.SchemaName, request.OperationType);
+            return client.ExecuteAsync(_context, request, cancellationToken);
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
-
         PendingRequest? pendingRequest = null;
-        GroupDispatch? dispatch = null;
-        bool useGrouping;
+        ImmutableArray<PendingRequest> pendingRequests = [];
+        var needsDispatch = false;
         Exception? abortError = null;
 
         lock (_sync)
         {
+            // the execution was aborted by the operation plan executor.
             if (_aborted)
             {
                 abortError = CreateAbortException();
-                useGrouping = false;
             }
+            // we register the node to be dispatched.
             else if (_groups.TryGetValue(groupId, out var group)
-                && group.TrySubmit(context, cancellationToken, request, out pendingRequest))
+                && group.TrySubmit(request, out pendingRequest))
             {
-                useGrouping = true;
-
-                if (group.TryCreateDispatch(out dispatch))
+                if (group.TryCreateDispatch(out pendingRequests))
                 {
+                    needsDispatch = true;
                     RemoveGroup(group);
                 }
             }
+            // we are in an invalid state where the executor did not announce all groups or nodes.
             else
             {
-                useGrouping = false;
+                abortError = new InvalidOperationException(
+                    string.Format(
+                        FusionExecutionResources.SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup,
+                        request.Node.Id,
+                        groupId));
             }
         }
 
+        // now we handle the decisions we made in the lock.
         if (abortError is not null)
         {
             return ValueTask.FromException<SourceSchemaClientResponse>(abortError);
         }
 
-        if (!useGrouping)
+        if (needsDispatch)
         {
-            var client = clientResolver(context, request.SchemaName, request.OperationType);
-            return client.ExecuteAsync(context, request, cancellationToken);
-        }
-
-        if (dispatch is not null)
-        {
-            _ = DispatchGroupAsync(dispatch);
+            BeginDispatchGroup(pendingRequests);
         }
 
         return new ValueTask<SourceSchemaClientResponse>(pendingRequest!.Completion.Task);
     }
 
+    /// <summary>
+    /// Registers a batching group with the given node IDs. All registered nodes must
+    /// either submit a request via <see cref="ExecuteAsync"/> or be skipped via
+    /// <see cref="SkipNode"/> before the group is dispatched.
+    /// </summary>
+    /// <param name="groupId">The batching group identifier.</param>
+    /// <param name="nodeIds">The execution node IDs that belong to this group.</param>
     public void RegisterGroup(int groupId, IReadOnlyList<int> nodeIds)
     {
         ArgumentNullException.ThrowIfNull(nodeIds);
 
         if (nodeIds.Count == 0)
         {
-            return;
+            throw new ArgumentException(
+                FusionExecutionResources.SourceSchemaRequestDispatcher_RegisterGroupEmptyNodeIds,
+                nameof(nodeIds));
         }
-
-        GroupDispatch? dispatch = null;
 
         lock (_sync)
         {
@@ -116,22 +158,18 @@ internal sealed class SourceSchemaRequestDispatcher(
             {
                 _groupByNodeId[nodeId] = groupId;
             }
-
-            if (group.TryCreateDispatch(out dispatch))
-            {
-                RemoveGroup(group);
-            }
-        }
-
-        if (dispatch is not null)
-        {
-            _ = DispatchGroupAsync(dispatch);
         }
     }
 
+    /// <summary>
+    /// Marks a node as skipped so it no longer blocks dispatch of its batching group.
+    /// If this was the last remaining node in the group, the group is dispatched.
+    /// </summary>
+    /// <param name="nodeId">The execution node ID to skip.</param>
     public void SkipNode(int nodeId)
     {
-        GroupDispatch? dispatch = null;
+        ImmutableArray<PendingRequest> pendingRequests = [];
+        var needsDispatch = false;
 
         lock (_sync)
         {
@@ -148,18 +186,28 @@ internal sealed class SourceSchemaRequestDispatcher(
 
             group.Skip(nodeId);
 
-            if (group.TryCreateDispatch(out dispatch))
+            if (group.TryCreateDispatch(out pendingRequests))
             {
+                needsDispatch = true;
                 RemoveGroup(group);
             }
         }
 
-        if (dispatch is not null)
+        if (needsDispatch)
         {
-            _ = DispatchGroupAsync(dispatch);
+            BeginDispatchGroup(pendingRequests);
         }
     }
 
+    /// <summary>
+    /// Aborts the dispatcher, failing all pending requests with the given error.
+    /// Subsequent calls to <see cref="ExecuteAsync"/>, <see cref="RegisterGroup"/>,
+    /// and <see cref="SkipNode"/> become no-ops.
+    /// </summary>
+    /// <param name="error">
+    /// The error to propagate to pending requests. If <c>null</c>, an
+    /// <see cref="OperationCanceledException"/> is used.
+    /// </param>
     public void Abort(Exception? error = null)
     {
         PendingRequest[] pendingRequests;
@@ -173,7 +221,7 @@ internal sealed class SourceSchemaRequestDispatcher(
             }
 
             _aborted = true;
-            _abortError = error ?? new OperationCanceledException("The operation execution was aborted.");
+            _abortError = error ?? new OperationCanceledException(FusionExecutionResources.SourceSchemaRequestDispatcher_OperationAborted);
             abortError = _abortError;
             pendingRequests = [.. _groups.Values.SelectMany(static t => t.PendingRequests)];
 
@@ -187,65 +235,76 @@ internal sealed class SourceSchemaRequestDispatcher(
         }
     }
 
-    private async Task DispatchGroupAsync(GroupDispatch dispatch)
+    /// <summary>
+    /// Resets the dispatcher to its initial state, clearing all groups and the aborted flag.
+    /// Any pending requests from a prior event are abandoned (they should have been
+    /// completed or aborted before calling this).
+    /// </summary>
+    public void Reset()
+    {
+        lock (_sync)
+        {
+            _aborted = false;
+            _abortError = null;
+            _groups.Clear();
+            _groupByNodeId.Clear();
+        }
+    }
+
+    private void BeginDispatchGroup(ImmutableArray<PendingRequest> pendingRequests)
+    {
+        // if pending requests is 0 it mean the the whole group was skipped and we do not need to do anything.
+        if (pendingRequests.Length == 0)
+        {
+            return;
+        }
+
+        // in all other cases we dispatch the group asynchronously.
+        DispatchGroupAsync(pendingRequests).FireAndForget();
+    }
+
+    private async Task DispatchGroupAsync(ImmutableArray<PendingRequest> pendingRequests)
     {
         try
         {
-            var partitions = new Dictionary<(string SchemaName, OperationType OperationType), List<PendingRequest>>();
-
-            foreach (var pendingRequest in dispatch.PendingRequests)
+            if (pendingRequests.Length == 1)
             {
-                var key = (pendingRequest.Request.SchemaName, pendingRequest.Request.OperationType);
+                var pendingRequest = pendingRequests[0];
 
-                if (!partitions.TryGetValue(key, out var partition))
-                {
-                    partition = [];
-                    partitions.Add(key, partition);
-                }
+                var client = _clientScope.GetClient(
+                    pendingRequest.Request.SchemaName,
+                    pendingRequest.Request.OperationType);
 
-                partition.Add(pendingRequest);
+                await DispatchSingleAsync(client, pendingRequest).ConfigureAwait(false);
             }
-
-            foreach (var partition in partitions.Values)
+            else
             {
-                var first = partition[0];
-                var client = clientResolver(
-                    dispatch.Context,
-                    first.Request.SchemaName,
-                    first.Request.OperationType);
+                var client = _clientScope.GetClient(
+                    pendingRequests[0].Request.SchemaName,
+                    pendingRequests[0].Request.OperationType);
 
-                if (partition.Count == 1)
-                {
-                    await DispatchSingleAsync(client, dispatch.Context, partition[0], dispatch.CancellationToken)
-                        .ConfigureAwait(false);
-                    continue;
-                }
-
-                await DispatchBatchAsync(client, dispatch.Context, partition, dispatch.CancellationToken)
-                    .ConfigureAwait(false);
+                await DispatchBatchAsync(client, pendingRequests).ConfigureAwait(false);
             }
         }
         catch (Exception ex)
         {
-            foreach (var pendingRequest in dispatch.PendingRequests)
+            foreach (var pendingRequest in pendingRequests)
             {
                 pendingRequest.Completion.TrySetException(ex);
             }
         }
     }
 
-    private static async ValueTask DispatchSingleAsync(
+    private async ValueTask DispatchSingleAsync(
         ISourceSchemaClient client,
-        OperationPlanContext context,
-        PendingRequest pendingRequest,
-        CancellationToken cancellationToken)
+        PendingRequest pendingRequest)
     {
         try
         {
             var response = await client.ExecuteAsync(
-                    context,
+                    _context,
                     pendingRequest.Request,
-                    cancellationToken)
+                    _requestAborted)
                 .ConfigureAwait(false);
 
             if (!pendingRequest.Completion.TrySetResult(response))
@@ -253,74 +312,63 @@ internal sealed class SourceSchemaRequestDispatcher(
                 response.Dispose();
             }
         }
+        catch (OperationCanceledException)
+        {
+            pendingRequest.Completion.TrySetCanceled();
+        }
         catch (Exception ex)
         {
             pendingRequest.Completion.TrySetException(ex);
         }
     }
 
-    private static async ValueTask DispatchBatchAsync(
+    private async ValueTask DispatchBatchAsync(
         ISourceSchemaClient client,
-        OperationPlanContext context,
-        List<PendingRequest> partition,
-        CancellationToken cancellationToken)
+        ImmutableArray<PendingRequest> pendingRequests)
     {
-        var requests = new List<SourceSchemaClientRequest>(partition.Count);
-        var expectedNodeIds = new HashSet<int>(partition.Count);
-
-        foreach (var pendingRequest in partition)
-        {
-            requests.Add(pendingRequest.Request);
-            expectedNodeIds.Add(pendingRequest.Request.Node.Id);
-        }
-
-        IReadOnlyDictionary<int, SourceSchemaClientResponse> responses;
-
         try
         {
-            responses = await client.ExecuteBatchAsync(context, requests, cancellationToken)
+            var responses = await client.ExecuteBatchAsync(
+                    _context,
+                    [.. pendingRequests.Select(t => t.Request)],
+                    _requestAborted)
                 .ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            foreach (var pendingRequest in partition)
+
+            if (responses.Length != pendingRequests.Length)
             {
-                pendingRequest.Completion.TrySetException(ex);
+                throw new InvalidOperationException(
+                    FusionExecutionResources.SourceSchemaRequestDispatcher_BatchResponseCountMismatch);
             }
 
-            return;
-        }
-
-        foreach (var pendingRequest in partition)
-        {
-            var nodeId = pendingRequest.Request.Node.Id;
-
-            if (responses.TryGetValue(nodeId, out var response))
+            for (var i = 0; i < pendingRequests.Length; i++)
             {
+                var pendingRequest = pendingRequests[i];
+                var response = responses[i];
+
                 if (!pendingRequest.Completion.TrySetResult(response))
                 {
                     response.Dispose();
                 }
             }
-            else
+        }
+        catch (OperationCanceledException)
+        {
+            foreach (var pendingRequest in pendingRequests)
             {
-                pendingRequest.Completion.TrySetException(
-                    new InvalidOperationException(
-                        $"The batch response does not contain a result for node '{nodeId}'."));
+                pendingRequest.Completion.TrySetCanceled();
             }
         }
-
-        foreach (var response in responses)
+        catch (Exception ex)
         {
-            if (!expectedNodeIds.Contains(response.Key))
+            foreach (var pendingRequest in pendingRequests)
             {
-                response.Value.Dispose();
+                pendingRequest.Completion.TrySetException(ex);
             }
         }
     }
 
     private Exception CreateAbortException()
-        => _abortError ?? new OperationCanceledException("The operation execution was aborted.");
+        => _abortError ?? new OperationCanceledException(FusionExecutionResources.SourceSchemaRequestDispatcher_OperationAborted);
 
     private void RemoveGroup(GroupState group)
     {
@@ -337,8 +385,6 @@ internal sealed class SourceSchemaRequestDispatcher(
         private readonly HashSet<int> _nodeIds = [];
         private readonly HashSet<int> _remainingNodeIds = [];
         private readonly Dictionary<int, PendingRequest> _pendingRequests = [];
-        private OperationPlanContext? _context;
-        private CancellationToken _cancellationToken;
         private bool _dispatchCreated;
 
         public int Id { get; } = id;
@@ -357,8 +403,6 @@ internal sealed class SourceSchemaRequestDispatcher(
         }
 
         public bool TrySubmit(
-            OperationPlanContext context,
-            CancellationToken cancellationToken,
             SourceSchemaClientRequest request,
             out PendingRequest? pendingRequest)
         {
@@ -370,15 +414,15 @@ internal sealed class SourceSchemaRequestDispatcher(
                 return false;
             }
 
-            if (_pendingRequests.TryGetValue(nodeId, out pendingRequest))
+            if (_pendingRequests.ContainsKey(nodeId))
             {
-                return true;
+                throw new InvalidOperationException(
+                    string.Format(
+                        FusionExecutionResources.SourceSchemaRequestDispatcher_DuplicateNodeSubmission,
+                        nodeId));
             }
 
             _remainingNodeIds.Remove(nodeId);
-
-            _context ??= context;
-            _cancellationToken = cancellationToken;
 
             pendingRequest = new PendingRequest(request);
             _pendingRequests.Add(nodeId, pendingRequest);
@@ -389,11 +433,11 @@ internal sealed class SourceSchemaRequestDispatcher(
         public void Skip(int nodeId)
             => _remainingNodeIds.Remove(nodeId);
 
-        public bool TryCreateDispatch(out GroupDispatch? dispatch)
+        public bool TryCreateDispatch(out ImmutableArray<PendingRequest> pendingRequests)
         {
             if (_dispatchCreated || _remainingNodeIds.Count > 0)
             {
-                dispatch = null;
+                pendingRequests = [];
                 return false;
             }
 
@@ -401,11 +445,11 @@ internal sealed class SourceSchemaRequestDispatcher(
 
             if (_pendingRequests.Count == 0)
             {
-                dispatch = null;
+                pendingRequests = [];
                 return true;
             }
 
-            dispatch = new GroupDispatch(_context!, _cancellationToken, [.. _pendingRequests.Values]);
+            pendingRequests = [.. _pendingRequests.Values];
             return true;
         }
     }
@@ -417,9 +461,4 @@ internal sealed class SourceSchemaRequestDispatcher(
         public TaskCompletionSource<SourceSchemaClientResponse> Completion { get; } =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
-
-    private sealed record GroupDispatch(
-        OperationPlanContext Context,
-        CancellationToken CancellationToken,
-        IReadOnlyList<PendingRequest> PendingRequests);
 }

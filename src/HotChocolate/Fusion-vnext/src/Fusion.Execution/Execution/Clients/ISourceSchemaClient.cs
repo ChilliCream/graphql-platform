@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace HotChocolate.Fusion.Execution.Clients;
 
 /// <summary>
@@ -29,8 +31,8 @@ public interface ISourceSchemaClient : IAsyncDisposable
     /// A dictionary mapping each request's <see cref="SourceSchemaClientRequest.Node"/> ID
     /// to its corresponding response.
     /// </returns>
-    ValueTask<IReadOnlyDictionary<int, SourceSchemaClientResponse>> ExecuteBatchAsync(
+    ValueTask<ImmutableArray<SourceSchemaClientResponse>> ExecuteBatchAsync(
         OperationPlanContext context,
-        IReadOnlyList<SourceSchemaClientRequest> requests,
+        ImmutableArray<SourceSchemaClientRequest> requests,
         CancellationToken cancellationToken);
 }

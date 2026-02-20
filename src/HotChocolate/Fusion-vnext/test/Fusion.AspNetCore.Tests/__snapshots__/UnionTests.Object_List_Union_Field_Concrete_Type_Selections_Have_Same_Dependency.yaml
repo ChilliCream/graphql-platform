@@ -253,6 +253,7 @@ operationPlan:
         }
       source: $.productById
       target: $.postEdges.node<Discussion>.product
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -272,6 +273,7 @@ operationPlan:
         }
       source: $.productById
       target: $.postEdges.node<Photo>.product
+      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

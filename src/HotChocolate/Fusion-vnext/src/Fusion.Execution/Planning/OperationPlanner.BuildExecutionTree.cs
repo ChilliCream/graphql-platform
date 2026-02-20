@@ -372,68 +372,54 @@ public sealed partial class OperationPlanner
             return [];
         }
 
-        foreach (var serviceSteps in queryStepsByService.Values)
-        {
-            serviceSteps.Sort((a, b) => a.Id.CompareTo(b.Id));
-        }
-
-        var transitiveDependencies = new Dictionary<int, HashSet<int>>();
+        var dependencyDepthLookup = new Dictionary<int, int>();
         var recursionStack = new HashSet<int>();
 
         foreach (var serviceSteps in queryStepsByService.Values)
         {
             foreach (var step in serviceSteps)
             {
-                GetTransitiveDependencies(
+                GetDependencyDepth(
                     step.Id,
                     dependencyLookup,
-                    transitiveDependencies,
+                    dependencyDepthLookup,
                     recursionStack);
             }
-        }
-
-        var serviceGroups = new Dictionary<string, List<List<int>>>(StringComparer.Ordinal);
-
-        foreach (var (schemaKey, serviceSteps) in queryStepsByService.OrderBy(t => t.Key, StringComparer.Ordinal))
-        {
-            var groups = new List<List<int>>();
-
-            foreach (var step in serviceSteps)
-            {
-                var stepId = step.Id;
-                List<int>? targetGroup = null;
-
-                foreach (var group in groups)
-                {
-                    if (group.All(groupStepId => !AreTransitivelyDependent(stepId, groupStepId, transitiveDependencies)))
-                    {
-                        targetGroup = group;
-                        break;
-                    }
-                }
-
-                if (targetGroup is null)
-                {
-                    targetGroup = [];
-                    groups.Add(targetGroup);
-                }
-
-                targetGroup.Add(stepId);
-            }
-
-            serviceGroups[schemaKey] = groups;
         }
 
         var lookup = new Dictionary<int, int>();
         var nextGroupId = 0;
 
-        foreach (var (_, groups) in serviceGroups.OrderBy(t => t.Key, StringComparer.Ordinal))
+        foreach (var (schemaKey, serviceSteps) in queryStepsByService.OrderBy(t => t.Key, StringComparer.Ordinal))
         {
-            foreach (var group in groups.Where(t => t.Count > 1))
+            var stepsByDepth = new Dictionary<int, List<int>>();
+
+            foreach (var step in serviceSteps)
             {
+                var depth = dependencyDepthLookup.TryGetValue(step.Id, out var currentDepth)
+                    ? currentDepth
+                    : 0;
+
+                if (!stepsByDepth.TryGetValue(depth, out var groupedSteps))
+                {
+                    groupedSteps = [];
+                    stepsByDepth.Add(depth, groupedSteps);
+                }
+
+                groupedSteps.Add(step.Id);
+            }
+
+            foreach (var groupedSteps in stepsByDepth.OrderBy(t => t.Key).Select(t => t.Value))
+            {
+                if (groupedSteps.Count <= 1)
+                {
+                    continue;
+                }
+
+                groupedSteps.Sort();
                 var groupId = ++nextGroupId;
 
-                foreach (var stepId in group)
+                foreach (var stepId in groupedSteps)
                 {
                     lookup.Add(stepId, groupId);
                 }
@@ -443,38 +429,22 @@ public sealed partial class OperationPlanner
         return lookup;
     }
 
-    private static bool AreTransitivelyDependent(
-        int stepId,
-        int otherStepId,
-        Dictionary<int, HashSet<int>> transitiveDependencies)
-    {
-        if (transitiveDependencies.TryGetValue(stepId, out var stepDependencies)
-            && stepDependencies.Contains(otherStepId))
-        {
-            return true;
-        }
-
-        return transitiveDependencies.TryGetValue(otherStepId, out var otherStepDependencies)
-            && otherStepDependencies.Contains(stepId);
-    }
-
-    private static HashSet<int> GetTransitiveDependencies(
+    private static int GetDependencyDepth(
         int stepId,
         Dictionary<int, HashSet<int>> dependencyLookup,
-        Dictionary<int, HashSet<int>> transitiveDependencies,
+        Dictionary<int, int> dependencyDepthLookup,
         HashSet<int> recursionStack)
     {
-        if (transitiveDependencies.TryGetValue(stepId, out var existingDependencies))
+        if (dependencyDepthLookup.TryGetValue(stepId, out var depth))
         {
-            return existingDependencies;
+            return depth;
         }
 
         if (!dependencyLookup.TryGetValue(stepId, out var directDependencies)
             || directDependencies.Count == 0)
         {
-            var noDependencies = new HashSet<int>();
-            transitiveDependencies[stepId] = noDependencies;
-            return noDependencies;
+            dependencyDepthLookup[stepId] = 0;
+            return 0;
         }
 
         if (!recursionStack.Add(stepId))
@@ -482,22 +452,21 @@ public sealed partial class OperationPlanner
             throw new InvalidOperationException("The execution dependency graph contains a cycle.");
         }
 
-        var dependencies = new HashSet<int>();
+        var maxDepth = 0;
 
         foreach (var dependency in directDependencies.OrderBy(t => t))
         {
-            dependencies.Add(dependency);
-            dependencies.UnionWith(
-                GetTransitiveDependencies(
-                    dependency,
-                    dependencyLookup,
-                    transitiveDependencies,
-                    recursionStack));
+            var dependencyDepth = GetDependencyDepth(
+                dependency,
+                dependencyLookup,
+                dependencyDepthLookup,
+                recursionStack);
+            maxDepth = Math.Max(maxDepth, dependencyDepth + 1);
         }
 
         recursionStack.Remove(stepId);
-        transitiveDependencies[stepId] = dependencies;
-        return dependencies;
+        dependencyDepthLookup[stepId] = maxDepth;
+        return maxDepth;
     }
 
     private static void BuildDependencyStructure(
@@ -709,7 +678,7 @@ public sealed partial class OperationPlanner
                 {
                     var selection = selections[i];
                     var removeSelection =
-                        selection is FieldNode { SelectionSet: { Selections.Count: 0 } }
+                        selection is FieldNode { SelectionSet.Selections.Count: 0 }
                         || selection is InlineFragmentNode { SelectionSet.Selections.Count: 0 };
 
                     if (!removeSelection)
