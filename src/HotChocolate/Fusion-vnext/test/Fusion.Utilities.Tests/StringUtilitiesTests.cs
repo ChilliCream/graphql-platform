@@ -25,4 +25,14 @@ public sealed class StringUtilitiesTests
         // assert
         Assert.Equal(expected, result);
     }
+
+    [Fact]
+    public void ToConstantCase_Long_Input()
+    {
+        var input = new string('a', 300);
+
+        var result = StringUtilities.ToConstantCase(input);
+
+        Assert.Equal(new string('A', 300), result);
+    }
 }

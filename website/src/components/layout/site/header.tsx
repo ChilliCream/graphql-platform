@@ -94,12 +94,16 @@ export const Header: FC = () => {
   return (
     <Container>
       <ContainerWrapper>
-        <LogoLink to="/">
+        <LogoLink to="/" aria-label="ChilliCream Home">
           <LogoIcon {...LogoIconSvg} />
         </LogoLink>
         <Navigation open={topNavOpen}>
           <NavigationHeader>
-            <LogoLink to="/" onClick={handleTopNavClose}>
+            <LogoLink
+              to="/"
+              aria-label="ChilliCream Home"
+              onClick={handleTopNavClose}
+            >
               <LogoIcon {...LogoIconSvg} />
             </LogoLink>
             <MobileMenu>
@@ -214,7 +218,13 @@ const LogoIcon = styled(Logo)`
   transition: fill 0.2s ease-in-out;
 `;
 
-const HamburgerOpenButton = styled.div`
+const HamburgerOpenButton = styled.button.attrs({
+  type: "button",
+  "aria-label": "Open navigation menu",
+})`
+  appearance: none;
+  border: none;
+  background: none;
   display: flex;
   flex: 0 0 auto;
   align-items: center;
@@ -282,7 +292,13 @@ const NavigationHeader = styled.div`
   }
 `;
 
-const HamburgerCloseButton = styled.div`
+const HamburgerCloseButton = styled.button.attrs({
+  type: "button",
+  "aria-label": "Close navigation menu",
+})`
+  appearance: none;
+  border: none;
+  background: none;
   display: flex;
   flex: 0 0 auto;
   align-items: center;
@@ -292,7 +308,12 @@ const HamburgerCloseButton = styled.div`
   cursor: pointer;
 `;
 
-const BackButton = styled.div`
+const BackButton = styled.button.attrs({
+  type: "button",
+})`
+  appearance: none;
+  border: none;
+  background: none;
   display: flex;
   flex: 0 0 84px;
   flex-direction: row;
@@ -446,7 +467,10 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
                 <Icon {...LollipopIconSvg} />
               </IconContainer>
               <SubNavLinkTextGroup>
-                <div className="title">Nitro (<abbr title="Formerly Known As">fka</abbr> Banana Cake Pop)</div>
+                <div className="title">
+                  Nitro (<abbr title="Formerly Known As">fka</abbr> Banana Cake
+                  Pop)
+                </div>
                 <div className="desc">GraphQL IDE / API Cockpit</div>
               </SubNavLinkTextGroup>
             </SubNavLinkWithDescription>
@@ -465,7 +489,15 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
                     <img
                       src={latestBlogPost.featuredImage}
                       alt={latestBlogPost.title}
-                      style={{ width: "100%", borderRadius: "var(--box-border-radius)" }}
+                      width={320}
+                      height={180}
+                      loading="lazy"
+                      decoding="async"
+                      style={{
+                        width: "100%",
+                        height: "auto",
+                        borderRadius: "var(--box-border-radius)",
+                      }}
                     />
                   </TeaserImage>
                 )}
@@ -626,10 +658,11 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({
             {products.map((product, index) => (
               <SubNavLink
                 key={index}
-                to={`/docs/${product.path}${product.latestStableVersion
-                  ? "/" + product.latestStableVersion
-                  : ""
-                  }`}
+                to={`/docs/${product.path}${
+                  product.latestStableVersion
+                    ? "/" + product.latestStableVersion
+                    : ""
+                }`}
                 onClick={hideTopAndSubNav}
               >
                 <IconContainer $size={16}>
@@ -918,7 +951,11 @@ function useSubNav(
   const subNav = show && (
     <SubNavContainer>
       <NavigationHeader>
-        <LogoLink to="/" onClick={hideTopAndSubMenu}>
+        <LogoLink
+          to="/"
+          aria-label="ChilliCream Home"
+          onClick={hideTopAndSubMenu}
+        >
           <LogoIcon {...LogoIconSvg} />
         </LogoLink>
         <MobileMenu>
@@ -1113,9 +1150,9 @@ const SubNav = styled.div.attrs({
     overflow-y: initial;
 
     ${ApplyBackdropBlur(
-  48,
-  `background-color: ${THEME_COLORS.backgroundMenu};`
-)}
+      48,
+      `background-color: ${THEME_COLORS.backgroundMenu};`
+    )}
   }
 `;
 
@@ -1157,7 +1194,10 @@ const SubNavGroup = styled.div`
   }
 `;
 
-const SubNavTitle = styled.h1`
+const SubNavTitle = styled.div.attrs({
+  role: "heading",
+  "aria-level": 2,
+})`
   padding-right: 24px;
   padding-left: 24px;
   font-size: 0.75rem;
@@ -1269,7 +1309,7 @@ const SubNavAdditionalInfo = styled.div`
   }
 `;
 
-const TeaserHero = styled.h2`
+const TeaserHero = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1438,7 +1478,9 @@ const RequestDemoLink = styled(Link)`
   }
 `;
 
-const SearchButton = styled.button`
+const SearchButton = styled.button.attrs({
+  "aria-label": "Search",
+})`
   display: flex;
   flex: 0 0 auto;
   align-items: center;

@@ -1,7 +1,11 @@
+using System.Buffers;
+
 namespace HotChocolate.Fusion;
 
 public static class StringUtilities
 {
+    private const int StackallocThreshold = 256;
+
     public static string ToConstantCase(string input)
     {
         if (string.IsNullOrEmpty(input))
@@ -9,46 +13,60 @@ public static class StringUtilities
             return input;
         }
 
-        // Allocate enough space for potential underscores.
-        Span<char> span = stackalloc char[input.Length * 2];
-        var previousChar = '\0';
-        var charCount = 0;
+        var maxLength = checked(input.Length * 2);
+        char[]? rented = null;
+        var span = maxLength <= StackallocThreshold
+            ? stackalloc char[maxLength]
+            : rented = ArrayPool<char>.Shared.Rent(maxLength);
 
-        for (var i = 0; i < input.Length; i++)
+        try
         {
-            var currentChar = input[i];
+            var previousChar = '\0';
+            var charCount = 0;
 
-            if (currentChar is '-' or '.')
+            for (var i = 0; i < input.Length; i++)
             {
-                currentChar = '_';
-            }
+                var currentChar = input[i];
 
-            // Ignore consecutive underscores.
-            if (currentChar == '_' && previousChar == '_')
-            {
-                continue;
-            }
-
-            if (char.IsUpper(currentChar))
-            {
-                if (
-                    // Lower followed by upper, f.e. "Fo[oB]ar" -> "FOO_BAR".
-                    char.IsLower(previousChar)
-                    // Two upper followed by one lower, f.e. "I[PAd]dress" -> "IP_ADDRESS".
-                    || (
-                        i != input.Length - 1 // Not the last character.
-                        && char.IsUpper(previousChar)
-                        && char.IsUpper(currentChar)
-                        && char.IsLower(input[i + 1])))
+                if (currentChar is '-' or '.')
                 {
-                    span[charCount++] = '_';
+                    currentChar = '_';
                 }
+
+                // Ignore consecutive underscores.
+                if (currentChar == '_' && previousChar == '_')
+                {
+                    continue;
+                }
+
+                if (char.IsUpper(currentChar))
+                {
+                    if (
+                        // Lower followed by upper, f.e. "Fo[oB]ar" -> "FOO_BAR".
+                        char.IsLower(previousChar)
+                        // Two upper followed by one lower, f.e. "I[PAd]dress" -> "IP_ADDRESS".
+                        || (
+                            i != input.Length - 1 // Not the last character.
+                            && char.IsUpper(previousChar)
+                            && char.IsUpper(currentChar)
+                            && char.IsLower(input[i + 1])))
+                    {
+                        span[charCount++] = '_';
+                    }
+                }
+
+                span[charCount++] = char.ToUpper(currentChar);
+                previousChar = currentChar;
             }
 
-            span[charCount++] = char.ToUpper(currentChar);
-            previousChar = currentChar;
+            return new string(span[..charCount]);
         }
-
-        return new string(span[..charCount]);
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<char>.Shared.Return(rented);
+            }
+        }
     }
 }

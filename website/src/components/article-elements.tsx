@@ -20,45 +20,17 @@ export const ArticleHeader = styled.header`
   }
 `;
 
-export interface ArticleVideoProps {
-  readonly videoId: string;
-}
-
-export const ArticleVideo = styled.iframe.attrs<ArticleVideoProps>(
-  ({ videoId }) => ({
-    src: `https://www.youtube.com/embed/${videoId}`,
-    frameBorder: 0,
-    allowFullScreen: true,
-  })
-)<ArticleVideoProps>`
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-`;
-
 export const ArticleHeaderVideoContainer = styled.div`
-  position: relative;
-  padding-top: 56.22%;
   margin-bottom: 36px;
   overflow: hidden;
 
   @media only screen and (min-width: 700px) {
     border-radius: var(--border-radius) var(--border-radius) 0 0;
-
-    > ${ArticleVideo} {
-      border-radius: var(--border-radius) var(--border-radius) 0 0;
-    }
   }
 `;
 
 export const ArticleContentVideoContainer = styled.div`
-  position: relative;
   margin-bottom: 16px;
-  padding-top: 56.22%;
   overflow: hidden;
 `;
 
@@ -80,6 +52,11 @@ export const ArticleContent = styled.div`
   img {
     max-width: 100%;
     height: auto;
+  }
+
+  a:not(.anchor) {
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 
   > * {

@@ -9,6 +9,7 @@ public sealed class SourceSchemaResult : IDisposable
     private static ReadOnlySpan<byte> ExtensionsProperty => "extensions"u8;
     private readonly SourceResultDocument _document;
     private readonly bool _ownsDocument;
+    private bool _errorsParsed;
 
     public SourceSchemaResult(
         Path path,
@@ -45,9 +46,20 @@ public sealed class SourceSchemaResult : IDisposable
     }
 
     public SourceSchemaErrors? Errors
-        => _document.Root.TryGetProperty(ErrorsProperty, out var errors)
-            ? SourceSchemaErrors.From(errors)
-            : null;
+    {
+        get
+        {
+            if (!_errorsParsed)
+            {
+                field = _document.Root.TryGetProperty(ErrorsProperty, out var errors)
+                    ? SourceSchemaErrors.From(errors)
+                    : null;
+                _errorsParsed = true;
+            }
+
+            return field;
+        }
+    }
 
     internal SourceResultElement RawErrors
     {
