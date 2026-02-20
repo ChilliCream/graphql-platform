@@ -318,7 +318,7 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
 
             if (DateTime.UtcNow - _lastWriteTime >= s_keepAlivePeriod)
             {
-                WriteKeepAliveAsync().FireAndForget();
+                _ = WriteKeepAliveAsync();
             }
 
             async Task WriteKeepAliveAsync()

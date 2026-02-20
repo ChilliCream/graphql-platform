@@ -9,7 +9,6 @@ using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Language;
 using HotChocolate.Transport;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -123,13 +122,12 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             builder.Add(nodeResponse);
         }
 
-        ReadBatchStreamInBackgroundAsync(
+        _ = ReadBatchStreamInBackgroundAsync(
                 context,
                 requests,
                 nodeResponsesByNodeId,
                 httpResponse,
-                cancellationToken)
-            .FireAndForget();
+                cancellationToken);
 
         return builder.MoveToImmutable();
     }

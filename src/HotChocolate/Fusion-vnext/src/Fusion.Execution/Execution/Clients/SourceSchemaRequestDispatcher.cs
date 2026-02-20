@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Properties;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -261,7 +260,7 @@ internal sealed class SourceSchemaRequestDispatcher
         }
 
         // in all other cases we dispatch the group asynchronously.
-        DispatchGroupAsync(pendingRequests).FireAndForget();
+        _ = DispatchGroupAsync(pendingRequests);
     }
 
     private async Task DispatchGroupAsync(ImmutableArray<PendingRequest> pendingRequests)

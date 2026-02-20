@@ -82,7 +82,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     {
         Interlocked.Increment(ref _activeNodes);
         _backlog.Remove(node);
-        node.ExecuteAsync(context, cancellationToken).FireAndForget();
+        _ = node.ExecuteAsync(context, cancellationToken);
     }
 
     public void EnqueueForCompletion(ExecutionNodeResult result)
