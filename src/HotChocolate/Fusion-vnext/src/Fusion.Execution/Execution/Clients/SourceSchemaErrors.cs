@@ -46,7 +46,6 @@ public sealed class SourceSchemaErrors
         ImmutableArray<IError>.Builder? rootErrors = null;
         var root = new ErrorTrie();
 
-        // TODO: Why is this called 3 times?
         foreach (var jsonError in json.EnumerateArray())
         {
             var currentTrie = root;

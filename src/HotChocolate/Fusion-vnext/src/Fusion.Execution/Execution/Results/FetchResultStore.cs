@@ -113,14 +113,16 @@ internal sealed class FetchResultStore : IDisposable
                 // we need to track the result objects as they used rented memory.
                 _memory.Push(result);
 
-                if (result.Errors?.RootErrors is { Length: > 0 } rootErrors)
+                var errors = result.Errors;
+
+                if (errors?.RootErrors is { Length: > 0 } rootErrors)
                 {
                     _errors ??= [];
                     _errors.AddRange(rootErrors);
                 }
 
                 dataElement = GetDataElement(sourcePath, result.Data);
-                errorTrie = GetErrorTrie(sourcePath, result.Errors?.Trie);
+                errorTrie = GetErrorTrie(sourcePath, errors?.Trie);
 
                 result = ref Unsafe.Add(ref result, 1)!;
                 dataElement = ref Unsafe.Add(ref dataElement, 1);
