@@ -135,7 +135,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         }
     }
 
-    public override IDisposable FormatHttpResponse(HttpContext context, IOperationResult result)
+    public override IDisposable FormatHttpResponse(HttpContext context, OperationResult result)
     {
         if (_options.SkipFormatHttpResponse)
         {

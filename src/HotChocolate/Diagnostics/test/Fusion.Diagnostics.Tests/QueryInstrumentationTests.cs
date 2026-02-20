@@ -8,6 +8,7 @@ namespace HotChocolate.Fusion.Diagnostics;
 public class QueryInstrumentationTests
 {
     [Fact]
+    // TODO: This is borked
     public async Task Track_events_of_a_simple_query_detailed()
     {
         using (CaptureActivities(out var activities))
@@ -15,7 +16,7 @@ public class QueryInstrumentationTests
             // arrange & act
             var services = new ServiceCollection();
             services.AddGraphQLGateway()
-                .AddInMemoryConfiguration(null)
+                .AddInMemoryConfiguration(null!)
                 .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All);
 
             var provider = services.BuildServiceProvider().GetRequiredService<IRequestExecutorProvider>();

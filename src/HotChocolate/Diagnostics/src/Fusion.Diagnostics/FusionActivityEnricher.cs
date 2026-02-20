@@ -252,14 +252,14 @@ public class FusionActivityEnricher
     protected virtual void EnrichRequestExtensions(
         HttpContext context,
         GraphQLRequest request,
-        IReadOnlyDictionary<string, object?> extensions,
+        JsonDocument extensions,
         Activity activity)
     {
         try
         {
             activity.SetTag(
                 "graphql.http.request.extensions",
-                JsonSerializer.Serialize(extensions));
+                extensions.RootElement.ToString());
         }
         catch
         {
@@ -270,7 +270,7 @@ public class FusionActivityEnricher
     protected virtual void EnrichBatchExtensions(
         HttpContext context,
         GraphQLRequest request,
-        IReadOnlyDictionary<string, object?> extensions,
+        JsonDocument extensions,
         int index,
         Activity activity)
     {
@@ -278,7 +278,7 @@ public class FusionActivityEnricher
         {
             activity.SetTag(
                 $"graphql.http.request[{index}].extensions",
-                JsonSerializer.Serialize(extensions));
+                extensions.RootElement.ToString());
         }
         catch
         {
@@ -342,9 +342,10 @@ public class FusionActivityEnricher
             activity.SetTag("graphql.document.body", documentInfo.Document.Print());
         }
 
-        if (context.Result is IOperationResult result)
+        if (context.Result is OperationResult result)
         {
-            var errorCount = result.Errors?.Count ?? 0;
+            // TODO: Why is this always set
+            var errorCount = result.Errors.Count;
             activity.SetTag("graphql.errors.count", errorCount);
         }
     }
@@ -527,55 +528,23 @@ public class FusionActivityEnricher
         activity.AddEvent(new ActivityEvent(AttributeExceptionEventName, default, tags));
     }
 
-    private static ISyntaxNode CreateVariablesNode(
-        IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet)
+    // TODO: Not sure if this is the best way...
+    private static ISyntaxNode CreateVariablesNode(JsonDocument? variables)
     {
-        if (variableSet is null or { Count: 0 })
+        if (variables is null)
         {
             return NullValueNode.Default;
         }
 
-        if (variableSet.Count == 1)
+        var root = variables.RootElement;
+
+        if (root.ValueKind is not (JsonValueKind.Object or JsonValueKind.Array))
         {
-            var variables = variableSet[0];
-            var variablesCount = variables.Count;
-            var fields = new ObjectFieldNode[variablesCount];
-            var index = 0;
-
-            foreach (var (name, value) in variables)
-            {
-                // since we are in the HTTP context here we know that it will always be an IValueNode.
-                var valueNode = value is null ? NullValueNode.Default : (IValueNode)value;
-                fields[index++] = new ObjectFieldNode(name, valueNode);
-            }
-
-            return new ObjectValueNode(fields);
+            throw new InvalidOperationException();
         }
 
-        if (variableSet.Count > 0)
-        {
-            var variableSetCount = variableSet.Count;
-            var items = new IValueNode[variableSetCount];
-
-            for (var i = 0; i < variableSetCount; i++)
-            {
-                var variables = variableSet[i];
-                var variablesCount = variables.Count;
-                var fields = new ObjectFieldNode[variablesCount];
-                var index = 0;
-
-                foreach (var (name, value) in variables)
-                {
-                    // since we are in the HTTP context here we know that it will always be an IValueNode.
-                    var valueNode = value is null ? NullValueNode.Default : (IValueNode)value;
-                    fields[index++] = new ObjectFieldNode(name, valueNode);
-                }
-
-                items[i] = new ObjectValueNode(fields);
-            }
-        }
-
-        throw new InvalidOperationException();
+        var parser = new JsonValueParser();
+        return parser.Parse(root);
     }
 }
 
