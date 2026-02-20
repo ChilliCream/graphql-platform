@@ -373,8 +373,6 @@ public class LocalDateTimeTypeTests
                 "2023-12-24T15:30:00",
                 new DateTime(2023, 12, 24, 15, 30, 0, 0)
             },
-            // Additional cases.
-            // Up to 7 fractional second digits.
             {
                 DateTimeOptions.DefaultInputPrecision,
                 "2023-12-24t15:30:00.1234567",
@@ -401,11 +399,9 @@ public class LocalDateTimeTypeTests
             // ReSharper disable once GrammarMistakeInComment
             // Invalid date (February 30th).
             { DateTimeOptions.DefaultInputPrecision, "2023-02-30T15:30:00" },
-            // More than 9 fractional second digits.
-            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00.1234567890" },
-            // Additional cases.
-            // More than 7 fractional second digits with default precision.
+            // More than 7 fractional second digits.
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00.12345678" },
+            // Additional cases.
             // More than 6 fractional second digits with precision set to 6.
             { 6, "2023-12-24T15:30:00.1234567" },
             // More than 5 fractional second digits with precision set to 5.

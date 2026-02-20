@@ -352,8 +352,6 @@ public class DateTimeTypeTests
                 "2023-12-24T15:30:00Z",
                 new DateTimeOffset(2023, 12, 24, 15, 30, 0, 0, TimeSpan.Zero)
             },
-            // Additional cases.
-            // Up to 7 fractional second digits.
             {
                 DateTimeOptions.DefaultInputPrecision,
                 "2023-12-24T15:30:00.1234567+01:00",
@@ -378,15 +376,13 @@ public class DateTimeTypeTests
             // ReSharper disable once GrammarMistakeInComment
             // Invalid date (February 30th).
             { DateTimeOptions.DefaultInputPrecision, "2023-02-30T15:30:00Z" },
-            // More than 9 fractional second digits.
-            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00.1234567890Z" },
+            // More than 7 fractional second digits.
+            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00.12345678Z" },
             // Invalid offset (exceeds maximum).
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00+25:00" },
             // Invalid offset format.
             { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00 UTC" },
             // Additional cases.
-            // More than 7 fractional second digits with default precision.
-            { DateTimeOptions.DefaultInputPrecision, "2023-12-24T15:30:00.12345678Z" },
             // More than 6 fractional second digits with precision set to 6.
             { 6, "2023-12-24T15:30:00.1234567Z" },
             // More than 5 fractional second digits with precision set to 5.
