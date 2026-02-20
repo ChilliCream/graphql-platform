@@ -41,7 +41,29 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
         _client = client;
         _configuration = configuration;
+
+        var capabilities = SourceSchemaClientCapabilities.FileUpload;
+
+        if (configuration.BatchingMode.HasFlag(SourceSchemaHttpClientBatchingMode.VariableBatching))
+        {
+            capabilities |= SourceSchemaClientCapabilities.VariableBatching;
+        }
+
+        if (configuration.BatchingMode.HasFlag(SourceSchemaHttpClientBatchingMode.RequestBatching))
+        {
+            capabilities |= SourceSchemaClientCapabilities.RequestBatching;
+        }
+
+        if (configuration.BatchingMode.HasFlag(SourceSchemaHttpClientBatchingMode.ApolloRequestBatching))
+        {
+            capabilities |= SourceSchemaClientCapabilities.ApolloRequestBatching;
+        }
+
+        Capabilities = capabilities;
     }
+
+    /// <inheritdoc />
+    public SourceSchemaClientCapabilities Capabilities { get; }
 
     /// <inheritdoc />
     public async ValueTask<SourceSchemaClientResponse> ExecuteAsync(

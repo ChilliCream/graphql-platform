@@ -64,13 +64,14 @@ internal sealed class SourceSchemaRequestDispatcher
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        // TODO: we need to somehow detect if the client is able to do request batching.
+        var client = _clientScope.GetClient(request.SchemaName, request.OperationType);
+
         // if the request is not part of a batch group or if it is a mutation or subscription
         // we will dispatch it right away without waiting for other requests.
-        if (request.BatchingGroupId is not int groupId
+        if ((client.Capabilities & SourceSchemaClientCapabilities.RequestBatching) == 0
+            || request.BatchingGroupId is not { } groupId
             || request.OperationType is OperationType.Mutation or OperationType.Subscription)
         {
-            var client = _clientScope.GetClient(request.SchemaName, request.OperationType);
             return client.ExecuteAsync(_context, request, cancellationToken);
         }
 

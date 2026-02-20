@@ -49,7 +49,9 @@ public class SourceSchemaHttpClientConfiguration
         string name,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        SourceSchemaHttpClientBatchingMode batchingMode =
+            SourceSchemaHttpClientBatchingMode.VariableBatching
+                | SourceSchemaHttpClientBatchingMode.RequestBatching,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -112,7 +114,9 @@ public class SourceSchemaHttpClientConfiguration
         string httpClientName,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        SourceSchemaHttpClientBatchingMode batchingMode =
+            SourceSchemaHttpClientBatchingMode.VariableBatching
+                | SourceSchemaHttpClientBatchingMode.RequestBatching,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -131,6 +135,11 @@ public class SourceSchemaHttpClientConfiguration
         BatchingMode = batchingMode;
 
         DefaultAcceptHeaderValues = defaultAcceptHeaderValues ?? AcceptContentTypes.Default;
+
+        if (batchingMode.HasFlag(SourceSchemaHttpClientBatchingMode.VariableBatching))
+        {
+            batchingMode &= ~SourceSchemaHttpClientBatchingMode.ApolloRequestBatching;
+        }
 
         if (batchingAcceptHeaderValues.HasValue)
         {

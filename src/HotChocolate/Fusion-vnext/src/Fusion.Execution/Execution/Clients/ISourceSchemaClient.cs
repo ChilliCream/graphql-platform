@@ -10,6 +10,11 @@ namespace HotChocolate.Fusion.Execution.Clients;
 public interface ISourceSchemaClient : IAsyncDisposable
 {
     /// <summary>
+    /// Gets the capabilities of this client
+    /// </summary>
+    SourceSchemaClientCapabilities Capabilities { get; }
+
+    /// <summary>
     /// Executes a single GraphQL operation against the source schema.
     /// </summary>
     /// <param name="context">The current operation plan execution context.</param>

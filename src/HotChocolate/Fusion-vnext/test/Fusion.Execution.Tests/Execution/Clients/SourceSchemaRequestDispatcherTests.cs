@@ -316,6 +316,10 @@ public sealed class SourceSchemaRequestDispatcherTests : FusionTestBase
         public Func<ImmutableArray<SourceSchemaClientRequest>,
             ImmutableArray<SourceSchemaClientResponse>>? OnBatch { get; set; }
 
+        public SourceSchemaClientCapabilities Capabilities
+            => SourceSchemaClientCapabilities.RequestBatching
+                | SourceSchemaClientCapabilities.VariableBatching;
+
         public ValueTask<SourceSchemaClientResponse> ExecuteAsync(
             OperationPlanContext context,
             SourceSchemaClientRequest request,
@@ -358,6 +362,10 @@ public sealed class SourceSchemaRequestDispatcherTests : FusionTestBase
 
     private sealed class FailingSourceSchemaClient : ISourceSchemaClient
     {
+        public SourceSchemaClientCapabilities Capabilities
+            => SourceSchemaClientCapabilities.RequestBatching
+                | SourceSchemaClientCapabilities.VariableBatching;
+
         public ValueTask<SourceSchemaClientResponse> ExecuteAsync(
             OperationPlanContext context,
             SourceSchemaClientRequest request,
