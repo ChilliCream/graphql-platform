@@ -7,7 +7,6 @@ using HotChocolate.Buffers;
 
 namespace HotChocolate.Fusion.Text.Json;
 
-[DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
 public sealed partial class SourceResultDocument : IDisposable
 {
     private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
@@ -255,7 +254,7 @@ public sealed partial class SourceResultDocument : IDisposable
         }
     }
 
-    private string GetDebuggerDisplay()
+    public override string ToString()
     {
         if (_usedChunks == 0)
         {
