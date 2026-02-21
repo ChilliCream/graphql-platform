@@ -798,4 +798,18 @@ public class SourceResultDocumentTests
         Assert.Equal("\"hello\"", result.Root.GetProperty("string").GetRawText());
         Assert.Contains("nested", result.Root.GetProperty("object").GetRawText());
     }
+
+    [Fact]
+    public void GetRawText_Array_Success()
+    {
+        var json = "{\"arr\":[1,2,3],\"next\":4}"u8.ToArray();
+        var chunk = new byte[128 * 1024];
+        json.AsSpan().CopyTo(chunk);
+
+        var result = SourceResultDocument.Parse([chunk], json.Length, 1, pooledMemory: false);
+
+        var array = result.Root.GetProperty("arr");
+        Assert.Equal("[1,2,3]", array.GetRawText());
+        Assert.Equal("[1,2,3]", Encoding.UTF8.GetString(array.GetRawValueAsMemory().Span));
+    }
 }

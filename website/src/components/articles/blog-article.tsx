@@ -1,12 +1,14 @@
 import React, { FC, ReactNode } from "react";
 import styled from "styled-components";
 
+import LiteYouTubeEmbed from "react-lite-youtube-embed";
+import "react-lite-youtube-embed/dist/LiteYouTubeEmbed.css";
+
 import {
   ArticleContent,
   ArticleHeader,
   ArticleHeaderVideoContainer,
   ArticleTitle,
-  ArticleVideo,
 } from "@/components/article-elements";
 import { ArticleLayout } from "@/components/layout";
 import { ArticleTableOfContent } from "./article-table-of-content";
@@ -71,11 +73,19 @@ export const BlogArticle: FC<BlogArticleProps> = ({ data, content }) => {
         <ResponsiveArticleMenu />
         {featuredVideoId && (
           <ArticleHeaderVideoContainer>
-            <ArticleVideo videoId={featuredVideoId} />
+            <LiteYouTubeEmbed id={featuredVideoId} title={title} />
           </ArticleHeaderVideoContainer>
         )}
         {featuredImage && !featuredVideoId && (
-          <img src={featuredImage} alt={title} />
+          <img
+            src={featuredImage}
+            alt={title}
+            width={1200}
+            height={675}
+            loading="lazy"
+            decoding="async"
+            style={{ width: "100%", height: "auto" }}
+          />
         )}
         <ArticleTitle>{title}</ArticleTitle>
         <Metadata>

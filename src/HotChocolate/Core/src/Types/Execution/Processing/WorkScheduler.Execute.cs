@@ -32,8 +32,15 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
     {
         AssertNotPooled();
 
-        return _activeBranches.TryGetValue(executionBranchId, out var branch)
-            ? branch.WaitForCompletionAsync(operationContext.RequestAborted)
+        Branch? branch;
+
+        lock (_sync)
+        {
+            _activeBranches.TryGetValue(executionBranchId, out branch);
+        }
+
+        return branch is not null
+            ? branch.WaitForCompletionAsync(_ct)
             : ValueTask.CompletedTask;
     }
 

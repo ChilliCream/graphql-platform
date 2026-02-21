@@ -13,4 +13,3 @@ Host: https://chillicream.com
 
 # Sitemaps
 Sitemap: https://chillicream.com/sitemap.xml
-Sitemap: https://chillicream.com/sitemap-index.xml

@@ -51,7 +51,7 @@ const Container = styled.section.attrs({
   margin-bottom: 24px;
 `;
 
-const Title = styled.h6`
+const Title = styled.h2`
   margin-bottom: 12px;
   padding: 0 25px;
   font-size: 0.875rem;

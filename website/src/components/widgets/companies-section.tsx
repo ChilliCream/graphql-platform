@@ -55,186 +55,213 @@ export const CompaniesSection: FC = () => (
             logo: AdditivLogoSvg,
             width: 140,
             url: "https://additiv.com",
+            name: "additiv",
           },
           {
             logo: AeiLogoSvg,
             width: 160,
             url: "https://aeieng.com",
+            name: "AEI",
           },
           {
             logo: AtminaLogoSvg,
             width: 100,
             url: "https://atmina.de",
+            name: "ATMINA",
           },
           {
             logo: AutoguruLogoSvg,
             width: 180,
             url: "https://www.autoguru.com.au",
+            name: "AutoGuru",
           },
           {
             logo: BdnaLogoSvg,
             width: 150,
             url: "https://bdna.com.au",
+            name: "BDNA",
           },
           {
             logo: BeyableLogoSvg,
             width: 150,
             url: "https://www.beyable.com",
+            name: "Beyable",
           },
           {
             logo: BiqhLogoSvg,
             width: 100,
             url: "https://www.biqh.com",
+            name: "BIQH",
           },
           {
             logo: CarmmunityLogoSvg,
             width: 180,
             url: "https://carmmunity.io",
+            name: "Carmmunity",
           },
           {
             logo: CompassLogoSvg,
             width: 180,
             url: "https://www.compass.education",
+            name: "Compass Education",
           },
           {
             logo: E2mLogoSvg,
             width: 90,
             url: "https://www.e2m.energy",
+            name: "e2m",
           },
           {
             logo: ExlrtLogoSvg,
             width: 130,
             url: "https://www.exlrt.com",
+            name: "Exlrt",
           },
           {
             logo: EzeepLogoSvg,
             width: 100,
             url: "https://www.ezeep.com",
+            name: "ezeep",
           },
           {
             logo: FulcrumLogoSvg,
             width: 150,
             url: "https://fulcrumpro.com/",
+            name: "Fulcrum",
           },
           {
             logo: GalaxusLogoSvg,
             width: 200,
             url: "https://www.galaxus.ch",
+            name: "Galaxus",
           },
-          {
-            logo: GiaLogoSvg,
-            width: 120,
-            url: "https://gia.ch",
-          },
+          { logo: GiaLogoSvg, width: 120, url: "https://gia.ch", name: "GIA" },
           {
             logo: HiloLogoSvg,
             width: 70,
             url: "https://www.hiloenergie.com",
+            name: "Hilo Energie",
           },
           {
             logo: IncloudLogoSvg,
             width: 200,
             url: "https://www.incloud.de",
+            name: "Incloud",
           },
           {
             logo: InfoslipsLogoSvg,
             width: 130,
             url: "https://www.infoslips.com",
+            name: "Infoslips",
           },
           {
             logo: MicrosoftLogoSvg,
             width: 180,
             url: "https://www.microsoft.com",
+            name: "Microsoft",
           },
           {
             logo: MotiviewLogoSvg,
             width: 160,
             url: "https://motitech.co.uk",
+            name: "Motitech",
           },
           {
             logo: OrderinLogoSvg,
             width: 160,
             url: "https://orderin.co.za",
+            name: "Orderin",
           },
           {
             logo: PoweredSoftLogoSvg,
             width: 110,
             url: "https://poweredsoft.com",
+            name: "PoweredSoft",
           },
           {
             logo: PushpayLogoSvg,
             width: 180,
             url: "https://pushpay.com",
+            name: "Pushpay",
           },
           {
             logo: RailCargoAustriaLogoSvg,
             width: 260,
             url: "http://www.railcargo.at",
+            name: "Rail Cargo Austria",
           },
           {
             logo: Seven2OneLogoSvg,
             width: 120,
             url: "https://www.seven2one.de",
+            name: "Seven2One",
           },
           {
             logo: SolyticLogoSvg,
             width: 150,
             url: "https://www.solytic.com",
+            name: "Solytic",
           },
           {
             logo: SpectrumMedicalLogoSvg,
             width: 200,
             url: "https://www.spectrummedical.com/",
+            name: "Spectrum Medical",
           },
           {
             logo: SpeedwayMotorsLogoSvg,
             width: 120,
             url: "https://www.speedwaymotors.com",
+            name: "Speedway Motors",
           },
           {
             logo: SplashbackLogoSvg,
             width: 180,
             url: "https://splashback.io",
+            name: "Splashback",
           },
           {
             logo: SweetGeeksLogoSvg,
             width: 120,
             url: "https://sweetgeeks.dk",
+            name: "Sweet Geeks",
           },
           {
             logo: SwissLifeLogoSvg,
             width: 100,
             url: "https://www.swisslife.ch",
+            name: "Swiss Life",
           },
           {
             logo: SytadelleLogoSvg,
             width: 160,
             url: "https://www.sytadelle.fr",
+            name: "Sytadelle",
           },
           {
             logo: TrackmanLogoSvg,
             width: 180,
             url: "http://trackman.com/",
+            name: "TrackMan",
           },
           {
             logo: TravelSoftLogoSvg,
             width: 180,
             url: "https://travel-soft.com",
+            name: "TravelSoft",
           },
           {
             logo: VptechLogoSvg,
             width: 140,
             url: "https://careers.veepee.com/vptech/",
+            name: "VPTech",
           },
-          {
-            logo: XMLogoSvg,
-            width: 120,
-            url: "https://xm.com",
-          },
+          { logo: XMLogoSvg, width: 120, url: "https://xm.com", name: "XM" },
           {
             logo: ZioskLogoSvg,
             width: 120,
             url: "https://www.ziosk.com",
+            name: "Ziosk",
           },
         ]}
       </Ticker>
@@ -257,6 +284,7 @@ interface TickerLogo {
   readonly width: number;
   readonly logo: Sprite;
   readonly url: string;
+  readonly name: string;
 }
 
 interface TickerProps {
@@ -265,9 +293,9 @@ interface TickerProps {
 
 const Ticker: FC<TickerProps> = ({ children }) => {
   const width = children.reduce<number>((p, c) => p + c.width + 60, 0);
-  const logos = children.map(({ width, url, logo }, index) => (
+  const logos = children.map(({ width, url, logo, name }, index) => (
     <GenericLogo key={"logo-" + index} width={width}>
-      <Link to={url}>
+      <Link to={url} aria-label={name}>
         <Company {...logo} />
       </Link>
     </GenericLogo>

@@ -34,7 +34,7 @@ export const Footer: FC = () => {
       <Section>
         <Company>
           <LogoContainer>
-            <LogoTextLink to="/">
+            <LogoTextLink to="/" aria-label="ChilliCream Home">
               <LogoText />
             </LogoTextLink>
           </LogoContainer>
@@ -111,41 +111,47 @@ export const Footer: FC = () => {
       </Section>
       <Section>
         <Connect>
-          <ConnectLink to={tools.blog}>
+          <ConnectLink to={tools.blog} aria-label="ChilliCream Blog">
             <IconContainer>
               <BlogIcon />
             </IconContainer>
-            <SrOnly>to read the latest stuff</SrOnly>
+            <SrOnly>ChilliCream Blog</SrOnly>
           </ConnectLink>
-          <ConnectLink to={tools.github}>
+          <ConnectLink to={tools.github} aria-label="ChilliCream on GitHub">
             <IconContainer>
               <GithubIcon />
             </IconContainer>
-            <SrOnly>to work with us on the platform</SrOnly>
+            <SrOnly>ChilliCream on GitHub</SrOnly>
           </ConnectLink>
-          <ConnectLink to={tools.slack}>
+          <ConnectLink
+            to={tools.slack}
+            aria-label="ChilliCream Slack Community"
+          >
             <IconContainer>
               <SlackIcon />
             </IconContainer>
-            <SrOnly>to get in touch with us</SrOnly>
+            <SrOnly>ChilliCream Slack Community</SrOnly>
           </ConnectLink>
-          <ConnectLink to={tools.youtube}>
+          <ConnectLink
+            to={tools.youtube}
+            aria-label="ChilliCream YouTube Channel"
+          >
             <IconContainer>
               <YouTubeIcon />
             </IconContainer>
-            <SrOnly>to learn new stuff</SrOnly>
+            <SrOnly>ChilliCream YouTube Channel</SrOnly>
           </ConnectLink>
-          <ConnectLink to={tools.x}>
+          <ConnectLink to={tools.x} aria-label="ChilliCream on X">
             <IconContainer>
               <XIcon />
             </IconContainer>
-            <SrOnly>to stay up-to-date</SrOnly>
+            <SrOnly>ChilliCream on X</SrOnly>
           </ConnectLink>
-          <ConnectLink to={tools.linkedIn}>
+          <ConnectLink to={tools.linkedIn} aria-label="ChilliCream on LinkedIn">
             <IconContainer>
               <LinkedInIcon />
             </IconContainer>
-            <SrOnly>to connect</SrOnly>
+            <SrOnly>ChilliCream on LinkedIn</SrOnly>
           </ConnectLink>
         </Connect>
       </Section>

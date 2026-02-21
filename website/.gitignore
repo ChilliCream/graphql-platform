@@ -68,5 +68,8 @@ typings/
 out/
 next-env.d.ts
 
+# Image optimization build output
+/public/optimized/
+
 # Mac files
 .DS_Store

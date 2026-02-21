@@ -1,9 +1,17 @@
 import React from "react";
 import type { Metadata } from "next";
+import { Radio_Canada } from "next/font/google";
 
 import { Providers } from "@/lib/providers";
 import { siteMetadata } from "@/lib/site-config";
 import { getLatestBlogPostForHeader } from "@/lib/blog";
+
+const radioCanada = Radio_Canada({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-radio-canada",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -24,13 +32,7 @@ export default function RootLayout({
   const latestBlogPost = getLatestBlogPostForHeader();
 
   return (
-    <html lang="en">
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Radio+Canada:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={radioCanada.variable}>
       <body>
         <Providers latestBlogPost={latestBlogPost}>{children}</Providers>
       </body>

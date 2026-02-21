@@ -6,6 +6,7 @@ using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 namespace HotChocolate.Fusion.Text.Json;
 
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
 public readonly partial struct SourceResultElement
 {
     internal readonly SourceResultDocument _parent;
@@ -581,6 +582,43 @@ public readonly partial struct SourceResultElement
 
         return new ObjectEnumerator(this);
     }
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        switch (TokenType)
+        {
+            case JsonTokenType.None:
+            case JsonTokenType.Null:
+                return string.Empty;
+
+            case JsonTokenType.True:
+                return bool.TrueString;
+
+            case JsonTokenType.False:
+                return bool.FalseString;
+
+            case JsonTokenType.Number:
+            case JsonTokenType.StartArray:
+            case JsonTokenType.StartObject:
+                Debug.Assert(_parent != null);
+                return _parent.GetRawValueAsString(_cursor);
+
+            case JsonTokenType.String:
+                return GetString()!;
+
+            case JsonTokenType.Comment:
+            case JsonTokenType.EndArray:
+            case JsonTokenType.EndObject:
+            default:
+                Debug.Fail($"No handler for {nameof(JsonTokenType)}.{TokenType}");
+                return string.Empty;
+        }
+    }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private string DebuggerDisplay
+        => ValueKind == JsonValueKind.Undefined ? "<Undefined>" : ToString();
 
     private void CheckValidInstance()
     {
