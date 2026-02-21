@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
@@ -73,6 +74,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(request);
 
+        Debug.WriteLine(request.SchemaName);
+
         var httpRequest = CreateHttpRequest(request);
         ConfigureCallbacks(httpRequest, context, request);
 
@@ -96,6 +99,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         {
             return [];
         }
+
+        Debug.WriteLine(requests[0].SchemaName);
 
         if (ContainsSubscriptionRequest(requests))
         {

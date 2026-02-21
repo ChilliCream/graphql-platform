@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Properties;
 using HotChocolate.Language;
+using static HotChocolate.Fusion.Execution.Clients.SourceSchemaClientCapabilities;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -67,7 +68,7 @@ internal sealed class SourceSchemaRequestDispatcher
 
         // if the request is not part of a batch group or if it is a mutation or subscription
         // we will dispatch it right away without waiting for other requests.
-        if ((client.Capabilities & SourceSchemaClientCapabilities.RequestBatching) == 0
+        if ((client.Capabilities & RequestBatching) == RequestBatching
             || request.BatchingGroupId is not { } groupId
             || request.OperationType is OperationType.Mutation or OperationType.Subscription)
         {
