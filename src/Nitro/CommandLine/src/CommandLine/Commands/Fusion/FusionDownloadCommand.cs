@@ -48,14 +48,16 @@ internal sealed class FusionDownloadCommand : Command
         var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
         var outputFile =
             context.ParseResult.GetValueForOption(Opt<OptionalOutputFileOption>.Instance) ??
-            new FileInfo(Path.Combine(Environment.CurrentDirectory, "gateway.fgp"));
+            new FileInfo(Path.Combine(Environment.CurrentDirectory, "gateway.far"));
+
+        var isFgp = outputFile.Extension.Equals(".fgp", StringComparison.OrdinalIgnoreCase);
 
         console.Title($"Download the fusion configuration {apiId}/{stageName}");
 
         await using var stream = await FusionPublishHelpers.DownloadLatestFusionArchiveAsync(
             apiId,
             stageName,
-            client,
+            isFgp,
             httpClientFactory,
             cancellationToken);
 
