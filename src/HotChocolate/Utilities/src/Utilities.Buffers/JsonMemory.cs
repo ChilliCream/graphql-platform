@@ -13,7 +13,13 @@ internal static class JsonMemory
 {
     public const int BufferSize = 1 << 17;
 
-    private static FixedSizeArrayPool s_pool = new(FixedSizeArrayPoolKinds.JsonMemory, BufferSize, 128);
+    private static FixedSizeArrayPool s_pool =
+        new FixedSizeArrayPool(
+            FixedSizeArrayPoolKinds.JsonMemory,
+            arraySize: BufferSize,
+            [128, 768, 3072],
+            trimInterval: TimeSpan.FromMinutes(1),
+            preAllocate: true);
     private static readonly ArrayPool<byte[]> s_chunkPool = ArrayPool<byte[]>.Shared;
 
     public static void Reconfigure(Func<FixedSizeArrayPool> factory)
@@ -27,7 +33,10 @@ internal static class JsonMemory
         }
 #endif
 
-        s_pool = factory() ?? throw new InvalidOperationException("The factory must create a valid pool.");
+        var oldPool = Interlocked.Exchange(
+            ref s_pool,
+            factory() ?? throw new InvalidOperationException("The factory must create a valid pool."));
+        oldPool.Dispose();
         Log.ReconfiguredPool();
     }
 
