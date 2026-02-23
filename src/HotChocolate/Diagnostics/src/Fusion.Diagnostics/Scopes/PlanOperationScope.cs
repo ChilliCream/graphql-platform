@@ -4,18 +4,14 @@ using OpenTelemetry.Trace;
 
 namespace HotChocolate.Fusion.Diagnostics.Scopes;
 
-internal sealed class PlanOperationScope : RequestScopeBase
+internal sealed class PlanOperationScope(
+    FusionActivityEnricher enricher,
+    RequestContext context,
+    Activity activity)
+    : RequestScopeBase(enricher, context, activity)
 {
-    public PlanOperationScope(
-        FusionActivityEnricher enricher,
-        RequestContext context,
-        Activity activity)
-        : base(enricher, context, activity)
-    {
-    }
-
     protected override void EnrichActivity()
-        => Enricher.EnrichCompileOperation(Context, Activity);
+        => Enricher.EnrichPlanOperationScope(Context, Activity);
 
     protected override void SetStatus()
     {

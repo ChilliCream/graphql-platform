@@ -123,8 +123,7 @@ public class FusionActivityEnricher
         if (request.Variables is not null
             && (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
         {
-            var node = CreateVariablesNode(request.Variables);
-            EnrichRequestVariables(context, request, node, activity);
+            EnrichRequestVariables(context, request, request.Variables, activity);
         }
 
         if (request.Extensions is not null
@@ -172,8 +171,7 @@ public class FusionActivityEnricher
             if (request.Variables is not null
                 && (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
             {
-                var node = CreateVariablesNode(request.Variables);
-                EnrichBatchVariables(context, request, node, i, activity);
+                EnrichBatchVariables(context, request, request.Variables, i, activity);
             }
 
             if (request.Extensions is not null
@@ -219,8 +217,7 @@ public class FusionActivityEnricher
         if (request.Variables is not null
             && (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
         {
-            var node = CreateVariablesNode(request.Variables);
-            EnrichRequestVariables(context, request, node, activity);
+            EnrichRequestVariables(context, request, request.Variables, activity);
         }
 
         if (request.Extensions is not null
@@ -233,20 +230,20 @@ public class FusionActivityEnricher
     protected virtual void EnrichRequestVariables(
         HttpContext context,
         GraphQLRequest request,
-        ISyntaxNode variables,
+        JsonDocument variables,
         Activity activity)
     {
-        activity.SetTag("graphql.http.request.variables", variables.Print());
+        activity.SetTag("graphql.http.request.variables", variables.RootElement.ToString());
     }
 
     protected virtual void EnrichBatchVariables(
         HttpContext context,
         GraphQLRequest request,
-        ISyntaxNode variables,
+        JsonDocument variables,
         int index,
         Activity activity)
     {
-        activity.SetTag($"graphql.http.request[{index}].variables", variables.Print());
+        activity.SetTag($"graphql.http.request[{index}].variables", variables.RootElement.ToString());
     }
 
     protected virtual void EnrichRequestExtensions(
@@ -321,7 +318,6 @@ public class FusionActivityEnricher
     {
         var plan = context.GetOperationPlan();
         var documentInfo = context.OperationDocumentInfo;
-        // TODO: Why do we do this?
         var operationDisplayName = CreateOperationDisplayName(context, plan);
 
         if (_options.RenameRootActivity && operationDisplayName is not null)
@@ -342,11 +338,9 @@ public class FusionActivityEnricher
             activity.SetTag("graphql.document.body", documentInfo.Document.Print());
         }
 
-        if (context.Result is OperationResult result)
+        if (context.Result is OperationResult {Errors: [_, ..] errors})
         {
-            // TODO: Why is this always set
-            var errorCount = result.Errors.Count;
-            activity.SetTag("graphql.errors.count", errorCount);
+            activity.SetTag("graphql.errors.count", errors.Count);
         }
     }
 
@@ -487,9 +481,9 @@ public class FusionActivityEnricher
         activity.DisplayName = "Coerce Variable";
     }
 
-    public virtual void EnrichCompileOperation(RequestContext context, Activity activity)
+    public virtual void EnrichPlanOperationScope(RequestContext context, Activity activity)
     {
-        activity.DisplayName = "Compile Operation";
+        activity.DisplayName = "Plan Operation";
     }
 
     public virtual void EnrichExecuteOperation(RequestContext context, Activity activity)
@@ -526,25 +520,6 @@ public class FusionActivityEnricher
         }
 
         activity.AddEvent(new ActivityEvent(AttributeExceptionEventName, default, tags));
-    }
-
-    // TODO: Not sure if this is the best way...
-    private static ISyntaxNode CreateVariablesNode(JsonDocument? variables)
-    {
-        if (variables is null)
-        {
-            return NullValueNode.Default;
-        }
-
-        var root = variables.RootElement;
-
-        if (root.ValueKind is not (JsonValueKind.Object or JsonValueKind.Array))
-        {
-            throw new InvalidOperationException();
-        }
-
-        var parser = new JsonValueParser();
-        return parser.Parse(root);
     }
 }
 

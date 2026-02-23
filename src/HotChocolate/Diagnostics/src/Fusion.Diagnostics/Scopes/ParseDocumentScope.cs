@@ -4,16 +4,12 @@ using OpenTelemetry.Trace;
 
 namespace HotChocolate.Fusion.Diagnostics.Scopes;
 
-internal sealed class ParseDocumentScope : RequestScopeBase
+internal sealed class ParseDocumentScope(
+    FusionActivityEnricher enricher,
+    RequestContext context,
+    Activity activity)
+    : RequestScopeBase(enricher, context, activity)
 {
-    public ParseDocumentScope(
-        FusionActivityEnricher enricher,
-        RequestContext context,
-        Activity activity)
-        : base(enricher, context, activity)
-    {
-    }
-
     protected override void EnrichActivity()
         => Enricher.EnrichParseDocument(Context, Activity);
 

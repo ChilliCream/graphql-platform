@@ -4,16 +4,12 @@ using OpenTelemetry.Trace;
 
 namespace HotChocolate.Fusion.Diagnostics.Scopes;
 
-internal sealed class ValidateDocumentScope : RequestScopeBase
+internal sealed class ValidateDocumentScope(
+    FusionActivityEnricher enricher,
+    RequestContext context,
+    Activity activity)
+    : RequestScopeBase(enricher, context, activity)
 {
-    public ValidateDocumentScope(
-        FusionActivityEnricher enricher,
-        RequestContext context,
-        Activity activity)
-        : base(enricher, context, activity)
-    {
-    }
-
     protected override void EnrichActivity()
         => Enricher.EnrichValidateDocument(Context, Activity);
 

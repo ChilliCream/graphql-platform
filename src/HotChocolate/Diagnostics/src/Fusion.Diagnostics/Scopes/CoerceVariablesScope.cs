@@ -4,16 +4,12 @@ using OpenTelemetry.Trace;
 
 namespace HotChocolate.Fusion.Diagnostics.Scopes;
 
-internal sealed class CoerceVariablesScope : RequestScopeBase
+internal sealed class CoerceVariablesScope(
+    FusionActivityEnricher enricher,
+    RequestContext context,
+    Activity activity)
+    : RequestScopeBase(enricher, context, activity)
 {
-    public CoerceVariablesScope(
-        FusionActivityEnricher enricher,
-        RequestContext context,
-        Activity activity)
-        : base(enricher, context, activity)
-    {
-    }
-
     protected override void EnrichActivity()
         => Enricher.EnrichCoerceVariables(Context, Activity);
 
