@@ -435,15 +435,10 @@ internal ref struct JsonVariableCoercion
                 return BooleanValueNode.False;
 
             case JsonValueKind.String:
-            {
                 var stringValue = element.GetString()!;
-                var utf8Value = System.Text.Encoding.UTF8.GetBytes(stringValue);
-                var segment = WriteValue(utf8Value);
-                return new StringValueNode(null, segment, false);
-            }
+                return new StringValueNode(null, stringValue, false);
 
             case JsonValueKind.Number:
-            {
                 var rawValue = element.GetRawText();
                 var utf8Value = System.Text.Encoding.UTF8.GetBytes(rawValue);
                 var span = utf8Value.AsSpan();
@@ -460,7 +455,6 @@ internal ref struct JsonVariableCoercion
                 }
 
                 return new IntValueNode(segment);
-            }
 
             case JsonValueKind.Array:
             {

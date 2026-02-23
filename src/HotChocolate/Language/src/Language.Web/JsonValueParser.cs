@@ -90,15 +90,10 @@ public ref struct JsonValueParser
                 return BooleanValueNode.False;
 
             case JsonValueKind.String:
-            {
                 var stringValue = element.GetString()!;
-                var value = System.Text.Encoding.UTF8.GetBytes(stringValue);
-                var segment = WriteValue(value);
-                return new StringValueNode(null, segment, false);
-            }
+                return new StringValueNode(null, stringValue, false);
 
             case JsonValueKind.Number:
-            {
                 var value = JsonMarshal.GetRawUtf8Value(element);
                 var segment = WriteValue(value);
 
@@ -113,7 +108,6 @@ public ref struct JsonValueParser
                 }
 
                 return new IntValueNode(segment);
-            }
 
             case JsonValueKind.Array:
             {
