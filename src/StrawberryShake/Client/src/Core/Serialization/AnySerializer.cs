@@ -3,11 +3,11 @@ using System.Text.Json;
 namespace StrawberryShake.Serialization;
 
 /// <summary>
-/// This serializer handles json scalars.
+/// This serializer handles <c>Any</c> scalars.
 /// </summary>
-public class JsonSerializer : ScalarSerializer<JsonElement, JsonElement>
+public class AnySerializer : ScalarSerializer<JsonElement, JsonElement>
 {
-    public JsonSerializer(string typeName = BuiltInScalarNames.Any)
+    public AnySerializer(string typeName = BuiltInScalarNames.Any)
         : base(typeName)
     {
     }
