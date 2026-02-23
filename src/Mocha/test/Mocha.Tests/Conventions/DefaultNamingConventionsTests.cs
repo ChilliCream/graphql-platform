@@ -258,7 +258,7 @@ public class DefaultNamingConventionsTests
 
         var result = sut.GetPublishEndpointName(typeof(CreateOrderCommand));
 
-        Assert.Equal("chilli-cream.message-bus.tests.create-order", result);
+        Assert.Equal("mocha.tests.create-order", result);
     }
 
     [Fact]
@@ -297,7 +297,7 @@ public class DefaultNamingConventionsTests
 
         var result = sut.GetMessageIdentity(typeof(CreateOrderCommand));
 
-        Assert.Contains("chilli-cream", result);
+        Assert.Contains("mocha", result);
     }
 
     [Fact]

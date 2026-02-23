@@ -57,11 +57,14 @@ public class IntegrationTests
         // send first TriggerEvent to transition Started -> Triggered
         await bus.PublishAsync(new TriggerEvent(sagaId), CancellationToken.None);
 
+        // allow time for the first transition to complete before sending the second event
+        await Task.Delay(500, TestContext.Current.CancellationToken);
+
         // send second TriggerEvent to transition Triggered -> Completed (final)
         await bus.PublishAsync(new TriggerEvent(sagaId), CancellationToken.None);
 
         // allow time for final state processing
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        await Task.Delay(1000, TestContext.Current.CancellationToken);
 
         // assert - saga should be deleted from store after reaching final state
         Assert.Equal(0, storage.Count);

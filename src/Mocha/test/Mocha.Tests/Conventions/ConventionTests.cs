@@ -28,7 +28,7 @@ public class ConventionTests
         var messageType = runtime.Messages.GetMessageType(typeof(OrderCreated));
         Assert.NotNull(messageType);
         // namespace gets converted to kebab-case URN segment
-        Assert.Contains("chilli-cream", messageType.Identity);
+        Assert.Contains("mocha", messageType.Identity);
     }
 
     [Fact]

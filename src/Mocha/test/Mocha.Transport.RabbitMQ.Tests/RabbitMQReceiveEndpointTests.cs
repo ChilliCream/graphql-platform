@@ -123,6 +123,7 @@ public class RabbitMQReceiveEndpointTests
         var services = new ServiceCollection();
         services.AddSingleton(new MessageRecorder());
         var builder = services.AddMessageBus();
+        builder.AddEventHandler<OrderCreatedHandler>();
         var runtime = builder
             .AddRabbitMQ(t =>
             {

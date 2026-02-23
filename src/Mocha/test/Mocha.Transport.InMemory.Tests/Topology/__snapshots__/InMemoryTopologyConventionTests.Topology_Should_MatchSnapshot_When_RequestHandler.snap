@@ -1,6 +1,6 @@
 ﻿{
   "Topics": [
-    "chilli-cream.message-bus.test-helpers.process-payment",
+    "mocha.test-helpers.process-payment",
     "process-payment"
   ],
   "Queues": [
@@ -8,7 +8,7 @@
   ],
   "Bindings": [
     {
-      "Source": "chilli-cream.message-bus.test-helpers.process-payment",
+      "Source": "mocha.test-helpers.process-payment",
       "Destination": "process-payment",
       "Kind": "Topic"
     },

@@ -24,5 +24,10 @@
     <ProjectReference Include="..\..\src\Mocha.Outbox\Mocha.Outbox.csproj" />
     <ProjectReference Include="..\..\..\CookieCrumble\src\CookieCrumble\CookieCrumble.csproj" />
     <ProjectReference Include="..\..\..\CookieCrumble\src\CookieCrumble.Xunit3\CookieCrumble.Xunit3.csproj" />
+
+    <ProjectReference
+      Include="..\..\..\CookieCrumble\src\CookieCrumble.Analyzers\CookieCrumble.Analyzers.csproj"
+      OutputItemType="Analyzer"
+    />
   </ItemGroup>
 </Project>

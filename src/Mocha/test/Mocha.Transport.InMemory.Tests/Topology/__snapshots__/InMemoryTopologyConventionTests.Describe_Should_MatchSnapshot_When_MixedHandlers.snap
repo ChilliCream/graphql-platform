@@ -14,12 +14,12 @@
     },
     {
       "Kind": "topic",
-      "Name": "chilli-cream.message-bus.test-helpers.order-created",
+      "Name": "mocha.test-helpers.order-created",
       "Flow": "inbound"
     },
     {
       "Kind": "topic",
-      "Name": "chilli-cream.message-bus.test-helpers.process-payment",
+      "Name": "mocha.test-helpers.process-payment",
       "Flow": "inbound"
     },
     {
@@ -67,7 +67,7 @@
       "Kind": "Default"
     },
     {
-      "Name": "t/chilli-cream.message-bus.test-helpers.order-created",
+      "Name": "t/mocha.test-helpers.order-created",
       "Kind": "Default"
     }
   ]

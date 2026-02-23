@@ -195,12 +195,15 @@ public class CircuitBreakerMiddlewareTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act - send a good message, wait, send another
+        // act - send failing messages to trip the circuit breaker
         await bus.PublishAsync(new TestEvent { Data = "first" }, CancellationToken.None);
 
         await bus.PublishAsync(new TestEvent { Data = "second" }, CancellationToken.None);
 
-        // should reopen the circuit
+        // wait for the break duration to elapse so the circuit transitions from Open to HalfOpen
+        await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
+
+        // should now allow a message through (half-open -> closed on success)
         var waitForBreak = recorder.WaitAsync(Timeout);
         await bus.PublishAsync(new TestEvent { Data = "third" }, CancellationToken.None);
         Assert.True(await waitForBreak);

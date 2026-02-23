@@ -1,6 +1,6 @@
 ﻿{
   "Topics": [
-    "chilli-cream.message-bus.test-helpers.order-created",
+    "mocha.test-helpers.order-created",
     "order-created"
   ],
   "Queues": [
@@ -8,7 +8,7 @@
   ],
   "Bindings": [
     {
-      "Source": "chilli-cream.message-bus.test-helpers.order-created",
+      "Source": "mocha.test-helpers.order-created",
       "Destination": "order-created",
       "Kind": "Topic"
     },
