@@ -68,9 +68,9 @@ internal sealed class SourceSchemaRequestDispatcher
 
         // if the request is not part of a batch group,
         // if it is a mutation or subscription,
-        // or if the source schema uses legacy apollo request batching,
+        // or if the source schema does not support request batching,
         // we will dispatch it right away without waiting for other requests.
-        if ((client.Capabilities & ApolloRequestBatching) == ApolloRequestBatching
+        if ((client.Capabilities & RequestBatching) != RequestBatching
             || request.BatchingGroupId is not { } groupId
             || request.OperationType is OperationType.Mutation or OperationType.Subscription)
         {
