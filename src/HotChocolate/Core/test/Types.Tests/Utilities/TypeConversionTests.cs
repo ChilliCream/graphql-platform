@@ -191,7 +191,7 @@ public class TypeConverterTests
     public void Convert_Guid_String()
     {
         // arrange
-        const string expectedOutput = "2d84dcd634394ebe8427f4b1e1730c47";
+        const string expectedOutput = "2d84dcd6-3439-4ebe-8427-f4b1e1730c47";
         var input = Guid.Parse(expectedOutput);
 
         // act
