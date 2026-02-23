@@ -1,0 +1,21 @@
+﻿{
+  "Topics": [
+    "chilli-cream.message-bus.test-helpers.get-order-status",
+    "get-order-status"
+  ],
+  "Queues": [
+    "get-order-status"
+  ],
+  "Bindings": [
+    {
+      "Source": "chilli-cream.message-bus.test-helpers.get-order-status",
+      "Destination": "get-order-status",
+      "Kind": "Topic"
+    },
+    {
+      "Source": "get-order-status",
+      "Destination": "get-order-status",
+      "Kind": "Queue"
+    }
+  ]
+}

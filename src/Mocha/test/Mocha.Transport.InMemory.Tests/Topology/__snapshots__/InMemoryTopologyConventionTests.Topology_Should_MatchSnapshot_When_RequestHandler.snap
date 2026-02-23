@@ -1,0 +1,21 @@
+﻿{
+  "Topics": [
+    "chilli-cream.message-bus.test-helpers.process-payment",
+    "process-payment"
+  ],
+  "Queues": [
+    "process-payment"
+  ],
+  "Bindings": [
+    {
+      "Source": "chilli-cream.message-bus.test-helpers.process-payment",
+      "Destination": "process-payment",
+      "Kind": "Topic"
+    },
+    {
+      "Source": "process-payment",
+      "Destination": "process-payment",
+      "Kind": "Queue"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+﻿{
+  "Topics": [
+    "chilli-cream.message-bus.test-helpers.order-created",
+    "chilli-cream.message-bus.test-helpers.process-payment",
+    "order-created",
+    "process-payment"
+  ],
+  "Queues": [
+    "process-payment",
+    "test-app.order-created"
+  ],
+  "Bindings": [
+    {
+      "Source": "chilli-cream.message-bus.test-helpers.order-created",
+      "Destination": "order-created",
+      "Kind": "Topic"
+    },
+    {
+      "Source": "chilli-cream.message-bus.test-helpers.process-payment",
+      "Destination": "process-payment",
+      "Kind": "Topic"
+    },
+    {
+      "Source": "order-created",
+      "Destination": "test-app.order-created",
+      "Kind": "Queue"
+    },
+    {
+      "Source": "process-payment",
+      "Destination": "process-payment",
+      "Kind": "Queue"
+    }
+  ]
+}

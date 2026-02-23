@@ -1,0 +1,43 @@
+﻿{
+  "Schema": "memory",
+  "TransportType": "InMemoryMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "queue",
+      "Name": "test-app.order-created",
+      "Flow": "outbound"
+    },
+    {
+      "Kind": "topic",
+      "Name": "chilli-cream.message-bus.test-helpers.order-created",
+      "Flow": "inbound"
+    },
+    {
+      "Kind": "topic",
+      "Name": "order-created",
+      "Flow": "inbound"
+    }
+  ],
+  "Links": [
+    {
+      "Kind": "bind",
+      "Direction": "forward"
+    },
+    {
+      "Kind": "bind",
+      "Direction": "forward"
+    }
+  ],
+  "ReceiveEndpoints": [
+    {
+      "Name": "test-app.order-created",
+      "Kind": "Default"
+    }
+  ],
+  "DispatchEndpoints": [
+    {
+      "Name": "t/chilli-cream.message-bus.test-helpers.order-created",
+      "Kind": "Default"
+    }
+  ]
+}
