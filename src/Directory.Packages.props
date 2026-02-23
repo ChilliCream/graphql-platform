@@ -44,7 +44,6 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageVersion Include="NodaTime" Version="3.2.2" />
     <PackageVersion Include="Npgsql" Version="8.0.4" />
-    <PackageVersion Include="NSubstitute" Version="5.3.0" />
     <PackageVersion Include="OpenTelemetry" Version="1.14.0" />
     <PackageVersion Include="OpenTelemetry.Api" Version="1.1.0" />
     <PackageVersion Include="Polly" Version="8.6.5" />
@@ -52,7 +51,6 @@
     <PackageVersion Include="RabbitMQ.Client" Version="7.0.0" />
     <PackageVersion Include="RavenDB.Client" Version="7.0.0" />
     <PackageVersion Include="Snapshooter.Xunit" Version="0.5.4" />
-    <PackageVersion Include="Snapshooter.Xunit3" Version="1.0.1" />
     <PackageVersion Include="Spectre.Console.Json" Version="0.52.0" />
     <PackageVersion Include="Spectre.Console" Version="0.52.0" />
     <PackageVersion Include="sqlite-net-pcl" Version="1.9.172" />

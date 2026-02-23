@@ -154,7 +154,7 @@ public class EndpointMiddlewareTests
             .AddRabbitMQ(t =>
             {
                 t.DispatchEndpoint("ep")
-                    .Send<ProcessPayment>()
+                    .Publish<ProcessPayment>()
                     .UseDispatch(
                         new DispatchMiddlewareConfiguration(
                             (_, next) =>
@@ -171,7 +171,7 @@ public class EndpointMiddlewareTests
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        await messageBus.SendAsync(new ProcessPayment { OrderId = "ORD-DM", Amount = 50.00m }, CancellationToken.None);
+        await messageBus.PublishAsync(new ProcessPayment { OrderId = "ORD-DM", Amount = 50.00m }, CancellationToken.None);
 
         // assert
         Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the message within timeout");
@@ -193,9 +193,8 @@ public class EndpointMiddlewareTests
             .AddConsumer<PaymentSpyConsumer>()
             .AddRabbitMQ(t =>
             {
-                t.BindHandlersExplicitly();
                 t.DispatchEndpoint("ep")
-                    .Send<ProcessPayment>()
+                    .Publish<ProcessPayment>()
                     .AppendDispatch(
                         "Instrumentation",
                         new DispatchMiddlewareConfiguration(
@@ -213,7 +212,7 @@ public class EndpointMiddlewareTests
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        await messageBus.SendAsync(new ProcessPayment { OrderId = "ORD-DM2", Amount = 25.00m }, CancellationToken.None);
+        await messageBus.PublishAsync(new ProcessPayment { OrderId = "ORD-DM2", Amount = 25.00m }, CancellationToken.None);
 
         // assert
         Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the message within timeout");
@@ -235,12 +234,8 @@ public class EndpointMiddlewareTests
             .AddConsumer<PaymentSpyConsumer>()
             .AddRabbitMQ(t =>
             {
-                t.BindHandlersExplicitly();
-                t.DeclareQueue("q").AutoProvision(true);
-                t.Endpoint("recv").Consumer<PaymentSpyConsumer>().Queue("q");
                 t.DispatchEndpoint("ep")
-                    .ToQueue("q")
-                    .Send<ProcessPayment>()
+                    .Publish<ProcessPayment>()
                     .PrependDispatch(
                         "Instrumentation",
                         new DispatchMiddlewareConfiguration(
@@ -258,7 +253,7 @@ public class EndpointMiddlewareTests
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        await messageBus.SendAsync(new ProcessPayment { OrderId = "ORD-DM3", Amount = 10.00m }, CancellationToken.None);
+        await messageBus.PublishAsync(new ProcessPayment { OrderId = "ORD-DM3", Amount = 10.00m }, CancellationToken.None);
 
         // assert
         Assert.True(await recorder.WaitAsync(Timeout), "Handler did not receive the message within timeout");

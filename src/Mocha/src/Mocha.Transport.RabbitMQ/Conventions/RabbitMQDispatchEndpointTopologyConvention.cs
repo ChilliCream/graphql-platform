@@ -30,5 +30,44 @@ public sealed class RabbitMQDispatchEndpointTopologyConvention : IRabbitMQDispat
         {
             topology.AddQueue(new RabbitMQQueueConfiguration { Name = configuration.QueueName });
         }
+
+        // Bind custom dispatch exchanges to convention exchanges so routing is consistent
+        // across sender/receiver boundaries.
+        if (configuration.ExchangeName is not null)
+        {
+            foreach (var (runtimeType, kind) in configuration.Routes)
+            {
+                var conventionExchangeName =
+                    kind == OutboundRouteKind.Publish
+                        ? context.Naming.GetPublishEndpointName(runtimeType)
+                        : context.Naming.GetSendEndpointName(runtimeType);
+
+                if (configuration.ExchangeName == conventionExchangeName)
+                {
+                    continue;
+                }
+
+                if (topology.Exchanges.FirstOrDefault(e => e.Name == conventionExchangeName) is null)
+                {
+                    topology.AddExchange(new RabbitMQExchangeConfiguration { Name = conventionExchangeName });
+                }
+
+                if (topology.Bindings.FirstOrDefault(b =>
+                        b.Source.Name == configuration.ExchangeName
+                        && b is RabbitMQExchangeBinding exchangeBinding
+                        && exchangeBinding.Destination.Name == conventionExchangeName
+                    )
+                    is null)
+                {
+                    topology.AddBinding(
+                        new RabbitMQBindingConfiguration
+                        {
+                            Source = configuration.ExchangeName,
+                            Destination = conventionExchangeName,
+                            DestinationKind = RabbitMQDestinationKind.Exchange
+                        });
+                }
+            }
+        }
     }
 }

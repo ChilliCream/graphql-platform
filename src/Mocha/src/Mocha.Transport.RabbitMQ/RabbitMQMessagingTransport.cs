@@ -331,11 +331,11 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         RabbitMQDispatchEndpointConfiguration? configuration = null;
         if (route.Kind == OutboundRouteKind.Send)
         {
-            var queueName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
+            var exchangeName = context.Naming.GetSendEndpointName(route.MessageType.RuntimeType);
             configuration = new RabbitMQDispatchEndpointConfiguration
             {
-                QueueName = queueName,
-                Name = "q/" + queueName
+                ExchangeName = exchangeName,
+                Name = "e/" + exchangeName
             };
         }
         else if (route.Kind == OutboundRouteKind.Publish)

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using NSubstitute;
+using Moq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -89,10 +89,10 @@ public class RabbitMQConsumerManagerTests
     public async Task DisposeAsync_Should_HandleConsumerDisposeFailure_When_ConsumerThrows()
     {
         // arrange
-        var channel = Substitute.For<IChannel>();
-        channel.IsOpen.Returns(true);
-        channel
-            .BasicCancelAsync(Arg.Any<string>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
+        var channelMock = new Mock<IChannel>();
+        channelMock.SetupGet(c => c.IsOpen).Returns(true);
+        channelMock
+            .Setup(c => c.BasicCancelAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .Returns(Task.FromException(new InvalidOperationException("cancel failed")));
 
         var manager = CreateManager();
@@ -106,7 +106,7 @@ public class RabbitMQConsumerManagerTests
 
         // Manually set channel to simulate a connected consumer
         var consumer = (RabbitMQConsumerManager.RegisteredConsumer)registration;
-        consumer.Channel = channel;
+        consumer.Channel = channelMock.Object;
         consumer.ConsumerTag = "tag-1";
 
         // act — should not throw despite consumer dispose failure
@@ -118,11 +118,11 @@ public class RabbitMQConsumerManagerTests
 
     private static RabbitMQConsumerManager CreateManager()
     {
-        var connection = Substitute.For<IConnection>();
-        connection.IsOpen.Returns(false);
+        var connectionMock = new Mock<IConnection>();
+        connectionMock.SetupGet(c => c.IsOpen).Returns(false);
 
         return new RabbitMQConsumerManager(
             NullLogger<RabbitMQConsumerManager>.Instance,
-            _ => new ValueTask<IConnection>(connection));
+            _ => new ValueTask<IConnection>(connectionMock.Object));
     }
 }

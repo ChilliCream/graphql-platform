@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using NSubstitute;
+using Moq;
 using RabbitMQ.Client;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Connection;
@@ -11,14 +11,14 @@ public class RabbitMQConnectionManagerBaseTests
     public async Task GetConnectionAsync_Should_CreateConnection_When_NotConnected()
     {
         // arrange
-        var connection = CreateOpenConnection();
-        await using var manager = CreateManager(connection);
+        var connectionMock = CreateOpenConnection();
+        await using var manager = CreateManager(connectionMock.Object);
 
         // act
         var result = await manager.GetConnectionAsync(CancellationToken.None);
 
         // assert
-        Assert.Same(connection, result);
+        Assert.Same(connectionMock.Object, result);
     }
 
     [Fact]
@@ -26,13 +26,13 @@ public class RabbitMQConnectionManagerBaseTests
     {
         // arrange
         var factoryCallCount = 0;
-        var connection = CreateOpenConnection();
+        var connectionMock = CreateOpenConnection();
         await using var manager = new TestConnectionManager(
             NullLoggerFactory.Instance.CreateLogger<TestConnectionManager>(),
             _ =>
             {
                 factoryCallCount++;
-                return new ValueTask<IConnection>(connection);
+                return new ValueTask<IConnection>(connectionMock.Object);
             });
 
         // act
@@ -48,8 +48,8 @@ public class RabbitMQConnectionManagerBaseTests
     public async Task GetConnectionAsync_Should_ThrowObjectDisposed_When_Disposed()
     {
         // arrange
-        var connection = CreateOpenConnection();
-        var manager = CreateManager(connection);
+        var connectionMock = CreateOpenConnection();
+        var manager = CreateManager(connectionMock.Object);
         await manager.DisposeAsync();
 
         // act & assert
@@ -62,8 +62,8 @@ public class RabbitMQConnectionManagerBaseTests
     public async Task EnsureConnectedAsync_Should_CreateConnection_When_NotConnected()
     {
         // arrange
-        var connection = CreateOpenConnection();
-        await using var manager = CreateManager(connection);
+        var connectionMock = CreateOpenConnection();
+        await using var manager = CreateManager(connectionMock.Object);
 
         // act
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
@@ -76,8 +76,8 @@ public class RabbitMQConnectionManagerBaseTests
     public async Task DisposeAsync_Should_CloseAndDisposeConnection_When_Connected()
     {
         // arrange
-        var connection = CreateOpenConnection();
-        var manager = CreateManager(connection);
+        var connectionMock = CreateOpenConnection();
+        var manager = CreateManager(connectionMock.Object);
 
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
 
@@ -85,23 +85,21 @@ public class RabbitMQConnectionManagerBaseTests
         await manager.DisposeAsync();
 
         // assert
-        await connection
-            .Received()
-            .CloseAsync(
-                Arg.Any<ushort>(),
-                Arg.Any<string>(),
-                Arg.Any<TimeSpan>(),
-                Arg.Any<bool>(),
-                Arg.Any<CancellationToken>());
-        await connection.Received().DisposeAsync();
+        connectionMock.Verify(c => c.CloseAsync(
+            It.IsAny<ushort>(),
+            It.IsAny<string>(),
+            It.IsAny<TimeSpan>(),
+            It.IsAny<bool>(),
+            It.IsAny<CancellationToken>()), Times.AtLeastOnce());
+        connectionMock.Verify(c => c.DisposeAsync(), Times.AtLeastOnce());
     }
 
     [Fact]
     public async Task DisposeAsync_Should_BeIdempotent_When_CalledTwice()
     {
         // arrange
-        var connection = CreateOpenConnection();
-        var manager = CreateManager(connection);
+        var connectionMock = CreateOpenConnection();
+        var manager = CreateManager(connectionMock.Object);
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
 
         // act
@@ -116,8 +114,8 @@ public class RabbitMQConnectionManagerBaseTests
     public async Task Lifecycle_Should_InvokeBeforeConnectionCreated_When_Connecting()
     {
         // arrange
-        var connection = CreateOpenConnection();
-        await using var manager = CreateManager(connection);
+        var connectionMock = CreateOpenConnection();
+        await using var manager = CreateManager(connectionMock.Object);
 
         // act
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
@@ -130,8 +128,8 @@ public class RabbitMQConnectionManagerBaseTests
     public async Task Lifecycle_Should_InvokeAfterConnectionCreated_When_Connecting()
     {
         // arrange
-        var connection = CreateOpenConnection();
-        await using var manager = CreateManager(connection);
+        var connectionMock = CreateOpenConnection();
+        await using var manager = CreateManager(connectionMock.Object);
 
         // act
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
@@ -144,8 +142,8 @@ public class RabbitMQConnectionManagerBaseTests
     public async Task Lifecycle_Should_InvokeConnectionEstablished_When_Connecting()
     {
         // arrange
-        var connection = CreateOpenConnection();
-        await using var manager = CreateManager(connection);
+        var connectionMock = CreateOpenConnection();
+        await using var manager = CreateManager(connectionMock.Object);
 
         // act
         await manager.EnsureConnectedAsync(TestContext.Current.CancellationToken);
@@ -154,12 +152,12 @@ public class RabbitMQConnectionManagerBaseTests
         Assert.Equal(1, manager.ConnectionEstablishedCount);
     }
 
-    private static IConnection CreateOpenConnection()
+    private static Mock<IConnection> CreateOpenConnection()
     {
-        var connection = Substitute.For<IConnection>();
-        connection.IsOpen.Returns(true);
-        connection.ClientProvidedName.Returns("test-connection");
-        return connection;
+        var connectionMock = new Mock<IConnection>();
+        connectionMock.SetupGet(c => c.IsOpen).Returns(true);
+        connectionMock.SetupGet(c => c.ClientProvidedName).Returns("test-connection");
+        return connectionMock;
     }
 
     private static TestConnectionManager CreateManager(IConnection connection)
