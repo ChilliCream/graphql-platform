@@ -71,8 +71,8 @@ public sealed class RequestGroupingExecutionTests : FusionTestBase
         var bInteractions = AssertSchemaInteractions(gateway.Interactions, "b");
         var cInteractions = AssertSchemaInteractions(gateway.Interactions, "c");
 
-        AssertAllRequestsAreOperationBatches(bInteractions, expectedBatchSize: 2);
-        AssertAllRequestsAreOperationBatches(cInteractions, expectedBatchSize: 2);
+        AssertAllRequestsAreVariableBatches(bInteractions, expectedVariablesCount: 2);
+        AssertAllRequestsAreVariableBatches(cInteractions, expectedVariablesCount: 2);
     }
 
     [Fact]
@@ -157,13 +157,15 @@ public sealed class RequestGroupingExecutionTests : FusionTestBase
     {
         Assert.True(interactions.TryGetValue(schemaName, out var schemaInteractions));
         Assert.NotNull(schemaInteractions);
-        Assert.Equal(2, schemaInteractions.Count);
+        // Equivalent operations are merged into a single OperationBatchExecutionNode
+        // that uses variable batching, so there is one interaction per schema.
+        Assert.Single(schemaInteractions);
         return schemaInteractions;
     }
 
-    private static void AssertAllRequestsAreOperationBatches(
+    private static void AssertAllRequestsAreVariableBatches(
         ConcurrentDictionary<int, SourceSchemaInteraction> interactions,
-        int expectedBatchSize)
+        int expectedVariablesCount)
     {
         foreach (var interaction in interactions.Values)
         {
@@ -172,8 +174,10 @@ public sealed class RequestGroupingExecutionTests : FusionTestBase
             request.Body.Position = 0;
 
             using var body = JsonDocument.Parse(request.Body);
-            Assert.Equal(JsonValueKind.Array, body.RootElement.ValueKind);
-            Assert.Equal(expectedBatchSize, body.RootElement.GetArrayLength());
+            Assert.Equal(JsonValueKind.Object, body.RootElement.ValueKind);
+            Assert.True(body.RootElement.TryGetProperty("variables", out var variables));
+            Assert.Equal(JsonValueKind.Array, variables.ValueKind);
+            Assert.Equal(expectedVariablesCount, variables.GetArrayLength());
         }
     }
 

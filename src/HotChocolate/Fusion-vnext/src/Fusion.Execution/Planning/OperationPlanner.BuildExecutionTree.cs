@@ -52,10 +52,11 @@ public sealed partial class OperationPlanner
             _schema,
             _options.EnableRequestGrouping,
             hasVariables);
+        MergeEquivalentOperationNodes(completedNodes, dependencyLookup);
         BuildDependencyStructure(completedNodes, dependencyLookup, branchesLookup, fallbackLookup);
 
         var rootNodes = planSteps
-            .Where(t => !dependencyLookup.ContainsKey(t.Id))
+            .Where(t => !dependencyLookup.ContainsKey(t.Id) && completedNodes.ContainsKey(t.Id))
             .Select(t => completedNodes[t.Id])
             .ToImmutableArray();
 
@@ -477,7 +478,8 @@ public sealed partial class OperationPlanner
     {
         foreach (var (nodeId, stepDependencies) in dependencyLookup)
         {
-            if (!completedNodes.TryGetValue(nodeId, out var entry) || entry is not OperationExecutionNode node)
+            if (!completedNodes.TryGetValue(nodeId, out var entry)
+                || entry is not (OperationExecutionNode or OperationBatchExecutionNode))
             {
                 continue;
             }
@@ -485,13 +487,13 @@ public sealed partial class OperationPlanner
             foreach (var dependencyId in stepDependencies)
             {
                 if (!completedNodes.TryGetValue(dependencyId, out var childEntry)
-                    || childEntry is not (OperationExecutionNode or NodeFieldExecutionNode))
+                    || childEntry is not (OperationExecutionNode or OperationBatchExecutionNode or NodeFieldExecutionNode))
                 {
                     continue;
                 }
 
-                childEntry.AddDependent(node);
-                node.AddDependency(childEntry);
+                childEntry.AddDependent(entry);
+                entry.AddDependency(childEntry);
             }
         }
 
@@ -527,6 +529,234 @@ public sealed partial class OperationPlanner
 
             node.AddFallbackQuery(fallbackNode);
         }
+    }
+
+    private static void MergeEquivalentOperationNodes(
+        Dictionary<int, ExecutionNode> completedNodes,
+        Dictionary<int, HashSet<int>> dependencyLookup)
+    {
+        // We group OperationExecutionNodes by (schemaName, sortedDependencies).
+        // Nodes must have identical dependency sets to be safely mergeable.
+        //
+        // A node with different dependencies may be gated behind a conditional branch
+        // (e.g. NodeField inline-fragment dispatch) that never fires for certain entity types,
+        // so merging them would create a node whose dependency union can never be fully satisfied,
+        // possibly causing a deadlock.
+        var candidates = new Dictionary<(string schema, string deps), List<OperationExecutionNode>>();
+
+        foreach (var node in completedNodes.Values.OfType<OperationExecutionNode>())
+        {
+            var schemaKey = node.SchemaName ?? DynamicSchemaNameMarker;
+            var depsKey = dependencyLookup.TryGetValue(node.Id, out var depsSet)
+                ? string.Join(",", depsSet.Order())
+                : string.Empty;
+            var groupKey = (schemaKey, depsKey);
+
+            if (!candidates.TryGetValue(groupKey, out var list))
+            {
+                list = [];
+                candidates[groupKey] = list;
+            }
+
+            list.Add(node);
+        }
+
+        // Within each bucket, find sub-groups with identical canonical signatures and merge them.
+        foreach (var (_, groupNodes) in candidates)
+        {
+            if (groupNodes.Count <= 1)
+            {
+                continue;
+            }
+
+            var bySignature = new Dictionary<string, List<OperationExecutionNode>>(StringComparer.Ordinal);
+
+            foreach (var node in groupNodes)
+            {
+                var sig = ComputeCanonicalSignature(node);
+
+                if (!bySignature.TryGetValue(sig, out var sigGroup))
+                {
+                    sigGroup = [];
+                    bySignature[sig] = sigGroup;
+                }
+
+                sigGroup.Add(node);
+            }
+
+            foreach (var (_, equivalentNodes) in bySignature)
+            {
+                if (equivalentNodes.Count <= 1)
+                {
+                    continue;
+                }
+
+                // Stable order: lowest ID becomes the canonical node.
+                equivalentNodes.Sort((a, b) => a.Id.CompareTo(b.Id));
+
+                var primary = equivalentNodes[0];
+                var otherIds = equivalentNodes.Skip(1).Select(n => n.Id).ToList();
+
+                var (canonicalOp, canonicalRequirements) = CanonicalizeOperation(primary);
+                var targets = equivalentNodes.Select(n => n.Target).ToArray();
+
+                var mergedNode = new OperationBatchExecutionNode(
+                    primary.Id,
+                    canonicalOp,
+                    primary.SchemaName,
+                    targets,
+                    primary.Source,
+                    canonicalRequirements,
+                    primary.ForwardedVariables.ToArray(),
+                    primary.ResponseNames.ToArray(),
+                    primary.Conditions.ToArray(),
+                    primary.BatchingGroupId,
+                    primary.RequiresFileUpload);
+
+                completedNodes[primary.Id] = mergedNode;
+
+                foreach (var otherId in otherIds)
+                {
+                    completedNodes.Remove(otherId);
+                }
+
+                // Union all dependency sets under the primary ID.
+                if (!dependencyLookup.TryGetValue(primary.Id, out var primaryDeps))
+                {
+                    primaryDeps = [];
+                }
+
+                foreach (var otherId in otherIds)
+                {
+                    if (dependencyLookup.TryGetValue(otherId, out var otherDeps))
+                    {
+                        foreach (var dep in otherDeps)
+                        {
+                            primaryDeps.Add(dep);
+                        }
+
+                        dependencyLookup.Remove(otherId);
+                    }
+                }
+
+                if (primaryDeps.Count > 0)
+                {
+                    dependencyLookup[primary.Id] = primaryDeps;
+                }
+                else
+                {
+                    dependencyLookup.Remove(primary.Id);
+                }
+
+                // Replace all references to the removed IDs with the primary ID.
+                var otherIdSet = new HashSet<int>(otherIds);
+
+                foreach (var depSet in dependencyLookup.Values)
+                {
+                    var hadOther = false;
+
+                    foreach (var otherId in otherIdSet)
+                    {
+                        if (depSet.Remove(otherId))
+                        {
+                            hadOther = true;
+                        }
+                    }
+
+                    if (hadOther)
+                    {
+                        depSet.Add(primary.Id);
+                    }
+                }
+            }
+        }
+    }
+
+    private static string ComputeCanonicalSignature(OperationExecutionNode node)
+    {
+        var replacements = BuildPrefixReplacements(node.Requirements);
+        var normalizedText = ApplyPrefixReplacements(node.Operation.SourceText, replacements);
+
+        // Skip the first line — it contains the operation name which embeds the step ID.
+        var firstNewline = normalizedText.IndexOf('\n');
+        var bodyText = firstNewline >= 0 ? normalizedText[(firstNewline + 1)..] : normalizedText;
+
+        var conditions = string.Join(",", node.Conditions.ToArray()
+            .OrderBy(c => c.VariableName)
+            .Select(c => $"{c.VariableName}:{c.PassingValue}"));
+
+        return $"{node.SchemaName}|{node.Source}|{conditions}|{bodyText}";
+    }
+
+    private static (OperationSourceText operation, OperationRequirement[] requirements) CanonicalizeOperation(
+        OperationExecutionNode node)
+    {
+        // Use the primary node's operation and requirements as-is.
+        // The primary has the lowest ID (and therefore the lowest __fusion_{N}_ prefix numbers),
+        // which preserves the globally-unique numbering assigned by the planner.
+        // ComputeCanonicalSignature normalises prefixes only for equivalence comparison,
+        // but the actual merged operation must keep the original numbers.
+        return (node.Operation, node.Requirements.ToArray());
+    }
+
+    /// <summary>
+    /// Builds a list of (original, canonical) string pairs for normalizing
+    /// <c>__fusion_{N}_</c> variable-name prefixes.  Prefixes are sorted
+    /// deterministically by the alphabetically-joined set of their argument names
+    /// so that structurally identical operations always produce the same mapping.
+    /// </summary>
+    private static (string original, string canonical)[] BuildPrefixReplacements(
+        ReadOnlySpan<OperationRequirement> requirements)
+    {
+        var prefixToArgs = new Dictionary<string, SortedSet<string>>(StringComparer.Ordinal);
+
+        foreach (var req in requirements)
+        {
+            var key = req.Key;
+            var lastUnderscore = key.LastIndexOf('_');
+
+            if (lastUnderscore <= 0)
+            {
+                continue;
+            }
+
+            var prefix = key[..lastUnderscore];
+            var arg = key[(lastUnderscore + 1)..];
+
+            if (!prefixToArgs.TryGetValue(prefix, out var args))
+            {
+                args = new(StringComparer.Ordinal);
+                prefixToArgs[prefix] = args;
+            }
+
+            args.Add(arg);
+        }
+
+        var sortedPrefixes = prefixToArgs
+            .OrderBy(kvp => string.Join(",", kvp.Value), StringComparer.Ordinal)
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        var result = new (string original, string canonical)[sortedPrefixes.Count];
+
+        for (var i = 0; i < sortedPrefixes.Count; i++)
+        {
+            result[i] = ($"{sortedPrefixes[i]}_", $"__fusion_{i}_");
+        }
+
+        return result;
+    }
+
+    private static string ApplyPrefixReplacements(
+        string text,
+        ReadOnlySpan<(string original, string canonical)> replacements)
+    {
+        foreach (var (original, canonical) in replacements)
+        {
+            text = text.Replace(original, canonical);
+        }
+
+        return text;
     }
 
     private static string[] GetResponseNamesFromPath(

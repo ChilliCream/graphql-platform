@@ -332,20 +332,27 @@ internal sealed class OperationPlanExecutor
 
         foreach (var executionNode in plan.AllNodes)
         {
-            if (executionNode is not OperationExecutionNode { BatchingGroupId: { } groupId } operationNode)
+            var groupId = executionNode switch
+            {
+                OperationExecutionNode n => n.BatchingGroupId,
+                OperationBatchExecutionNode n => n.BatchingGroupId,
+                _ => null
+            };
+
+            if (groupId is null)
             {
                 continue;
             }
 
             groups ??= [];
 
-            if (!groups.TryGetValue(groupId, out var nodeIds))
+            if (!groups.TryGetValue(groupId.Value, out var nodeIds))
             {
                 nodeIds = [];
-                groups.Add(groupId, nodeIds);
+                groups.Add(groupId.Value, nodeIds);
             }
 
-            nodeIds.Add(operationNode.Id);
+            nodeIds.Add(executionNode.Id);
         }
 
         if (groups is null)

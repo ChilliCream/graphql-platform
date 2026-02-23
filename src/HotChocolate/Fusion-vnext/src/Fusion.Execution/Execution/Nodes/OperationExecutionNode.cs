@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reactive.Disposables;
+using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 
@@ -70,11 +71,8 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// </summary>
     public ReadOnlySpan<string> ResponseNames => _responseNames;
 
-    /// <summary>
-    /// Gets the name of the source schema that this operation is executed against.
-    /// If <c>null</c> the schema is dynamic and will be set at runtime.
-    /// </summary>
-    public string? SchemaName => _schemaName;
+    /// <inheritdoc />
+    public override string? SchemaName => _schemaName;
 
     /// <summary>
     /// Gets the path to the selection set for which this operation fetches data.
@@ -91,6 +89,9 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// Gets the data requirements that are needed to execute this operation.
     /// </summary>
     public ReadOnlySpan<OperationRequirement> Requirements => _requirements;
+
+    internal ImmutableArray<OperationRequirement> GetRequirementsArray()
+        => ImmutableCollectionsMarshal.AsImmutableArray(_requirements);
 
     /// <summary>
     /// Gets the variables that are needed to execute this operation.

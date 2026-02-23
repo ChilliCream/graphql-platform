@@ -41,30 +41,27 @@ public class OperationPlannerBatchingGroupIdTests : FusionTestBase
         var plan2 = PlanOperation(schema, QueryWithRepeatedLookups, enableRequestGrouping: true);
 
         // assert
-        var queryNodes = plan1.AllNodes
-            .OfType<OperationExecutionNode>()
-            .Where(t => t.Operation.Type is OperationType.Query)
+        // The two structurally equivalent schema-b lookups are merged into one
+        // OperationBatchExecutionNode by the dedup optimization, but the BatchingGroupId
+        // is retained from the pre-merge assignment.
+        var schemaBBatchNode = Assert.Single(
+            plan1.AllNodes.OfType<OperationBatchExecutionNode>(),
+            t => t.SchemaName == "b");
+        Assert.True(schemaBBatchNode.BatchingGroupId.HasValue);
+        Assert.Equal(2, schemaBBatchNode.Targets.Length);
+
+        // BatchingGroupIds must be deterministic across plan runs.
+        var plan1Ids = plan1.AllNodes
+            .OfType<OperationBatchExecutionNode>()
+            .Select(t => t.BatchingGroupId)
+            .OrderBy(id => id)
             .ToArray();
-
-        Assert.Contains(queryNodes, t => t.BatchingGroupId.HasValue);
-
-        var schemaBNodes = queryNodes.Where(t => t.SchemaName == "b").ToArray();
-        Assert.Equal(2, schemaBNodes.Length);
-        Assert.All(schemaBNodes, node => Assert.True(node.BatchingGroupId.HasValue));
-        Assert.Equal(schemaBNodes[0].BatchingGroupId, schemaBNodes[1].BatchingGroupId);
-
-        var plan1Lookup = plan1.AllNodes
-            .OfType<OperationExecutionNode>()
-            .Select(t => (Signature: CreateNodeSignature(t), t.BatchingGroupId))
-            .OrderBy(t => t.Signature, StringComparer.Ordinal)
+        var plan2Ids = plan2.AllNodes
+            .OfType<OperationBatchExecutionNode>()
+            .Select(t => t.BatchingGroupId)
+            .OrderBy(id => id)
             .ToArray();
-        var plan2Lookup = plan2.AllNodes
-            .OfType<OperationExecutionNode>()
-            .Select(t => (Signature: CreateNodeSignature(t), t.BatchingGroupId))
-            .OrderBy(t => t.Signature, StringComparer.Ordinal)
-            .ToArray();
-
-        Assert.Equal(plan1Lookup, plan2Lookup);
+        Assert.Equal(plan1Ids, plan2Ids);
     }
 
     [Fact]

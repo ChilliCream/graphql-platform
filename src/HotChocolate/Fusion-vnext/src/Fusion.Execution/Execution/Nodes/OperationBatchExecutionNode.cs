@@ -67,11 +67,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
     /// </summary>
     public ReadOnlySpan<string> ResponseNames => _responseNames;
 
-    /// <summary>
-    /// Gets the name of the source schema that this operation is executed against.
-    /// If <c>null</c> the schema is dynamic and will be set at runtime.
-    /// </summary>
-    public string? SchemaName => _schemaName;
+    /// <inheritdoc />
+    public override string? SchemaName => _schemaName;
 
     /// <summary>
     /// Gets the paths to the selection sets for which this operation fetches data.

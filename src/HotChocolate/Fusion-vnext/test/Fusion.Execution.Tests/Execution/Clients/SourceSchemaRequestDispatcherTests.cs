@@ -411,6 +411,8 @@ public sealed class SourceSchemaRequestDispatcherTests : FusionTestBase
 
         public override ReadOnlySpan<ExecutionNodeCondition> Conditions => [];
 
+        public override string? SchemaName => null;
+
         protected override ValueTask<ExecutionStatus> OnExecuteAsync(
             OperationPlanContext context,
             CancellationToken cancellationToken = default)
