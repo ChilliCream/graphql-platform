@@ -8,19 +8,13 @@ using static HotChocolate.Fusion.Diagnostics.ContextKeys;
 
 namespace HotChocolate.Fusion.Diagnostics.Listeners;
 
-// TODO: Variable batching events?
-internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventListener
+internal sealed class ActivityServerDiagnosticListener(
+    FusionActivityEnricher enricher,
+    InstrumentationOptions options)
+    : ServerDiagnosticEventListener
 {
-    private readonly InstrumentationOptions _options;
-    private readonly FusionActivityEnricher _enricher;
-
-    public ActivityServerDiagnosticListener(
-        FusionActivityEnricher enricher,
-        InstrumentationOptions options)
-    {
-        _enricher = enricher ?? throw new ArgumentNullException(nameof(enricher));
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-    }
+    private readonly InstrumentationOptions _options = options ?? throw new ArgumentNullException(nameof(options));
+    private readonly FusionActivityEnricher _enricher = enricher ?? throw new ArgumentNullException(nameof(enricher));
 
     public override IDisposable ExecuteHttpRequest(HttpContext context, HttpRequestKind kind)
     {

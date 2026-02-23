@@ -31,6 +31,9 @@ public static class DiagnosticsFusionGatewayBuilderExtensions
 
         builder.Services.TryAddSingleton<InternalActivityEnricher>();
 
+        builder.AddApplicationService<InstrumentationOptions>();
+        builder.AddApplicationService<InternalActivityEnricher>();
+
         builder.AddDiagnosticEventListener(
             sp => new ActivityFusionExecutionDiagnosticEventListener(
                 sp.GetService<FusionActivityEnricher>() ??
@@ -46,13 +49,8 @@ public static class DiagnosticsFusionGatewayBuilderExtensions
         return builder;
     }
 
-    private sealed class InternalActivityEnricher : FusionActivityEnricher
-    {
-        public InternalActivityEnricher(
-            ObjectPool<StringBuilder> stringBuilderPool,
-            InstrumentationOptions options)
-            : base(stringBuilderPool, options)
-        {
-        }
-    }
+    private sealed class InternalActivityEnricher(
+        ObjectPool<StringBuilder> stringBuilderPool,
+        InstrumentationOptions options)
+        : FusionActivityEnricher(stringBuilderPool, options);
 }

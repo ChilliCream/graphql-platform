@@ -330,7 +330,7 @@ public class FusionActivityEnricher
         activity.SetTag("graphql.document.hash", documentInfo.Hash.Value);
         activity.SetTag("graphql.document.valid", documentInfo.IsValidated);
         activity.SetTag("graphql.operation.id", plan?.Id);
-        activity.SetTag("graphql.operation.kind", plan?.Operation.Definition.Operation); // TODO: This is wrong
+        activity.SetTag("graphql.operation.kind", plan?.Operation.Definition.Operation);
         activity.SetTag("graphql.operation.name", plan?.OperationName);
 
         if (_options.IncludeDocument && documentInfo.Document is not null)
@@ -356,11 +356,12 @@ public class FusionActivityEnricher
         try
         {
             var rootSelectionSet = plan.Operation.RootSelectionSet;
+            var selectionCount = rootSelectionSet.Selections.Length;
 
             displayName.Append('{');
             displayName.Append(' ');
 
-            foreach (var selection in rootSelectionSet.Selections[..3])
+            foreach (var selection in rootSelectionSet.Selections[..Math.Min(3, selectionCount)])
             {
                 if (displayName.Length > 2)
                 {

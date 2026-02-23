@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Xunit2.Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion.Diagnostics.Tests</AssemblyName>
@@ -6,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Fusion-vnext\test\Fusion.AspNetCore.Tests\HotChocolate.Fusion.AspNetCore.Tests.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Diagnostics\HotChocolate.Fusion.Diagnostics.csproj" />
   </ItemGroup>
 

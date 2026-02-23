@@ -10,8 +10,6 @@ using static HotChocolate.Fusion.Diagnostics.HotChocolateFusionActivitySource;
 
 namespace HotChocolate.Fusion.Diagnostics.Listeners;
 
-// TODO: Add more items
-// TODO: Check if AddedOperationPlanToCache is correct
 internal sealed class ActivityFusionExecutionDiagnosticEventListener : FusionExecutionDiagnosticEventListener
 {
     private readonly InstrumentationOptions _options;
