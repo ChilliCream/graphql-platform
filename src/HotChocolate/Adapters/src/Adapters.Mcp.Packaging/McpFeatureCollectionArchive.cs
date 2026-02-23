@@ -399,11 +399,11 @@ public sealed class McpFeatureCollectionArchive : IDisposable
 
             if (_session.Exists(viewPath))
             {
-                await using var componentStream = await _session.OpenReadAsync(
+                await using var viewStream = await _session.OpenReadAsync(
                     viewPath,
                     FileKind.View,
                     cancellationToken);
-                await componentStream.CopyToAsync(buffer, cancellationToken);
+                await viewStream.CopyToAsync(buffer, cancellationToken);
                 view = buffer.WrittenMemory.ToArray();
                 buffer.Clear();
             }
