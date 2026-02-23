@@ -174,10 +174,10 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     <value>Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type.</value>
   </data>
   <data name="FloatType_Description" xml:space="preserve">
-    <value>The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).</value>
+    <value>The `Float` scalar type represents signed double-precision finite values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point).</value>
   </data>
   <data name="IdType_Description" xml:space="preserve">
-    <value>The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `"4"`) or integer (such as `4`) input value will be accepted as an ID.</value>
+    <value>The `ID` scalar type represents a unique identifier, often used to refetch an object or as the key for a cache.</value>
   </data>
   <data name="InputField_CannotSetValue" xml:space="preserve">
     <value>Unable to set the input field value.</value>
@@ -219,7 +219,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     <value>The interface type extension can only be merged with an interface type.</value>
   </data>
   <data name="IntType_Description" xml:space="preserve">
-    <value>The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.</value>
+    <value>The `Int` scalar type represents a signed 32-bit numeric non-fractional value.</value>
   </data>
   <data name="LongType_Description" xml:space="preserve">
     <value>The `Long` scalar type represents a signed 64-bit integer.</value>
@@ -333,7 +333,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     <value>The `Short` scalar type represents a signed 16-bit integer.</value>
   </data>
   <data name="StringType_Description" xml:space="preserve">
-    <value>The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.</value>
+    <value>The `String` scalar type represents textual data, represented as a sequence of Unicode code points.</value>
   </data>
   <data name="String_Argument_NullOrEmpty" xml:space="preserve">
     <value>The `{0}` cannot be null or empty.</value>
