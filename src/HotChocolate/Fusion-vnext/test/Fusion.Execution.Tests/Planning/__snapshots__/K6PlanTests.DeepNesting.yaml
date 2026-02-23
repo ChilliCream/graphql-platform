@@ -153,7 +153,7 @@ nodes:
     dependencies:
       - id: 2
   - id: 4
-    type: Operation
+    type: OperationBatch
     schema: c
     operation: |
       query TestQuery_123456789101112_4(
@@ -166,7 +166,9 @@ nodes:
         }
       }
     source: $.product
-    target: $.users.reviews.product
+    targets:
+      - $.users.reviews.product
+      - $.users.reviews.product.reviews.author.reviews.product
     batchingGroupId: 3
     requirements:
       - name: __fusion_2_upc
@@ -225,28 +227,6 @@ nodes:
           id
     dependencies:
       - id: 3
-  - id: 7
-    type: Operation
-    schema: c
-    operation: |
-      query TestQuery_123456789101112_7(
-        $__fusion_6_upc: ID!
-      ) {
-        product(upc: $__fusion_6_upc) {
-          name
-          price
-          weight
-        }
-      }
-    source: $.product
-    target: $.users.reviews.product.reviews.author.reviews.product
-    batchingGroupId: 3
-    requirements:
-      - name: __fusion_6_upc
-        selectionMap: >-
-          upc
-    dependencies:
-      - id: 3
   - id: 8
     type: Operation
     schema: b
@@ -276,7 +256,7 @@ nodes:
           weight
     dependencies:
       - id: 3
-      - id: 7
+      - id: 4
   - id: 9
     type: Operation
     schema: d

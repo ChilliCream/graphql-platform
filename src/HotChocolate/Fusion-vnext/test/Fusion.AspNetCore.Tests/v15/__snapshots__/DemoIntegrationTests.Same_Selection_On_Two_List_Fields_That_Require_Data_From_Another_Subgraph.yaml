@@ -152,56 +152,39 @@ sourceSchemas:
       }
     interactions:
       - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_9ad18dbf_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  node(id: $__fusion_1_id) {
-                    __typename
-                    ... on Product {
-                      price
-                      reviewCount
-                    }
-                  }
+          document: |
+            query Op_9ad18dbf_2(
+              $__fusion_1_id: ID!
+            ) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on Product {
+                  price
+                  reviewCount
                 }
-              variables: |
-                [
-                  {
-                    "__fusion_1_id": "UHJvZHVjdDo0"
-                  },
-                  {
-                    "__fusion_1_id": "UHJvZHVjdDo1"
-                  },
-                  {
-                    "__fusion_1_id": "UHJvZHVjdDo2"
-                  }
-                ]
-            - document: |
-                query Op_9ad18dbf_3(
-                  $__fusion_2_id: ID!
-                ) {
-                  node(id: $__fusion_2_id) {
-                    __typename
-                    ... on Product {
-                      price
-                      reviewCount
-                    }
-                  }
-                }
-              variables: |
-                [
-                  {
-                    "__fusion_2_id": "UHJvZHVjdDox"
-                  },
-                  {
-                    "__fusion_2_id": "UHJvZHVjdDoy"
-                  },
-                  {
-                    "__fusion_2_id": "UHJvZHVjdDoz"
-                  }
-                ]
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDo0"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo1"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo2"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoz"
+              }
+            ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:
@@ -235,60 +218,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_9ad18dbf_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  node(id: $__fusion_1_id) {
-                    __typename
-                    ... on Product {
-                      price
-                      reviewCount
-                    }
-                  }
-                }
-              variables: |
-                [
-                  {
-                    "__fusion_1_id": "UHJvZHVjdDo0"
-                  },
-                  {
-                    "__fusion_1_id": "UHJvZHVjdDo1"
-                  },
-                  {
-                    "__fusion_1_id": "UHJvZHVjdDo2"
-                  }
-                ]
-            - document: |
-                query Op_9ad18dbf_3(
-                  $__fusion_2_id: ID!
-                ) {
-                  node(id: $__fusion_2_id) {
-                    __typename
-                    ... on Product {
-                      price
-                      reviewCount
-                    }
-                  }
-                }
-              variables: |
-                [
-                  {
-                    "__fusion_2_id": "UHJvZHVjdDox"
-                  },
-                  {
-                    "__fusion_2_id": "UHJvZHVjdDoy"
-                  },
-                  {
-                    "__fusion_2_id": "UHJvZHVjdDoz"
-                  }
-                ]
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
             - |
               {
                 "data": {
@@ -357,7 +286,7 @@ operationPlan:
           }
         }
     - id: 2
-      type: Operation
+      type: OperationBatch
       schema: B
       operation: |
         query Op_9ad18dbf_2(
@@ -372,34 +301,12 @@ operationPlan:
           }
         }
       source: $.node<Product>
-      target: $.productsB
+      targets:
+        - $.productsB
+        - $.productsA
       batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 3
-      type: Operation
-      schema: B
-      operation: |
-        query Op_9ad18dbf_3(
-          $__fusion_2_id: ID!
-        ) {
-          node(id: $__fusion_2_id) {
-            __typename
-            ... on Product {
-              price
-              reviewCount
-            }
-          }
-        }
-      source: $.node<Product>
-      target: $.productsA
-      batchingGroupId: 1
-      requirements:
-        - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:

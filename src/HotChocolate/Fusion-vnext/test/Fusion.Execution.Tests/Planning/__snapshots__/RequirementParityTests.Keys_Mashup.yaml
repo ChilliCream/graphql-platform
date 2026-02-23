@@ -65,7 +65,7 @@ nodes:
       - id: 3
       - id: 4
   - id: 3
-    type: Operation
+    type: OperationBatch
     schema: a
     operation: |
       query Op_123456789101112_3(
@@ -76,7 +76,9 @@ nodes:
         }
       }
     source: $.aById
-    target: $.b.a
+    targets:
+      - $.b.a
+      - $.b.a
     batchingGroupId: 1
     requirements:
       - name: __fusion_3_id
@@ -104,26 +106,6 @@ nodes:
     batchingGroupId: 1
     requirements:
       - name: __fusion_4_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 1
-  - id: 5
-    type: Operation
-    schema: a
-    operation: |
-      query Op_123456789101112_5(
-        $__fusion_5_id: ID!
-      ) {
-        aById(id: $__fusion_5_id) {
-          name
-        }
-      }
-    source: $.aById
-    target: $.b.a
-    batchingGroupId: 1
-    requirements:
-      - name: __fusion_5_id
         selectionMap: >-
           id
     dependencies:

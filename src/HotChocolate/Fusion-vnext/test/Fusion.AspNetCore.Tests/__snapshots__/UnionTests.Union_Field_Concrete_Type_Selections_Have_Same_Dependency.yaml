@@ -100,16 +100,16 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query testQuery_7d12de3b_3(
-              $__fusion_2_id: ID!
+            query testQuery_7d12de3b_2(
+              $__fusion_1_id: ID!
             ) {
-              productById(id: $__fusion_2_id) {
+              productById(id: $__fusion_1_id) {
                 subgraph2
               }
             }
           variables: |
             {
-              "__fusion_2_id": "UHJvZHVjdDoy"
+              "__fusion_1_id": "UHJvZHVjdDoy"
             }
         response:
           results:
@@ -166,7 +166,7 @@ operationPlan:
           }
         }
     - id: 2
-      type: Operation
+      type: OperationBatch
       schema: B
       operation: |
         query testQuery_7d12de3b_2(
@@ -177,30 +177,12 @@ operationPlan:
           }
         }
       source: $.productById
-      target: $.post<Discussion>.product
+      targets:
+        - $.post<Discussion>.product
+        - $.post<Photo>.product
       batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 3
-      type: Operation
-      schema: B
-      operation: |
-        query testQuery_7d12de3b_3(
-          $__fusion_2_id: ID!
-        ) {
-          productById(id: $__fusion_2_id) {
-            subgraph2
-          }
-        }
-      source: $.productById
-      target: $.post<Photo>.product
-      batchingGroupId: 1
-      requirements:
-        - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:

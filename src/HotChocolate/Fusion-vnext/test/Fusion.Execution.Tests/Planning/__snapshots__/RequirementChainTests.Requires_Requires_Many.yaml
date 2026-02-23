@@ -175,7 +175,7 @@ nodes:
       - id: 1
       - id: 9
   - id: 9
-    type: Operation
+    type: OperationBatch
     schema: c
     operation: |
       query Op_123456789101112_9(
@@ -187,7 +187,9 @@ nodes:
         }
       }
     source: $.productById
-    target: $.product
+    targets:
+      - $.product
+      - $.product
     batchingGroupId: 2
     requirements:
       - name: __fusion_13_id
@@ -223,32 +225,7 @@ nodes:
           id
     dependencies:
       - id: 1
-      - id: 11
-  - id: 11
-    type: Operation
-    schema: c
-    operation: |
-      query Op_123456789101112_11(
-        $__fusion_17_id: ID!
-          $__fusion_18_price: Float!
-      ) {
-        productById(id: $__fusion_17_id) {
-          isExpensive(price: $__fusion_18_price)
-        }
-      }
-    source: $.productById
-    target: $.product
-    batchingGroupId: 2
-    requirements:
-      - name: __fusion_17_id
-        selectionMap: >-
-          id
-      - name: __fusion_18_price
-        selectionMap: >-
-          price
-    dependencies:
-      - id: 1
-      - id: 2
+      - id: 9
   - id: 12
     type: Operation
     schema: c
