@@ -222,6 +222,28 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
+    internal ImmutableArray<VariableValues> CreateVariableValueSets(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        ReadOnlySpan<string> forwardedVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        if (requiredData.Length == 0)
+        {
+            if (forwardedVariables.Length == 0)
+            {
+                return [];
+            }
+
+            var variableValues = GetPathThroughVariables(forwardedVariables);
+            return [new VariableValues(Path.Root, new ObjectValueNode(variableValues))];
+        }
+        else
+        {
+            var variableValues = GetPathThroughVariables(forwardedVariables);
+            return _resultStore.CreateVariableValueSets(selectionSets, variableValues, requiredData);
+        }
+    }
+
     internal void AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,

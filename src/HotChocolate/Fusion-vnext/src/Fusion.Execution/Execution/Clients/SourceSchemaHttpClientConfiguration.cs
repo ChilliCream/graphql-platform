@@ -216,7 +216,7 @@ public class SourceSchemaHttpClientConfiguration
 
     private static class AcceptContentTypes
     {
-        public static readonly ImmutableArray<MediaTypeWithQualityHeaderValue> Default =
+        public static ImmutableArray<MediaTypeWithQualityHeaderValue> Default { get; } =
         [
             new("application/graphql-response+json") { CharSet = "utf-8" },
             new("application/json") { CharSet = "utf-8" },
@@ -232,10 +232,8 @@ public class SourceSchemaHttpClientConfiguration
             new("application/json") { CharSet = "utf-8" }
         ];
 
-        public static readonly ImmutableArray<MediaTypeWithQualityHeaderValue> ApolloRequestBatching =
+        public static ImmutableArray<MediaTypeWithQualityHeaderValue> ApolloRequestBatching { get; } =
         [
-            new("application/jsonl") { CharSet = "utf-8" },
-            new("text/event-stream") { CharSet = "utf-8" },
             new("application/json") { CharSet = "utf-8" }
         ];
 
