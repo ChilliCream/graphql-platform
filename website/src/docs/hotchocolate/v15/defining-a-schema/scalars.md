@@ -212,9 +212,9 @@ In addition to the scalars defined by the specification, Hot Chocolate also supp
 
 [1]: https://tools.ietf.org/html/rfc3339
 
-## Uuid Type
+## UUID Type
 
-The `Uuid` scalar supports the following serialization formats.
+The `UUID` scalar supports the following serialization formats.
 
 | Specifier   | Format                                                               |
 | ----------- | -------------------------------------------------------------------- |

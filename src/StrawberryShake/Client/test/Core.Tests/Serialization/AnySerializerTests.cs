@@ -2,9 +2,9 @@ using System.Text.Json;
 
 namespace StrawberryShake.Serialization;
 
-public class JsonSerializerTests
+public class AnySerializerTests
 {
-    private readonly JsonSerializer _serializer = new();
+    private readonly AnySerializer _serializer = new();
 
     [Fact]
     public void Parse()
