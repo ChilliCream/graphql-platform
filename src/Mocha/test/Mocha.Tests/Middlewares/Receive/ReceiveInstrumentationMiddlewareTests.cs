@@ -215,7 +215,7 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
         Assert.True(await recorder.WaitAsync(Timeout));
 
         // ActivityListener callbacks fire asynchronously; brief delay lets them flush.
-        await Task.Delay(100, TestContext.Current.CancellationToken);
+        await Task.Delay(100, default);
 
         // assert - at least one activity was created
         Assert.NotEmpty(activities);
@@ -243,7 +243,7 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
         Assert.True(await recorder.WaitAsync(Timeout));
 
         // ActivityListener callbacks fire asynchronously; brief delay lets them flush.
-        await Task.Delay(100, TestContext.Current.CancellationToken);
+        await Task.Delay(100, default);
 
         // assert
         Assert.NotEmpty(activities);
@@ -275,7 +275,7 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
 
         // ActivityListener callbacks and error recording fire asynchronously;
         // brief delay lets them flush.
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        await Task.Delay(200, default);
 
         // assert - activities were created (error recording happens on Activity.Current)
         Assert.NotEmpty(activities);
@@ -307,7 +307,7 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
         Assert.True(await recorder.WaitAsync(Timeout, expectedCount: 3));
 
         // ActivityListener callbacks fire asynchronously; brief delay lets them flush.
-        await Task.Delay(100, TestContext.Current.CancellationToken);
+        await Task.Delay(100, default);
 
         // assert - at least 3 activities (dispatch + receive for each)
         Assert.True(activities.Count >= 3, $"Expected at least 3 activities but got {activities.Count}");
@@ -356,7 +356,7 @@ public sealed class ReceiveInstrumentationMiddlewareTests : ReceiveMiddlewareTes
         var response = await bus.RequestAsync(new InstrumentedRequest { Query = "test-query" }, CancellationToken.None);
 
         // ActivityListener callbacks fire asynchronously; brief delay lets them flush.
-        await Task.Delay(100, TestContext.Current.CancellationToken);
+        await Task.Delay(100, default);
 
         // assert
         Assert.NotEmpty(activities);

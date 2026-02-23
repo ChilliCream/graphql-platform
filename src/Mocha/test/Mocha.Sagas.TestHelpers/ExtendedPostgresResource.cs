@@ -1,46 +1,34 @@
 using Npgsql;
-using Testcontainers.PostgreSql;
+using Squadron;
 using Xunit;
 
 namespace Mocha.Sagas.Tests;
 
 /// <summary>
-/// PostgreSQL test resource using Testcontainers
+/// PostgreSQL test resource using Squadron
 /// </summary>
 public sealed class ExtendedPostgresResource : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _container;
+    private readonly PostgreSqlResource _resource = new();
 
-    public ExtendedPostgresResource()
+    public async Task InitializeAsync()
     {
-        _container = new PostgreSqlBuilder().WithImage("postgres:16-alpine").Build();
+        await _resource.InitializeAsync();
     }
 
-    public async ValueTask InitializeAsync()
+    public async Task DisposeAsync()
     {
-        await _container.StartAsync();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await _container.DisposeAsync();
+        await _resource.DisposeAsync();
     }
 
     public async Task CreateDatabaseAsync(string dbName)
     {
-        var connectionString = _container.GetConnectionString();
-        await using var connection = new NpgsqlConnection(connectionString);
-        await connection.OpenAsync();
-
-        await using var command = connection.CreateCommand();
-        command.CommandText = $"CREATE DATABASE \"{dbName}\"";
-        await command.ExecuteNonQueryAsync();
+        await _resource.CreateDatabaseAsync(dbName);
     }
 
     public string GetConnectionString(string dbName)
     {
-        var builder = new NpgsqlConnectionStringBuilder(_container.GetConnectionString()) { Database = dbName };
-        return builder.ToString();
+        return _resource.GetConnectionString(dbName);
     }
 
     public async Task<string> FetchSchemaAsync(string dbName)

@@ -142,7 +142,7 @@ public class DeferredResponseManagerTests
 
         // act - start getting promise, complete it from another task
         var getTask = Task.Run(() => manager.GetPromise(correlationId));
-        await Task.Delay(50, TestContext.Current.CancellationToken); // ensure GetPromise is waiting
+        await Task.Delay(50, default); // ensure GetPromise is waiting
         manager.CompletePromise(correlationId, "delayed-result");
 
         // assert
@@ -270,11 +270,11 @@ public class DeferredResponseManagerTests
                 Task.Run(async () =>
                 {
                     var tcs = manager.AddPromise(correlationId, TimeSpan.FromSeconds(30));
-                    await Task.Delay(Random.Shared.Next(1, 10), TestContext.Current.CancellationToken);
+                    await Task.Delay(Random.Shared.Next(1, 10), default);
                     manager.CompletePromise(correlationId, $"result-{correlationId}");
                     var result = await tcs.Task;
                     Assert.Equal($"result-{correlationId}", result);
-                }, TestContext.Current.CancellationToken));
+                }, default));
         }
 
         // assert - all should complete without error

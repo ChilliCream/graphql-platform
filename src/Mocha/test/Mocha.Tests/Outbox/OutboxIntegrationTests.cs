@@ -152,14 +152,19 @@ public class OutboxIntegrationTests
 
         // Add a middleware before outbox that checks for the skip header
         builder.ConfigureMessageBus(h =>
-            h.PrependDispatch("Outbox", new DispatchMiddlewareConfiguration(static (_, next) => { return ctx =>
-                    {
-                        if (ctx.Headers.TryGetValue("x-skip-outbox", out var val) && val is "true")
+            h.PrependDispatch(
+                "Outbox",
+                new DispatchMiddlewareConfiguration(
+                    static (_, next) =>
+                        ctx =>
                         {
-                            ctx.SkipOutbox();
-                        }
-                        return next(ctx);
-                    }; }, "SkipOutboxCheck"))
+                            if (ctx.Headers.TryGetValue("x-skip-outbox", out var val) && val is "true")
+                            {
+                                ctx.SkipOutbox();
+                            }
+                            return next(ctx);
+                        },
+                    "SkipOutboxCheck"))
         );
 
         configure(builder);

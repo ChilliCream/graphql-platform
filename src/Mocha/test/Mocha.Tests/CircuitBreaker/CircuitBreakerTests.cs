@@ -74,7 +74,7 @@ public class CircuitBreakerMiddlewareTests
             await bus.PublishAsync(new TestEvent { Data = $"fail-{i}" }, CancellationToken.None);
         }
 
-        await Task.Delay(2000, TestContext.Current.CancellationToken); // Wait for async processing
+        await Task.Delay(2000, default); // Wait for async processing
 
         // assert - runtime still alive
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -160,7 +160,7 @@ public class CircuitBreakerMiddlewareTests
             await bus.PublishAsync(new TestEvent { Data = $"fail-{i}" }, CancellationToken.None);
         }
 
-        await Task.Delay(1000, TestContext.Current.CancellationToken);
+        await Task.Delay(1000, default);
 
         // With concurrent consumers, more messages may reach the handler before
         // the circuit breaker opens. At least MinimumThroughput (2) must be invoked.
@@ -201,7 +201,7 @@ public class CircuitBreakerMiddlewareTests
         await bus.PublishAsync(new TestEvent { Data = "second" }, CancellationToken.None);
 
         // wait for the break duration to elapse so the circuit transitions from Open to HalfOpen
-        await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
+        await Task.Delay(TimeSpan.FromSeconds(2));
 
         // should now allow a message through (half-open -> closed on success)
         var waitForBreak = recorder.WaitAsync(Timeout);

@@ -153,7 +153,7 @@ public class InMemoryReceiveEndpointLifecycleTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-FAIL" }, CancellationToken.None);
 
         // Give the failing message time to be processed (and faulted)
-        await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
+        await Task.Delay(TimeSpan.FromMilliseconds(500));
 
         // send second message (handler should succeed)
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-OK" }, CancellationToken.None);

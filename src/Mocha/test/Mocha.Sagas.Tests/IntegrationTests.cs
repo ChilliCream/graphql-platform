@@ -58,13 +58,13 @@ public class IntegrationTests
         await bus.PublishAsync(new TriggerEvent(sagaId), CancellationToken.None);
 
         // allow time for the first transition to complete before sending the second event
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        await Task.Delay(500, default);
 
         // send second TriggerEvent to transition Triggered -> Completed (final)
         await bus.PublishAsync(new TriggerEvent(sagaId), CancellationToken.None);
 
         // allow time for final state processing
-        await Task.Delay(1000, TestContext.Current.CancellationToken);
+        await Task.Delay(1000, default);
 
         // assert - saga should be deleted from store after reaching final state
         Assert.Equal(0, storage.Count);
@@ -99,7 +99,7 @@ public class IntegrationTests
         await bus.SendAsync(new SagaTimedOutEvent(sagaId), CancellationToken.None);
 
         // allow time for final state processing
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        await Task.Delay(500, default);
 
         // assert - saga should be deleted from store after reaching final state
         Assert.Equal(0, storage.Count);
@@ -130,7 +130,7 @@ public class IntegrationTests
 
         // allow time for: saga starts -> sends TriggerRequest -> handler responds
         // -> saga receives reply via OnAnyReply -> transitions to Completed (final)
-        await Task.Delay(2000, TestContext.Current.CancellationToken);
+        await Task.Delay(2000, default);
 
         // assert - saga should be deleted from store after reaching final state
         Assert.Equal(0, storage.Count);

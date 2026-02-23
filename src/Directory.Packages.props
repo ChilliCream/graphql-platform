@@ -43,7 +43,7 @@
     <PackageVersion Include="NetTopologySuite" Version="2.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageVersion Include="NodaTime" Version="3.2.2" />
-    <PackageVersion Include="Npgsql" Version="8.0.4" />
+    <PackageVersion Include="Npgsql" Version="8.0.7" />
     <PackageVersion Include="OpenTelemetry" Version="1.14.0" />
     <PackageVersion Include="OpenTelemetry.Api" Version="1.1.0" />
     <PackageVersion Include="Polly" Version="8.6.5" />
@@ -69,8 +69,6 @@
     <PackageVersion Include="System.Linq.Async" Version="6.0.3" />
     <PackageVersion Include="System.Reactive" Version="6.0.0" />
     <PackageVersion Include="Testcontainers" Version="4.9.0" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.7.0" />
-    <PackageVersion Include="Testcontainers.RabbitMq" Version="4.7.0" />
     <PackageVersion Include="TUnit" Version="0.25.21" />
     <PackageVersion Include="xunit.assert" Version="2.9.3" />
     <PackageVersion Include="xunit.extensibility.core" Version="2.9.3" />

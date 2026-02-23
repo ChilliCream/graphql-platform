@@ -191,7 +191,7 @@ public class MiddlewareTests
         }
 
         // Task.Delay: negative wait — proves the cancelled event was NOT delivered
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        await Task.Delay(200, default);
         Assert.DoesNotContain(recorder.Messages, m => m is OrderCreated oc && oc.OrderId == "cancelled");
     }
 

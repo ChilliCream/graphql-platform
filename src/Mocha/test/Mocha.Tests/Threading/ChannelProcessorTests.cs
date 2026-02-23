@@ -59,7 +59,7 @@ public sealed class ChannelProcessorTests
         channel.Writer.TryWrite(2);
 
         // assert — if both workers entered, the barrier completes within timeout
-        var completed = await Task.WhenAny(barrier.Task, Task.Delay(Timeout, TestContext.Current.CancellationToken));
+        var completed = await Task.WhenAny(barrier.Task, Task.Delay(Timeout));
         Assert.Same(barrier.Task, completed);
     }
 

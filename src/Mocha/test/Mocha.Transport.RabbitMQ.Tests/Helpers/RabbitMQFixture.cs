@@ -1,45 +1,58 @@
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using Docker.DotNet.Models;
 using RabbitMQ.Client;
-using Testcontainers.RabbitMq;
+using Squadron;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Helpers;
 
+public class MochaRabbitMQResource : RabbitMQResource
+{
+    public Task<string?> InvokeCommandAsync(string[] command)
+        => Manager.InvokeCommandAsync(
+            new ContainerExecCreateParameters
+            {
+                Cmd = command,
+                AttachStdout = true,
+                AttachStderr = true
+            });
+}
+
 public sealed class RabbitMQFixture : IAsyncLifetime
 {
-    private readonly RabbitMqContainer _container = new RabbitMqBuilder().WithImage("rabbitmq:4-alpine").Build();
+    private readonly MochaRabbitMQResource _resource = new();
 
-    public async ValueTask InitializeAsync()
+    public async Task InitializeAsync()
     {
-        await _container.StartAsync();
+        await _resource.InitializeAsync();
     }
 
-    public async ValueTask DisposeAsync()
+    public async Task DisposeAsync()
     {
-        await _container.DisposeAsync();
+        await _resource.DisposeAsync();
     }
 
-    public string ConnectionString => _container.GetConnectionString();
+    public string ConnectionString => _resource.ConnectionString;
 
     public async Task<VhostContext> CreateVhostAsync(
         [CallerMemberName] string testName = "",
         [CallerFilePath] string filePath = "")
     {
         var vhostName = GenerateVhostName(testName, filePath);
-        await _container.ExecAsync(["rabbitmqctl", "add_vhost", vhostName]);
-        await _container.ExecAsync(["rabbitmqctl", "set_permissions", "-p", vhostName, "rabbitmq", ".*", ".*", ".*"]);
+        await _resource.InvokeCommandAsync(["rabbitmqctl", "add_vhost", vhostName]);
+        await _resource.InvokeCommandAsync(["rabbitmqctl", "set_permissions", "-p", vhostName, "guest", ".*", ".*", ".*"]);
         return new VhostContext(this, vhostName);
     }
 
     internal async Task CloseAllConnectionsAsync(string reason = "test")
     {
-        await _container.ExecAsync(["rabbitmqctl", "close_all_connections", reason]);
+        await _resource.InvokeCommandAsync(["rabbitmqctl", "close_all_connections", reason]);
     }
 
     internal async Task DeleteVhostAsync(string vhostName)
     {
-        await _container.ExecAsync(["rabbitmqctl", "delete_vhost", vhostName]);
+        await _resource.InvokeCommandAsync(["rabbitmqctl", "delete_vhost", vhostName]);
     }
 
     private static string GenerateVhostName(string testName, string filePath)

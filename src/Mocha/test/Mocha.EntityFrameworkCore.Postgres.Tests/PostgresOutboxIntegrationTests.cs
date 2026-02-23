@@ -24,7 +24,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // Act
-        await bus.PublishAsync(new TestEvent { Payload = "hello" }, TestContext.Current.CancellationToken);
+        await bus.PublishAsync(new TestEvent { Payload = "hello" }, default);
 
         // Assert
         Assert.True(await recorder.WaitAsync(Timeout), "Handler should have received the message");
@@ -46,7 +46,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         // Act
         for (var i = 0; i < count; i++)
         {
-            await bus.PublishAsync(new TestEvent { Payload = $"msg-{i}" }, TestContext.Current.CancellationToken);
+            await bus.PublishAsync(new TestEvent { Payload = $"msg-{i}" }, default);
         }
 
         // Assert
@@ -74,7 +74,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
             {
                 using var scope = env.Provider.CreateScope();
                 var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-                await bus.PublishAsync(new TestEvent { Payload = $"load-{i}" }, TestContext.Current.CancellationToken);
+                await bus.PublishAsync(new TestEvent { Payload = $"load-{i}" }, default);
             });
         await Task.WhenAll(tasks);
 
@@ -113,13 +113,13 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        await runtime.StartAsync(TestContext.Current.CancellationToken);
+        await runtime.StartAsync(default);
 
         // Ensure schema exists
         using (var scope = provider.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            await db.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
+            await db.Database.EnsureCreatedAsync(default);
         }
 
         // Persist messages via IMessageBus (outbox captures them)
@@ -127,14 +127,14 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         {
             using var scope = provider.CreateScope();
             var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-            await bus.PublishAsync(new TestEvent { Payload = $"pending-{i}" }, TestContext.Current.CancellationToken);
+            await bus.PublishAsync(new TestEvent { Payload = $"pending-{i}" }, default);
         }
 
         // Verify that the messages are persisted
         using (var scope = provider.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            var messages = await db.Set<OutboxMessage>()!.ToListAsync(TestContext.Current.CancellationToken);
+            var messages = await db.Set<OutboxMessage>()!.ToListAsync(default);
             Assert.Equal(count, messages.Count);
         }
 
@@ -142,7 +142,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         var hostedServices = provider.GetServices<IHostedService>().ToList();
         foreach (var svc in hostedServices)
         {
-            await svc.StartAsync(TestContext.Current.CancellationToken);
+            await svc.StartAsync(default);
         }
 
         try
@@ -159,11 +159,11 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         {
             foreach (var svc in hostedServices)
             {
-                await svc.StopAsync(TestContext.Current.CancellationToken);
+                await svc.StopAsync(default);
             }
 
             // Allow in-flight processor transactions to drain (see TestEnvironment comment)
-            await Task.Delay(250, TestContext.Current.CancellationToken);
+            await Task.Delay(250, default);
 
             await provider.DisposeAsync();
         }
@@ -189,18 +189,18 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        await runtime.StartAsync(TestContext.Current.CancellationToken);
+        await runtime.StartAsync(default);
 
         using (var scope = provider.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            await db.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
+            await db.Database.EnsureCreatedAsync(default);
         }
 
         var hostedServices = provider.GetServices<IHostedService>().ToList();
         foreach (var svc in hostedServices)
         {
-            await svc.StartAsync(TestContext.Current.CancellationToken);
+            await svc.StartAsync(default);
         }
 
         try
@@ -209,7 +209,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
             using (var scope = provider.CreateScope())
             {
                 var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-                await bus.PublishAsync(new TestEvent { Payload = "before-stop" }, TestContext.Current.CancellationToken);
+                await bus.PublishAsync(new TestEvent { Payload = "before-stop" }, default);
             }
 
             Assert.True(await recorder.WaitAsync(Timeout), "First message should be delivered before worker stops");
@@ -217,24 +217,24 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
             // Phase 2: stop worker
             foreach (var svc in hostedServices)
             {
-                await svc.StopAsync(TestContext.Current.CancellationToken);
+                await svc.StopAsync(default);
             }
 
             // Allow the background loop to fully drain before publishing.
             // ContinuousTask.DisposeAsync cancels but does not await the task.
-            await Task.Delay(500, TestContext.Current.CancellationToken);
+            await Task.Delay(500, default);
 
             // Phase 3: publish more messages while worker is stopped
             using (var scope = provider.CreateScope())
             {
                 var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-                await bus.PublishAsync(new TestEvent { Payload = "during-stop" }, TestContext.Current.CancellationToken);
+                await bus.PublishAsync(new TestEvent { Payload = "during-stop" }, default);
             }
 
             // Phase 4: restart worker
             foreach (var svc in hostedServices)
             {
-                await svc.StartAsync(TestContext.Current.CancellationToken);
+                await svc.StartAsync(default);
             }
 
             // Assert — message published during downtime is delivered.
@@ -253,11 +253,11 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         {
             foreach (var svc in hostedServices)
             {
-                await svc.StopAsync(TestContext.Current.CancellationToken);
+                await svc.StopAsync(default);
             }
 
             // Allow in-flight processor transactions to drain (see TestEnvironment comment)
-            await Task.Delay(250, TestContext.Current.CancellationToken);
+            await Task.Delay(250, default);
 
             await provider.DisposeAsync();
         }
@@ -275,7 +275,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         {
             using var scope = env.Provider.CreateScope();
             var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-            await bus.PublishAsync(new TestEvent { Payload = $"live-{i}" }, TestContext.Current.CancellationToken);
+            await bus.PublishAsync(new TestEvent { Payload = $"live-{i}" }, default);
 
             // Wait for this message to be delivered before publishing the next
             Assert.True(
@@ -309,7 +309,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
                     var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
                     await bus.PublishAsync(
                         new TestEvent { Payload = $"scope-{scopeIndex}-msg-{i}" },
-                        TestContext.Current.CancellationToken);
+                        default);
                 }
             });
         await Task.WhenAll(tasks);
@@ -345,20 +345,20 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
-        await runtime.StartAsync(TestContext.Current.CancellationToken);
+        await runtime.StartAsync(default);
 
         // Ensure schema exists
         using (var scope = provider.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-            await db.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
+            await db.Database.EnsureCreatedAsync(default);
         }
 
         // Start hosted services (outbox worker)
         var hostedServices = provider.GetServices<IHostedService>().ToList();
         foreach (var svc in hostedServices)
         {
-            await svc.StartAsync(TestContext.Current.CancellationToken);
+            await svc.StartAsync(default);
         }
 
         return new TestEnvironment(provider, hostedServices);
@@ -421,7 +421,7 @@ public sealed class PostgresOutboxIntegrationTests(PostgresFixture fixture) : IC
         {
             foreach (var svc in hostedServices)
             {
-                await svc.StopAsync(TestContext.Current.CancellationToken);
+                await svc.StopAsync(default);
             }
 
             // ContinuousTask.DisposeAsync cancels but doesn't await the background

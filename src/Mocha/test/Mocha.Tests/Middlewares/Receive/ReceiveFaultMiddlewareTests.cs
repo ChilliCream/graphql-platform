@@ -80,7 +80,7 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
 
         // Deterministic sync not available — no observable side-effect to wait on
         // after a swallowed fault, so a brief delay lets the pipeline finish.
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        await Task.Delay(500, default);
 
         // assert - runtime should still be running
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -110,7 +110,7 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
 
         // Let the fault propagate before publishing the next message -
         // no deterministic signal for a swallowed exception.
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        await Task.Delay(200, default);
 
         await bus.PublishAsync(new FaultTestEvent { Id = "success-after-fail" }, CancellationToken.None);
 
@@ -140,7 +140,7 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
         }
 
         // No deterministic signal for swallowed faults; wait for all 10 to settle.
-        await Task.Delay(1000, TestContext.Current.CancellationToken);
+        await Task.Delay(1000, default);
 
         // assert - runtime should remain stable
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -179,7 +179,7 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
             "Should receive exactly 3 successful messages");
 
         // Negative wait: confirm no extra messages arrive after the expected 3.
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        await Task.Delay(200, default);
 
         Assert.Equal(3, recorder.Messages.Count);
         var ids = recorder.Messages.Cast<FaultTestEvent>().Select(e => e.Id).ToList();
@@ -226,7 +226,7 @@ public sealed class ReceiveFaultMiddlewareTests : ReceiveMiddlewareTestBase
             "Should receive 3 successful messages from concurrent publish");
 
         // Negative wait: confirm no extra messages arrive after the expected 3.
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        await Task.Delay(200, default);
 
         Assert.Equal(3, recorder.Messages.Count);
         var ids = recorder.Messages.Cast<FaultTestEvent>().Select(e => e.Id).ToList();

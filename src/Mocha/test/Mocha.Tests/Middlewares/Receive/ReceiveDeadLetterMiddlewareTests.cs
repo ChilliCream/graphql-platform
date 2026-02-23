@@ -255,7 +255,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
 
         // No deterministic signal for a swallowed exception; let the fault settle
         // so the message is routed to the error endpoint.
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        await Task.Delay(500, default);
 
         // assert - the recorder should NOT have the message because the handler threw
         // before it could record. Dead letter middleware catches the exception silently.
@@ -285,7 +285,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
 
         // Let the fault propagate before publishing the next message —
         // no deterministic signal for a swallowed exception.
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        await Task.Delay(200, default);
 
         await bus.PublishAsync(new DeadLetterTestEvent { Id = "success-1" }, CancellationToken.None);
 
@@ -330,7 +330,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
             "Should receive exactly 3 successful messages");
 
         // Negative wait: confirm no extra messages arrive after the expected 3.
-        await Task.Delay(200, TestContext.Current.CancellationToken);
+        await Task.Delay(200, default);
 
         Assert.Equal(3, recorder.Messages.Count);
         var ids = recorder.Messages.Cast<DeadLetterTestEvent>().Select(e => e.Id).OrderBy(id => id).ToList();

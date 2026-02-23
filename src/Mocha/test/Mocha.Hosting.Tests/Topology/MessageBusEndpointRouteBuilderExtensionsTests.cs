@@ -19,13 +19,13 @@ public sealed class MessageBusEndpointRouteBuilderExtensionsTests
         using var client = host.GetTestClient();
 
         // Act
-        using var response = await client.GetAsync("/.well-known/message-topology", TestContext.Current.CancellationToken);
+        using var response = await client.GetAsync("/.well-known/message-topology");
 
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var content = await response.Content.ReadAsStringAsync(default);
         var doc = JsonDocument.Parse(content);
         Assert.Equal(JsonValueKind.Object, doc.RootElement.ValueKind);
     }
@@ -38,13 +38,13 @@ public sealed class MessageBusEndpointRouteBuilderExtensionsTests
         using var client = host.GetTestClient();
 
         // Act
-        using var response = await client.GetAsync("/custom/topology", TestContext.Current.CancellationToken);
+        using var response = await client.GetAsync("/custom/topology");
 
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var content = await response.Content.ReadAsStringAsync(default);
         var doc = JsonDocument.Parse(content);
         Assert.Equal(JsonValueKind.Object, doc.RootElement.ValueKind);
     }
@@ -57,8 +57,8 @@ public sealed class MessageBusEndpointRouteBuilderExtensionsTests
         using var client = host.GetTestClient();
 
         // Act
-        using var response = await client.GetAsync("/.well-known/message-topology", TestContext.Current.CancellationToken);
-        var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        using var response = await client.GetAsync("/.well-known/message-topology");
+        var content = await response.Content.ReadAsStringAsync(default);
         var doc = JsonDocument.Parse(content);
 
         // Assert

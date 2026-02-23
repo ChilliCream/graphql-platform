@@ -1,35 +1,25 @@
-using Npgsql;
-using Testcontainers.PostgreSql;
+using Squadron;
 
 namespace Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 
 public sealed class PostgresFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder().WithImage("postgres:16-alpine").Build();
+    private readonly PostgreSqlResource _resource = new();
 
-    public async ValueTask InitializeAsync()
+    public async Task InitializeAsync()
     {
-        await _container.StartAsync();
+        await _resource.InitializeAsync();
     }
 
-    public async ValueTask DisposeAsync()
+    public async Task DisposeAsync()
     {
-        await _container.DisposeAsync();
+        await _resource.DisposeAsync();
     }
 
     public async Task<string> CreateDatabaseAsync()
     {
         var dbName = $"test_{Guid.NewGuid():N}";
-        var connectionString = _container.GetConnectionString();
-
-        await using var connection = new NpgsqlConnection(connectionString);
-        await connection.OpenAsync();
-
-        await using var command = connection.CreateCommand();
-        command.CommandText = $"CREATE DATABASE \"{dbName}\"";
-        await command.ExecuteNonQueryAsync();
-
-        var builder = new NpgsqlConnectionStringBuilder(connectionString) { Database = dbName };
-        return builder.ToString();
+        await _resource.CreateDatabaseAsync(dbName);
+        return _resource.GetConnectionString(dbName);
     }
 }

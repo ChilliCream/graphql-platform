@@ -25,7 +25,7 @@ public class InMemoryBindingTests
             });
 
         var envelope = new MessageEnvelope { MessageId = "test-message-1" };
-        var ct = TestContext.Current.CancellationToken;
+        var ct = CancellationToken.None;
 
         // Act
         await binding.SendAsync(envelope, ct);
@@ -70,7 +70,7 @@ public class InMemoryBindingTests
             });
 
         var envelope = new MessageEnvelope { MessageId = "test-message-2" };
-        var ct = TestContext.Current.CancellationToken;
+        var ct = CancellationToken.None;
 
         // Act
         await topicBinding.SendAsync(envelope, ct);

@@ -206,7 +206,7 @@ public class EndpointRouterTests
             _ = endpoints.Endpoints;
             endpoints.TryGet(new Uri("queue:test"), out _);
             _ = endpoints.GetAll(new Uri("queue:test"));
-        } }, TestContext.Current.CancellationToken);
+        } }, default);
 
         var writeTask = Task.Run(() =>
         {
@@ -216,7 +216,7 @@ public class EndpointRouterTests
                 var ep = endpoints.GetOrCreate(runtime, new Uri($"queue:concurrent-{i++}"));
                 endpoints.Remove(ep);
             }
-        }, TestContext.Current.CancellationToken);
+        }, default);
 
         // assert - no exceptions
         await Task.WhenAll([readTask, writeTask]);

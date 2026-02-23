@@ -127,7 +127,7 @@ public class InMemorySagaStateStorageTests
                     var id = Guid.NewGuid();
                     var state = new TestSagaState(id, $"State{localI}") { Data = $"Data{localI}" };
                     storage.Save($"Saga{localI}", id, state);
-                }, TestContext.Current.CancellationToken));
+                }, default));
         }
 
         await Task.WhenAll(tasks);

@@ -7,9 +7,9 @@
 
   <ItemGroup>
     <PackageReference Include="Npgsql" />
-    <PackageReference Include="Testcontainers.PostgreSql" />
-    <PackageReference Include="xunit.v3.assert" />
-    <PackageReference Include="xunit.v3.extensibility.core" />
+    <PackageReference Include="Squadron.PostgreSql" />
+    <PackageReference Include="xunit.assert" />
+    <PackageReference Include="xunit.extensibility.core" />
   </ItemGroup>
 
   <ItemGroup>
