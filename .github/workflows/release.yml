@@ -174,8 +174,8 @@ jobs:
       - name: 🖋️ Setup signing resources (macOS)
         if: runner.os == 'macOS'
         env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTFICATE_PASSWORD }}
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.TEMPORARY_KEYCHAIN_PASSWORD }}
         run: |
           # create variables
@@ -288,7 +288,7 @@ jobs:
       - name: 🧰 Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           registry-url: ${{ vars.NPM_REGISTRY_URL }}
           scope: "@chillicream"
 
