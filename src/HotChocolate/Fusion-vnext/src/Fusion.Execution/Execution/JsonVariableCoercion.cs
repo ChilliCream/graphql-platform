@@ -436,11 +436,9 @@ internal ref struct JsonVariableCoercion
 
             case JsonValueKind.String:
             {
-                var rawValue = element.GetRawText();
-                var utf8Value = System.Text.Encoding.UTF8.GetBytes(rawValue);
-                var span = utf8Value.AsSpan();
-                span = span[1..^1]; // Remove quotes
-                var segment = WriteValue(span);
+                var stringValue = element.GetString()!;
+                var utf8Value = System.Text.Encoding.UTF8.GetBytes(stringValue);
+                var segment = WriteValue(utf8Value);
                 return new StringValueNode(null, segment, false);
             }
 
