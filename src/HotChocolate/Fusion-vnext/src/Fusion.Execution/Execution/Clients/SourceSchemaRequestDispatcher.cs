@@ -66,9 +66,11 @@ internal sealed class SourceSchemaRequestDispatcher
 
         var client = _clientScope.GetClient(request.SchemaName, request.OperationType);
 
-        // if the request is not part of a batch group or if it is a mutation or subscription
+        // if the request is not part of a batch group,
+        // if it is a mutation or subscription,
+        // or if the source schema uses legacy apollo request batching,
         // we will dispatch it right away without waiting for other requests.
-        if ((client.Capabilities & RequestBatching) == RequestBatching
+        if ((client.Capabilities & ApolloRequestBatching) == ApolloRequestBatching
             || request.BatchingGroupId is not { } groupId
             || request.OperationType is OperationType.Mutation or OperationType.Subscription)
         {
