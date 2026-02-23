@@ -316,8 +316,8 @@ public static class TypeNames
     public const string UnsignedShortSerializer =
         StrawberryShakeNamespace + "Serialization.UnsignedShortSerializer";
 
-    public const string JsonSerializer =
-        StrawberryShakeNamespace + "Serialization.JsonSerializer";
+    public const string AnySerializer =
+        StrawberryShakeNamespace + "Serialization.AnySerializer";
 
     public const string UploadSerializer =
         StrawberryShakeNamespace + "Serialization.UploadSerializer";

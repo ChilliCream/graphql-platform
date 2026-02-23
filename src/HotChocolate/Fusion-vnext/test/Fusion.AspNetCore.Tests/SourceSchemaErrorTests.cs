@@ -1047,6 +1047,11 @@ public class SourceSchemaErrorTests : FusionTestBase
                     ErrorBuilder.New()
                         .SetMessage("Something went wrong")
                         .SetCode("SOME_ERROR")
+                        .SetExtension("stringValue", "a-string")
+                        .SetExtension("booleanValue", true)
+                        .SetExtension("numberValue", 123)
+                        .SetExtension("arrayValue", new [] { 1, 2, 3})
+                        .SetExtension("emptyArrayValue", Array.Empty<string>())
                         .SetPath(context.Path)
                         .SetException(new Exception("Some exception"))
                         .Build());

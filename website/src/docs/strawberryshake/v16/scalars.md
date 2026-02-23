@@ -184,9 +184,9 @@ serviceCollection.AddSerializer<PositiveIntSerializer>();
 
 Some GraphQL schemas contain untyped fields, whose types are often called `Any` or `JSON`. Strawberry Shake allows you to access these fields.
 
-By default Strawberry Shake will use the built-in `JsonSerializer` to represent these fields as `JsonDocument`. If you want a different representation or use a different JSON library you can do so by providing a custom serializer that handles JSON scalars.
+By default Strawberry Shake will use the built-in `AnySerializer` to represent these fields as `JsonElement`. If you want a different representation or use a different JSON library you can do so by providing a custom serializer that handles JSON scalars.
 
-Json objects are internally handled as `JsonElement` provided by `System.Text.Json`. You can use this to handle serialization by yourself.
+JSON objects are internally handled as `JsonElement` provided by `System.Text.Json`. You can use this to handle serialization by yourself.
 
 > Note: If you want the raw json from the `JsonElement` use `GetRawText`.
 > In order to have a custom serializer you need to specify runtime and serialization type.
@@ -210,10 +210,12 @@ public class MyJsonSerializer : ScalarSerializer<JsonElement, object>
         : base(typeName)
     {
     }
+
     public override object Parse(JsonElement serializedValue)
     {
         // handle the serialization of the JsonElement
     }
+
     protected override JsonElement Format(object runtimeValue)
     {
         // handle the serialization of the runtime representation in case

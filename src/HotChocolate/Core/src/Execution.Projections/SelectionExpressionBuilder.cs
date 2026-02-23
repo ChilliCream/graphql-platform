@@ -165,7 +165,28 @@ internal sealed class SelectionExpressionBuilder
             return switchExpression;
         }
 
-        return BuildSelectionSetExpression(context, parent.Nodes[0]);
+        var singleTypeNode = parent.Nodes[0];
+
+        if (context.ParentType != singleTypeNode.Type)
+        {
+            var newParent = Expression.Convert(context.Parent, singleTypeNode.Type);
+            var newContext = context with { Parent = newParent, ParentType = singleTypeNode.Type };
+            var selectionSet = BuildSelectionSetExpression(newContext, singleTypeNode);
+
+            if (selectionSet is null)
+            {
+                return null;
+            }
+
+            var castedSelectionSet = Expression.Convert(selectionSet, context.ParentType);
+
+            return Expression.Condition(
+                Expression.TypeIs(context.Parent, singleTypeNode.Type),
+                castedSelectionSet,
+                Expression.Constant(null, context.ParentType));
+        }
+
+        return BuildSelectionSetExpression(context, singleTypeNode);
     }
 
     private static MemberInitExpression? BuildSelectionSetExpression(

@@ -38,8 +38,4 @@
     </Compile>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="BaseTypes\" />
-  </ItemGroup>
-
 </Project>
