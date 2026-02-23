@@ -18,7 +18,7 @@ internal static class JsonMemory
             FixedSizeArrayPoolKinds.JsonMemory,
             arraySize: BufferSize,
             [128, 768, 3072],
-            trimInterval: TimeSpan.FromMinutes(1),
+            trimInterval: TimeSpan.FromMinutes(5),
             preAllocate: true);
     private static readonly ArrayPool<byte[]> s_chunkPool = ArrayPool<byte[]>.Shared;
 
