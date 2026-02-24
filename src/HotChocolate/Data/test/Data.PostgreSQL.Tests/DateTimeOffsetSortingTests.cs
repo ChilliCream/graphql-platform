@@ -1,6 +1,5 @@
 using System.Text.Json;
 using HotChocolate.Execution;
-using HotChocolate.Data.Sorting;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +22,18 @@ public sealed class DateTimeOffsetSortingTests(PostgreSqlResource resource)
             .AddGraphQLServer()
             .AddSorting()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .AddQueryType<Query>()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("events")
+                    .Type<ListType<ObjectType<ProjectedEvent>>>()
+                    .Resolve(ctx => ctx.Service<EventContext>().Events
+                        .Select(x => new ProjectedEvent
+                        {
+                            Timestamp = x.Timestamp.DateTime
+                        })
+                        .AsExecutable())
+                    .UseSorting())
             .Services
             .BuildServiceProvider();
 
@@ -79,42 +89,21 @@ public sealed class DateTimeOffsetSortingTests(PostgreSqlResource resource)
         Assert.Equal(sorted, values);
     }
 
-    public sealed class Query
-    {
-        [UseSorting<EventSortType>]
-        public IExecutable<ProjectedEvent> GetEvents(EventContext context)
-            => context.Events
-                .Select(x => new ProjectedEvent
-                {
-                    Timestamp = x.Timestamp.DateTime
-                })
-                .AsExecutable();
-    }
-
-    public sealed class EventContext(DbContextOptions<EventContext> options)
+    private sealed class EventContext(DbContextOptions<EventContext> options)
         : DbContext(options)
     {
         public DbSet<EventEntity> Events { get; set; } = null!;
     }
 
-    public sealed class EventEntity
+    private sealed class EventEntity
     {
         public int Id { get; set; }
 
         public DateTimeOffset Timestamp { get; set; }
     }
 
-    public sealed record ProjectedEvent
+    private sealed record ProjectedEvent
     {
         public DateTime Timestamp { get; init; }
-    }
-
-    public sealed class EventSortType : SortInputType<ProjectedEvent>
-    {
-        protected override void Configure(ISortInputTypeDescriptor<ProjectedEvent> descriptor)
-        {
-            descriptor.BindFieldsExplicitly();
-            descriptor.Field(f => f.Timestamp);
-        }
     }
 }

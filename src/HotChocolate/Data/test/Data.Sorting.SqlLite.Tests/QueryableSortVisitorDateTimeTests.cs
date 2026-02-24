@@ -16,6 +16,7 @@ public sealed class QueryableSortVisitorDateTimeTests
             .AddDbContext<EventContext>(b => b.UseSqlite($"Data Source={databaseName}"))
             .AddGraphQL()
             .AddSorting()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .AddQueryType<Query>()
             .BuildRequestExecutorAsync();
 
@@ -30,20 +31,12 @@ public sealed class QueryableSortVisitorDateTimeTests
             """);
 
         // assert
-        using var document = JsonDocument.Parse(result.ToJson());
-        Assert.False(
-            document.RootElement.TryGetProperty("errors", out _),
-            result.ToJson());
+        var json = result.ToJson();
+        using var document = JsonDocument.Parse(json);
 
-        var values = document.RootElement
-            .GetProperty("data")
-            .GetProperty("events")
-            .EnumerateArray()
-            .Select(t => DateTimeOffset.Parse(t.GetProperty("timestamp").GetString()!))
-            .ToArray();
-
-        var sorted = values.OrderByDescending(t => t).ToArray();
-        Assert.Equal(sorted, values);
+        Assert.True(document.RootElement.TryGetProperty("errors", out _), json);
+        Assert.Contains("DateTimeOffset", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("Timestamp.DateTime", json, StringComparison.Ordinal);
     }
 
     public sealed class Query
