@@ -164,6 +164,7 @@ internal static class ExpressionHelpers
         var group = Expression.Parameter(typeof(IGrouping<TK, TV>), "g");
         var groupKey = Expression.Property(group, "Key");
         Expression source = group;
+        var applySelectorAfterPaging = arguments.After is not null || arguments.Before is not null;
 
         for (var i = 0; i < orderExpressions.Length; i++)
         {
@@ -179,6 +180,17 @@ internal static class ExpressionHelpers
                 method,
                 source,
                 typedOrderExpression);
+        }
+
+        // keep the historical query shape unless cursor filtering is active.
+        if (!applySelectorAfterPaging && selector is not null)
+        {
+            var selectMethod = typeof(Enumerable)
+                .GetMethods(BindingFlags.Static | BindingFlags.Public)
+                .First(m => m.Name == nameof(Enumerable.Select) && m.GetParameters().Length == 2)
+                .MakeGenericMethod(typeof(TV), typeof(TV));
+
+            source = Expression.Call(selectMethod, source, selector);
         }
 
         var offset = 0;
@@ -267,7 +279,7 @@ internal static class ExpressionHelpers
 
         // apply the selector after cursor filtering and paging so cursor predicates
         // run against the unprojected source when the selector shape is not SQL-translatable.
-        if (selector is not null)
+        if (applySelectorAfterPaging && selector is not null)
         {
             var selectMethod = typeof(Enumerable)
                 .GetMethods(BindingFlags.Static | BindingFlags.Public)
