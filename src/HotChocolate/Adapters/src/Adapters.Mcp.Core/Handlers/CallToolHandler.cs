@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Security.Claims;
 using System.Text;
-using System.Text.Json.Nodes;
+using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Transport.Formatters;
@@ -69,7 +69,7 @@ internal static class CallToolHandler
             // also return functionally equivalent unstructured content. (For example,
             // serialized JSON can be returned in a TextContent block.)
             Content = [new TextContentBlock { Text = jsonOperationResult }],
-            StructuredContent = JsonNode.Parse(jsonOperationResult),
+            StructuredContent = JsonElement.Parse(jsonOperationResult),
             IsError = !operationResult.Errors.IsEmpty
         };
     }
