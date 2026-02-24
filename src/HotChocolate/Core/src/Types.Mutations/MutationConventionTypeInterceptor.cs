@@ -744,17 +744,47 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         public string FormatInputTypeName(string mutationName)
             => InputTypeNamePattern.Replace(
                 $"{{{MutationConventionOptionDefaults.MutationName}}}",
-                char.ToUpper(mutationName[0]) + mutationName[1..]);
+                FormatMutationName(mutationName));
 
         public string FormatPayloadTypeName(string mutationName)
             => PayloadTypeNamePattern.Replace(
                 $"{{{MutationConventionOptionDefaults.MutationName}}}",
-                char.ToUpper(mutationName[0]) + mutationName[1..]);
+                FormatMutationName(mutationName));
 
         public string FormatErrorTypeName(string mutationName)
             => PayloadErrorTypeNamePattern.Replace(
                 $"{{{MutationConventionOptionDefaults.MutationName}}}",
-                char.ToUpper(mutationName[0]) + mutationName[1..]);
+                FormatMutationName(mutationName));
+
+        private static string FormatMutationName(string mutationName)
+        {
+            if (string.IsNullOrEmpty(mutationName))
+            {
+                return mutationName;
+            }
+
+            if (mutationName.IndexOf('_', StringComparison.Ordinal) < 0)
+            {
+                return char.ToUpperInvariant(mutationName[0]) + mutationName[1..];
+            }
+
+            var builder = new System.Text.StringBuilder(mutationName.Length);
+            var upperNext = true;
+
+            foreach (var c in mutationName)
+            {
+                if (c == '_')
+                {
+                    upperNext = true;
+                    continue;
+                }
+
+                builder.Append(upperNext ? char.ToUpperInvariant(c) : c);
+                upperNext = false;
+            }
+
+            return builder.ToString();
+        }
     }
 
     private readonly struct FieldDef(string name, TypeReference type)

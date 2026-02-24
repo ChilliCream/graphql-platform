@@ -1266,9 +1266,33 @@ public class AnnotationBasedMutations
                     "name_Named": "coco"
                   }
                 }
-              }
+                }
             }
             """);
+    }
+
+    [Fact]
+    public async Task MutationConvention_With_SnakeCase_ObjectField_NamingConvention_Uses_PascalCase_TypeNames()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<Issue4803Mutation>()
+                .AddConvention<INamingConventions, Issue4803NamingConvention>()
+                .AddMutationConventions(
+                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
+
+        var schemaText = schema.ToString();
+
+        Assert.Matches(
+            @"type Issue4803Mutation \{[\s\S]*do_something\(input: DoSomethingInput!\): DoSomethingPayload!",
+            schemaText);
+        Assert.Contains("input DoSomethingInput {", schemaText);
+        Assert.Contains("type DoSomethingPayload {", schemaText);
+        Assert.DoesNotContain("Do_somethingInput", schemaText);
+        Assert.DoesNotContain("Do_somethingPayload", schemaText);
     }
 
     [Fact]
@@ -1931,6 +1955,27 @@ public class AnnotationBasedMutations
         public override string GetTypeDescription(Type type, TypeKind kind)
         {
             return "GetTypeDescription";
+        }
+    }
+
+    public class Issue4803Mutation
+    {
+        public string DoSomething(string userName)
+            => userName;
+    }
+
+    public class Issue4803NamingConvention : DefaultNamingConventions
+    {
+        public override string GetMemberName(MemberInfo member, MemberKind kind)
+        {
+            if (kind == MemberKind.ObjectField)
+            {
+                var pattern = new System.Text.RegularExpressions.Regex(
+                    @"[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+");
+                return string.Join("_", pattern.Matches(member.Name)).ToLowerInvariant();
+            }
+
+            return base.GetMemberName(member, kind);
         }
     }
 }
