@@ -6,14 +6,7 @@ builder.Services.AddHttpClient("Fusion")
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
     {
         MaxConnectionsPerServer = 256,
-        EnableMultipleHttp2Connections = true,
-        InitialHttp2StreamWindowSize = 768 * 1024,
-        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(10)
-    })
-    .ConfigureHttpClient(c =>
-    {
-        c.DefaultRequestVersion = System.Net.HttpVersion.Version20;
-        c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
+        EnableMultipleHttp2Connections = true
     });
 
 builder
