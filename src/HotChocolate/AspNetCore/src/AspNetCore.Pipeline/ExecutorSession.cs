@@ -91,6 +91,7 @@ public sealed class ExecutorSession
 
         var requestBuilder = OperationRequestBuilder.From(request);
         requestBuilder.SetFlags(flags);
+        requestBuilder.SetServices(context.RequestServices);
 
         await _requestInterceptor.OnCreateAsync(context, _executor, requestBuilder, context.RequestAborted);
 
@@ -116,6 +117,7 @@ public sealed class ExecutorSession
             var requestBuilder = OperationRequestBuilder.From(request);
             requestBuilder.SetOperationName(operationNames[i]);
             requestBuilder.SetFlags(flags);
+            requestBuilder.SetServices(context.RequestServices);
 
             await _requestInterceptor.OnCreateAsync(context, _executor, requestBuilder, context.RequestAborted);
 
@@ -144,6 +146,7 @@ public sealed class ExecutorSession
         {
             var requestBuilder = OperationRequestBuilder.From(requests[i]);
             requestBuilder.SetFlags(flags);
+            requestBuilder.SetServices(context.RequestServices);
 
             await _requestInterceptor.OnCreateAsync(context, _executor, requestBuilder, context.RequestAborted);
 

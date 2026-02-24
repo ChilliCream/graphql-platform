@@ -90,6 +90,7 @@ nodes:
       }
     source: $.productById
     target: $.product
+    batchingGroupId: 1
     requirements:
       - name: __fusion_6_price
         selectionMap: >-
@@ -163,6 +164,7 @@ nodes:
       }
     source: $.productById
     target: $.product
+    batchingGroupId: 1
     requirements:
       - name: __fusion_11_id
         selectionMap: >-

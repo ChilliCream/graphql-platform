@@ -20,7 +20,9 @@ public abstract partial class FusionTestBase
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
         Action<HttpClient>? configureHttpClient = null,
-        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        SourceSchemaHttpClientBatchingMode batchingMode =
+            SourceSchemaHttpClientBatchingMode.VariableBatching
+                | SourceSchemaHttpClientBatchingMode.RequestBatching,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         bool isOffline = false,
         bool isTimingOut = false)
@@ -61,7 +63,9 @@ public abstract partial class FusionTestBase
         string schemaText,
         bool isOffline = false,
         bool isTimingOut = false,
-        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        SourceSchemaHttpClientBatchingMode batchingMode =
+            SourceSchemaHttpClientBatchingMode.VariableBatching
+                | SourceSchemaHttpClientBatchingMode.RequestBatching,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         Action<HttpClient>? configureHttpClient = null,
         HttpClient? httpClient = null)

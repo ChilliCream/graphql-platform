@@ -43,6 +43,21 @@ public sealed class OperationPlannerOptions
     } = 1.5;
 
     /// <summary>
+    /// Gets or sets whether the planner assigns batching group IDs to execution nodes.
+    /// When enabled, independent query operations targeting the same source schema are
+    /// grouped so the executor can dispatch them as a single transport-level batch request.
+    /// </summary>
+    public bool EnableRequestGrouping
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+            field = value;
+        }
+    } = true;
+
+    /// <summary>
     /// Gets or sets the weight applied for each operation beyond the fan-out penalty threshold.
     /// </summary>
     public double ExcessFanoutWeight
