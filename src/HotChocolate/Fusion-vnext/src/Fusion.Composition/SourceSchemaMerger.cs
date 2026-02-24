@@ -99,7 +99,7 @@ internal sealed class SourceSchemaMerger
         // Remove unreferenced definitions.
         if (_options.RemoveUnreferencedDefinitions)
         {
-            mergedSchema.RemoveUnreferencedDefinitions(GetPreservedInputTypeNames());
+            mergedSchema.RemoveUnreferencedDefinitions(_schemas);
         }
 
         // Add Fusion definitions.
@@ -271,37 +271,6 @@ internal sealed class SourceSchemaMerger
                 queryType.Fields.Add(canonicalNodeField);
             }
         }
-    }
-
-    /// <summary>
-    /// Returns a list of input type names for types that must be preserved in the merged schema
-    /// even if they are not directly referenced.
-    /// </summary>
-    private HashSet<string> GetPreservedInputTypeNames()
-    {
-        var preservedInputTypeNames = new HashSet<string>();
-
-        foreach (var schema in _schemas)
-        {
-            foreach (var type in schema.Types.OfType<IObjectTypeDefinition>())
-            {
-                foreach (var field in type.Fields)
-                {
-                    foreach (var argument in field.Arguments)
-                    {
-                        var argumentInnerType = argument.Type.InnerType();
-
-                        if (argumentInnerType is IInputObjectTypeDefinition inputObjectType
-                            && (argument.HasRequireDirective || field.IsLookup))
-                        {
-                            preservedInputTypeNames.Add(inputObjectType.Name);
-                        }
-                    }
-                }
-            }
-        }
-
-        return preservedInputTypeNames;
     }
 
     /// <summary>

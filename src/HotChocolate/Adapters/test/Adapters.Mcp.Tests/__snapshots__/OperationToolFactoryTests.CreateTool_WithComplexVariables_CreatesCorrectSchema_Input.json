@@ -203,6 +203,8 @@
           "properties": {
             "field1": {
               "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647,
               "description": "field1 description"
             }
           },
@@ -238,6 +240,8 @@
             "properties": {
               "field1": {
                 "type": "integer",
+                "minimum": -2147483648,
+                "maximum": 2147483647,
                 "description": "field1 description"
               }
             },
@@ -280,6 +284,8 @@
               "properties": {
                 "field1": {
                   "type": "integer",
+                  "minimum": -2147483648,
+                  "maximum": 2147483647,
                   "description": "field1 description"
                 }
               },

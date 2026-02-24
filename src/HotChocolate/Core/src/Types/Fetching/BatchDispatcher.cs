@@ -92,7 +92,7 @@ public sealed partial class BatchDispatcher : IBatchDispatcher
 
         if (Interlocked.CompareExchange(ref _isCoordinatorRunning, 1, 0) == 0)
         {
-            CoordinatorAsync(_coordinatorCts.Token).FireAndForget();
+            _ = CoordinatorAsync(_coordinatorCts.Token);
         }
     }
 

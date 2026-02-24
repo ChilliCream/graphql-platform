@@ -139,6 +139,7 @@ nodes:
       }
     source: $.productById
     target: $.users.nodes.reviews.nodes.product
+    batchingGroupId: 2
     requirements:
       - name: __fusion_2_id
         selectionMap: >-
@@ -158,6 +159,7 @@ nodes:
       }
     source: $.productByIdAsync
     target: $.users.nodes.reviews.nodes.product
+    batchingGroupId: 1
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -233,6 +235,7 @@ nodes:
       }
     source: $.productByIdAsync
     target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
+    batchingGroupId: 1
     requirements:
       - name: __fusion_7_id
         selectionMap: >-
@@ -252,6 +255,7 @@ nodes:
       }
     source: $.productById
     target: $.users.nodes.reviews.nodes.product.reviews.nodes.author.reviews.nodes.product
+    batchingGroupId: 2
     requirements:
       - name: __fusion_8_id
         selectionMap: >-

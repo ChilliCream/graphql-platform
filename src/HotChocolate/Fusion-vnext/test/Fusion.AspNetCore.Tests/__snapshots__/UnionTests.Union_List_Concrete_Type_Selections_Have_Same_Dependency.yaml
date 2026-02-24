@@ -134,10 +134,19 @@ sourceSchemas:
               }
             }
           variables: |
-            {
-              "__fusion_1_id": "UHJvZHVjdDo1"
-            }
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDo1"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo0"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo2"
+              }
+            ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -147,27 +156,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query testQuery_9b3b2942_3(
-              $__fusion_2_id: ID!
-            ) {
-              productById(id: $__fusion_2_id) {
-                subgraph2
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_2_id": "UHJvZHVjdDo0"
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDo2"
-              }
-            ]
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
             - |
               {
                 "data": {
@@ -229,7 +217,7 @@ operationPlan:
           }
         }
     - id: 2
-      type: Operation
+      type: OperationBatch
       schema: B
       operation: |
         query testQuery_9b3b2942_2(
@@ -240,28 +228,12 @@ operationPlan:
           }
         }
       source: $.productById
-      target: $.posts<Discussion>.product
+      targets:
+        - $.posts<Discussion>.product
+        - $.posts<Photo>.product
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 3
-      type: Operation
-      schema: B
-      operation: |
-        query testQuery_9b3b2942_3(
-          $__fusion_2_id: ID!
-        ) {
-          productById(id: $__fusion_2_id) {
-            subgraph2
-          }
-        }
-      source: $.productById
-      target: $.posts<Photo>.product
-      requirements:
-        - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:
