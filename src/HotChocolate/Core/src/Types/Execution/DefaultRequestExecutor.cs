@@ -302,13 +302,28 @@ internal sealed class DefaultRequestExecutor : IRequestExecutor
 
     private static IOperationRequest WithServices(
         IOperationRequest request,
-        IServiceProvider services) =>
-        request switch
+        IServiceProvider services)
+    {
+        switch (request)
         {
-            OperationRequest op => op.WithServices(services),
-            VariableBatchRequest vb => vb.WithServices(services),
-            _ => throw new InvalidOperationException("Unexpected request type.")
-        };
+            case OperationRequest op:
+                if (ReferenceEquals(op.Services, services))
+                {
+                    return op;
+                }
+                return op.WithServices(services);
+
+            case VariableBatchRequest vb:
+                if (ReferenceEquals(vb.Services, services))
+                {
+                    return vb;
+                }
+                return vb.WithServices(services);
+
+            default:
+                throw new InvalidOperationException("Unexpected request type.");
+        }
+    }
 
     private async Task ExecuteBatchItemAsync(
         IOperationRequest request,
