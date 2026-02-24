@@ -112,6 +112,13 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
         return _typeRegistry.IsRegistered(typeReference);
     }
 
+    public bool HasRuntimeTypeBinding(ExtendedTypeReference typeReference)
+    {
+        ArgumentNullException.ThrowIfNull(typeReference);
+
+        return _typeRegistry.TryGetTypeRef(typeReference, out _);
+    }
+
     public IReadOnlyCollection<TypeReference> Unresolved => _unresolved;
 
     public IReadOnlyCollection<TypeReference> GetUnhandled()

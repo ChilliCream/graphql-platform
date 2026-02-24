@@ -802,6 +802,36 @@ public class SchemaBuilderTests
     }
 
     [Fact]
+    public void BindClrType_DictionaryToAnyType_DictionaryFieldIsScalarField()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryWithDictionaryArgument>()
+            .BindRuntimeType<IDictionary<string, object>, AnyType>()
+            .Create();
+
+        // assert
+        var queryType = schema.Types.GetType<ObjectType>("QueryWithDictionaryArgument");
+        Assert.Equal("Any", queryType.Fields["foo"].Arguments["foo"].Type.Print());
+    }
+
+    [Fact]
+    public void BindClrType_ByteArrayToBase64Type_ByteArrayFieldIsScalarField()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryWithByteArrayField>()
+            .BindRuntimeType<byte[], Base64StringType>()
+            .Create();
+
+        // assert
+        var queryType = schema.Types.GetType<ObjectType>("QueryWithByteArrayField");
+        Assert.Equal("Base64String!", queryType.Fields["foo"].Type.Print());
+    }
+
+    [Fact]
     public void BindClrType_BuilderIsNull_ArgumentNullException()
     {
         // arrange
@@ -2092,6 +2122,16 @@ public class SchemaBuilderTests
     public class QueryWithIntField
     {
         public int Foo { get; set; }
+    }
+
+    public class QueryWithDictionaryArgument
+    {
+        public bool Foo(IDictionary<string, object>? foo) => true;
+    }
+
+    public class QueryWithByteArrayField
+    {
+        public required byte[] Foo { get; set; }
     }
 
     public abstract class AbstractQuery

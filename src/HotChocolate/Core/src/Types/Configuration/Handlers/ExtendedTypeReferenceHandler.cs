@@ -44,6 +44,7 @@ internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
         {
             TryMapToExistingRegistration(
                 typeRegistrar,
+                typeRef,
                 typeInfo,
                 typeReference.Context,
                 typeReference.Scope);
@@ -52,10 +53,19 @@ internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
 
     private static void TryMapToExistingRegistration(
         ITypeRegistrar typeRegistrar,
+        ExtendedTypeReference typeRef,
         ITypeInfo typeInfo,
         TypeContext context,
         string? scope)
     {
+        // If there is an explicit runtime binding for the full type, keep the original
+        // type reference unresolved so discovery can apply that binding.
+        if (typeRegistrar.HasRuntimeTypeBinding(typeRef))
+        {
+            typeRegistrar.MarkUnresolved(typeRef);
+            return;
+        }
+
         ExtendedTypeReference? normalizedTypeRef = null;
         var resolved = false;
 

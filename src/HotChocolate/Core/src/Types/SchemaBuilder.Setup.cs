@@ -262,7 +262,8 @@ public partial class SchemaBuilder
                 {
                     typeRegistry.TryRegister(
                         binding.GetRuntimeTypeReference(context.TypeInspector),
-                        binding.GetSchemaTypeReference(context.TypeInspector));
+                        binding.GetSchemaTypeReference(context.TypeInspector),
+                        explicitBinding: true);
                 }
             }
 
