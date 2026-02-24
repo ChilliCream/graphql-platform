@@ -105,6 +105,45 @@ public class PagingInheritanceTests(PostgreSqlResource resource)
         Assert.Equal(2, secondPage.Items.Length);
     }
 
+    [Fact]
+    public async Task BatchPaging_With_TPH_Selector_After_Cursor()
+    {
+        // arrange
+        var connectionString = CreateConnectionString();
+        await SeedAnimalsAsync(connectionString);
+
+        await using var context = new AnimalContext(connectionString);
+
+        var query = new QueryContext<Animal>(
+            Selector: e =>
+                e is Dog
+                    ? new Dog { Id = ((Dog)e).Id, Name = ((Dog)e).Name }
+                    : e is Cat
+                        ? (Animal)new Cat { Id = ((Cat)e).Id, Name = ((Cat)e).Name }
+                        : null!);
+
+        var arguments = new PagingArguments(2);
+
+        // act
+        var firstMap = await context.Pets
+            .With(query, sort => sort.AddDescending(e => e.Name))
+            .ToBatchPageAsync(e => e.OwnerId, arguments);
+
+        var firstPage = Assert.Single(firstMap).Value;
+
+        var secondMap = await context.Pets
+            .With(query, sort => sort.AddDescending(e => e.Name))
+            .ToBatchPageAsync(
+                e => e.OwnerId,
+                arguments with { After = firstPage.CreateCursor(firstPage.Last!) });
+
+        var secondPage = Assert.Single(secondMap).Value;
+
+        // assert
+        Assert.NotNull(secondPage);
+        Assert.Equal(2, secondPage.Items.Length);
+    }
+
     private static async Task SeedFileSystemAsync(string connectionString)
     {
         await using var context = new FileSystemContext(connectionString);

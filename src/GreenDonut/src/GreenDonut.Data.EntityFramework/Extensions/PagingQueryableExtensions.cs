@@ -427,6 +427,19 @@ public static class PagingQueryableExtensions
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
+        source = QueryHelpers.EnsureOrderPropsAreSelected(source);
+
+        // extract the selector before ensuring group props are selected,
+        // as we need to remove it before grouping and re-apply it after
+        var selector = QueryHelpers.ExtractCurrentSelector(source);
+
+        // if we have a selector, remove it before grouping
+        // we'll re-apply it to the grouped items later
+        if (selector is not null)
+        {
+            source = QueryHelpers.RemoveSelector(source);
+        }
+
         var keys = ParseDataSetKeys(source);
 
         if (keys.Length == 0)
@@ -448,19 +461,6 @@ public static class PagingQueryableExtensions
             && string.IsNullOrEmpty(arguments.Before))
         {
             includeTotalCount = true;
-        }
-
-        source = QueryHelpers.EnsureOrderPropsAreSelected(source);
-
-        // extract the selector before ensuring group props are selected,
-        // as we need to remove it before grouping and re-apply it after
-        var selector = QueryHelpers.ExtractCurrentSelector(source);
-
-        // if we have a selector, remove it before grouping
-        // we'll re-apply it to the grouped items later
-        if (selector is not null)
-        {
-            source = QueryHelpers.RemoveSelector(source);
         }
 
         source = QueryHelpers.EnsureGroupPropsAreSelected(source, keySelector);
