@@ -1,8 +1,6 @@
 using System.Diagnostics;
-using System.Text;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Fusion.Diagnostics;

@@ -15,7 +15,7 @@
         },
         {
           "Key": "graphql.http.request.variables",
-          "Value": "{\"episode\":\"NEW_HOPE\"}"
+          "Value": "{\"name\":\"World\"}"
         }
       ],
       "event": [],
@@ -34,25 +34,25 @@
         },
         {
           "OperationName": "ExecuteRequest",
-          "DisplayName": "query { hero }",
+          "DisplayName": "query { greeting }",
           "Status": "Unset",
           "tags": [
             {
               "Key": "graphql.document.id",
-              "Value": "1d4bca4d0dff630390ddf48e9085589d"
+              "Value": "bfa5986a5299f46421057dd3eb27ec5c"
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "cc68dfd8c0c54a586a03c35296c5d1f9"
+              "Value": "c46cf8c9811934ddea095f10ee722dc4"
             },
             {
               "Key": "graphql.operation.id",
-              "Value": "_Default-1-1d4bca4d0dff630390ddf48e9085589d"
+              "Value": "d58281f7cf44ca2751c4a435c0249e686bd1c146f6ddae23ed35ec6e4b83eb77"
             }
           ],
           "event": [
             {
-              "Name": "AddedOperationToCache",
+              "Name": "AddedOperationPlanToCache",
               "Tags": []
             },
             {
@@ -68,11 +68,11 @@
               "tags": [
                 {
                   "Key": "graphql.document.id",
-                  "Value": "1d4bca4d0dff630390ddf48e9085589d"
+                  "Value": "bfa5986a5299f46421057dd3eb27ec5c"
                 },
                 {
                   "Key": "graphql.document.hash",
-                  "Value": "cc68dfd8c0c54a586a03c35296c5d1f9"
+                  "Value": "c46cf8c9811934ddea095f10ee722dc4"
                 },
                 {
                   "Key": "otel.status_code",
@@ -82,20 +82,8 @@
               "event": []
             },
             {
-              "OperationName": "AnalyzeOperationCost",
-              "DisplayName": "Analyze Operation Complexity",
-              "Status": "Unset",
-              "tags": [
-                {
-                  "Key": "graphql.operation.id",
-                  "Value": "1d4bca4d0dff630390ddf48e9085589d"
-                }
-              ],
-              "event": []
-            },
-            {
-              "OperationName": "CompileOperation",
-              "DisplayName": "Compile Operation",
+              "OperationName": "PlanOperation",
+              "DisplayName": "Plan Operation",
               "Status": "Ok",
               "tags": [
                 {
@@ -127,49 +115,7 @@
                   "Value": "OK"
                 }
               ],
-              "event": [],
-              "activities": [
-                {
-                  "OperationName": "ResolveFieldValue",
-                  "DisplayName": "/hero",
-                  "Status": "Ok",
-                  "tags": [
-                    {
-                      "Key": "graphql.selection.name",
-                      "Value": "hero"
-                    },
-                    {
-                      "Key": "graphql.selection.type",
-                      "Value": "Character"
-                    },
-                    {
-                      "Key": "graphql.selection.path",
-                      "Value": "/hero"
-                    },
-                    {
-                      "Key": "graphql.selection.hierarchy",
-                      "Value": "/hero"
-                    },
-                    {
-                      "Key": "graphql.selection.field.name",
-                      "Value": "hero"
-                    },
-                    {
-                      "Key": "graphql.selection.field.coordinate",
-                      "Value": "Query.hero"
-                    },
-                    {
-                      "Key": "graphql.selection.field.declaringType",
-                      "Value": "Query"
-                    },
-                    {
-                      "Key": "otel.status_code",
-                      "Value": "OK"
-                    }
-                  ],
-                  "event": []
-                }
-              ]
+              "event": []
             }
           ]
         },
