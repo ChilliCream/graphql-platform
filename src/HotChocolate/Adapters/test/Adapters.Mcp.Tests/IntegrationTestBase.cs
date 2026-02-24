@@ -674,6 +674,10 @@ public abstract class IntegrationTestBase
                 { "string", null },
                 { "timeSpan", null },
                 { "unknown", null },
+                { "unsignedByte", null },
+                { "unsignedInt", null },
+                { "unsignedLong", null },
+                { "unsignedShort", null },
                 { "uri", null },
                 { "url", null },
                 { "uuid", null }
@@ -727,6 +731,10 @@ public abstract class IntegrationTestBase
                 { "string", "test" },
                 { "timeSpan", "PT5M" },
                 { "unknown", "test" },
+                { "unsignedByte", 1 },
+                { "unsignedInt", 65536 },
+                { "unsignedLong", 4294967296 },
+                { "unsignedShort", 256 },
                 { "uri", "https://example.com" },
                 { "url", "https://example.com" },
                 { "uuid", "00000000-0000-0000-0000-000000000000" }
