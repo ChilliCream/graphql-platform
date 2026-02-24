@@ -19,6 +19,7 @@ internal sealed class ValidateSchemaCommand : Command
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
         AddOption(Opt<SchemaFileOption>.Instance);
+        AddOption(Opt<SourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -27,6 +28,7 @@ internal sealed class ValidateSchemaCommand : Command
             Opt<StageNameOption>.Instance,
             Opt<ApiIdOption>.Instance,
             Opt<SchemaFileOption>.Instance,
+            Opt<SourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 
@@ -36,6 +38,7 @@ internal sealed class ValidateSchemaCommand : Command
         string stage,
         string apiId,
         FileInfo schemaFile,
+        string? sourceMetadataJson,
         CancellationToken ct)
     {
         console.Title($"Validate to {stage.EscapeMarkup()}");
@@ -68,7 +71,8 @@ internal sealed class ValidateSchemaCommand : Command
             {
                 ApiId = apiId,
                 Stage = stage,
-                Schema = new Upload(stream, "operations.graphql")
+                Schema = new Upload(stream, "operations.graphql"),
+                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
             };
 
             console.Log("Create validation request");

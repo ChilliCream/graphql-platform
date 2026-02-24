@@ -17,6 +17,7 @@ internal sealed class UploadSchemaCommand : Command
         AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<SchemaFileOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
+        AddOption(Opt<SourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -25,6 +26,7 @@ internal sealed class UploadSchemaCommand : Command
             Opt<TagOption>.Instance,
             Opt<SchemaFileOption>.Instance,
             Opt<ApiIdOption>.Instance,
+            Opt<SourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 
@@ -34,6 +36,7 @@ internal sealed class UploadSchemaCommand : Command
         string tag,
         FileInfo schemaFile,
         string apiId,
+        string? sourceMetadataJson,
         CancellationToken cancellationToken)
     {
         console.Title($"Upload schema {schemaFile.FullName.EscapeMarkup()}");
@@ -64,7 +67,8 @@ internal sealed class UploadSchemaCommand : Command
             {
                 Schema = new Upload(stream, "schema.graphqls"),
                 ApiId = apiId,
-                Tag = tag
+                Tag = tag,
+                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
             };
 
             console.Log("Uploading Schema..");

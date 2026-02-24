@@ -20,6 +20,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<OpenApiCollectionIdOption>.Instance);
         AddOption(Opt<OpenApiCollectionFilePatternOption>.Instance);
+        AddOption(Opt<SourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -28,6 +29,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
             Opt<StageNameOption>.Instance,
             Opt<OpenApiCollectionIdOption>.Instance,
             Opt<OpenApiCollectionFilePatternOption>.Instance,
+            Opt<SourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 
@@ -37,6 +39,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
         string stage,
         string openApiCollectionId,
         List<string> patterns,
+        string? sourceMetadataJson,
         CancellationToken ct)
     {
         console.Title($"Validate against {stage.EscapeMarkup()}");
@@ -83,7 +86,8 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
             {
                 OpenApiCollectionId = openApiCollectionId,
                 Stage = stage,
-                Collection = new Upload(archiveStream, "collection.zip")
+                Collection = new Upload(archiveStream, "collection.zip"),
+                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
             };
 
             var requestId = await ValidateAsync(console, client, input, ct);

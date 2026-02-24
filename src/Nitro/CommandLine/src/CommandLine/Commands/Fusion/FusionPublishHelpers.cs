@@ -25,6 +25,7 @@ internal static class FusionPublishHelpers
         string? subgraphName,
         SourceSchemaVersion[]? sourceSchemaVersions,
         bool waitForApproval,
+        SourceMetadataInput? source,
         StatusContext? statusContext,
         IAnsiConsole console,
         IApiClient client,
@@ -38,6 +39,7 @@ internal static class FusionPublishHelpers
             SubgraphName = subgraphName,
             SubgraphApiId = subgraphId,
             WaitForApproval = waitForApproval,
+            Source = source,
             Subgraphs = sourceSchemaVersions is { Length: > 0 }
                 ? sourceSchemaVersions
                     .Select(x => new FusionSubgraphVersionInput

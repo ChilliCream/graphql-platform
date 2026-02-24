@@ -25,6 +25,7 @@ public sealed class FusionUploadCommand : Command
         AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<SourceSchemaFileOption>.Instance);
         AddOption(Opt<WorkingDirectoryOption>.Instance);
+        AddOption(Opt<SourceMetadataOption>.Instance);
         this.AddNitroCloudDefaultOptions();
 
         this.SetHandler(async context =>
@@ -33,6 +34,7 @@ public sealed class FusionUploadCommand : Command
             var sourceSchemaFile = context.ParseResult.GetValueForOption(Opt<SourceSchemaFileOption>.Instance)!;
             var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
+            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<SourceMetadataOption>.Instance);
 
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
             var apiClient = context.BindingContext.GetRequiredService<IApiClient>();
@@ -44,6 +46,7 @@ public sealed class FusionUploadCommand : Command
                 sourceSchemaFile,
                 tag,
                 apiId,
+                sourceMetadataJson,
                 context.GetCancellationToken());
         });
     }
@@ -55,6 +58,7 @@ public sealed class FusionUploadCommand : Command
         string sourceSchemaFilePath,
         string tag,
         string apiId,
+        string? sourceMetadataJson,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(workingDirectory))
@@ -120,7 +124,8 @@ public sealed class FusionUploadCommand : Command
             {
                 Archive = new Upload(archiveStream, "source-schema.zip"),
                 ApiId = apiId,
-                Tag = tag
+                Tag = tag,
+                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
             };
 
             var result = await client.UploadFusionSubgraph.ExecuteAsync(input, cancellationToken);

@@ -21,6 +21,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
         AddOption(Opt<McpFeatureCollectionIdOption>.Instance);
         AddOption(Opt<McpPromptFilePatternOption>.Instance);
         AddOption(Opt<McpToolFilePatternOption>.Instance);
+        AddOption(Opt<SourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -30,6 +31,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
             Opt<McpFeatureCollectionIdOption>.Instance,
             Opt<McpPromptFilePatternOption>.Instance,
             Opt<McpToolFilePatternOption>.Instance,
+            Opt<SourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 
@@ -40,6 +42,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
         string mcpFeatureCollectionId,
         List<string> promptPatterns,
         List<string> toolPatterns,
+        string? sourceMetadataJson,
         CancellationToken ct)
     {
         console.Title($"Validate against {stage.EscapeMarkup()}");
@@ -94,7 +97,8 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
             {
                 McpFeatureCollectionId = mcpFeatureCollectionId,
                 Stage = stage,
-                Collection = new Upload(archiveStream, "collection.zip")
+                Collection = new Upload(archiveStream, "collection.zip"),
+                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
             };
 
             var requestId = await ValidateAsync(console, client, input, ct);

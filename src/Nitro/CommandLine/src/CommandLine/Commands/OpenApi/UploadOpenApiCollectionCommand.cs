@@ -17,6 +17,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
         AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<OpenApiCollectionIdOption>.Instance);
         AddOption(Opt<OpenApiCollectionFilePatternOption>.Instance);
+        AddOption(Opt<SourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -25,6 +26,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
             Opt<TagOption>.Instance,
             Opt<OpenApiCollectionFilePatternOption>.Instance,
             Opt<OpenApiCollectionIdOption>.Instance,
+            Opt<SourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 
@@ -34,6 +36,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
         string tag,
         List<string> patterns,
         string openApiCollectionId,
+        string? sourceMetadataJson,
         CancellationToken cancellationToken)
     {
         if (console.IsHumanReadable())
@@ -74,7 +77,8 @@ internal sealed class UploadOpenApiCollectionCommand : Command
             {
                 Collection = new Upload(archiveStream, "collection.zip"),
                 OpenApiCollectionId = openApiCollectionId,
-                Tag = tag
+                Tag = tag,
+                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
             };
 
             console.Log("Uploading OpenAPI collection..");
