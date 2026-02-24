@@ -10,7 +10,11 @@ internal sealed class ExecutionDataLoaderScope(
     IReadOnlyDictionary<Type, DataLoaderRegistration> registrations)
     : IDataLoaderScope
 {
+#if NET9_0_OR_GREATER
     private readonly Lock _sync = new();
+#else
+    private readonly object _sync = new();
+#endif
     private Dictionary<string, IDataLoader>? _dataLoaders;
 
     private readonly IServiceProvider _serviceProvider = new DataLoaderServiceProvider(serviceProvider, batchScheduler);
