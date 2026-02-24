@@ -21,7 +21,32 @@ internal sealed class NodeIdParameterExpressionBuilder
         => throw new NotSupportedException();
 
     public override bool CanHandle(ParameterInfo parameter)
-        => parameter.Name?.EqualsOrdinal("id") ?? false;
+    {
+        if (parameter.Name?.EqualsOrdinal("id") ?? false)
+        {
+            return true;
+        }
+
+        if (parameter.Position != 0 || parameter.Member is not MethodInfo method)
+        {
+            return false;
+        }
+
+        if (!method.IsDefined(typeof(NodeResolverAttribute), true))
+        {
+            return false;
+        }
+
+        foreach (var candidate in method.GetParameters())
+        {
+            if (candidate.Name?.EqualsOrdinal("id") ?? false)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     protected override string? GetKey(ParameterInfo parameter)
         => WellKnownContextData.InternalId;
