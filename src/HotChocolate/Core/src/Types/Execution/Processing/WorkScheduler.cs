@@ -91,7 +91,11 @@ internal sealed partial class WorkScheduler
             // complete is thread-safe
             if (work.Complete())
             {
-                _completed.TryAdd(task.Id, true);
+                lock (_sync)
+                {
+                    _completed.Add(task.Id);
+                }
+
                 _signal.Set();
             }
         }

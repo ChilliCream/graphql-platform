@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Properties;
@@ -11,7 +10,8 @@ internal sealed class ExecutionDataLoaderScope(
     IReadOnlyDictionary<Type, DataLoaderRegistration> registrations)
     : IDataLoaderScope
 {
-    private readonly ConcurrentDictionary<string, IDataLoader> _dataLoaders = new();
+    private readonly Lock _sync = new();
+    private Dictionary<string, IDataLoader>? _dataLoaders;
 
     private readonly IServiceProvider _serviceProvider = new DataLoaderServiceProvider(serviceProvider, batchScheduler);
 
@@ -19,9 +19,22 @@ internal sealed class ExecutionDataLoaderScope(
     {
         name ??= CreateKey<T>();
 
-        if (_dataLoaders.GetOrAdd(name, _ => createDataLoader(_serviceProvider)) is T dataLoader)
+        IDataLoader dataLoader;
+
+        lock (_sync)
         {
-            return dataLoader;
+            _dataLoaders ??= [];
+
+            if (!_dataLoaders.TryGetValue(name, out dataLoader!))
+            {
+                dataLoader = createDataLoader(_serviceProvider);
+                _dataLoaders.Add(name, dataLoader);
+            }
+        }
+
+        if (dataLoader is T typed)
+        {
+            return typed;
         }
 
         throw new RegisterDataLoaderException(
@@ -32,7 +45,23 @@ internal sealed class ExecutionDataLoaderScope(
     }
 
     public T GetDataLoader<T>() where T : IDataLoader
-        => (T)_dataLoaders.GetOrAdd(CreateKey<T>(), _ => CreateDataLoader<T>());
+    {
+        var key = CreateKey<T>();
+
+        lock (_sync)
+        {
+            _dataLoaders ??= [];
+
+            if (_dataLoaders.TryGetValue(key, out var existing))
+            {
+                return (T)existing;
+            }
+
+            var created = CreateDataLoader<T>();
+            _dataLoaders.Add(key, created);
+            return created;
+        }
+    }
 
     private T CreateDataLoader<T>() where T : IDataLoader
     {

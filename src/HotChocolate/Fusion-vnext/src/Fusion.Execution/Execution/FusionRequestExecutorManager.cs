@@ -344,7 +344,8 @@ internal sealed class FusionRequestExecutorManager
             return SourceSchemaHttpClientBatchingMode.ApolloRequestBatching;
         }
 
-        return SourceSchemaHttpClientBatchingMode.VariableBatching;
+        return SourceSchemaHttpClientBatchingMode.VariableBatching
+            | SourceSchemaHttpClientBatchingMode.RequestBatching;
     }
 
     private FeatureCollection CreateSchemaFeatures(

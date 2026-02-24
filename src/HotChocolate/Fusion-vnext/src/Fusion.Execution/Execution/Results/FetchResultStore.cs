@@ -18,7 +18,11 @@ namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed class FetchResultStore : IDisposable
 {
-    private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
+    private readonly object _lock = new();
+#endif
     private readonly ISchemaDefinition _schema;
     private readonly IErrorHandler _errorHandler;
     private readonly Operation _operation;
@@ -117,8 +121,11 @@ internal sealed class FetchResultStore : IDisposable
 
                 if (errors?.RootErrors is { Length: > 0 } rootErrors)
                 {
-                    _errors ??= [];
-                    _errors.AddRange(rootErrors);
+                    lock (_lock)
+                    {
+                        _errors ??= [];
+                        _errors.AddRange(rootErrors);
+                    }
                 }
 
                 dataElement = GetDataElement(sourcePath, result.Data);
@@ -158,9 +165,7 @@ internal sealed class FetchResultStore : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(document);
 
-        _lock.EnterWriteLock();
-
-        try
+        lock (_lock)
         {
             var partial = document.Root;
             var data = _result.Data;
@@ -168,10 +173,6 @@ internal sealed class FetchResultStore : IDisposable
             return _valueCompletion.BuildResult(
                 partial,
                 data, errorTrie: null, responseNames: responseNames);
-        }
-        finally
-        {
-            _lock.ExitWriteLock();
         }
     }
 
@@ -183,9 +184,7 @@ internal sealed class FetchResultStore : IDisposable
 
     public bool AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
     {
-        _lock.EnterWriteLock();
-
-        try
+        lock (_lock)
         {
             ref var path = ref MemoryMarshal.GetReference(paths);
             ref var end = ref Unsafe.Add(ref path, paths.Length);
@@ -220,10 +219,6 @@ AddErrors_Next:
                 path = ref Unsafe.Add(ref path, 1)!;
             }
         }
-        finally
-        {
-            _lock.ExitWriteLock();
-        }
 
         return true;
     }
@@ -234,9 +229,7 @@ AddErrors_Next:
         ReadOnlySpan<ErrorTrie?> errorTries,
         ReadOnlySpan<string> responseNames)
     {
-        _lock.EnterWriteLock();
-
-        try
+        lock (_lock)
         {
             ref var result = ref MemoryMarshal.GetReference(results);
             ref var data = ref MemoryMarshal.GetReference(dataElements);
@@ -276,10 +269,6 @@ SaveSafe_Next:
                 errorTrie = ref Unsafe.Add(ref errorTrie, 1)!;
             }
         }
-        finally
-        {
-            _lock.ExitWriteLock();
-        }
 
         return true;
     }
@@ -300,141 +289,196 @@ SaveSafe_Next:
                 nameof(requiredData));
         }
 
-        _lock.EnterReadLock();
-
-        try
+        lock (_lock)
         {
-            var current = new List<CompositeResultElement> { _result.Data };
-            var next = new List<CompositeResultElement>();
+            var elements = CollectTargetElements(selectionSet);
 
-            for (var i = 0; i < selectionSet.Segments.Length; i++)
+            if (elements is null)
             {
-                var segment = selectionSet.Segments[i];
+                return [];
+            }
 
-                foreach (var element in current)
+            return BuildVariableValueSets(elements, requestVariables, requiredData);
+        }
+    }
+
+    /// <summary>
+    /// Creates a deduplicated set of variable values across multiple target selection paths.
+    /// Elements from all targets are combined and deduplication is applied globally, so that
+    /// entities at different target locations that produce identical variable values are merged
+    /// into a single <see cref="VariableValues"/> entry via <see cref="VariableValues.AdditionalPaths"/>.
+    /// </summary>
+    public ImmutableArray<VariableValues> CreateVariableValueSets(
+        ReadOnlySpan<SelectionPath> selectionSets,
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(requestVariables);
+
+        if (requiredData.Length == 0)
+        {
+            throw new ArgumentException(
+                "The required data span must contain at least one requirement.",
+                nameof(requiredData));
+        }
+
+        lock (_lock)
+        {
+            var combined = new List<CompositeResultElement>();
+
+            foreach (var selectionSet in selectionSets)
+            {
+                var elements = CollectTargetElements(selectionSet);
+
+                if (elements is not null)
                 {
-                    if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
-                    {
-                        if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
-                            && value.ValueKind is JsonValueKind.String
-                            && value.TextEqualsHelper(segment.Name, isPropertyName: false))
-                        {
-                            next.Add(element);
-                        }
-                    }
-                    else if (segment.Kind is SelectionPathSegmentKind.Field)
-                    {
-                        if (!element.TryGetProperty(segment.Name, out var value))
-                        {
-                            continue;
-                        }
-
-                        var valueKind = value.ValueKind;
-
-                        if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-                        {
-                            continue;
-                        }
-
-                        if (valueKind is JsonValueKind.Array)
-                        {
-                            next.AddRange(UnrollLists(value));
-                            continue;
-                        }
-
-                        if (valueKind is JsonValueKind.Object)
-                        {
-                            next.Add(value);
-                            continue;
-                        }
-
-                        // TODO : Better error
-                        throw new NotSupportedException("Must be list or object.");
-                    }
-                }
-
-                (next, current) = (current, next);
-                next.Clear();
-
-                if (current.Count == 0)
-                {
-                    return [];
+                    combined.AddRange(elements);
                 }
             }
 
-            PooledArrayWriter? buffer = null;
-            VariableValues[]? variableValueSets = null;
-            Dictionary<ObjectValueNode, int>? seen = null;
-            List<Path>?[]? additionalPaths = null;
-            var nextIndex = 0;
-
-            foreach (var result in current)
+            if (combined.Count == 0)
             {
-                var variables = MapRequirements(
-                    result,
-                    requestVariables,
-                    requiredData,
-                    ref buffer);
+                return [];
+            }
 
-                if (variables is null)
+            return BuildVariableValueSets(combined, requestVariables, requiredData);
+        }
+    }
+
+    // Caller must hold _lock for reading.
+    private List<CompositeResultElement>? CollectTargetElements(SelectionPath selectionSet)
+    {
+        var current = new List<CompositeResultElement> { _result.Data };
+        var next = new List<CompositeResultElement>();
+
+        for (var i = 0; i < selectionSet.Segments.Length; i++)
+        {
+            var segment = selectionSet.Segments[i];
+
+            foreach (var element in current)
+            {
+                if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
                 {
-                    continue;
+                    if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
+                        && value.ValueKind is JsonValueKind.String
+                        && value.TextEqualsHelper(segment.Name, isPropertyName: false))
+                    {
+                        next.Add(element);
+                    }
                 }
-
-                variableValueSets ??= new VariableValues[current.Count];
-
-                if (nextIndex > 0)
+                else if (segment.Kind is SelectionPathSegmentKind.Field)
                 {
-                    seen ??= new Dictionary<ObjectValueNode, int>(VariableValueComparer.Instance)
+                    if (!element.TryGetProperty(segment.Name, out var value))
                     {
-                        [variableValueSets[0].Values] = 0
-                    };
-
-                    if (seen.TryGetValue(variables, out var existingIndex))
-                    {
-                        additionalPaths ??= new List<Path>?[current.Count];
-                        (additionalPaths[existingIndex] ??= []).Add(result.Path);
                         continue;
                     }
 
-                    seen[variables] = nextIndex;
-                }
+                    var valueKind = value.ValueKind;
 
-                variableValueSets[nextIndex++] = new VariableValues(result.Path, variables);
-            }
-
-            if (additionalPaths is not null)
-            {
-                for (var i = 0; i < nextIndex; i++)
-                {
-                    if (additionalPaths[i] is { } paths)
+                    if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
                     {
-                        variableValueSets![i] = variableValueSets[i] with
-                        {
-                            AdditionalPaths = [.. paths]
-                        };
+                        continue;
                     }
+
+                    if (valueKind is JsonValueKind.Array)
+                    {
+                        next.AddRange(UnrollLists(value));
+                        continue;
+                    }
+
+                    if (valueKind is JsonValueKind.Object)
+                    {
+                        next.Add(value);
+                        continue;
+                    }
+
+                    // TODO : Better error
+                    throw new NotSupportedException("Must be list or object.");
                 }
             }
 
-            if (variableValueSets?.Length > 0)
-            {
-                Array.Resize(ref variableValueSets, nextIndex);
-            }
+            (next, current) = (current, next);
+            next.Clear();
 
-            if (buffer is not null)
+            if (current.Count == 0)
             {
-                _memory.Push(buffer);
+                return null;
             }
-
-            return variableValueSets is not null
-                ? ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets)
-                : [];
         }
-        finally
+
+        return current;
+    }
+
+    private ImmutableArray<VariableValues> BuildVariableValueSets(
+        List<CompositeResultElement> elements,
+        IReadOnlyList<ObjectFieldNode> requestVariables,
+        ReadOnlySpan<OperationRequirement> requiredData)
+    {
+        PooledArrayWriter? buffer = null;
+        VariableValues[]? variableValueSets = null;
+        Dictionary<ObjectValueNode, int>? seen = null;
+        List<Path>?[]? additionalPaths = null;
+        var nextIndex = 0;
+
+        foreach (var result in elements)
         {
-            _lock.ExitReadLock();
+            var variables = MapRequirements(result, requestVariables, requiredData, ref buffer);
+
+            if (variables is null)
+            {
+                continue;
+            }
+
+            variableValueSets ??= new VariableValues[elements.Count];
+
+            if (nextIndex > 0)
+            {
+                seen ??= new Dictionary<ObjectValueNode, int>(VariableValueComparer.Instance)
+                {
+                    [variableValueSets[0].Values] = 0
+                };
+
+                if (seen.TryGetValue(variables, out var existingIndex))
+                {
+                    additionalPaths ??= new List<Path>?[elements.Count];
+                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    continue;
+                }
+
+                seen[variables] = nextIndex;
+            }
+
+            variableValueSets[nextIndex++] = new VariableValues(result.Path, variables);
         }
+
+        if (additionalPaths is not null)
+        {
+            for (var i = 0; i < nextIndex; i++)
+            {
+                if (additionalPaths[i] is { } paths)
+                {
+                    variableValueSets![i] = variableValueSets[i] with
+                    {
+                        AdditionalPaths = [.. paths]
+                    };
+                }
+            }
+        }
+
+        if (variableValueSets?.Length > 0)
+        {
+            Array.Resize(ref variableValueSets, nextIndex);
+        }
+
+        if (buffer is not null)
+        {
+            _memory.Push(buffer);
+        }
+
+        return variableValueSets is not null
+            ? ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets)
+            : [];
     }
 
     private ObjectValueNode? MapRequirements(
@@ -635,8 +679,6 @@ SaveSafe_Next:
         }
 
         _disposed = true;
-
-        _lock.Dispose();
 
         while (_memory.TryPop(out var memory))
         {

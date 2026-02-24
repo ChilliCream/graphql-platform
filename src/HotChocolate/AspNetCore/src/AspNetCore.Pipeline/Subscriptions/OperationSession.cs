@@ -38,7 +38,7 @@ internal sealed class OperationSession : IOperationSession
     public bool IsCompleted { get; private set; }
 
     public void BeginExecute(GraphQLRequest request, CancellationToken cancellationToken)
-        => SendResultsAsync(request, cancellationToken).FireAndForget();
+        => _ = SendResultsAsync(request, cancellationToken);
 
     private async Task SendResultsAsync(GraphQLRequest request, CancellationToken cancellationToken)
     {
