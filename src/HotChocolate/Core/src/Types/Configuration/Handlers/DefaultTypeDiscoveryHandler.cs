@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Internal;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -16,6 +17,11 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
         TypeDiscoveryInfo typeInfo,
         [NotNullWhen(true)] out TypeReference[]? schemaTypeRefs)
     {
+        if (TryCreateKeyValuePairTypeRef(typeReference, typeInfo, out schemaTypeRefs))
+        {
+            return true;
+        }
+
         TypeReference? schemaType;
 
         if (typeInfo.IsStatic)
@@ -98,6 +104,168 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
 
         schemaTypeRefs = [schemaType];
         return true;
+    }
+
+    private static bool TryCreateKeyValuePairTypeRef(
+        TypeReference typeReference,
+        TypeDiscoveryInfo typeInfo,
+        [NotNullWhen(true)] out TypeReference[]? schemaTypeRefs)
+    {
+        if (typeReference is not ExtendedTypeReference { Type: { } extendedType })
+        {
+            schemaTypeRefs = null;
+            return false;
+        }
+
+        if (!extendedType.IsGeneric
+            || extendedType.Definition != typeof(KeyValuePair<,>)
+            || extendedType.TypeArguments.Count != 2)
+        {
+            schemaTypeRefs = null;
+            return false;
+        }
+
+        if (typeInfo.Context is TypeContext.Output or TypeContext.None)
+        {
+            var typeName = CreateKeyValuePairTypeName(
+                extendedType,
+                TypeKind.Object);
+
+            schemaTypeRefs =
+            [
+                TypeReference.Create(
+                    typeName,
+                    typeReference,
+                    _ => CreateOutputType(extendedType, typeName),
+                    typeReference.Context,
+                    typeReference.Scope)
+            ];
+            return true;
+        }
+
+        if (typeInfo.Context is TypeContext.Input)
+        {
+            var typeName = CreateKeyValuePairTypeName(
+                extendedType,
+                TypeKind.InputObject);
+
+            schemaTypeRefs =
+            [
+                TypeReference.Create(
+                    typeName,
+                    typeReference,
+                    _ => CreateInputType(extendedType, typeName),
+                    typeReference.Context,
+                    typeReference.Scope)
+            ];
+            return true;
+        }
+
+        schemaTypeRefs = null;
+        return false;
+    }
+
+    private static TypeSystemObject CreateOutputType(
+        IExtendedType keyValuePairType,
+        string typeName)
+    {
+        var runtimeType = keyValuePairType.Type;
+        var keyType = keyValuePairType.TypeArguments[0];
+        var valueType = keyValuePairType.TypeArguments[1];
+        var keyProperty = runtimeType.GetProperty("Key")!;
+        var valueProperty = runtimeType.GetProperty("Value")!;
+
+        return new ObjectType(
+            descriptor =>
+            {
+                descriptor.Name(typeName);
+
+                descriptor.Field(keyProperty)
+                    .Name("key")
+                    .Extend()
+                    .OnBeforeCreate(
+                        (_, field) => field.SetMoreSpecificType(keyType, TypeContext.Output));
+
+                descriptor.Field(valueProperty)
+                    .Name("value")
+                    .Extend()
+                    .OnBeforeCreate(
+                        (_, field) => field.SetMoreSpecificType(valueType, TypeContext.Output));
+
+                descriptor.Extend()
+                    .OnBeforeCreate(
+                        (_, type) =>
+                        {
+                            type.RuntimeType = runtimeType;
+                            type.FieldBindingType = typeof(object);
+                        });
+            });
+    }
+
+    private static TypeSystemObject CreateInputType(
+        IExtendedType keyValuePairType,
+        string typeName)
+    {
+        var runtimeType = keyValuePairType.Type;
+        var keyType = keyValuePairType.TypeArguments[0];
+        var valueType = keyValuePairType.TypeArguments[1];
+        var keyProperty = runtimeType.GetProperty("Key")!;
+        var valueProperty = runtimeType.GetProperty("Value")!;
+        var keyGetter = keyProperty.GetMethod!;
+        var valueGetter = valueProperty.GetMethod!;
+
+        return new InputObjectType(
+            descriptor =>
+            {
+                descriptor.Name(typeName);
+
+                descriptor.Field("key")
+                    .Extend()
+                    .OnBeforeCreate(
+                        (_, field) => field.SetMoreSpecificType(keyType, TypeContext.Input));
+
+                descriptor.Field("value")
+                    .Extend()
+                    .OnBeforeCreate(
+                        (_, field) => field.SetMoreSpecificType(valueType, TypeContext.Input));
+
+                descriptor.Extend()
+                    .OnBeforeCreate(
+                        (_, type) =>
+                        {
+                            type.RuntimeType = runtimeType;
+                            type.CreateInstance =
+                                values => Activator.CreateInstance(runtimeType, values[0], values[1])!;
+                            type.GetFieldData =
+                                (obj, values) =>
+                                {
+                                    values[0] = keyGetter.Invoke(obj, []);
+                                    values[1] = valueGetter.Invoke(obj, []);
+                                };
+                        });
+            });
+    }
+
+    private static string CreateKeyValuePairTypeName(IExtendedType type, TypeKind kind)
+    {
+        var keyType = type.TypeArguments[0];
+        var valueType = type.TypeArguments[1];
+        var keyName = keyType.Type.Name;
+        var valueName = valueType.Type.Name;
+
+        if (keyType.IsNullable)
+        {
+            keyName = $"Nullable{keyName}";
+        }
+
+        if (valueType.IsNullable)
+        {
+            valueName = $"Nullable{valueName}";
+        }
+
+        return kind == TypeKind.InputObject
+            ? $"KeyValuePairOf{keyName}And{valueName}Input"
+            : $"KeyValuePairOf{keyName}And{valueName}";
     }
 
     public override bool TryInferKind(
