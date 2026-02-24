@@ -16,7 +16,7 @@ public sealed class ChannelProcessorTests
 
         await using var processor = new ChannelProcessor<int>(
             channel.Reader.ReadAllAsync,
-            item =>
+            (item, _) =>
             {
                 received.Record(item);
                 return Task.CompletedTask;
@@ -43,7 +43,7 @@ public sealed class ChannelProcessorTests
 
         await using var processor = new ChannelProcessor<int>(
             channel.Reader.ReadAllAsync,
-            async _ =>
+            async (_, _) =>
             {
                 if (Interlocked.Increment(ref enteredCount) >= 2)
                 {
@@ -72,7 +72,7 @@ public sealed class ChannelProcessorTests
 
         var processor = new ChannelProcessor<int>(
             channel.Reader.ReadAllAsync,
-            item =>
+            (item, _) =>
             {
                 received.Record(item);
                 return Task.CompletedTask;
@@ -103,7 +103,7 @@ public sealed class ChannelProcessorTests
 
         await using var processor = new ChannelProcessor<int>(
             channel.Reader.ReadAllAsync,
-            item =>
+            (item, _) =>
             {
                 var count = Interlocked.Increment(ref callCount);
                 if (count == 1)
@@ -126,6 +126,38 @@ public sealed class ChannelProcessorTests
     }
 
     [Fact]
+    public async Task Handler_Should_ReceiveCancelledToken_When_ProcessorIsDisposed()
+    {
+        // arrange
+        var channel = Channel.CreateUnbounded<int>();
+        var tokenCancelled = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var processor = new ChannelProcessor<int>(
+            channel.Reader.ReadAllAsync,
+            async (_, ct) =>
+            {
+                try
+                {
+                    await Task.Delay(System.Threading.Timeout.InfiniteTimeSpan, ct);
+                }
+                catch (OperationCanceledException)
+                {
+                    tokenCancelled.TrySetResult();
+                    throw;
+                }
+            },
+            concurrency: 1);
+
+        // act — write an item so the handler starts blocking, then dispose
+        channel.Writer.TryWrite(1);
+        await processor.DisposeAsync();
+
+        // assert — the handler's cancellation token was triggered
+        var completed = await Task.WhenAny(tokenCancelled.Task, Task.Delay(Timeout));
+        Assert.Same(tokenCancelled.Task, completed);
+    }
+
+    [Fact]
     public async Task Handler_Should_ReceiveItems_When_SourceIsCustomAsyncEnumerable()
     {
         // arrange — use a custom source instead of a channel to verify the abstraction
@@ -134,7 +166,7 @@ public sealed class ChannelProcessorTests
 
         await using var processor = new ChannelProcessor<int>(
             ct => ToAsyncEnumerable(items, ct),
-            item =>
+            (item, _) =>
             {
                 received.Record(item);
                 return Task.CompletedTask;

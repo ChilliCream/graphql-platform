@@ -13,6 +13,7 @@ namespace Mocha.Threading;
 /// <typeparam name="T">The type of item to process.</typeparam>
 public sealed class ChannelProcessor<T> : IAsyncDisposable
 {
+    private readonly CancellationTokenSource _cts = new();
     private readonly ContinuousTask[] _workers;
 
     /// <summary>
@@ -23,8 +24,13 @@ public sealed class ChannelProcessor<T> : IAsyncDisposable
     /// </param>
     /// <param name="handler">The asynchronous delegate invoked for each item.</param>
     /// <param name="concurrency">The number of concurrent worker tasks.</param>
-    public ChannelProcessor(Func<CancellationToken, IAsyncEnumerable<T>> source, Func<T, Task> handler, int concurrency)
+    public ChannelProcessor(
+        Func<CancellationToken, IAsyncEnumerable<T>> source,
+        Func<T, CancellationToken, Task> handler,
+        int concurrency)
     {
+        var token = _cts.Token;
+
         _workers = new ContinuousTask[concurrency];
         for (var i = 0; i < concurrency; i++)
         {
@@ -32,7 +38,7 @@ public sealed class ChannelProcessor<T> : IAsyncDisposable
             {
                 await foreach (var item in source(ct))
                 {
-                    await handler(item);
+                    await handler(item, token);
                 }
             });
         }
@@ -43,6 +49,8 @@ public sealed class ChannelProcessor<T> : IAsyncDisposable
     /// </summary>
     public async ValueTask DisposeAsync()
     {
+        await _cts.CancelAsync();
+
         foreach (var worker in _workers)
         {
             try
@@ -54,5 +62,7 @@ public sealed class ChannelProcessor<T> : IAsyncDisposable
                 // Best-effort — worker may have faulted.
             }
         }
+
+        _cts.Dispose();
     }
 }

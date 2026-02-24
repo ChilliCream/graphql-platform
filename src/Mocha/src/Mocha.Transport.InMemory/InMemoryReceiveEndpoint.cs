@@ -61,13 +61,13 @@ public sealed class InMemoryReceiveEndpoint(InMemoryMessagingTransport transport
 
         _processor = new ChannelProcessor<InMemoryQueueItem>(
             Queue.ConsumeAsync,
-            item => ProcessMessageAsync(item, logger),
+            (item, ct) => ProcessMessageAsync(item, logger, ct),
             _maxDegreeOfParallelism);
 
         return ValueTask.CompletedTask;
     }
 
-    private async Task ProcessMessageAsync(InMemoryQueueItem item, ILogger logger)
+    private async Task ProcessMessageAsync(InMemoryQueueItem item, ILogger logger, CancellationToken cancellationToken)
     {
         using var _ = item;
         try
@@ -75,7 +75,7 @@ public sealed class InMemoryReceiveEndpoint(InMemoryMessagingTransport transport
             await ExecuteAsync(
                 static (context, envelope) => context.SetEnvelope(envelope),
                 item.Envelope,
-                CancellationToken.None);
+                cancellationToken);
         }
         catch (Exception ex)
         {

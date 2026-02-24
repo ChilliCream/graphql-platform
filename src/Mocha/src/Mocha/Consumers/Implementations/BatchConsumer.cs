@@ -22,7 +22,6 @@ internal sealed class BatchConsumer<THandler, TEvent>(
     private ChannelProcessor<MessageBatch<TEvent>> _processor = null!;
     private IServiceProvider _applicationServices = null!;
     private ILogger _logger = null!;
-    private CancellationTokenSource _shutdownCts = null!;
 
     protected override void Configure(IConsumerDescriptor descriptor)
     {
@@ -39,8 +38,6 @@ internal sealed class BatchConsumer<THandler, TEvent>(
         SetIdentity(typeof(THandler));
 
         _applicationServices = context.Services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
-
-        _shutdownCts = new CancellationTokenSource();
         _logger = context.Services.GetRequiredService<ILogger<BatchConsumer<THandler, TEvent>>>();
 
         var timeProvider = context.Services.GetRequiredService<TimeProvider>();
@@ -74,7 +71,7 @@ internal sealed class BatchConsumer<THandler, TEvent>(
         await entry.Task;
     }
 
-    private async Task ProcessBatchAsync(MessageBatch<TEvent> batch)
+    private async Task ProcessBatchAsync(MessageBatch<TEvent> batch, CancellationToken cancellationToken)
     {
         try
         {
@@ -82,7 +79,7 @@ internal sealed class BatchConsumer<THandler, TEvent>(
 
             await using var scope = _applicationServices.CreateAsyncScope();
             var handler = scope.ServiceProvider.GetRequiredService<THandler>();
-            await handler.HandleAsync(batch, _shutdownCts!.Token);
+            await handler.HandleAsync(batch, cancellationToken);
 
             foreach (var entry in batch.Entries)
             {
@@ -143,9 +140,6 @@ internal sealed class BatchConsumer<THandler, TEvent>(
                 }
             }
         }
-
-        await _shutdownCts.CancelAsync();
-        _shutdownCts.Dispose();
     }
 }
 
