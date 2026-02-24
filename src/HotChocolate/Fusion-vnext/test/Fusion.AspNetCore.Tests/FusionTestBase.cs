@@ -172,9 +172,7 @@ public abstract partial class FusionTestBase : IDisposable
 
         SourceSchemaInteraction GetSourceSchemaInteraction(OperationPlanContext context, ExecutionNode node)
         {
-            var schemaName = node is OperationExecutionNode { SchemaName: { } staticSchemaName }
-                ? staticSchemaName
-                : context.GetDynamicSchemaName(node);
+            var schemaName = node.SchemaName ?? context.GetDynamicSchemaName(node);
 
             var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
             return schemaInteractions.GetOrAdd(node.Id, _ => new SourceSchemaInteraction());

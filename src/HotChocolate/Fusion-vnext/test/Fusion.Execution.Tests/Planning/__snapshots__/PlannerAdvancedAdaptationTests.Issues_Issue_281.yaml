@@ -102,6 +102,7 @@ nodes:
       }
     source: $.productById
     target: $.viewer.review<UserReview>.product
+    batchingGroupId: 1
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -121,6 +122,7 @@ nodes:
       }
     source: $.productById
     target: $.viewer.review<AnonymousReview>.product
+    batchingGroupId: 1
     requirements:
       - name: __fusion_4_id
         selectionMap: >-

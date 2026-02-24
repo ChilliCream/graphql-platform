@@ -1,5 +1,6 @@
 // ReSharper disable IntroduceOptionalParameters.Global
 
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -186,6 +187,8 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         request.Body.WriteTo(jsonWriter);
         jsonWriter.Flush();
+
+        Debug.WriteLine(Encoding.UTF8.GetString(arrayWriter.WrittenSpan));
 
         var internalBuffer = PooledArrayWriterMarshal.GetUnderlyingBuffer(arrayWriter);
         var content = new ByteArrayContent(internalBuffer, 0, arrayWriter.Length);

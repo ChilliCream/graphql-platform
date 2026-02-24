@@ -241,6 +241,24 @@ sourceSchemas:
               },
               {
                 "__fusion_1_id": "UHJvZHVjdDoxNA=="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxOQ=="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoyMQ=="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxNg=="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxOA=="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxMw=="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxNQ=="
               }
             ]
         response:
@@ -270,39 +288,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query testQuery_3579b174_3(
-              $__fusion_2_id: ID!
-            ) {
-              productById(id: $__fusion_2_id) {
-                subgraph2
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxOQ=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoyMQ=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxNg=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxOA=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxMw=="
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDoxNQ=="
-              }
-            ]
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
             - |
               {
                 "data": {
@@ -400,7 +385,7 @@ operationPlan:
           }
         }
     - id: 2
-      type: Operation
+      type: OperationBatch
       schema: B
       operation: |
         query testQuery_3579b174_2(
@@ -411,28 +396,12 @@ operationPlan:
           }
         }
       source: $.productById
-      target: $.users.posts<Discussion>.product
+      targets:
+        - $.users.posts<Discussion>.product
+        - $.users.posts<Photo>.product
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 3
-      type: Operation
-      schema: B
-      operation: |
-        query testQuery_3579b174_3(
-          $__fusion_2_id: ID!
-        ) {
-          productById(id: $__fusion_2_id) {
-            subgraph2
-          }
-        }
-      source: $.productById
-      target: $.users.posts<Photo>.product
-      requirements:
-        - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:

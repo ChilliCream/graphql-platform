@@ -54,5 +54,5 @@ public sealed class GraphQLServerOptions
     /// <summary>
     /// Defines if request batching is enabled.
     /// </summary>
-    public bool EnableBatching { get; set; }
+    public bool EnableBatching { get; set; } = true;
 }

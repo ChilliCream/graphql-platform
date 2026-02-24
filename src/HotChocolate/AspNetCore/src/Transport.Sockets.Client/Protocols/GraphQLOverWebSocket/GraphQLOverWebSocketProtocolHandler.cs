@@ -161,7 +161,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         {
             if (!_completed)
             {
-                TrySendCompleteMessageInternalAsync(socket, id).FireAndForget();
+                _ = TrySendCompleteMessageInternalAsync(socket, id);
                 _completed = true;
             }
         }

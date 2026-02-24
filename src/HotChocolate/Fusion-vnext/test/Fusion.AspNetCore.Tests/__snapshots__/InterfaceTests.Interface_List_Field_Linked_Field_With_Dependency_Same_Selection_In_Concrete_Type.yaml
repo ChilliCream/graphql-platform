@@ -141,11 +141,22 @@ sourceSchemas:
               },
               {
                 "__fusion_1_id": "QXV0aG9yOjY="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjU="
               }
             ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjQ="
+                  }
+                }
+              }
             - |
               {
                 "data": {
@@ -162,35 +173,11 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query testQuery_61febe16_3(
-              $__fusion_2_id: ID!
-            ) {
-              authorById(id: $__fusion_2_id) {
-                displayName
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_2_id": "QXV0aG9yOjQ="
-              },
-              {
-                "__fusion_2_id": "QXV0aG9yOjU="
-              },
-              {
-                "__fusion_2_id": "QXV0aG9yOjY="
-              }
-            ]
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
             - |
               {
                 "data": {
                   "authorById": {
-                    "displayName": "Author: QXV0aG9yOjQ="
+                    "displayName": "Author: QXV0aG9yOjY="
                   }
                 }
               }
@@ -199,14 +186,6 @@ sourceSchemas:
                 "data": {
                   "authorById": {
                     "displayName": "Author: QXV0aG9yOjU="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "displayName": "Author: QXV0aG9yOjY="
                   }
                 }
               }
@@ -253,7 +232,7 @@ operationPlan:
           }
         }
     - id: 2
-      type: Operation
+      type: OperationBatch
       schema: B
       operation: |
         query testQuery_61febe16_2(
@@ -264,28 +243,12 @@ operationPlan:
           }
         }
       source: $.authorById
-      target: $.authorables<Discussion>.author
+      targets:
+        - $.authorables<Discussion>.author
+        - $.authorables.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 3
-      type: Operation
-      schema: B
-      operation: |
-        query testQuery_61febe16_3(
-          $__fusion_2_id: ID!
-        ) {
-          authorById(id: $__fusion_2_id) {
-            displayName
-          }
-        }
-      source: $.authorById
-      target: $.authorables.author
-      requirements:
-        - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:

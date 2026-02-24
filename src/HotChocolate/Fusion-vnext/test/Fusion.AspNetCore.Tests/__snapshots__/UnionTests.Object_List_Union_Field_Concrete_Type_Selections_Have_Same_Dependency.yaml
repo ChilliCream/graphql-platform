@@ -146,23 +146,23 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query testQuery_ec963286_3(
-              $__fusion_2_id: ID!
+            query testQuery_ec963286_2(
+              $__fusion_1_id: ID!
             ) {
-              productById(id: $__fusion_2_id) {
+              productById(id: $__fusion_1_id) {
                 subgraph2
               }
             }
           variables: |
             [
               {
-                "__fusion_2_id": "UHJvZHVjdDo5"
+                "__fusion_1_id": "UHJvZHVjdDo5"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDo4"
+                "__fusion_1_id": "UHJvZHVjdDo4"
               },
               {
-                "__fusion_2_id": "UHJvZHVjdDo3"
+                "__fusion_1_id": "UHJvZHVjdDo3"
               }
             ]
         response:
@@ -241,7 +241,7 @@ operationPlan:
           }
         }
     - id: 2
-      type: Operation
+      type: OperationBatch
       schema: B
       operation: |
         query testQuery_ec963286_2(
@@ -252,28 +252,12 @@ operationPlan:
           }
         }
       source: $.productById
-      target: $.postEdges.node<Discussion>.product
+      targets:
+        - $.postEdges.node<Discussion>.product
+        - $.postEdges.node<Photo>.product
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 3
-      type: Operation
-      schema: B
-      operation: |
-        query testQuery_ec963286_3(
-          $__fusion_2_id: ID!
-        ) {
-          productById(id: $__fusion_2_id) {
-            subgraph2
-          }
-        }
-      source: $.productById
-      target: $.postEdges.node<Photo>.product
-      requirements:
-        - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:
