@@ -878,6 +878,29 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task ConnectionName_Inference_Does_Not_Leak_Between_Types_With_Same_Field_Name()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Issue4790Query>()
+            .AddType<Issue4790FooType>()
+            .AddType<Issue4790BarType>()
+            .BuildSchemaAsync();
+
+        var schemaText = schema.ToString();
+
+        Assert.Matches(
+            @"type Issue4790Foo \{[\s\S]*bazzes\([^)]*\): BazzesConnection",
+            schemaText);
+        Assert.Matches(
+            @"type Issue4790Bar \{[\s\S]*bazzes\([^)]*\): Issue4790BazzSummaryConnection",
+            schemaText);
+        Assert.Matches(
+            @"type Issue4790Bar \{[\s\S]*bazzSummaries\([^)]*\): BazzSummariesConnection",
+            schemaText);
+    }
+
+    [Fact]
     public async Task SelectProviderByName()
     {
         var executor =
@@ -1259,6 +1282,57 @@ public class IntegrationTests
 
         [UsePaging]
         public string[] Ghi => throw new NotImplementedException();
+    }
+
+    public class Issue4790Query
+    {
+        public Issue4790Foo Foo() => new();
+
+        public Issue4790Bar Bar() => new();
+    }
+
+    public class Issue4790FooType : ObjectType<Issue4790Foo>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Issue4790Foo> descriptor)
+        {
+            descriptor.Name("Issue4790Foo");
+            descriptor.Field("bazzes")
+                .UsePaging<ObjectType<Issue4790Bazz>>()
+                .Resolve(_ => new[] { new Issue4790Bazz(), new Issue4790Bazz() }.AsQueryable());
+        }
+    }
+
+    public class Issue4790BarType : ObjectType<Issue4790Bar>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Issue4790Bar> descriptor)
+        {
+            descriptor.Name("Issue4790Bar");
+            descriptor.Field("bazzes")
+                .UsePaging<ObjectType<Issue4790BazzSummary>>()
+                .Resolve(
+                    _ => new[] { new Issue4790BazzSummary(), new Issue4790BazzSummary() }.AsQueryable());
+
+            descriptor.Field("bazzSummaries")
+                .UsePaging<ObjectType<Issue4790BazzSummary>>()
+                .Resolve(
+                    _ => new[] { new Issue4790BazzSummary(), new Issue4790BazzSummary() }.AsQueryable());
+        }
+    }
+
+    public class Issue4790Foo;
+
+    public class Issue4790Bar;
+
+    public class Issue4790Bazz
+    {
+        public string? Field1 { get; set; }
+
+        public string? ExpensiveField2 { get; set; }
+    }
+
+    public class Issue4790BazzSummary
+    {
+        public string? Field1 { get; set; }
     }
 
     public class ProviderByName
