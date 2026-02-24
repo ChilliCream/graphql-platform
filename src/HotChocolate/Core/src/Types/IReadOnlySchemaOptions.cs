@@ -107,11 +107,6 @@ public interface IReadOnlySchemaOptions
     IsOfTypeFallback? DefaultIsOfTypeCheck { get; }
 
     /// <summary>
-    /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
-    /// </summary>
-    bool EnableOneOf { get; }
-
-    /// <summary>
     /// Defines if flag enums should be inferred as object value nodes
     /// </summary>
     /// <example>

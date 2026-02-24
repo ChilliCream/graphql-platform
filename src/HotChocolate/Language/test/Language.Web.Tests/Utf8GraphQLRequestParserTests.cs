@@ -1,4 +1,6 @@
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.IO.Pipelines;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -20,6 +22,32 @@ public class Utf8GraphQLRequestParserTests
 
         // act
         var batch = Utf8GraphQLRequestParser.Parse(source);
+
+        // assert
+        var r = Assert.Single(batch);
+        Assert.Null(r.OperationName);
+        Assert.Null(r.DocumentId);
+        Assert.Null(r.Variables);
+        Assert.Null(r.Extensions);
+        r.Document.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Parse_Large_Query_Sequence()
+    {
+        // arrange
+        var pipe = new Pipe();
+        pipe.Writer.Write("{ \"query\": \"{ "u8);
+        for (var i = 0; i < 1_000; i++)
+        {
+            pipe.Writer.Write("aReallyLongFieldNameToFillUpTheSequences "u8);
+        }
+        pipe.Writer.Write("}\" }"u8);
+        pipe.Writer.Complete();
+        pipe.Reader.TryRead(out var result);
+
+        // act
+        var batch = Utf8GraphQLRequestParser.Parse(result.Buffer);
 
         // assert
         var r = Assert.Single(batch);

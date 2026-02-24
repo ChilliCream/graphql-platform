@@ -13,7 +13,7 @@ true Result:
 
 true SQL:
 ---------------
-from 'Foos' where Bar != $p0
+from 'Foos' where Bar = $p0
 ---------------
 
 false Result:
@@ -31,5 +31,5 @@ false Result:
 
 false SQL:
 ---------------
-from 'Foos' where Bar != $p0
+from 'Foos' where Bar = $p0
 ---------------

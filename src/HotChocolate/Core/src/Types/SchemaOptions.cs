@@ -94,9 +94,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultIsOfTypeCheck"/>
     public IsOfTypeFallback? DefaultIsOfTypeCheck { get; set; }
 
-    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableOneOf"/>
-    public bool EnableOneOf { get; set; } = true;
-
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableFlagEnums"/>
     public bool EnableFlagEnums { get; set; }
 
@@ -217,7 +214,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
             RemoveUnusedTypeSystemDirectives = options.RemoveUnusedTypeSystemDirectives,
             SortFieldsByName = options.SortFieldsByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
-            EnableOneOf = options.EnableOneOf,
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,

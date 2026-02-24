@@ -36,12 +36,14 @@ internal sealed class SelectionExpressionBuilder
         typeof(char?)
     ];
 
-    public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(Selection selection)
+    public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(
+        Selection selection,
+        ulong includeFlags = 0)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
-        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext());
+        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags);
         var root = new TypeContainer();
 
         CollectTypes(context, selection, root);
@@ -56,12 +58,14 @@ internal sealed class SelectionExpressionBuilder
         return Expression.Lambda<Func<TRoot, TRoot>>(selectionSetExpression, parameter);
     }
 
-    public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(Selection selection)
+    public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(
+        Selection selection,
+        ulong includeFlags = 0)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
-        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext());
+        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags);
         var root = new TypeContainer();
 
         var entityType = selection.DeclaringOperation
@@ -161,7 +165,28 @@ internal sealed class SelectionExpressionBuilder
             return switchExpression;
         }
 
-        return BuildSelectionSetExpression(context, parent.Nodes[0]);
+        var singleTypeNode = parent.Nodes[0];
+
+        if (context.ParentType != singleTypeNode.Type)
+        {
+            var newParent = Expression.Convert(context.Parent, singleTypeNode.Type);
+            var newContext = context with { Parent = newParent, ParentType = singleTypeNode.Type };
+            var selectionSet = BuildSelectionSetExpression(newContext, singleTypeNode);
+
+            if (selectionSet is null)
+            {
+                return null;
+            }
+
+            var castedSelectionSet = Expression.Convert(selectionSet, context.ParentType);
+
+            return Expression.Condition(
+                Expression.TypeIs(context.Parent, singleTypeNode.Type),
+                castedSelectionSet,
+                Expression.Constant(null, context.ParentType));
+        }
+
+        return BuildSelectionSetExpression(context, singleTypeNode);
     }
 
     private static MemberInitExpression? BuildSelectionSetExpression(
@@ -272,6 +297,11 @@ internal sealed class SelectionExpressionBuilder
     {
         foreach (var selection in selectionSet.Selections)
         {
+            if (!selection.IsIncluded(context.IncludeFlags))
+            {
+                continue;
+            }
+
             var requirements = context.GetRequirements(selection);
             if (requirements is not null)
             {
@@ -342,7 +372,8 @@ internal sealed class SelectionExpressionBuilder
         Expression Parent,
         Type ParentType,
         FieldRequirementsMetadata Requirements,
-        NullabilityInfoContext NullabilityInfoContext)
+        NullabilityInfoContext NullabilityInfoContext,
+        ulong IncludeFlags)
     {
         public TypeNode? GetRequirements(Selection selection)
         {

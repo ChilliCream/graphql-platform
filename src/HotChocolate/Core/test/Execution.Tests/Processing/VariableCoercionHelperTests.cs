@@ -82,6 +82,51 @@ public class VariableCoercionHelperTests
     }
 
     [Fact]
+    public void Coerce_String_WithEscapedQuotes_IsUnescaped()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("abc"),
+                description: null,
+                new NamedTypeNode("String"),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        using var variableValues = JsonDocument.Parse(
+            """
+            {
+              "abc": "tag:\"type_portable-lamp\""
+            }
+            """);
+
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        Assert.Collection(coercedValues,
+            t =>
+            {
+                Assert.Equal("abc", t.Key);
+                Assert.Equal("String", Assert.IsType<StringType>(t.Value.Type).Name);
+                Assert.Equal("tag:\"type_portable-lamp\"", t.Value.RuntimeValue);
+                Assert.Equal(
+                    "tag:\"type_portable-lamp\"",
+                    Assert.IsType<StringValueNode>(t.Value.ValueLiteral).Value);
+            });
+    }
+
+    [Fact]
     public void Coerce_Nullable_String_Variable_With_Default_Where_Value_Is_Not_Provided()
     {
         // arrange
@@ -297,6 +342,61 @@ public class VariableCoercionHelperTests
                 Assert.IsType<ObjectValueNode>(t.Value.ValueLiteral);
             });
     }
+
+    [Fact]
+    public void Coerce_Empty_Input_Object_With_Optional_And_Default_Value()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddQueryType<SomeQuery>().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("input"),
+                description: null,
+                new NamedTypeNode("SomeInput"),
+                null,
+                [])
+        };
+
+        var variableValues = JsonDocument.Parse("""{"input": { }}""");
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema,
+            variableDefinitions,
+            variableValues.RootElement,
+            coercedValues,
+            featureProvider);
+
+        // assert
+        Assert.Collection(coercedValues,
+            t =>
+            {
+                Assert.Equal("input", t.Key);
+                Assert.IsType<InputObjectType<SomeInput>>(t.Value.Type);
+                Assert.False(Assert.IsType<SomeInput>(t.Value.RuntimeValue).OptionalField.HasValue);
+                t.Value.ValueLiteral.MatchInlineSnapshot(
+                    """
+                    {
+                      field: true
+                    }
+                    """);
+            });
+    }
+
+    public sealed class SomeQuery
+    {
+        public bool HasOptionalValue(SomeInput input) => input.OptionalField.HasValue;
+    }
+
+    public sealed record SomeInput(
+        [property: DefaultValue(true)] Optional<bool> OptionalField,
+        [property: DefaultValue(true)] bool Field);
 
     [Fact]
     public void Error_When_Value_Is_Null_On_Non_Null_Variable()

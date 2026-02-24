@@ -166,7 +166,8 @@ public ref struct Utf8GraphQLRequestParser
         ErrorHandlingMode? errorHandlingMode = null;
         JsonDocument? variables = null;
         JsonDocument? extensions = null;
-        ReadOnlySpan<byte> documentBody = default;
+        ReadOnlySequence<byte> documentSequence = default;
+        ReadOnlySpan<byte> documentSpan = default;
         var isDocumentEscaped = false;
 
         while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
@@ -183,7 +184,15 @@ public ref struct Utf8GraphQLRequestParser
                 if (reader.TokenType == JsonTokenType.String)
                 {
                     isDocumentEscaped = reader.ValueIsEscaped;
-                    documentBody = reader.ValueSpan;
+
+                    if (reader.HasValueSequence)
+                    {
+                        documentSequence = reader.ValueSequence;
+                    }
+                    else
+                    {
+                        documentSpan = reader.ValueSpan;
+                    }
                 }
                 else if (reader.TokenType == JsonTokenType.Null)
                 {
@@ -312,7 +321,7 @@ public ref struct Utf8GraphQLRequestParser
         }
 
         // Handle persisted queries via extensions
-        if (documentBody.IsEmpty
+        if (documentSpan.IsEmpty
             && documentId.IsEmpty
             && _useCache
             && extensions is not null
@@ -323,10 +332,19 @@ public ref struct Utf8GraphQLRequestParser
         }
 
         // Parse the GraphQL document if provided
-        if (!documentBody.IsEmpty)
+        if (!documentSpan.IsEmpty)
         {
             ParseDocument(
-                documentBody,
+                documentSpan,
+                isDocumentEscaped,
+                ref document,
+                ref documentHash,
+                ref documentId);
+        }
+        else if (!documentSequence.IsEmpty)
+        {
+            ParseDocument(
+                documentSequence,
                 isDocumentEscaped,
                 ref document,
                 ref documentHash,
@@ -403,6 +421,62 @@ public ref struct Utf8GraphQLRequestParser
             {
                 s_bytePool.Return(rentedBuffer);
             }
+        }
+    }
+
+    private readonly void ParseDocument(
+        ReadOnlySequence<byte> documentBody,
+        bool isEscaped,
+        ref DocumentNode? document,
+        ref OperationDocumentHash documentHash,
+        ref OperationDocumentId documentId)
+    {
+        // When we need to unescape, escape sequences can span segment boundaries,
+        // so we must work with contiguous memory. Delegate to the span-based overload
+        // which already handles unescaping.
+        if (isEscaped)
+        {
+            var length = checked((int)documentBody.Length);
+            var rented = s_bytePool.Rent(length);
+
+            try
+            {
+                documentBody.CopyTo(rented);
+                ParseDocument(rented.AsSpan(0, length), isEscaped, ref document, ref documentHash, ref documentId);
+            }
+            finally
+            {
+                s_bytePool.Return(rented);
+            }
+
+            return;
+        }
+
+        if (_useCache)
+        {
+            if (documentId.HasValue && _cache!.TryGetDocument(documentId.Value, out var cachedDocument))
+            {
+                document = cachedDocument.Body;
+                documentHash = cachedDocument.Hash;
+            }
+            else if (documentBody.Length > 0)
+            {
+                var hash = _hashProvider!.ComputeHash(documentBody);
+                documentHash = hash;
+
+                document = _cache!.TryGetDocument(hash.Value, out cachedDocument)
+                    ? cachedDocument.Body
+                    : Utf8GraphQLParser.Parse(documentBody, _options);
+
+                if (documentId.IsEmpty)
+                {
+                    documentId = new OperationDocumentId(hash.Value);
+                }
+            }
+        }
+        else
+        {
+            document = Utf8GraphQLParser.Parse(documentBody, _options);
         }
     }
 

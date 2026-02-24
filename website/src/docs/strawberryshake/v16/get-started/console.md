@@ -38,13 +38,13 @@ Next, we will create our console project so that we have a little playground.
 1. First, a new solution called `Demo.sln`.
 
 ```bash
-dotnet new sln -n Demo
+dotnet new sln --name Demo
 ```
 
 2. Create a new console application.
 
 ```bash
-dotnet new console -n Demo
+dotnet new console --name Demo
 ```
 
 3. Add the project to the solution `Demo.sln`.
@@ -65,7 +65,7 @@ dotnet add Demo package StrawberryShake.Server
 
 ## Step 4: Add a GraphQL client to your project using the CLI tools
 
-To add a client to your project, you need to run `dotnet graphql init {{ServerUrl}} -n {{ClientName}}`.
+To add a client to your project, you need to run `dotnet graphql init {{ServerUrl}} --clientName {{ClientName}}`.
 
 In this tutorial we will use our GraphQL workshop to create a list of sessions that we will add to our console application.
 
@@ -74,10 +74,10 @@ In this tutorial we will use our GraphQL workshop to create a list of sessions t
 1. Add the conference client to your console application.
 
 ```bash
-dotnet graphql init https://workshop.chillicream.com/graphql/ -n ConferenceClient -p ./Demo
+dotnet graphql init https://workshop.chillicream.com/graphql/ --clientName ConferenceClient --Path ./Demo
 ```
 
-2. Customize the namespace of the generated client to be `Demo.GraphQL`. For this head over to the `.graphqlrc.json` and insert a namespace property to the `StrawberryShake` section.
+2. Customize the namespace of the generated client to be `Demo.GraphQL`. For this head over to the `.graphqlrc.json` and insert a namespace property in the `StrawberryShake` section.
 
 ```json
 {
@@ -88,7 +88,16 @@ dotnet graphql init https://workshop.chillicream.com/graphql/ -n ConferenceClien
       "name": "ConferenceClient",
       "namespace": "Demo.GraphQL",
       "url": "https://workshop.chillicream.com/graphql/",
-      "dependencyInjection": true
+      "records": {
+        "inputs": false,
+        "entities": false
+      },
+      "transportProfiles": [
+        {
+          "default": "Http",
+          "subscription": "WebSocket"
+        }
+      ]
     }
   }
 }
@@ -120,37 +129,30 @@ query GetSessions {
 dotnet build
 ```
 
-With the project compiled, you should now see in the directory `./obj/<configuration>/<target-framework>/berry` the generated code that your applications can leverage. For example, if you've run a Debug build for .NET 8, the path would be `./obj/Debug/net8.0/berry`.
+With the project compiled, you should now see in the directory `./obj/<configuration>/<target-framework>/berry` the generated code that your applications can leverage. For example, if you've run a Debug build for .NET 10, the path would be `./obj/Debug/net10.0/berry`.
 
-![Visual Studio code showing the generated directory.](../../../shared/berry_console_generated.png)
+![Visual Studio Code showing the generated directory.](../../../shared/berry_console_generated.webp)
 
 1. Head over to the `Program.cs` and add the new `ConferenceClient` to the dependency injection.
 
 > In some IDEs it is still necessary to reload the project after the code was generated to update the IntelliSense. So, if you have any issues in the next step with IntelliSense just reload the project and everything should be fine.
 
 ```csharp
-using System;
 using Microsoft.Extensions.DependencyInjection;
 using Demo.GraphQL;
 
-namespace Demo
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            var serviceCollection = new ServiceCollection();
+var serviceCollection = new ServiceCollection();
 
-            serviceCollection
-                .AddConferenceClient()
-                .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://workshop.chillicream.com/graphql"));
+serviceCollection
+    .AddConferenceClient()
+    .ConfigureHttpClient(
+        client =>
+            client.BaseAddress =
+                new Uri("https://workshop.chillicream.com/graphql"));
 
-            IServiceProvider services = serviceCollection.BuildServiceProvider();
+var services = serviceCollection.BuildServiceProvider();
 
-            IConferenceClient client = services.GetRequiredService<IConferenceClient>();
-        }
-    }
-}
+var client = services.GetRequiredService<IConferenceClient>();
 ```
 
 ## Step 5: Use the ConferenceClient to perform a simple fetch
@@ -159,31 +161,24 @@ In this section we will perform a simple fetch with our `ConferenceClient` and o
 
 1. Head over to `Program.cs`.
 
-2. Add the following code to your main method to execute the `GetSessions` query.
+2. Add the following code to execute the `GetSessions` query.
 
 ```csharp
-static async Task Main(string[] args)
+var result = await client.GetSessions.ExecuteAsync();
+result.EnsureNoErrors();
+
+if (result.Data?.Sessions?.Nodes is null)
 {
-    var serviceCollection = new ServiceCollection();
+    Console.WriteLine("No sessions found.");
+    return;
+}
 
-    serviceCollection
-        .AddConferenceClient()
-        .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://workshop.chillicream.com/graphql"));
-
-    IServiceProvider services = serviceCollection.BuildServiceProvider();
-
-    IConferenceClient client = services.GetRequiredService<IConferenceClient>();
-
-    var result = await client.GetSessions.ExecuteAsync();
-    result.EnsureNoErrors();
-
-    foreach (var session in result.Data.Sessions.Nodes)
-    {
-        Console.WriteLine(session.Title);
-    }
+foreach (var session in result.Data.Sessions.Nodes)
+{
+    Console.WriteLine(session.Title);
 }
 ```
 
 3. Start the console application with `dotnet run --project ./Demo` and see if your code works.
 
-![Started console application that shows a list of sessions](../../../shared/berry_console_session_list.png)
+![Started console application that shows a list of sessions](../../../shared/berry_console_session_list.webp)

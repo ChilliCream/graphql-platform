@@ -23,7 +23,7 @@ public ref partial struct Utf8GraphQLReader
         var length = escapedValue.Length;
         byte[]? unescapedArray = null;
 
-        var unescapedSpan = length <= GraphQLConstants.StackallocThreshold
+        var unescapedSpan = length <= GraphQLCharacters.StackallocThreshold
             ? stackalloc byte[length]
             : unescapedArray = ArrayPool<byte>.Shared.Rent(length);
 
@@ -59,7 +59,7 @@ public ref partial struct Utf8GraphQLReader
         var length = escapedValue.Length;
         byte[]? unescapedArray = null;
 
-        var unescapedSpan = length <= GraphQLConstants.StackallocThreshold
+        var unescapedSpan = length <= GraphQLCharacters.StackallocThreshold
             ? stackalloc byte[length]
             : unescapedArray = ArrayPool<byte>.Shared.Rent(length);
 
@@ -102,7 +102,7 @@ public ref partial struct Utf8GraphQLReader
         var length = escapedValue.Length;
         byte[]? unescapedArray = null;
 
-        var unescapedSpan = length <= GraphQLConstants.StackallocThreshold
+        var unescapedSpan = length <= GraphQLCharacters.StackallocThreshold
             ? stackalloc byte[length]
             : unescapedArray = ArrayPool<byte>.Shared.Rent(length);
 
@@ -153,7 +153,10 @@ public ref partial struct Utf8GraphQLReader
         return GetString(_value);
     }
 
-    public readonly string GetName() => GetString(_value);
+    public readonly string GetName()
+        => WellKnownNames.TryGetWellKnownName(_value, out var name)
+            ? name
+            : GetString(_value);
 
     public readonly string GetScalarValue() => GetString(_value);
 

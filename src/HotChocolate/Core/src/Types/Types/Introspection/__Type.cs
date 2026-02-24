@@ -93,16 +93,10 @@ internal sealed class __Type : ObjectType
                 new(Names.SpecifiedByUrl,
                     TypeResources.Type_SpecifiedByUrl_Description,
                     stringType,
-                    pureResolver: Resolvers.SpecifiedBy)
+                    pureResolver: Resolvers.SpecifiedBy),
+                new(Names.IsOneOf, type: booleanType, pureResolver: Resolvers.IsOneOf)
             }
         };
-
-        if (context.DescriptorContext.Options.EnableOneOf)
-        {
-            def.Fields.Add(new(Names.IsOneOf,
-                type: booleanType,
-                pureResolver: Resolvers.IsOneOf));
-        }
 
         if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
         {

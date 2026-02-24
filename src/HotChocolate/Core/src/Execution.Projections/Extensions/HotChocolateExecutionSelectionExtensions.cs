@@ -41,6 +41,24 @@ public static class HotChocolateExecutionSelectionExtensions
     }
 
     /// <summary>
+    /// Creates a selector expression from a GraphQL selection and applies
+    /// runtime include/skip directive flags.
+    /// </summary>
+    public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
+        this ISelection selection,
+        ulong includeFlags)
+    {
+        if (selection is not Selection casted)
+        {
+            throw new ArgumentException(
+                $"Expected {typeof(Selection).FullName!}.",
+                nameof(selection));
+        }
+
+        return AsSelector<TValue>(casted, includeFlags);
+    }
+
+    /// <summary>
     /// Creates a selector expression from a GraphQL selection.
     /// </summary>
     /// <param name="selection">
@@ -54,10 +72,17 @@ public static class HotChocolateExecutionSelectionExtensions
     /// </returns>
     public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
         this Selection selection)
+        => AsSelector<TValue>(selection, 0);
+
+    public static Expression<Func<TValue, TValue>> AsSelector<TValue>(
+        this Selection selection,
+        ulong includeFlags)
     {
+        var isConditional = selection.DeclaringOperation.RootSelectionSet.IsConditional;
+
         // we first check if we already have an expression for this selection,
         // this would be the cheapest way to get the expression.
-        if (TryGetExpression<TValue>(selection, out var expression))
+        if (!isConditional && TryGetExpression<TValue>(selection, out var expression))
         {
             return expression;
         }
@@ -74,10 +99,15 @@ public static class HotChocolateExecutionSelectionExtensions
             var count = GetConnectionSelections(selection, buffer);
             for (var i = 0; i < count; i++)
             {
-                builder.Add(buffer[i].GetOrCreateExpression<TValue>());
+                builder.Add(
+                    isConditional
+                        ? buffer[i].GetExpression<TValue>(includeFlags)
+                        : buffer[i].GetOrCreateExpression<TValue>());
             }
             ArrayPool<Selection>.Shared.Return(buffer);
-            return selection.GetOrCreateExpression<TValue>(builder);
+            return isConditional
+                ? selection.GetExpression<TValue>(builder)
+                : selection.GetOrCreateExpression<TValue>(builder);
         }
 
         if ((flags & CoreFieldFlags.CollectionSegment) == CoreFieldFlags.CollectionSegment)
@@ -87,19 +117,28 @@ public static class HotChocolateExecutionSelectionExtensions
             var count = GetCollectionSelections(selection, buffer);
             for (var i = 0; i < count; i++)
             {
-                builder.Add(buffer[i].GetOrCreateExpression<TValue>());
+                builder.Add(
+                    isConditional
+                        ? buffer[i].GetExpression<TValue>(includeFlags)
+                        : buffer[i].GetOrCreateExpression<TValue>());
             }
             ArrayPool<Selection>.Shared.Return(buffer);
-            return selection.GetOrCreateExpression<TValue>(builder);
+            return isConditional
+                ? selection.GetExpression<TValue>(builder)
+                : selection.GetOrCreateExpression<TValue>(builder);
         }
 
         if ((flags & CoreFieldFlags.GlobalIdNodeField) == CoreFieldFlags.GlobalIdNodeField
             || (flags & CoreFieldFlags.GlobalIdNodesField) == CoreFieldFlags.GlobalIdNodesField)
         {
-            return selection.GetOrCreateNodeExpression<TValue>();
+            return isConditional
+                ? selection.GetNodeExpression<TValue>(includeFlags)
+                : selection.GetOrCreateNodeExpression<TValue>();
         }
 
-        return selection.GetOrCreateExpression<TValue>();
+        return isConditional
+            ? selection.GetExpression<TValue>(includeFlags)
+            : selection.GetOrCreateExpression<TValue>();
     }
 
     private static bool TryGetExpression<TValue>(
@@ -179,10 +218,19 @@ file static class Extensions
         public Expression<Func<TValue, TValue>> GetOrCreateExpression<TValue>()
             => selection.Features.GetOrSetSafe(() => s_builder.BuildExpression<TValue>(selection));
 
+        public Expression<Func<TValue, TValue>> GetExpression<TValue>(ulong includeFlags)
+            => s_builder.BuildExpression<TValue>(selection, includeFlags);
+
         public Expression<Func<TValue, TValue>> GetOrCreateExpression<TValue>(ISelectorBuilder expressionBuilder)
             => selection.Features.GetOrSetSafe(() => expressionBuilder.TryCompile<TValue>()!);
 
+        public Expression<Func<TValue, TValue>> GetExpression<TValue>(ISelectorBuilder expressionBuilder)
+            => expressionBuilder.TryCompile<TValue>()!;
+
         public Expression<Func<TValue, TValue>> GetOrCreateNodeExpression<TValue>()
             => selection.Features.GetOrSetSafe(() => s_builder.BuildNodeExpression<TValue>(selection));
+
+        public Expression<Func<TValue, TValue>> GetNodeExpression<TValue>(ulong includeFlags)
+            => s_builder.BuildNodeExpression<TValue>(selection, includeFlags);
     }
 }

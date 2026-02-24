@@ -8,6 +8,7 @@ export * from "./hero-elements";
 export * from "./icon-container";
 export * from "./link";
 export * from "./next-steps-content-section";
+export * from "./optimized-image";
 export * from "./page-top";
 export * from "./pagination";
 export * from "./plan";

@@ -63,14 +63,13 @@ internal sealed class ActivityDataLoaderDiagnosticListener : DataLoaderDiagnosti
             }));
     }
 
-    public override void BatchDispatched(int dispatchedBatches, bool inParallel)
+    public override void BatchDispatched(int dispatchedBatches)
     {
         Activity.Current?.AddEvent(new ActivityEvent(
             "BatchDispatched",
             tags: new ActivityTagsCollection
             {
-                { "dispatchedBatches", dispatchedBatches },
-                { "inParallel", inParallel }
+                { "dispatchedBatches", dispatchedBatches }
             }));
     }
 }
