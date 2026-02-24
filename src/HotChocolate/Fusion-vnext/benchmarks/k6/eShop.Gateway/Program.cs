@@ -1,4 +1,4 @@
-using HotChocolate.AspNetCore;
+ThreadPool.SetMinThreads(1024, 1024);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,7 +6,14 @@ builder.Services.AddHttpClient("Fusion")
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
     {
         MaxConnectionsPerServer = 256,
-        EnableMultipleHttp2Connections = true
+        EnableMultipleHttp2Connections = true,
+        InitialHttp2StreamWindowSize = 768 * 1024,
+        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(10)
+    })
+    .ConfigureHttpClient(c =>
+    {
+        c.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+        c.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
     });
 
 builder
@@ -16,10 +23,6 @@ builder
 
 var app = builder.Build();
 
-#if RELEASE
 app.MapGraphQLHttp();
-#else
-app.MapGraphQL().WithOptions(new GraphQLServerOptions { Tool = { ServeMode = GraphQLToolServeMode.Insider } });
-#endif
 
 app.Run();
