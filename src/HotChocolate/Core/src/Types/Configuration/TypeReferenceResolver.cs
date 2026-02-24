@@ -97,7 +97,8 @@ internal sealed class TypeReferenceResolver
         switch (typeRef)
         {
             case ExtendedTypeReference r:
-                if (_typeRegistry.IsExplicitBinding(r))
+                if (_typeRegistry.IsExplicitBinding(r)
+                    && RuntimeTypeBindingHelper.RequiresExactBinding(r.Type))
                 {
                     type = CreateExplicitBoundType(typeDefinition, r.Type);
                 }

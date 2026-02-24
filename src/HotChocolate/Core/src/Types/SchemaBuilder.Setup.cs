@@ -260,10 +260,12 @@ public partial class SchemaBuilder
             {
                 foreach (var binding in bindings.Values)
                 {
+                    var runtimeTypeRef = binding.GetRuntimeTypeReference(context.TypeInspector);
+
                     typeRegistry.TryRegister(
-                        binding.GetRuntimeTypeReference(context.TypeInspector),
+                        runtimeTypeRef,
                         binding.GetSchemaTypeReference(context.TypeInspector),
-                        explicitBinding: true);
+                        explicitBinding: RuntimeTypeBindingHelper.RequiresExactBinding(runtimeTypeRef.Type));
                 }
             }
 

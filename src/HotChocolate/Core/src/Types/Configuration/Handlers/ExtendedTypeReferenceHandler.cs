@@ -60,7 +60,8 @@ internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
     {
         // If there is an explicit runtime binding for the full type, keep the original
         // type reference unresolved so discovery can apply that binding.
-        if (typeRegistrar.HasRuntimeTypeBinding(typeRef))
+        if (RuntimeTypeBindingHelper.RequiresExactBinding(typeRef.Type)
+            && typeRegistrar.HasRuntimeTypeBinding(typeRef))
         {
             typeRegistrar.MarkUnresolved(typeRef);
             return;
