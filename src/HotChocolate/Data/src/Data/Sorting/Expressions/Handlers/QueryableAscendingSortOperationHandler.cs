@@ -28,6 +28,26 @@ public class QueryableAscendingSortOperationHandler : QueryableOperationHandlerB
 
         public override Expression CompileOrderBy(Expression expression)
         {
+            if (QueryableSortExpressionOptimizer.TryRewriteSelectorToSource(
+                expression,
+                ParameterExpression,
+                Selector,
+                out var rewrittenSource,
+                out var rewrittenSelector,
+                out var projection))
+            {
+                var sortedSource = Expression.Call(
+                    rewrittenSource.GetEnumerableKind(),
+                    nameof(Queryable.OrderBy),
+                    [rewrittenSelector.Parameters[0].Type, rewrittenSelector.ReturnType],
+                    rewrittenSource,
+                    rewrittenSelector);
+
+                return QueryableSortExpressionOptimizer.ReapplyProjection(
+                    sortedSource,
+                    projection);
+            }
+
             return Expression.Call(
                 expression.GetEnumerableKind(),
                 nameof(Queryable.OrderBy),
@@ -38,6 +58,26 @@ public class QueryableAscendingSortOperationHandler : QueryableOperationHandlerB
 
         public override Expression CompileThenBy(Expression expression)
         {
+            if (QueryableSortExpressionOptimizer.TryRewriteSelectorToSource(
+                expression,
+                ParameterExpression,
+                Selector,
+                out var rewrittenSource,
+                out var rewrittenSelector,
+                out var projection))
+            {
+                var sortedSource = Expression.Call(
+                    rewrittenSource.GetEnumerableKind(),
+                    nameof(Queryable.ThenBy),
+                    [rewrittenSelector.Parameters[0].Type, rewrittenSelector.ReturnType],
+                    rewrittenSource,
+                    rewrittenSelector);
+
+                return QueryableSortExpressionOptimizer.ReapplyProjection(
+                    sortedSource,
+                    projection);
+            }
+
             return Expression.Call(
                 expression.GetEnumerableKind(),
                 nameof(Queryable.ThenBy),
