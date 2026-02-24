@@ -78,6 +78,18 @@ public static class PagingQueryableExtensions
         ArgumentNullException.ThrowIfNull(source);
 
         source = QueryHelpers.EnsureOrderPropsAreSelected(source);
+        Expression<Func<T, T>>? selector = null;
+        var applySelectorAfterPaging = arguments.After is not null || arguments.Before is not null;
+
+        if (applySelectorAfterPaging)
+        {
+            selector = QueryHelpers.ExtractCurrentSelector(source);
+
+            if (selector is not null)
+            {
+                source = QueryHelpers.RemoveSelector(source);
+            }
+        }
 
         var keys = ParseDataSetKeys(source);
 
@@ -181,13 +193,16 @@ public static class PagingQueryableExtensions
         }
 
         source = source.Take(requestedCount + 1);
+        var pageQuery = selector is null
+            ? source
+            : source.Select(selector);
 
         var builder = ImmutableArray.CreateBuilder<T>();
         var fetchCount = 0;
 
         if (includeTotalCount)
         {
-            var combinedQuery = source.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
+            var combinedQuery = pageQuery.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
 
             TryGetQueryInterceptor()?.OnBeforeExecute(combinedQuery);
 
@@ -207,9 +222,9 @@ public static class PagingQueryableExtensions
         }
         else
         {
-            TryGetQueryInterceptor()?.OnBeforeExecute(source);
+            TryGetQueryInterceptor()?.OnBeforeExecute(pageQuery);
 
-            await foreach (var item in source.AsAsyncEnumerable()
+            await foreach (var item in pageQuery.AsAsyncEnumerable()
                 .WithCancellation(cancellationToken).ConfigureAwait(false))
             {
                 fetchCount++;

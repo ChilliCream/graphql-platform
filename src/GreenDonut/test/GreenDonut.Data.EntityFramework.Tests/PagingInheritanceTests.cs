@@ -72,6 +72,39 @@ public class PagingInheritanceTests(PostgreSqlResource resource)
         Assert.Equal(2, result.Count);
     }
 
+    [Fact]
+    public async Task Paging_With_TPH_Selector_After_Cursor()
+    {
+        // arrange
+        var connectionString = CreateConnectionString();
+        await SeedAnimalsAsync(connectionString);
+
+        await using var context = new AnimalContext(connectionString);
+
+        var query = new QueryContext<Animal>(
+            Selector: e =>
+                e is Dog
+                    ? new Dog { Id = ((Dog)e).Id, Name = ((Dog)e).Name }
+                    : e is Cat
+                        ? (Animal)new Cat { Id = ((Cat)e).Id, Name = ((Cat)e).Name }
+                        : null!);
+
+        var arguments = new PagingArguments(2);
+
+        // act
+        var firstPage = await context.Pets
+            .With(query, sort => sort.AddDescending(e => e.Name))
+            .ToPageAsync(arguments);
+
+        var secondPage = await context.Pets
+            .With(query, sort => sort.AddDescending(e => e.Name))
+            .ToPageAsync(arguments with { After = firstPage.CreateCursor(firstPage.Last!) });
+
+        // assert
+        Assert.NotNull(secondPage);
+        Assert.Equal(2, secondPage.Items.Length);
+    }
+
     private static async Task SeedFileSystemAsync(string connectionString)
     {
         await using var context = new FileSystemContext(connectionString);
@@ -99,6 +132,24 @@ public class PagingInheritanceTests(PostgreSqlResource resource)
         var file5 = new FileSystemFile { Id = 11, Name = "family.jpg", ParentId = 6, Size = 3072, Extension = "jpg" };
 
         context.Files.AddRange(file1, file2, file3, file4, file5);
+
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedAnimalsAsync(string connectionString)
+    {
+        await using var context = new AnimalContext(connectionString);
+        await context.Database.EnsureCreatedAsync();
+
+        var owner = new Owner { Id = 1, Name = "owner-1" };
+
+        context.Owners.Add(owner);
+        context.Pets.AddRange(
+            new Dog { Id = 1, Name = "zeta", OwnerId = owner.Id, IsBarking = true },
+            new Cat { Id = 2, Name = "epsilon", OwnerId = owner.Id, IsPurring = true },
+            new Dog { Id = 3, Name = "delta", OwnerId = owner.Id, IsBarking = false },
+            new Cat { Id = 4, Name = "gamma", OwnerId = owner.Id, IsPurring = false },
+            new Dog { Id = 5, Name = "beta", OwnerId = owner.Id, IsBarking = true });
 
         await context.SaveChangesAsync();
     }
