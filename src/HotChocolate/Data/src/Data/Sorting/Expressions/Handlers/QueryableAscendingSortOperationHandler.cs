@@ -13,9 +13,7 @@ public class QueryableAscendingSortOperationHandler : QueryableOperationHandlerB
         QueryableFieldSelector fieldSelector,
         ISortField field,
         SortEnumValue? sortEnumValue)
-    {
-        return AscendingSortOperation.From(fieldSelector);
-    }
+        => AscendingSortOperation.From(fieldSelector);
 
     public static QueryableAscendingSortOperationHandler Create(SortProviderContext context) => new();
 
@@ -28,6 +26,8 @@ public class QueryableAscendingSortOperationHandler : QueryableOperationHandlerB
 
         public override Expression CompileOrderBy(Expression expression)
         {
+            // We try to push the sort through any .Select() projection so the database can sort
+            // before projecting. If that works, we apply the sort on the source and re-attach the projection.
             if (QueryableSortExpressionOptimizer.TryRewriteSelectorToSource(
                 expression,
                 ParameterExpression,
@@ -48,6 +48,8 @@ public class QueryableAscendingSortOperationHandler : QueryableOperationHandlerB
                     projection);
             }
 
+            // If the optimization is not possible, we fall back to a plain OrderBy on
+            // the expression as-is.
             return Expression.Call(
                 expression.GetEnumerableKind(),
                 nameof(Queryable.OrderBy),
@@ -58,6 +60,8 @@ public class QueryableAscendingSortOperationHandler : QueryableOperationHandlerB
 
         public override Expression CompileThenBy(Expression expression)
         {
+            // We try to push the sort through any .Select() projection so the database can sort
+            // before projecting. If that works, we apply the sort on the source and re-attach the projection.
             if (QueryableSortExpressionOptimizer.TryRewriteSelectorToSource(
                 expression,
                 ParameterExpression,
@@ -78,6 +82,8 @@ public class QueryableAscendingSortOperationHandler : QueryableOperationHandlerB
                     projection);
             }
 
+            // If the optimization is not possible, we fall back to a plain ThenBy on
+            // the expression as-is.
             return Expression.Call(
                 expression.GetEnumerableKind(),
                 nameof(Queryable.ThenBy),
@@ -86,7 +92,7 @@ public class QueryableAscendingSortOperationHandler : QueryableOperationHandlerB
                 Expression.Lambda(Selector, ParameterExpression));
         }
 
-        public static AscendingSortOperation From(QueryableFieldSelector selector) =>
-            new AscendingSortOperation(selector);
+        public static AscendingSortOperation From(QueryableFieldSelector selector)
+            => new AscendingSortOperation(selector);
     }
 }
