@@ -851,6 +851,7 @@ public sealed partial class OperationPlanner
         ISchemaDefinition schema)
     {
         var inputObjectTypes = new Queue<IInputObjectTypeDefinition>();
+        var visited = new HashSet<IInputObjectTypeDefinition>(ReferenceEqualityComparer.Instance);
 
         foreach (var variable in variables)
         {
@@ -862,7 +863,7 @@ public sealed partial class OperationPlanner
                 return true;
             }
 
-            if (variableType is IInputObjectTypeDefinition inputObjectType)
+            if (variableType is IInputObjectTypeDefinition inputObjectType && visited.Add(inputObjectType))
             {
                 inputObjectTypes.Enqueue(inputObjectType);
             }
@@ -879,7 +880,7 @@ public sealed partial class OperationPlanner
                     return true;
                 }
 
-                if (fieldType is IInputObjectTypeDefinition nestedInputObjectType)
+                if (fieldType is IInputObjectTypeDefinition nestedInputObjectType && visited.Add(nestedInputObjectType))
                 {
                     inputObjectTypes.Enqueue(nestedInputObjectType);
                 }
