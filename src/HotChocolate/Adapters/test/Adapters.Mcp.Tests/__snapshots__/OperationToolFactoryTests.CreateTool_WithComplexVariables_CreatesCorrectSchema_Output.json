@@ -162,6 +162,8 @@
                     "integer",
                     "null"
                   ],
+                  "minimum": -2147483648,
+                  "maximum": 2147483647,
                   "description": "field1 description"
                 },
                 "field2": {
@@ -188,6 +190,8 @@
                       "integer",
                       "null"
                     ],
+                    "minimum": -2147483648,
+                    "maximum": 2147483647,
                     "description": "field1 description"
                   },
                   "field2": {
@@ -216,6 +220,8 @@
                         "integer",
                         "null"
                       ],
+                      "minimum": -2147483648,
+                      "maximum": 2147483647,
                       "description": "field1 description"
                     },
                     "field2": {
