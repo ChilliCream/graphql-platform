@@ -1,7 +1,7 @@
-using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using HotChocolate.Caching.Memory;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
@@ -13,8 +13,8 @@ namespace HotChocolate.AspNetCore.Utilities;
 /// </summary>
 internal static class HeaderUtilities
 {
-    private static readonly ConcurrentDictionary<string, CacheEntry> s_cache =
-        new(StringComparer.Ordinal);
+    private static readonly Cache<AcceptHeaderResult> s_headerCache = new(128);
+    private static readonly Cache<AcceptMediaType> s_mediaTypeCache = new(128);
 
     public static readonly AcceptMediaType[] GraphQLResponseContentTypes =
     [
@@ -42,109 +42,95 @@ internal static class HeaderUtilities
                 return new AcceptHeaderResult([]);
             }
 
-            string[] innerArray;
-
             if (count == 1)
             {
                 var headerValue = value[0]!;
 
-                if (TryParseMediaType(headerValue, out var parsedValue))
+                if (s_headerCache.TryGet(headerValue, out var cached))
                 {
-                    return new AcceptHeaderResult([parsedValue]);
+                    return cached;
                 }
 
-                // note: this is a workaround for now. we need to parse this properly.
-                if (headerValue.IndexOf(',', StringComparison.Ordinal) != -1)
+                var result = ParseHeaderValue(headerValue);
+
+                if (!result.HasError)
                 {
-                    innerArray = headerValue.Split(',');
-                    goto MULTI_VALUES;
+                    s_headerCache.TryAdd(headerValue, result);
                 }
 
-                return new AcceptHeaderResult(headerValue);
+                return result;
             }
 
-            innerArray = value!;
-
-MULTI_VALUES:
-            ref var searchSpace = ref MemoryMarshal.GetReference(innerArray.AsSpan());
-            var parsedValues = new AcceptMediaType[innerArray.Length];
-            var p = 0;
-
-            for (var i = 0; i < innerArray.Length; i++)
-            {
-                var mediaType = Unsafe.Add(ref searchSpace, i);
-                if (TryParseMediaType(mediaType, out var parsedValue))
-                {
-                    parsedValues[p++] = parsedValue;
-                }
-                else
-                {
-                    return new AcceptHeaderResult(mediaType);
-                }
-            }
-
-            if (parsedValues.Length > p)
-            {
-                Array.Resize(ref parsedValues, p);
-            }
-
-            return new AcceptHeaderResult(parsedValues);
+            return ParseMultipleHeaderValues(value!);
         }
 
         return new AcceptHeaderResult([]);
     }
 
+    private static AcceptHeaderResult ParseHeaderValue(string headerValue)
+    {
+        if (TryParseMediaType(headerValue, out var parsedValue))
+        {
+            return new AcceptHeaderResult([parsedValue]);
+        }
+
+        // note: this is a workaround for now. we need to parse this properly.
+        if (headerValue.IndexOf(',', StringComparison.Ordinal) != -1)
+        {
+            return ParseMultipleHeaderValues(headerValue.Split(','));
+        }
+
+        return new AcceptHeaderResult(headerValue);
+    }
+
+    private static AcceptHeaderResult ParseMultipleHeaderValues(string[] innerArray)
+    {
+        ref var searchSpace = ref MemoryMarshal.GetReference(innerArray.AsSpan());
+        var parsedValues = new AcceptMediaType[innerArray.Length];
+        var p = 0;
+
+        for (var i = 0; i < innerArray.Length; i++)
+        {
+            var mediaType = Unsafe.Add(ref searchSpace, i);
+            if (TryParseMediaType(mediaType, out var parsedValue))
+            {
+                parsedValues[p++] = parsedValue;
+            }
+            else
+            {
+                return new AcceptHeaderResult(mediaType);
+            }
+        }
+
+        if (parsedValues.Length > p)
+        {
+            Array.Resize(ref parsedValues, p);
+        }
+
+        return new AcceptHeaderResult(parsedValues);
+    }
+
     private static bool TryParseMediaType(string s, out AcceptMediaType value)
     {
-        MakeSpace();
-
-        // first we try to look up the parsed header in the cache.
-        // if we find it the string was a valid header value and
-        // we return it.
-        if (s_cache.TryGetValue(s, out var entry))
+        if (s_mediaTypeCache.TryGet(s, out var cached))
         {
-            value = entry.Value;
+            value = cached;
             return true;
         }
 
-        // if not we will try to parse it.
         if (MediaTypeHeaderValue.TryParse(s, out var parsedValue))
         {
-            entry = s_cache.GetOrAdd(s, k => new CacheEntry(k, parsedValue));
-            value = entry.Value;
+            value = new AcceptMediaType(
+                parsedValue.Type,
+                parsedValue.SubType,
+                parsedValue.Quality,
+                parsedValue.Charset);
+            s_mediaTypeCache.TryAdd(s, value);
             return true;
         }
 
         value = default;
         return false;
-    }
-
-    private static void MakeSpace()
-    {
-        // if we reach the maximum available space we will remove around 20% of the cached items.
-        if (s_cache.Count > 100)
-        {
-            foreach (var entry in s_cache.Values.OrderBy(t => t.CreatedAt).Take(20))
-            {
-                s_cache.TryRemove(entry.Key, out _);
-            }
-        }
-    }
-
-    private readonly struct CacheEntry
-    {
-        public CacheEntry(string key, MediaTypeHeaderValue value)
-        {
-            Key = key;
-            Value = new AcceptMediaType(value.Type, value.SubType, value.Quality, value.Charset);
-            CreatedAt = DateTime.UtcNow;
-        }
-
-        public string Key { get; }
-
-        public AcceptMediaType Value { get; }
-
-        public DateTime CreatedAt { get; }
     }
 
     internal readonly struct AcceptHeaderResult

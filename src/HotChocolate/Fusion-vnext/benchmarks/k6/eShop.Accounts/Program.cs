@@ -5,7 +5,7 @@ using HotChocolate;
 var builder = WebApplication.CreateBuilder(args);
 
 builder
-    .AddGraphQL("accounts-api")
+    .AddGraphQL("accounts-api", disableDefaultSecurity: true)
     .AddAccountTypes();
 
 var app = builder.Build();
