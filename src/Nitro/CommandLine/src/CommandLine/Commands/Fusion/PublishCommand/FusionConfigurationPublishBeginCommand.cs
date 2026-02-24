@@ -20,7 +20,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
         AddOption(Opt<OptionalSubgraphIdOption>.Instance);
         AddOption(Opt<OptionalSubgraphNameOption>.Instance);
         AddOption(Opt<OptionalWaitForApprovalOption>.Instance);
-        AddOption(Opt<SourceMetadataOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -50,7 +50,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
         var waitForApproval =
             context.ParseResult.GetValueForOption(Opt<OptionalWaitForApprovalOption>.Instance);
         var sourceMetadataJson =
-            context.ParseResult.GetValueForOption(Opt<SourceMetadataOption>.Instance);
+            context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
         var source = SourceMetadataHelper.Parse(sourceMetadataJson);
 
         console.Title("Requesting a deployment slot");

@@ -25,7 +25,7 @@ public sealed class FusionUploadCommand : Command
         AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<SourceSchemaFileOption>.Instance);
         AddOption(Opt<WorkingDirectoryOption>.Instance);
-        AddOption(Opt<SourceMetadataOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
         this.AddNitroCloudDefaultOptions();
 
         this.SetHandler(async context =>
@@ -34,7 +34,7 @@ public sealed class FusionUploadCommand : Command
             var sourceSchemaFile = context.ParseResult.GetValueForOption(Opt<SourceSchemaFileOption>.Instance)!;
             var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
-            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<SourceMetadataOption>.Instance);
+            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
 
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
             var apiClient = context.BindingContext.GetRequiredService<IApiClient>();

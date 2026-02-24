@@ -17,7 +17,7 @@ internal sealed class UploadSchemaCommand : Command
         AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<SchemaFileOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<SourceMetadataOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -26,7 +26,7 @@ internal sealed class UploadSchemaCommand : Command
             Opt<TagOption>.Instance,
             Opt<SchemaFileOption>.Instance,
             Opt<ApiIdOption>.Instance,
-            Opt<SourceMetadataOption>.Instance,
+            Opt<OptionalSourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 

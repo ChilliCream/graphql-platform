@@ -19,7 +19,7 @@ internal sealed class ValidateClientCommand : Command
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ClientIdOption>.Instance);
         AddOption(Opt<OperationsFileOption>.Instance);
-        AddOption(Opt<SourceMetadataOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -28,7 +28,7 @@ internal sealed class ValidateClientCommand : Command
             Opt<StageNameOption>.Instance,
             Opt<ClientIdOption>.Instance,
             Opt<OperationsFileOption>.Instance,
-            Opt<SourceMetadataOption>.Instance,
+            Opt<OptionalSourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 

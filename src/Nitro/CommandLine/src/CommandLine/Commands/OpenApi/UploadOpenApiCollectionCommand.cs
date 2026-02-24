@@ -17,7 +17,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
         AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<OpenApiCollectionIdOption>.Instance);
         AddOption(Opt<OpenApiCollectionFilePatternOption>.Instance);
-        AddOption(Opt<SourceMetadataOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -26,7 +26,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
             Opt<TagOption>.Instance,
             Opt<OpenApiCollectionFilePatternOption>.Instance,
             Opt<OpenApiCollectionIdOption>.Instance,
-            Opt<SourceMetadataOption>.Instance,
+            Opt<OptionalSourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 

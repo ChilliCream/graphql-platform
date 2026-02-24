@@ -18,7 +18,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
         AddOption(Opt<McpFeatureCollectionIdOption>.Instance);
         AddOption(Opt<McpPromptFilePatternOption>.Instance);
         AddOption(Opt<McpToolFilePatternOption>.Instance);
-        AddOption(Opt<SourceMetadataOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -28,7 +28,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
             Opt<McpPromptFilePatternOption>.Instance,
             Opt<McpToolFilePatternOption>.Instance,
             Opt<McpFeatureCollectionIdOption>.Instance,
-            Opt<SourceMetadataOption>.Instance,
+            Opt<OptionalSourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 

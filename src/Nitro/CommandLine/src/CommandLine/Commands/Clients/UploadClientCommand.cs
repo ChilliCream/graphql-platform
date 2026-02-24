@@ -16,7 +16,7 @@ internal sealed class UploadClientCommand : Command
         AddOption(Opt<TagOption>.Instance);
         AddOption(Opt<OperationsFileOption>.Instance);
         AddOption(Opt<ClientIdOption>.Instance);
-        AddOption(Opt<SourceMetadataOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -25,7 +25,7 @@ internal sealed class UploadClientCommand : Command
             Opt<TagOption>.Instance,
             Opt<OperationsFileOption>.Instance,
             Opt<ClientIdOption>.Instance,
-            Opt<SourceMetadataOption>.Instance,
+            Opt<OptionalSourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 

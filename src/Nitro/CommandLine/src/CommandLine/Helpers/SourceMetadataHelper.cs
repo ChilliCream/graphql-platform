@@ -20,7 +20,7 @@ internal static class SourceMetadataHelper
             dto = JsonSerializer.Deserialize(json, SourceMetadataJsonContext.Default.GitHubSourceMetadataDto)
                 ?? throw new ExitException("Failed to parse --source-metadata: deserialized value was null.");
         }
-        catch (JsonException ex)
+        catch (Exception ex)
         {
             throw new ExitException($"Failed to parse --source-metadata: {ex.Message}");
         }
@@ -39,17 +39,17 @@ internal static class SourceMetadataHelper
             }
         };
     }
-
-    internal sealed record GitHubSourceMetadataDto(
-        string Actor,
-        string CommitHash,
-        string WorkflowName,
-        string RunNumber,
-        string RunId,
-        string? JobId,
-        string RepositoryUrl);
-
-    [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-    [JsonSerializable(typeof(GitHubSourceMetadataDto))]
-    private partial class SourceMetadataJsonContext : JsonSerializerContext;
 }
+
+internal sealed record GitHubSourceMetadataDto(
+    string Actor,
+    string CommitHash,
+    string WorkflowName,
+    string RunNumber,
+    string RunId,
+    string? JobId,
+    string RepositoryUrl);
+
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+[JsonSerializable(typeof(GitHubSourceMetadataDto))]
+internal partial class SourceMetadataJsonContext : JsonSerializerContext;

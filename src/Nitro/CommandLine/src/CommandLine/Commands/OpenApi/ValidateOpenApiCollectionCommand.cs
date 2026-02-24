@@ -20,7 +20,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<OpenApiCollectionIdOption>.Instance);
         AddOption(Opt<OpenApiCollectionFilePatternOption>.Instance);
-        AddOption(Opt<SourceMetadataOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -29,7 +29,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
             Opt<StageNameOption>.Instance,
             Opt<OpenApiCollectionIdOption>.Instance,
             Opt<OpenApiCollectionFilePatternOption>.Instance,
-            Opt<SourceMetadataOption>.Instance,
+            Opt<OptionalSourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 

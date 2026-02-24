@@ -21,7 +21,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
         AddOption(Opt<McpFeatureCollectionIdOption>.Instance);
         AddOption(Opt<McpPromptFilePatternOption>.Instance);
         AddOption(Opt<McpToolFilePatternOption>.Instance);
-        AddOption(Opt<SourceMetadataOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -31,7 +31,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
             Opt<McpFeatureCollectionIdOption>.Instance,
             Opt<McpPromptFilePatternOption>.Instance,
             Opt<McpToolFilePatternOption>.Instance,
-            Opt<SourceMetadataOption>.Instance,
+            Opt<OptionalSourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 

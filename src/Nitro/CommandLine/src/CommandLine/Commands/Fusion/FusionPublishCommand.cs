@@ -42,7 +42,7 @@ internal sealed class FusionPublishCommand : Command
         AddOption(Opt<SourceSchemaFileListOption>.Instance);
         AddOption(archiveOption);
         AddOption(Opt<WorkingDirectoryOption>.Instance);
-        AddOption(Opt<SourceMetadataOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
         this.AddNitroCloudDefaultOptions();
 
         AddValidator(result =>
@@ -73,7 +73,7 @@ internal sealed class FusionPublishCommand : Command
             var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
             var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
             var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
-            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<SourceMetadataOption>.Instance);
+            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
 
             var console = context.BindingContext.GetRequiredService<IAnsiConsole>();
             var apiClient = context.BindingContext.GetRequiredService<IApiClient>();

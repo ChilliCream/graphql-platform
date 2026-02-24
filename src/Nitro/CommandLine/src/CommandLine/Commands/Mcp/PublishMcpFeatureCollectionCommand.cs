@@ -22,7 +22,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
         AddOption(Opt<McpFeatureCollectionIdOption>.Instance);
         AddOption(Opt<ForceOption>.Instance);
         AddOption(Opt<OptionalWaitForApprovalOption>.Instance);
-        AddOption(Opt<SourceMetadataOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(async context =>
         {
@@ -33,7 +33,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
             var mcpFeatureCollectionId = context.ParseResult.GetValueForOption(Opt<McpFeatureCollectionIdOption>.Instance)!;
             var force = context.ParseResult.GetValueForOption(Opt<ForceOption>.Instance);
             var waitForApproval = context.ParseResult.GetValueForOption(Opt<OptionalWaitForApprovalOption>.Instance);
-            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<SourceMetadataOption>.Instance);
+            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
 
             context.ExitCode = await ExecuteAsync(
                 console,

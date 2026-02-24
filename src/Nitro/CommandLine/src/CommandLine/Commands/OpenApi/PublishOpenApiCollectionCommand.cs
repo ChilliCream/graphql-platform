@@ -22,7 +22,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
         AddOption(Opt<OpenApiCollectionIdOption>.Instance);
         AddOption(Opt<ForceOption>.Instance);
         AddOption(Opt<OptionalWaitForApprovalOption>.Instance);
-        AddOption(Opt<SourceMetadataOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(async context =>
         {
@@ -33,7 +33,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
             var openApiCollectionId = context.ParseResult.GetValueForOption(Opt<OpenApiCollectionIdOption>.Instance)!;
             var force = context.ParseResult.GetValueForOption(Opt<ForceOption>.Instance);
             var waitForApproval = context.ParseResult.GetValueForOption(Opt<OptionalWaitForApprovalOption>.Instance);
-            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<SourceMetadataOption>.Instance);
+            var sourceMetadataJson = context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
 
             context.ExitCode = await ExecuteAsync(
                 console,

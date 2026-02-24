@@ -19,7 +19,7 @@ internal sealed class ValidateSchemaCommand : Command
         AddOption(Opt<StageNameOption>.Instance);
         AddOption(Opt<ApiIdOption>.Instance);
         AddOption(Opt<SchemaFileOption>.Instance);
-        AddOption(Opt<SourceMetadataOption>.Instance);
+        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.SetHandler(
             ExecuteAsync,
@@ -28,7 +28,7 @@ internal sealed class ValidateSchemaCommand : Command
             Opt<StageNameOption>.Instance,
             Opt<ApiIdOption>.Instance,
             Opt<SchemaFileOption>.Instance,
-            Opt<SourceMetadataOption>.Instance,
+            Opt<OptionalSourceMetadataOption>.Instance,
             Bind.FromServiceProvider<CancellationToken>());
     }
 
