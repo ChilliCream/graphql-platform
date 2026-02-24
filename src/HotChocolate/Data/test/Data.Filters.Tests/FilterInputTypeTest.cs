@@ -378,6 +378,32 @@ public class FilterInputTypeTest : FilterTestBase
     }
 
     [Fact]
+    public void FilterInputType_Field_ArrayLengthExpression_Infers_IntOperationType()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddFiltering()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("cardReaders")
+                    .Resolve(new List<CardReader>())
+                    .UseFiltering<CardReaderFilterInputType>())
+            .Create();
+
+        // act
+        Assert.True(
+            schema.Types.TryGetType<CardReaderFilterInputType>(
+                "CardReaderFilterInput",
+                out var filterType));
+
+        // assert
+        Assert.NotNull(filterType);
+        var lengthField = Assert.IsType<FilterField>(filterType.Fields["cardReaderUidLength"]);
+        Assert.IsType<IntOperationFilterInputType>(lengthField.Type);
+    }
+
+    [Fact]
     public void FilterInputType_WithGlobalObjectIdentification_AppliesGlobalIdFormatter()
     {
         // arrange
@@ -566,6 +592,11 @@ public class FilterInputTypeTest : FilterTestBase
         public string Name { get; set; } = null!;
     }
 
+    public class CardReader
+    {
+        public byte[] CardReaderUid { get; set; } = [];
+    }
+
     public class IgnoreTestFilterInputType
         : FilterInputType<IgnoreTest>
     {
@@ -580,6 +611,16 @@ public class FilterInputTypeTest : FilterTestBase
         protected override void Configure(IFilterInputTypeDescriptor<User> descriptor)
         {
             descriptor.Ignore(x => x.Id);
+        }
+    }
+
+    public class CardReaderFilterInputType : FilterInputType<CardReader>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<CardReader> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Name("CardReaderFilterInput");
+            descriptor.Field(x => x.CardReaderUid.Length).Name("cardReaderUidLength");
         }
     }
 
