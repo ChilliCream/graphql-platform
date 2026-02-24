@@ -113,6 +113,55 @@ public sealed class SourceSchemaMergerTests
     }
 
     [Fact]
+    public void Merge_WithRequireCustomScalar_RetainsScalarType()
+    {
+        // arrange
+        var sourceSchemaTextA =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    product: Product
+                }
+
+                type Product {
+                    weight: Int!
+                }
+                """);
+        var sourceSchemaTextB =
+            new SourceSchemaText(
+                "B",
+                """
+                type Product {
+                    deliveryEstimate(
+                        zip: String!
+                        weight: Weight! @require(field: "weight")
+                    ): Int!
+                }
+
+                scalar Weight
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser1 = new SourceSchemaParser(sourceSchemaTextA, compositionLog);
+        var sourceSchemaParser2 = new SourceSchemaParser(sourceSchemaTextB, compositionLog);
+        var schema1 = sourceSchemaParser1.Parse().Value;
+        var schema2 = sourceSchemaParser2.Parse().Value;
+        var schemas =
+            ImmutableSortedSet.Create(
+                new SchemaByNameComparer<MutableSchemaDefinition>(), schema1, schema2);
+        new SourceSchemaEnricher(schema1, schemas).Enrich();
+        new SourceSchemaEnricher(schema2, schemas).Enrich();
+        var merger = new SourceSchemaMerger(schemas);
+
+        // act
+        var result = merger.Merge();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Value.Types.ContainsName("Weight"));
+    }
+
+    [Fact]
     public void Merge_WithRequireInputObject_RetainsInputObjectType()
     {
         // arrange
@@ -161,5 +210,59 @@ public sealed class SourceSchemaMergerTests
         // assert
         Assert.True(result.IsSuccess);
         Assert.True(result.Value.Types.ContainsName("ProductDimensionInput"));
+    }
+
+    [Fact]
+    public void Merge_WithRequireInputObject_ThatUsesCustomScalar_RetainsScalarDependency()
+    {
+        // arrange
+        var sourceSchemaTextA =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    product: Product
+                }
+
+                type Product {
+                    weight: Int!
+                }
+                """);
+        var sourceSchemaTextB =
+            new SourceSchemaText(
+                "B",
+                """
+                type Product {
+                    deliveryEstimate(
+                        zip: String!
+                        dimension: ProductDimensionInput! @require(field: "{ weight }")
+                    ): Int!
+                }
+
+                input ProductDimensionInput @inaccessible {
+                    coordinate: Position!
+                }
+
+                scalar Position
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser1 = new SourceSchemaParser(sourceSchemaTextA, compositionLog);
+        var sourceSchemaParser2 = new SourceSchemaParser(sourceSchemaTextB, compositionLog);
+        var schema1 = sourceSchemaParser1.Parse().Value;
+        var schema2 = sourceSchemaParser2.Parse().Value;
+        var schemas =
+            ImmutableSortedSet.Create(
+                new SchemaByNameComparer<MutableSchemaDefinition>(), schema1, schema2);
+        new SourceSchemaEnricher(schema1, schemas).Enrich();
+        new SourceSchemaEnricher(schema2, schemas).Enrich();
+        var merger = new SourceSchemaMerger(schemas);
+
+        // act
+        var result = merger.Merge();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Value.Types.ContainsName("ProductDimensionInput"));
+        Assert.True(result.Value.Types.ContainsName("Position"));
     }
 }
