@@ -114,6 +114,26 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
         string schemaName);
 
     /// <summary>
+    /// Called when executing an operation plan node that batches or deduplicates source schema requests.
+    /// </summary>
+    /// <param name="context">
+    /// The operation plan context.
+    /// </param>
+    /// <param name="node">
+    /// The batch or deduplicated execution node being executed.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the source schema being queried.
+    /// </param>
+    /// <returns>
+    /// Returns a scope that is disposed when the node execution is completed.
+    /// </returns>
+    IDisposable ExecuteOperationBatchNode(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName);
+
+    /// <summary>
     /// Called when executing an operation plan node that subscribes to a source schema subscription.
     /// </summary>
     /// <param name="context">
@@ -133,7 +153,7 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
     /// </returns>
     IDisposable ExecuteSubscriptionNode(
         OperationPlanContext context,
-        OperationExecutionNode node,
+        ExecutionNode node,
         string schemaName,
         ulong subscriptionId);
 

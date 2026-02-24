@@ -39,6 +39,9 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
     /// <inheritdoc />
     public override ReadOnlySpan<ExecutionNodeCondition> Conditions => _conditions;
 
+    /// <inheritdoc />
+    public override string? SchemaName => null;
+
     /// <summary>
     /// The introspection selections.
     /// </summary>

@@ -27,7 +27,10 @@ export const BlogArticleTeaserMetadata: FC<BlogArticleTeaserMetadataProps> = ({
   return (
     <Metadata>
       <Author>
-        <AuthorImage src={frontmatter?.authorImageUrl || ""} />
+        <AuthorImage
+          src={frontmatter?.authorImageUrl || ""}
+          alt={frontmatter?.author ? `${frontmatter.author}'s avatar` : ""}
+        />
         {frontmatter?.author || ""}
       </Author>
       <Space>
@@ -61,7 +64,12 @@ const Author = styled.div.attrs({
   color: ${THEME_COLORS.textAlt};
 `;
 
-const AuthorImage = styled.img`
+const AuthorImage = styled.img.attrs({
+  width: 26,
+  height: 26,
+  loading: "lazy" as const,
+  decoding: "async" as const,
+})`
   flex: 0 0 auto;
   margin-right: 8px;
   border-radius: 13px;
@@ -75,7 +83,8 @@ const Space = styled.div`
   justify-content: space-between;
 `;
 
-const Title = styled.h5`
+const Title = styled.div`
+  font-weight: 700;
   margin-bottom: 28px;
 `;
 

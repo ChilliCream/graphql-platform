@@ -184,6 +184,21 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         return new AggregateActivityScope(scopes);
     }
 
+    public IDisposable ExecuteOperationBatchNode(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName)
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].ExecuteOperationBatchNode(context, node, schemaName);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
     public void SourceSchemaTransportError(
         OperationPlanContext context,
         ExecutionNode node,
@@ -242,7 +257,7 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
 
     public IDisposable ExecuteSubscriptionNode(
         OperationPlanContext context,
-        OperationExecutionNode node,
+        ExecutionNode node,
         string schemaName,
         ulong subscriptionId)
     {

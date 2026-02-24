@@ -92,7 +92,9 @@ const ToastContainer = styled.div`
   }
 `;
 
-const CopyIconButton = styled.button`
+const CopyIconButton = styled.button.attrs({
+  "aria-label": "Copy code to clipboard",
+})`
   display: flex;
   align-items: center;
   justify-content: center;

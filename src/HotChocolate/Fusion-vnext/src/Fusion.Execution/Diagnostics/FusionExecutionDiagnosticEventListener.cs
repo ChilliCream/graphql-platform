@@ -94,6 +94,13 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
         => EmptyScope;
 
     /// <inheritdoc />
+    public virtual IDisposable ExecuteOperationBatchNode(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName)
+        => EmptyScope;
+
+    /// <inheritdoc />
     public virtual void SourceSchemaTransportError(
         OperationPlanContext context,
         ExecutionNode node,
@@ -133,7 +140,7 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
 
     public virtual IDisposable ExecuteSubscriptionNode(
         OperationPlanContext context,
-        OperationExecutionNode node,
+        ExecutionNode node,
         string schemaName,
         ulong subscriptionId)
         => EmptyScope;

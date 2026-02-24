@@ -62,7 +62,7 @@ internal sealed class UploadSchemaCommand : Command
 
             var input = new UploadSchemaInput
             {
-                Schema = new Upload(stream, "operations.graphql"),
+                Schema = new Upload(stream, "schema.graphqls"),
                 ApiId = apiId,
                 Tag = tag
             };

@@ -1,3 +1,4 @@
+import fs from "fs";
 import path from "path";
 import { serialize } from "next-mdx-remote/serialize";
 import remarkGfm from "remark-gfm";
@@ -6,8 +7,202 @@ import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeExternalLinks from "rehype-external-links";
 import rehypeRaw from "rehype-raw";
 
+// Custom components that render as block-level elements (divs).
+// When these appear in markdown, the parser wraps them in <p> tags,
+// causing "<div> cannot be a descendant of <p>" hydration errors.
+// This plugin unwraps them from <p> parents.
+const BLOCK_COMPONENTS = [
+  "video",
+  "packageinstallation",
+  "surveyprompt",
+  "exampletabs",
+  "inputchoicetabs",
+  "inputchoicetabs-cli",
+  "inputchoicetabs-visualstudio",
+  "apichoicetabs",
+  "apichoicetabs-minimalapis",
+  "apichoicetabs-regular",
+  "tabgroups",
+  "warning",
+];
+
+function rehypeUnwrapBlockComponents() {
+  return (tree: any) => {
+    visit(tree);
+  };
+
+  function visit(node: any) {
+    if (!node.children) return;
+
+    const newChildren: any[] = [];
+    for (const child of node.children) {
+      if (
+        child.type === "element" &&
+        child.tagName === "p" &&
+        child.children?.some(
+          (c: any) =>
+            c.type === "element" &&
+            BLOCK_COMPONENTS.includes(c.tagName?.toLowerCase())
+        )
+      ) {
+        // Unwrap: hoist block children out of the <p>, keep inline siblings
+        let inlineBuf: any[] = [];
+        for (const grandChild of child.children) {
+          if (
+            grandChild.type === "element" &&
+            BLOCK_COMPONENTS.includes(grandChild.tagName?.toLowerCase())
+          ) {
+            if (inlineBuf.length > 0) {
+              newChildren.push({ ...child, children: inlineBuf });
+              inlineBuf = [];
+            }
+            newChildren.push(grandChild);
+          } else {
+            inlineBuf.push(grandChild);
+          }
+        }
+        if (inlineBuf.length > 0) {
+          // Only add a <p> wrapper if there's non-whitespace text
+          const hasContent = inlineBuf.some(
+            (n: any) =>
+              (n.type === "text" && n.value.trim()) || n.type === "element"
+          );
+          if (hasContent) {
+            newChildren.push({ ...child, children: inlineBuf });
+          }
+        }
+      } else {
+        newChildren.push(child);
+      }
+    }
+    node.children = newChildren;
+
+    for (const child of node.children) {
+      visit(child);
+    }
+  }
+}
+
+// Load the optimized image map once at build time
+let cachedImageMap: Record<string, any> | null = null;
+
+function loadImageMap(): Record<string, any> {
+  if (cachedImageMap) return cachedImageMap;
+
+  const mapPath = path.join(process.cwd(), "public/optimized/image-map.json");
+  try {
+    if (fs.existsSync(mapPath)) {
+      cachedImageMap = JSON.parse(fs.readFileSync(mapPath, "utf-8"));
+      return cachedImageMap!;
+    }
+  } catch {
+    // No image map available
+  }
+
+  cachedImageMap = {};
+  return cachedImageMap;
+}
+
+/**
+ * Rehype plugin that rewrites <img> elements to <picture> with optimized
+ * AVIF/WebP sources at build time. This avoids loading the full-size original
+ * image in the initial HTML.
+ */
+function rehypeOptimizedImages() {
+  return (tree: any) => {
+    const imageMap = loadImageMap();
+    if (Object.keys(imageMap).length === 0) return;
+
+    let imageIndex = 0;
+    visitImages(tree, imageMap, () => imageIndex++);
+  };
+
+  function visitImages(
+    node: any,
+    imageMap: Record<string, any>,
+    nextIndex: () => number
+  ) {
+    if (!node.children) return;
+
+    for (let i = 0; i < node.children.length; i++) {
+      const child = node.children[i];
+
+      if (child.type === "element" && child.tagName === "img") {
+        const src = child.properties?.src;
+        if (!src || typeof src !== "string") continue;
+
+        const entry = imageMap[src];
+        if (!entry) continue;
+
+        const isFirst = nextIndex() === 0;
+        const sizes =
+          "(max-width: 640px) 100vw, (max-width: 1024px) 75vw, 660px";
+
+        // Build <picture> with <source> for AVIF and WebP, plus fallback <img>
+        const sources: any[] = [];
+
+        if (entry.a) {
+          sources.push({
+            type: "element",
+            tagName: "source",
+            properties: { type: "image/avif", srcSet: entry.a, sizes },
+            children: [],
+          });
+        }
+
+        if (entry.w) {
+          sources.push({
+            type: "element",
+            tagName: "source",
+            properties: { type: "image/webp", srcSet: entry.w, sizes },
+            children: [],
+          });
+        }
+
+        // First image gets fetchpriority="high" and eager loading for LCP;
+        // subsequent images are lazy-loaded.
+        const imgProps: Record<string, any> = {
+          src: entry.s || src,
+          alt: child.properties?.alt || "",
+          width: entry.W,
+          height: entry.H,
+          sizes,
+          style: "width:100%;height:auto",
+        };
+
+        if (isFirst) {
+          imgProps.fetchPriority = "high";
+          imgProps.decoding = "async";
+        } else {
+          imgProps.loading = "lazy";
+          imgProps.decoding = "async";
+        }
+
+        sources.push({
+          type: "element",
+          tagName: "img",
+          properties: imgProps,
+          children: [],
+        });
+
+        // Replace <img> with <picture>
+        node.children[i] = {
+          type: "element",
+          tagName: "picture",
+          properties: {},
+          children: sources,
+        };
+      } else {
+        visitImages(child, imageMap, nextIndex);
+      }
+    }
+  }
+}
+
 const rehypePlugins = [
   rehypeRaw,
+  rehypeUnwrapBlockComponents,
+  rehypeOptimizedImages,
   rehypeSlug,
   [
     rehypeAutolinkHeadings,

@@ -31,7 +31,15 @@ export const BlogArticleTeaser: FC<BlogArticleTeaserProps> = ({ data }) => {
     <Box key={`article-${data.id}`}>
       <BoxLink to={data.frontmatter?.path || "#"}>
         {featuredImage && (
-          <img src={featuredImage} alt={data.frontmatter?.title || ""} />
+          <img
+            src={featuredImage}
+            alt={data.frontmatter?.title || ""}
+            width={800}
+            height={450}
+            loading="lazy"
+            decoding="async"
+            style={{ width: "100%", height: "auto" }}
+          />
         )}
         <BlogArticleTeaserMetadata data={data} />
       </BoxLink>

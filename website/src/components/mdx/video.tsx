@@ -1,9 +1,8 @@
 import React, { FC } from "react";
+import LiteYouTubeEmbed from "react-lite-youtube-embed";
+import "react-lite-youtube-embed/dist/LiteYouTubeEmbed.css";
 
-import {
-  ArticleContentVideoContainer,
-  ArticleVideo,
-} from "@/components/article-elements";
+import { ArticleContentVideoContainer } from "@/components/article-elements";
 
 export interface VideoProps {
   readonly videoId?: string;
@@ -18,7 +17,7 @@ export const Video: FC<VideoProps> = ({ videoId, videoid }) => {
 
   return (
     <ArticleContentVideoContainer>
-      <ArticleVideo videoId={id} />
+      <LiteYouTubeEmbed id={id} title="YouTube video player" />
     </ArticleContentVideoContainer>
   );
 };

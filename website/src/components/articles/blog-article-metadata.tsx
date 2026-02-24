@@ -28,7 +28,10 @@ export const BlogArticleMetadata: FC<BlogArticleMetadataProps> = ({
   return (
     <Metadata>
       <AuthorLink to={frontmatter?.authorUrl || "#"}>
-        <AuthorImage src={frontmatter?.authorImageUrl || ""} />
+        <AuthorImage
+          src={frontmatter?.authorImageUrl || ""}
+          alt={frontmatter?.author ? `${frontmatter.author}'s avatar` : ""}
+        />
         {frontmatter?.author || ""}
       </AuthorLink>
       {frontmatter?.date && " ・ " + frontmatter.date}
@@ -53,7 +56,12 @@ const AuthorLink = styled(Link)`
   color: ${THEME_COLORS.text};
 `;
 
-const AuthorImage = styled.img`
+const AuthorImage = styled.img.attrs({
+  width: 30,
+  height: 30,
+  loading: "lazy" as const,
+  decoding: "async" as const,
+})`
   flex: 0 0 auto;
   margin-right: 0.5em;
   border-radius: 15px;

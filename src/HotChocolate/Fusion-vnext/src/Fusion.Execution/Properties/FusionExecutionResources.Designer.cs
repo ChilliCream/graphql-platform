@@ -92,5 +92,65 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("OperationPlannerGuardrailException_GuardrailExceeded", resourceCulture);
             }
         }
+
+        internal static string SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup {
+            get {
+                return ResourceManager.GetString("SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup", resourceCulture);
+            }
+        }
+
+        internal static string SourceSchemaHttpClient_SubscriptionBatchNotSupported {
+            get {
+                return ResourceManager.GetString("SourceSchemaHttpClient_SubscriptionBatchNotSupported", resourceCulture);
+            }
+        }
+
+        internal static string SourceSchemaHttpClient_InvalidRequestIndex {
+            get {
+                return ResourceManager.GetString("SourceSchemaHttpClient_InvalidRequestIndex", resourceCulture);
+            }
+        }
+
+        internal static string SourceSchemaHttpClient_NoResponseChannelForNode {
+            get {
+                return ResourceManager.GetString("SourceSchemaHttpClient_NoResponseChannelForNode", resourceCulture);
+            }
+        }
+
+        internal static string SourceSchemaHttpClient_InvalidVariableIndex {
+            get {
+                return ResourceManager.GetString("SourceSchemaHttpClient_InvalidVariableIndex", resourceCulture);
+            }
+        }
+
+        internal static string SourceSchemaHttpClient_NoResultForNode {
+            get {
+                return ResourceManager.GetString("SourceSchemaHttpClient_NoResultForNode", resourceCulture);
+            }
+        }
+
+        internal static string SourceSchemaRequestDispatcher_DuplicateNodeSubmission {
+            get {
+                return ResourceManager.GetString("SourceSchemaRequestDispatcher_DuplicateNodeSubmission", resourceCulture);
+            }
+        }
+
+        internal static string SourceSchemaRequestDispatcher_RegisterGroupEmptyNodeIds {
+            get {
+                return ResourceManager.GetString("SourceSchemaRequestDispatcher_RegisterGroupEmptyNodeIds", resourceCulture);
+            }
+        }
+
+        internal static string SourceSchemaRequestDispatcher_OperationAborted {
+            get {
+                return ResourceManager.GetString("SourceSchemaRequestDispatcher_OperationAborted", resourceCulture);
+            }
+        }
+
+        internal static string SourceSchemaRequestDispatcher_BatchResponseCountMismatch {
+            get {
+                return ResourceManager.GetString("SourceSchemaRequestDispatcher_BatchResponseCountMismatch", resourceCulture);
+            }
+        }
     }
 }

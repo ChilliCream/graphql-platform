@@ -96,5 +96,5 @@ public readonly struct SourceResultProperty
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private string DebuggerDisplay
-        => Value.ValueKind == JsonValueKind.Undefined ? "<Undefined>" : $"\"{ToString()}\"";
+        => Value.ValueKind == JsonValueKind.Undefined ? "<Undefined>" : ToString();
 }

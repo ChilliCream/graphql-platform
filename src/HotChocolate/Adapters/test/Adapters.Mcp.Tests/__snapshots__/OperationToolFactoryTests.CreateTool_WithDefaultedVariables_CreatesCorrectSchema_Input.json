@@ -28,6 +28,8 @@
     },
     "byte": {
       "type": "integer",
+      "minimum": -128,
+      "maximum": 127,
       "description": "Byte description",
       "default": 1
     },
@@ -61,6 +63,8 @@
     },
     "float": {
       "type": "number",
+      "minimum": -79228162514264337593543950335,
+      "maximum": 79228162514264337593543950335,
       "description": "Float description",
       "default": 1.5
     },
@@ -74,6 +78,8 @@
     },
     "int": {
       "type": "integer",
+      "minimum": -2147483648,
+      "maximum": 2147483647,
       "description": "Int description",
       "default": 1
     },
@@ -108,6 +114,8 @@
     },
     "long": {
       "type": "integer",
+      "minimum": -9223372036854775808,
+      "maximum": 9223372036854775807,
       "description": "Long description",
       "default": 9223372036854775807
     },
@@ -155,6 +163,8 @@
     },
     "short": {
       "type": "integer",
+      "minimum": -32768,
+      "maximum": 32767,
       "description": "Short description",
       "default": 1
     },
@@ -174,6 +184,34 @@
       "type": "string",
       "description": "Unknown description",
       "default": "default"
+    },
+    "unsignedByte": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 255,
+      "description": "UnsignedByte description",
+      "default": 1
+    },
+    "unsignedInt": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295,
+      "description": "UnsignedInt description",
+      "default": 65536
+    },
+    "unsignedLong": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615,
+      "description": "UnsignedLong description",
+      "default": 4294967296
+    },
+    "unsignedShort": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 65535,
+      "description": "UnsignedShort description",
+      "default": 256
     },
     "uri": {
       "type": "string",

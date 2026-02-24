@@ -1,0 +1,26 @@
+Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "trigger": {
+          "fieldModelKey": "field-1"
+        }
+      },
+      {
+        "trigger": {
+          "fieldModelKey": "field-2"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+SQL:
+---------------
+SELECT 1, 1, "i"."FieldModelKey"
+FROM "Data" AS "d"
+INNER JOIN "InspectionTrigger" AS "i" ON "d"."TriggerId" = "i"."Id"
+---------------

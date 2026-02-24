@@ -5,7 +5,7 @@ using HotChocolate;
 var builder = WebApplication.CreateBuilder(args);
 
 builder
-    .AddGraphQL("inventory-api")
+    .AddGraphQL("inventory-api", disableDefaultSecurity: true)
     .AddInventoryTypes();
 
 var app = builder.Build();

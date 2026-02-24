@@ -5,4 +5,13 @@ using Fusion.Execution.Benchmarks;
 var config = DefaultConfig.Instance
     .WithOption(ConfigOptions.DisableOptimizationsValidator, true);
 
-BenchmarkRunner.Run<GraphQLQueryBenchmark>(config);
+if (args.Length == 0)
+{
+    BenchmarkRunner.Run<GraphQLQueryBenchmark>(config);
+}
+else
+{
+    BenchmarkSwitcher
+        .FromAssembly(typeof(GraphQLQueryBenchmark).Assembly)
+        .Run(args, config);
+}

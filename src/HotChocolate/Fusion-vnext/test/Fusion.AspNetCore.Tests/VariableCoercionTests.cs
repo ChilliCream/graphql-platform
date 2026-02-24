@@ -1,10 +1,46 @@
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
 public class VariableCoercionTests : FusionTestBase
 {
+    [Fact]
+    public async Task String_With_Quotes()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema1.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($input: String!) {
+              field(input: $input)
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["input"] = "tag:\"type_portable-lamp\""
+            });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     [Fact]
     public async Task InputObject_Invalid_Field()
     {
@@ -417,5 +453,13 @@ public class VariableCoercionTests : FusionTestBase
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    public static class SourceSchema1
+    {
+        public class Query
+        {
+            public string GetField(string input) => input;
+        }
     }
 }

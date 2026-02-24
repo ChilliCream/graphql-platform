@@ -82,6 +82,51 @@ public class VariableCoercionHelperTests
     }
 
     [Fact]
+    public void Coerce_String_WithEscapedQuotes_IsUnescaped()
+    {
+        // arrange
+        var schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+        var variableDefinitions = new List<VariableDefinitionNode>
+        {
+            new VariableDefinitionNode(
+                null,
+                new VariableNode("abc"),
+                description: null,
+                new NamedTypeNode("String"),
+                null,
+                Array.Empty<DirectiveNode>())
+        };
+
+        using var variableValues = JsonDocument.Parse(
+            """
+            {
+              "abc": "tag:\"type_portable-lamp\""
+            }
+            """);
+
+        var coercedValues = new Dictionary<string, VariableValue>();
+        var featureProvider = new MockFeatureProvider();
+        var helper = new VariableCoercionHelper(new());
+
+        // act
+        helper.CoerceVariableValues(
+            schema, variableDefinitions, variableValues.RootElement, coercedValues, featureProvider);
+
+        // assert
+        Assert.Collection(coercedValues,
+            t =>
+            {
+                Assert.Equal("abc", t.Key);
+                Assert.Equal("String", Assert.IsType<StringType>(t.Value.Type).Name);
+                Assert.Equal("tag:\"type_portable-lamp\"", t.Value.RuntimeValue);
+                Assert.Equal(
+                    "tag:\"type_portable-lamp\"",
+                    Assert.IsType<StringValueNode>(t.Value.ValueLiteral).Value);
+            });
+    }
+
+    [Fact]
     public void Coerce_Nullable_String_Variable_With_Default_Where_Value_Is_Not_Provided()
     {
         // arrange

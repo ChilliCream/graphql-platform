@@ -15,6 +15,7 @@
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0 --port 3000",
     "build": "next build",
+    "optimize-images": "npx tsx -e \"import { optimizeDirectory } from './lib/image-optimization'; (async () => { await optimizeDirectory(['./public/images', './public/docs']); })();\"",
     "start": "next start",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "clean": "rm -rf .next out",
@@ -37,6 +38,7 @@
     "react-cookie": "^4.0.3",
     "react-dom": "19",
     "react-github-btn": "^1.4.0",
+    "react-lite-youtube-embed": "3.3.3",
     "react-redux": "^9.2.0",
     "react-responsive-carousel": "^3.2.18",
     "react-share": "^5.2.2",
@@ -49,6 +51,8 @@
     "remark-gfm": "^4.0.1",
     "rxjs": "^7.1.0",
     "semver": "^7.3.8",
+    "sharp": "^0.33.0",
+    "simple-git": "^2.39.0",
     "styled-components": "^5.3.0",
     "svg-sprite-loader": "^6.0.11",
     "yaml": "^2.1.3"

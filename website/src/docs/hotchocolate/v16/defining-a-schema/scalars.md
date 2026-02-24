@@ -280,9 +280,9 @@ If we want to access an object dynamically without serializing it to a strongly 
 
 Lists can be accessed generically by getting them as `IReadOnlyList<object>` or as `ListValueNode`.
 
-## Uuid Type
+## UUID Type
 
-The `Uuid` scalar supports the following serialization formats.
+The `UUID` scalar supports the following serialization formats.
 
 | Specifier   | Format                                                               |
 | ----------- | -------------------------------------------------------------------- |

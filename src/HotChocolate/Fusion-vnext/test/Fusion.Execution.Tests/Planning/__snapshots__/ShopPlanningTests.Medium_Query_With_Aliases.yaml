@@ -175,7 +175,7 @@ nodes:
     dependencies:
       - id: 1
   - id: 3
-    type: Operation
+    type: OperationBatch
     schema: e
     operation: |
       query Op_123456789101112_3(
@@ -193,7 +193,10 @@ nodes:
         }
       }
     source: $.productById
-    target: $.products.nodes.b.nodes.product
+    targets:
+      - $.products.nodes.b.nodes.product
+      - $.products.nodes.reviews.nodes.product
+    batchingGroupId: 4
     requirements:
       - name: __fusion_2_id
         selectionMap: >-
@@ -201,7 +204,7 @@ nodes:
     dependencies:
       - id: 2
   - id: 4
-    type: Operation
+    type: OperationBatch
     schema: b
     operation: |
       query Op_123456789101112_4(
@@ -217,7 +220,10 @@ nodes:
         }
       }
     source: $.productByIdAsync
-    target: $.products.nodes.b.nodes.product
+    targets:
+      - $.products.nodes.b.nodes.product
+      - $.products.nodes.reviews.nodes.product
+    batchingGroupId: 3
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -238,6 +244,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.b.nodes.product
+    batchingGroupId: 7
     requirements:
       - name: __fusion_4_id
         selectionMap: >-
@@ -274,6 +281,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.b.nodes.product.item.product
+    batchingGroupId: 6
     requirements:
       - name: __fusion_6_id
         selectionMap: >-
@@ -299,6 +307,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.b.nodes.product.item.product
+    batchingGroupId: 5
     requirements:
       - name: __fusion_7_id
         selectionMap: >-
@@ -319,6 +328,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.b.nodes.product.item.product
+    batchingGroupId: 8
     requirements:
       - name: __fusion_8_id
         selectionMap: >-
@@ -347,6 +357,7 @@ nodes:
       }
     source: $.userById
     target: $.products.nodes.b.nodes.product.item.product.reviews.edges.node.author
+    batchingGroupId: 2
     requirements:
       - name: __fusion_10_id
         selectionMap: >-
@@ -354,7 +365,7 @@ nodes:
     dependencies:
       - id: 6
   - id: 10
-    type: Operation
+    type: OperationBatch
     schema: e
     operation: |
       query Op_123456789101112_10(
@@ -365,7 +376,10 @@ nodes:
         }
       }
     source: $.productById
-    target: $.products.nodes.b.nodes.b
+    targets:
+      - $.products.nodes.b.nodes.b
+      - $.products.nodes.reviews.nodes.b
+    batchingGroupId: 4
     requirements:
       - name: __fusion_11_id
         selectionMap: >-
@@ -373,7 +387,7 @@ nodes:
     dependencies:
       - id: 2
   - id: 11
-    type: Operation
+    type: OperationBatch
     schema: a
     operation: |
       query Op_123456789101112_11(
@@ -385,59 +399,12 @@ nodes:
         }
       }
     source: $.userById
-    target: $.products.nodes.b.nodes.author
+    targets:
+      - $.products.nodes.b.nodes.author
+      - $.products.nodes.reviews.nodes.author
+    batchingGroupId: 1
     requirements:
       - name: __fusion_12_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 2
-  - id: 12
-    type: Operation
-    schema: e
-    operation: |
-      query Op_123456789101112_12(
-        $__fusion_13_id: ID!
-      ) {
-        productById(id: $__fusion_13_id) {
-          weight
-          pictureFileName
-          price
-          dimension {
-            length
-            width
-            height
-          }
-        }
-      }
-    source: $.productById
-    target: $.products.nodes.reviews.nodes.product
-    requirements:
-      - name: __fusion_13_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 2
-  - id: 13
-    type: Operation
-    schema: b
-    operation: |
-      query Op_123456789101112_13(
-        $__fusion_14_id: ID!
-      ) {
-        productByIdAsync(id: $__fusion_14_id) {
-          quantity
-          item {
-            product {
-              id
-            }
-          }
-        }
-      }
-    source: $.productByIdAsync
-    target: $.products.nodes.reviews.nodes.product
-    requirements:
-      - name: __fusion_14_id
         selectionMap: >-
           id
     dependencies:
@@ -456,6 +423,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.reviews.nodes.product
+    batchingGroupId: 7
     requirements:
       - name: __fusion_15_id
         selectionMap: >-
@@ -470,7 +438,7 @@ nodes:
           }
     dependencies:
       - id: 2
-      - id: 12
+      - id: 3
   - id: 15
     type: Operation
     schema: f
@@ -492,12 +460,13 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.reviews.nodes.product.item.product
+    batchingGroupId: 6
     requirements:
       - name: __fusion_17_id
         selectionMap: >-
           id
     dependencies:
-      - id: 13
+      - id: 4
   - id: 16
     type: Operation
     schema: e
@@ -517,12 +486,13 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.reviews.nodes.product.item.product
+    batchingGroupId: 5
     requirements:
       - name: __fusion_18_id
         selectionMap: >-
           id
     dependencies:
-      - id: 13
+      - id: 4
   - id: 17
     type: Operation
     schema: g
@@ -537,6 +507,7 @@ nodes:
       }
     source: $.productById
     target: $.products.nodes.reviews.nodes.product.item.product
+    batchingGroupId: 8
     requirements:
       - name: __fusion_19_id
         selectionMap: >-
@@ -550,7 +521,7 @@ nodes:
             height: dimension.height
           }
     dependencies:
-      - id: 13
+      - id: 4
       - id: 16
   - id: 18
     type: Operation
@@ -565,48 +536,10 @@ nodes:
       }
     source: $.userById
     target: $.products.nodes.reviews.nodes.product.item.product.reviews.edges.node.author
+    batchingGroupId: 2
     requirements:
       - name: __fusion_21_id
         selectionMap: >-
           id
     dependencies:
       - id: 15
-  - id: 19
-    type: Operation
-    schema: e
-    operation: |
-      query Op_123456789101112_19(
-        $__fusion_22_id: ID!
-      ) {
-        productById(id: $__fusion_22_id) {
-          weight
-        }
-      }
-    source: $.productById
-    target: $.products.nodes.reviews.nodes.b
-    requirements:
-      - name: __fusion_22_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 2
-  - id: 20
-    type: Operation
-    schema: a
-    operation: |
-      query Op_123456789101112_20(
-        $__fusion_23_id: ID!
-      ) {
-        userById(id: $__fusion_23_id) {
-          birthdate
-          username
-        }
-      }
-    source: $.userById
-    target: $.products.nodes.reviews.nodes.author
-    requirements:
-      - name: __fusion_23_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 2

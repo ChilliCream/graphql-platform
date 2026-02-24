@@ -20,4 +20,10 @@
     <ProjectReference Include="..\..\src\Validation\HotChocolate.Validation.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="__resources__\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

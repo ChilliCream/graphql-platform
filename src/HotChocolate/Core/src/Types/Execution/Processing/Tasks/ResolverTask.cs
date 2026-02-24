@@ -84,6 +84,6 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     public void BeginExecute(CancellationToken cancellationToken)
     {
         Status = ExecutionTaskStatus.Running;
-        ExecuteAsync(cancellationToken).FireAndForget();
+        _ = ExecuteAsync(cancellationToken);
     }
 }

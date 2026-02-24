@@ -28,6 +28,7 @@ nodes:
           }
         }
       }
+    batchingGroupId: 1
   - id: 2
     type: Operation
     schema: b
@@ -83,3 +84,4 @@ nodes:
           }
         }
       }
+    batchingGroupId: 1
