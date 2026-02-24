@@ -50,6 +50,7 @@ internal sealed class PostgresMessageBusOutboxWorker(
 
         await _task.DisposeAsync();
         _task = null;
+        await _dataSource.DisposeAsync();
     }
 
     private async Task ProcessAsync(CancellationToken stoppingToken)

@@ -144,8 +144,7 @@ public sealed class MessageType
         var interfaces = RuntimeType.GetInterfaces();
         foreach (var interfaceType in interfaces)
         {
-            if (interfaceType.IsGenericType
-                && interfaceType.GetGenericTypeDefinition() == typeof(IEventRequest<>))
+            if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IEventRequest<>))
             {
                 var responseType = interfaceType.GetGenericArguments()[0];
                 context.Messages.GetOrAdd(context, responseType);
@@ -207,8 +206,7 @@ public sealed class MessageType
 
     private static bool IsFrameworkBaseType(Type type)
     {
-        return type == typeof(IEvent)
-            || type == typeof(IEventRequest)
+        return type == typeof(IEventRequest)
             || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEventRequest<>));
     }
 }

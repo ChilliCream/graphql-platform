@@ -10,7 +10,7 @@ namespace Mocha.EntityFrameworkCore;
 /// Provides extension methods on <see cref="IEntityFrameworkCoreBuilder"/> for registering
 /// the core saga store backed by Entity Framework Core.
 /// </summary>
-public static class SagaEntityFrameworkCorePersistanceBuilderExtensions
+public static class SagaEntityFrameworkCorePersistenceBuilderExtensions
 {
     /// <summary>
     /// Registers a scoped <see cref="ISagaStore"/> implementation that uses the configured DbContext

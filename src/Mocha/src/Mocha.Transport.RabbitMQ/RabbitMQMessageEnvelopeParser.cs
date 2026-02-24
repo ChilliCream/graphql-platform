@@ -20,6 +20,9 @@ internal sealed class RabbitMQMessageEnvelopeParser
     public MessageEnvelope Parse(BasicDeliverEventArgs eventArgs)
     {
         var props = eventArgs.BasicProperties;
+        var sentAt = props.Timestamp.UnixTime > 0
+            ? DateTimeOffset.FromUnixTimeSeconds(props.Timestamp.UnixTime)
+            : (DateTimeOffset?)null;
 
         var envelope = new MessageEnvelope
         {
@@ -33,8 +36,8 @@ internal sealed class RabbitMQMessageEnvelopeParser
             FaultAddress = props.Headers?.GetString(RabbitMQMessageHeaders.FaultAddress),
             ContentType = props.ContentType,
             MessageType = props.Type ?? props.Headers?.GetString(RabbitMQMessageHeaders.MessageType),
-            SentAt = props.Timestamp.UnixTime > 0 ? DateTimeOffset.FromUnixTimeSeconds(props.Timestamp.UnixTime) : null,
-            DeliverBy = ParseExpiration(props.Expiration),
+            SentAt = sentAt,
+            DeliverBy = ParseExpiration(props.Expiration, sentAt),
             // TODO quorum queues can use x-delivery-count instead of redelivered!
             DeliveryCount = eventArgs.Redelivered ? 1 : 0,
             Headers = BuildHeaders(props.Headers),
@@ -45,14 +48,17 @@ internal sealed class RabbitMQMessageEnvelopeParser
         return envelope;
     }
 
-    private static DateTimeOffset? ParseExpiration(string? expiration)
+    private static DateTimeOffset? ParseExpiration(string? expiration, DateTimeOffset? sentAt)
     {
         if (string.IsNullOrEmpty(expiration) || !long.TryParse(expiration, out var ms))
         {
             return null;
         }
 
-        return DateTimeOffset.UtcNow.AddMilliseconds(ms);
+        // AMQP expiration is a per-message TTL in milliseconds set at publish time.
+        // Compute deliver-by relative to the send timestamp when available.
+        var origin = sentAt ?? DateTimeOffset.UtcNow;
+        return origin.AddMilliseconds(ms);
     }
 
     private static Headers BuildHeaders(IDictionary<string, object?>? headers)

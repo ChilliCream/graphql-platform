@@ -223,7 +223,27 @@ public class RabbitMQMessageEnvelopeParserTests
     }
 
     [Fact]
-    public void Parse_Should_ParseExpiration_When_ValidMilliseconds()
+    public void Parse_Should_ComputeDeliverByFromSentAt_When_TimestampAndExpirationPresent()
+    {
+        // arrange
+        const long sentAtUnix = 1700000000L;
+        var sentAt = DateTimeOffset.FromUnixTimeSeconds(sentAtUnix);
+        var args = CreateDeliverEventArgs(props =>
+        {
+            props.Timestamp = new AmqpTimestamp(sentAtUnix);
+            props.Expiration = "60000"; // 60 seconds TTL
+        });
+
+        // act
+        var envelope = _parser.Parse(args);
+
+        // assert
+        Assert.NotNull(envelope.DeliverBy);
+        Assert.Equal(sentAt.AddMilliseconds(60000), envelope.DeliverBy.Value);
+    }
+
+    [Fact]
+    public void Parse_Should_FallbackToUtcNow_When_ExpirationPresentButNoTimestamp()
     {
         // arrange
         var args = CreateDeliverEventArgs(props =>
@@ -238,7 +258,6 @@ public class RabbitMQMessageEnvelopeParserTests
 
         // assert
         Assert.NotNull(envelope.DeliverBy);
-        // DeliverBy should be approximately now + 60s
         var expectedMin = beforeParse.AddMilliseconds(60000);
         var expectedMax = afterParse.AddMilliseconds(60000);
         Assert.InRange(envelope.DeliverBy.Value, expectedMin, expectedMax);
