@@ -42,13 +42,13 @@ internal static class SourceMetadataHelper
 }
 
 internal sealed record GitHubSourceMetadataDto(
-    string Actor,
-    string CommitHash,
-    string WorkflowName,
-    string RunNumber,
-    string RunId,
+    [property: JsonRequired] string Actor,
+    [property: JsonRequired] string CommitHash,
+    [property: JsonRequired] string WorkflowName,
+    [property: JsonRequired] string RunNumber,
+    [property: JsonRequired] string RunId,
     string? JobId,
-    string RepositoryUrl);
+    [property: JsonRequired] string RepositoryUrl);
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(GitHubSourceMetadataDto))]
