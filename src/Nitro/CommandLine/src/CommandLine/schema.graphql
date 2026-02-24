@@ -55,6 +55,7 @@ interface Deployment {
   createdAt: DateTime!
   id: ID!
   logs: [DeploymentLog!]!
+  source: SourceMetadata
   status: DeploymentStatus!
   tag: String!
 }
@@ -258,6 +259,10 @@ interface StageChangeLog {
   id: ID!
   kind: StageChangeLogKind!
   tag: String!
+}
+
+interface StageChangedEvent {
+  kind: StageChangeKind!
 }
 
 interface Subgraph {
@@ -704,6 +709,11 @@ type ClientChangeLog implements StageChangeLog & Node {
   tag: String!
 }
 
+type ClientDeletedStageChangeEvent implements StageChangedEvent {
+  clientId: ID!
+  kind: StageChangeKind!
+}
+
 type ClientDeployment implements Node & Deployment {
   approval: DeploymentApproval
   client: Client
@@ -711,6 +721,7 @@ type ClientDeployment implements Node & Deployment {
   errors: [ClientDeploymentError!]!
   id: ID!
   logs: [DeploymentLog!]!
+  source: SourceMetadata
   status: DeploymentStatus!
   tag: String!
 }
@@ -795,9 +806,19 @@ type ClientVersionPublishSuccess implements ClientVersionPublishResult {
   state: ProcessingState!
 }
 
+type ClientVersionPublishedStageChangeEvent implements StageChangedEvent {
+  clientVersion: ClientVersion
+  kind: StageChangeKind!
+}
+
 type ClientVersionRequestNotFoundError implements Error {
   message: String!
   requestId: ID!
+}
+
+type ClientVersionUnpublishedStageChangeEvent implements StageChangedEvent {
+  clientVersion: ClientVersion
+  kind: StageChangeKind!
 }
 
 type ClientVersionValidationFailed implements ClientVersionValidationResult {
@@ -1067,6 +1088,18 @@ type DeploymentReadyLog implements DeploymentLog {
 type DeploymentStartedProcessingLog implements DeploymentLog {
   message: String!
   timestamp: DateTime!
+}
+
+type DeploymentSubgraphsConnection {
+  edges: [DeploymentSubgraphsEdge!]
+  nodes: [FusionSubgraph!]!
+  pageInfo: PageInfo!
+}
+
+type DeploymentSubgraphsEdge {
+  cursor: String!
+  node: FusionSubgraph!
+  version: String
 }
 
 type DeploymentSuccessLog implements DeploymentLog {
@@ -1396,8 +1429,6 @@ type FusionConfiguration {
   format: FusionConfigurationFormat!
   id: ID!
   publishedAt: DateTime!
-  subgraph: Api
-  subgraphName: String
   supportedVersions: [String!]!
   tag: String!
 }
@@ -1416,14 +1447,21 @@ type FusionConfigurationDeployment implements Node & Deployment {
   id: ID!
   logs: [DeploymentLog!]!
   schemaChanges: FusionConfigurationDeploymentSchemaChanges
+  source: SourceMetadata
   status: DeploymentStatus!
-  subgraph: Subgraph
+  subgraph: Subgraph @deprecated(reason: "Use `subgraphs` instead.")
+  subgraphs("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int): DeploymentSubgraphsConnection
   tag: String!
 }
 
 type FusionConfigurationDeploymentSchemaChanges {
   changes("Returns the elements in the list that come after the specified cursor." after: String "Returns the elements in the list that come before the specified cursor." before: String "Returns the first _n_ elements from the list." first: Int "Returns the last _n_ elements from the list." last: Int severity: SchemaChangeSeverity): SchemaChangesConnection
   statistic: SchemaChangeLogStatistic!
+}
+
+type FusionConfigurationPublishedStageChangeEvent implements StageChangedEvent {
+  fusionConfiguration: FusionConfiguration
+  kind: StageChangeKind!
 }
 
 type FusionConfigurationPublishingFailed implements FusionConfigurationPublishingResult {
@@ -1461,6 +1499,13 @@ type FusionSubgraphVersion {
   fusionSubgraph: FusionSubgraph!
   id: ID!
   tag: String!
+}
+
+type GitHubSourceMetadata {
+  commitUrl: URL!
+  shortCommitHash: String!
+  workflowRunName: String!
+  workflowRunUrl: URL!
 }
 
 type GraphQLDirectiveArgumentDefinition implements Node & GraphQLTypeSystemMember & GraphQLInputValueDefinition {
@@ -1779,6 +1824,10 @@ type InvalidProcessingStateTransitionError implements Error {
   message: String!
 }
 
+type InvalidSourceMetadataInputError implements Error {
+  message: String!
+}
+
 type McpFeatureCollection implements Node {
   api: Api
   createdAt: DateTime!
@@ -1795,6 +1844,11 @@ type McpFeatureCollectionChangeLog implements StageChangeLog & Node {
   tag: String!
 }
 
+type McpFeatureCollectionDeletedStageChangeEvent implements StageChangedEvent {
+  kind: StageChangeKind!
+  mcpFeatureCollectionId: ID!
+}
+
 type McpFeatureCollectionDeployment implements Node & Deployment {
   approval: DeploymentApproval
   createdAt: DateTime!
@@ -1802,6 +1856,7 @@ type McpFeatureCollectionDeployment implements Node & Deployment {
   id: ID!
   logs: [DeploymentLog!]!
   mcpFeatureCollection: McpFeatureCollection
+  source: SourceMetadata
   status: DeploymentStatus!
   tag: String!
 }
@@ -1853,6 +1908,7 @@ type McpFeatureCollectionValidationTool implements McpFeatureCollectionValidatio
 
 type McpFeatureCollectionVersion implements Node {
   createdAt: DateTime!
+  hash: String!
   id: ID!
   mcpFeatureCollection: McpFeatureCollection
   tag: String!
@@ -1872,6 +1928,11 @@ type McpFeatureCollectionVersionPublishFailed implements McpFeatureCollectionVer
 type McpFeatureCollectionVersionPublishSuccess implements McpFeatureCollectionVersionPublishResult {
   mcpFeatureCollectionVersion: McpFeatureCollectionVersion
   state: ProcessingState!
+}
+
+type McpFeatureCollectionVersionPublishedStageChangeEvent implements StageChangedEvent {
+  kind: StageChangeKind!
+  mcpFeatureCollectionVersion: McpFeatureCollectionVersion
 }
 
 type McpFeatureCollectionVersionValidationFailed implements McpFeatureCollectionVersionValidationResult {
@@ -1905,7 +1966,7 @@ type MockSchema {
   baseSchemaDownloadUrl: String!
   createdAt: DateTime!
   createdBy: UserInfo!
-  downstreamUrl: URL!
+  downstreamUrl: URI!
   extensionsSchemaDownloadUrl: String!
   id: ID!
   modifiedAt: DateTime!
@@ -2043,6 +2104,11 @@ type OpenApiCollectionChangeLog implements StageChangeLog & Node {
   tag: String!
 }
 
+type OpenApiCollectionDeletedStageChangeEvent implements StageChangedEvent {
+  kind: StageChangeKind!
+  openApiCollectionId: ID!
+}
+
 type OpenApiCollectionDeployment implements Node & Deployment {
   approval: DeploymentApproval
   createdAt: DateTime!
@@ -2050,6 +2116,7 @@ type OpenApiCollectionDeployment implements Node & Deployment {
   id: ID!
   logs: [DeploymentLog!]!
   openApiCollection: OpenApiCollection
+  source: SourceMetadata
   status: DeploymentStatus!
   tag: String!
 }
@@ -2102,6 +2169,7 @@ type OpenApiCollectionValidationModel implements OpenApiCollectionValidationEnti
 
 type OpenApiCollectionVersion implements Node {
   createdAt: DateTime!
+  hash: String!
   id: ID!
   openApiCollection: OpenApiCollection
   tag: String!
@@ -2121,6 +2189,11 @@ type OpenApiCollectionVersionPublishFailed implements OpenApiCollectionVersionPu
 type OpenApiCollectionVersionPublishSuccess implements OpenApiCollectionVersionPublishResult {
   openApiCollectionVersion: OpenApiCollectionVersion
   state: ProcessingState!
+}
+
+type OpenApiCollectionVersionPublishedStageChangeEvent implements StageChangedEvent {
+  kind: StageChangeKind!
+  openApiCollectionVersion: OpenApiCollectionVersion
 }
 
 type OpenApiCollectionVersionValidationFailed implements OpenApiCollectionVersionValidationResult {
@@ -3224,6 +3297,7 @@ type SchemaDeployment implements Node & Deployment {
   id: ID!
   logs: [DeploymentLog!]!
   schemaChanges: SchemaDeploymentSchemaChanges
+  source: SourceMetadata
   status: DeploymentStatus!
   tag: String!
 }
@@ -3542,9 +3616,10 @@ type Subscription {
   onMcpFeatureCollectionVersionValidationUpdate(requestId: ID!): McpFeatureCollectionVersionValidationResult!
   onOpenApiCollectionVersionPublishingUpdate(requestId: ID!): OpenApiCollectionVersionPublishResult!
   onOpenApiCollectionVersionValidationUpdate(requestId: ID!): OpenApiCollectionVersionValidationResult!
-  onPersistedQueriesChanged(apiId: ID! stageName: String!): PersistedQueriesChanged!
+  onPersistedQueriesChanged(apiId: ID! stageName: String!): PersistedQueriesChanged! @deprecated(reason: "Use `onStageChanged` instead.")
   onSchemaVersionPublishingUpdate(requestId: ID!): SchemaVersionPublishResult!
   onSchemaVersionValidationUpdate(requestId: ID!): SchemaVersionValidationResult!
+  onStageChanged(apiId: ID! kind: [StageChangeKind!] stageName: String!): StageChangedEvent!
   onStageChangeLogAdded(apiId: ID! kind: [StageChangeLogKind!] stageName: String!): StageChangeLog!
   onStageDeploymentsChanged(stageId: ID!): DeploymentEvent!
 }
@@ -3883,7 +3958,7 @@ union AuthorizationEventLogResource = Organization | Workspace | Api
 
 union AuthorizationEventLogSubject = User | ApiKey
 
-union BeginFusionConfigurationPublishError = UnauthorizedOperation | ApiNotFoundError | StageNotFoundError | SubgraphInvalidError | InvalidProcessingStateTransitionError
+union BeginFusionConfigurationPublishError = UnauthorizedOperation | ApiNotFoundError | StageNotFoundError | SubgraphInvalidError | InvalidProcessingStateTransitionError | InvalidSourceMetadataInputError
 
 union CancelDeploymentError = UnauthorizedOperation | DeploymentNotFoundError | DeploymentCannotBeCancelledError
 
@@ -3935,7 +4010,7 @@ union EnumValueChange = DeprecatedChange | DescriptionChanged
 
 union FieldChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DeprecatedChange | DescriptionChanged | TypeChanged
 
-union FusionConfigurationDeploymentError = PersistedQueryValidationError | SchemaChangeViolationError | InvalidGraphQLSchemaError | OpenApiCollectionValidationError | McpFeatureCollectionValidationError
+union FusionConfigurationDeploymentError = PersistedQueryValidationError | McpFeatureCollectionValidationError | OpenApiCollectionValidationError | SchemaChangeViolationError | InvalidGraphQLSchemaError
 
 union InputFieldChange = DeprecatedChange | DescriptionChanged | TypeChanged
 
@@ -3959,13 +4034,13 @@ union PollSchemaVersionPublishRequestError = SchemaVersionRequestNotFoundError |
 
 union PollSchemaVersionValidationRequestError = SchemaVersionRequestNotFoundError | UnauthorizedOperation
 
-union PublishClientError = StageNotFoundError | ClientNotFoundError | UnauthorizedOperation | ClientVersionNotFoundError
+union PublishClientError = StageNotFoundError | ClientNotFoundError | UnauthorizedOperation | ClientVersionNotFoundError | InvalidSourceMetadataInputError
 
-union PublishMcpFeatureCollectionError = StageNotFoundError | McpFeatureCollectionNotFoundError | UnauthorizedOperation | McpFeatureCollectionVersionNotFoundError
+union PublishMcpFeatureCollectionError = StageNotFoundError | McpFeatureCollectionNotFoundError | UnauthorizedOperation | McpFeatureCollectionVersionNotFoundError | InvalidSourceMetadataInputError
 
-union PublishOpenApiCollectionError = StageNotFoundError | OpenApiCollectionNotFoundError | UnauthorizedOperation | OpenApiCollectionVersionNotFoundError
+union PublishOpenApiCollectionError = StageNotFoundError | OpenApiCollectionNotFoundError | UnauthorizedOperation | OpenApiCollectionVersionNotFoundError | InvalidSourceMetadataInputError
 
-union PublishSchemaError = StageNotFoundError | ApiNotFoundError | SchemaNotFoundError | UnauthorizedOperation
+union PublishSchemaError = StageNotFoundError | ApiNotFoundError | SchemaNotFoundError | UnauthorizedOperation | InvalidSourceMetadataInputError
 
 union PushDocumentChangesError = UnauthorizedOperation | ChangeStructureInvalid
 
@@ -3983,11 +4058,13 @@ union ScalarChange = DescriptionChanged
 
 union SchemaChangeLogEntry = DirectiveModifiedChange | EnumModifiedChange | InputObjectModifiedChange | InterfaceModifiedChange | ObjectModifiedChange | ScalarModifiedChange | TypeSystemMemberAddedChange | TypeSystemMemberModifiedChange | TypeSystemMemberRemovedChange | UnionModifiedChange
 
-union SchemaDeploymentError = PersistedQueryValidationError | SchemaChangeViolationError | OperationsAreNotAllowedError | SchemaVersionSyntaxError | InvalidGraphQLSchemaError | OpenApiCollectionValidationError | McpFeatureCollectionValidationError
+union SchemaDeploymentError = PersistedQueryValidationError | McpFeatureCollectionValidationError | OpenApiCollectionValidationError | SchemaChangeViolationError | OperationsAreNotAllowedError | SchemaVersionSyntaxError | InvalidGraphQLSchemaError
 
 union SchemaMemberChange = ArgumentAdded | ArgumentChanged | ArgumentRemoved | DescriptionChanged | DirectiveLocationAdded | DirectiveLocationRemoved | EnumValueAdded | EnumValueChanged | EnumValueRemoved | FieldAddedChange | FieldRemovedChange | InputFieldChanged | InterfaceImplementationAdded | InterfaceImplementationRemoved | OutputFieldChanged | PossibleTypeAdded | PossibleTypeRemoved | UnionMemberAdded | UnionMemberRemoved
 
 union SetActiveWorkspaceError = UnauthorizedOperation | WorkspaceNotFound
+
+union SourceMetadata = GitHubSourceMetadata
 
 union StageCondition = AfterStageCondition
 
@@ -4009,25 +4086,25 @@ union UpdateStagesError = ApiNotFoundError | StageNotFoundError | StagesHavePubl
 
 union UpdateThemeSettingsError = UnauthorizedOperation | ValidationError
 
-union UploadClientError = ClientNotFoundError | ConcurrentOperationError | InvalidPersistedQueryError | UnauthorizedOperation | DuplicatedTagError
+union UploadClientError = ClientNotFoundError | ConcurrentOperationError | InvalidPersistedQueryError | UnauthorizedOperation | DuplicatedTagError | InvalidSourceMetadataInputError
 
-union UploadFusionSubgraphError = InvalidFusionSourceSchemaArchiveError | ApiNotFoundError | ConcurrentOperationError | UnauthorizedOperation | DuplicatedTagError
+union UploadFusionSubgraphError = InvalidFusionSourceSchemaArchiveError | ApiNotFoundError | ConcurrentOperationError | UnauthorizedOperation | DuplicatedTagError | InvalidSourceMetadataInputError
 
-union UploadMcpFeatureCollectionError = McpFeatureCollectionNotFoundError | ConcurrentOperationError | UnauthorizedOperation | DuplicatedTagError | InvalidMcpFeatureCollectionArchiveError
+union UploadMcpFeatureCollectionError = McpFeatureCollectionNotFoundError | ConcurrentOperationError | UnauthorizedOperation | DuplicatedTagError | InvalidMcpFeatureCollectionArchiveError | InvalidSourceMetadataInputError
 
-union UploadOpenApiCollectionError = OpenApiCollectionNotFoundError | ConcurrentOperationError | UnauthorizedOperation | DuplicatedTagError | InvalidOpenApiCollectionArchiveError
+union UploadOpenApiCollectionError = OpenApiCollectionNotFoundError | ConcurrentOperationError | UnauthorizedOperation | DuplicatedTagError | InvalidOpenApiCollectionArchiveError | InvalidSourceMetadataInputError
 
-union UploadSchemaError = ApiNotFoundError | ConcurrentOperationError | DuplicatedTagError | UnauthorizedOperation
+union UploadSchemaError = ApiNotFoundError | ConcurrentOperationError | DuplicatedTagError | UnauthorizedOperation | InvalidSourceMetadataInputError
 
-union ValidateClientError = StageNotFoundError | ClientNotFoundError | UnauthorizedOperation
+union ValidateClientError = StageNotFoundError | ClientNotFoundError | UnauthorizedOperation | InvalidSourceMetadataInputError
 
 union ValidateFusionConfigurationCompositionError = UnauthorizedOperation | FusionConfigurationRequestNotFoundError | InvalidProcessingStateTransitionError
 
-union ValidateMcpFeatureCollectionError = StageNotFoundError | McpFeatureCollectionNotFoundError | UnauthorizedOperation
+union ValidateMcpFeatureCollectionError = StageNotFoundError | McpFeatureCollectionNotFoundError | UnauthorizedOperation | InvalidSourceMetadataInputError
 
-union ValidateOpenApiCollectionError = StageNotFoundError | OpenApiCollectionNotFoundError | UnauthorizedOperation
+union ValidateOpenApiCollectionError = StageNotFoundError | OpenApiCollectionNotFoundError | UnauthorizedOperation | InvalidSourceMetadataInputError
 
-union ValidateSchemaError = StageNotFoundError | SchemaNotFoundError | ApiNotFoundError | UnauthorizedOperation
+union ValidateSchemaError = StageNotFoundError | SchemaNotFoundError | ApiNotFoundError | UnauthorizedOperation | InvalidSourceMetadataInputError
 
 union WorkspaceChangeError = ChangeValidationFailed | HasBeenChangedConflict | HasBeenDeletedConflict | IdentifierCollisionConflict | UnexpectedErrorOnChange | WorkspaceNotFoundForChange
 
@@ -4139,9 +4216,11 @@ input BearerAuthenticationFlowOptionsInput {
 
 input BeginFusionConfigurationPublishInput {
   apiId: ID!
+  source: SourceMetadataInput
   stageName: String!
-  subgraphApiId: ID
-  subgraphName: String
+  subgraphApiId: ID @deprecated(reason: "Use `subgraphs` instead.")
+  subgraphName: String @deprecated(reason: "Use `subgraphs` instead.")
+  subgraphs: [FusionSubgraphVersionInput!]
   tag: String!
   waitForApproval: Boolean! = false
 }
@@ -4266,6 +4345,21 @@ input EnvironmentVariableInput {
   value: String!
 }
 
+input FusionSubgraphVersionInput {
+  name: String!
+  tag: String!
+}
+
+input GitHubSourceMetadataInput {
+  actor: String!
+  commitHash: String!
+  jobId: String
+  repositoryUrl: URL!
+  runId: String!
+  runNumber: String!
+  workflowName: String!
+}
+
 input GraphQLCoordinateOrderByInput {
   clientCount: SortEnumType
   errorRate: SortEnumType
@@ -4346,6 +4440,7 @@ input PollSchemaVersionValidationRequestInput {
 input PublishClientInput {
   clientId: ID!
   force: Boolean! = false
+  source: SourceMetadataInput
   stage: String!
   tag: String!
   waitForApproval: Boolean! = false
@@ -4354,6 +4449,7 @@ input PublishClientInput {
 input PublishMcpFeatureCollectionInput {
   force: Boolean! = false
   mcpFeatureCollectionId: ID!
+  source: SourceMetadataInput
   stage: String!
   tag: String!
   waitForApproval: Boolean! = false
@@ -4362,6 +4458,7 @@ input PublishMcpFeatureCollectionInput {
 input PublishOpenApiCollectionInput {
   force: Boolean! = false
   openApiCollectionId: ID!
+  source: SourceMetadataInput
   stage: String!
   tag: String!
   waitForApproval: Boolean! = false
@@ -4370,6 +4467,7 @@ input PublishOpenApiCollectionInput {
 input PublishSchemaInput {
   apiId: ID!
   force: Boolean! = false
+  source: SourceMetadataInput
   stage: String!
   tag: String!
   waitForApproval: Boolean! = false
@@ -4448,6 +4546,10 @@ input SetActiveWorkspaceInput {
   workspaceId: ID!
 }
 
+input SourceMetadataInput @oneOf {
+  github: GitHubSourceMetadataInput
+}
+
 input StageConditionUpdateInput {
   afterStage: String!
 }
@@ -4513,36 +4615,42 @@ input UpdateThemeSettingsInput {
 input UploadClientInput {
   clientId: ID!
   operations: Upload!
+  source: SourceMetadataInput
   tag: String!
 }
 
 input UploadFusionSubgraphInput {
   apiId: ID!
   archive: Upload!
+  source: SourceMetadataInput
   tag: String!
 }
 
 input UploadMcpFeatureCollectionInput {
   collection: Upload!
   mcpFeatureCollectionId: ID!
+  source: SourceMetadataInput
   tag: String!
 }
 
 input UploadOpenApiCollectionInput {
   collection: Upload!
   openApiCollectionId: ID!
+  source: SourceMetadataInput
   tag: String!
 }
 
 input UploadSchemaInput {
   apiId: ID!
   schema: Upload!
+  source: SourceMetadataInput
   tag: String!
 }
 
 input ValidateClientInput {
   clientId: ID!
   operations: Upload!
+  source: SourceMetadataInput
   stage: String!
 }
 
@@ -4554,18 +4662,21 @@ input ValidateFusionConfigurationCompositionInput {
 input ValidateMcpFeatureCollectionInput {
   collection: Upload!
   mcpFeatureCollectionId: ID!
+  source: SourceMetadataInput
   stage: String!
 }
 
 input ValidateOpenApiCollectionInput {
   collection: Upload!
   openApiCollectionId: ID!
+  source: SourceMetadataInput
   stage: String!
 }
 
 input ValidateSchemaInput {
   apiId: ID!
   schema: Upload!
+  source: SourceMetadataInput
   stage: String!
 }
 
@@ -4797,6 +4908,13 @@ enum SortEnumType {
   DESC
 }
 
+enum StageChangeKind {
+  FUSION_CONFIGURATION
+  CLIENT
+  OPEN_API_COLLECTION
+  MCP_FEATURE_COLLECTION
+}
+
 enum StageChangeLogKind {
   SCHEMA
   CLIENT
@@ -4847,6 +4965,9 @@ scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/chillicream/date-
 
 "The `Long` scalar type represents a signed 64-bit integer."
 scalar Long @specifiedBy(url: "https://scalars.graphql.org/chillicream/long.html")
+
+"The `URI` scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986."
+scalar URI @specifiedBy(url: "https://scalars.graphql.org/chillicream/uri.html")
 
 "The `URL` scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986."
 scalar URL @specifiedBy(url: "https://scalars.graphql.org/chillicream/url.html")

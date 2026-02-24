@@ -74,6 +74,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
                 tag,
                 subgraphId,
                 subgraphName,
+                sourceSchemaVersions: null,
                 waitForApproval,
                 ctx,
                 console,

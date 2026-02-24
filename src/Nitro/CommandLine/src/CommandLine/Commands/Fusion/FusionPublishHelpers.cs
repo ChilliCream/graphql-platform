@@ -23,6 +23,7 @@ internal static class FusionPublishHelpers
         string tag,
         string? subgraphId,
         string? subgraphName,
+        SourceSchemaVersion[]? sourceSchemaVersions,
         bool waitForApproval,
         StatusContext? statusContext,
         IAnsiConsole console,
@@ -36,7 +37,16 @@ internal static class FusionPublishHelpers
             StageName = stageName,
             SubgraphName = subgraphName,
             SubgraphApiId = subgraphId,
-            WaitForApproval = waitForApproval
+            WaitForApproval = waitForApproval,
+            Subgraphs = sourceSchemaVersions is { Length: > 0 }
+                ? sourceSchemaVersions
+                    .Select(x => new FusionSubgraphVersionInput
+                    {
+                        Name = x.Name,
+                        Tag = x.Version
+                    })
+                    .ToArray()
+                : null
         };
 
         var result = await client.BeginFusionConfigurationPublish.ExecuteAsync(input, cancellationToken);
@@ -210,8 +220,7 @@ internal static class FusionPublishHelpers
     {
         var input = new CommitFusionConfigurationPublishInput
         {
-            RequestId = requestId,
-            Configuration = new(stream, "gateway.far")
+            RequestId = requestId, Configuration = new(stream, "gateway.far")
         };
 
         var result =
@@ -392,6 +401,8 @@ internal static class FusionPublishHelpers
 
         return new HttpRequestMessage(HttpMethod.Get, requestUri);
     }
+
+    internal sealed record SourceSchemaVersion(string Name, string Version);
 
     private sealed class AnsiStreamWriter(TextWriter textWriter) : IStandardStreamWriter
     {
