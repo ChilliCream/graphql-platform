@@ -21,6 +21,10 @@ query GetWithNullableVariables(
   "String description" $string: String
   "TimeSpan description" $timeSpan: TimeSpan
   "Unknown description" $unknown: Unknown
+  "UnsignedByte description" $unsignedByte: UnsignedByte
+  "UnsignedInt description" $unsignedInt: UnsignedInt
+  "UnsignedLong description" $unsignedLong: UnsignedLong
+  "UnsignedShort description" $unsignedShort: UnsignedShort
   "URI description" $uri: URI
   "URL description" $url: URL
   "UUID description" $uuid: UUID
@@ -47,6 +51,10 @@ query GetWithNullableVariables(
     string: $string
     timeSpan: $timeSpan
     unknown: $unknown
+    unsignedByte: $unsignedByte
+    unsignedInt: $unsignedInt
+    unsignedLong: $unsignedLong
+    unsignedShort: $unsignedShort
     uri: $uri
     url: $url
     uuid: $uuid
@@ -78,6 +86,10 @@ query GetWithNullableVariables(
     string
     timeSpan
     unknown
+    unsignedByte
+    unsignedInt
+    unsignedLong
+    unsignedShort
     uri
     url
     uuid

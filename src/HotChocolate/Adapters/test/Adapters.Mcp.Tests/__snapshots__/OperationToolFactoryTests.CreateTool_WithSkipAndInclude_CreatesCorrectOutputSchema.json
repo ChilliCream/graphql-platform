@@ -11,28 +11,44 @@
           "type": "object",
           "properties": {
             "notSkipped": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "possiblySkipped": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "included": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "possiblyIncluded": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "notSkippedAndIncluded": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "notSkippedAndPossiblyIncluded": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "possiblySkippedAndIncluded": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "possiblySkippedAndPossiblyIncluded": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "objectFieldNotSkipped": {
               "type": "object",
@@ -171,28 +187,44 @@
               "additionalProperties": false
             },
             "fragmentFieldNotSkipped": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "fragmentFieldPossiblySkipped": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "fragmentFieldIncluded": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "fragmentFieldPossiblyIncluded": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "inlineFragmentFieldNotSkipped": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "inlineFragmentFieldPossiblySkipped": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "inlineFragmentFieldIncluded": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "inlineFragmentFieldPossiblyIncluded": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
             }
           },
           "required": [
