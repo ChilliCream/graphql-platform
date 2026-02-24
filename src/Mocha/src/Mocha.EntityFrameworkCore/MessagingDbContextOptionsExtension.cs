@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using System.Runtime.CompilerServices;
 
 namespace Mocha.EntityFrameworkCore;
 
@@ -10,6 +11,9 @@ namespace Mocha.EntityFrameworkCore;
 /// <param name="options">The messaging options containing service configuration delegates to apply.</param>
 internal class MessagingDbContextOptionsExtension(MessagingDbContextOptions options) : IDbContextOptionsExtension
 {
+    private readonly IServiceProvider _serviceProvider = options.ServiceProvider;
+    private readonly Action<IServiceProvider, IServiceCollection>[] _configureServices = [.. options.ConfigureServices];
+
     /// <summary>
     /// Gets the extension metadata used by EF Core for service provider caching and debug output.
     /// </summary>
@@ -22,9 +26,9 @@ internal class MessagingDbContextOptionsExtension(MessagingDbContextOptions opti
     /// <param name="services">The DbContext internal service collection to populate.</param>
     public void ApplyServices(IServiceCollection services)
     {
-        foreach (var configureService in options.ConfigureServices)
+        foreach (var configureService in _configureServices)
         {
-            configureService(options.ServiceProvider, services);
+            configureService(_serviceProvider, services);
         }
     }
 
@@ -48,19 +52,63 @@ internal class MessagingDbContextOptionsExtension(MessagingDbContextOptions opti
         /// <summary>
         /// Returns a hash code used by EF Core to determine whether the internal service provider can be reused.
         /// </summary>
-        /// <returns>A constant hash code since messaging services do not vary per provider.</returns>
+        /// <returns>A hash code that represents messaging service provider configuration state.</returns>
         public override int GetServiceProviderHashCode()
         {
-            return 0;
+            var extension = (MessagingDbContextOptionsExtension)Extension;
+
+            var hash = new HashCode();
+            hash.Add(GetReferenceHashCode(extension._serviceProvider));
+
+            foreach (var configureService in extension._configureServices)
+            {
+                hash.Add(configureService.Method);
+                hash.Add(GetReferenceHashCode(configureService.Target));
+            }
+
+            return hash.ToHashCode();
+
+            static int GetReferenceHashCode(object? instance) =>
+                instance is null ? 0 : RuntimeHelpers.GetHashCode(instance);
         }
 
         /// <summary>
         /// Indicates that contexts with this extension can share the same internal service provider.
         /// </summary>
         /// <param name="other">The other extension info to compare against.</param>
-        /// <returns>Always <c>true</c> because messaging extensions are stateless at the provider level.</returns>
+        /// <returns><c>true</c> if both extensions apply the same messaging service configuration.</returns>
         public override bool ShouldUseSameServiceProvider(DbContextOptionsExtensionInfo other)
         {
+            if (other is not ExtensionInfo otherInfo)
+            {
+                return false;
+            }
+
+            var current = (MessagingDbContextOptionsExtension)Extension;
+            var candidate = (MessagingDbContextOptionsExtension)otherInfo.Extension;
+
+            if (!ReferenceEquals(current._serviceProvider, candidate._serviceProvider))
+            {
+                return false;
+            }
+
+            if (current._configureServices.Length != candidate._configureServices.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < current._configureServices.Length; i++)
+            {
+                var currentDelegate = current._configureServices[i];
+                var candidateDelegate = candidate._configureServices[i];
+
+                if (currentDelegate.Method != candidateDelegate.Method
+                    || !ReferenceEquals(currentDelegate.Target, candidateDelegate.Target))
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
