@@ -411,6 +411,36 @@ public class FilterConventionTests
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task FilterConvention_Should_Ignore_String_Operations()
+    {
+        // arrange
+        var convention = new FilterConvention(
+            descriptor =>
+            {
+                descriptor.AddDefaults();
+                descriptor.Configure<StringOperationFilterInputType>(
+                    d => d.Operation(DefaultFilterOperations.Contains).Ignore());
+                descriptor.Configure<StringOperationFilterInputType>(
+                    d => d.Operation(DefaultFilterOperations.EndsWith).Ignore());
+            });
+
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddConvention<IFilterConvention>(convention)
+            .AddFiltering()
+            .AddQueryType(
+                x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
+
+        // act
+        var schema = await builder.BuildSchemaAsync();
+        var stringOperations = schema.Types.GetType<InputObjectType>("StringOperationFilterInput");
+
+        // assert
+        Assert.DoesNotContain(stringOperations.Fields, t => t.Name.Equals("contains", StringComparison.Ordinal));
+        Assert.DoesNotContain(stringOperations.Fields, t => t.Name.Equals("endsWith", StringComparison.Ordinal));
+    }
+
     protected Schema CreateSchemaWithTypes(
         IFilterInputType type,
         FilterConvention convention,
