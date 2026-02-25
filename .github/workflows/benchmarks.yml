@@ -105,73 +105,141 @@ jobs:
           path: src/HotChocolate/Fusion-vnext/benchmarks/k6/result.json
           retention-days: 30
 
-      - name: Download all available benchmark results
-        if: github.event_name == 'pull_request'
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          pattern: benchmark-*
-          path: benchmark-results
-
-      - name: Generate performance report
-        if: github.event_name == 'pull_request'
-        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
-        run: |
-          ./generate-report.sh "$GITHUB_WORKSPACE/benchmark-results" performance-report.md
-
-      - name: Update PR comment with performance report
+      # Lightweight progressive PR update — reads only the local result.json
+      # and accumulates data in a hidden JSON block inside the PR comment.
+      # No artifact downloads, no external scripts — just a few API calls.
+      - name: Update PR comment (progressive)
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const reportPath = 'src/HotChocolate/Fusion-vnext/benchmarks/k6/performance-report.md';
 
-            let report;
+            // Read this job's result
+            let result;
             try {
-              report = fs.readFileSync(reportPath, 'utf8');
-            } catch (error) {
-              console.error('Failed to read performance report:', error);
+              result = JSON.parse(fs.readFileSync(
+                'src/HotChocolate/Fusion-vnext/benchmarks/k6/result.json', 'utf8'));
+            } catch (e) {
+              console.log('No result.json found, skipping comment update');
               return;
             }
 
-            // Count how many benchmarks we have completed data for
-            const pendingCount = (report.match(/\*pending\*/g) || []).length;
-            const ourCompleted = 12 * 2 - pendingCount; // 12 benchmarks x 2 tables (summary + detail) minus pending cells
-
             const marker = '<!-- fusion-gateway-benchmark-report -->';
-            const progressMarker = (n) => `<!-- completed:${n} -->`;
-            const timestamp = new Date().toUTCString();
-            const commitSha = context.sha.substring(0, 7);
-            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const dataPrefix = '<!-- benchmark-data:';
 
-            const commentBody = `${marker}\n${progressMarker(ourCompleted)}\n${report}\n\n---\n*Run [${context.runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`;
-
+            // Fetch existing comment
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
             });
-
             const existing = comments.find(c => c.body.includes(marker));
 
+            // Parse accumulated results from existing comment
+            let allResults = {};
             if (existing) {
-              // Optimistic concurrency: only update if we have more data
-              const existingMatch = existing.body.match(/<!-- completed:(\d+) -->/);
-              const existingCompleted = existingMatch ? parseInt(existingMatch[1], 10) : 0;
-
-              if (ourCompleted >= existingCompleted) {
-                await github.rest.issues.updateComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: existing.id,
-                  body: commentBody,
-                });
-                console.log(`Updated comment (${ourCompleted} >= ${existingCompleted} completed)`);
-              } else {
-                console.log(`Skipped update (${ourCompleted} < ${existingCompleted} completed)`);
+              const m = existing.body.match(/<!-- benchmark-data:(.*?) -->/);
+              if (m) {
+                try { allResults = JSON.parse(Buffer.from(m[1], 'base64').toString()); }
+                catch (e) { console.log('Failed to parse existing data, starting fresh'); }
               }
+            }
+
+            // Merge our result
+            const key = `${result.test}|${result.mode}|${result.runner_group}`;
+            allResults[key] = result;
+            const completed = Object.keys(allResults).length;
+
+            // Only update if we have at least as much data as what's already posted
+            if (existing) {
+              const cm = existing.body.match(/<!-- completed:(\d+) -->/);
+              const existingCompleted = cm ? parseInt(cm[1], 10) : 0;
+              if (completed < existingCompleted) {
+                console.log(`Skipped (${completed} < ${existingCompleted})`);
+                return;
+              }
+            }
+
+            // --- Generate markdown report inline ---
+            const fmt = (n) => Number(n).toFixed(2);
+            const tests = [
+              { key: 'no-recursion', title: 'Simple Composite Query' },
+              { key: 'deep-recursion', title: 'Deep Recursion Query' },
+              { key: 'variable-batch', title: 'Variable Batching Throughput' },
+            ];
+            const modes = [
+              { key: 'constant', label: 'Constant', desc: '(50 VUs)' },
+              { key: 'ramping', label: 'Ramping', desc: '(0-500-0 VUs)' },
+            ];
+            const runners = [
+              { group: 'Benchmarking', label: '1' },
+              { group: 'Benchmarking-2', label: '2' },
+            ];
+
+            let md = '### Fusion Gateway Performance Results\n\n';
+            if (completed < 12) {
+              md += `> **Progress: ${completed}/12 benchmarks completed** — this report updates as each job finishes.\n\n`;
+            }
+
+            for (const test of tests) {
+              md += `#### ${test.title}\n\n`;
+              md += '| | Req/s | Err% |\n|:--|--:|--:|\n';
+              for (const mode of modes) {
+                for (const runner of runners) {
+                  const k = `${test.key}|${mode.key}|${runner.group}`;
+                  const r = allResults[k];
+                  const lbl = `**${mode.label} ${runner.label}**`;
+                  if (r) {
+                    md += `| ${lbl} ${mode.desc} | ${fmt(r.throughput.requests_per_second)} | ${fmt(r.reliability.error_rate)}% |\n`;
+                  } else {
+                    md += `| ${lbl} ${mode.desc} | *pending* | *pending* |\n`;
+                  }
+                }
+              }
+              md += '\n<details>\n<summary>Response Times</summary>\n\n';
+              md += '| | Min | Med | Avg | P90 | P95 | Max |\n|:--|--:|--:|--:|--:|--:|--:|\n';
+              for (const mode of modes) {
+                for (const runner of runners) {
+                  const k = `${test.key}|${mode.key}|${runner.group}`;
+                  const r = allResults[k];
+                  const lbl = `**${mode.label} ${runner.label}**`;
+                  if (r) {
+                    const t = r.response_time;
+                    md += `| ${lbl} | ${fmt(t.min)}ms | ${fmt(t.p50)}ms | ${fmt(t.avg)}ms | ${fmt(t.p90)}ms | ${fmt(t.p95)}ms | ${fmt(t.max)}ms |\n`;
+                  } else {
+                    md += `| ${lbl} | *pending* | *pending* | *pending* | *pending* | *pending* | *pending* |\n`;
+                  }
+                }
+              }
+              md += '\n</details>\n\n---\n\n';
+            }
+            md += '*Runner 1 = Benchmarking, Runner 2 = Benchmarking-2*';
+
+            // Build comment body with hidden data block
+            const encodedData = Buffer.from(JSON.stringify(allResults)).toString('base64');
+            const timestamp = new Date().toUTCString();
+            const commitSha = context.sha.substring(0, 7);
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const commentBody = [
+              marker,
+              `${dataPrefix}${encodedData} -->`,
+              `<!-- completed:${completed} -->`,
+              md,
+              '---',
+              `*Run [${context.runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`,
+            ].join('\n');
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: commentBody,
+              });
+              console.log(`Updated comment (${completed}/12 completed)`);
             } else {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -179,6 +247,7 @@ jobs:
                 issue_number: context.issue.number,
                 body: commentBody,
               });
+              console.log(`Created comment (${completed}/12 completed)`);
             }
 
   report:
@@ -236,7 +305,7 @@ jobs:
             const commitSha = context.sha.substring(0, 7);
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
-            // Final report always wins — use max completed marker
+            // Final report always wins — use max completed marker and no data block
             const commentBody = `${marker}\n<!-- completed:999 -->\n${report}\n\n---\n*Run [${context.runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`;
 
             const { data: comments } = await github.rest.issues.listComments({
