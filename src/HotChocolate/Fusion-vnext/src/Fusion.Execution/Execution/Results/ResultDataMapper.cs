@@ -150,7 +150,7 @@ internal static class ResultDataMapper
             throw new InvalidOperationException("Only object results are supported.");
         }
 
-        var fields = new List<ObjectFieldNode>();
+        var fields = new List<ObjectFieldNode>(node.Fields.Length);
 
         foreach (var field in node.Fields)
         {
@@ -166,7 +166,6 @@ internal static class ResultDataMapper
             fields.Add(new ObjectFieldNode(field.Name.Value, value));
         }
 
-        fields.Capacity = fields.Count;
         return new ObjectValueNode(fields);
     }
 
@@ -198,7 +197,7 @@ internal static class ResultDataMapper
             return null;
         }
 
-        var items = new List<IValueNode>();
+        var items = new List<IValueNode>(result.GetArrayLength());
 
         foreach (var item in result.EnumerateArray())
         {

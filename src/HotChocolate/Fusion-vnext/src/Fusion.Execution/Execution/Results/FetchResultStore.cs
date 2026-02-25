@@ -32,6 +32,7 @@ internal sealed class FetchResultStore : IDisposable
     private readonly ConcurrentStack<IDisposable> _memory = [];
     private readonly List<CompositeResultElement> _collectTargetCurrent = [];
     private readonly List<CompositeResultElement> _collectTargetNext = [];
+    private readonly List<CompositeResultElement> _collectTargetCombined = [];
     private CompositeResultDocument _result;
     private ValueCompletion _valueCompletion;
     private List<IError>? _errors;
@@ -356,7 +357,8 @@ AddErrors_Next:
 
         lock (_lock)
         {
-            var combined = new List<CompositeResultElement>();
+            var combined = _collectTargetCombined;
+            combined.Clear();
 
             foreach (var selectionSet in selectionSets)
             {

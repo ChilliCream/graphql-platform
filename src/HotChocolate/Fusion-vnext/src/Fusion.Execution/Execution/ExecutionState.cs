@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -14,25 +13,17 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     private const byte NodeStateSkipped = 2;
 
     private readonly List<ExecutionNode> _stack = [];
-
     private readonly List<ExecutionNode> _ready = [];
-
     private readonly List<int> _trackedNodeStateSlots = [];
-
     private readonly List<int> _trackedDependencySlots = [];
-
-    private byte[] _nodeStates = [];
-
-    private int[] _remainingDependencies = [];
-
     private readonly ConcurrentQueue<ExecutionNodeResult> _completedResults = new();
 
+    private byte[] _nodeStates = [];
+    private int[] _remainingDependencies = [];
     private int _backlogCount;
-
     private int _activeNodes;
 
     public readonly OrderedDictionary<int, ExecutionNodeTrace> Traces = [];
-
     public readonly AsyncAutoResetEvent Signal = new();
 
     public void FillBacklog(OperationPlan plan)
