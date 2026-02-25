@@ -53,8 +53,7 @@ public static class SingleOrDefaultObjectFieldDescriptorExtensions
                     definition.ResultType = selectionType;
                     if (ShouldRewriteFieldType(definition.Type))
                     {
-                        definition.Type =
-                            context.TypeInspector.GetTypeRef(selectionType, TypeContext.Output);
+                        definition.Type = context.TypeInspector.GetTypeRef(selectionType, TypeContext.Output);
                     }
 
                     definition.Tasks.Add(
