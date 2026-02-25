@@ -1,4 +1,3 @@
-using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 using HotChocolate.Buffers;
@@ -14,7 +13,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public sealed record OperationPlan
 {
     private static readonly JsonOperationPlanFormatter s_formatter = new();
-    private readonly FrozenDictionary<int, ExecutionNode> _nodes = FrozenDictionary<int, ExecutionNode>.Empty;
+    private readonly ExecutionNode?[] _nodesById = [];
     private readonly ImmutableArray<BatchingGroupRegistration> _batchingGroups;
 
     private OperationPlan(
@@ -31,7 +30,7 @@ public sealed record OperationPlan
         AllNodes = allNodes;
         SearchSpace = searchSpace;
         ExpandedNodes = expandedNodes;
-        _nodes = allNodes.ToFrozenDictionary(t => t.Id);
+        _nodesById = CreateNodeLookup(allNodes);
         _batchingGroups = CreateBatchingGroups(allNodes);
     }
 
@@ -86,7 +85,15 @@ public sealed record OperationPlan
     /// <returns>The execution node with the specified identifier.</returns>
     /// <exception cref="KeyNotFoundException">Thrown when no node with the specified ID exists.</exception>
     public ExecutionNode GetNodeById(int id)
-        => _nodes[id];
+    {
+        if ((uint)id < (uint)_nodesById.Length
+            && _nodesById[id] is { } node)
+        {
+            return node;
+        }
+
+        throw new KeyNotFoundException();
+    }
 
     /// <summary>
     /// Creates a new operation plan with the specified identifier.
@@ -202,6 +209,30 @@ public sealed record OperationPlan
         }
 
         return registrations.MoveToImmutable();
+    }
+
+    private static ExecutionNode?[] CreateNodeLookup(ImmutableArray<ExecutionNode> allNodes)
+    {
+        if (allNodes.IsDefaultOrEmpty)
+        {
+            return [];
+        }
+
+        var maxId = 0;
+
+        foreach (var node in allNodes)
+        {
+            maxId = Math.Max(maxId, node.Id);
+        }
+
+        var nodesById = new ExecutionNode?[maxId + 1];
+
+        foreach (var node in allNodes)
+        {
+            nodesById[node.Id] = node;
+        }
+
+        return nodesById;
     }
 
     internal readonly record struct BatchingGroupRegistration(
