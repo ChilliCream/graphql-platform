@@ -2,7 +2,7 @@
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "GraphQL HTTP POST",
+      "DisplayName": "GraphQL HTTP GET",
       "Status": "Ok",
       "tags": [
         {
@@ -12,10 +12,6 @@
         {
           "Key": "graphql.http.request.type",
           "Value": "single"
-        },
-        {
-          "Key": "graphql.http.request.variables",
-          "Value": "{\"episode\":\"NEW_HOPE\"}"
         }
       ],
       "event": [],
@@ -34,25 +30,25 @@
         },
         {
           "OperationName": "ExecuteRequest",
-          "DisplayName": "query { hero }",
+          "DisplayName": "query { sayHello }",
           "Status": "Unset",
           "tags": [
             {
               "Key": "graphql.document.id",
-              "Value": "1d4bca4d0dff630390ddf48e9085589d"
+              "Value": "f7e9989fbb67af7fa747a9983313c9e5"
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "cc68dfd8c0c54a586a03c35296c5d1f9"
+              "Value": "f7e9989fbb67af7fa747a9983313c9e5"
             },
             {
               "Key": "graphql.operation.id",
-              "Value": "_Default-1-1d4bca4d0dff630390ddf48e9085589d"
+              "Value": "456132b93ebaf15a39534753bf72f9f4bfa1152a08d04bc8a88539feec1cb52c"
             }
           ],
           "event": [
             {
-              "Name": "AddedOperationToCache",
+              "Name": "AddedOperationPlanToCache",
               "Tags": []
             },
             {
@@ -68,11 +64,11 @@
               "tags": [
                 {
                   "Key": "graphql.document.id",
-                  "Value": "1d4bca4d0dff630390ddf48e9085589d"
+                  "Value": "f7e9989fbb67af7fa747a9983313c9e5"
                 },
                 {
                   "Key": "graphql.document.hash",
-                  "Value": "cc68dfd8c0c54a586a03c35296c5d1f9"
+                  "Value": "f7e9989fbb67af7fa747a9983313c9e5"
                 },
                 {
                   "Key": "otel.status_code",
@@ -82,32 +78,8 @@
               "event": []
             },
             {
-              "OperationName": "AnalyzeOperationCost",
-              "DisplayName": "Analyze Operation Complexity",
-              "Status": "Unset",
-              "tags": [
-                {
-                  "Key": "graphql.operation.id",
-                  "Value": "1d4bca4d0dff630390ddf48e9085589d"
-                }
-              ],
-              "event": []
-            },
-            {
-              "OperationName": "CompileOperation",
-              "DisplayName": "Compile Operation",
-              "Status": "Ok",
-              "tags": [
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
-                }
-              ],
-              "event": []
-            },
-            {
-              "OperationName": "CoerceVariables",
-              "DisplayName": "Coerce Variable",
+              "OperationName": "PlanOperation",
+              "DisplayName": "Plan Operation",
               "Status": "Ok",
               "tags": [
                 {
@@ -130,37 +102,17 @@
               "event": [],
               "activities": [
                 {
-                  "OperationName": "ResolveFieldValue",
-                  "DisplayName": "/hero",
+                  "OperationName": "ExecuteOperationNode",
+                  "DisplayName": "Execute Operation Node (a)",
                   "Status": "Ok",
                   "tags": [
                     {
-                      "Key": "graphql.selection.name",
-                      "Value": "hero"
+                      "Key": "graphql.fusion.node.type",
+                      "Value": "Operation"
                     },
                     {
-                      "Key": "graphql.selection.type",
-                      "Value": "Character"
-                    },
-                    {
-                      "Key": "graphql.selection.path",
-                      "Value": "/hero"
-                    },
-                    {
-                      "Key": "graphql.selection.hierarchy",
-                      "Value": "/hero"
-                    },
-                    {
-                      "Key": "graphql.selection.field.name",
-                      "Value": "hero"
-                    },
-                    {
-                      "Key": "graphql.selection.field.coordinate",
-                      "Value": "Query.hero"
-                    },
-                    {
-                      "Key": "graphql.selection.field.declaringType",
-                      "Value": "Query"
+                      "Key": "graphql.fusion.node.schema",
+                      "Value": "a"
                     },
                     {
                       "Key": "otel.status_code",
