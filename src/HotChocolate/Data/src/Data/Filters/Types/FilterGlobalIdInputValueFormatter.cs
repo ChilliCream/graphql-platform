@@ -8,6 +8,7 @@ internal class FilterGlobalIdInputValueFormatter(
     Type namedType,
     IDictionary<string, Type>? nodeIdTypes = null)
     : IInputValueFormatter
+    , INodeIdRuntimeTypeLookup
 {
     private INodeIdSerializer? _serializer;
 
@@ -29,7 +30,7 @@ internal class FilterGlobalIdInputValueFormatter(
         {
             try
             {
-                return _serializer.Parse(s, ResolveNamedType(s)).InternalId;
+                return _serializer.Parse(s, this).InternalId;
             }
             catch (Exception ex) when (ex is not GraphQLException)
             {
@@ -84,7 +85,7 @@ internal class FilterGlobalIdInputValueFormatter(
                         continue;
                     }
 
-                    id = _serializer.Parse(sv, ResolveNamedType(sv));
+                    id = _serializer.Parse(sv, this);
                     list.Add(id.InternalId);
                 }
 
@@ -99,26 +100,19 @@ internal class FilterGlobalIdInputValueFormatter(
         throw ThrowHelper.GlobalIdInputValueFormatter_SpecifiedValueIsNotAValidId();
     }
 
-    private Type ResolveNamedType(string formattedId)
+    Type? INodeIdRuntimeTypeLookup.GetNodeIdRuntimeType(string typeName)
     {
-        if (namedType != typeof(string)
-            || nodeIdTypes is null
-            || nodeIdTypes.Count == 0
-            || _serializer is null)
+        if (namedType != typeof(string))
         {
             return namedType;
         }
 
-        try
+        if (nodeIdTypes is not null
+            && nodeIdTypes.TryGetValue(typeName, out var runtimeType))
         {
-            var parsed = _serializer.Parse(formattedId, typeof(string));
-            return nodeIdTypes.TryGetValue(parsed.TypeName, out var runtimeType)
-                ? runtimeType
-                : namedType;
+            return runtimeType;
         }
-        catch (Exception ex) when (ex is not GraphQLException)
-        {
-            return namedType;
-        }
+
+        return null;
     }
 }

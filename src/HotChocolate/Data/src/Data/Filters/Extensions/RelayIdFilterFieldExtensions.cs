@@ -36,11 +36,7 @@ public static class RelayIdFilterFieldExtensions
                 {
                     var returnType = d.Member is null ? typeof(string) : d.Member.GetReturnType();
                     var returnTypeInfo = c.DescriptorContext.TypeInspector.CreateTypeInfo(returnType);
-                    d.Formatters.Push(
-                        CreateSerializer(
-                            c,
-                            returnTypeInfo.NamedType,
-                            nodeFeature.NodeIdTypes));
+                    d.Formatters.Push(CreateSerializer(c, returnTypeInfo.NamedType, nodeFeature.NodeIdTypes));
                 }
             });
 
