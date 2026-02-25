@@ -20,22 +20,23 @@ internal sealed class ConnectionType
         string connectionName,
         TypeReference nodeType,
         bool includeTotalCount,
-        bool includeNodesField)
+        bool includeNodesField,
+        INamingConventions namingConventions)
     {
         ArgumentException.ThrowIfNullOrEmpty(connectionName);
         ArgumentNullException.ThrowIfNull(nodeType);
 
         ConnectionName = connectionName;
-        var edgeTypeName = NameHelper.CreateEdgeName(connectionName);
+        var edgeTypeName = NameHelper.CreateEdgeName(namingConventions, connectionName);
 
         var edgesType =
             TypeReference.Parse(
                 $"[{edgeTypeName}!]",
                 TypeContext.Output,
-                factory: _ => new EdgeType(connectionName, nodeType));
+                factory: c => new EdgeType(connectionName, nodeType, c.Naming));
 
         Configuration = CreateConfiguration(includeTotalCount, includeNodesField, edgesType);
-        Configuration.Name = NameHelper.CreateConnectionName(connectionName);
+        Configuration.Name = NameHelper.CreateConnectionName(namingConventions, connectionName);
         Configuration.Dependencies.Add(new TypeDependency(nodeType));
         Configuration.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask(
@@ -70,7 +71,7 @@ internal sealed class ConnectionType
             TypeReference.Create(
                 ContextDataKeys.EdgeType,
                 nodeType,
-                _ => new EdgeType(nodeType),
+                c => new EdgeType(nodeType, c.Naming),
                 TypeContext.Output);
 
         // the property is set later in the configuration
@@ -90,9 +91,9 @@ internal sealed class ConnectionType
                     var definition = (ObjectTypeConfiguration)d;
                     var edges = definition.Fields.First(IsEdgesField);
 
-                    definition.Name = NameHelper.CreateConnectionName(ConnectionName);
+                    definition.Name = NameHelper.CreateConnectionName(c.DescriptorContext.Naming, ConnectionName);
                     edges.Type = TypeReference.Parse(
-                        $"[{NameHelper.CreateEdgeName(ConnectionName)}!]",
+                        $"[{NameHelper.CreateEdgeName(c.DescriptorContext.Naming, ConnectionName)}!]",
                         TypeContext.Output);
 
                     if (includeNodesField)
@@ -130,11 +131,13 @@ internal sealed class ConnectionType
         ITypeDiscoveryContext context,
         TypeSystemConfiguration configuration)
     {
-        context.Dependencies.Add(new TypeDependency(context.TypeInspector.GetOutputTypeRef(typeof(PageInfoType))));
+        context.Dependencies.Add(new TypeDependency(
+            context.TypeInspector.GetOutputTypeRef(typeof(PageInfoType))));
 
         if (context.DescriptorContext.Options.ApplyShareableToConnections)
         {
-            context.Dependencies.Add(new TypeDependency(context.TypeInspector.GetOutputTypeRef(typeof(Shareable))));
+            context.Dependencies.Add(new TypeDependency(
+                context.TypeInspector.GetOutputTypeRef(typeof(Shareable))));
 
             var config = (ObjectTypeConfiguration)configuration;
             config.AddDirective(Shareable.Instance, context.TypeInspector);
@@ -184,25 +187,27 @@ internal sealed class ConnectionType
 
         if (includeNodesField)
         {
-            definition.Fields.Add(new ObjectFieldConfiguration(
-                Names.Nodes,
-                ConnectionType_Nodes_Description,
-                pureResolver: GetNodes)
-            {
-                Flags = CoreFieldFlags.ConnectionNodesField
-            });
+            definition.Fields.Add(
+                new ObjectFieldConfiguration(
+                    Names.Nodes,
+                    ConnectionType_Nodes_Description,
+                    pureResolver: GetNodes)
+                {
+                    Flags = CoreFieldFlags.ConnectionNodesField
+                });
         }
 
         if (includeTotalCount)
         {
-            definition.Fields.Add(new ObjectFieldConfiguration(
-                Names.TotalCount,
-                ConnectionType_TotalCount_Description,
-                type: TypeReference.Parse($"{ScalarNames.Int}!"),
-                pureResolver: GetTotalCount)
-            {
-                Flags = CoreFieldFlags.TotalCount
-            });
+            definition.Fields.Add(
+                new ObjectFieldConfiguration(
+                    Names.TotalCount,
+                    ConnectionType_TotalCount_Description,
+                    type: TypeReference.Parse($"{ScalarNames.Int}!"),
+                    pureResolver: GetTotalCount)
+                {
+                    Flags = CoreFieldFlags.TotalCount
+                });
         }
 
         return definition;
