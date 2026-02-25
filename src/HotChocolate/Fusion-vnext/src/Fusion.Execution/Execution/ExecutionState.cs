@@ -11,9 +11,13 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 {
     private readonly List<ExecutionNode> _stack = [];
 
+    private readonly List<ExecutionNode> _ready = [];
+
     private readonly List<ExecutionNode> _backlog = [];
 
     private readonly HashSet<ExecutionNode> _completed = [];
+
+    private readonly Dictionary<ExecutionNode, int> _remainingDependencies = [];
 
     private readonly ConcurrentQueue<ExecutionNodeResult> _completedResults = new();
 
@@ -25,6 +29,9 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
     public void FillBacklog(OperationPlan plan)
     {
+        _ready.Clear();
+        _remainingDependencies.Clear();
+
         switch (plan.Operation.Definition.Operation)
         {
             case OperationType.Query:
@@ -57,13 +64,26 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
             default:
                 throw new ArgumentOutOfRangeException("Unexpected operation type.");
         }
+
+        foreach (var node in _backlog)
+        {
+            var remainingDependencies = node.Dependencies.Length;
+            _remainingDependencies[node] = remainingDependencies;
+
+            if (remainingDependencies == 0)
+            {
+                _ready.Add(node);
+            }
+        }
     }
 
     public void Reset()
     {
         _stack.Clear();
+        _ready.Clear();
         _backlog.Clear();
         _completed.Clear();
+        _remainingDependencies.Clear();
         _completedResults.Clear();
         _activeNodes = 0;
 
@@ -81,6 +101,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     public void StartNode(OperationPlanContext context, ExecutionNode node, CancellationToken cancellationToken)
     {
         Interlocked.Increment(ref _activeNodes);
+        _remainingDependencies.Remove(node);
         _backlog.Remove(node);
         _ = node.ExecuteAsync(context, cancellationToken);
     }
@@ -145,6 +166,24 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
                     }
                 }
             }
+
+            foreach (var dependent in node.Dependents)
+            {
+                if (!_remainingDependencies.TryGetValue(dependent, out var remainingDependencies))
+                {
+                    continue;
+                }
+
+                if (remainingDependencies == 1)
+                {
+                    _remainingDependencies[dependent] = 0;
+                    _ready.Add(dependent);
+                }
+                else if (remainingDependencies > 1)
+                {
+                    _remainingDependencies[dependent] = remainingDependencies - 1;
+                }
+            }
         }
 
         if (result.Status is ExecutionStatus.Skipped or ExecutionStatus.Failed)
@@ -161,6 +200,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         while (_stack.TryPop(out var current))
         {
             context.SourceSchemaDispatcher.SkipNode(current.Id);
+            _remainingDependencies.Remove(current);
 
             if (_backlog.Remove(current)
                 && collectTelemetry
@@ -192,30 +232,32 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     {
         _stack.Clear();
 
-        foreach (var node in _backlog)
+        if (_ready.Count == 0)
         {
-            if (CanExecuteNode(node))
+            return false;
+        }
+
+        foreach (var node in _ready)
+        {
+            if (_remainingDependencies.TryGetValue(node, out var remainingDependencies)
+                && remainingDependencies == 0)
             {
                 _stack.Push(node);
             }
         }
 
+        _ready.Clear();
+
+        if (_stack.Count == 0)
+        {
+            return false;
+        }
+
+        _stack.Sort(static (a, b) => a.Id.CompareTo(b.Id));
+
         foreach (var node in _stack)
         {
             StartNode(context, node, cancellationToken);
-        }
-
-        return _stack.Count > 0;
-    }
-
-    private bool CanExecuteNode(ExecutionNode node)
-    {
-        foreach (var dependency in node.Dependencies)
-        {
-            if (!_completed.Contains(dependency))
-            {
-                return false;
-            }
         }
 
         return true;
