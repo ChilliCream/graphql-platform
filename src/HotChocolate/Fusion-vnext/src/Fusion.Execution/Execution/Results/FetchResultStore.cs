@@ -558,9 +558,8 @@ AddErrors_Next:
         ref PooledArrayWriter? buffer)
     {
         VariableValues[]? variableValueSets = null;
-        Dictionary<CompositeResultElement, int>? seen = null;
+        Dictionary<IValueNode, int>? seen = null;
         List<Path>?[]? additionalPaths = null;
-        var firstValue = default(CompositeResultElement);
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -576,33 +575,32 @@ AddErrors_Next:
                 continue;
             }
 
+            var mappedValue = ResultDataMapper.MapLeafValue(value, ref buffer);
             variableValueSets ??= new VariableValues[elements.Count];
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<CompositeResultElement, int>(CompositeResultElementValueComparer.Instance)
+                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance)
                 {
-                    [firstValue] = 0
+                    [variableValueSets[0].Values.Fields[0].Value] = 0
                 };
 
-                if (seen.TryGetValue(value, out var existingIndex))
+                if (seen.TryGetValue(mappedValue, out var existingIndex))
                 {
                     additionalPaths ??= new List<Path>?[elements.Count];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
                     continue;
                 }
 
-                seen[value] = nextIndex;
+                seen[mappedValue] = nextIndex;
             }
-
-            firstValue = value;
 
             variableValueSets[nextIndex++] = new VariableValues(
                 result.Path,
                 new ObjectValueNode([
                     new ObjectFieldNode(
                         requirement.Key,
-                        ResultDataMapper.MapLeafValue(value, ref buffer))
+                        mappedValue)
                 ]));
         }
 
@@ -694,9 +692,8 @@ AddErrors_Next:
         ref PooledArrayWriter? buffer)
     {
         VariableValues[]? variableValueSets = null;
-        Dictionary<TwoResultElementTuple, int>? seen = null;
+        Dictionary<TwoValueNodeTuple, int>? seen = null;
         List<Path>?[]? additionalPaths = null;
-        var firstKey = default(TwoResultElementTuple);
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -717,15 +714,18 @@ AddErrors_Next:
                 continue;
             }
 
+            var mappedValue1 = ResultDataMapper.MapLeafValue(value1, ref buffer);
+            var mappedValue2 = ResultDataMapper.MapLeafValue(value2, ref buffer);
             variableValueSets ??= new VariableValues[elements.Count];
-
-            var key = new TwoResultElementTuple(value1, value2);
+            var key = new TwoValueNodeTuple(mappedValue1, mappedValue2);
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<TwoResultElementTuple, int>(TwoResultElementTupleComparer.Instance)
+                seen ??= new Dictionary<TwoValueNodeTuple, int>(TwoValueNodeTupleComparer.Instance)
                 {
-                    [firstKey] = 0
+                    [new TwoValueNodeTuple(
+                        variableValueSets[0].Values.Fields[0].Value,
+                        variableValueSets[0].Values.Fields[1].Value)] = 0
                 };
 
                 if (seen.TryGetValue(key, out var existingIndex))
@@ -738,13 +738,11 @@ AddErrors_Next:
                 seen[key] = nextIndex;
             }
 
-            firstKey = key;
-
             variableValueSets[nextIndex++] = new VariableValues(
                 result.Path,
                 new ObjectValueNode([
-                    new ObjectFieldNode(requirement1.Key, ResultDataMapper.MapLeafValue(value1, ref buffer)),
-                    new ObjectFieldNode(requirement2.Key, ResultDataMapper.MapLeafValue(value2, ref buffer))
+                    new ObjectFieldNode(requirement1.Key, mappedValue1),
+                    new ObjectFieldNode(requirement2.Key, mappedValue2)
                 ]));
         }
 
@@ -856,9 +854,8 @@ AddErrors_Next:
         ref PooledArrayWriter? buffer)
     {
         VariableValues[]? variableValueSets = null;
-        Dictionary<ThreeResultElementTuple, int>? seen = null;
+        Dictionary<ThreeValueNodeTuple, int>? seen = null;
         List<Path>?[]? additionalPaths = null;
-        var firstKey = default(ThreeResultElementTuple);
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -887,15 +884,20 @@ AddErrors_Next:
                 continue;
             }
 
+            var mappedValue1 = ResultDataMapper.MapLeafValue(value1, ref buffer);
+            var mappedValue2 = ResultDataMapper.MapLeafValue(value2, ref buffer);
+            var mappedValue3 = ResultDataMapper.MapLeafValue(value3, ref buffer);
             variableValueSets ??= new VariableValues[elements.Count];
-
-            var key = new ThreeResultElementTuple(value1, value2, value3);
+            var key = new ThreeValueNodeTuple(mappedValue1, mappedValue2, mappedValue3);
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<ThreeResultElementTuple, int>(ThreeResultElementTupleComparer.Instance)
+                seen ??= new Dictionary<ThreeValueNodeTuple, int>(ThreeValueNodeTupleComparer.Instance)
                 {
-                    [firstKey] = 0
+                    [new ThreeValueNodeTuple(
+                        variableValueSets[0].Values.Fields[0].Value,
+                        variableValueSets[0].Values.Fields[1].Value,
+                        variableValueSets[0].Values.Fields[2].Value)] = 0
                 };
 
                 if (seen.TryGetValue(key, out var existingIndex))
@@ -908,14 +910,12 @@ AddErrors_Next:
                 seen[key] = nextIndex;
             }
 
-            firstKey = key;
-
             variableValueSets[nextIndex++] = new VariableValues(
                 result.Path,
                 new ObjectValueNode([
-                    new ObjectFieldNode(requirement1.Key, ResultDataMapper.MapLeafValue(value1, ref buffer)),
-                    new ObjectFieldNode(requirement2.Key, ResultDataMapper.MapLeafValue(value2, ref buffer)),
-                    new ObjectFieldNode(requirement3.Key, ResultDataMapper.MapLeafValue(value3, ref buffer))
+                    new ObjectFieldNode(requirement1.Key, mappedValue1),
+                    new ObjectFieldNode(requirement2.Key, mappedValue2),
+                    new ObjectFieldNode(requirement3.Key, mappedValue3)
                 ]));
         }
 
@@ -1279,15 +1279,6 @@ AddErrors_Next:
         return ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets);
     }
 
-    private readonly record struct TwoResultElementTuple(
-        CompositeResultElement Value1,
-        CompositeResultElement Value2);
-
-    private readonly record struct ThreeResultElementTuple(
-        CompositeResultElement Value1,
-        CompositeResultElement Value2,
-        CompositeResultElement Value3);
-
     private readonly record struct TwoValueNodeTuple(IValueNode Value1, IValueNode Value2);
 
     private readonly record struct ThreeValueNodeTuple(
@@ -1323,83 +1314,5 @@ AddErrors_Next:
                 SyntaxComparer.BySyntax.GetHashCode(obj.Value1),
                 SyntaxComparer.BySyntax.GetHashCode(obj.Value2),
                 SyntaxComparer.BySyntax.GetHashCode(obj.Value3));
-    }
-
-    private sealed class CompositeResultElementValueComparer : IEqualityComparer<CompositeResultElement>
-    {
-        public static CompositeResultElementValueComparer Instance { get; } = new();
-
-        public bool Equals(CompositeResultElement x, CompositeResultElement y)
-        {
-            if (x.ValueKind != y.ValueKind)
-            {
-                return false;
-            }
-
-            return x.ValueKind switch
-            {
-                JsonValueKind.Null or JsonValueKind.True or JsonValueKind.False => true,
-                JsonValueKind.String => x.AssertString().Equals(y.AssertString(), StringComparison.Ordinal),
-                _ => x.GetRawValue(includeQuotes: true).SequenceEqual(y.GetRawValue(includeQuotes: true))
-            };
-        }
-
-        public int GetHashCode(CompositeResultElement obj)
-        {
-            return obj.ValueKind switch
-            {
-                JsonValueKind.Null => HashCode.Combine((int)JsonValueKind.Null),
-                JsonValueKind.True => HashCode.Combine((int)JsonValueKind.True),
-                JsonValueKind.False => HashCode.Combine((int)JsonValueKind.False),
-                JsonValueKind.String => HashCode.Combine(
-                    (int)JsonValueKind.String,
-                    StringComparer.Ordinal.GetHashCode(obj.AssertString())),
-                _ => HashCode.Combine(
-                    (int)obj.ValueKind,
-                    GetByteSpanHashCode(obj.GetRawValue(includeQuotes: true)))
-            };
-        }
-
-        private static int GetByteSpanHashCode(ReadOnlySpan<byte> value)
-        {
-            var hash = new HashCode();
-
-            for (var i = 0; i < value.Length; i++)
-            {
-                hash.Add(value[i]);
-            }
-
-            return hash.ToHashCode();
-        }
-    }
-
-    private sealed class TwoResultElementTupleComparer : IEqualityComparer<TwoResultElementTuple>
-    {
-        public static TwoResultElementTupleComparer Instance { get; } = new();
-
-        public bool Equals(TwoResultElementTuple x, TwoResultElementTuple y)
-            => CompositeResultElementValueComparer.Instance.Equals(x.Value1, y.Value1)
-                && CompositeResultElementValueComparer.Instance.Equals(x.Value2, y.Value2);
-
-        public int GetHashCode(TwoResultElementTuple obj)
-            => HashCode.Combine(
-                CompositeResultElementValueComparer.Instance.GetHashCode(obj.Value1),
-                CompositeResultElementValueComparer.Instance.GetHashCode(obj.Value2));
-    }
-
-    private sealed class ThreeResultElementTupleComparer : IEqualityComparer<ThreeResultElementTuple>
-    {
-        public static ThreeResultElementTupleComparer Instance { get; } = new();
-
-        public bool Equals(ThreeResultElementTuple x, ThreeResultElementTuple y)
-            => CompositeResultElementValueComparer.Instance.Equals(x.Value1, y.Value1)
-                && CompositeResultElementValueComparer.Instance.Equals(x.Value2, y.Value2)
-                && CompositeResultElementValueComparer.Instance.Equals(x.Value3, y.Value3);
-
-        public int GetHashCode(ThreeResultElementTuple obj)
-            => HashCode.Combine(
-                CompositeResultElementValueComparer.Instance.GetHashCode(obj.Value1),
-                CompositeResultElementValueComparer.Instance.GetHashCode(obj.Value2),
-                CompositeResultElementValueComparer.Instance.GetHashCode(obj.Value3));
     }
 }
