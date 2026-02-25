@@ -68,11 +68,14 @@ public class ObjectTypeDescriptor
         {
             if (field.Configuration.Ignore)
             {
+                var ignoreBinding = field.Configuration.Member is { } member
+                    ? new ObjectFieldBinding(member.Name, ObjectFieldBindingType.Property)
+                    : new ObjectFieldBinding(field.Configuration.Name, ObjectFieldBindingType.Field);
+
                 // if this definition is used for a type extension we need a
                 // binding to a field which shall be ignored. In case this is a
                 // definition for the type it will be ignored by the type initialization.
-                Configuration.FieldIgnores.Add(
-                    new ObjectFieldBinding(field.Configuration.Name, ObjectFieldBindingType.Field));
+                Configuration.FieldIgnores.Add(ignoreBinding);
             }
         }
 
@@ -100,7 +103,21 @@ public class ObjectTypeDescriptor
         // remove them from the field map.
         foreach (var ignore in Configuration.GetFieldIgnores())
         {
-            fields.Remove(ignore.Name);
+            switch (ignore.Type)
+            {
+                case ObjectFieldBindingType.Field:
+                    fields.Remove(ignore.Name);
+                    break;
+
+                case ObjectFieldBindingType.Property:
+                    if (fields.Values.FirstOrDefault(
+                            t => t.Member is not null
+                                && ignore.Name.EqualsOrdinal(t.Member.Name)) is { Name: var name })
+                    {
+                        fields.Remove(name);
+                    }
+                    break;
+            }
         }
 
         Configuration.Fields.Clear();
