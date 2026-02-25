@@ -457,17 +457,19 @@ AddErrors_Next:
 
         if (requestVariables.Count == 0)
         {
-            ImmutableArray<VariableValues> fastPathResult = requiredData.Length switch
+            var fastPathResult = requiredData.Length switch
             {
                 1 => BuildVariableValueSetsSingleRequirement(
                     elements,
                     requiredData[0],
                     ref buffer),
+
                 2 => BuildVariableValueSetsTwoRequirements(
                     elements,
                     requiredData[0],
                     requiredData[1],
                     ref buffer),
+
                 3 => BuildVariableValueSetsThreeRequirements(
                     elements,
                     requiredData[0],

@@ -75,6 +75,10 @@ public sealed record OperationPlan
     /// </summary>
     public int ExpandedNodes { get; }
 
+    /// <summary>
+    /// The batching groups derived from the execution nodes in this plan. Each group contains
+    /// the IDs of nodes that belong to the same batch and should be executed together.
+    /// </summary>
     internal ImmutableArray<BatchingGroupRegistration> BatchingGroups
         => _batchingGroups;
 
