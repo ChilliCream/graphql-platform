@@ -1,10 +1,10 @@
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Features;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Pagination;
-using HotChocolate.Features;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Types.Pagination.CursorPagingArgumentNames;
@@ -130,19 +130,8 @@ public static class PagingObjectFieldDescriptorExtensions
                 var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
                 d.Features.Set(pagingOptions);
                 d.Flags |= CoreFieldFlags.Connection;
-                var inferConnectionNameFromField = false;
 
                 CreatePagingArguments(d.Arguments, backward);
-
-                if (string.IsNullOrEmpty(connectionName))
-                {
-                    inferConnectionNameFromField =
-                        pagingOptions.InferConnectionNameFromField ?? InferConnectionNameFromField;
-
-                    connectionName = inferConnectionNameFromField
-                        ? EnsureConnectionNameCasing(d.Name)
-                        : null;
-                }
 
                 TypeReference? typeRef = nodeType is not null
                     ? c.TypeInspector.GetTypeRef(nodeType)
@@ -170,11 +159,16 @@ public static class PagingObjectFieldDescriptorExtensions
                     _ => typeRef
                 };
 
-                connectionName = EnsureConnectionNameUniqueness(
-                    c,
-                    connectionName,
-                    typeRef,
-                    inferConnectionNameFromField);
+                if (string.IsNullOrEmpty(connectionName))
+                {
+                    var inferConnectionNameFromField =
+                        pagingOptions.InferConnectionNameFromField ??
+                        InferConnectionNameFromField;
+
+                    connectionName = inferConnectionNameFromField
+                        ? InferConnectionName(c, d.Name, typeRef, enableCollisionFallback: true)
+                        : null;
+                }
 
                 var resolverMember = d.ResolverMember ?? d.Member;
                 d.Type = CreateConnectionTypeRef(c, resolverMember, connectionName, typeRef, options);
@@ -228,19 +222,8 @@ public static class PagingObjectFieldDescriptorExtensions
                 var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
                 d.Features.Set(pagingOptions);
                 d.Flags |= CoreFieldFlags.Connection;
-                var inferConnectionNameFromField = false;
 
                 CreatePagingArguments(d.Arguments, backward);
-
-                if (string.IsNullOrEmpty(connectionName))
-                {
-                    inferConnectionNameFromField =
-                        pagingOptions.InferConnectionNameFromField ?? InferConnectionNameFromField;
-
-                    connectionName = inferConnectionNameFromField
-                        ? EnsureConnectionNameCasing(d.Name)
-                        : null;
-                }
 
                 TypeReference? typeRef = nodeType is not null
                     ? c.TypeInspector.GetTypeRef(nodeType)
@@ -268,11 +251,16 @@ public static class PagingObjectFieldDescriptorExtensions
                     _ => typeRef
                 };
 
-                connectionName = EnsureConnectionNameUniqueness(
-                    c,
-                    connectionName,
-                    typeRef,
-                    inferConnectionNameFromField);
+                if (string.IsNullOrEmpty(connectionName))
+                {
+                    var inferConnectionNameFromField =
+                        pagingOptions.InferConnectionNameFromField ??
+                        InferConnectionNameFromField;
+
+                    connectionName = inferConnectionNameFromField
+                        ? InferConnectionName(c, d.Name, typeRef, enableCollisionFallback: false)
+                        : null;
+                }
 
                 d.Type = CreateConnectionTypeRef(c, d.Member, connectionName, typeRef, options);
             });
@@ -468,161 +456,116 @@ public static class PagingObjectFieldDescriptorExtensions
             ? connectionName
             : string.Concat(char.ToUpperInvariant(connectionName[0]), connectionName[1..]);
 
-    private static string? EnsureConnectionNameUniqueness(
+    private static string? InferConnectionName(
         IDescriptorContext context,
-        string? connectionName,
+        string fieldName,
         TypeReference? nodeType,
-        bool inferConnectionNameFromField)
+        bool enableCollisionFallback)
     {
-        if (!inferConnectionNameFromField || connectionName is null || nodeType is null)
+        var inferredConnectionName = EnsureConnectionNameCasing(fieldName);
+
+        if (!enableCollisionFallback || nodeType is null)
         {
-            return connectionName;
+            return inferredConnectionName;
         }
 
-        var lookup = context.Features.GetOrSet<InferredConnectionNameLookup>();
+        var feature = context.Features.GetOrSet<ConnectionNameLookupFeature>();
 
-        if (lookup.Value.TryGetValue(connectionName, out var otherType))
+        if (!feature.NodeTypesByConnectionName.TryGetValue(inferredConnectionName, out var existingNodeType))
         {
-            return AreEquivalentNodeTypes(otherType, nodeType)
-                ? connectionName
-                : null;
+            feature.NodeTypesByConnectionName[inferredConnectionName] = nodeType;
+            return inferredConnectionName;
         }
 
-        lookup.Value[connectionName] = nodeType;
-        return connectionName;
+        if (ConnectionNodeTypeComparer.Default.Equals(existingNodeType, nodeType))
+        {
+            return inferredConnectionName;
+        }
+
+        // If another field with the same inferred name uses a different node type,
+        // we let the connection type infer its name from the node type.
+        return null;
     }
 
-    private static bool AreEquivalentNodeTypes(TypeReference left, TypeReference right)
+    private sealed class ConnectionNameLookupFeature
     {
-        var leftIdentity = GetNodeTypeIdentity(left);
-        var rightIdentity = GetNodeTypeIdentity(right);
-
-        if (leftIdentity is not null && rightIdentity is not null)
-        {
-            return leftIdentity.Equals(rightIdentity, StringComparison.Ordinal);
-        }
-
-        return left.Equals(right);
+        public Dictionary<string, TypeReference> NodeTypesByConnectionName { get; } =
+            new(StringComparer.Ordinal);
     }
 
-    private static string? GetNodeTypeIdentity(TypeReference nodeType)
-        => nodeType switch
-        {
-            SyntaxTypeReference syntax => syntax.Type.NamedType().Name.Value,
-            FactoryTypeReference factory => factory.TypeStructure.NamedType().Name.Value,
-            ExtendedTypeReference extended => GetNodeTypeIdentity(extended.Type.Type),
-            _ => null
-        };
-
-    private static string GetNodeTypeIdentity(Type type)
+    private sealed class ConnectionNodeTypeComparer
+        : IEqualityComparer<TypeReference>
     {
-        var namedType = GetNamedType(type);
-
-        if (TryGetBuiltInScalarName(namedType, out var scalarName))
+        public bool Equals(TypeReference? x, TypeReference? y)
         {
-            return scalarName;
-        }
-
-        if (TryGetRuntimeTypeFromSchemaType(namedType, out var runtimeType))
-        {
-            return runtimeType.Name;
-        }
-
-        return StripGenericSuffix(namedType.Name);
-    }
-
-    private static Type GetNamedType(Type type)
-    {
-        while (type.IsGenericType)
-        {
-            var typeDefinition = type.GetGenericTypeDefinition();
-
-            if (typeDefinition == typeof(NonNullType<>)
-                || typeDefinition == typeof(ListType<>)
-                || typeDefinition == typeof(NamedRuntimeType<>))
+            if (ReferenceEquals(x, y))
             {
-                type = type.GetGenericArguments()[0];
-                continue;
+                return true;
             }
 
-            break;
+            if (ReferenceEquals(x, null) || ReferenceEquals(y, null))
+            {
+                return false;
+            }
+
+            if (x.Context != y.Context
+                && x.Context != TypeContext.None
+                && y.Context != TypeContext.None)
+            {
+                return false;
+            }
+
+            if (!string.Equals(x.Scope, y.Scope, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (x is SchemaTypeReference xSchemaType
+                && y is ExtendedTypeReference yExtendedTypeReference)
+            {
+                return CompareSchemaAndExtendedTypeRef(xSchemaType, yExtendedTypeReference);
+            }
+
+            if (y is SchemaTypeReference ySchemaType
+                && x is ExtendedTypeReference xExtendedTypeReference)
+            {
+                return CompareSchemaAndExtendedTypeRef(ySchemaType, xExtendedTypeReference);
+            }
+
+            return x.Equals(y);
         }
 
-        return type;
-    }
-
-    private static bool TryGetRuntimeTypeFromSchemaType(Type type, out Type runtimeType)
-    {
-        var current = type;
-
-        while (current is not null && current != typeof(object))
+        public int GetHashCode(TypeReference obj)
         {
-            if (current.IsGenericType)
+            unchecked
             {
-                var definition = current.GetGenericTypeDefinition();
+                var hashCode = obj.Context.GetHashCode();
 
-                if (definition == typeof(ObjectType<>)
-                    || definition == typeof(InterfaceType<>)
-                    || definition == typeof(EnumType<>)
-                    || definition == typeof(UnionType<>)
-                    || definition == typeof(InputObjectType<>))
+                if (obj.Scope is not null)
                 {
-                    runtimeType = current.GetGenericArguments()[0];
-                    return true;
+                    hashCode ^= obj.GetHashCode() * 397;
                 }
+
+                if (obj is SchemaTypeReference schemaTypeReference)
+                {
+                    hashCode ^= schemaTypeReference.Type.GetType().GetHashCode() * 397;
+                }
+
+                if (obj is ExtendedTypeReference extendedTypeReference)
+                {
+                    hashCode ^= extendedTypeReference.Type.Source.GetHashCode() * 397;
+                }
+
+                return hashCode;
             }
-
-            current = current.BaseType;
         }
 
-        runtimeType = null!;
-        return false;
-    }
+        private static bool CompareSchemaAndExtendedTypeRef(
+            SchemaTypeReference schemaTypeReference,
+            ExtendedTypeReference extendedTypeReference) =>
+            schemaTypeReference.Type.GetType() == extendedTypeReference.Type.Source;
 
-    private static bool TryGetBuiltInScalarName(Type type, out string scalarName)
-    {
-        if (type == typeof(BooleanType) || type == typeof(bool))
-        {
-            scalarName = ScalarNames.Boolean;
-            return true;
-        }
-
-        if (type == typeof(IntType) || type == typeof(int))
-        {
-            scalarName = ScalarNames.Int;
-            return true;
-        }
-
-        if (type == typeof(FloatType) || type == typeof(float) || type == typeof(double))
-        {
-            scalarName = ScalarNames.Float;
-            return true;
-        }
-
-        if (type == typeof(StringType) || type == typeof(string))
-        {
-            scalarName = ScalarNames.String;
-            return true;
-        }
-
-        if (type == typeof(IdType))
-        {
-            scalarName = ScalarNames.ID;
-            return true;
-        }
-
-        scalarName = default!;
-        return false;
-    }
-
-    private static string StripGenericSuffix(string name)
-    {
-        var index = name.IndexOf('`', StringComparison.Ordinal);
-        return index > -1 ? name[..index] : name;
-    }
-
-    private sealed class InferredConnectionNameLookup
-    {
-        public Dictionary<string, TypeReference> Value { get; } = new(StringComparer.Ordinal);
+        public static readonly IEqualityComparer<TypeReference> Default =
+            new ConnectionNodeTypeComparer();
     }
 }
