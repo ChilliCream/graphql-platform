@@ -1,5 +1,6 @@
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Optimizers;
 
@@ -38,13 +39,17 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
             }
 
             var field = context.TypeContext.Fields[fieldName];
+            var selectionSet = field.Type.NamedType().IsCompositeType()
+                ? new SelectionSetNode([])
+                : null;
+
             var fieldNode = new FieldNode(
                 null,
                 new NameNode(fieldName),
                 new NameNode(alias),
                 [],
                 [],
-                null);
+                selectionSet);
 
             var nodesPipeline = context.CompileResolverPipeline(field, fieldNode);
 
