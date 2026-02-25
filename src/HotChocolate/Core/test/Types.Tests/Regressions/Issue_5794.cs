@@ -43,7 +43,53 @@ public class Issue_5794
         Assert.Equal("external", id);
     }
 
+    [Fact]
+    public async Task Renamed_External_Id_Field_Is_Exposed_As_Id_Without_Ignore()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Issue5794QueryNoIgnore>()
+                .AddType<Issue5794MyTypeObjectTypeNoIgnore>()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              myType {
+                id
+              }
+            }
+            """);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.Empty(operationResult.Errors ?? []);
+
+        using var document = JsonDocument.Parse(result.ToJson());
+        var id = document
+            .RootElement
+            .GetProperty("data")
+            .GetProperty("myType")
+            .GetProperty("id")
+            .GetString();
+
+        Assert.Equal("external", id);
+    }
+
     public sealed class Issue5794Query
+    {
+        public Issue5794MyType GetMyType()
+            => new()
+            {
+                Id = 1,
+                ExternalId = "external"
+            };
+    }
+
+    public sealed class Issue5794QueryNoIgnore
     {
         public Issue5794MyType GetMyType()
             => new()
@@ -67,5 +113,11 @@ public class Issue_5794
             descriptor.Field(t => t.Id).Ignore();
             descriptor.Field(t => t.ExternalId).Name("id").Type<StringType>();
         }
+    }
+
+    public sealed class Issue5794MyTypeObjectTypeNoIgnore : ObjectType<Issue5794MyType>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Issue5794MyType> descriptor)
+            => descriptor.Field(t => t.ExternalId).Name("id").Type<StringType>();
     }
 }

@@ -64,17 +64,31 @@ public class ObjectTypeDescriptor
             Configuration.ConfigurationsAreApplied = true;
         }
 
+        var explicitFieldNames = TypeMemHelper.RentNameSet();
+
+        foreach (var field in _fields)
+        {
+            if (!field.Configuration.Ignore && !string.IsNullOrEmpty(field.Configuration.Name))
+            {
+                explicitFieldNames.Add(field.Configuration.Name);
+            }
+        }
+
         foreach (var field in _fields)
         {
             if (field.Configuration.Ignore)
             {
-                var ignoreBinding = field.Configuration.Member is { } member
-                    ? new ObjectFieldBinding(member)
-                    : new ObjectFieldBinding(field.Configuration.Name, ObjectFieldBindingType.Field);
-
-                // We record which fields to ignore so that type extensions can
-                // remove fields from the type they extend.
-                Configuration.FieldIgnores.Add(ignoreBinding);
+                // if this definition is used for a type extension we need a
+                // binding to a field which shall be ignored. In case this is a
+                // definition for the type it will be ignored by the type initialization.
+                if (!string.IsNullOrEmpty(field.Configuration.Name)
+                    && !explicitFieldNames.Contains(field.Configuration.Name))
+                {
+                    Configuration.FieldIgnores.Add(
+                        new ObjectFieldBinding(
+                            field.Configuration.Name,
+                            ObjectFieldBindingType.Field));
+                }
             }
         }
 
@@ -102,38 +116,13 @@ public class ObjectTypeDescriptor
         // remove them from the field map.
         foreach (var ignore in Configuration.GetFieldIgnores())
         {
-            switch (ignore.Type)
-            {
-                case ObjectFieldBindingType.Field:
-                    fields.Remove(ignore.Name);
-                    break;
-
-                case ObjectFieldBindingType.Property when ignore.Member is { } member:
-                {
-                    if (fields.Values.FirstOrDefault(
-                        t => t.Member == member) is { Name: var fieldName })
-                    {
-                        fields.Remove(fieldName);
-                    }
-                    break;
-                }
-
-                case ObjectFieldBindingType.Property:
-                {
-                    if (fields.Values.FirstOrDefault(
-                        t => t.Member is not null
-                            && ignore.Name.EqualsOrdinal(t.Member.Name)) is { Name: var fieldName })
-                    {
-                        fields.Remove(fieldName);
-                    }
-                    break;
-                }
-            }
+            fields.Remove(ignore.Name);
         }
 
         Configuration.Fields.Clear();
         Configuration.Fields.AddRange(fields.Values);
 
+        TypeMemHelper.Return(explicitFieldNames);
         TypeMemHelper.Return(fields);
         TypeMemHelper.Return(handledMembers);
 
