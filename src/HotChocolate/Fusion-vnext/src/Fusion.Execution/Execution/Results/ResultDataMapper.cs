@@ -81,30 +81,65 @@ internal static class ResultDataMapper
         {
             if (resultValueKind is JsonValueKind.Array)
             {
-                var items = new List<IValueNode>();
-                context.Writer ??= new PooledArrayWriter();
-                var parser = new JsonValueParser(buffer: context.Writer);
+                var items = new List<IValueNode>(result.GetArrayLength());
+                var parser = default(JsonValueParser);
+                var parserInitialized = false;
 
                 foreach (var item in result.EnumerateArray())
                 {
-                    if (item.ValueKind is JsonValueKind.Null)
-                    {
-                        items.Add(NullValueNode.Default);
-                        continue;
-                    }
-
-                    items.Add(parser.Parse(item.GetRawValue(includeQuotes: true)));
+                    items.Add(
+                        ParseLeafValue(
+                            item,
+                            ref context.Writer,
+                            ref parser,
+                            ref parserInitialized));
                 }
 
                 return new ListValueNode(items);
             }
 
-            context.Writer ??= new PooledArrayWriter();
-            var scalarParser = new JsonValueParser(buffer: context.Writer);
-            return scalarParser.Parse(result.GetRawValue(includeQuotes: true));
+            var scalarParser = default(JsonValueParser);
+            var scalarParserInitialized = false;
+            return ParseLeafValue(
+                result,
+                ref context.Writer,
+                ref scalarParser,
+                ref scalarParserInitialized);
         }
 
         throw new InvalidSelectionMapPathException(node);
+    }
+
+    private static IValueNode ParseLeafValue(
+        CompositeResultElement value,
+        ref PooledArrayWriter? writer,
+        ref JsonValueParser parser,
+        ref bool parserInitialized)
+    {
+        switch (value.ValueKind)
+        {
+            case JsonValueKind.Null:
+                return NullValueNode.Default;
+
+            case JsonValueKind.True:
+                return BooleanValueNode.True;
+
+            case JsonValueKind.False:
+                return BooleanValueNode.False;
+
+            case JsonValueKind.String:
+                return new StringValueNode(value.AssertString());
+
+            default:
+                writer ??= new PooledArrayWriter();
+                if (!parserInitialized)
+                {
+                    parser = new JsonValueParser(buffer: writer);
+                    parserInitialized = true;
+                }
+
+                return parser.Parse(value.GetRawValue(includeQuotes: true));
+        }
     }
 
     private static IValueNode? Visit(ObjectValueSelectionNode node, Context context)
