@@ -210,18 +210,14 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
     private bool CanExecuteNode(ExecutionNode node)
     {
-        var dependenciesFulfilled = true;
-
         foreach (var dependency in node.Dependencies)
         {
-            if (_completed.Contains(dependency))
+            if (!_completed.Contains(dependency))
             {
-                continue;
+                return false;
             }
-
-            dependenciesFulfilled = false;
         }
 
-        return dependenciesFulfilled;
+        return true;
     }
 }

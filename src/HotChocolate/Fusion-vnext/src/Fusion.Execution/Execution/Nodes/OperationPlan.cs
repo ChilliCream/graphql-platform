@@ -15,6 +15,7 @@ public sealed record OperationPlan
 {
     private static readonly JsonOperationPlanFormatter s_formatter = new();
     private readonly FrozenDictionary<int, ExecutionNode> _nodes = FrozenDictionary<int, ExecutionNode>.Empty;
+    private readonly ImmutableArray<BatchingGroupRegistration> _batchingGroups;
 
     private OperationPlan(
         string id,
@@ -31,6 +32,7 @@ public sealed record OperationPlan
         SearchSpace = searchSpace;
         ExpandedNodes = expandedNodes;
         _nodes = allNodes.ToFrozenDictionary(t => t.Id);
+        _batchingGroups = CreateBatchingGroups(allNodes);
     }
 
     /// <summary>
@@ -73,6 +75,9 @@ public sealed record OperationPlan
     /// Gets the number of nodes expanded (dequeued) during the A* search.
     /// </summary>
     public int ExpandedNodes { get; }
+
+    internal ImmutableArray<BatchingGroupRegistration> BatchingGroups
+        => _batchingGroups;
 
     /// <summary>
     /// Retrieves an execution node by its unique identifier.
@@ -153,4 +158,53 @@ public sealed record OperationPlan
 
         return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace, expandedNodes);
     }
+
+    private static ImmutableArray<BatchingGroupRegistration> CreateBatchingGroups(
+        ImmutableArray<ExecutionNode> allNodes)
+    {
+        Dictionary<int, List<int>>? groups = null;
+
+        foreach (var executionNode in allNodes)
+        {
+            var groupId = executionNode switch
+            {
+                OperationExecutionNode n => n.BatchingGroupId,
+                OperationBatchExecutionNode n => n.BatchingGroupId,
+                _ => null
+            };
+
+            if (groupId is null)
+            {
+                continue;
+            }
+
+            groups ??= [];
+
+            if (!groups.TryGetValue(groupId.Value, out var nodeIds))
+            {
+                nodeIds = [];
+                groups.Add(groupId.Value, nodeIds);
+            }
+
+            nodeIds.Add(executionNode.Id);
+        }
+
+        if (groups is null)
+        {
+            return [];
+        }
+
+        var registrations = ImmutableArray.CreateBuilder<BatchingGroupRegistration>(groups.Count);
+
+        foreach (var (groupId, nodeIds) in groups)
+        {
+            registrations.Add(new BatchingGroupRegistration(groupId, [.. nodeIds]));
+        }
+
+        return registrations.MoveToImmutable();
+    }
+
+    internal readonly record struct BatchingGroupRegistration(
+        int GroupId,
+        int[] NodeIds);
 }
