@@ -4,6 +4,7 @@ using HotChocolate.Internal;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using System.Diagnostics;
 
 namespace HotChocolate.Configuration;
 
@@ -111,20 +112,22 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
         TypeDiscoveryInfo typeInfo,
         [NotNullWhen(true)] out TypeReference[]? schemaTypeRefs)
     {
+        // Only extended type references can represent dictionaries.
         if (typeReference is not ExtendedTypeReference { Type: { } extendedType })
         {
             schemaTypeRefs = null;
             return false;
         }
 
+        // We only handle generic KeyValuePair<TKey, TValue> types here.
         if (!extendedType.IsGeneric
-            || extendedType.Definition != typeof(KeyValuePair<,>)
-            || extendedType.TypeArguments.Count != 2)
+            || extendedType.Definition != typeof(KeyValuePair<,>))
         {
             schemaTypeRefs = null;
             return false;
         }
 
+        // For output types we create an object type to represent the key-value pair.
         if (typeInfo.Context is TypeContext.Output or TypeContext.None)
         {
             var typeName = CreateKeyValuePairTypeName(
@@ -136,13 +139,14 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
                 TypeReference.Create(
                     typeName,
                     typeReference,
-                    _ => CreateOutputType(extendedType, typeName),
+                    _ => CreateKeyValuePairObjectType(extendedType, typeName),
                     typeReference.Context,
                     typeReference.Scope)
             ];
             return true;
         }
 
+        // For input types we create an input object type instead.
         if (typeInfo.Context is TypeContext.Input)
         {
             var typeName = CreateKeyValuePairTypeName(
@@ -154,18 +158,20 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
                 TypeReference.Create(
                     typeName,
                     typeReference,
-                    _ => CreateInputType(extendedType, typeName),
+                    _ => CreateKeyValuePairInputObjectType(extendedType, typeName),
                     typeReference.Context,
                     typeReference.Scope)
             ];
             return true;
         }
 
+        // We should never get here as all context options are exhausted above.
+        Debug.Fail("Unexpected TypeContext value.");
         schemaTypeRefs = null;
         return false;
     }
 
-    private static TypeSystemObject CreateOutputType(
+    private static ObjectType CreateKeyValuePairObjectType(
         IExtendedType keyValuePairType,
         string typeName)
     {
@@ -202,7 +208,7 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
             });
     }
 
-    private static TypeSystemObject CreateInputType(
+    private static InputObjectType CreateKeyValuePairInputObjectType(
         IExtendedType keyValuePairType,
         string typeName)
     {
@@ -263,7 +269,7 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
             valueName = $"Nullable{valueName}";
         }
 
-        return kind == TypeKind.InputObject
+        return kind is TypeKind.InputObject
             ? $"KeyValuePairOf{keyName}And{valueName}Input"
             : $"KeyValuePairOf{keyName}And{valueName}";
     }
