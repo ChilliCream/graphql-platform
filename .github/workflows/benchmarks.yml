@@ -128,6 +128,7 @@ jobs:
 
             const marker = '<!-- fusion-gateway-benchmark-report -->';
             const dataPrefix = '<!-- benchmark-data:';
+            const runId = String(context.runId);
 
             // Fetch existing comment
             const { data: comments } = await github.rest.issues.listComments({
@@ -137,13 +138,22 @@ jobs:
             });
             const existing = comments.find(c => c.body.includes(marker));
 
-            // Parse accumulated results from existing comment
+            // Parse accumulated results — but only if from the SAME run.
+            // A new push means a new runId; discard stale data from previous runs.
             let allResults = {};
             if (existing) {
-              const m = existing.body.match(/<!-- benchmark-data:(.*?) -->/);
-              if (m) {
-                try { allResults = JSON.parse(Buffer.from(m[1], 'base64').toString()); }
-                catch (e) { console.log('Failed to parse existing data, starting fresh'); }
+              const runMatch = existing.body.match(/<!-- run:(\d+) -->/);
+              const commentRunId = runMatch ? runMatch[1] : null;
+
+              if (commentRunId === runId) {
+                const m = existing.body.match(/<!-- benchmark-data:(.*?) -->/);
+                if (m) {
+                  try { allResults = JSON.parse(Buffer.from(m[1], 'base64').toString()); }
+                  catch (e) { console.log('Failed to parse existing data, starting fresh'); }
+                }
+                console.log(`Same run ${runId}, loaded ${Object.keys(allResults).length} existing result(s)`);
+              } else {
+                console.log(`New run ${runId} (was ${commentRunId}), starting fresh`);
               }
             }
 
@@ -151,16 +161,6 @@ jobs:
             const key = `${result.test}|${result.mode}|${result.runner_group}`;
             allResults[key] = result;
             const completed = Object.keys(allResults).length;
-
-            // Only update if we have at least as much data as what's already posted
-            if (existing) {
-              const cm = existing.body.match(/<!-- completed:(\d+) -->/);
-              const existingCompleted = cm ? parseInt(cm[1], 10) : 0;
-              if (completed < existingCompleted) {
-                console.log(`Skipped (${completed} < ${existingCompleted})`);
-                return;
-              }
-            }
 
             // --- Generate markdown report inline ---
             const fmt = (n) => Number(n).toFixed(2);
@@ -225,11 +225,12 @@ jobs:
 
             const commentBody = [
               marker,
+              `<!-- run:${runId} -->`,
               `${dataPrefix}${encodedData} -->`,
               `<!-- completed:${completed} -->`,
               md,
               '---',
-              `*Run [${context.runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`,
+              `*Run [${runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`,
             ].join('\n');
 
             if (existing) {
@@ -279,6 +280,7 @@ jobs:
 
             const marker = '<!-- fusion-gateway-benchmark-report -->';
             const dataPrefix = '<!-- benchmark-data:';
+            const runId = String(context.runId);
 
             // --- Collect results from artifacts ---
             let artifactResults = {};
@@ -297,7 +299,7 @@ jobs:
             }
             console.log(`Found ${Object.keys(artifactResults).length} result(s) from artifacts`);
 
-            // --- Read accumulated data from existing PR comment ---
+            // --- Read accumulated data from existing PR comment (same run only) ---
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -307,26 +309,37 @@ jobs:
 
             let commentResults = {};
             if (existing) {
-              const m = existing.body.match(/<!-- benchmark-data:(.*?) -->/);
-              if (m) {
-                try { commentResults = JSON.parse(Buffer.from(m[1], 'base64').toString()); }
-                catch (e) { console.log('Failed to parse comment data'); }
+              const runMatch = existing.body.match(/<!-- run:(\d+) -->/);
+              const commentRunId = runMatch ? runMatch[1] : null;
+
+              if (commentRunId === runId) {
+                const m = existing.body.match(/<!-- benchmark-data:(.*?) -->/);
+                if (m) {
+                  try { commentResults = JSON.parse(Buffer.from(m[1], 'base64').toString()); }
+                  catch (e) { console.log('Failed to parse comment data'); }
+                }
+                console.log(`Same run, loaded ${Object.keys(commentResults).length} result(s) from comment`);
+              } else {
+                console.log(`Different run (comment=${commentRunId}, current=${runId}), ignoring comment data`);
               }
             }
-            console.log(`Found ${Object.keys(commentResults).length} result(s) from comment`);
 
             // --- Merge: artifacts win over comment data, comment fills gaps ---
             const allResults = { ...commentResults, ...artifactResults };
             const completed = Object.keys(allResults).length;
             console.log(`Merged total: ${completed} result(s)`);
 
-            // Only update if we have at least as much data as what's posted
+            // Only update if we have at least as much data as what's posted for the same run
             if (existing) {
-              const cm = existing.body.match(/<!-- completed:(\d+) -->/);
-              const existingCompleted = cm ? parseInt(cm[1], 10) : 0;
-              if (completed < existingCompleted) {
-                console.log(`Skipped final report (${completed} < ${existingCompleted})`);
-                return;
+              const runMatch2 = existing.body.match(/<!-- run:(\d+) -->/);
+              const commentRunId2 = runMatch2 ? runMatch2[1] : null;
+              if (commentRunId2 === runId) {
+                const cm = existing.body.match(/<!-- completed:(\d+) -->/);
+                const existingCompleted = cm ? parseInt(cm[1], 10) : 0;
+                if (completed < existingCompleted) {
+                  console.log(`Skipped final report (${completed} < ${existingCompleted})`);
+                  return;
+                }
               }
             }
 
@@ -393,11 +406,12 @@ jobs:
 
             const commentBody = [
               marker,
+              `<!-- run:${runId} -->`,
               `${dataPrefix}${encodedData} -->`,
               `<!-- completed:${completed} -->`,
               md,
               '---',
-              `*Run [${context.runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`,
+              `*Run [${runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`,
             ].join('\n');
 
             if (existing) {
