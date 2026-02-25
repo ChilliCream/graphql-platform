@@ -119,14 +119,6 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
     }
 
     /// <inheritdoc />
-    public virtual void SourceSchemaResultError(
-        OperationPlanContext context,
-        ExecutionNode node, string schemaName,
-        IReadOnlyList<IError> errors)
-    {
-    }
-
-    /// <inheritdoc />
     public virtual void ExecutionNodeError(
         OperationPlanContext context,
         ExecutionNode node,
