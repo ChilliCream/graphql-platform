@@ -1,3 +1,4 @@
+using System.Reflection;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors.Configurations;
@@ -30,6 +31,26 @@ public readonly struct ObjectFieldBinding
     }
 
     /// <summary>
+    /// Creates a new instance of <see cref="ObjectFieldBinding"/>
+    /// from a runtime member.
+    /// </summary>
+    /// <param name="member">
+    /// The runtime member to bind to.
+    /// </param>
+    /// <param name="replace">
+    /// Defines if the bound property shall be replaced.
+    /// </param>
+    public ObjectFieldBinding(
+        MemberInfo member,
+        bool replace = true)
+    {
+        Name = member.Name.EnsureGraphQLName();
+        Type = ObjectFieldBindingType.Property;
+        Replace = replace;
+        Member = member;
+    }
+
+    /// <summary>
     /// Gets the binding name.
     /// </summary>
     public string Name { get; }
@@ -44,4 +65,9 @@ public readonly struct ObjectFieldBinding
     /// </summary>
     /// <value></value>
     public bool Replace { get; }
+
+    /// <summary>
+    /// Gets the runtime member this binding refers to, if available.
+    /// </summary>
+    public MemberInfo? Member { get; }
 }

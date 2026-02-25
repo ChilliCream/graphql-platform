@@ -69,12 +69,11 @@ public class ObjectTypeDescriptor
             if (field.Configuration.Ignore)
             {
                 var ignoreBinding = field.Configuration.Member is { } member
-                    ? new ObjectFieldBinding(member.Name, ObjectFieldBindingType.Property)
+                    ? new ObjectFieldBinding(member)
                     : new ObjectFieldBinding(field.Configuration.Name, ObjectFieldBindingType.Field);
 
-                // if this definition is used for a type extension we need a
-                // binding to a field which shall be ignored. In case this is a
-                // definition for the type it will be ignored by the type initialization.
+                // We record which fields to ignore so that type extensions can
+                // remove fields from the type they extend.
                 Configuration.FieldIgnores.Add(ignoreBinding);
             }
         }
@@ -109,14 +108,26 @@ public class ObjectTypeDescriptor
                     fields.Remove(ignore.Name);
                     break;
 
-                case ObjectFieldBindingType.Property:
+                case ObjectFieldBindingType.Property when ignore.Member is { } member:
+                {
                     if (fields.Values.FirstOrDefault(
-                            t => t.Member is not null
-                                && ignore.Name.EqualsOrdinal(t.Member.Name)) is { Name: var name })
+                        t => t.Member == member) is { Name: var fieldName })
                     {
-                        fields.Remove(name);
+                        fields.Remove(fieldName);
                     }
                     break;
+                }
+
+                case ObjectFieldBindingType.Property:
+                {
+                    if (fields.Values.FirstOrDefault(
+                        t => t.Member is not null
+                            && ignore.Name.EqualsOrdinal(t.Member.Name)) is { Name: var fieldName })
+                    {
+                        fields.Remove(fieldName);
+                    }
+                    break;
+                }
             }
         }
 
