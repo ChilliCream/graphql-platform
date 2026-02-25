@@ -49,8 +49,8 @@ jobs:
               { key: 'ramping', label: 'Ramping', desc: '(0-500-0 VUs)' },
             ];
             const runners = [
-              { group: 'Benchmarking', label: '1' },
-              { group: 'Benchmarking-2', label: '2' },
+              { group: 'benchmarking-1', label: '1' },
+              { group: 'benchmarking-2', label: '2' },
             ];
 
             let md = '### Fusion Gateway Performance Results\n\n';
@@ -73,7 +73,7 @@ jobs:
               }
               md += '\n</details>\n\n---\n\n';
             }
-            md += '*Runner 1 = Benchmarking, Runner 2 = Benchmarking-2*';
+            md += '*Runner 1 = benchmarking-1, Runner 2 = benchmarking-2*';
 
             const encodedData = Buffer.from(JSON.stringify({})).toString('base64');
             const timestamp = new Date().toUTCString();
@@ -111,7 +111,7 @@ jobs:
   benchmark:
     name: "${{ matrix.test-name }} ${{ matrix.mode-label }} (${{ matrix.runner-label }})"
     needs: [setup]
-    if: always() && (github.event_name == 'push' || github.event.pull_request.draft == false)
+    if: "!cancelled() && (github.event_name == 'push' || github.event.pull_request.draft == false)"
     runs-on:
       group: ${{ matrix.runner-group }}
     permissions:
@@ -122,11 +122,11 @@ jobs:
       matrix:
         test: [no-recursion, deep-recursion, variable-batch]
         mode: [constant, ramping]
-        runner-group: [Benchmarking, Benchmarking-2]
+        runner-group: [benchmarking-1, benchmarking-2]
         include:
-          - runner-group: Benchmarking
+          - runner-group: benchmarking-1
             runner-label: "Runner 1"
-          - runner-group: Benchmarking-2
+          - runner-group: benchmarking-2
             runner-label: "Runner 2"
           - test: no-recursion
             test-name: "Simple Composite Query"
@@ -265,8 +265,8 @@ jobs:
               { key: 'ramping', label: 'Ramping', desc: '(0-500-0 VUs)' },
             ];
             const runners = [
-              { group: 'Benchmarking', label: '1' },
-              { group: 'Benchmarking-2', label: '2' },
+              { group: 'benchmarking-1', label: '1' },
+              { group: 'benchmarking-2', label: '2' },
             ];
 
             let md = '### Fusion Gateway Performance Results\n\n';
@@ -306,7 +306,7 @@ jobs:
               }
               md += '\n</details>\n\n---\n\n';
             }
-            md += '*Runner 1 = Benchmarking, Runner 2 = Benchmarking-2*';
+            md += '*Runner 1 = benchmarking-1, Runner 2 = benchmarking-2*';
 
             // Build comment body with hidden data block
             const encodedData = Buffer.from(JSON.stringify(allResults)).toString('base64');
@@ -335,7 +335,7 @@ jobs:
   report:
     name: "Final Performance Report"
     needs: [setup, benchmark]
-    if: always() && github.event_name == 'pull_request'
+    if: "!cancelled() && github.event_name == 'pull_request'"
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -436,8 +436,8 @@ jobs:
               { key: 'ramping', label: 'Ramping', desc: '(0-500-0 VUs)' },
             ];
             const runners = [
-              { group: 'Benchmarking', label: '1' },
-              { group: 'Benchmarking-2', label: '2' },
+              { group: 'benchmarking-1', label: '1' },
+              { group: 'benchmarking-2', label: '2' },
             ];
 
             let md = '### Fusion Gateway Performance Results\n\n';
@@ -477,7 +477,7 @@ jobs:
               }
               md += '\n</details>\n\n---\n\n';
             }
-            md += '*Runner 1 = Benchmarking, Runner 2 = Benchmarking-2*';
+            md += '*Runner 1 = benchmarking-1, Runner 2 = benchmarking-2*';
 
             // Build comment body
             const encodedData = Buffer.from(JSON.stringify(allResults)).toString('base64');
