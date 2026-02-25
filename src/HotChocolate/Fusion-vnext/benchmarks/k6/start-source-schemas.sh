@@ -12,8 +12,8 @@ else
   echo "⚠ taskset not available - services will run without CPU pinning"
 fi
 
-# CPU core assignment - all source schemas share these cores
-SOURCES_CPUSET="${SOURCES_CPUSET:-8-15}"
+# CPU core assignment for source schemas (set by caller, e.g. run-single-benchmark.sh)
+SOURCES_CPUSET="${SOURCES_CPUSET:-}"
 
 # Helper function for optional CPU pinning
 maybe_taskset() {
