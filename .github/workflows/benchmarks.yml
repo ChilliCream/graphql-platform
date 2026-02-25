@@ -136,12 +136,108 @@ jobs:
               return;
             }
 
+            // Count how many benchmarks we have completed data for
+            const pendingCount = (report.match(/\*pending\*/g) || []).length;
+            const ourCompleted = 12 * 2 - pendingCount; // 12 benchmarks x 2 tables (summary + detail) minus pending cells
+
+            const marker = '<!-- fusion-gateway-benchmark-report -->';
+            const progressMarker = (n) => `<!-- completed:${n} -->`;
+            const timestamp = new Date().toUTCString();
+            const commitSha = context.sha.substring(0, 7);
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const commentBody = `${marker}\n${progressMarker(ourCompleted)}\n${report}\n\n---\n*Run [${context.runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              // Optimistic concurrency: only update if we have more data
+              const existingMatch = existing.body.match(/<!-- completed:(\d+) -->/);
+              const existingCompleted = existingMatch ? parseInt(existingMatch[1], 10) : 0;
+
+              if (ourCompleted >= existingCompleted) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existing.id,
+                  body: commentBody,
+                });
+                console.log(`Updated comment (${ourCompleted} >= ${existingCompleted} completed)`);
+              } else {
+                console.log(`Skipped update (${ourCompleted} < ${existingCompleted} completed)`);
+              }
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody,
+              });
+            }
+
+  report:
+    name: "Final Performance Report"
+    needs: benchmark
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: src/HotChocolate/Fusion-vnext/benchmarks/k6
+          show-progress: false
+
+      - name: Install jq
+        run: |
+          if ! command -v jq &> /dev/null; then
+            sudo apt-get update && sudo apt-get install jq -y
+          fi
+
+      - name: Download all benchmark results
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: benchmark-*
+          path: benchmark-results
+
+      - name: Generate final performance report
+        working-directory: src/HotChocolate/Fusion-vnext/benchmarks/k6
+        run: |
+          chmod +x generate-report.sh
+          ./generate-report.sh "$GITHUB_WORKSPACE/benchmark-results" performance-report.md
+
+      - name: Update PR comment with final report
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const reportPath = 'src/HotChocolate/Fusion-vnext/benchmarks/k6/performance-report.md';
+
+            let report;
+            try {
+              report = fs.readFileSync(reportPath, 'utf8');
+            } catch (error) {
+              console.error('Failed to read performance report:', error);
+              return;
+            }
+
             const marker = '<!-- fusion-gateway-benchmark-report -->';
             const timestamp = new Date().toUTCString();
             const commitSha = context.sha.substring(0, 7);
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
-            const commentBody = `${marker}\n${report}\n\n---\n*Run [${context.runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`;
+            // Final report always wins — use max completed marker
+            const commentBody = `${marker}\n<!-- completed:999 -->\n${report}\n\n---\n*Run [${context.runId}](${runUrl}) • Commit ${commitSha} • ${timestamp}*`;
 
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
