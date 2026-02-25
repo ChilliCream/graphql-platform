@@ -29,8 +29,6 @@ public class QueryableProjectionScope
 
     public ParameterExpression Parameter { get; }
 
-    public bool RequiresInstanceReuse { get; set; }
-
     public void AddAbstractType(Type type, Queue<MemberAssignment> memberAssignments)
     {
         _abstractType ??= [];

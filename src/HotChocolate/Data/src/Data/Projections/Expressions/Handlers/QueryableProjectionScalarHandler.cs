@@ -22,11 +22,6 @@ public class QueryableProjectionScalarHandler
             return true;
         }
 
-        if (context.TryGetQueryableScope(out var scope))
-        {
-            scope.RequiresInstanceReuse = true;
-        }
-
         action = SelectionVisitor.Skip;
         return true;
     }

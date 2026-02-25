@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace HotChocolate.Data.Projections.Expressions;
 
@@ -29,7 +30,10 @@ public static class QueryableProjectionScopeExtensions
 
     public static Expression CreateMemberInit(this QueryableProjectionScope scope)
     {
-        if (scope.RequiresInstanceReuse || !HasAnyProjectionBindings(scope))
+        // When the type exposes non-public parameterized constructors (e.g., EF
+        // constructor service injection), we must preserve the instance that EF
+        // materialized so that injected services are not lost.
+        if (ShouldReuseExistingInstance(scope.RuntimeType))
         {
             return scope.Instance.Peek();
         }
@@ -58,26 +62,10 @@ public static class QueryableProjectionScopeExtensions
         }
     }
 
-    private static bool HasAnyProjectionBindings(QueryableProjectionScope scope)
-    {
-        if (scope.Level.Count > 0 && scope.Level.Peek().Count > 0)
-        {
-            return true;
-        }
-
-        if (scope.HasAbstractTypes())
-        {
-            foreach (var abstractType in scope.GetAbstractTypes())
-            {
-                if (abstractType.Value.Count > 0)
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
+    private static bool ShouldReuseExistingInstance(Type type)
+        => type.GetConstructor(Type.EmptyTypes) is not null
+            && type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
+                .Any(t => t.GetParameters().Length > 0);
 
     public static Expression CreateMemberInitLambda(this QueryableProjectionScope scope)
         => Expression.Lambda(scope.CreateMemberInit(), scope.Parameter);
