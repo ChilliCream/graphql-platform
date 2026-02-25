@@ -85,8 +85,56 @@ public class QueryableSortingExtensionsTests
             .MatchAsync();
     }
 
+    [Fact]
+    public async Task Extensions_Should_Not_Fail_On_Projected_Query_With_Existing_Order()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddSorting()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    {
+                      projectedWithExistingOrder(order: { someProperty: DESC }) {
+                        someProperty
+                      }
+                    }
+                    """)
+                .Build());
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "projectedWithExistingOrder": [
+                  {
+                    "someProperty": "b"
+                  },
+                  {
+                    "someProperty": "a"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
     public class Query
     {
+        private static readonly Source[] s_source =
+        [
+            new() { SomeProperty = "a", CreateDate = new DateTime(2020, 1, 1) },
+            new() { SomeProperty = "b", CreateDate = new DateTime(2021, 1, 1) }
+        ];
+
         [UseSorting]
         public IEnumerable<Foo> ShouldWork(IResolverContext context)
         {
@@ -106,6 +154,15 @@ public class QueryableSortingExtensionsTests
         {
             return s_fooEntities.Sort(context);
         }
+
+        [UseSorting]
+        public IQueryable<Projection> ProjectedWithExistingOrder()
+        {
+            return s_source
+                .AsQueryable()
+                .OrderBy(x => x.CreateDate)
+                .Select(x => new Projection { SomeProperty = x.SomeProperty });
+        }
     }
 
     public class Foo
@@ -119,6 +176,17 @@ public class QueryableSortingExtensionsTests
         public string Computed() => "Foo";
 
         public string? NotSettable { get; }
+    }
+
+    public class Source
+    {
+        public string SomeProperty { get; set; } = default!;
+        public DateTime CreateDate { get; set; }
+    }
+
+    public class Projection
+    {
+        public string SomeProperty { get; set; } = default!;
     }
 
     public class AddTypeMismatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
