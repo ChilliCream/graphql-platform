@@ -463,6 +463,45 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
+    public async Task UseSingleOrDefault_Should_Respect_Explicit_Field_Type()
+    {
+        // arrange
+        var users = new SingleOrDefaultUser[]
+        {
+            new SingleOrDefaultActiveUser
+            {
+                Name = "Alice",
+                IsActive = true
+            }
+        }.AsQueryable();
+
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("user")
+                    .Type<ObjectType<SingleOrDefaultActiveUser>>()
+                    .Resolve(users)
+                    .UseSingleOrDefault())
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                user {
+                    name
+                    isActive
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task UseProjection_Should_Preserve_Entity_Constructor_DbContext_Injection()
     {
         var databaseName = $"db-{Guid.NewGuid():N}";
@@ -658,5 +697,15 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         public int Id { get; set; }
 
         public int BlogId { get; set; }
+    }
+
+    public class SingleOrDefaultUser
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class SingleOrDefaultActiveUser : SingleOrDefaultUser
+    {
+        public bool IsActive { get; set; }
     }
 }
