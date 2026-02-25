@@ -13,7 +13,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
     private readonly List<ExecutionNode> _ready = [];
 
-    private readonly List<ExecutionNode> _backlog = [];
+    private readonly HashSet<ExecutionNode> _backlog = [];
 
     private readonly HashSet<ExecutionNode> _completed = [];
 
@@ -35,7 +35,10 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         switch (plan.Operation.Definition.Operation)
         {
             case OperationType.Query:
-                _backlog.AddRange(plan.AllNodes);
+                foreach (var node in plan.AllNodes)
+                {
+                    _backlog.Add(node);
+                }
                 break;
 
             case OperationType.Mutation:
@@ -53,7 +56,11 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
                 break;
 
             case OperationType.Subscription:
-                _backlog.AddRange(plan.AllNodes);
+                foreach (var node in plan.AllNodes)
+                {
+                    _backlog.Add(node);
+                }
+
                 _backlog.Remove(plan.RootNodes.Single());
 
                 // The root node of a subscription is started outside the state.
