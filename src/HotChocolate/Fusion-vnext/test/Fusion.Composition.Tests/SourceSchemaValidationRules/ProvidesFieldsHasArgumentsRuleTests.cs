@@ -53,7 +53,7 @@ public sealed class ProvidesFieldsHasArgumentsRuleTests : RuleTestBase
                 """
                 {
                     "message": "The @provides directive on field 'Article.author' in schema 'A' references field 'User.tags', which must not have arguments.",
-                    "code": "PROVIDES_FIELDS_HAS_ARGS",
+                    "code": "PROVIDES_FIELDS_HAS_ARGUMENTS",
                     "severity": "Error",
                     "coordinate": "Article.author",
                     "member": "provides",
@@ -95,7 +95,7 @@ public sealed class ProvidesFieldsHasArgumentsRuleTests : RuleTestBase
                 """
                 {
                     "message": "The @provides directive on field 'Article.author' in schema 'A' references field 'UserInfo.tags', which must not have arguments.",
-                    "code": "PROVIDES_FIELDS_HAS_ARGS",
+                    "code": "PROVIDES_FIELDS_HAS_ARGUMENTS",
                     "severity": "Error",
                     "coordinate": "Article.author",
                     "member": "provides",

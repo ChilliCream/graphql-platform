@@ -51,6 +51,7 @@ public class SubscriptionsOverHttpStoreTests : FusionTestBase
 
     public static class SourceSchema1
     {
+        [EntityKey("id")]
         public record Book(int Id);
 
         public class Query

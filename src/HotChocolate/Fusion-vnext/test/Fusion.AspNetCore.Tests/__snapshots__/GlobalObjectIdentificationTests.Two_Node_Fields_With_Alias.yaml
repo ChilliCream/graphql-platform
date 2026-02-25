@@ -44,20 +44,30 @@ sourceSchemas:
       }
 
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
         discussionById(discussionId: ID! @is(field: "id")): Discussion @lookup
       }
     interactions:
       - request:
-          document: |
-            query Op_a361113f_3 {
-              b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
-                __typename
-                title
-                id
-              }
-            }
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_a361113f_3 {
+                  b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
+                    __typename
+                    title
+                    id
+                  }
+                }
+            - document: |
+                query Op_a361113f_7 {
+                  a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
+                    __typename
+                    title
+                  }
+                }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -70,14 +80,25 @@ sourceSchemas:
                 }
               }
       - request:
-          document: |
-            query Op_a361113f_7 {
-              a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
-                __typename
-                title
-              }
-            }
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_a361113f_3 {
+                  b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
+                    __typename
+                    title
+                    id
+                  }
+                }
+            - document: |
+                query Op_a361113f_7 {
+                  a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
+                    __typename
+                    title
+                  }
+                }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -104,7 +125,7 @@ sourceSchemas:
       }
 
       type Query {
-        node(id: ID!): Node @lookup
+        node(id: ID!): Node @lookup @shareable
         discussion(id: ID!): Discussion @lookup
       }
     interactions:
@@ -152,6 +173,7 @@ operationPlan:
         }
       hash: a361113ff8d3c2a57d63e65e469e73a7
       searchSpace: 1
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Node
@@ -168,6 +190,7 @@ operationPlan:
             __typename
           }
         }
+      batchingGroupId: 2
       dependencies:
         - id: 1
     - id: 3
@@ -181,6 +204,7 @@ operationPlan:
             id
           }
         }
+      batchingGroupId: 1
       dependencies:
         - id: 1
     - id: 4
@@ -217,6 +241,7 @@ operationPlan:
             __typename
           }
         }
+      batchingGroupId: 2
       dependencies:
         - id: 5
     - id: 7
@@ -229,5 +254,6 @@ operationPlan:
             title
           }
         }
+      batchingGroupId: 1
       dependencies:
         - id: 5

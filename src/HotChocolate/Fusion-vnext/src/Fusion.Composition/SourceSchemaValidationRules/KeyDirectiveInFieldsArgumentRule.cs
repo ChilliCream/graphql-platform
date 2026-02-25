@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
+using HotChocolate.Fusion.Extensions;
 using static HotChocolate.Fusion.Logging.LogEntryHelper;
 
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
@@ -12,20 +13,26 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 /// <seealso href="https://graphql.github.io/composite-schemas-spec/draft/#sec-Key-Directive-in-Fields-Argument">
 /// Specification
 /// </seealso>
-internal sealed class KeyDirectiveInFieldsArgumentRule : IEventHandler<KeyFieldNodeEvent>
+internal sealed class KeyDirectiveInFieldsArgumentRule : IEventHandler<ComplexTypeEvent>
 {
-    public void Handle(KeyFieldNodeEvent @event, CompositionContext context)
+    public void Handle(ComplexTypeEvent @event, CompositionContext context)
     {
-        var (fieldNode, fieldNamePath, keyDirective, type, schema) = @event;
+        var (complexType, schema) = @event;
 
-        if (fieldNode.Directives.Count != 0)
+        foreach (var (keyDirective, keyInfo) in complexType.KeyInfoByDirective)
         {
-            context.Log.Write(
-                KeyDirectiveInFieldsArgument(
-                    type,
-                    keyDirective,
-                    fieldNamePath,
-                    schema));
+            foreach (var (fieldNode, fieldNamePath) in keyInfo.FieldNodes)
+            {
+                if (fieldNode.Directives.Count != 0)
+                {
+                    context.Log.Write(
+                        KeyDirectiveInFieldsArgument(
+                            complexType,
+                            keyDirective,
+                            fieldNamePath,
+                            schema));
+                }
+            }
         }
     }
 }

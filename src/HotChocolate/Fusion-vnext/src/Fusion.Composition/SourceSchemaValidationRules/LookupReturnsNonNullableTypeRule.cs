@@ -22,7 +22,7 @@ internal sealed class LookupReturnsNonNullableTypeRule : IEventHandler<OutputFie
     {
         var (field, _, schema) = @event;
 
-        if (field.HasLookupDirective() && field.Type is NonNullType)
+        if (field is { IsLookup: true, Type: NonNullType })
         {
             context.Log.Write(LookupReturnsNonNullableType(field, schema));
         }

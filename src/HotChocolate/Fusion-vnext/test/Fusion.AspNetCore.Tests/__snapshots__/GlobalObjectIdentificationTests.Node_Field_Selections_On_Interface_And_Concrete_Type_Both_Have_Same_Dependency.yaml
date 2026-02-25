@@ -120,19 +120,34 @@ sourceSchemas:
       }
     interactions:
       - request:
-          document: |
-            query testQuery_648537b2_4(
-              $__fusion_1_id: ID!
-            ) {
-              authorById(id: $__fusion_1_id) {
-                rating
-              }
-            }
-          variables: |
-            {
-              "__fusion_1_id": "QXV0aG9yOjE="
-            }
+          kind: OperationBatch
+          items:
+            - document: |
+                query testQuery_648537b2_4(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    rating
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "QXV0aG9yOjE="
+                }
+            - document: |
+                query testQuery_648537b2_5(
+                  $__fusion_2_id: ID!
+                ) {
+                  authorById(id: $__fusion_2_id) {
+                    username
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_2_id": "QXV0aG9yOjE="
+                }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -143,19 +158,34 @@ sourceSchemas:
                 }
               }
       - request:
-          document: |
-            query testQuery_648537b2_5(
-              $__fusion_2_id: ID!
-            ) {
-              authorById(id: $__fusion_2_id) {
-                username
-              }
-            }
-          variables: |
-            {
-              "__fusion_2_id": "QXV0aG9yOjE="
-            }
+          kind: OperationBatch
+          items:
+            - document: |
+                query testQuery_648537b2_4(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    rating
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "QXV0aG9yOjE="
+                }
+            - document: |
+                query testQuery_648537b2_5(
+                  $__fusion_2_id: ID!
+                ) {
+                  authorById(id: $__fusion_2_id) {
+                    username
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_2_id": "QXV0aG9yOjE="
+                }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -191,6 +221,7 @@ operationPlan:
       name: testQuery
       hash: 648537b21567841743ca179b6f2e0c14
       searchSpace: 1
+      expandedNodes: 3
   nodes:
     - id: 1
       type: Node
@@ -252,6 +283,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.node<Discussion>.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -271,6 +303,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.node<Discussion>.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

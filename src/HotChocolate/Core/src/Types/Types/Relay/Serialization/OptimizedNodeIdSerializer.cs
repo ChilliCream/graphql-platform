@@ -472,6 +472,8 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
                         span[i] = (byte)'_';
                     }
                 }
+
+                span = span.TrimEnd((byte)'=');
             }
 
             return OptimizedNodeIdSerializer.ToString(span);

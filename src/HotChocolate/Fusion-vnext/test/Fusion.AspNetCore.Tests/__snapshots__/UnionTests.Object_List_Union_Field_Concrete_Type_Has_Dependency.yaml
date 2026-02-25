@@ -20,7 +20,7 @@ response:
         "postEdges": [
           {
             "node": {
-              "subgraph2": "Photo: UGhvdG86Ng=="
+              "subgraph2": "Photo: UGhvdG86NA=="
             }
           },
           {
@@ -30,7 +30,7 @@ response:
           },
           {
             "node": {
-              "subgraph2": "Photo: UGhvdG86NA=="
+              "subgraph2": "Photo: UGhvdG86Ng=="
             }
           }
         ]
@@ -48,7 +48,7 @@ sourceSchemas:
         subgraph1: String
       }
 
-      type Photo {
+      type Photo @key(fields: "id") {
         id: ID!
       }
 
@@ -86,7 +86,7 @@ sourceSchemas:
                     {
                       "node": {
                         "__typename": "Photo",
-                        "id": "UGhvdG86Ng=="
+                        "id": "UGhvdG86NA=="
                       }
                     },
                     {
@@ -98,7 +98,7 @@ sourceSchemas:
                     {
                       "node": {
                         "__typename": "Photo",
-                        "id": "UGhvdG86NA=="
+                        "id": "UGhvdG86Ng=="
                       }
                     }
                   ]
@@ -131,22 +131,23 @@ sourceSchemas:
           variables: |
             [
               {
-                "__fusion_1_id": "UGhvdG86Ng=="
+                "__fusion_1_id": "UGhvdG86NA=="
               },
               {
                 "__fusion_1_id": "UGhvdG86NQ=="
               },
               {
-                "__fusion_1_id": "UGhvdG86NA=="
+                "__fusion_1_id": "UGhvdG86Ng=="
               }
             ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86Ng=="
+                    "subgraph2": "Photo: UGhvdG86NA=="
                   }
                 }
               }
@@ -162,7 +163,7 @@ sourceSchemas:
               {
                 "data": {
                   "photoById": {
-                    "subgraph2": "Photo: UGhvdG86NA=="
+                    "subgraph2": "Photo: UGhvdG86Ng=="
                   }
                 }
               }
@@ -186,6 +187,7 @@ operationPlan:
       name: testQuery
       hash: 30e5fe2dd1fb5421622af65e08f7128d
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

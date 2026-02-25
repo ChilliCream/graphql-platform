@@ -11,7 +11,7 @@ public class StreamDirectivesAreUsedOnListFieldsTests
     }
 
     [Fact]
-    public void Stream_On_String_Field_1()
+    public void Stream_On_Typename_Field()
     {
         ExpectErrors(
             """
@@ -25,7 +25,7 @@ public class StreamDirectivesAreUsedOnListFieldsTests
     }
 
     [Fact]
-    public void Stream_On_String_Field_2()
+    public void Stream_On_String_Field()
     {
         ExpectErrors(
             """

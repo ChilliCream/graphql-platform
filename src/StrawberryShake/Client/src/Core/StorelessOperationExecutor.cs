@@ -63,7 +63,7 @@ public partial class StorelessOperationExecutor<TData, TResult>
         {
             if (response.IsPatch)
             {
-                var patched = resultPatcher.PatchResponse(response);
+                resultPatcher.PatchResponse(response);
                 result = resultBuilder.Build(response);
             }
             else

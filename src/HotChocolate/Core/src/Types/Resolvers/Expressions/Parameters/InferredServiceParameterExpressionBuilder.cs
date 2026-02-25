@@ -31,12 +31,26 @@ internal sealed class InferredServiceParameterExpressionBuilder(IServiceProvider
         return serviceInspector.IsService(parameter.ParameterType);
     }
 
+    public bool CanHandle(ParameterDescriptor parameter)
+    {
+        if (parameter.Type.IsGenericType
+            && typeof(IEnumerable).IsAssignableFrom(parameter.Type)
+            && parameter.Type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+        {
+            return serviceInspector.IsService(parameter.Type.GetGenericArguments()[0]);
+        }
+
+        return serviceInspector.IsService(parameter.Type);
+    }
+
     public Expression Build(ParameterExpressionBuilderContext context)
         => ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext);
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
+#pragma warning disable CS8633 // Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.
     public T Execute<T>(IResolverContext context) where T : notnull
-        => context.Service<T>();
+        => context.Services.GetRequiredService<T>();
+#pragma warning restore CS8633 // Nullability in constraints for type parameter doesn't match the constraints for type parameter in implicitly implemented interface method'.
 }

@@ -11,21 +11,41 @@ NC='\033[0m' # No Color
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 OUTPUT_FILE="${1:-$SCRIPT_DIR/performance-data.json}"
+NUM_RUNS=5
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}k6 Performance Test Collector${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 echo "Output file: $OUTPUT_FILE"
+echo "Running each test ${NUM_RUNS} times to reduce variance"
 echo ""
 
-# Run single-fetch test and capture summary JSON
-echo -e "${BLUE}Running Single Fetch Test...${NC}"
-k6 run --summary-export=/tmp/single-fetch-summary.json "$SCRIPT_DIR/single-fetch.js"
+# Function to calculate median from multiple values
+calculate_median() {
+    local values=("$@")
+    local count=${#values[@]}
+    # Sort the values
+    IFS=$'\n' sorted=($(sort -n <<<"${values[*]}"))
+    unset IFS
+    # Return the middle value (for odd number of values)
+    local middle_index=$(( (count - 1) / 2 ))
+    echo "${sorted[$middle_index]}"
+}
 
-# Run dataloader test and capture summary JSON
-echo -e "${BLUE}Running DataLoader Test...${NC}"
-k6 run --summary-export=/tmp/dataloader-summary.json "$SCRIPT_DIR/dataloader.js"
+# Run single-fetch test multiple times
+echo -e "${BLUE}Running Single Fetch Test (${NUM_RUNS} runs)...${NC}"
+for i in $(seq 1 $NUM_RUNS); do
+    echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
+    k6 run --summary-export=/tmp/single-fetch-summary-${i}.json "$SCRIPT_DIR/single-fetch.js"
+done
+
+# Run dataloader test multiple times
+echo -e "${BLUE}Running DataLoader Test (${NUM_RUNS} runs)...${NC}"
+for i in $(seq 1 $NUM_RUNS); do
+    echo -e "${YELLOW}  Run $i/$NUM_RUNS${NC}"
+    k6 run --summary-export=/tmp/dataloader-summary-${i}.json "$SCRIPT_DIR/dataloader.js"
+done
 
 # Parse the summary statistics from k6 JSON output
 echo ""
@@ -82,67 +102,139 @@ extract_metric() {
     fi
 }
 
-# Extract metrics from single-fetch test
-# Try tagged metric first, fallback to untagged
-SINGLE_MIN=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration{phase:measurement}" "min")
-[ "$SINGLE_MIN" == "0" ] && SINGLE_MIN=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration" "min")
+# Extract metrics from single-fetch test (all runs) and calculate medians
+echo -e "${YELLOW}Calculating median values from ${NUM_RUNS} runs...${NC}"
 
-SINGLE_P50=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration{phase:measurement}" "p(50)")
-[ "$SINGLE_P50" == "0" ] && SINGLE_P50=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration" "p(50)")
+# Arrays to store values from each run
+declare -a SINGLE_MIN_VALUES SINGLE_P50_VALUES SINGLE_MAX_VALUES SINGLE_AVG_VALUES
+declare -a SINGLE_P90_VALUES SINGLE_P95_VALUES SINGLE_P99_VALUES SINGLE_RPS_VALUES
+declare -a SINGLE_ERROR_VALUES SINGLE_ITERATIONS_VALUES
 
-SINGLE_MAX=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration{phase:measurement}" "max")
-[ "$SINGLE_MAX" == "0" ] && SINGLE_MAX=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration" "max")
+# Extract metrics from each run
+for i in $(seq 1 $NUM_RUNS); do
+    file="/tmp/single-fetch-summary-${i}.json"
 
-SINGLE_AVG=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration{phase:measurement}" "avg")
-[ "$SINGLE_AVG" == "0" ] && SINGLE_AVG=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration" "avg")
+    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "min")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "min")
+    SINGLE_MIN_VALUES+=("$val")
 
-SINGLE_P90=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration{phase:measurement}" "p(90)")
-[ "$SINGLE_P90" == "0" ] && SINGLE_P90=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration" "p(90)")
+    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "p(50)")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "p(50)")
+    SINGLE_P50_VALUES+=("$val")
 
-SINGLE_P95=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration{phase:measurement}" "p(95)")
-[ "$SINGLE_P95" == "0" ] && SINGLE_P95=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration" "p(95)")
+    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "max")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "max")
+    SINGLE_MAX_VALUES+=("$val")
 
-SINGLE_P99=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration{phase:measurement}" "p(99)")
-[ "$SINGLE_P99" == "0" ] && SINGLE_P99=$(extract_metric /tmp/single-fetch-summary.json "http_req_duration" "p(99)")
+    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "avg")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "avg")
+    SINGLE_AVG_VALUES+=("$val")
 
-SINGLE_RPS=$(extract_metric /tmp/single-fetch-summary.json "http_reqs" "rate")
-SINGLE_ERROR_RATE=$(extract_metric /tmp/single-fetch-summary.json "http_req_failed{phase:measurement}" "rate")
-[ "$SINGLE_ERROR_RATE" == "0" ] && SINGLE_ERROR_RATE=$(extract_metric /tmp/single-fetch-summary.json "http_req_failed" "rate")
+    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "p(90)")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "p(90)")
+    SINGLE_P90_VALUES+=("$val")
 
-SINGLE_ITERATIONS=$(extract_metric /tmp/single-fetch-summary.json "iterations" "count")
+    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "p(95)")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "p(95)")
+    SINGLE_P95_VALUES+=("$val")
 
-# Extract metrics from dataloader test
-DATALOADER_MIN=$(extract_metric /tmp/dataloader-summary.json "http_req_duration{phase:measurement}" "min")
-[ "$DATALOADER_MIN" == "0" ] && DATALOADER_MIN=$(extract_metric /tmp/dataloader-summary.json "http_req_duration" "min")
+    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "p(99)")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "p(99)")
+    SINGLE_P99_VALUES+=("$val")
 
-DATALOADER_P50=$(extract_metric /tmp/dataloader-summary.json "http_req_duration{phase:measurement}" "p(50)")
-[ "$DATALOADER_P50" == "0" ] && DATALOADER_P50=$(extract_metric /tmp/dataloader-summary.json "http_req_duration" "p(50)")
+    val=$(extract_metric "$file" "http_reqs{phase:measurement}" "rate")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_reqs" "rate")
+    SINGLE_RPS_VALUES+=("$val")
 
-DATALOADER_MAX=$(extract_metric /tmp/dataloader-summary.json "http_req_duration{phase:measurement}" "max")
-[ "$DATALOADER_MAX" == "0" ] && DATALOADER_MAX=$(extract_metric /tmp/dataloader-summary.json "http_req_duration" "max")
+    val=$(extract_metric "$file" "http_req_failed{phase:measurement}" "rate")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_failed" "rate")
+    SINGLE_ERROR_VALUES+=("$val")
 
-DATALOADER_AVG=$(extract_metric /tmp/dataloader-summary.json "http_req_duration{phase:measurement}" "avg")
-[ "$DATALOADER_AVG" == "0" ] && DATALOADER_AVG=$(extract_metric /tmp/dataloader-summary.json "http_req_duration" "avg")
+    val=$(extract_metric "$file" "iterations{phase:measurement}" "count")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "iterations" "count")
+    SINGLE_ITERATIONS_VALUES+=("$val")
+done
 
-DATALOADER_P90=$(extract_metric /tmp/dataloader-summary.json "http_req_duration{phase:measurement}" "p(90)")
-[ "$DATALOADER_P90" == "0" ] && DATALOADER_P90=$(extract_metric /tmp/dataloader-summary.json "http_req_duration" "p(90)")
+# Calculate medians
+SINGLE_MIN=$(calculate_median "${SINGLE_MIN_VALUES[@]}")
+SINGLE_P50=$(calculate_median "${SINGLE_P50_VALUES[@]}")
+SINGLE_MAX=$(calculate_median "${SINGLE_MAX_VALUES[@]}")
+SINGLE_AVG=$(calculate_median "${SINGLE_AVG_VALUES[@]}")
+SINGLE_P90=$(calculate_median "${SINGLE_P90_VALUES[@]}")
+SINGLE_P95=$(calculate_median "${SINGLE_P95_VALUES[@]}")
+SINGLE_P99=$(calculate_median "${SINGLE_P99_VALUES[@]}")
+SINGLE_RPS=$(calculate_median "${SINGLE_RPS_VALUES[@]}")
+SINGLE_ERROR_RATE=$(calculate_median "${SINGLE_ERROR_VALUES[@]}")
+SINGLE_ITERATIONS=$(calculate_median "${SINGLE_ITERATIONS_VALUES[@]}")
 
-DATALOADER_P95=$(extract_metric /tmp/dataloader-summary.json "http_req_duration{phase:measurement}" "p(95)")
-[ "$DATALOADER_P95" == "0" ] && DATALOADER_P95=$(extract_metric /tmp/dataloader-summary.json "http_req_duration" "p(95)")
+# Extract metrics from dataloader test (all runs) and calculate medians
+declare -a DATALOADER_MIN_VALUES DATALOADER_P50_VALUES DATALOADER_MAX_VALUES DATALOADER_AVG_VALUES
+declare -a DATALOADER_P90_VALUES DATALOADER_P95_VALUES DATALOADER_P99_VALUES DATALOADER_RPS_VALUES
+declare -a DATALOADER_ERROR_VALUES DATALOADER_ITERATIONS_VALUES
 
-DATALOADER_P99=$(extract_metric /tmp/dataloader-summary.json "http_req_duration{phase:measurement}" "p(99)")
-[ "$DATALOADER_P99" == "0" ] && DATALOADER_P99=$(extract_metric /tmp/dataloader-summary.json "http_req_duration" "p(99)")
+# Extract metrics from each run
+for i in $(seq 1 $NUM_RUNS); do
+    file="/tmp/dataloader-summary-${i}.json"
 
-DATALOADER_RPS=$(extract_metric /tmp/dataloader-summary.json "http_reqs" "rate")
-DATALOADER_ERROR_RATE=$(extract_metric /tmp/dataloader-summary.json "http_req_failed{phase:measurement}" "rate")
-[ "$DATALOADER_ERROR_RATE" == "0" ] && DATALOADER_ERROR_RATE=$(extract_metric /tmp/dataloader-summary.json "http_req_failed" "rate")
+    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "min")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "min")
+    DATALOADER_MIN_VALUES+=("$val")
 
-DATALOADER_ITERATIONS=$(extract_metric /tmp/dataloader-summary.json "iterations" "count")
+    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "p(50)")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "p(50)")
+    DATALOADER_P50_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "max")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "max")
+    DATALOADER_MAX_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "avg")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "avg")
+    DATALOADER_AVG_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "p(90)")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "p(90)")
+    DATALOADER_P90_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "p(95)")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "p(95)")
+    DATALOADER_P95_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "http_req_duration{phase:measurement}" "p(99)")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_duration" "p(99)")
+    DATALOADER_P99_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "http_reqs{phase:measurement}" "rate")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_reqs" "rate")
+    DATALOADER_RPS_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "http_req_failed{phase:measurement}" "rate")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "http_req_failed" "rate")
+    DATALOADER_ERROR_VALUES+=("$val")
+
+    val=$(extract_metric "$file" "iterations{phase:measurement}" "count")
+    [ "$val" == "0" ] && val=$(extract_metric "$file" "iterations" "count")
+    DATALOADER_ITERATIONS_VALUES+=("$val")
+done
+
+# Calculate medians
+DATALOADER_MIN=$(calculate_median "${DATALOADER_MIN_VALUES[@]}")
+DATALOADER_P50=$(calculate_median "${DATALOADER_P50_VALUES[@]}")
+DATALOADER_MAX=$(calculate_median "${DATALOADER_MAX_VALUES[@]}")
+DATALOADER_AVG=$(calculate_median "${DATALOADER_AVG_VALUES[@]}")
+DATALOADER_P90=$(calculate_median "${DATALOADER_P90_VALUES[@]}")
+DATALOADER_P95=$(calculate_median "${DATALOADER_P95_VALUES[@]}")
+DATALOADER_P99=$(calculate_median "${DATALOADER_P99_VALUES[@]}")
+DATALOADER_RPS=$(calculate_median "${DATALOADER_RPS_VALUES[@]}")
+DATALOADER_ERROR_RATE=$(calculate_median "${DATALOADER_ERROR_VALUES[@]}")
+DATALOADER_ITERATIONS=$(calculate_median "${DATALOADER_ITERATIONS_VALUES[@]}")
 
 # Create JSON output
 cat > "$OUTPUT_FILE" <<EOF
 {
   "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+  "num_runs": ${NUM_RUNS},
+  "note": "All metrics are median values from ${NUM_RUNS} test runs",
   "tests": {
     "single-fetch": {
       "name": "Single Fetch (50 products, names only)",
@@ -190,7 +282,11 @@ echo -e "${GREEN}✓${NC} Performance data written to $OUTPUT_FILE"
 cat "$OUTPUT_FILE"
 
 # Clean up temp files
-rm -f /tmp/single-fetch-summary.json /tmp/dataloader-summary.json
+for i in $(seq 1 $NUM_RUNS); do
+    rm -f /tmp/single-fetch-summary-${i}.json
+    rm -f /tmp/dataloader-summary-${i}.json
+done
 
 echo ""
 echo -e "${GREEN}Performance test collection complete!${NC}"
+echo -e "${YELLOW}Note: All metrics are median values from ${NUM_RUNS} test runs${NC}"

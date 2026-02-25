@@ -10,6 +10,7 @@ schema {
 type Query {
   foo: String
 }
+
 ```
 
 ## Settings
@@ -23,5 +24,6 @@ type Query {
     }
   }
 }
+
 ```
 

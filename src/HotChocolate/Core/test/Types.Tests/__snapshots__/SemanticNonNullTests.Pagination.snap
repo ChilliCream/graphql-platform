@@ -53,4 +53,6 @@ type QueryWithPagination {
   offsetPagination(skip: Int take: Int): OffsetPaginationCollectionSegment
 }
 
-directive @semanticNonNull(levels: [Int!] = [ 0 ]) on FIELD_DEFINITION
+directive @semanticNonNull(levels: [Int!] = [
+  0
+]) on FIELD_DEFINITION

@@ -1,94 +1,94 @@
-[
-  {
-    "Message": "GraphQL allows a short‐hand form for defining query operations when only that one operation exists in the document.",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 49993
-      }
-    ],
-    "Extensions": {
-      "operations": 6250,
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Lone-Anonymous-Operation"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "Field \"__type\" of type \"__Type\" must have a selection of subfields. Did you mean \"__type { ... }\"?",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 2
-      }
-    ],
-    "Extensions": {
-      "declaringType": "Query",
-      "field": "__type",
-      "type": "__Type",
-      "responseName": "__type",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "Field \"__type\" of type \"__Type\" must have a selection of subfields. Did you mean \"__type { ... }\"?",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 10
-      }
-    ],
-    "Extensions": {
-      "declaringType": "Query",
-      "field": "__type",
-      "type": "__Type",
-      "responseName": "__type",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "Field \"__type\" of type \"__Type\" must have a selection of subfields. Did you mean \"__type { ... }\"?",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 18
-      }
-    ],
-    "Extensions": {
-      "declaringType": "Query",
-      "field": "__type",
-      "type": "__Type",
-      "responseName": "__type",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
-  },
-  {
-    "Message": "Field \"__type\" of type \"__Type\" must have a selection of subfields. Did you mean \"__type { ... }\"?",
-    "Code": null,
-    "Path": null,
-    "Locations": [
-      {
-        "Line": 1,
-        "Column": 26
-      }
-    ],
-    "Extensions": {
-      "declaringType": "Query",
-      "field": "__type",
-      "type": "__Type",
-      "responseName": "__type",
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    },
-    "Exception": null
+---------------
+{
+  "message": "Field \u0022__type\u0022 of type \u0022__Type\u0022 must have a selection of subfields. Did you mean \u0022__type { ... }\u0022?",
+  "locations": [
+    {
+      "line": 1,
+      "column": 2
+    }
+  ],
+  "extensions": {
+    "declaringType": "Query",
+    "field": "__type",
+    "type": "__Type",
+    "responseName": "__type",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
   }
-]
+}
+---------------
+
+---------------
+{
+  "message": "Field \u0022__type\u0022 of type \u0022__Type\u0022 must have a selection of subfields. Did you mean \u0022__type { ... }\u0022?",
+  "locations": [
+    {
+      "line": 1,
+      "column": 10
+    }
+  ],
+  "extensions": {
+    "declaringType": "Query",
+    "field": "__type",
+    "type": "__Type",
+    "responseName": "__type",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "Field \u0022__type\u0022 of type \u0022__Type\u0022 must have a selection of subfields. Did you mean \u0022__type { ... }\u0022?",
+  "locations": [
+    {
+      "line": 1,
+      "column": 18
+    }
+  ],
+  "extensions": {
+    "declaringType": "Query",
+    "field": "__type",
+    "type": "__Type",
+    "responseName": "__type",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "Field \u0022__type\u0022 of type \u0022__Type\u0022 must have a selection of subfields. Did you mean \u0022__type { ... }\u0022?",
+  "locations": [
+    {
+      "line": 1,
+      "column": 26
+    }
+  ],
+  "extensions": {
+    "declaringType": "Query",
+    "field": "__type",
+    "type": "__Type",
+    "responseName": "__type",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+  }
+}
+---------------
+
+---------------
+{
+  "message": "Field \u0022__type\u0022 of type \u0022__Type\u0022 must have a selection of subfields. Did you mean \u0022__type { ... }\u0022?",
+  "locations": [
+    {
+      "line": 1,
+      "column": 34
+    }
+  ],
+  "extensions": {
+    "declaringType": "Query",
+    "field": "__type",
+    "type": "__Type",
+    "responseName": "__type",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+  }
+}
+---------------

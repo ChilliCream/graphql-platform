@@ -1,5 +1,7 @@
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
@@ -131,6 +133,15 @@ internal sealed class ConnectionType
     {
         context.Dependencies.Add(new TypeDependency(
             context.TypeInspector.GetOutputTypeRef(typeof(PageInfoType))));
+
+        if (context.DescriptorContext.Options.ApplyShareableToConnections)
+        {
+            context.Dependencies.Add(new TypeDependency(
+                context.TypeInspector.GetOutputTypeRef(typeof(Shareable))));
+
+            var config = (ObjectTypeConfiguration)configuration;
+            config.AddDirective(Shareable.Instance, context.TypeInspector);
+        }
 
         base.OnBeforeRegisterDependencies(context, configuration);
     }

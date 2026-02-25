@@ -1,3 +1,6 @@
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Net;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
@@ -75,6 +78,10 @@ public sealed class ExecutorSession
         CancellationToken cancellationToken)
         => _requestInterceptor.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
 
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
     public async Task<IExecutionResult> ExecuteSingleAsync(
         HttpContext context,
         GraphQLRequest request,
@@ -84,12 +91,17 @@ public sealed class ExecutorSession
 
         var requestBuilder = OperationRequestBuilder.From(request);
         requestBuilder.SetFlags(flags);
+        requestBuilder.SetServices(context.RequestServices);
 
         await _requestInterceptor.OnCreateAsync(context, _executor, requestBuilder, context.RequestAborted);
 
         return await _executor.ExecuteAsync(requestBuilder.Build(), context.RequestAborted);
     }
 
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
     public async Task<IResponseStream> ExecuteOperationBatchAsync(
         HttpContext context,
         GraphQLRequest request,
@@ -105,6 +117,7 @@ public sealed class ExecutorSession
             var requestBuilder = OperationRequestBuilder.From(request);
             requestBuilder.SetOperationName(operationNames[i]);
             requestBuilder.SetFlags(flags);
+            requestBuilder.SetServices(context.RequestServices);
 
             await _requestInterceptor.OnCreateAsync(context, _executor, requestBuilder, context.RequestAborted);
 
@@ -116,19 +129,24 @@ public sealed class ExecutorSession
             cancellationToken: context.RequestAborted);
     }
 
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
     public async Task<IResponseStream> ExecuteBatchAsync(
         HttpContext context,
-        IReadOnlyList<GraphQLRequest> requests,
+        GraphQLRequest[] requests,
         RequestFlags flags)
     {
         _diagnosticEvents.StartBatchRequest(context, requests);
 
-        var requestBatch = new IOperationRequest[requests.Count];
+        var requestBatch = new IOperationRequest[requests.Length];
 
-        for (var i = 0; i < requests.Count; i++)
+        for (var i = 0; i < requests.Length; i++)
         {
             var requestBuilder = OperationRequestBuilder.From(requests[i]);
             requestBuilder.SetFlags(flags);
+            requestBuilder.SetServices(context.RequestServices);
 
             await _requestInterceptor.OnCreateAsync(context, _executor, requestBuilder, context.RequestAborted);
 

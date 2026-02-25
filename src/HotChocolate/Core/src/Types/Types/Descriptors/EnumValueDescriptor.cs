@@ -1,8 +1,8 @@
 #nullable disable
 
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Configurations;
-using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -37,15 +37,17 @@ public class EnumValueDescriptor
     {
         Context.Descriptors.Push(this);
 
-        if (Configuration is { AttributesAreApplied: false, Member: not null })
+        if (!Configuration.ConfigurationsAreApplied)
         {
-            Context.TypeInspector.ApplyAttributes(
+            DescriptorAttributeHelper.ApplyConfiguration(
                 Context,
                 this,
                 Configuration.Member);
-            Configuration.AttributesAreApplied = true;
 
-            if (Context.TypeInspector.IsMemberIgnored(Configuration.Member))
+            Configuration.ConfigurationsAreApplied = true;
+
+            if (Configuration.Member is { } member
+                && Context.TypeInspector.IsMemberIgnored(member))
             {
                 Ignore();
             }

@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
@@ -10,6 +11,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
@@ -55,6 +57,8 @@ public abstract partial class FusionTestBase : IDisposable
                 gatewayBuilder.AddHttpClientConfiguration(
                     name,
                     new Uri("http://localhost:5000/graphql"),
+                    batchingMode: sourceSchemaOptions.BatchingMode,
+                    batchingAcceptHeaderValues: sourceSchemaOptions.BatchingAcceptHeaderValues,
                     onBeforeSend: (context, node, request) =>
                     {
                         if (request.Content is not { } content)
@@ -85,12 +89,19 @@ public abstract partial class FusionTestBase : IDisposable
                                 ContentType = contentType
                             };
                     },
-                    onAfterReceive: (context, node, response)
-                        => GetSourceSchemaInteraction(context, node).StatusCode = response.StatusCode,
-                    onSourceSchemaResult: (context, node, result)
-                        => GetSourceSchemaInteraction(context, node)
-                            // We have to do this here, otherwise the result will have already been disposed
-                            .Results.Add(SerializeSourceSchemaResult(result)));
+                    onAfterReceive: (context, node, response) =>
+                    {
+                        var interaction = GetSourceSchemaInteraction(context, node);
+
+                        interaction.StatusCode = response.StatusCode;
+                        interaction.ContentType = response.Content.Headers.ContentType?.ToString();
+                    },
+                    onSourceSchemaResult: (context, node, result) =>
+                    {
+                        var interaction = GetSourceSchemaInteraction(context, node);
+
+                        interaction.Results.Add(SerializeSourceSchemaResult(result));
+                    });
             }
         }
 
@@ -161,9 +172,7 @@ public abstract partial class FusionTestBase : IDisposable
 
         SourceSchemaInteraction GetSourceSchemaInteraction(OperationPlanContext context, ExecutionNode node)
         {
-            var schemaName = node is OperationExecutionNode { SchemaName: { } staticSchemaName }
-                ? staticSchemaName
-                : context.GetDynamicSchemaName(node);
+            var schemaName = node.SchemaName ?? context.GetDynamicSchemaName(node);
 
             var schemaInteractions = interactions.GetOrAdd(schemaName, _ => []);
             return schemaInteractions.GetOrAdd(node.Id, _ => new SourceSchemaInteraction());
@@ -218,6 +227,8 @@ public abstract partial class FusionTestBase : IDisposable
 
         public HttpStatusCode? StatusCode { get; set; }
 
+        public string? ContentType { get; set; }
+
         public sealed class RawSourceSchemaRequest
         {
             public required MemoryStream Body { get; init; }
@@ -231,7 +242,13 @@ public abstract partial class FusionTestBase : IDisposable
 
         public bool IsTimingOut { get; set; }
 
+        public SourceSchemaHttpClientBatchingMode BatchingMode { get; set; }
+
+        public ImmutableArray<MediaTypeWithQualityHeaderValue>? BatchingAcceptHeaderValues { get; set; }
+
         public Action<HttpClient>? ConfigureHttpClient { get; set; }
+
+        public HttpClient? HttpClient { get; set; }
     }
 
     private sealed class OperationPlanHttpRequestInterceptor : DefaultHttpRequestInterceptor
@@ -269,6 +286,10 @@ public abstract partial class FusionTestBase : IDisposable
                 else if (registration.Options.IsTimingOut)
                 {
                     client = new HttpClient(new TimeoutHandler());
+                }
+                else if (registration.Options.HttpClient is { } httpClient)
+                {
+                    return httpClient;
                 }
                 else
                 {

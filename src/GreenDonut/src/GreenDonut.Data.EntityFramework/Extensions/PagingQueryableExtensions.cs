@@ -78,6 +78,18 @@ public static class PagingQueryableExtensions
         ArgumentNullException.ThrowIfNull(source);
 
         source = QueryHelpers.EnsureOrderPropsAreSelected(source);
+        Expression<Func<T, T>>? selector = null;
+        var applySelectorAfterPaging = arguments.After is not null || arguments.Before is not null;
+
+        if (applySelectorAfterPaging)
+        {
+            selector = QueryHelpers.ExtractCurrentSelector(source);
+
+            if (selector is not null)
+            {
+                source = QueryHelpers.RemoveSelector(source);
+            }
+        }
 
         var keys = ParseDataSetKeys(source);
 
@@ -181,13 +193,16 @@ public static class PagingQueryableExtensions
         }
 
         source = source.Take(requestedCount + 1);
+        var pageQuery = selector is null
+            ? source
+            : source.Select(selector);
 
         var builder = ImmutableArray.CreateBuilder<T>();
         var fetchCount = 0;
 
         if (includeTotalCount)
         {
-            var combinedQuery = source.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
+            var combinedQuery = pageQuery.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
 
             TryGetQueryInterceptor()?.OnBeforeExecute(combinedQuery);
 
@@ -207,9 +222,9 @@ public static class PagingQueryableExtensions
         }
         else
         {
-            TryGetQueryInterceptor()?.OnBeforeExecute(source);
+            TryGetQueryInterceptor()?.OnBeforeExecute(pageQuery);
 
-            await foreach (var item in source.AsAsyncEnumerable()
+            await foreach (var item in pageQuery.AsAsyncEnumerable()
                 .WithCancellation(cancellationToken).ConfigureAwait(false))
             {
                 fetchCount++;
@@ -412,6 +427,19 @@ public static class PagingQueryableExtensions
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
+        source = QueryHelpers.EnsureOrderPropsAreSelected(source);
+
+        // extract the selector before ensuring group props are selected,
+        // as we need to remove it before grouping and re-apply it after
+        var selector = QueryHelpers.ExtractCurrentSelector(source);
+
+        // if we have a selector, remove it before grouping
+        // we'll re-apply it to the grouped items later
+        if (selector is not null)
+        {
+            source = QueryHelpers.RemoveSelector(source);
+        }
+
         var keys = ParseDataSetKeys(source);
 
         if (keys.Length == 0)
@@ -435,7 +463,6 @@ public static class PagingQueryableExtensions
             includeTotalCount = true;
         }
 
-        source = QueryHelpers.EnsureOrderPropsAreSelected(source);
         source = QueryHelpers.EnsureGroupPropsAreSelected(source, keySelector);
 
         // we need to move the ordering into the select expression we are constructing
@@ -458,6 +485,7 @@ public static class PagingQueryableExtensions
                 ordering.OrderExpressions,
                 ordering.OrderMethods,
                 forward,
+                selector,
                 ref requestedCount);
         var map = new Dictionary<TKey, Page<TValue>>();
 

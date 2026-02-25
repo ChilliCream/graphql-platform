@@ -27,4 +27,7 @@ public class QueryableComparableNotEqualsHandler
         parsedValue = ParseValue(value, parsedValue, field.Type, context);
         return FilterExpressionBuilder.NotEquals(property, parsedValue);
     }
+
+    public static QueryableComparableNotEqualsHandler Create(FilterProviderContext context)
+        => new(context.TypeConverter, context.InputParser);
 }

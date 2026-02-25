@@ -13,7 +13,6 @@ namespace HotChocolate.Types;
 public abstract class NamedTypeBase<TConfiguration>
     : TypeSystemObject<TConfiguration>
     , ITypeDefinition
-    , IHasRuntimeType
     , ITypeIdentityProvider
     , ITypeConfigurationProvider
     where TConfiguration : TypeSystemConfiguration, IDirectiveConfigurationProvider, ITypeConfiguration

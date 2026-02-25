@@ -24,13 +24,13 @@ internal sealed class ExternalUnusedRule : IEventHandler<OutputFieldEvent>
     {
         var (field, type, schema) = @event;
 
-        if (field.HasExternalDirective())
+        if (field.IsExternal)
         {
             var providingFields =
                 schema.Types
                     .OfType<MutableComplexTypeDefinition>()
                     .SelectMany(t => t.Fields.AsEnumerable())
-                    .Where(f => f.HasProvidesDirective());
+                    .Where(f => f.HasProvidesDirective);
 
             var validator = new FieldInSelectionSetValidator(schema);
             var isProvided = false;

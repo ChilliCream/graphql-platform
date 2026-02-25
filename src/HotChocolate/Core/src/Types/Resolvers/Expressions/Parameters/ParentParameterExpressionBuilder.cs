@@ -31,6 +31,9 @@ internal sealed class ParentParameterExpressionBuilder
     public bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(ParentAttribute));
 
+    public bool CanHandle(ParameterDescriptor parameter)
+        => typeof(ParentAttribute) == parameter.Type;
+
     public Expression Build(ParameterExpressionBuilderContext context)
     {
         var parameterType = context.Parameter.ParameterType;
@@ -38,7 +41,7 @@ internal sealed class ParentParameterExpressionBuilder
         return Expression.Call(context.ResolverContext, argumentMethod);
     }
 
-    public IParameterBinding Create(ParameterBindingContext context)
+    public IParameterBinding Create(ParameterDescriptor parameter)
         => this;
 
     public T Execute<T>(IResolverContext context)

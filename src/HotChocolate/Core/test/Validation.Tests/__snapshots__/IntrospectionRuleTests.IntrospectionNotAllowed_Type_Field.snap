@@ -1,27 +1,15 @@
-[
+"errors": [
   {
-    "Message": "Introspection is not allowed for the current request.",
-    "Code": "HC0046",
-    "Path": null,
-    "Locations": [
+    "message": "Introspection is not allowed for the current request.",
+    "locations": [
       {
-        "Line": 2,
-        "Column": 5
+        "line": 2,
+        "column": 5
       }
     ],
-    "Extensions": {
+    "extensions": {
       "code": "HC0046",
-      "field": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 6,
-          "End": 13,
-          "Line": 2,
-          "Column": 5
-        },
-        "Value": "__type"
-      }
-    },
-    "Exception": null
+      "field": "__type"
+    }
   }
 ]

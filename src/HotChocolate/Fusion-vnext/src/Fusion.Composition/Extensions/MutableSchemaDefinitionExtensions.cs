@@ -134,12 +134,17 @@ internal static class MutableSchemaDefinitionExtensions
         return lookupsById;
     }
 
-    public static void RemoveUnreferencedTypes(
+    public static void RemoveUnreferencedDefinitions(
         this MutableSchemaDefinition schema,
-        HashSet<string> requireInputTypeNames)
+        ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
     {
-        var touchedTypes = new HashSet<ITypeDefinition>();
-        var backlog = new Stack<ITypeDefinition>();
+        var touchedDefinitions = new HashSet<ITypeSystemMember>();
+        var backlog = new Stack<ITypeSystemMember>();
+
+        foreach (var directive in schema.Directives)
+        {
+            backlog.Push(directive.Definition);
+        }
 
         if (schema.QueryType is not null)
         {
@@ -156,9 +161,19 @@ internal static class MutableSchemaDefinitionExtensions
             backlog.Push(schema.SubscriptionType);
         }
 
+        var preservedTypeNames = GetPreservedTypeNames(sourceSchemas);
+
+        foreach (var typeName in preservedTypeNames)
+        {
+            if (schema.Types.TryGetType(typeName, out var inputType))
+            {
+                backlog.Push(inputType);
+            }
+        }
+
         while (backlog.TryPop(out var type))
         {
-            if (!touchedTypes.Add(type) || type.Kind == TypeKind.Scalar || type.Kind == TypeKind.Enum)
+            if (!touchedDefinitions.Add(type))
             {
                 continue;
             }
@@ -169,6 +184,10 @@ internal static class MutableSchemaDefinitionExtensions
                     InspectComplexType(schema, complexType, backlog);
                     break;
 
+                case IDirectiveDefinition directiveDefinition:
+                    InspectDirectiveDefinition(directiveDefinition, backlog);
+                    break;
+
                 case IInputObjectTypeDefinition inputObjectType:
                     InspectInputObjectType(inputObjectType, backlog);
                     break;
@@ -176,25 +195,52 @@ internal static class MutableSchemaDefinitionExtensions
                 case IUnionTypeDefinition unionType:
                     InspectUnionType(unionType, backlog);
                     break;
+
+                case IDirectivesProvider directivesProvider:
+                    foreach (var directive in directivesProvider.Directives)
+                    {
+                        backlog.Push(directive.Definition);
+                    }
+
+                    break;
             }
         }
 
-        var typesToRemove = new HashSet<ITypeDefinition>();
+        var definitionsToRemove = new HashSet<ITypeSystemMember>();
         foreach (var type in schema.Types)
         {
-            if (touchedTypes.Contains(type) || requireInputTypeNames.Contains(type.NamedType().Name))
+            if (touchedDefinitions.Contains(type))
             {
                 continue;
             }
 
-            typesToRemove.Add(type);
+            definitionsToRemove.Add(type);
         }
 
-        if (typesToRemove.Count > 0)
+        foreach (var directiveDefinition in schema.DirectiveDefinitions)
         {
-            foreach (var type in typesToRemove)
+            if (touchedDefinitions.Contains(directiveDefinition))
             {
-                schema.Types.Remove(type);
+                continue;
+            }
+
+            definitionsToRemove.Add(directiveDefinition);
+        }
+
+        if (definitionsToRemove.Count > 0)
+        {
+            foreach (var definition in definitionsToRemove)
+            {
+                switch (definition)
+                {
+                    case ITypeDefinition typeDefinition:
+                        schema.Types.Remove(typeDefinition);
+                        break;
+
+                    case MutableDirectiveDefinition directiveDefinition:
+                        schema.DirectiveDefinitions.Remove(directiveDefinition);
+                        break;
+                }
             }
         }
     }
@@ -210,20 +256,62 @@ internal static class MutableSchemaDefinitionExtensions
             .ToList();
     }
 
+    /// <summary>
+    /// Returns a list of type names for types that must be preserved in the merged schema
+    /// even if they are not directly referenced.
+    /// </summary>
+    private static HashSet<string> GetPreservedTypeNames(ImmutableSortedSet<MutableSchemaDefinition> sourceSchemas)
+    {
+        var preservedTypeNames = new HashSet<string>();
+
+        foreach (var schema in sourceSchemas)
+        {
+            foreach (var type in schema.Types.OfType<IObjectTypeDefinition>())
+            {
+                foreach (var field in type.Fields)
+                {
+                    foreach (var argument in field.Arguments)
+                    {
+                        var argumentInnerType = argument.Type.InnerType();
+
+                        if ((argument.HasRequireDirective || field.IsLookup)
+                            && argumentInnerType is INameProvider { Name: var name }
+                            && !SpecScalarNames.IsSpecScalar(name))
+                        {
+                            preservedTypeNames.Add(name);
+                        }
+                    }
+                }
+            }
+        }
+
+        return preservedTypeNames;
+    }
+
     private static void InspectComplexType(
         ISchemaDefinition schema,
         IComplexTypeDefinition complexType,
-        Stack<ITypeDefinition> backlog)
+        Stack<ITypeSystemMember> backlog)
     {
         foreach (var @interface in complexType.Implements)
         {
             backlog.Push(@interface);
         }
 
+        foreach (var directive in complexType.Directives)
+        {
+            backlog.Push(directive.Definition);
+        }
+
         foreach (var field in complexType.Fields)
         {
             var returnType = field.Type.AsTypeDefinition();
             backlog.Push(returnType);
+
+            foreach (var directive in field.Directives)
+            {
+                backlog.Push(directive.Definition);
+            }
 
             if (returnType is IInterfaceTypeDefinition or IUnionTypeDefinition)
             {
@@ -236,24 +324,54 @@ internal static class MutableSchemaDefinitionExtensions
             foreach (var argument in field.Arguments)
             {
                 backlog.Push(argument.Type.AsTypeDefinition());
+
+                foreach (var directive in argument.Directives)
+                {
+                    backlog.Push(directive.Definition);
+                }
             }
+        }
+    }
+
+    private static void InspectDirectiveDefinition(
+        IDirectiveDefinition directiveDefinition,
+        Stack<ITypeSystemMember> backlog)
+    {
+        foreach (var argument in directiveDefinition.Arguments)
+        {
+            backlog.Push(argument.Type.AsTypeDefinition());
         }
     }
 
     private static void InspectInputObjectType(
         IInputObjectTypeDefinition inputObjectType,
-        Stack<ITypeDefinition> backlog)
+        Stack<ITypeSystemMember> backlog)
     {
+        foreach (var directive in inputObjectType.Directives)
+        {
+            backlog.Push(directive.Definition);
+        }
+
         foreach (var field in inputObjectType.Fields)
         {
             backlog.Push(field.Type.AsTypeDefinition());
+
+            foreach (var directive in field.Directives)
+            {
+                backlog.Push(directive.Definition);
+            }
         }
     }
 
     private static void InspectUnionType(
         IUnionTypeDefinition unionType,
-        Stack<ITypeDefinition> backlog)
+        Stack<ITypeSystemMember> backlog)
     {
+        foreach (var directive in unionType.Directives)
+        {
+            backlog.Push(directive.Definition);
+        }
+
         foreach (var member in unionType.Types)
         {
             backlog.Push(member);

@@ -37,7 +37,7 @@ sourceSchemas:
         query: Query
       }
 
-      type Brand {
+      type Brand @key(fields: "id") {
         id: ID!
       }
 
@@ -108,12 +108,6 @@ sourceSchemas:
                 "errors": [
                   {
                     "message": "Unexpected Execution Error",
-                    "locations": [
-                      {
-                        "line": 5,
-                        "column": 5
-                      }
-                    ],
                     "path": [
                       "brandById",
                       "name"
@@ -139,6 +133,7 @@ operationPlan:
         }
       hash: e358ecef0b90dbe58021a2df1c597e63
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation

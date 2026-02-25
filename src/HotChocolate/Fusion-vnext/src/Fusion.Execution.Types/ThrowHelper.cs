@@ -11,9 +11,10 @@ internal static class ThrowHelper
         }
     }
 
-    public static void TypeSystemMemberSealed()
-    {
-        throw new NotSupportedException(
+    public static NotSupportedException TypeSystemMemberSealed()
+        => new NotSupportedException(
             "The type system member is sealed and cannot be modified.");
-    }
+
+    public static InvalidOperationException InvalidCompletionContext()
+        => new("The context has an invalid state.");
 }

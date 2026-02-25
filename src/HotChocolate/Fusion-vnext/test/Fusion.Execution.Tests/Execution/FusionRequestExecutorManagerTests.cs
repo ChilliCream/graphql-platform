@@ -1,3 +1,4 @@
+using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -33,7 +34,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         // assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
-        Assert.Equal($"The requested schema 'unknown-name' does not exist.", exception.Message);
+        Assert.Equal("The requested schema 'unknown-name' does not exist.", exception.Message);
     }
 
     [Fact]
@@ -89,18 +90,8 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                         {
                             var plan = context.GetOperationPlan();
                             context.Result =
-                                OperationResultBuilder.New()
-                                    .SetData(
-                                        new Dictionary<string, object?>
-                                        {
-                                            { "foo", null }
-                                        })
-                                    .SetContextData(
-                                        new Dictionary<string, object?>
-                                        {
-                                            { "operationPlan", plan }
-                                        })
-                                        .Build();
+                                new OperationResult(
+                                    ImmutableOrderedDictionary<string, object?>.Empty.Add("operationPlan", plan));
                             return ValueTask.CompletedTask;
                         };
                     })
@@ -122,8 +113,8 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
                 .Build());
 
         // assert
-        Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData.TryGetValue("operationPlan", out var operationPlan));
+        var operationResult = result.ExpectOperationResult();
+        Assert.True(operationResult.Extensions.TryGetValue("operationPlan", out var operationPlan));
         Assert.NotNull(operationPlan);
         Assert.Equal("Test", Assert.IsType<OperationPlan>(operationPlan).OperationName);
     }
@@ -308,7 +299,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         cts.Dispose();
     }
 
-    [Fact(Skip = "SomeService needs to be registered with the schema services")]
+    [Fact]
     public async Task WarmupTask_Should_Be_Able_To_Access_Schema_And_Regular_Services()
     {
         // arrange
@@ -319,6 +310,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         services
             .AddGraphQLGateway()
             .AddInMemoryConfiguration(CreateConfiguration().Schema)
+            .AddApplicationService<SomeService>()
             .AddWarmupTask<CustomWarmupTask>();
         var provider = services.BuildServiceProvider();
         var manager = provider.GetRequiredService<FusionRequestExecutorManager>();

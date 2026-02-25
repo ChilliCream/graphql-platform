@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.PersistedOperations;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,8 +10,7 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
     private readonly RequestDelegate _next;
     private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
     private readonly PersistedOperationOptions _options;
-    private readonly IOperationResult _errorResult;
-    private readonly Dictionary<string, object?> _statusCode = new() { { ExecutionContextData.HttpStatusCode, 400 } };
+    private readonly OperationResult _errorResult;
 
     private OnlyPersistedOperationsAllowedMiddleware(
         RequestDelegate next,
@@ -26,7 +26,10 @@ internal sealed class OnlyPersistedOperationsAllowedMiddleware
 
         // prepare options.
         _options = options;
-        _errorResult = OperationResultBuilder.CreateError(options.OperationNotAllowedError, _statusCode);
+        _errorResult = new OperationResult([options.OperationNotAllowedError])
+        {
+            ContextData = ImmutableDictionary<string, object?>.Empty.Add(ExecutionContextData.HttpStatusCode, 400)
+        };
     }
 
     public ValueTask InvokeAsync(RequestContext context)

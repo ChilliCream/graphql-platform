@@ -3,7 +3,7 @@ request:
   document: |
     query GetBooks(
       $first: Int
-      $last: Int
+        $last: Int
     ) {
       books(first: $first, last: $last) {
         nodes {
@@ -43,18 +43,18 @@ sourceSchemas:
         query: Query
       }
 
-      type Author {
+      type Author @key(fields: "id") {
         id: Int!
       }
 
       type Book {
         id: Int!
         title: String!
-        author: Author!
+        author: Author! @shareable
       }
 
       "A connection to a list of items."
-      type BooksConnection {
+      type BooksConnection @shareable {
         "Information to aid in pagination."
         pageInfo: PageInfo!
         "A list of edges."
@@ -64,7 +64,7 @@ sourceSchemas:
       }
 
       "An edge in a connection."
-      type BooksEdge {
+      type BooksEdge @shareable {
         "A cursor for use in pagination."
         cursor: String!
         "The item at the end of the edge."
@@ -72,7 +72,7 @@ sourceSchemas:
       }
 
       "Information about pagination in a connection."
-      type PageInfo {
+      type PageInfo @shareable {
         "Indicates whether more edges exist following the set defined by the clients arguments."
         hasNextPage: Boolean!
         "Indicates whether more edges exist prior the set defined by the clients arguments."
@@ -93,7 +93,7 @@ sourceSchemas:
           document: |
             query GetBooks_938ff9c0_1(
               $first: Int
-              $last: Int
+                $last: Int
             ) {
               books(first: $first, last: $last) {
                 nodes {
@@ -140,7 +140,7 @@ sourceSchemas:
       }
 
       "A connection to a list of items."
-      type AuthorsConnection {
+      type AuthorsConnection @shareable {
         "Information to aid in pagination."
         pageInfo: PageInfo!
         "A list of edges."
@@ -150,7 +150,7 @@ sourceSchemas:
       }
 
       "An edge in a connection."
-      type AuthorsEdge {
+      type AuthorsEdge @shareable {
         "A cursor for use in pagination."
         cursor: String!
         "The item at the end of the edge."
@@ -160,11 +160,11 @@ sourceSchemas:
       type Book {
         idAndTitle(title: String! @require(field: "title")): String!
         id: Int!
-        author: Author!
+        author: Author! @shareable
       }
 
       "Information about pagination in a connection."
-      type PageInfo {
+      type PageInfo @shareable {
         "Indicates whether more edges exist following the set defined by the clients arguments."
         hasNextPage: Boolean!
         "Indicates whether more edges exist prior the set defined by the clients arguments."
@@ -209,7 +209,7 @@ operationPlan:
     - document: |
         query GetBooks(
           $first: Int
-          $last: Int
+            $last: Int
         ) {
           books(first: $first, last: $last) {
             nodes {
@@ -225,6 +225,7 @@ operationPlan:
       name: GetBooks
       hash: 938ff9c055f12c1e277010b7756339fa
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -232,7 +233,7 @@ operationPlan:
       operation: |
         query GetBooks_938ff9c0_1(
           $first: Int
-          $last: Int
+            $last: Int
         ) {
           books(first: $first, last: $last) {
             nodes {

@@ -93,7 +93,17 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   *:focus {
+    outline: 2px solid ${THEME_COLORS.primaryButton};
+    outline-offset: 2px;
+  }
+
+  *:focus:not(:focus-visible) {
     outline: none;
+  }
+
+  *:focus-visible {
+    outline: 2px solid ${THEME_COLORS.primaryButton};
+    outline-offset: 2px;
   }
 
   div, span {

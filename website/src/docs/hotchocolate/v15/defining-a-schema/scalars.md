@@ -170,7 +170,7 @@ Notice how our code uses `int` for the `Id`, but in a request / response it woul
 
 # GraphQL Community Scalars
 
-The website <https://www.graphql-scalars.com/> hosts specifications for GraphQL scalars defined by the community. The community scalars use the `@specifiedBy` directive to point to the spec that is implemented.
+The website <https://scalars.graphql.org/> hosts specifications for GraphQL scalars defined by the community. The community scalars use the `@specifiedBy` directive to point to the spec that is implemented.
 
 ```sdl
 scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
@@ -212,9 +212,9 @@ In addition to the scalars defined by the specification, Hot Chocolate also supp
 
 [1]: https://tools.ietf.org/html/rfc3339
 
-## Uuid Type
+## UUID Type
 
-The `Uuid` scalar supports the following serialization formats.
+The `UUID` scalar supports the following serialization formats.
 
 | Specifier   | Format                                                               |
 | ----------- | -------------------------------------------------------------------- |

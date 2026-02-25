@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Immutable;
 using System.Linq.Expressions;
 using HotChocolate.Execution;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
@@ -516,7 +517,7 @@ public class ObjectTypeTests : TypeTestBase
     public void NoQueryType()
     {
         // arrange
-        const string source = @"type A { field: String }";
+        const string source = "type A { field: String }";
 
         // act
         void Action()
@@ -1235,7 +1236,7 @@ public class ObjectTypeTests : TypeTestBase
         void Action() => ObjectTypeDescriptorExtensions.Ignore<Foo>(null!, t => t.Description);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<NullReferenceException>(Action);
     }
 
     [Fact]
@@ -1580,7 +1581,7 @@ public class ObjectTypeTests : TypeTestBase
                     .Field("test")
                     .Resolve(
                         _ => new ValueTask<object?>("abc"),
-                        typeof(NativeType<List<int>>)))
+                        typeof(NamedRuntimeType<List<int>>)))
             .Create();
 
         // assert

@@ -38,7 +38,7 @@ sourceSchemas:
         author: Author
       }
 
-      type Author {
+      type Author @key(fields: "id") {
         id: ID!
       }
 
@@ -99,19 +99,34 @@ sourceSchemas:
       }
     interactions:
       - request:
-          document: |
-            query testQuery_1703e95b_2(
-              $__fusion_1_id: ID!
-            ) {
-              authorById(id: $__fusion_1_id) {
-                email
-              }
-            }
-          variables: |
-            {
-              "__fusion_1_id": "QXV0aG9yOjI="
-            }
+          kind: OperationBatch
+          items:
+            - document: |
+                query testQuery_1703e95b_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    email
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "QXV0aG9yOjI="
+                }
+            - document: |
+                query testQuery_1703e95b_3(
+                  $__fusion_2_id: ID!
+                ) {
+                  authorById(id: $__fusion_2_id) {
+                    displayName
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_2_id": "QXV0aG9yOjI="
+                }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -122,19 +137,34 @@ sourceSchemas:
                 }
               }
       - request:
-          document: |
-            query testQuery_1703e95b_3(
-              $__fusion_2_id: ID!
-            ) {
-              authorById(id: $__fusion_2_id) {
-                displayName
-              }
-            }
-          variables: |
-            {
-              "__fusion_2_id": "QXV0aG9yOjI="
-            }
+          kind: OperationBatch
+          items:
+            - document: |
+                query testQuery_1703e95b_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    email
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "QXV0aG9yOjI="
+                }
+            - document: |
+                query testQuery_1703e95b_3(
+                  $__fusion_2_id: ID!
+                ) {
+                  authorById(id: $__fusion_2_id) {
+                    displayName
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_2_id": "QXV0aG9yOjI="
+                }
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -166,6 +196,7 @@ operationPlan:
       name: testQuery
       hash: 1703e95bc9cba85c083d641b7c36486a
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -197,6 +228,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.authorable<Discussion>.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -216,6 +248,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.authorable.author
+      batchingGroupId: 1
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

@@ -146,6 +146,8 @@ public class QueryableDefaultFieldHandler
         return true;
     }
 
+    public static QueryableDefaultFieldHandler Create(FilterProviderContext context) => new();
+
     private sealed class ReplaceVariableExpressionVisitor : ExpressionVisitor
     {
         private readonly Expression _replacement;

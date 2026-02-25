@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
@@ -10,7 +9,7 @@ namespace HotChocolate.Types;
 public partial class HexColorType : RegexType
 {
     private const string ValidationPattern =
-        "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})$";
+        @"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3}|[A-Fa-f0-9]{8})\z";
 
     [GeneratedRegex(ValidationPattern, RegexOptions.None, DefaultRegexTimeoutInMs)]
     private static partial Regex CreateRegex();
@@ -41,15 +40,6 @@ public partial class HexColorType : RegexType
     {
     }
 
-    /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
-    {
-        return ThrowHelper.HexColorType_ParseLiteral_IsInvalid(this);
-    }
-
-    /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
-    {
-        return ThrowHelper.HexColorType_ParseValue_IsInvalid(this);
-    }
+    protected override LeafCoercionException FormatException(string runtimeValue)
+        => ThrowHelper.HexColorType_InvalidFormat(this);
 }

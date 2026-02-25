@@ -23,6 +23,7 @@ public class MultiPartResponseStreamSerializerTests
                         o.EnableDefer = true;
                         o.EnableStream = true;
                     })
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .ExecuteRequestAsync(
                     """
                     {

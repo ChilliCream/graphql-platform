@@ -24,7 +24,7 @@ sourceSchemas:
         query: Query
       }
 
-      type Discussion {
+      type Discussion @key(fields: "id") {
         id: ID!
         title: String!
         commentCount: Int!
@@ -67,7 +67,7 @@ sourceSchemas:
         id: ID!
       }
 
-      type Discussion implements Node {
+      type Discussion implements Node @key(fields: "title") {
         id: ID!
         title: String!
       }

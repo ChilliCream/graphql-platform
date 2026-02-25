@@ -54,7 +54,18 @@ public class DefaultNamingConventions
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        var name = type.GetGraphQLName();
+        string? name;
+
+        if (kind is TypeKind.Object && type.IsDefined(typeof(ExtendObjectTypeAttribute), false))
+        {
+            name = type.GetCustomAttribute<ExtendObjectTypeAttribute>()?.Name;
+            if (!string.IsNullOrEmpty(name))
+            {
+                return name;
+            }
+        }
+
+        name = type.GetGraphQLName();
 
         if (_formatInterfaceName
             && kind == TypeKind.Interface

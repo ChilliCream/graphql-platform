@@ -29,6 +29,13 @@ public abstract class ExecutionNode : IEquatable<ExecutionNode>
     public abstract ReadOnlySpan<ExecutionNodeCondition> Conditions { get; }
 
     /// <summary>
+    /// Gets the name of the source schema that this execution node operates in.
+    /// Returns <c>null</c> for nodes that are not bound to a specific source schema,
+    /// or whose schema is determined dynamically at runtime.
+    /// </summary>
+    public abstract string? SchemaName { get; }
+
+    /// <summary>
     /// Gets the execution nodes that depend on this node to be completed
     /// before they can be executed.
     /// </summary>

@@ -1,7 +1,9 @@
 using System.Buffers;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Buffers;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -103,8 +105,62 @@ public sealed partial class SourceResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ReadOnlySpan<byte> ReadRawValue(DbRow row)
-        => ReadRawValue(row.Location, row.SizeOrLength);
+    private void WriteRawValueTo(Utf8JsonWriter writer, DbRow row)
+    {
+        if (row.TokenType is JsonTokenType.String)
+        {
+            writer.WriteRawValue(ReadRawValue(row.Location - 1, row.SizeOrLength + 2), skipInputValidation: true);
+            return;
+        }
+
+        writer.WriteRawValue(ReadRawValue(row.Location, row.SizeOrLength), skipInputValidation: true);
+    }
+
+    internal void WriteRawValueTo(IBufferWriter<byte> writer, int location, int size)
+    {
+        var startChunkIndex = location / JsonMemory.BufferSize;
+        var offsetInStartChunk = location % JsonMemory.BufferSize;
+
+        if (offsetInStartChunk + size <= JsonMemory.BufferSize)
+        {
+            var span = writer.GetSpan(size);
+            _dataChunks[startChunkIndex].AsSpan(offsetInStartChunk, size).CopyTo(span);
+            writer.Advance(size);
+            return;
+        }
+
+        var bytesRead = 0;
+        var currentLocation = location;
+
+        while (bytesRead < size)
+        {
+            var chunkIndex = currentLocation / JsonMemory.BufferSize;
+            var offsetInChunk = currentLocation % JsonMemory.BufferSize;
+            var chunk = _dataChunks[chunkIndex];
+
+            var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, JsonMemory.BufferSize - offsetInChunk);
+            var chunkSpan = chunk.AsSpan(offsetInChunk, bytesToCopyFromThisChunk);
+
+            var span = writer.GetSpan(chunkSpan.Length);
+            chunkSpan.CopyTo(span);
+            writer.Advance(chunkSpan.Length);
+            bytesRead += bytesToCopyFromThisChunk;
+            currentLocation += bytesToCopyFromThisChunk;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ReadOnlySpan<byte> ReadRawValue(DbRow row, bool includeQuotes)
+    {
+        if (row.IsSimpleValue && includeQuotes && row.TokenType == JsonTokenType.String)
+        {
+            // Start one character earlier than the value (the open quote)
+            // End one character after the value (the close quote)
+            return ReadRawValue(row.Location - 1, row.SizeOrLength + 2);
+        }
+
+        return ReadRawValue(row.Location, row.SizeOrLength);
+    }
 
     internal ReadOnlySpan<byte> ReadRawValue(int location, int size)
     {
@@ -160,7 +216,7 @@ public sealed partial class SourceResultDocument : IDisposable
             var bytesToCopyFromThisChunk = Math.Min(size - bytesRead, JsonMemory.BufferSize - offsetInChunk);
 
             chunk.AsSpan(offsetInChunk, bytesToCopyFromThisChunk)
-                 .CopyTo(tempArray.AsSpan(bytesRead));
+                .CopyTo(tempArray.AsSpan(bytesRead));
 
             bytesRead += bytesToCopyFromThisChunk;
             currentLocation += bytesToCopyFromThisChunk;
@@ -183,7 +239,7 @@ public sealed partial class SourceResultDocument : IDisposable
         {
             if (_pooledMemory)
             {
-                JsonMemory.Return(_dataChunks, _usedChunks);
+                JsonMemory.Return(JsonMemoryKind.Json, _dataChunks, _usedChunks);
 
                 if (_dataChunks.Length > 1)
                 {
@@ -196,5 +252,31 @@ public sealed partial class SourceResultDocument : IDisposable
 
             _disposed = true;
         }
+    }
+
+    public override string ToString()
+    {
+        if (_usedChunks == 0)
+        {
+            return string.Empty;
+        }
+
+        var totalSize = 0;
+
+        for (var i = 0; i < _usedChunks; i++)
+        {
+            totalSize += _dataChunks[i].Length;
+        }
+
+        var buffer = new byte[totalSize];
+        var offset = 0;
+
+        for (var i = 0; i < _usedChunks; i++)
+        {
+            _dataChunks[i].CopyTo(buffer, offset);
+            offset += _dataChunks[i].Length;
+        }
+
+        return s_utf8Encoding.GetString(buffer).TrimEnd('\0');
     }
 }

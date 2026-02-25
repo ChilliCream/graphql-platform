@@ -403,7 +403,7 @@ public sealed partial class SyntaxSerializer
             writer.WriteSpace();
             writer.Write("=");
             writer.WriteSpace();
-            writer.WriteValue(value);
+            writer.WriteValue(value, _indented);
         }
 
         WriteDirectives(node.Directives, writer);

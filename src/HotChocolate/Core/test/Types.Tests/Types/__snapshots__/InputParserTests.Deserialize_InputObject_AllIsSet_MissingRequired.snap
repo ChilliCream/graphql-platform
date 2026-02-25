@@ -2,10 +2,10 @@
   "errors": [
     {
       "message": "The required input field `field1` is missing.",
-      "path": [
-        "field1"
-      ],
       "extensions": {
+        "inputPath": [
+          "field1"
+        ],
         "field": "Test2Input.field1"
       }
     }

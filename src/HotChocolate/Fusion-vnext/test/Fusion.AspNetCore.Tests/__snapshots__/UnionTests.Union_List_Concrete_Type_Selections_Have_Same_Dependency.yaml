@@ -22,7 +22,7 @@ response:
         "posts": [
           {
             "product": {
-              "subgraph2": "Product: UHJvZHVjdDo2"
+              "subgraph2": "Product: UHJvZHVjdDo0"
             }
           },
           {
@@ -32,7 +32,7 @@ response:
           },
           {
             "product": {
-              "subgraph2": "Product: UHJvZHVjdDo0"
+              "subgraph2": "Product: UHJvZHVjdDo2"
             }
           }
         ]
@@ -55,7 +55,7 @@ sourceSchemas:
         product: Product
       }
 
-      type Product {
+      type Product @key(fields: "id") {
         id: ID!
       }
 
@@ -91,7 +91,7 @@ sourceSchemas:
                     {
                       "__typename": "Photo",
                       "product": {
-                        "id": "UHJvZHVjdDo2"
+                        "id": "UHJvZHVjdDo0"
                       }
                     },
                     {
@@ -103,7 +103,7 @@ sourceSchemas:
                     {
                       "__typename": "Photo",
                       "product": {
-                        "id": "UHJvZHVjdDo0"
+                        "id": "UHJvZHVjdDo2"
                       }
                     }
                   ]
@@ -134,10 +134,19 @@ sourceSchemas:
               }
             }
           variables: |
-            {
-              "__fusion_1_id": "UHJvZHVjdDo1"
-            }
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDo1"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo0"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo2"
+              }
+            ]
         response:
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -147,31 +156,11 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query testQuery_9b3b2942_3(
-              $__fusion_2_id: ID!
-            ) {
-              productById(id: $__fusion_2_id) {
-                subgraph2
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_2_id": "UHJvZHVjdDo2"
-              },
-              {
-                "__fusion_2_id": "UHJvZHVjdDo0"
-              }
-            ]
-        response:
-          results:
             - |
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo2"
+                    "subgraph2": "Product: UHJvZHVjdDo0"
                   }
                 }
               }
@@ -179,7 +168,7 @@ sourceSchemas:
               {
                 "data": {
                   "productById": {
-                    "subgraph2": "Product: UHJvZHVjdDo0"
+                    "subgraph2": "Product: UHJvZHVjdDo2"
                   }
                 }
               }
@@ -206,6 +195,7 @@ operationPlan:
       name: testQuery
       hash: 9b3b2942c1fefa10ff166b89f628b2b4
       searchSpace: 1
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -227,7 +217,7 @@ operationPlan:
           }
         }
     - id: 2
-      type: Operation
+      type: OperationBatch
       schema: B
       operation: |
         query testQuery_9b3b2942_2(
@@ -238,28 +228,12 @@ operationPlan:
           }
         }
       source: $.productById
-      target: $.posts<Discussion>.product
+      targets:
+        - $.posts<Discussion>.product
+        - $.posts<Photo>.product
+      batchingGroupId: 1
       requirements:
         - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 3
-      type: Operation
-      schema: B
-      operation: |
-        query testQuery_9b3b2942_3(
-          $__fusion_2_id: ID!
-        ) {
-          productById(id: $__fusion_2_id) {
-            subgraph2
-          }
-        }
-      source: $.productById
-      target: $.posts<Photo>.product
-      requirements:
-        - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:

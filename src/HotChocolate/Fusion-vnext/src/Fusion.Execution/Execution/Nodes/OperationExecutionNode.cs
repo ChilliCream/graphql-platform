@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reactive.Disposables;
+using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 
@@ -15,6 +16,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
+    private readonly int? _batchingGroupId;
     private readonly string? _schemaName;
     private readonly SelectionPath _target;
     private readonly SelectionPath _source;
@@ -29,10 +31,12 @@ public sealed class OperationExecutionNode : ExecutionNode
         string[] forwardedVariables,
         string[] responseNames,
         ExecutionNodeCondition[] conditions,
+        int? batchingGroupId,
         bool requiresFileUpload)
     {
         Id = id;
         _operation = operation;
+        _batchingGroupId = batchingGroupId;
         _schemaName = schemaName;
         _target = target;
         _source = source;
@@ -58,15 +62,17 @@ public sealed class OperationExecutionNode : ExecutionNode
     public OperationSourceText Operation => _operation;
 
     /// <summary>
+    /// Gets the deterministic batching group identifier assigned at planning time.
+    /// </summary>
+    public int? BatchingGroupId => _batchingGroupId;
+
+    /// <summary>
     /// Gets the response names of the <see cref="Target"/> selection set that are fulfilled by this operation.
     /// </summary>
     public ReadOnlySpan<string> ResponseNames => _responseNames;
 
-    /// <summary>
-    /// Gets the name of the source schema that this operation is executed against.
-    /// If <c>null</c> the schema is dynamic and will be set at runtime.
-    /// </summary>
-    public string? SchemaName => _schemaName;
+    /// <inheritdoc />
+    public override string? SchemaName => _schemaName;
 
     /// <summary>
     /// Gets the path to the selection set for which this operation fetches data.
@@ -83,6 +89,9 @@ public sealed class OperationExecutionNode : ExecutionNode
     /// Gets the data requirements that are needed to execute this operation.
     /// </summary>
     public ReadOnlySpan<OperationRequirement> Requirements => _requirements;
+
+    internal ImmutableArray<OperationRequirement> GetRequirementsArray()
+        => ImmutableCollectionsMarshal.AsImmutableArray(_requirements);
 
     /// <summary>
     /// Gets the variables that are needed to execute this operation.
@@ -113,13 +122,14 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         var request = new SourceSchemaClientRequest
         {
+            Node = this,
+            SchemaName = schemaName,
+            BatchingGroupId = _batchingGroupId,
             OperationType = _operation.Type,
             OperationSourceText = _operation.SourceText,
             Variables = variables,
             RequiresFileUpload = _requiresFileUpload
         };
-
-        var client = context.GetClient(schemaName, _operation.Type);
 
         var index = 0;
         var bufferLength = 0;
@@ -129,18 +139,27 @@ public sealed class OperationExecutionNode : ExecutionNode
         try
         {
             // we execute the GraphQL request against a source schema
-            var response = await client.ExecuteAsync(context, this, request, cancellationToken);
+            var response = await context.SourceSchemaScheduler
+                .ExecuteAsync(request, cancellationToken)
+                .ConfigureAwait(false);
             context.TrackSourceSchemaClientResponse(this, response);
 
             // we read the responses from the response stream.
-            bufferLength = Math.Max(variables.Length, 1);
+            var totalPathCount = variables.Length;
+
+            for (var i = 0; i < variables.Length; i++)
+            {
+                totalPathCount += variables[i].AdditionalPaths.Length;
+            }
+
+            bufferLength = Math.Max(totalPathCount, 1);
             buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
 
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
                 buffer[index++] = result;
 
-                if (result.Errors is not null)
+                if (result.HasErrors)
                 {
                     hasSomeErrors = true;
                 }
@@ -219,17 +238,20 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         var request = new SourceSchemaClientRequest
         {
+            Node = this,
+            SchemaName = schemaName,
             OperationType = _operation.Type,
             OperationSourceText = _operation.SourceText,
             Variables = variables
         };
 
-        var client = context.GetClient(schemaName, _operation.Type);
         var subscriptionId = SubscriptionId.Next();
 
         try
         {
-            var response = await client.ExecuteAsync(context, this, request, cancellationToken);
+            var client = context.GetClient(schemaName, _operation.Type);
+
+            var response = await client.ExecuteAsync(context, request, cancellationToken);
 
             var stream = new SubscriptionEnumerable(
                 context,
@@ -263,14 +285,27 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         else
         {
-            var pathBufferLength = variables.Length;
+            var pathBufferLength = 0;
+
+            for (var i = 0; i < variables.Length; i++)
+            {
+                pathBufferLength += 1 + variables[i].AdditionalPaths.Length;
+            }
+
             var pathBuffer = ArrayPool<Path>.Shared.Rent(pathBufferLength);
 
             try
             {
+                var pathBufferIndex = 0;
+
                 for (var i = 0; i < variables.Length; i++)
                 {
-                    pathBuffer[i] = variables[i].Path;
+                    pathBuffer[pathBufferIndex++] = variables[i].Path;
+
+                    foreach (var additionalPath in variables[i].AdditionalPaths)
+                    {
+                        pathBuffer[pathBufferIndex++] = additionalPath;
+                    }
                 }
 
                 context.AddErrors(error, responseNames, pathBuffer.AsSpan(0, pathBufferLength));

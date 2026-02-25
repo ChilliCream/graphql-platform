@@ -15,7 +15,7 @@ public class ConditionalTests : FusionTestBase
             "A",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
@@ -27,7 +27,7 @@ public class ConditionalTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
@@ -131,7 +131,7 @@ public class ConditionalTests : FusionTestBase
             "A",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
@@ -143,7 +143,7 @@ public class ConditionalTests : FusionTestBase
             "B",
             """
             type Query {
-              viewer: Viewer
+              viewer: Viewer @shareable
             }
 
             type Viewer {
@@ -636,7 +636,7 @@ public class ConditionalTests : FusionTestBase
               review: Review
             }
 
-            type Review {
+            type Review @key(fields: "id") {
               id: ID!
             }
             """);
@@ -701,7 +701,7 @@ public class ConditionalTests : FusionTestBase
               review: Review
             }
 
-            type Review {
+            type Review @key(fields: "id") {
               id: ID!
             }
             """);
@@ -770,7 +770,7 @@ public class ConditionalTests : FusionTestBase
               review: Review
             }
 
-            type Review {
+            type Review @key(fields: "id") {
               id: ID!
             }
             """);
@@ -833,7 +833,7 @@ public class ConditionalTests : FusionTestBase
             """
             type Query {
               productBySlug(slug: String!): Product
-              reviewById(id: ID!): Review @lookup
+              reviewById(id: ID!): Review @lookup @shareable
             }
 
             type Product {
@@ -852,7 +852,7 @@ public class ConditionalTests : FusionTestBase
             "B",
             """
             type Query {
-              reviewById(id: ID!): Review @lookup
+              reviewById(id: ID!): Review @lookup @shareable
             }
 
             type Review {
@@ -915,7 +915,7 @@ public class ConditionalTests : FusionTestBase
               review: Review
             }
 
-            type Review {
+            type Review @key(fields: "id") {
               id: ID!
             }
             """);
@@ -980,7 +980,7 @@ public class ConditionalTests : FusionTestBase
               review: Review
             }
 
-            type Review {
+            type Review @key(fields: "id") {
               id: ID!
             }
             """);
@@ -1115,7 +1115,7 @@ public class ConditionalTests : FusionTestBase
               productBySlug(slug: String!): Product
             }
 
-            type Product {
+            type Product @key(fields: "id") {
               id: ID!
             }
             """);
@@ -1124,7 +1124,7 @@ public class ConditionalTests : FusionTestBase
             "B",
             """
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product {
@@ -1137,7 +1137,7 @@ public class ConditionalTests : FusionTestBase
             "C",
             """
             type Query {
-              productById(id: ID!): Product @lookup
+              productById(id: ID!): Product @lookup @shareable
             }
 
             type Product {
@@ -1418,7 +1418,7 @@ public class ConditionalTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -1435,7 +1435,7 @@ public class ConditionalTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -1487,7 +1487,7 @@ public class ConditionalTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -1504,7 +1504,7 @@ public class ConditionalTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -1660,7 +1660,7 @@ public class ConditionalTests : FusionTestBase
             "A",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {
@@ -1677,7 +1677,7 @@ public class ConditionalTests : FusionTestBase
             "B",
             """
             type Query {
-              node(id: ID!): Node @lookup
+              node(id: ID!): Node @lookup @shareable
             }
 
             interface Node {

@@ -11,5 +11,5 @@ public sealed class BrandEntity
     [Required]
     public string Name { get; set; } = default!;
 
-    public ICollection<ProductEntity> Products { get; set; } = new List<ProductEntity>();
+    public ICollection<ProductEntity> Products { get; set; } = [];
 }
