@@ -104,6 +104,11 @@ internal sealed class FetchResultStore : IDisposable
                 nameof(results));
         }
 
+        if (results.Length == 1)
+        {
+            return AddSinglePartialResult(sourcePath, results[0], responseNames);
+        }
+
         var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
         var errorTries = ArrayPool<ErrorTrie?>.Shared.Rent(results.Length);
         var dataElementsSpan = dataElements.AsSpan(0, results.Length);
@@ -166,6 +171,35 @@ internal sealed class FetchResultStore : IDisposable
             errorTriesSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
             ArrayPool<ErrorTrie?>.Shared.Return(errorTries);
+        }
+    }
+
+    private bool AddSinglePartialResult(
+        SelectionPath sourcePath,
+        SourceSchemaResult result,
+        ReadOnlySpan<string> responseNames)
+    {
+        _memory.Push(result);
+
+        var errors = result.Errors;
+        var dataElement = GetDataElement(sourcePath, result.Data);
+        var errorTrie = GetErrorTrie(sourcePath, errors?.Trie);
+
+        lock (_lock)
+        {
+            if (errors?.RootErrors is { Length: > 0 } rootErrors)
+            {
+                _errors ??= [];
+                _errors.AddRange(rootErrors);
+            }
+
+            return SaveSafeResult(
+                _result.Data,
+                result.Path,
+                result.AdditionalPaths.AsSpan(),
+                dataElement,
+                errorTrie,
+                responseNames);
         }
     }
 
