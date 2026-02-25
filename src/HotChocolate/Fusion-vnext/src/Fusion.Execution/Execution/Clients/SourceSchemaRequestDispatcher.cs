@@ -27,6 +27,7 @@ internal sealed class SourceSchemaRequestDispatcher
     private readonly Dictionary<int, GroupState> _groups = [];
     private readonly List<int> _trackedNodeIdSlots = [];
     private int[] _groupByNodeIdSlots = [];
+    private int[] _nodeStateSlots = [];
     private Exception? _abortError;
     private bool _aborted;
 
@@ -93,7 +94,7 @@ internal sealed class SourceSchemaRequestDispatcher
             }
             // we register the node to be dispatched.
             else if (_groups.TryGetValue(groupId, out var group)
-                && group.TrySubmit(request, out pendingRequest))
+                && group.TrySubmit(request, _nodeStateSlots, out pendingRequest))
             {
                 if (group.TryCreateDispatch(out pendingRequests))
                 {
@@ -157,18 +158,23 @@ internal sealed class SourceSchemaRequestDispatcher
                 _groups.Add(groupId, group);
             }
 
-            group.Register(nodeIds);
-
             foreach (var nodeId in nodeIds)
             {
                 EnsureNodeIdSlotCapacity(nodeId + 1);
+                var existingGroupId = _groupByNodeIdSlots[nodeId];
 
-                if (_groupByNodeIdSlots[nodeId] < 0)
+                if (existingGroupId < 0)
                 {
                     _trackedNodeIdSlots.Add(nodeId);
+                    group.RegisterNode(nodeId);
+                }
+                else if (existingGroupId != groupId)
+                {
+                    group.RegisterNode(nodeId);
                 }
 
                 _groupByNodeIdSlots[nodeId] = groupId;
+                _nodeStateSlots[nodeId] = 0;
             }
         }
     }
@@ -202,7 +208,7 @@ internal sealed class SourceSchemaRequestDispatcher
                 return;
             }
 
-            group.Skip(nodeId);
+            group.Skip(nodeId, _nodeStateSlots);
 
             if (group.TryCreateDispatch(out pendingRequests))
             {
@@ -404,6 +410,7 @@ internal sealed class SourceSchemaRequestDispatcher
             if ((uint)nodeId < (uint)_groupByNodeIdSlots.Length)
             {
                 _groupByNodeIdSlots[nodeId] = -1;
+                _nodeStateSlots[nodeId] = -1;
             }
         }
     }
@@ -420,6 +427,7 @@ internal sealed class SourceSchemaRequestDispatcher
             if ((uint)nodeId < (uint)_groupByNodeIdSlots.Length)
             {
                 _groupByNodeIdSlots[nodeId] = -1;
+                _nodeStateSlots[nodeId] = -1;
             }
         }
 
@@ -441,21 +449,25 @@ internal sealed class SourceSchemaRequestDispatcher
         }
 
         var groupByNodeIdSlots = new int[newCapacity];
+        var nodeStateSlots = new int[newCapacity];
         Array.Fill(groupByNodeIdSlots, -1);
+        Array.Fill(nodeStateSlots, -1);
 
         if (_groupByNodeIdSlots.Length > 0)
         {
             Array.Copy(_groupByNodeIdSlots, groupByNodeIdSlots, _groupByNodeIdSlots.Length);
+            Array.Copy(_nodeStateSlots, nodeStateSlots, _nodeStateSlots.Length);
         }
 
         _groupByNodeIdSlots = groupByNodeIdSlots;
+        _nodeStateSlots = nodeStateSlots;
     }
 
     private sealed class GroupState(int id, int initialCapacity)
     {
         private readonly List<int> _nodeIds = new(initialCapacity);
-        private readonly HashSet<int> _remainingNodeIds = new(initialCapacity);
         private readonly Dictionary<int, PendingRequest> _pendingRequests = new(initialCapacity);
+        private int _remainingNodes;
         private bool _dispatchCreated;
 
         public int Id { get; } = id;
@@ -464,19 +476,15 @@ internal sealed class SourceSchemaRequestDispatcher
 
         public IEnumerable<PendingRequest> PendingRequests => _pendingRequests.Values;
 
-        public void Register(IReadOnlyList<int> nodeIds)
+        public void RegisterNode(int nodeId)
         {
-            foreach (var nodeId in nodeIds)
-            {
-                if (_remainingNodeIds.Add(nodeId))
-                {
-                    _nodeIds.Add(nodeId);
-                }
-            }
+            _nodeIds.Add(nodeId);
+            _remainingNodes++;
         }
 
         public bool TrySubmit(
             SourceSchemaClientRequest request,
+            int[] nodeStateSlots,
             out PendingRequest? pendingRequest)
         {
             var nodeId = request.Node.Id;
@@ -489,11 +497,14 @@ internal sealed class SourceSchemaRequestDispatcher
                         nodeId));
             }
 
-            if (!_remainingNodeIds.Remove(nodeId))
+            if ((uint)nodeId >= (uint)nodeStateSlots.Length || nodeStateSlots[nodeId] != 0)
             {
                 pendingRequest = null;
                 return false;
             }
+
+            nodeStateSlots[nodeId] = 1;
+            _remainingNodes--;
 
             pendingRequest = new PendingRequest(request);
             _pendingRequests.Add(nodeId, pendingRequest);
@@ -501,12 +512,18 @@ internal sealed class SourceSchemaRequestDispatcher
             return true;
         }
 
-        public void Skip(int nodeId)
-            => _remainingNodeIds.Remove(nodeId);
+        public void Skip(int nodeId, int[] nodeStateSlots)
+        {
+            if ((uint)nodeId < (uint)nodeStateSlots.Length && nodeStateSlots[nodeId] == 0)
+            {
+                nodeStateSlots[nodeId] = 1;
+                _remainingNodes--;
+            }
+        }
 
         public bool TryCreateDispatch(out ImmutableArray<PendingRequest> pendingRequests)
         {
-            if (_dispatchCreated || _remainingNodeIds.Count > 0)
+            if (_dispatchCreated || _remainingNodes > 0)
             {
                 pendingRequests = [];
                 return false;
