@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Properties;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Execution.Clients.SourceSchemaClientCapabilities;
+using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -20,7 +21,11 @@ internal sealed class SourceSchemaRequestDispatcher
     : ISourceSchemaScheduler
     , ISourceSchemaDispatcher
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private readonly OperationPlanContext _context;
     private readonly ISourceSchemaClientScope _clientScope;
     private readonly CancellationToken _requestAborted;
@@ -107,7 +112,7 @@ internal sealed class SourceSchemaRequestDispatcher
             {
                 abortError = new InvalidOperationException(
                     string.Format(
-                        FusionExecutionResources.SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup,
+                        SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup,
                         request.Node.Id,
                         groupId));
             }
@@ -141,7 +146,7 @@ internal sealed class SourceSchemaRequestDispatcher
         if (nodeIds.Count == 0)
         {
             throw new ArgumentException(
-                FusionExecutionResources.SourceSchemaRequestDispatcher_RegisterGroupEmptyNodeIds,
+                SourceSchemaRequestDispatcher_RegisterGroupEmptyNodeIds,
                 nameof(nodeIds));
         }
 
@@ -186,7 +191,7 @@ internal sealed class SourceSchemaRequestDispatcher
     /// <param name="nodeId">The execution node ID to skip.</param>
     public void SkipNode(int nodeId)
     {
-        ImmutableArray<PendingRequest> pendingRequests = [];
+        ImmutableArray<PendingRequest> pendingRequests;
         var needsDispatch = false;
 
         lock (_sync)
@@ -245,7 +250,7 @@ internal sealed class SourceSchemaRequestDispatcher
             }
 
             _aborted = true;
-            _abortError = error ?? new OperationCanceledException(FusionExecutionResources.SourceSchemaRequestDispatcher_OperationAborted);
+            _abortError = error ?? new OperationCanceledException(SourceSchemaRequestDispatcher_OperationAborted);
             abortError = _abortError;
             pendingRequests = [.. _groups.Values.SelectMany(static t => t.PendingRequests)];
 
@@ -368,7 +373,7 @@ internal sealed class SourceSchemaRequestDispatcher
             if (responses.Length != pendingRequests.Length)
             {
                 throw new InvalidOperationException(
-                    FusionExecutionResources.SourceSchemaRequestDispatcher_BatchResponseCountMismatch);
+                    SourceSchemaRequestDispatcher_BatchResponseCountMismatch);
             }
 
             for (var i = 0; i < pendingRequests.Length; i++)
@@ -399,7 +404,7 @@ internal sealed class SourceSchemaRequestDispatcher
     }
 
     private Exception CreateAbortException()
-        => _abortError ?? new OperationCanceledException(FusionExecutionResources.SourceSchemaRequestDispatcher_OperationAborted);
+        => _abortError ?? new OperationCanceledException(SourceSchemaRequestDispatcher_OperationAborted);
 
     private void RemoveGroup(GroupState group)
     {
@@ -493,7 +498,7 @@ internal sealed class SourceSchemaRequestDispatcher
             {
                 throw new InvalidOperationException(
                     string.Format(
-                        FusionExecutionResources.SourceSchemaRequestDispatcher_DuplicateNodeSubmission,
+                        SourceSchemaRequestDispatcher_DuplicateNodeSubmission,
                         nodeId));
             }
 
