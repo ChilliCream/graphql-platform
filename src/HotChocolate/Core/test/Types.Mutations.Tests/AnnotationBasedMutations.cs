@@ -1284,6 +1284,8 @@ public class AnnotationBasedMutations
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
 
+        schema.MatchSnapshot();
+
         var schemaText = schema.ToString();
 
         Assert.Matches(
@@ -1291,8 +1293,12 @@ public class AnnotationBasedMutations
             schemaText);
         Assert.Contains("input DoSomethingInput {", schemaText);
         Assert.Contains("type DoSomethingPayload {", schemaText);
+        Assert.Contains("issue4803_result: Issue4803Result", schemaText);
+        Assert.Contains("user_name: String!", schemaText);
         Assert.DoesNotContain("Do_somethingInput", schemaText);
         Assert.DoesNotContain("Do_somethingPayload", schemaText);
+        Assert.DoesNotContain("issue4803Result: Issue4803Result", schemaText);
+        Assert.DoesNotContain("userName: String!", schemaText);
     }
 
     [Fact]
@@ -1960,22 +1966,42 @@ public class AnnotationBasedMutations
 
     public class Issue4803Mutation
     {
-        public string DoSomething(string userName)
-            => userName;
+        public Issue4803Result DoSomething(string userName)
+            => new() { UserName = userName };
+    }
+
+    public class Issue4803Result
+    {
+        public string UserName { get; set; } = null!;
     }
 
     public class Issue4803NamingConvention : DefaultNamingConventions
     {
         public override string GetMemberName(MemberInfo member, MemberKind kind)
         {
-            if (kind == MemberKind.ObjectField)
+            if (kind is MemberKind.ObjectField or MemberKind.InputObjectField)
             {
-                var pattern = new System.Text.RegularExpressions.Regex(
-                    @"[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+");
-                return string.Join("_", pattern.Matches(member.Name)).ToLowerInvariant();
+                return ToSnakeCase(member.Name);
             }
 
             return base.GetMemberName(member, kind);
+        }
+
+        public override string GetMemberName(string originalMemberName, MemberKind kind)
+        {
+            if (kind is MemberKind.ObjectField or MemberKind.InputObjectField)
+            {
+                return ToSnakeCase(originalMemberName);
+            }
+
+            return base.GetMemberName(originalMemberName, kind);
+        }
+
+        private static string ToSnakeCase(string memberName)
+        {
+            var pattern = new System.Text.RegularExpressions.Regex(
+                @"[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+");
+            return string.Join("_", pattern.Matches(memberName)).ToLowerInvariant();
         }
     }
 }
