@@ -235,29 +235,6 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
         Exception error);
 
     /// <summary>
-    /// Called when GraphQL errors are present in the source schema result.
-    /// These are application-level errors returned by the source schema,
-    /// not transport or communication errors.
-    /// </summary>
-    /// <param name="context">
-    /// The operation plan context.
-    /// </param>
-    /// <param name="node">
-    /// The execution node that received the erroneous response.
-    /// </param>
-    /// <param name="schemaName">
-    /// The name of the source schema that returned the errors.
-    /// </param>
-    /// <param name="errors">
-    /// The collection of GraphQL errors from the source schema response.
-    /// </param>
-    void SourceSchemaResultError(
-        OperationPlanContext context,
-        ExecutionNode node,
-        string schemaName,
-        IReadOnlyList<IError> errors);
-
-    /// <summary>
     /// Called when a transport error occurs while communicating with a source schema
     /// during subscription operations. This includes connection drops, network timeouts,
     /// and other communication failures specific to real-time subscriptions.

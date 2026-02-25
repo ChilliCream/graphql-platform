@@ -4,36 +4,34 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.ObjectPool;
-using GreenDonut;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Processing;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using OpenTelemetry.Trace;
-using static HotChocolate.Diagnostics.SemanticConventions;
+using static HotChocolate.Fusion.Diagnostics.SemanticConventions;
 using static HotChocolate.WellKnownContextData;
 
-namespace HotChocolate.Diagnostics;
+namespace HotChocolate.Fusion.Diagnostics;
 
 /// <summary>
 /// The activity enricher is used to add information to the activity spans.
 /// You can inherit from this class and override the enricher methods to provide more or
 /// less information.
 /// </summary>
-public class ActivityEnricher
+public class FusionActivityEnricher
 {
     private readonly InstrumentationOptions _options;
     private readonly ConditionalWeakTable<ISyntaxNode, string> _queryCache = [];
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ActivityEnricher"/>.
+    /// Initializes a new instance of <see cref="FusionActivityEnricher"/>.
     /// </summary>
     /// <param name="stringBuilderPool"></param>
     /// <param name="options"></param>
-    protected ActivityEnricher(
+    protected FusionActivityEnricher(
         ObjectPool<StringBuilder> stringBuilderPool,
         InstrumentationOptions options)
     {
@@ -235,7 +233,9 @@ public class ActivityEnricher
         GraphQLRequest request,
         JsonDocument variables,
         Activity activity)
-        => activity.SetTag("graphql.http.request.variables", variables.RootElement.ToString());
+    {
+        activity.SetTag("graphql.http.request.variables", variables.RootElement.ToString());
+    }
 
     protected virtual void EnrichBatchVariables(
         HttpContext context,
@@ -243,7 +243,9 @@ public class ActivityEnricher
         JsonDocument variables,
         int index,
         Activity activity)
-        => activity.SetTag($"graphql.http.request[{index}].variables", variables.RootElement.ToString());
+    {
+        activity.SetTag($"graphql.http.request[{index}].variables", variables.RootElement.ToString());
+    }
 
     protected virtual void EnrichRequestExtensions(
         HttpContext context,
@@ -315,9 +317,9 @@ public class ActivityEnricher
 
     public virtual void EnrichExecuteRequest(RequestContext context, Activity activity)
     {
-        context.TryGetOperation(out var operation);
+        var plan = context.GetOperationPlan();
         var documentInfo = context.OperationDocumentInfo;
-        var operationDisplayName = CreateOperationDisplayName(context, operation);
+        var operationDisplayName = CreateOperationDisplayName(context, plan);
 
         if (_options.RenameRootActivity && operationDisplayName is not null)
         {
@@ -328,24 +330,24 @@ public class ActivityEnricher
         activity.SetTag("graphql.document.id", documentInfo.Id.Value);
         activity.SetTag("graphql.document.hash", documentInfo.Hash.Value);
         activity.SetTag("graphql.document.valid", documentInfo.IsValidated);
-        activity.SetTag("graphql.operation.id", operation?.Id);
-        activity.SetTag("graphql.operation.kind", operation?.Kind);
-        activity.SetTag("graphql.operation.name", operation?.Name);
+        activity.SetTag("graphql.operation.id", plan?.Id);
+        activity.SetTag("graphql.operation.kind", plan?.Operation.Definition.Operation);
+        activity.SetTag("graphql.operation.name", plan?.OperationName);
 
         if (_options.IncludeDocument && documentInfo.Document is not null)
         {
             activity.SetTag("graphql.document.body", documentInfo.Document.Print());
         }
 
-        if (context.Result is OperationResult result)
+        if (context.Result is OperationResult {Errors: [_, ..] errors})
         {
-            var errorCount = result.Errors.Count;
-            activity.SetTag("graphql.errors.count", errorCount);
+            activity.SetTag("graphql.errors.count", errors.Count);
         }
     }
-    protected virtual string? CreateOperationDisplayName(RequestContext context, Operation? operation)
+
+    protected virtual string? CreateOperationDisplayName(RequestContext context, OperationPlan? plan)
     {
-        if (operation is null)
+        if (plan is null)
         {
             return null;
         }
@@ -354,7 +356,7 @@ public class ActivityEnricher
 
         try
         {
-            var rootSelectionSet = operation.RootSelectionSet;
+            var rootSelectionSet = plan.Operation.RootSelectionSet;
             var selectionCount = rootSelectionSet.Selections.Length;
 
             displayName.Append('{');
@@ -381,14 +383,14 @@ public class ActivityEnricher
             displayName.Append(' ');
             displayName.Append('}');
 
-            if (operation.Name is { } name)
+            if (plan.OperationName is { } name)
             {
                 displayName.Insert(0, ' ');
                 displayName.Insert(0, name);
             }
 
             displayName.Insert(0, ' ');
-            displayName.Insert(0, operation.Definition.Operation.ToString().ToLowerInvariant());
+            displayName.Insert(0, plan.Operation.Definition.Operation.ToString().ToLowerInvariant());
 
             return displayName.ToString();
         }
@@ -481,111 +483,78 @@ public class ActivityEnricher
         activity.DisplayName = "Coerce Variable";
     }
 
-    public virtual void EnrichCompileOperation(RequestContext context, Activity activity)
+    public virtual void EnrichPlanOperationScope(RequestContext context, Activity activity)
     {
-        activity.DisplayName = "Compile Operation";
+        activity.DisplayName = "Plan Operation";
     }
 
     public virtual void EnrichExecuteOperation(RequestContext context, Activity activity)
     {
-        context.TryGetOperation(out var operation);
+        var plan = context.GetOperationPlan();
         activity.DisplayName =
-            operation?.Name is { } op
+            plan?.OperationName is { } op
                 ? $"Execute Operation {op}"
                 : "Execute Operation";
     }
 
-    public virtual void EnrichResolveFieldValue(IMiddlewareContext context, Activity activity)
+    public virtual void EnrichExecuteOperationNode(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        string schemaName,
+        Activity activity)
     {
-        string path;
-        string hierarchy;
-        BuildPath();
-
-        var selection = context.Selection;
-        var coordinate = selection.Field.Coordinate;
-
-        activity.DisplayName = path;
-        activity.SetTag("graphql.selection.name", selection.ResponseName);
-        activity.SetTag("graphql.selection.type", selection.Field.Type.Print());
-        activity.SetTag("graphql.selection.path", path);
-        activity.SetTag("graphql.selection.hierarchy", hierarchy);
-        activity.SetTag("graphql.selection.field.name", coordinate.MemberName);
-        activity.SetTag("graphql.selection.field.coordinate", coordinate.ToString());
-        activity.SetTag("graphql.selection.field.declaringType", coordinate.Name);
-        activity.SetTag("graphql.selection.field.isDeprecated", selection.Field.IsDeprecated);
-
-        void BuildPath()
-        {
-            var p = StringBuilderPool.Get();
-            var h = StringBuilderPool.Get();
-            var index = StringBuilderPool.Get();
-
-            var current = context.Path;
-
-            do
-            {
-                if (current is NamePathSegment n)
-                {
-                    p.Insert(0, '/');
-                    h.Insert(0, '/');
-                    p.Insert(1, n.Name);
-                    h.Insert(1, n.Name);
-
-                    if (index.Length > 0)
-                    {
-                        p.Insert(1 + n.Name.Length, index);
-                    }
-
-                    index.Clear();
-                }
-
-                if (current is IndexerPathSegment i)
-                {
-                    var number = i.Index.ToString();
-                    index.Insert(0, '[');
-                    index.Insert(1, number);
-                    index.Insert(1 + number.Length, ']');
-                }
-
-                current = current.Parent;
-            } while (!current.IsRoot);
-
-            path = p.ToString();
-            hierarchy = h.ToString();
-
-            StringBuilderPool.Return(p);
-            StringBuilderPool.Return(h);
-            StringBuilderPool.Return(index);
-        }
+        activity.DisplayName = $"Execute Operation Node ({schemaName})";
+        activity.SetTag("graphql.fusion.node.id", node.Id);
+        activity.SetTag("graphql.fusion.node.type", node.Type.ToString());
+        activity.SetTag("graphql.fusion.node.schema", schemaName);
     }
 
-    public virtual void EnrichResolverError(
-        RequestContext context,
-        IError error,
+    public virtual void EnrichExecuteOperationBatchNode(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
         Activity activity)
-        => EnrichError(error, activity);
-
-    public virtual void EnrichResolverError(
-        IMiddlewareContext middlewareContext,
-        IError error,
-        Activity activity)
-        => EnrichError(error, activity);
-
-    public virtual void EnrichDataLoaderBatch<TKey>(
-        IDataLoader dataLoader,
-        IReadOnlyList<TKey> keys,
-        Activity activity)
-        where TKey : notnull
     {
-        activity.DisplayName = $"Execute {dataLoader.GetType().Name} Batch";
-        activity.SetTag("graphql.dataLoader.keys.count", keys.Count);
-
-        if (_options.IncludeDataLoaderKeys)
-        {
-            var temp = keys.Select(t => t.ToString()).ToArray();
-            activity.SetTag("graphql.dataLoader.keys", temp);
-        }
+        activity.DisplayName = $"Execute Operation Batch Node ({schemaName})";
+        activity.SetTag("graphql.fusion.node.id", node.Id);
+        activity.SetTag("graphql.fusion.node.type", node.Type.ToString());
+        activity.SetTag("graphql.fusion.node.schema", schemaName);
     }
+
+    public virtual void EnrichExecuteNodeFieldNode(
+        OperationPlanContext context,
+        NodeFieldExecutionNode node,
+        Activity activity)
+    {
+        activity.DisplayName = "Execute Node Field Node";
+        activity.SetTag("graphql.fusion.node.id", node.Id);
+        activity.SetTag("graphql.fusion.node.type", node.Type.ToString());
+    }
+
+    public virtual void EnrichExecuteIntrospectionNode(
+        OperationPlanContext context,
+        IntrospectionExecutionNode node,
+        Activity activity)
+    {
+        activity.DisplayName = "Execute Introspection Node";
+        activity.SetTag("graphql.fusion.node.id", node.Id);
+        activity.SetTag("graphql.fusion.node.type", node.Type.ToString());
+    }
+
+    public virtual void EnrichExecutionNodeError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        Exception error,
+        Activity activity)
+        => activity.RecordException(error);
+
+    public virtual void EnrichSourceSchemaError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        Exception error,
+        Activity activity)
+        => activity.RecordException(error);
 
     protected virtual void EnrichError(IError error, Activity activity)
     {
