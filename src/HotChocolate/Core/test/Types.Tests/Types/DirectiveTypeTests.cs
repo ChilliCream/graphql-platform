@@ -338,6 +338,50 @@ public class DirectiveTypeTests : TypeTestBase
     }
 
     [Fact]
+    public async Task Use_DirectiveMiddleware_With_Variable_Argument()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                descriptor =>
+                {
+                    descriptor.Name("Query");
+                    descriptor.Field("foo").Type<IntType>().Resolve(123);
+                })
+            .AddDirectiveType(
+                new DirectiveType<DefaultCountDirective>(
+                    descriptor => descriptor
+                        .Name("defaultCount")
+                        .Location(DirectiveLocation.Field)
+                        .Use((HotChocolate.Resolvers.DirectiveMiddleware)((next, _) => next))))
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .New()
+                .SetDocument(
+                    """
+                    query Test($totalCount: Int) {
+                      foo @defaultCount(value: $totalCount)
+                    }
+                    """)
+                .SetVariableValues(new Dictionary<string, object?> { { "totalCount", 10 } })
+                .Build());
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "foo": 123
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public void Use_ClassMiddleware()
     {
         // arrange
@@ -990,6 +1034,11 @@ public class DirectiveTypeTests : TypeTestBase
         [DefaultValue("abc")] public required string Argument1 { get; set; }
 
         public string? Argument2 { get; set; }
+    }
+
+    public class DefaultCountDirective
+    {
+        public int? Value { get; set; }
     }
 
     [DirectiveType("anno", DirectiveLocation.FieldDefinition)]
