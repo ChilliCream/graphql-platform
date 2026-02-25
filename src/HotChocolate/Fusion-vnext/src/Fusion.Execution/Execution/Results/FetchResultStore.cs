@@ -100,53 +100,69 @@ internal sealed class FetchResultStore : IDisposable
                 nameof(results));
         }
 
+        var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
+        var errorTries = ArrayPool<ErrorTrie?>.Shared.Rent(results.Length);
+        var dataElementsSpan = dataElements.AsSpan(0, results.Length);
+        var errorTriesSpan = errorTries.AsSpan(0, results.Length);
         List<IError>? rootErrors = null;
 
-        for (var i = 0; i < results.Length; i++)
+        try
         {
-            var result = results[i];
-
-            // we need to track the result objects as they use rented memory.
-            _memory.Push(result);
-
-            if (result.Errors?.RootErrors is { Length: > 0 } rootErrorsFromResult)
-            {
-                rootErrors ??= [];
-                rootErrors.AddRange(rootErrorsFromResult);
-            }
-        }
-
-        lock (_lock)
-        {
-            if (rootErrors is not null)
-            {
-                _errors ??= [];
-                _errors.AddRange(rootErrors);
-            }
-
-            var resultData = _result.Data;
-
             for (var i = 0; i < results.Length; i++)
             {
                 var result = results[i];
-                var errors = result.Errors;
-                var dataElement = GetDataElement(sourcePath, result.Data);
-                var errorTrie = GetErrorTrie(sourcePath, errors?.Trie);
 
-                if (!SaveSafeResult(
-                        resultData,
-                        result.Path,
-                        result.AdditionalPaths.AsSpan(),
-                        dataElement,
-                        errorTrie,
-                        responseNames))
+                // we need to track the result objects as they use rented memory.
+                _memory.Push(result);
+
+                var errors = result.Errors;
+
+                if (errors?.RootErrors is { Length: > 0 } rootErrorsFromResult)
                 {
-                    return false;
+                    rootErrors ??= [];
+                    rootErrors.AddRange(rootErrorsFromResult);
+                }
+
+                dataElementsSpan[i] = GetDataElement(sourcePath, result.Data);
+                errorTriesSpan[i] = GetErrorTrie(sourcePath, errors?.Trie);
+            }
+
+            lock (_lock)
+            {
+                if (rootErrors is not null)
+                {
+                    _errors ??= [];
+                    _errors.AddRange(rootErrors);
+                }
+
+                var resultData = _result.Data;
+
+                for (var i = 0; i < results.Length; i++)
+                {
+                    var result = results[i];
+
+                    if (!SaveSafeResult(
+                            resultData,
+                            result.Path,
+                            result.AdditionalPaths.AsSpan(),
+                            dataElementsSpan[i],
+                            errorTriesSpan[i],
+                            responseNames))
+                    {
+                        return false;
+                    }
                 }
             }
-        }
 
-        return true;
+            return true;
+        }
+        finally
+        {
+            dataElementsSpan.Clear();
+            errorTriesSpan.Clear();
+            ArrayPool<SourceResultElement>.Shared.Return(dataElements);
+            ArrayPool<ErrorTrie?>.Shared.Return(errorTries);
+        }
     }
 
     /// <summary>
