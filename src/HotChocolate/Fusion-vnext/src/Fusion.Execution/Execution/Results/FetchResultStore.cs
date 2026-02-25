@@ -29,6 +29,8 @@ internal sealed class FetchResultStore : IDisposable
     private readonly ErrorHandlingMode _errorHandlingMode;
     private readonly ulong _includeFlags;
     private readonly ConcurrentStack<IDisposable> _memory = [];
+    private readonly List<CompositeResultElement> _collectTargetCurrent = [];
+    private readonly List<CompositeResultElement> _collectTargetNext = [];
     private CompositeResultDocument _result;
     private ValueCompletion _valueCompletion;
     private List<IError>? _errors;
@@ -377,8 +379,11 @@ AddErrors_Next:
     // Caller must hold _lock for reading.
     private List<CompositeResultElement>? CollectTargetElements(SelectionPath selectionSet)
     {
-        var current = new List<CompositeResultElement> { _result.Data };
-        var next = new List<CompositeResultElement>();
+        var current = _collectTargetCurrent;
+        var next = _collectTargetNext;
+        current.Clear();
+        next.Clear();
+        current.Add(_result.Data);
 
         for (var i = 0; i < selectionSet.Segments.Length; i++)
         {
@@ -426,7 +431,9 @@ AddErrors_Next:
                 }
             }
 
-            (next, current) = (current, next);
+            var temp = current;
+            current = next;
+            next = temp;
             next.Clear();
 
             if (current.Count == 0)

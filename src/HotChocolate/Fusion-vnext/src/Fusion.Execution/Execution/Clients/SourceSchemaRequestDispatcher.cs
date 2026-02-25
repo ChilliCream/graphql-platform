@@ -25,7 +25,8 @@ internal sealed class SourceSchemaRequestDispatcher
     private readonly ISourceSchemaClientScope _clientScope;
     private readonly CancellationToken _requestAborted;
     private readonly Dictionary<int, GroupState> _groups = [];
-    private readonly Dictionary<int, int> _groupByNodeId = [];
+    private readonly List<int> _trackedNodeIdSlots = [];
+    private int[] _groupByNodeIdSlots = [];
     private Exception? _abortError;
     private bool _aborted;
 
@@ -160,7 +161,14 @@ internal sealed class SourceSchemaRequestDispatcher
 
             foreach (var nodeId in nodeIds)
             {
-                _groupByNodeId[nodeId] = groupId;
+                EnsureNodeIdSlotCapacity(nodeId + 1);
+
+                if (_groupByNodeIdSlots[nodeId] < 0)
+                {
+                    _trackedNodeIdSlots.Add(nodeId);
+                }
+
+                _groupByNodeIdSlots[nodeId] = groupId;
             }
         }
     }
@@ -182,8 +190,14 @@ internal sealed class SourceSchemaRequestDispatcher
                 return;
             }
 
-            if (!_groupByNodeId.TryGetValue(nodeId, out var groupId)
-                || !_groups.TryGetValue(groupId, out var group))
+            if ((uint)nodeId >= (uint)_groupByNodeIdSlots.Length)
+            {
+                return;
+            }
+
+            var groupId = _groupByNodeIdSlots[nodeId];
+
+            if (groupId < 0 || !_groups.TryGetValue(groupId, out var group))
             {
                 return;
             }
@@ -230,7 +244,7 @@ internal sealed class SourceSchemaRequestDispatcher
             pendingRequests = [.. _groups.Values.SelectMany(static t => t.PendingRequests)];
 
             _groups.Clear();
-            _groupByNodeId.Clear();
+            ClearNodeIdSlots();
         }
 
         foreach (var pendingRequest in pendingRequests)
@@ -251,7 +265,7 @@ internal sealed class SourceSchemaRequestDispatcher
             _aborted = false;
             _abortError = null;
             _groups.Clear();
-            _groupByNodeId.Clear();
+            ClearNodeIdSlots();
         }
     }
 
@@ -387,8 +401,54 @@ internal sealed class SourceSchemaRequestDispatcher
 
         foreach (var nodeId in group.NodeIds)
         {
-            _groupByNodeId.Remove(nodeId);
+            if ((uint)nodeId < (uint)_groupByNodeIdSlots.Length)
+            {
+                _groupByNodeIdSlots[nodeId] = -1;
+            }
         }
+    }
+
+    private void ClearNodeIdSlots()
+    {
+        if (_trackedNodeIdSlots.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var nodeId in _trackedNodeIdSlots)
+        {
+            if ((uint)nodeId < (uint)_groupByNodeIdSlots.Length)
+            {
+                _groupByNodeIdSlots[nodeId] = -1;
+            }
+        }
+
+        _trackedNodeIdSlots.Clear();
+    }
+
+    private void EnsureNodeIdSlotCapacity(int minCapacity)
+    {
+        if (_groupByNodeIdSlots.Length >= minCapacity)
+        {
+            return;
+        }
+
+        var newCapacity = _groupByNodeIdSlots.Length == 0 ? 8 : _groupByNodeIdSlots.Length;
+
+        while (newCapacity < minCapacity)
+        {
+            newCapacity *= 2;
+        }
+
+        var groupByNodeIdSlots = new int[newCapacity];
+        Array.Fill(groupByNodeIdSlots, -1);
+
+        if (_groupByNodeIdSlots.Length > 0)
+        {
+            Array.Copy(_groupByNodeIdSlots, groupByNodeIdSlots, _groupByNodeIdSlots.Length);
+        }
+
+        _groupByNodeIdSlots = groupByNodeIdSlots;
     }
 
     private sealed class GroupState(int id, int initialCapacity)
