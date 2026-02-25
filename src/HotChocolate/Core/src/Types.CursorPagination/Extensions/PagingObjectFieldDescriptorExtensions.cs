@@ -362,6 +362,7 @@ public static class PagingObjectFieldDescriptorExtensions
         // last but not least we create a type reference that can be put on the field definition
         // to tell the type discovery that this field needs this result type.
         return CreateConnectionType(
+            context,
             connectionName,
             nodeType,
             options.IncludeTotalCount ?? false,
@@ -425,6 +426,7 @@ public static class PagingObjectFieldDescriptorExtensions
     }
 
     private static TypeReference CreateConnectionType(
+        IDescriptorContext context,
         string? connectionName,
         TypeReference nodeType,
         bool includeTotalCount,
@@ -437,13 +439,14 @@ public static class PagingObjectFieldDescriptorExtensions
                 _ => new ConnectionType(nodeType, includeTotalCount, includeNodesField),
                 TypeContext.Output)
             : TypeReference.Create(
-                connectionName + "Connection",
+                NameHelper.CreateConnectionName(context.Naming, connectionName),
                 TypeContext.Output,
-                factory: _ => new ConnectionType(
+                factory: c => new ConnectionType(
                     connectionName,
                     nodeType,
                     includeTotalCount,
-                    includeNodesField));
+                    includeNodesField,
+                    c.Naming));
     }
 
     private static string EnsureConnectionNameCasing(string connectionName)
