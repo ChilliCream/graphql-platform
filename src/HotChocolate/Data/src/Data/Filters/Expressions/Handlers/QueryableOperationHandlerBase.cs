@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Data.Filters.Internal;
 using HotChocolate.Language;
@@ -34,12 +35,28 @@ public abstract class QueryableOperationHandlerBase
 
         var parsedValue = InputParser.ParseLiteral(value, field, type);
 
-        if ((!runtimeType.IsNullable || !CanBeNull) && parsedValue is null)
+        if (parsedValue is null)
         {
-            var error = ErrorHelper.CreateNonNullError(field, value, context);
-            context.ReportError(error);
-            result = null!;
-            return false;
+            if (!CanBeNull)
+            {
+                var error = ErrorHelper.CreateNonNullError(field, value, context);
+                context.ReportError(error);
+                result = null!;
+                return false;
+            }
+
+            if (!runtimeType.IsNullable)
+            {
+                if (TryCreateNullNavigationExpression(context, field, out result))
+                {
+                    return true;
+                }
+
+                var error = ErrorHelper.CreateNonNullError(field, value, context);
+                context.ReportError(error);
+                result = null!;
+                return false;
+            }
         }
 
         if (!ValueNullabilityHelpers.IsListValueValid(field.Type, runtimeType, node.Value))
@@ -51,6 +68,38 @@ public abstract class QueryableOperationHandlerBase
         }
 
         result = HandleOperation(context, field, value, parsedValue);
+        return true;
+    }
+
+    private static bool TryCreateNullNavigationExpression(
+        QueryableFilterContext context,
+        IFilterOperationField field,
+        [NotNullWhen(true)] out Expression? result)
+    {
+        result = null;
+
+        if (field.Id is not (DefaultFilterOperations.Equals or DefaultFilterOperations.NotEquals))
+        {
+            return false;
+        }
+
+        if (context.RuntimeTypes.Count < 2 || context.Scopes.Count == 0)
+        {
+            return false;
+        }
+
+        var parentType = context.RuntimeTypes.Skip(1).FirstOrDefault();
+        var parentInstance = context.Scopes.Peek().Instance.Skip(1).FirstOrDefault();
+
+        if (parentType is null || !parentType.IsNullable || parentInstance is null)
+        {
+            return false;
+        }
+
+        result = field.Id == DefaultFilterOperations.Equals
+            ? FilterExpressionBuilder.Equals(parentInstance, null)
+            : FilterExpressionBuilder.NotEquals(parentInstance, null);
+
         return true;
     }
 
