@@ -30,8 +30,6 @@ internal sealed class FusionDownloadCommand : Command
             ExecuteAsync,
             Bind.FromServiceProvider<InvocationContext>(),
             Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
             Bind.FromServiceProvider<IHttpClientFactory>(),
             Bind.FromServiceProvider<CancellationToken>());
     }
@@ -39,8 +37,6 @@ internal sealed class FusionDownloadCommand : Command
     private static async Task<int> ExecuteAsync(
         InvocationContext context,
         IAnsiConsole console,
-        IApiClient client,
-        ISessionService sessionService,
         IHttpClientFactory httpClientFactory,
         CancellationToken cancellationToken)
     {
