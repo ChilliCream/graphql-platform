@@ -1,0 +1,24 @@
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "bool": {
+            "should": [
+              {
+                "query_string": {
+                  "query": "bar.keyword:th*"
+                }
+              },
+              {
+                "query_string": {
+                  "query": "bar.keyword:I*"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

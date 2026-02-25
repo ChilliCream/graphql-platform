@@ -1,0 +1,18 @@
+{
+  "data": {
+    "test": [
+      {
+        "name": "B",
+        "value": 0,
+        "fValue": 0,
+        "dateTimeValue": "2022-12-23T15:05:22Z"
+      },
+      {
+        "name": "C",
+        "value": -1,
+        "fValue": -1,
+        "dateTimeValue": "2022-12-24T15:05:22Z"
+      }
+    ]
+  }
+}

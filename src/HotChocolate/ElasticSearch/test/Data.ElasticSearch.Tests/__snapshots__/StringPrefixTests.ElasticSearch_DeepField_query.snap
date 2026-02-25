@@ -1,0 +1,13 @@
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "query_string": {
+            "query": "baz.bar.keyword:he*"
+          }
+        }
+      ]
+    }
+  }
+}
