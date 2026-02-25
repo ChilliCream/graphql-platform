@@ -49,12 +49,11 @@ jobs:
               { key: 'ramping', label: 'Ramping', desc: '(0-500-0 VUs)' },
             ];
             const runners = [
-              { group: 'Benchmarking', label: '1' },
-              { group: 'Benchmarking-2', label: '2' },
+              { group: 'benchmarking-2', label: '2' },
             ];
 
             let md = '### Fusion Gateway Performance Results\n\n';
-            md += `> **Progress: 0/12 benchmarks completed** — this report updates as each job finishes.\n\n`;
+            md += `> **Progress: 0/6 benchmarks completed** — this report updates as each job finishes.\n\n`;
 
             for (const test of tests) {
               md += `#### ${test.title}\n\n`;
@@ -73,7 +72,7 @@ jobs:
               }
               md += '\n</details>\n\n---\n\n';
             }
-            md += '*Runner 1 = Benchmarking, Runner 2 = Benchmarking-2*';
+            md += '*Runner 2 = benchmarking-2*';
 
             const encodedData = Buffer.from(JSON.stringify({})).toString('base64');
             const timestamp = new Date().toUTCString();
@@ -111,7 +110,7 @@ jobs:
   benchmark:
     name: "${{ matrix.test-name }} ${{ matrix.mode-label }} (${{ matrix.runner-label }})"
     needs: [setup]
-    if: always() && (github.event_name == 'push' || github.event.pull_request.draft == false)
+    if: "!cancelled() && (github.event_name == 'push' || github.event.pull_request.draft == false)"
     runs-on:
       group: ${{ matrix.runner-group }}
     permissions:
@@ -122,11 +121,9 @@ jobs:
       matrix:
         test: [no-recursion, deep-recursion, variable-batch]
         mode: [constant, ramping]
-        runner-group: [Benchmarking, Benchmarking-2]
+        runner-group: [benchmarking-2]
         include:
-          - runner-group: Benchmarking
-            runner-label: "Runner 1"
-          - runner-group: Benchmarking-2
+          - runner-group: benchmarking-2
             runner-label: "Runner 2"
           - test: no-recursion
             test-name: "Simple Composite Query"
@@ -265,13 +262,12 @@ jobs:
               { key: 'ramping', label: 'Ramping', desc: '(0-500-0 VUs)' },
             ];
             const runners = [
-              { group: 'Benchmarking', label: '1' },
-              { group: 'Benchmarking-2', label: '2' },
+              { group: 'benchmarking-2', label: '2' },
             ];
 
             let md = '### Fusion Gateway Performance Results\n\n';
-            if (completed < 12) {
-              md += `> **Progress: ${completed}/12 benchmarks completed** — this report updates as each job finishes.\n\n`;
+            if (completed < 6) {
+              md += `> **Progress: ${completed}/6 benchmarks completed** — this report updates as each job finishes.\n\n`;
             }
 
             for (const test of tests) {
@@ -306,7 +302,7 @@ jobs:
               }
               md += '\n</details>\n\n---\n\n';
             }
-            md += '*Runner 1 = Benchmarking, Runner 2 = Benchmarking-2*';
+            md += '*Runner 2 = benchmarking-2*';
 
             // Build comment body with hidden data block
             const encodedData = Buffer.from(JSON.stringify(allResults)).toString('base64');
@@ -330,12 +326,12 @@ jobs:
               comment_id: existing.id,
               body: commentBody,
             });
-            console.log(`Updated comment (${completed}/12 completed)`);
+            console.log(`Updated comment (${completed}/6 completed)`);
 
   report:
     name: "Final Performance Report"
     needs: [setup, benchmark]
-    if: always() && github.event_name == 'pull_request'
+    if: "!cancelled() && github.event_name == 'pull_request'"
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -436,13 +432,12 @@ jobs:
               { key: 'ramping', label: 'Ramping', desc: '(0-500-0 VUs)' },
             ];
             const runners = [
-              { group: 'Benchmarking', label: '1' },
-              { group: 'Benchmarking-2', label: '2' },
+              { group: 'benchmarking-2', label: '2' },
             ];
 
             let md = '### Fusion Gateway Performance Results\n\n';
-            if (completed < 12) {
-              md += `> **Progress: ${completed}/12 benchmarks completed** — this report updates as each job finishes.\n\n`;
+            if (completed < 6) {
+              md += `> **Progress: ${completed}/6 benchmarks completed** — this report updates as each job finishes.\n\n`;
             }
 
             for (const test of tests) {
@@ -477,7 +472,7 @@ jobs:
               }
               md += '\n</details>\n\n---\n\n';
             }
-            md += '*Runner 1 = Benchmarking, Runner 2 = Benchmarking-2*';
+            md += '*Runner 2 = benchmarking-2*';
 
             // Build comment body
             const encodedData = Buffer.from(JSON.stringify(allResults)).toString('base64');
@@ -502,7 +497,7 @@ jobs:
                 comment_id: existing.id,
                 body: commentBody,
               });
-              console.log(`Updated final report (${completed}/12 completed)`);
+              console.log(`Updated final report (${completed}/6 completed)`);
             } else {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -510,7 +505,7 @@ jobs:
                 issue_number: context.issue.number,
                 body: commentBody,
               });
-              console.log(`Created final report (${completed}/12 completed)`);
+              console.log(`Created final report (${completed}/6 completed)`);
             }
 
   store-results:
