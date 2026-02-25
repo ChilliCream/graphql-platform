@@ -442,6 +442,22 @@ SaveSafe_Next:
         ReadOnlySpan<OperationRequirement> requiredData)
     {
         PooledArrayWriter? buffer = null;
+
+        if (requestVariables.Count == 0 && requiredData.Length == 1)
+        {
+            var singleRequirementValueSets = BuildVariableValueSetsSingleRequirement(
+                elements,
+                requiredData[0],
+                ref buffer);
+
+            if (buffer is not null)
+            {
+                _memory.Push(buffer);
+            }
+
+            return singleRequirementValueSets;
+        }
+
         VariableValues[]? variableValueSets = null;
         Dictionary<ObjectValueNode, int>? seen = null;
         List<Path>?[]? additionalPaths = null;
@@ -507,14 +523,98 @@ SaveSafe_Next:
             : [];
     }
 
+    private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirement(
+        List<CompositeResultElement> elements,
+        OperationRequirement requirement,
+        ref PooledArrayWriter? buffer)
+    {
+        VariableValues[]? variableValueSets = null;
+        Dictionary<IValueNode, int>? seen = null;
+        List<Path>?[]? additionalPaths = null;
+        var nextIndex = 0;
+
+        foreach (var result in elements)
+        {
+            var value = ResultDataMapper.Map(result, requirement.Map, _schema, ref buffer);
+
+            if (value is null)
+            {
+                continue;
+            }
+
+            if (value.Kind == SyntaxKind.NullValue && requirement.Type.Kind == SyntaxKind.NonNullType)
+            {
+                continue;
+            }
+
+            variableValueSets ??= new VariableValues[elements.Count];
+
+            if (nextIndex > 0)
+            {
+                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance)
+                {
+                    [variableValueSets[0].Values.Fields[0].Value] = 0
+                };
+
+                if (seen.TryGetValue(value, out var existingIndex))
+                {
+                    additionalPaths ??= new List<Path>?[elements.Count];
+                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    continue;
+                }
+
+                seen[value] = nextIndex;
+            }
+
+            variableValueSets[nextIndex++] = new VariableValues(
+                result.Path,
+                new ObjectValueNode([new ObjectFieldNode(requirement.Key, value)]));
+        }
+
+        if (additionalPaths is not null)
+        {
+            for (var i = 0; i < nextIndex; i++)
+            {
+                if (additionalPaths[i] is { } paths)
+                {
+                    variableValueSets![i] = variableValueSets[i] with
+                    {
+                        AdditionalPaths = [.. paths]
+                    };
+                }
+            }
+        }
+
+        if (variableValueSets?.Length > 0)
+        {
+            Array.Resize(ref variableValueSets, nextIndex);
+        }
+
+        return variableValueSets is not null
+            ? ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets)
+            : [];
+    }
+
     private ObjectValueNode? MapRequirements(
         CompositeResultElement result,
         IReadOnlyList<ObjectFieldNode> forwardedVariables,
         ReadOnlySpan<OperationRequirement> requirements,
         ref PooledArrayWriter? buffer)
     {
-        var fields = new List<ObjectFieldNode>(forwardedVariables.Count + requirements.Length);
-        fields.AddRange(forwardedVariables);
+        var fieldCount = forwardedVariables.Count + requirements.Length;
+
+        if (fieldCount == 0)
+        {
+            return new ObjectValueNode([]);
+        }
+
+        var fields = new ObjectFieldNode[fieldCount];
+        var index = 0;
+
+        for (var i = 0; i < forwardedVariables.Count; i++)
+        {
+            fields[index++] = forwardedVariables[i];
+        }
 
         foreach (var requirement in requirements)
         {
@@ -530,7 +630,7 @@ SaveSafe_Next:
                 return null;
             }
 
-            fields.Add(field);
+            fields[index++] = field;
         }
 
         return new ObjectValueNode(fields);
@@ -710,5 +810,16 @@ SaveSafe_Next:
         {
             memory.Dispose();
         }
+    }
+
+    private sealed class SingleValueNodeComparer : IEqualityComparer<IValueNode>
+    {
+        public static SingleValueNodeComparer Instance { get; } = new();
+
+        public bool Equals(IValueNode? x, IValueNode? y)
+            => SyntaxComparer.BySyntax.Equals(x, y);
+
+        public int GetHashCode(IValueNode obj)
+            => SyntaxComparer.BySyntax.GetHashCode(obj);
     }
 }
