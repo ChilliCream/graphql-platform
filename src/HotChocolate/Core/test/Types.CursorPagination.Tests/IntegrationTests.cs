@@ -4,6 +4,7 @@ using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -878,6 +879,36 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Explicit_ConnectionName_With_NamingConvention()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddConvention<INamingConventions, ConnectionNamingConventions>()
+                .AddQueryType<ExplicitConnectionName>()
+                .Services
+                .BuildServiceProvider()
+                .GetSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Infer_ConnectionName_From_NodeType_With_NamingConvention()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddConvention<INamingConventions, ConnectionNamingConventions>()
+                .AddQueryType<InferConnectionNameFromNodeType>()
+                .Services
+                .BuildServiceProvider()
+                .GetSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task SelectProviderByName()
     {
         var executor =
@@ -1249,6 +1280,12 @@ public class IntegrationTests
         public string[] Names() => ["a", "b"];
     }
 
+    public class InferConnectionNameFromNodeType
+    {
+        [UsePaging(InferConnectionNameFromField = false)]
+        public string[] Names() => ["a", "b"];
+    }
+
     public class ExplicitConnectionName
     {
         [UsePaging(ConnectionName = "Connection1")]
@@ -1337,6 +1374,21 @@ public class IntegrationTests
         public ImmutableArray<int> Test()
         {
             return [];
+        }
+    }
+
+    private sealed class ConnectionNamingConventions : DefaultNamingConventions
+    {
+        public override string GetTypeName(string originalTypeName, TypeKind kind)
+        {
+            var name = base.GetTypeName(originalTypeName, kind);
+
+            return kind is TypeKind.Object
+                &&
+                (name.EndsWith("Connection", StringComparison.Ordinal)
+                    || name.EndsWith("Edge", StringComparison.Ordinal))
+                ? name + "Named"
+                : name;
         }
     }
 }

@@ -1,0 +1,129 @@
+{
+  "activities": [
+    {
+      "OperationName": "ExecuteHttpRequest",
+      "DisplayName": "ExecuteHttpRequest",
+      "Status": "Unset",
+      "tags": [],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "ParseHttpRequest",
+          "DisplayName": "Parse HTTP Request",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "ExecuteRequest",
+          "DisplayName": "query { sayHello }",
+          "Status": "Unset",
+          "tags": [
+            {
+              "Key": "graphql.document.id",
+              "Value": "f7e9989fbb67af7fa747a9983313c9e5"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "f7e9989fbb67af7fa747a9983313c9e5"
+            },
+            {
+              "Key": "graphql.operation.id",
+              "Value": "456132b93ebaf15a39534753bf72f9f4bfa1152a08d04bc8a88539feec1cb52c"
+            }
+          ],
+          "event": [
+            {
+              "Name": "AddedOperationPlanToCache",
+              "Tags": []
+            },
+            {
+              "Name": "AddedDocumentToCache",
+              "Tags": []
+            }
+          ],
+          "activities": [
+            {
+              "OperationName": "ValidateDocument",
+              "DisplayName": "Validate Document",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.document.id",
+                  "Value": "f7e9989fbb67af7fa747a9983313c9e5"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "f7e9989fbb67af7fa747a9983313c9e5"
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "PlanOperation",
+              "DisplayName": "Plan Operation",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "ExecuteOperation",
+              "DisplayName": "Execute Operation",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": [],
+              "activities": [
+                {
+                  "OperationName": "ExecuteOperationNode",
+                  "DisplayName": "Execute Operation Node (a)",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.fusion.node.type",
+                      "Value": "Operation"
+                    },
+                    {
+                      "Key": "graphql.fusion.node.schema",
+                      "Value": "a"
+                    },
+                    {
+                      "Key": "otel.status_code",
+                      "Value": "OK"
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "OperationName": "FormatHttpResponse",
+          "DisplayName": "Format HTTP Response",
+          "Status": "Ok",
+          "tags": [],
+          "event": []
+        }
+      ]
+    }
+  ]
+}
