@@ -189,7 +189,7 @@ internal sealed class SelectionExpressionBuilder
         return BuildSelectionSetExpression(context, singleTypeNode);
     }
 
-    private static MemberInitExpression? BuildSelectionSetExpression(
+    private static Expression? BuildSelectionSetExpression(
         Context context,
         TypeNode parent)
     {
@@ -210,9 +210,69 @@ internal sealed class SelectionExpressionBuilder
             return null;
         }
 
-        return Expression.MemberInit(
-            Expression.New(context.ParentType),
-            assignments.ToImmutable());
+        var assignmentList = assignments.ToImmutable();
+
+        // Preferred path for mutable types.
+        var parameterlessConstructor = context.ParentType.GetConstructor(Type.EmptyTypes);
+        if (parameterlessConstructor is not null)
+        {
+            var allWritable = assignmentList.All(a =>
+                a.Member is PropertyInfo { CanWrite: true, SetMethod.IsPublic: true });
+
+            if (allWritable)
+            {
+                return Expression.MemberInit(
+                    Expression.New(parameterlessConstructor),
+                    assignmentList);
+            }
+        }
+
+        // Fallback path for record-like types without a parameterless constructor.
+        var bestMatchingConstructor = context.ParentType.GetConstructors()
+            .Select(c => (Constructor: c, Parameters: c.GetParameters()))
+            .OrderBy(c => c.Parameters.Length)
+            .FirstOrDefault(c =>
+                c.Parameters.Length >= assignmentList.Length
+                && assignmentList.All(a =>
+                    c.Parameters.Any(p =>
+                        string.Equals(a.Member.Name, p.Name, StringComparison.OrdinalIgnoreCase)
+                        && a.Expression.Type.IsAssignableTo(p.ParameterType))));
+
+        if (bestMatchingConstructor.Constructor is not null)
+        {
+            var arguments = bestMatchingConstructor.Parameters.Select(p =>
+            {
+                var assignment = assignmentList.FirstOrDefault(a =>
+                    string.Equals(a.Member.Name, p.Name, StringComparison.OrdinalIgnoreCase)
+                    && a.Expression.Type.IsAssignableTo(p.ParameterType));
+
+                if (assignment is not null)
+                {
+                    return assignment.Expression.Type == p.ParameterType
+                        ? assignment.Expression
+                        : Expression.Convert(assignment.Expression, p.ParameterType);
+                }
+
+                if (p.HasDefaultValue)
+                {
+                    return Expression.Convert(Expression.Constant(p.DefaultValue), p.ParameterType);
+                }
+
+                if (!p.ParameterType.IsValueType && IsMarkedAsExplicitlyNonNullable(p))
+                {
+                    throw new InvalidOperationException(
+                        $"Cannot construct '{context.ParentType.Name}': missing required argument '{p.Name}' "
+                        + "(non-nullable reference type with no default value).");
+                }
+
+                return Expression.Default(p.ParameterType);
+            }).ToArray();
+
+            return Expression.New(bestMatchingConstructor.Constructor, arguments);
+        }
+
+        throw new InvalidOperationException(
+            $"No writable properties or suitable constructor found for type '{context.ParentType.Name}'.");
     }
 
     private void CollectSelection(
@@ -383,4 +443,7 @@ internal sealed class SelectionExpressionBuilder
                 : null;
         }
     }
+
+    private static bool IsMarkedAsExplicitlyNonNullable(ParameterInfo parameter)
+        => new NullabilityInfoContext().Create(parameter).WriteState is NullabilityState.NotNull;
 }
