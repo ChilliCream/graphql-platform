@@ -546,7 +546,6 @@ internal sealed class SourceSchemaRequestDispatcher
     {
         public SourceSchemaClientRequest Request { get; } = request;
 
-        public TaskCompletionSource<SourceSchemaClientResponse> Completion { get; } =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<SourceSchemaClientResponse> Completion { get; } = new();
     }
 }
