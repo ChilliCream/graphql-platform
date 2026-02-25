@@ -57,69 +57,40 @@ cleanup() {
 trap cleanup EXIT
 
 # ---------------------------------------------------------------------------
-# CPU pinning profiles per runner group
+# CPU pinning — aligned with graphql-gateways-benchmark
 # ---------------------------------------------------------------------------
-# Benchmarking  (16 cores, 0-15):
-#   k6: 0-1    Gateway constant: 2-4    Gateway ramping: 2-5
-#   Sources constant: 5-15             Sources ramping: 6-15
-#   Inventory (variable-batch): 2-5
+# Constant (50 VUs):  3 cores total — k6: core 0, Gateway: cores 1-2
+# Ramping (500 VUs):  4 cores total — k6: core 0, Gateway: cores 1-3
+# Source schemas:     unpinned (no taskset, use whatever is available)
 #
-# Benchmarking-2 (8 cores, 0-7):
-#   k6: 0      Gateway: 1-2
-#   Sources: 3-7
-#   Inventory (variable-batch): 1-7
+# Same layout for all runner groups — pinning is by mode, not machine size.
 # ---------------------------------------------------------------------------
 
-if [ "$RUNNER_GROUP" == "Benchmarking-2" ]; then
-    K6_CPUSET="0"
-    GATEWAY_CPUSET_CONSTANT="1-2"
-    GATEWAY_CPUSET_RAMPING="1-2"
-    SOURCES_CPUSET_CONSTANT="3-7"
-    SOURCES_CPUSET_RAMPING="3-7"
-    INVENTORY_CPUSET_VAR="1-7"
+K6_CPUSET="0"
+
+if [ "$BENCH_MODE" == "constant" ]; then
+    GATEWAY_CPUSET_PIN="1-2"
 else
-    # Benchmarking (default) — 16-core machine
-    K6_CPUSET="0-1"
-    GATEWAY_CPUSET_CONSTANT="2-4"
-    GATEWAY_CPUSET_RAMPING="2-5"
-    SOURCES_CPUSET_CONSTANT="5-15"
-    SOURCES_CPUSET_RAMPING="6-15"
-    INVENTORY_CPUSET_VAR="2-5"
+    GATEWAY_CPUSET_PIN="1-3"
 fi
 
-echo -e "${BLUE}CPU pinning profile for ${RUNNER_GROUP}:${NC}"
-echo "  k6:                ${K6_CPUSET}"
-echo "  Gateway (constant): ${GATEWAY_CPUSET_CONSTANT}"
-echo "  Gateway (ramping):  ${GATEWAY_CPUSET_RAMPING}"
-echo "  Sources (constant): ${SOURCES_CPUSET_CONSTANT}"
-echo "  Sources (ramping):  ${SOURCES_CPUSET_RAMPING}"
-echo "  Inventory (batch):  ${INVENTORY_CPUSET_VAR}"
+echo -e "${BLUE}CPU pinning (${BENCH_MODE} mode):${NC}"
+echo "  k6:      core ${K6_CPUSET}"
+echo "  Gateway: cores ${GATEWAY_CPUSET_PIN}"
+echo "  Sources: unpinned"
 echo ""
 
 # ---------------------------------------------------------------------------
 # Infrastructure functions
 # ---------------------------------------------------------------------------
 
-start_infrastructure_gateway_constant() {
-    echo -e "${YELLOW}    Starting source schemas on cores ${SOURCES_CPUSET_CONSTANT}...${NC}"
-    export SOURCES_CPUSET="$SOURCES_CPUSET_CONSTANT"
+start_infrastructure_gateway() {
+    echo -e "${YELLOW}    Starting source schemas (unpinned)...${NC}"
+    export SOURCES_CPUSET=""
     "$SCRIPT_DIR/start-source-schemas.sh" > /dev/null 2>&1
 
-    echo -e "${YELLOW}    Starting gateway on cores ${GATEWAY_CPUSET_CONSTANT}...${NC}"
-    export GATEWAY_CPUSET="$GATEWAY_CPUSET_CONSTANT"
-    "$SCRIPT_DIR/start-gateway.sh" > /dev/null 2>&1
-
-    echo -e "${YELLOW}    Waiting for services to be ready...${NC}"
-    sleep 5
-}
-
-start_infrastructure_gateway_ramping() {
-    echo -e "${YELLOW}    Starting source schemas on cores ${SOURCES_CPUSET_RAMPING}...${NC}"
-    export SOURCES_CPUSET="$SOURCES_CPUSET_RAMPING"
-    "$SCRIPT_DIR/start-source-schemas.sh" > /dev/null 2>&1
-
-    echo -e "${YELLOW}    Starting gateway on cores ${GATEWAY_CPUSET_RAMPING}...${NC}"
-    export GATEWAY_CPUSET="$GATEWAY_CPUSET_RAMPING"
+    echo -e "${YELLOW}    Starting gateway on cores ${GATEWAY_CPUSET_PIN}...${NC}"
+    export GATEWAY_CPUSET="$GATEWAY_CPUSET_PIN"
     "$SCRIPT_DIR/start-gateway.sh" > /dev/null 2>&1
 
     echo -e "${YELLOW}    Waiting for services to be ready...${NC}"
@@ -127,8 +98,8 @@ start_infrastructure_gateway_ramping() {
 }
 
 start_infrastructure_variable_batch() {
-    echo -e "${YELLOW}    Starting inventory service on cores ${INVENTORY_CPUSET_VAR}...${NC}"
-    export INVENTORY_CPUSET="$INVENTORY_CPUSET_VAR"
+    echo -e "${YELLOW}    Starting inventory service on cores ${GATEWAY_CPUSET_PIN}...${NC}"
+    export INVENTORY_CPUSET="$GATEWAY_CPUSET_PIN"
     "$SCRIPT_DIR/start-inventory-only.sh" > /dev/null 2>&1
 
     echo -e "${YELLOW}    Waiting for service to be ready...${NC}"
@@ -232,11 +203,7 @@ fi
 start_infra() {
     case "$TEST_NAME" in
         no-recursion|deep-recursion)
-            if [ "$BENCH_MODE" == "constant" ]; then
-                start_infrastructure_gateway_constant
-            else
-                start_infrastructure_gateway_ramping
-            fi
+            start_infrastructure_gateway
             ;;
         variable-batch)
             start_infrastructure_variable_batch
