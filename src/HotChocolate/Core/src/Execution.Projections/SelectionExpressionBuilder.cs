@@ -212,6 +212,12 @@ internal sealed class SelectionExpressionBuilder
 
         var assignmentList = assignments.ToImmutable();
 
+        // Wee keep EF constructor-injected entities intact by reusing the existing instance.
+        if (ShouldReuseExistingInstance(context.ParentType))
+        {
+            return context.Parent;
+        }
+
         // Preferred path for mutable types.
         var parameterlessConstructor = context.ParentType.GetConstructor(Type.EmptyTypes);
         if (parameterlessConstructor is not null)
@@ -443,6 +449,11 @@ internal sealed class SelectionExpressionBuilder
                 : null;
         }
     }
+
+    private static bool ShouldReuseExistingInstance(Type type)
+        => type.GetConstructor(Type.EmptyTypes) is not null
+            && type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
+                .Any(t => t.GetParameters().Length > 0);
 
     private static bool IsMarkedAsExplicitlyNonNullable(ParameterInfo parameter)
         => new NullabilityInfoContext().Create(parameter).WriteState is NullabilityState.NotNull;
