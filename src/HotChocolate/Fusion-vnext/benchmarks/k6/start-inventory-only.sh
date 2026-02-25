@@ -12,8 +12,8 @@ else
   echo "⚠ taskset not available - service will run without CPU pinning"
 fi
 
-# CPU core assignment for inventory service
-INVENTORY_CPUSET="${INVENTORY_CPUSET:-2-3}"
+# CPU core assignment - empty means no pinning (use all available cores)
+INVENTORY_CPUSET="${INVENTORY_CPUSET:-}"
 
 # Helper function for optional CPU pinning
 maybe_taskset() {
