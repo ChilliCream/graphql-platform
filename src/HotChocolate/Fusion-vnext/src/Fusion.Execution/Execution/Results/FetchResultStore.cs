@@ -452,19 +452,37 @@ AddErrors_Next:
     {
         PooledArrayWriter? buffer = null;
 
-        if (requestVariables.Count == 0 && requiredData.Length == 1)
+        if (requestVariables.Count == 0)
         {
-            var singleRequirementValueSets = BuildVariableValueSetsSingleRequirement(
-                elements,
-                requiredData[0],
-                ref buffer);
-
-            if (buffer is not null)
+            ImmutableArray<VariableValues> fastPathResult = requiredData.Length switch
             {
-                _memory.Push(buffer);
-            }
+                1 => BuildVariableValueSetsSingleRequirement(
+                    elements,
+                    requiredData[0],
+                    ref buffer),
+                2 => BuildVariableValueSetsTwoRequirements(
+                    elements,
+                    requiredData[0],
+                    requiredData[1],
+                    ref buffer),
+                3 => BuildVariableValueSetsThreeRequirements(
+                    elements,
+                    requiredData[0],
+                    requiredData[1],
+                    requiredData[2],
+                    ref buffer),
+                _ => default
+            };
 
-            return singleRequirementValueSets;
+            if (!fastPathResult.IsDefault)
+            {
+                if (buffer is not null)
+                {
+                    _memory.Push(buffer);
+                }
+
+                return fastPathResult;
+            }
         }
 
         VariableValues[]? variableValueSets = null;
@@ -503,33 +521,12 @@ AddErrors_Next:
             variableValueSets[nextIndex++] = new VariableValues(result.Path, variables);
         }
 
-        if (additionalPaths is not null)
-        {
-            for (var i = 0; i < nextIndex; i++)
-            {
-                if (additionalPaths[i] is { } paths)
-                {
-                    variableValueSets![i] = variableValueSets[i] with
-                    {
-                        AdditionalPaths = [.. paths]
-                    };
-                }
-            }
-        }
-
-        if (variableValueSets?.Length > 0)
-        {
-            Array.Resize(ref variableValueSets, nextIndex);
-        }
-
         if (buffer is not null)
         {
             _memory.Push(buffer);
         }
 
-        return variableValueSets is not null
-            ? ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets)
-            : [];
+        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirement(
@@ -580,28 +577,147 @@ AddErrors_Next:
                 new ObjectValueNode([new ObjectFieldNode(requirement.Key, value)]));
         }
 
-        if (additionalPaths is not null)
+        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
+    }
+
+    private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirements(
+        List<CompositeResultElement> elements,
+        OperationRequirement requirement1,
+        OperationRequirement requirement2,
+        ref PooledArrayWriter? buffer)
+    {
+        VariableValues[]? variableValueSets = null;
+        Dictionary<TwoValueNodeTuple, int>? seen = null;
+        List<Path>?[]? additionalPaths = null;
+        var nextIndex = 0;
+
+        foreach (var result in elements)
         {
-            for (var i = 0; i < nextIndex; i++)
+            var value1 = ResultDataMapper.Map(result, requirement1.Map, _schema, ref buffer);
+
+            if (value1 is null
+                || value1.Kind == SyntaxKind.NullValue
+                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
             {
-                if (additionalPaths[i] is { } paths)
-                {
-                    variableValueSets![i] = variableValueSets[i] with
-                    {
-                        AdditionalPaths = [.. paths]
-                    };
-                }
+                continue;
             }
+
+            var value2 = ResultDataMapper.Map(result, requirement2.Map, _schema, ref buffer);
+
+            if (value2 is null
+                || value2.Kind == SyntaxKind.NullValue
+                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
+            {
+                continue;
+            }
+
+            variableValueSets ??= new VariableValues[elements.Count];
+            var key = new TwoValueNodeTuple(value1, value2);
+
+            if (nextIndex > 0)
+            {
+                seen ??= new Dictionary<TwoValueNodeTuple, int>(TwoValueNodeTupleComparer.Instance)
+                {
+                    [new TwoValueNodeTuple(
+                        variableValueSets[0].Values.Fields[0].Value,
+                        variableValueSets[0].Values.Fields[1].Value)] = 0
+                };
+
+                if (seen.TryGetValue(key, out var existingIndex))
+                {
+                    additionalPaths ??= new List<Path>?[elements.Count];
+                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    continue;
+                }
+
+                seen[key] = nextIndex;
+            }
+
+            variableValueSets[nextIndex++] = new VariableValues(
+                result.Path,
+                new ObjectValueNode([
+                    new ObjectFieldNode(requirement1.Key, value1),
+                    new ObjectFieldNode(requirement2.Key, value2)
+                ]));
         }
 
-        if (variableValueSets?.Length > 0)
+        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
+    }
+
+    private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirements(
+        List<CompositeResultElement> elements,
+        OperationRequirement requirement1,
+        OperationRequirement requirement2,
+        OperationRequirement requirement3,
+        ref PooledArrayWriter? buffer)
+    {
+        VariableValues[]? variableValueSets = null;
+        Dictionary<ThreeValueNodeTuple, int>? seen = null;
+        List<Path>?[]? additionalPaths = null;
+        var nextIndex = 0;
+
+        foreach (var result in elements)
         {
-            Array.Resize(ref variableValueSets, nextIndex);
+            var value1 = ResultDataMapper.Map(result, requirement1.Map, _schema, ref buffer);
+
+            if (value1 is null
+                || value1.Kind == SyntaxKind.NullValue
+                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
+            {
+                continue;
+            }
+
+            var value2 = ResultDataMapper.Map(result, requirement2.Map, _schema, ref buffer);
+
+            if (value2 is null
+                || value2.Kind == SyntaxKind.NullValue
+                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
+            {
+                continue;
+            }
+
+            var value3 = ResultDataMapper.Map(result, requirement3.Map, _schema, ref buffer);
+
+            if (value3 is null
+                || value3.Kind == SyntaxKind.NullValue
+                    && requirement3.Type.Kind == SyntaxKind.NonNullType)
+            {
+                continue;
+            }
+
+            variableValueSets ??= new VariableValues[elements.Count];
+            var key = new ThreeValueNodeTuple(value1, value2, value3);
+
+            if (nextIndex > 0)
+            {
+                seen ??= new Dictionary<ThreeValueNodeTuple, int>(ThreeValueNodeTupleComparer.Instance)
+                {
+                    [new ThreeValueNodeTuple(
+                        variableValueSets[0].Values.Fields[0].Value,
+                        variableValueSets[0].Values.Fields[1].Value,
+                        variableValueSets[0].Values.Fields[2].Value)] = 0
+                };
+
+                if (seen.TryGetValue(key, out var existingIndex))
+                {
+                    additionalPaths ??= new List<Path>?[elements.Count];
+                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    continue;
+                }
+
+                seen[key] = nextIndex;
+            }
+
+            variableValueSets[nextIndex++] = new VariableValues(
+                result.Path,
+                new ObjectValueNode([
+                    new ObjectFieldNode(requirement1.Key, value1),
+                    new ObjectFieldNode(requirement2.Key, value2),
+                    new ObjectFieldNode(requirement3.Key, value3)
+                ]));
         }
 
-        return variableValueSets is not null
-            ? ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets)
-            : [];
+        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
     }
 
     private ObjectValueNode? MapRequirements(
@@ -829,5 +945,74 @@ AddErrors_Next:
 
         public int GetHashCode(IValueNode obj)
             => SyntaxComparer.BySyntax.GetHashCode(obj);
+    }
+
+    private static ImmutableArray<VariableValues> FinalizeVariableValueSets(
+        VariableValues[]? variableValueSets,
+        List<Path>?[]? additionalPaths,
+        int nextIndex)
+    {
+        if (variableValueSets is null || nextIndex == 0)
+        {
+            return [];
+        }
+
+        if (additionalPaths is not null)
+        {
+            for (var i = 0; i < nextIndex; i++)
+            {
+                if (additionalPaths[i] is { } paths)
+                {
+                    variableValueSets[i] = variableValueSets[i] with
+                    {
+                        AdditionalPaths = [.. paths]
+                    };
+                }
+            }
+        }
+
+        if (variableValueSets.Length != nextIndex)
+        {
+            Array.Resize(ref variableValueSets, nextIndex);
+        }
+
+        return ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets);
+    }
+
+    private readonly record struct TwoValueNodeTuple(IValueNode Value1, IValueNode Value2);
+
+    private readonly record struct ThreeValueNodeTuple(
+        IValueNode Value1,
+        IValueNode Value2,
+        IValueNode Value3);
+
+    private sealed class TwoValueNodeTupleComparer : IEqualityComparer<TwoValueNodeTuple>
+    {
+        public static TwoValueNodeTupleComparer Instance { get; } = new();
+
+        public bool Equals(TwoValueNodeTuple x, TwoValueNodeTuple y)
+            => SyntaxComparer.BySyntax.Equals(x.Value1, y.Value1)
+                && SyntaxComparer.BySyntax.Equals(x.Value2, y.Value2);
+
+        public int GetHashCode(TwoValueNodeTuple obj)
+            => HashCode.Combine(
+                SyntaxComparer.BySyntax.GetHashCode(obj.Value1),
+                SyntaxComparer.BySyntax.GetHashCode(obj.Value2));
+    }
+
+    private sealed class ThreeValueNodeTupleComparer : IEqualityComparer<ThreeValueNodeTuple>
+    {
+        public static ThreeValueNodeTupleComparer Instance { get; } = new();
+
+        public bool Equals(ThreeValueNodeTuple x, ThreeValueNodeTuple y)
+            => SyntaxComparer.BySyntax.Equals(x.Value1, y.Value1)
+                && SyntaxComparer.BySyntax.Equals(x.Value2, y.Value2)
+                && SyntaxComparer.BySyntax.Equals(x.Value3, y.Value3);
+
+        public int GetHashCode(ThreeValueNodeTuple obj)
+            => HashCode.Combine(
+                SyntaxComparer.BySyntax.GetHashCode(obj.Value1),
+                SyntaxComparer.BySyntax.GetHashCode(obj.Value2),
+                SyntaxComparer.BySyntax.GetHashCode(obj.Value3));
     }
 }
