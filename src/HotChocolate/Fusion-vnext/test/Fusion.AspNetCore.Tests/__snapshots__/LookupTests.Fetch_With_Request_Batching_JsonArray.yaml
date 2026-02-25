@@ -12,12 +12,49 @@ request:
 response:
   body: |
     {
+      "data": {
+        "books": [
+          {
+            "author": {
+              "id": "1",
+              "name": "Author 2"
+            }
+          },
+          {
+            "author": {
+              "id": "2",
+              "name": "Author 2"
+            }
+          },
+          {
+            "author": {
+              "id": "2",
+              "name": "Author 2"
+            }
+          },
+          {
+            "author": {
+              "id": "2",
+              "name": "Author 2"
+            }
+          }
+        ]
+      },
       "errors": [
         {
           "message": "Unexpected Execution Error",
           "path": [
             "books",
             0,
+            "author",
+            "name"
+          ]
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "books",
+            1,
             "author",
             "name"
           ]
@@ -160,6 +197,18 @@ sourceSchemas:
                   }
                 }
               }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Author 2"
+                  }
+                }
+              }
+            - |
+              {}
+            - |
+              {}
 operationPlan:
   operation:
     - document: |

@@ -80,4 +80,16 @@ internal sealed class FixedSizeArrayPoolEventSource : EventSource
             WriteEvent(6, bufferId, bufferSize, poolId);
         }
     }
+
+    [Event(
+        eventId: 7,
+        Level = EventLevel.Informational,
+        Message = "Pool trimmed (PoolId={0}, Trimmed={1}, Remaining={2}, InUse={3})")]
+    public void PoolTrimmed(int poolId, int trimmed, int remaining, int inUse)
+    {
+        if (IsEnabled())
+        {
+            WriteEvent(7, poolId, trimmed, remaining, inUse);
+        }
+    }
 }

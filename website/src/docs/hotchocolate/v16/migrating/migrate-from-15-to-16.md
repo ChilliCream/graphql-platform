@@ -375,6 +375,14 @@ The `DateTime` scalar now serializes with up to 7 fractional seconds (`FFFFFFF`)
 
 In an effort to standardize our abstractions, we've renamed `IHasRuntimeType` to `IRuntimeTypeProvider`.
 
+## GUIDs converted to strings using the "D" format
+
+The conversion from GUID to string in the default type converter has been updated to format with hyphens (format "D") instead of without (format "N"), to follow the documented behavior.
+
+## EnableOneOf option removed
+
+The `EnableOneOf` option has been removed, as the `@oneOf` directive is now built in.
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

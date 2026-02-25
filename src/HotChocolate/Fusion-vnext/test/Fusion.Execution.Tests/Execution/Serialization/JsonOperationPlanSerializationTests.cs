@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Nodes.Serialization;
@@ -118,5 +119,63 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         // assert
         var parsedPlanFormatted = formatter.Format(parsedPlan);
         parsedPlanFormatted.MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public void Parse_Plan_Without_BatchingGroupId()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    id
+                    name
+                    estimatedDelivery(postCode: "12345")
+                }
+            }
+            """);
+
+        using var buffer = new PooledArrayWriter();
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        formatter.Format(buffer, originalPlan);
+
+        var json = JsonNode.Parse(buffer.WrittenSpan)!;
+        var nodes = json["nodes"]!.AsArray();
+
+        foreach (var node in nodes)
+        {
+            if (node?["type"]?.GetValue<string>() is "Operation")
+            {
+                node.AsObject().Remove("batchingGroupId");
+            }
+        }
+
+        var legacyPlanSource = Encoding.UTF8.GetBytes(
+            json.ToJsonString(
+                new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                }));
+
+        // act
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+        var parsedPlan = parser.Parse(legacyPlanSource);
+
+        // assert
+        Assert.All(
+            parsedPlan.AllNodes.OfType<OperationExecutionNode>(),
+            node => Assert.Null(node.BatchingGroupId));
     }
 }

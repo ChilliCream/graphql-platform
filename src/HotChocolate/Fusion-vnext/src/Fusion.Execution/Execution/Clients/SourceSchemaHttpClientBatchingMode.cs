@@ -1,7 +1,9 @@
 namespace HotChocolate.Fusion.Execution.Clients;
 
+[Flags]
 public enum SourceSchemaHttpClientBatchingMode
 {
-    VariableBatching,
-    ApolloRequestBatching
+    VariableBatching = 1,
+    RequestBatching = 2,
+    ApolloRequestBatching = 4
 }

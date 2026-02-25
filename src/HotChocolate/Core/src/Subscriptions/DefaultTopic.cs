@@ -195,7 +195,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
     }
 
     private void BeginProcessing(IAsyncDisposable session)
-        => ProcessMessagesSessionAsync(session).FireAndForget();
+        => _ = ProcessMessagesSessionAsync(session);
 
     private async Task ProcessMessagesSessionAsync(IAsyncDisposable session)
     {

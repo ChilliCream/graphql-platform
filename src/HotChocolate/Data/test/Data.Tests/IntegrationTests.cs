@@ -10,6 +10,7 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data;
@@ -962,6 +963,37 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     }
 
     [Fact]
+    public async Task QueryContext_Should_Not_Throw_For_Record_Node_With_Paging_Filtering_And_Sorting()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddQueryType<RecordQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                users {
+                    edges {
+                        node {
+                            id
+                            firstName
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.Empty(operationResult.Errors);
+    }
+
+    [Fact]
     public async Task QueryContext_Selector_Respects_Include_Directive()
     {
         // arrange
@@ -1362,6 +1394,20 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     ])
                 .AsQueryable()
                 .With(context);
+    }
+
+    public class RecordQuery
+    {
+        [UsePaging]
+        [UseFiltering]
+        [UseSorting]
+        public Connection<UserRecord> GetUsers(
+            QueryContext<UserRecord> query)
+            => Connection.Empty<UserRecord>();
+
+        public record UserRecord(
+            string Id,
+            string FirstName);
     }
 
     public sealed class ConditionalAuthor
