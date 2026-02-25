@@ -100,75 +100,53 @@ internal sealed class FetchResultStore : IDisposable
                 nameof(results));
         }
 
-        var expandedCount = results.Length;
-        ref var countRef = ref MemoryMarshal.GetReference(results);
-        ref var countEnd = ref Unsafe.Add(ref countRef, results.Length);
+        List<IError>? rootErrors = null;
 
-        while (Unsafe.IsAddressLessThan(ref countRef, ref countEnd))
+        for (var i = 0; i < results.Length; i++)
         {
-            expandedCount += countRef.AdditionalPaths.Length;
-            countRef = ref Unsafe.Add(ref countRef, 1)!;
+            var result = results[i];
+
+            // we need to track the result objects as they use rented memory.
+            _memory.Push(result);
+
+            if (result.Errors?.RootErrors is { Length: > 0 } rootErrorsFromResult)
+            {
+                rootErrors ??= [];
+                rootErrors.AddRange(rootErrorsFromResult);
+            }
         }
 
-        var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(expandedCount);
-        var errorTries = ArrayPool<ErrorTrie?>.Shared.Rent(expandedCount);
-        var paths = ArrayPool<Path>.Shared.Rent(expandedCount);
-        var dataElementsSpan = dataElements.AsSpan()[..expandedCount];
-        var errorTriesSpan = errorTries.AsSpan()[..expandedCount];
-        var pathsSpan = paths.AsSpan()[..expandedCount];
-        var expandedIndex = 0;
-
-        try
+        lock (_lock)
         {
-            ref var result = ref MemoryMarshal.GetReference(results);
-            ref var end = ref Unsafe.Add(ref result, results.Length);
-
-            while (Unsafe.IsAddressLessThan(ref result, ref end))
+            if (rootErrors is not null)
             {
-                // we need to track the result objects as they used rented memory.
-                _memory.Push(result);
+                _errors ??= [];
+                _errors.AddRange(rootErrors);
+            }
 
+            var resultData = _result.Data;
+
+            for (var i = 0; i < results.Length; i++)
+            {
+                var result = results[i];
                 var errors = result.Errors;
-
-                if (errors?.RootErrors is { Length: > 0 } rootErrors)
-                {
-                    lock (_lock)
-                    {
-                        _errors ??= [];
-                        _errors.AddRange(rootErrors);
-                    }
-                }
-
                 var dataElement = GetDataElement(sourcePath, result.Data);
                 var errorTrie = GetErrorTrie(sourcePath, errors?.Trie);
 
-                dataElementsSpan[expandedIndex] = dataElement;
-                errorTriesSpan[expandedIndex] = errorTrie;
-                pathsSpan[expandedIndex++] = result.Path;
-
-                foreach (var additionalPath in result.AdditionalPaths)
+                if (!SaveSafeResult(
+                        resultData,
+                        result.Path,
+                        result.AdditionalPaths.AsSpan(),
+                        dataElement,
+                        errorTrie,
+                        responseNames))
                 {
-                    dataElementsSpan[expandedIndex] = dataElement;
-                    errorTriesSpan[expandedIndex] = errorTrie;
-                    pathsSpan[expandedIndex++] = additionalPath;
+                    return false;
                 }
-
-                result = ref Unsafe.Add(ref result, 1)!;
             }
+        }
 
-            return SaveSafe(
-                pathsSpan[..expandedIndex],
-                dataElementsSpan[..expandedIndex],
-                errorTriesSpan[..expandedIndex],
-                responseNames);
-        }
-        finally
-        {
-            pathsSpan.Clear();
-            ArrayPool<SourceResultElement>.Shared.Return(dataElements);
-            ArrayPool<ErrorTrie?>.Shared.Return(errorTries);
-            ArrayPool<Path>.Shared.Return(paths);
-        }
+        return true;
     }
 
     /// <summary>
@@ -249,54 +227,62 @@ AddErrors_Next:
         return true;
     }
 
-    private bool SaveSafe(
-        ReadOnlySpan<Path> paths,
-        ReadOnlySpan<SourceResultElement> dataElements,
-        ReadOnlySpan<ErrorTrie?> errorTries,
+    private bool SaveSafeResult(
+        CompositeResultElement resultData,
+        Path path,
+        ReadOnlySpan<Path> additionalPaths,
+        SourceResultElement dataElement,
+        ErrorTrie? errorTrie,
         ReadOnlySpan<string> responseNames)
     {
-        lock (_lock)
+        if (!SaveSafeResult(resultData, path, dataElement, errorTrie, responseNames))
         {
-            ref var path = ref MemoryMarshal.GetReference(paths);
-            ref var data = ref MemoryMarshal.GetReference(dataElements);
-            ref var errorTrie = ref MemoryMarshal.GetReference(errorTries);
-            ref var end = ref Unsafe.Add(ref path, paths.Length);
-            var resultData = _result.Data;
+            return false;
+        }
 
-            while (Unsafe.IsAddressLessThan(ref path, ref end))
+        for (var i = 0; i < additionalPaths.Length; i++)
+        {
+            if (!SaveSafeResult(resultData, additionalPaths[i], dataElement, errorTrie, responseNames))
             {
-                if (resultData.IsNullOrInvalidated)
-                {
-                    return false;
-                }
-
-                var element = path.IsRoot ? resultData : GetStartObjectResult(path);
-                if (element.IsNullOrInvalidated)
-                {
-                    goto SaveSafe_Next;
-                }
-
-                var canExecutionContinue =
-                    _valueCompletion.BuildResult(
-                        data,
-                        element,
-                        errorTrie,
-                        responseNames);
-
-                if (!canExecutionContinue)
-                {
-                    resultData.Invalidate();
-                    return false;
-                }
-
-SaveSafe_Next:
-                path = ref Unsafe.Add(ref path, 1)!;
-                data = ref Unsafe.Add(ref data, 1);
-                errorTrie = ref Unsafe.Add(ref errorTrie, 1)!;
+                return false;
             }
         }
 
         return true;
+    }
+
+    private bool SaveSafeResult(
+        CompositeResultElement resultData,
+        Path path,
+        SourceResultElement dataElement,
+        ErrorTrie? errorTrie,
+        ReadOnlySpan<string> responseNames)
+    {
+        if (resultData.IsNullOrInvalidated)
+        {
+            return false;
+        }
+
+        var element = path.IsRoot ? resultData : GetStartObjectResult(path);
+        if (element.IsNullOrInvalidated)
+        {
+            return true;
+        }
+
+        var canExecutionContinue =
+            _valueCompletion.BuildResult(
+                dataElement,
+                element,
+                errorTrie,
+                responseNames);
+
+        if (canExecutionContinue)
+        {
+            return true;
+        }
+
+        resultData.Invalidate();
+        return false;
     }
 
     public ImmutableArray<VariableValues> CreateVariableValueSets(
@@ -409,7 +395,7 @@ SaveSafe_Next:
 
                     if (valueKind is JsonValueKind.Array)
                     {
-                        next.AddRange(UnrollLists(value));
+                        AppendUnrolledLists(value, next);
                         continue;
                     }
 
@@ -646,7 +632,9 @@ SaveSafe_Next:
         return value is null ? null : new ObjectFieldNode(key, value);
     }
 
-    private static IEnumerable<CompositeResultElement> UnrollLists(CompositeResultElement list)
+    private static void AppendUnrolledLists(
+        CompositeResultElement list,
+        List<CompositeResultElement> destination)
     {
         foreach (var element in list.EnumerateArray())
         {
@@ -659,14 +647,11 @@ SaveSafe_Next:
 
             if (elementValueKind is JsonValueKind.Array)
             {
-                foreach (var nestedElement in UnrollLists(element))
-                {
-                    yield return nestedElement;
-                }
+                AppendUnrolledLists(element, destination);
             }
             else
             {
-                yield return element;
+                destination.Add(element);
             }
         }
     }
