@@ -57,16 +57,56 @@ cleanup() {
 trap cleanup EXIT
 
 # ---------------------------------------------------------------------------
+# CPU pinning profiles per runner group
+# ---------------------------------------------------------------------------
+# Benchmarking  (16 cores, 0-15):
+#   k6: 0-1    Gateway constant: 2-4    Gateway ramping: 2-5
+#   Sources constant: 5-15             Sources ramping: 6-15
+#   Inventory (variable-batch): 2-5
+#
+# Benchmarking-2 (8 cores, 0-7):
+#   k6: 0      Gateway: 1-2
+#   Sources: 3-7
+#   Inventory (variable-batch): 1-7
+# ---------------------------------------------------------------------------
+
+if [ "$RUNNER_GROUP" == "Benchmarking-2" ]; then
+    K6_CPUSET="0"
+    GATEWAY_CPUSET_CONSTANT="1-2"
+    GATEWAY_CPUSET_RAMPING="1-2"
+    SOURCES_CPUSET_CONSTANT="3-7"
+    SOURCES_CPUSET_RAMPING="3-7"
+    INVENTORY_CPUSET_VAR="1-7"
+else
+    # Benchmarking (default) — 16-core machine
+    K6_CPUSET="0-1"
+    GATEWAY_CPUSET_CONSTANT="2-4"
+    GATEWAY_CPUSET_RAMPING="2-5"
+    SOURCES_CPUSET_CONSTANT="5-15"
+    SOURCES_CPUSET_RAMPING="6-15"
+    INVENTORY_CPUSET_VAR="2-5"
+fi
+
+echo -e "${BLUE}CPU pinning profile for ${RUNNER_GROUP}:${NC}"
+echo "  k6:                ${K6_CPUSET}"
+echo "  Gateway (constant): ${GATEWAY_CPUSET_CONSTANT}"
+echo "  Gateway (ramping):  ${GATEWAY_CPUSET_RAMPING}"
+echo "  Sources (constant): ${SOURCES_CPUSET_CONSTANT}"
+echo "  Sources (ramping):  ${SOURCES_CPUSET_RAMPING}"
+echo "  Inventory (batch):  ${INVENTORY_CPUSET_VAR}"
+echo ""
+
+# ---------------------------------------------------------------------------
 # Infrastructure functions
 # ---------------------------------------------------------------------------
 
 start_infrastructure_gateway_constant() {
-    echo -e "${YELLOW}    Starting source schemas on cores 5-15...${NC}"
-    export SOURCES_CPUSET="5-15"
+    echo -e "${YELLOW}    Starting source schemas on cores ${SOURCES_CPUSET_CONSTANT}...${NC}"
+    export SOURCES_CPUSET="$SOURCES_CPUSET_CONSTANT"
     "$SCRIPT_DIR/start-source-schemas.sh" > /dev/null 2>&1
 
-    echo -e "${YELLOW}    Starting gateway on cores 2-4...${NC}"
-    export GATEWAY_CPUSET="2-4"
+    echo -e "${YELLOW}    Starting gateway on cores ${GATEWAY_CPUSET_CONSTANT}...${NC}"
+    export GATEWAY_CPUSET="$GATEWAY_CPUSET_CONSTANT"
     "$SCRIPT_DIR/start-gateway.sh" > /dev/null 2>&1
 
     echo -e "${YELLOW}    Waiting for services to be ready...${NC}"
@@ -74,12 +114,12 @@ start_infrastructure_gateway_constant() {
 }
 
 start_infrastructure_gateway_ramping() {
-    echo -e "${YELLOW}    Starting source schemas on cores 6-15...${NC}"
-    export SOURCES_CPUSET="6-15"
+    echo -e "${YELLOW}    Starting source schemas on cores ${SOURCES_CPUSET_RAMPING}...${NC}"
+    export SOURCES_CPUSET="$SOURCES_CPUSET_RAMPING"
     "$SCRIPT_DIR/start-source-schemas.sh" > /dev/null 2>&1
 
-    echo -e "${YELLOW}    Starting gateway on cores 2-5...${NC}"
-    export GATEWAY_CPUSET="2-5"
+    echo -e "${YELLOW}    Starting gateway on cores ${GATEWAY_CPUSET_RAMPING}...${NC}"
+    export GATEWAY_CPUSET="$GATEWAY_CPUSET_RAMPING"
     "$SCRIPT_DIR/start-gateway.sh" > /dev/null 2>&1
 
     echo -e "${YELLOW}    Waiting for services to be ready...${NC}"
@@ -87,8 +127,8 @@ start_infrastructure_gateway_ramping() {
 }
 
 start_infrastructure_variable_batch() {
-    echo -e "${YELLOW}    Starting inventory service on cores 2-5...${NC}"
-    export INVENTORY_CPUSET="2-5"
+    echo -e "${YELLOW}    Starting inventory service on cores ${INVENTORY_CPUSET_VAR}...${NC}"
+    export INVENTORY_CPUSET="$INVENTORY_CPUSET_VAR"
     "$SCRIPT_DIR/start-inventory-only.sh" > /dev/null 2>&1
 
     echo -e "${YELLOW}    Waiting for service to be ready...${NC}"
@@ -204,13 +244,13 @@ start_infra() {
     esac
 }
 
-# Run k6 with the correct MODE env var
+# Run k6 with the correct MODE env var and runner-aware CPU pinning
 run_k6() {
     local summary_file=$1
     if [ "$BENCH_MODE" == "ramping" ]; then
-        MODE=ramping maybe_taskset "0-1" k6 run --summary-export="$summary_file" "$K6_SCRIPT"
+        MODE=ramping maybe_taskset "$K6_CPUSET" k6 run --summary-export="$summary_file" "$K6_SCRIPT"
     else
-        maybe_taskset "0-1" k6 run --summary-export="$summary_file" "$K6_SCRIPT"
+        maybe_taskset "$K6_CPUSET" k6 run --summary-export="$summary_file" "$K6_SCRIPT"
     fi
 }
 
