@@ -5,8 +5,10 @@ namespace HotChocolate.Data.Filters;
 
 internal class FilterGlobalIdInputValueFormatter(
     INodeIdSerializerAccessor serializerAccessor,
-    Type namedType)
+    Type namedType,
+    IDictionary<string, Type>? nodeIdTypes = null)
     : IInputValueFormatter
+    , INodeIdRuntimeTypeLookup
 {
     private INodeIdSerializer? _serializer;
 
@@ -28,7 +30,7 @@ internal class FilterGlobalIdInputValueFormatter(
         {
             try
             {
-                return _serializer.Parse(s, namedType).InternalId;
+                return _serializer.Parse(s, this).InternalId;
             }
             catch (Exception ex) when (ex is not GraphQLException)
             {
@@ -83,7 +85,7 @@ internal class FilterGlobalIdInputValueFormatter(
                         continue;
                     }
 
-                    id = _serializer.Parse(sv, namedType);
+                    id = _serializer.Parse(sv, this);
                     list.Add(id.InternalId);
                 }
 
@@ -96,5 +98,21 @@ internal class FilterGlobalIdInputValueFormatter(
         }
 
         throw ThrowHelper.GlobalIdInputValueFormatter_SpecifiedValueIsNotAValidId();
+    }
+
+    Type? INodeIdRuntimeTypeLookup.GetNodeIdRuntimeType(string typeName)
+    {
+        if (namedType != typeof(string))
+        {
+            return namedType;
+        }
+
+        if (nodeIdTypes is not null
+            && nodeIdTypes.TryGetValue(typeName, out var runtimeType))
+        {
+            return runtimeType;
+        }
+
+        return null;
     }
 }
