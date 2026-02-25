@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace HotChocolate.Data.Projections.Expressions;
 
@@ -30,23 +29,19 @@ public static class QueryableProjectionScopeExtensions
 
     public static Expression CreateMemberInit(this QueryableProjectionScope scope)
     {
+        if (scope.RequiresInstanceReuse || !HasAnyProjectionBindings(scope))
+        {
+            return scope.Instance.Peek();
+        }
+
         if (scope.HasAbstractTypes())
         {
             Expression lastValue = Expression.Default(scope.RuntimeType);
 
             foreach (var val in scope.GetAbstractTypes())
             {
-                Expression memberInit;
-
-                if (ShouldReuseExistingInstance(val.Key))
-                {
-                    memberInit = Expression.Convert(scope.Instance.Peek(), val.Key);
-                }
-                else
-                {
-                    var ctor = Expression.New(val.Key);
-                    memberInit = Expression.MemberInit(ctor, val.Value);
-                }
+                var ctor = Expression.New(val.Key);
+                Expression memberInit = Expression.MemberInit(ctor, val.Value);
 
                 lastValue = Expression.Condition(
                     Expression.TypeIs(scope.Instance.Peek(), val.Key),
@@ -58,19 +53,30 @@ public static class QueryableProjectionScopeExtensions
         }
         else
         {
-            if (ShouldReuseExistingInstance(scope.RuntimeType))
-            {
-                return scope.Instance.Peek();
-            }
-
             var ctor = Expression.New(scope.RuntimeType);
             return Expression.MemberInit(ctor, scope.Level.Peek());
         }
+    }
 
-        bool ShouldReuseExistingInstance(Type type)
-            => type.GetConstructor(Type.EmptyTypes) is not null
-                && type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
-                    .Any(t => t.GetParameters().Length > 0);
+    private static bool HasAnyProjectionBindings(QueryableProjectionScope scope)
+    {
+        if (scope.Level.Count > 0 && scope.Level.Peek().Count > 0)
+        {
+            return true;
+        }
+
+        if (scope.HasAbstractTypes())
+        {
+            foreach (var abstractType in scope.GetAbstractTypes())
+            {
+                if (abstractType.Value.Count > 0)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public static Expression CreateMemberInitLambda(this QueryableProjectionScope scope)

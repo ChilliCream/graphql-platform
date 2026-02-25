@@ -37,6 +37,11 @@ public class QueryableProjectionListHandler
 
         if (field.Member is not PropertyInfo { CanWrite: true })
         {
+            if (context.TryGetQueryableScope(out var scope))
+            {
+                scope.RequiresInstanceReuse = true;
+            }
+
             action = SelectionVisitor.Skip;
 
             return true;
