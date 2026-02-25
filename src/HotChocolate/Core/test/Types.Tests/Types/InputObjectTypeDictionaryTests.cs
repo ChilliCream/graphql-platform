@@ -97,6 +97,26 @@ public class InputObjectTypeDictionaryTests
         public IReadOnlyDictionary<string, string>? ContextData3 { get; set; }
     }
 
+    [Fact]
+    public void Explicit_ObjectType_For_KeyValuePair_Overrides_Inferred_Type()
+    {
+        // arrange & act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<CustomKvpOutputQuery>()
+            .AddType<CustomKeyValuePairType>()
+            .Create();
+
+        // assert — the custom type name and field names must appear in the schema,
+        // proving the explicit ObjectType<T> definition is used instead of the
+        // auto-inferred KeyValuePairOfStringAndString.
+        schema.MatchSnapshot();
+
+        var customType = schema.Types.GetType<ObjectType>("StringPair");
+        Assert.Equal("first", customType.Fields["first"].Name);
+        Assert.Equal("second", customType.Fields["second"].Name);
+        Assert.Equal(2, customType.Fields.Count(f => !f.IsIntrospectionField));
+    }
+
     public class NullableDictionaryInput
     {
         public Dictionary<string, string?>? ContextData { get; set; }
@@ -110,5 +130,20 @@ public class InputObjectTypeDictionaryTests
     public class NullableDictionaryOutputQuery
     {
         public Dictionary<string, string?>? GetContextData() => null;
+    }
+
+    public class CustomKeyValuePairType : ObjectType<KeyValuePair<string, string>>
+    {
+        protected override void Configure(IObjectTypeDescriptor<KeyValuePair<string, string>> descriptor)
+        {
+            descriptor.Name("StringPair");
+            descriptor.Field(x => x.Key).Name("first");
+            descriptor.Field(x => x.Value).Name("second");
+        }
+    }
+
+    public class CustomKvpOutputQuery
+    {
+        public Dictionary<string, string>? GetItems() => null;
     }
 }
