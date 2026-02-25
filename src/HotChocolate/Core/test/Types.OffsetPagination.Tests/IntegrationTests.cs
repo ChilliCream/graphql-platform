@@ -424,6 +424,39 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task Executable_With_QueryableOffsetPagingProvider()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<ExecutableQueryType>()
+                .AddQueryableOffsetPagingProvider()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                fooExecutable {
+                    items {
+                        bar
+                    }
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                    totalCount
+                }
+            }
+            """);
+
+        var operationResult = result.ExpectOperationResult();
+        Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);
+        Assert.NotNull(operationResult.Data);
+    }
+
+    [Fact]
     public async Task Attribute_Nested_List_With_Field_Settings()
     {
         var executor =

@@ -2,6 +2,7 @@ namespace HotChocolate.Types;
 
 internal sealed class ResolverArgument(
     string name,
+    string inputName,
     SchemaCoordinate coordinate,
     IInputType type,
     Type runtimeType,
@@ -10,6 +11,8 @@ internal sealed class ResolverArgument(
     : IInputValueInfo
 {
     public string Name { get; } = name;
+
+    public string InputName { get; } = inputName;
 
     public SchemaCoordinate Coordinate { get; } = coordinate;
 
