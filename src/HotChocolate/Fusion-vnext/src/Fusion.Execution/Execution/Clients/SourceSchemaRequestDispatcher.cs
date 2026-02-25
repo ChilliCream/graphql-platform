@@ -152,7 +152,7 @@ internal sealed class SourceSchemaRequestDispatcher
 
             if (!_groups.TryGetValue(groupId, out var group))
             {
-                group = new GroupState(groupId);
+                group = new GroupState(groupId, nodeIds.Count);
                 _groups.Add(groupId, group);
             }
 
@@ -391,11 +391,11 @@ internal sealed class SourceSchemaRequestDispatcher
         }
     }
 
-    private sealed class GroupState(int id)
+    private sealed class GroupState(int id, int initialCapacity)
     {
-        private readonly HashSet<int> _nodeIds = [];
-        private readonly HashSet<int> _remainingNodeIds = [];
-        private readonly Dictionary<int, PendingRequest> _pendingRequests = [];
+        private readonly List<int> _nodeIds = new(initialCapacity);
+        private readonly HashSet<int> _remainingNodeIds = new(initialCapacity);
+        private readonly Dictionary<int, PendingRequest> _pendingRequests = new(initialCapacity);
         private bool _dispatchCreated;
 
         public int Id { get; } = id;
@@ -408,8 +408,10 @@ internal sealed class SourceSchemaRequestDispatcher
         {
             foreach (var nodeId in nodeIds)
             {
-                _nodeIds.Add(nodeId);
-                _remainingNodeIds.Add(nodeId);
+                if (_remainingNodeIds.Add(nodeId))
+                {
+                    _nodeIds.Add(nodeId);
+                }
             }
         }
 
@@ -419,12 +421,6 @@ internal sealed class SourceSchemaRequestDispatcher
         {
             var nodeId = request.Node.Id;
 
-            if (!_nodeIds.Contains(nodeId))
-            {
-                pendingRequest = null;
-                return false;
-            }
-
             if (_pendingRequests.ContainsKey(nodeId))
             {
                 throw new InvalidOperationException(
@@ -433,7 +429,11 @@ internal sealed class SourceSchemaRequestDispatcher
                         nodeId));
             }
 
-            _remainingNodeIds.Remove(nodeId);
+            if (!_remainingNodeIds.Remove(nodeId))
+            {
+                pendingRequest = null;
+                return false;
+            }
 
             pendingRequest = new PendingRequest(request);
             _pendingRequests.Add(nodeId, pendingRequest);
