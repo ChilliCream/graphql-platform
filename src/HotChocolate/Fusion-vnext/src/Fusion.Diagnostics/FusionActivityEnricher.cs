@@ -546,7 +546,7 @@ public class FusionActivityEnricher
         ExecutionNode node,
         Exception error,
         Activity activity)
-        => EnrichError(ErrorBuilder.FromException(error).Build(), activity);
+        => activity.RecordException(error);
 
     public virtual void EnrichSourceSchemaError(
         OperationPlanContext context,
@@ -554,7 +554,7 @@ public class FusionActivityEnricher
         string schemaName,
         Exception error,
         Activity activity)
-        => EnrichError(ErrorBuilder.FromException(error).Build(), activity);
+        => activity.RecordException(error);
 
     protected virtual void EnrichError(IError error, Activity activity)
     {

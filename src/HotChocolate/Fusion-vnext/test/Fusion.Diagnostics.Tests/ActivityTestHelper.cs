@@ -1,9 +1,10 @@
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion.Diagnostics;
 
-public static class ActivityTestHelper
+public static partial class ActivityTestHelper
 {
     public static IDisposable CaptureActivities(out object activities)
     {
@@ -77,8 +78,38 @@ public static class ActivityTestHelper
         data["DisplayName"] = activity.DisplayName;
         data["Status"] = activity.Status;
         data["tags"] = activity.Tags;
-        data["event"] = activity.Events.Select(t => new { t.Name, t.Tags });
+        data["event"] = activity.Events.Select(t => new
+        {
+            t.Name,
+            Tags = ScrubEventTags(t.Tags)
+        });
     }
+
+    private static IEnumerable<KeyValuePair<string, object?>> ScrubEventTags(
+        IEnumerable<KeyValuePair<string, object?>> tags)
+    {
+        foreach (var tag in tags)
+        {
+            if (tag is { Key: "exception.stacktrace", Value: string stackTrace })
+            {
+                yield return new KeyValuePair<string, object?>(
+                    tag.Key,
+                    StackTracePathRegex().Replace(stackTrace, match =>
+                    {
+                        var fileName = System.IO.Path.GetFileName(match.Groups[1].Value);
+                        var lineNumber = match.Groups[2].Value;
+                        return $" in {fileName}:line {lineNumber}";
+                    }));
+            }
+            else
+            {
+                yield return tag;
+            }
+        }
+    }
+
+    [GeneratedRegex(@" in (.+):line (\d+)")]
+    private static partial Regex StackTracePathRegex();
 
     private sealed class Session : IDisposable
     {

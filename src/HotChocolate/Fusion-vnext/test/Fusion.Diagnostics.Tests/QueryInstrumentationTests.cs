@@ -521,6 +521,41 @@ public class QueryInstrumentationTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Source_Schema_Transport_Error()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>(),
+                isOffline: true);
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+            {
+                o.Scopes = FusionActivityScopes.All;
+                o.IncludeDocument = true;
+            }));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
     public async Task Track_Events_Of_A_Query_With_Multiple_Sources()
     {
         using (CaptureActivities(out var activities))
