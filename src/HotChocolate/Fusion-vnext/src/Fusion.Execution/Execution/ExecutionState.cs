@@ -288,50 +288,25 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
     public bool EnqueueNextNodes(OperationPlanContext context, CancellationToken cancellationToken)
     {
-        _stack.Clear();
-
         if (_ready.Count == 0)
         {
             return false;
         }
 
-        var isSorted = true;
-        var previousId = int.MinValue;
+        var hasReadyNodes = false;
 
         foreach (var node in _ready)
         {
             if ((uint)node.Id < (uint)_remainingDependencies.Length
                 && _remainingDependencies[node.Id] == 0)
             {
-                _stack.Push(node);
-
-                if (node.Id < previousId)
-                {
-                    isSorted = false;
-                }
-
-                previousId = node.Id;
+                hasReadyNodes = true;
+                StartNode(context, node, cancellationToken);
             }
         }
 
         _ready.Clear();
-
-        if (_stack.Count == 0)
-        {
-            return false;
-        }
-
-        if (!isSorted && _stack.Count > 1)
-        {
-            _stack.Sort(static (a, b) => a.Id.CompareTo(b.Id));
-        }
-
-        foreach (var node in _stack)
-        {
-            StartNode(context, node, cancellationToken);
-        }
-
-        return true;
+        return hasReadyNodes;
     }
 
     private void EnsureDependencyCapacity(int minCapacity)
