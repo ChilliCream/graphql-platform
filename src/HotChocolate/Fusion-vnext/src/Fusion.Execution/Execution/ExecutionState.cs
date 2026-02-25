@@ -11,8 +11,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 {
     private const byte NodeStateNone = 0;
     private const byte NodeStateBacklog = 1;
-    private const byte NodeStateCompleted = 2;
-    private const byte NodeStateSkipped = 3;
+    private const byte NodeStateSkipped = 2;
 
     private readonly List<ExecutionNode> _stack = [];
 
@@ -44,17 +43,12 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         ResetNodeStates();
         ResetRemainingDependencies();
 
-        foreach (var node in plan.AllNodes)
-        {
-            TrackNodeStateSlot(node.Id);
-        }
-
         switch (plan.Operation.Definition.Operation)
         {
             case OperationType.Query:
                 foreach (var node in plan.AllNodes)
                 {
-                    AddToBacklog(node.Id);
+                    AddToBacklog(node);
                 }
                 break;
 
@@ -68,17 +62,20 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
                         continue;
                     }
 
-                    AddToBacklog(node.Id);
+                    AddToBacklog(node);
                 }
                 break;
 
             case OperationType.Subscription:
+                var root = plan.RootNodes.Single();
+
                 foreach (var node in plan.AllNodes)
                 {
-                    AddToBacklog(node.Id);
+                    if (!ReferenceEquals(node, root))
+                    {
+                        AddToBacklog(node);
+                    }
                 }
-
-                RemoveFromBacklog(plan.RootNodes.Single().Id, NodeStateNone);
 
                 // The root node of a subscription is started outside the state.
                 // We cater to this fact and fix the state by stating with am active node count of 1.
@@ -87,24 +84,6 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
             default:
                 throw new ArgumentOutOfRangeException("Unexpected operation type.");
-        }
-
-        foreach (var node in plan.AllNodes)
-        {
-            if (!IsInBacklog(node.Id))
-            {
-                continue;
-            }
-
-            var remainingDependencies = node.Dependencies.Length;
-            EnsureDependencyCapacity(node.Id + 1);
-            _remainingDependencies[node.Id] = remainingDependencies;
-            _trackedDependencySlots.Add(node.Id);
-
-            if (remainingDependencies == 0)
-            {
-                _ready.Add(node);
-            }
         }
     }
 
@@ -192,11 +171,6 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
         if (result.Status is ExecutionStatus.Success or ExecutionStatus.PartialSuccess)
         {
-            if ((uint)node.Id < (uint)_nodeStates.Length)
-            {
-                _nodeStates[node.Id] = NodeStateCompleted;
-            }
-
             if (result.DependentsToExecute.Length > 0)
             {
                 foreach (var dependent in node.Dependents)
@@ -256,7 +230,6 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
             if (RemoveFromBacklog(current.Id, NodeStateSkipped)
                 && collectTelemetry
-                && !IsCompleted(current.Id)
                 && !Traces.ContainsKey(current.Id))
             {
                 Traces.Add(
@@ -364,27 +337,36 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         => (uint)nodeId < (uint)_nodeStates.Length
             && _nodeStates[nodeId] == NodeStateBacklog;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool IsCompleted(int nodeId)
-        => (uint)nodeId < (uint)_nodeStates.Length
-            && _nodeStates[nodeId] == NodeStateCompleted;
-
-    private void TrackNodeStateSlot(int nodeId)
+    private void AddToBacklog(ExecutionNode node)
     {
-        EnsureNodeStateCapacity(nodeId + 1);
+        var nodeId = node.Id;
+
+        if ((uint)nodeId >= (uint)_nodeStates.Length)
+        {
+            EnsureNodeStateCapacity(nodeId + 1);
+        }
+
+        if (_nodeStates[nodeId] == NodeStateBacklog)
+        {
+            return;
+        }
 
         if (_nodeStates[nodeId] == NodeStateNone)
         {
             _trackedNodeStateSlots.Add(nodeId);
         }
-    }
 
-    private void AddToBacklog(int nodeId)
-    {
-        if (!IsInBacklog(nodeId))
+        _nodeStates[nodeId] = NodeStateBacklog;
+        _backlogCount++;
+
+        var remainingDependencies = node.Dependencies.Length;
+        EnsureDependencyCapacity(nodeId + 1);
+        _remainingDependencies[nodeId] = remainingDependencies;
+        _trackedDependencySlots.Add(nodeId);
+
+        if (remainingDependencies == 0)
         {
-            _nodeStates[nodeId] = NodeStateBacklog;
-            _backlogCount++;
+            _ready.Add(node);
         }
     }
 
