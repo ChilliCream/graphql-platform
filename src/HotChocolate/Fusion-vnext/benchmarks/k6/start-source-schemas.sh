@@ -12,7 +12,7 @@ else
   echo "⚠ taskset not available - services will run without CPU pinning"
 fi
 
-# CPU core assignment - empty means no pinning (use all available cores)
+# CPU core assignment for source schemas (set by caller, e.g. run-single-benchmark.sh)
 SOURCES_CPUSET="${SOURCES_CPUSET:-}"
 
 # Helper function for optional CPU pinning

@@ -59,25 +59,29 @@ trap cleanup EXIT
 # ---------------------------------------------------------------------------
 # CPU pinning — aligned with graphql-gateways-benchmark
 # ---------------------------------------------------------------------------
-# Constant (50 VUs):  3 cores total — k6: core 0, Gateway: cores 1-2
-# Ramping (500 VUs):  4 cores total — k6: core 0, Gateway: cores 1-3
-# Source schemas:     unpinned (no taskset, use whatever is available)
+# Constant (50 VUs):  k6: core 0, Gateway: cores 1-2, Sources: 3-(N-1)
+# Ramping (500 VUs):  k6: core 0, Gateway: cores 1-3, Sources: 4-(N-1)
 #
 # Same layout for all runner groups — pinning is by mode, not machine size.
 # ---------------------------------------------------------------------------
+
+TOTAL_CORES=$(nproc 2>/dev/null || grep -c ^processor /proc/cpuinfo 2>/dev/null || echo 8)
+LAST_CORE=$((TOTAL_CORES - 1))
 
 K6_CPUSET="0"
 
 if [ "$BENCH_MODE" == "constant" ]; then
     GATEWAY_CPUSET_PIN="1-2"
+    SOURCES_CPUSET_PIN="3-${LAST_CORE}"
 else
     GATEWAY_CPUSET_PIN="1-3"
+    SOURCES_CPUSET_PIN="4-${LAST_CORE}"
 fi
 
-echo -e "${BLUE}CPU pinning (${BENCH_MODE} mode):${NC}"
+echo -e "${BLUE}CPU pinning (${BENCH_MODE} mode, ${TOTAL_CORES} cores):${NC}"
 echo "  k6:      core ${K6_CPUSET}"
 echo "  Gateway: cores ${GATEWAY_CPUSET_PIN}"
-echo "  Sources: unpinned"
+echo "  Sources: cores ${SOURCES_CPUSET_PIN}"
 echo ""
 
 # ---------------------------------------------------------------------------
@@ -85,8 +89,8 @@ echo ""
 # ---------------------------------------------------------------------------
 
 start_infrastructure_gateway() {
-    echo -e "${YELLOW}    Starting source schemas (unpinned)...${NC}"
-    export SOURCES_CPUSET=""
+    echo -e "${YELLOW}    Starting source schemas on cores ${SOURCES_CPUSET_PIN}...${NC}"
+    export SOURCES_CPUSET="$SOURCES_CPUSET_PIN"
     "$SCRIPT_DIR/start-source-schemas.sh" > /dev/null 2>&1
 
     echo -e "${YELLOW}    Starting gateway on cores ${GATEWAY_CPUSET_PIN}...${NC}"
