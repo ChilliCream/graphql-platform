@@ -289,12 +289,22 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
             return false;
         }
 
+        var isSorted = true;
+        var previousId = int.MinValue;
+
         foreach (var node in _ready)
         {
             if ((uint)node.Id < (uint)_remainingDependencies.Length
                 && _remainingDependencies[node.Id] == 0)
             {
                 _stack.Push(node);
+
+                if (node.Id < previousId)
+                {
+                    isSorted = false;
+                }
+
+                previousId = node.Id;
             }
         }
 
@@ -305,7 +315,10 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
             return false;
         }
 
-        _stack.Sort(static (a, b) => a.Id.CompareTo(b.Id));
+        if (!isSorted && _stack.Count > 1)
+        {
+            _stack.Sort(static (a, b) => a.Id.CompareTo(b.Id));
+        }
 
         foreach (var node in _stack)
         {
