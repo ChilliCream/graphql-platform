@@ -146,6 +146,13 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         {
             if (field.HasIdAttribute())
             {
+                // Respect explicit custom ID filter input types.
+                if (field.Type is ExtendedTypeReference { Type.Source: { } typeSource }
+                    && typeof(IdOperationFilterInputType).IsAssignableFrom(typeSource))
+                {
+                    continue;
+                }
+
                 field.Type = discoveryContext.TypeInspector.GetTypeRef(
                     typeof(IdOperationFilterInputType),
                     TypeContext.Input,
