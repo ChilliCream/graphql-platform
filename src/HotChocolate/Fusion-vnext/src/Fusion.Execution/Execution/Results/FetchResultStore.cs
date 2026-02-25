@@ -93,6 +93,13 @@ internal sealed class FetchResultStore : IDisposable
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
         ReadOnlySpan<string> responseNames)
+        => AddPartialResults(sourcePath, results, responseNames, containsErrors: true);
+
+    public bool AddPartialResults(
+        SelectionPath sourcePath,
+        ReadOnlySpan<SourceSchemaResult> results,
+        ReadOnlySpan<string> responseNames,
+        bool containsErrors)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(sourcePath);
@@ -102,6 +109,13 @@ internal sealed class FetchResultStore : IDisposable
             throw new ArgumentException(
                 "The results span must contain at least one result.",
                 nameof(results));
+        }
+
+        if (!containsErrors)
+        {
+            return results.Length == 1
+                ? AddSinglePartialResultNoErrors(sourcePath, results[0], responseNames)
+                : AddPartialResultsNoErrors(sourcePath, results, responseNames);
         }
 
         if (results.Length == 1)
@@ -174,6 +188,53 @@ internal sealed class FetchResultStore : IDisposable
         }
     }
 
+    private bool AddPartialResultsNoErrors(
+        SelectionPath sourcePath,
+        ReadOnlySpan<SourceSchemaResult> results,
+        ReadOnlySpan<string> responseNames)
+    {
+        var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
+        var dataElementsSpan = dataElements.AsSpan(0, results.Length);
+
+        try
+        {
+            for (var i = 0; i < results.Length; i++)
+            {
+                var result = results[i];
+                _memory.Push(result);
+                dataElementsSpan[i] = GetDataElement(sourcePath, result.Data);
+            }
+
+            lock (_lock)
+            {
+                var resultData = _result.Data;
+
+                for (var i = 0; i < results.Length; i++)
+                {
+                    var result = results[i];
+
+                    if (!SaveSafeResult(
+                            resultData,
+                            result.Path,
+                            result.AdditionalPaths.AsSpan(),
+                            dataElementsSpan[i],
+                            errorTrie: null,
+                            responseNames))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+        finally
+        {
+            dataElementsSpan.Clear();
+            ArrayPool<SourceResultElement>.Shared.Return(dataElements);
+        }
+    }
+
     private bool AddSinglePartialResult(
         SelectionPath sourcePath,
         SourceSchemaResult result,
@@ -199,6 +260,26 @@ internal sealed class FetchResultStore : IDisposable
                 result.AdditionalPaths.AsSpan(),
                 dataElement,
                 errorTrie,
+                responseNames);
+        }
+    }
+
+    private bool AddSinglePartialResultNoErrors(
+        SelectionPath sourcePath,
+        SourceSchemaResult result,
+        ReadOnlySpan<string> responseNames)
+    {
+        _memory.Push(result);
+        var dataElement = GetDataElement(sourcePath, result.Data);
+
+        lock (_lock)
+        {
+            return SaveSafeResult(
+                _result.Data,
+                result.Path,
+                result.AdditionalPaths.AsSpan(),
+                dataElement,
+                errorTrie: null,
                 responseNames);
         }
     }

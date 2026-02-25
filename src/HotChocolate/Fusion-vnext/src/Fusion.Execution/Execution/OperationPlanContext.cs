@@ -260,9 +260,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     internal void AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
-        ReadOnlySpan<string> responseNames)
+        ReadOnlySpan<string> responseNames,
+        bool containsErrors = true)
     {
-        var canExecutionContinue = _resultStore.AddPartialResults(sourcePath, results, responseNames);
+        var canExecutionContinue =
+            _resultStore.AddPartialResults(sourcePath, results, responseNames, containsErrors);
 
         if (!canExecutionContinue)
         {

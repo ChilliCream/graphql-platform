@@ -198,7 +198,11 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         try
         {
-            context.AddPartialResults(_source, buffer.AsSpan(0, index), _responseNames);
+            context.AddPartialResults(
+                _source,
+                buffer.AsSpan(0, index),
+                _responseNames,
+                hasSomeErrors);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
