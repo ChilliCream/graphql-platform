@@ -1,5 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -54,11 +56,120 @@ public class SortInputTypeDescriptor<T>
                 handledProperties,
                 include: (_, member) => member is PropertyInfo p
                 && !handledProperties.Contains(member)
-                && !Context.TypeInspector.GetReturnType(member).IsArrayOrList
-                && !typeof(IFieldResult).IsAssignableFrom(p.PropertyType));
+                && IsSortableProperty(p));
         }
 
         base.OnCompleteFields(fields, handledProperties);
+    }
+
+    private bool IsSortableProperty(PropertyInfo property)
+    {
+        ArgumentNullException.ThrowIfNull(property);
+
+        if (property.GetIndexParameters().Length > 0)
+        {
+            return false;
+        }
+
+        if (!property.CanRead)
+        {
+            return false;
+        }
+
+        if (typeof(IFieldResult).IsAssignableFrom(property.PropertyType))
+        {
+            return false;
+        }
+
+        var runtimeType = Context.TypeInspector.GetReturnType(property, ignoreAttributes: true);
+
+        if (runtimeType.IsArrayOrList)
+        {
+            return false;
+        }
+
+        return IsSortableType(runtimeType, []);
+    }
+
+    private bool IsSortableType(IExtendedType runtimeType, HashSet<Type> inspectedTypes)
+    {
+        ArgumentNullException.ThrowIfNull(runtimeType);
+        ArgumentNullException.ThrowIfNull(inspectedTypes);
+
+        TypeReference fieldType;
+
+        try
+        {
+            fieldType = Convention.GetFieldType(runtimeType.Source);
+        }
+        catch
+        {
+            return false;
+        }
+
+        if (fieldType is not ExtendedTypeReference { Type.Source: { } sourceType })
+        {
+            return false;
+        }
+
+        if (!TryGetRuntimeTypeFromSortInput(sourceType, out var entityType))
+        {
+            return true;
+        }
+
+        if (!inspectedTypes.Add(entityType))
+        {
+            return false;
+        }
+
+        foreach (var member in Context.TypeInspector.GetMembers(entityType))
+        {
+            if (member is not PropertyInfo property
+                || !IsSortablePropertyCandidate(property))
+            {
+                continue;
+            }
+
+            var propertyType = Context.TypeInspector.GetReturnType(property, ignoreAttributes: true);
+
+            if (propertyType.IsArrayOrList)
+            {
+                continue;
+            }
+
+            if (IsSortableType(propertyType, inspectedTypes))
+            {
+                inspectedTypes.Remove(entityType);
+                return true;
+            }
+        }
+
+        inspectedTypes.Remove(entityType);
+        return false;
+    }
+
+    private static bool IsSortablePropertyCandidate(PropertyInfo property)
+    {
+        ArgumentNullException.ThrowIfNull(property);
+
+        return property.GetIndexParameters().Length == 0
+            && property.CanRead
+            && !typeof(IFieldResult).IsAssignableFrom(property.PropertyType);
+    }
+
+    private static bool TryGetRuntimeTypeFromSortInput(
+        Type sourceType,
+        [NotNullWhen(true)] out Type? entityType)
+    {
+        if (sourceType.IsGenericType
+            && sourceType.GetGenericTypeDefinition() == typeof(SortInputType<>))
+        {
+            entityType = sourceType.GenericTypeArguments[0];
+            return true;
+        }
+
+        entityType = null;
+        return false;
     }
 
     /// <inheritdoc />

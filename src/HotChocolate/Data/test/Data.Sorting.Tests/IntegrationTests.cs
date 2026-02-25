@@ -59,6 +59,25 @@ public class IntegrationTests
         // assert
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task Sorting_Should_Not_Analyze_Ignored_Field_Type()
+    {
+        // arrange
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithIgnoredUnsupportedField>()
+            .AddType<EntityWithIgnoredUnsupportedFieldType>()
+            .AddSorting()
+            .BuildSchemaAsync();
+
+        // assert
+        Assert.NotNull(schema);
+        var sortType = Assert.IsAssignableFrom<InputObjectType>(
+            schema.Types["EntityWithIgnoredUnsupportedFieldSortInput"]);
+        Assert.Collection(sortType.Fields, field => Assert.Equal("name", field.Name));
+    }
 }
 
 public class Query
@@ -103,4 +122,27 @@ public class Book
 {
     public string Title { get; set; } = string.Empty;
     public Author? Author { get; set; }
+}
+
+public class QueryWithIgnoredUnsupportedField
+{
+    [UseSorting]
+    public IQueryable<EntityWithIgnoredUnsupportedField> Entities()
+        => new[] { new EntityWithIgnoredUnsupportedField { Name = "A" } }.AsQueryable();
+}
+
+public class EntityWithIgnoredUnsupportedField
+{
+    public string Name { get; set; } = string.Empty;
+    public UnsupportedSpatialData? SpatialData { get; set; } = new();
+}
+
+public class UnsupportedSpatialData;
+
+public class EntityWithIgnoredUnsupportedFieldType : ObjectType<EntityWithIgnoredUnsupportedField>
+{
+    protected override void Configure(IObjectTypeDescriptor<EntityWithIgnoredUnsupportedField> descriptor)
+    {
+        descriptor.Ignore(t => t.SpatialData);
+    }
 }
