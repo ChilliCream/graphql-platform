@@ -82,7 +82,29 @@
               "Value": "OK"
             }
           ],
-          "event": []
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "ExecuteOperationNode",
+              "DisplayName": "Execute Operation Node (a)",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.fusion.node.type",
+                  "Value": "Operation"
+                },
+                {
+                  "Key": "graphql.fusion.node.schema",
+                  "Value": "a"
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": []
+            }
+          ]
         }
       ]
     }

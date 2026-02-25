@@ -46,4 +46,6 @@ public sealed class InstrumentationOptions
     internal bool SkipPlanOperation => (Scopes & PlanOperation) != PlanOperation;
 
     internal bool SkipExecuteOperation => (Scopes & ExecuteOperation) != ExecuteOperation;
+
+    internal bool SkipExecuteNodes => (Scopes & ExecuteNodes) != ExecuteNodes;
 }

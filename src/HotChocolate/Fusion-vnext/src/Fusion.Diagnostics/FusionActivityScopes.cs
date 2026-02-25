@@ -14,11 +14,13 @@ public enum FusionActivityScopes
     CoerceVariables = 128,
     PlanOperation = 256,
     ExecuteOperation = 512,
+    ExecuteNodes = 1024,
     Default =
         ExecuteHttpRequest
         | ParseHttpRequest
         | ValidateDocument
         | PlanOperation
+        | ExecuteNodes
         | FormatHttpResponse,
     All =
         ExecuteHttpRequest
@@ -31,4 +33,5 @@ public enum FusionActivityScopes
         | CoerceVariables
         | PlanOperation
         | ExecuteOperation
+        | ExecuteNodes
 }

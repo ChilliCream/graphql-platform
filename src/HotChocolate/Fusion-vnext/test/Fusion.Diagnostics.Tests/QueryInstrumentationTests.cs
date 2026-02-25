@@ -489,6 +489,73 @@ public class QueryInstrumentationTests : FusionTestBase
         }
     }
 
+    [Fact]
+    public async Task Track_Events_Of_A_Simple_Query_With_Node_Scopes()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task Track_Events_Of_A_Query_With_Multiple_Sources()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<QueryA>());
+
+            using var server2 = CreateSourceSchema(
+                "b",
+                b => b.AddQueryType<QueryB>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1),
+                ("b", server2)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            var executor = await gateway.Services.GetRequestExecutorAsync();
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("{ sayHello sayGoodbye }")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
     public class Query
     {
         public string SayHello() => "hello";
@@ -496,6 +563,18 @@ public class QueryInstrumentationTests : FusionTestBase
         public string CauseFatalError() => throw new GraphQLException("fail");
 
         public Deep Deep() => new();
+    }
+
+    [GraphQLName("Query")]
+    public class QueryA
+    {
+        public string SayHello() => "hello";
+    }
+
+    [GraphQLName("Query")]
+    public class QueryB
+    {
+        public string SayGoodbye() => "goodbye";
     }
 
     public class Deep

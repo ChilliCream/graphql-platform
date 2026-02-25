@@ -12,10 +12,6 @@
         {
           "Key": "graphql.http.request.type",
           "Value": "single"
-        },
-        {
-          "Key": "graphql.http.request.variables",
-          "Value": "{\"episode\":\"NEW_HOPE\"}"
         }
       ],
       "event": [],

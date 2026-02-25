@@ -2,24 +2,20 @@
   "activities": [
     {
       "OperationName": "ExecuteRequest",
-      "DisplayName": "query GetA { a }",
+      "DisplayName": "query { sayHello sayGoodbye }",
       "Status": "Unset",
       "tags": [
         {
           "Key": "graphql.document.id",
-          "Value": "cee0e2939ece72d650cb0331f4be4669"
+          "Value": "073bf7696c078e52587c88890ef21bbe"
         },
         {
           "Key": "graphql.document.hash",
-          "Value": "cee0e2939ece72d650cb0331f4be4669"
+          "Value": "073bf7696c078e52587c88890ef21bbe"
         },
         {
           "Key": "graphql.operation.id",
-          "Value": "155189958e55686347a7f921c0f7a1ef143f829f5b116365a297651606d5703f"
-        },
-        {
-          "Key": "graphql.operation.name",
-          "Value": "GetA"
+          "Value": "9babcd211d7b162261fa15a119462370a3f30c61ea319946c30bc4051a265a5d"
         }
       ],
       "event": [],
@@ -43,11 +39,11 @@
           "tags": [
             {
               "Key": "graphql.document.id",
-              "Value": "cee0e2939ece72d650cb0331f4be4669"
+              "Value": "073bf7696c078e52587c88890ef21bbe"
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "cee0e2939ece72d650cb0331f4be4669"
+              "Value": "073bf7696c078e52587c88890ef21bbe"
             },
             {
               "Key": "otel.status_code",
@@ -70,7 +66,7 @@
         },
         {
           "OperationName": "ExecuteOperation",
-          "DisplayName": "Execute Operation GetA",
+          "DisplayName": "Execute Operation",
           "Status": "Ok",
           "tags": [
             {
@@ -92,6 +88,26 @@
                 {
                   "Key": "graphql.fusion.node.schema",
                   "Value": "a"
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "ExecuteOperationNode",
+              "DisplayName": "Execute Operation Node (b)",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.fusion.node.type",
+                  "Value": "Operation"
+                },
+                {
+                  "Key": "graphql.fusion.node.schema",
+                  "Value": "b"
                 },
                 {
                   "Key": "otel.status_code",

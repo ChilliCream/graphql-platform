@@ -30,20 +30,20 @@
         },
         {
           "OperationName": "ExecuteRequest",
-          "DisplayName": "query { greeting }",
+          "DisplayName": "query { deep }",
           "Status": "Unset",
           "tags": [
             {
               "Key": "graphql.document.id",
-              "Value": "bfa5986a5299f46421057dd3eb27ec5c"
+              "Value": "0a7abe0515e1d19aab01fe208d013755"
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "c46cf8c9811934ddea095f10ee722dc4"
+              "Value": "c452e3762e5e1ea1de9be1f2511a8541"
             },
             {
               "Key": "graphql.operation.id",
-              "Value": "d58281f7cf44ca2751c4a435c0249e686bd1c146f6ddae23ed35ec6e4b83eb77"
+              "Value": "aa25737710a45bbd24f1f01dc7915963d35e8a83f0735988be19862a2d3d88d7"
             }
           ],
           "event": [
@@ -64,11 +64,11 @@
               "tags": [
                 {
                   "Key": "graphql.document.id",
-                  "Value": "bfa5986a5299f46421057dd3eb27ec5c"
+                  "Value": "0a7abe0515e1d19aab01fe208d013755"
                 },
                 {
                   "Key": "graphql.document.hash",
-                  "Value": "c46cf8c9811934ddea095f10ee722dc4"
+                  "Value": "c452e3762e5e1ea1de9be1f2511a8541"
                 },
                 {
                   "Key": "otel.status_code",
@@ -80,18 +80,6 @@
             {
               "OperationName": "PlanOperation",
               "DisplayName": "Plan Operation",
-              "Status": "Ok",
-              "tags": [
-                {
-                  "Key": "otel.status_code",
-                  "Value": "OK"
-                }
-              ],
-              "event": []
-            },
-            {
-              "OperationName": "CoerceVariables",
-              "DisplayName": "Coerce Variable",
               "Status": "Ok",
               "tags": [
                 {

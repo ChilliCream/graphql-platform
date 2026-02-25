@@ -227,6 +227,119 @@ internal sealed class ActivityFusionExecutionDiagnosticEventListener : FusionExe
         return new ExecuteOperationScope(_enricher, context, activity);
     }
 
+    public override IDisposable ExecuteOperationNode(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        string schemaName)
+    {
+        if (_options.SkipExecuteNodes)
+        {
+            return EmptyScope;
+        }
+
+        var activity = Source.StartActivity();
+
+        if (activity is null)
+        {
+            return EmptyScope;
+        }
+
+        return new ExecuteOperationNodeScope(_enricher, context, node, schemaName, activity);
+    }
+
+    public override IDisposable ExecuteOperationBatchNode(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName)
+    {
+        if (_options.SkipExecuteNodes)
+        {
+            return EmptyScope;
+        }
+
+        var activity = Source.StartActivity();
+
+        if (activity is null)
+        {
+            return EmptyScope;
+        }
+
+        return new ExecuteOperationBatchNodeScope(_enricher, context, node, schemaName, activity);
+    }
+
+    public override IDisposable ExecuteNodeFieldNode(
+        OperationPlanContext context,
+        NodeFieldExecutionNode node)
+    {
+        if (_options.SkipExecuteNodes)
+        {
+            return EmptyScope;
+        }
+
+        var activity = Source.StartActivity();
+
+        if (activity is null)
+        {
+            return EmptyScope;
+        }
+
+        return new ExecuteNodeFieldNodeScope(_enricher, context, node, activity);
+    }
+
+    public override IDisposable ExecuteIntrospectionNode(
+        OperationPlanContext context,
+        IntrospectionExecutionNode node)
+    {
+        if (_options.SkipExecuteNodes)
+        {
+            return EmptyScope;
+        }
+
+        var activity = Source.StartActivity();
+
+        if (activity is null)
+        {
+            return EmptyScope;
+        }
+
+        return new ExecuteIntrospectionNodeScope(_enricher, context, node, activity);
+    }
+
+    public override void ExecutionNodeError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        Exception error)
+    {
+        if (Activity.Current is { } activity)
+        {
+            _enricher.EnrichExecutionNodeError(context, node, error, activity);
+        }
+    }
+
+    public override void SourceSchemaTransportError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        Exception error)
+    {
+        if (Activity.Current is { } activity)
+        {
+            _enricher.EnrichSourceSchemaError(context, node, schemaName, error, activity);
+        }
+    }
+
+    public override void SourceSchemaStoreError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        Exception error)
+    {
+        if (Activity.Current is { } activity)
+        {
+            _enricher.EnrichSourceSchemaError(context, node, schemaName, error, activity);
+        }
+    }
+
     public override IDisposable OnSubscriptionEvent(
         OperationPlanContext context,
         ExecutionNode node,

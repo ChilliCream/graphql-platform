@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
@@ -495,6 +496,65 @@ public class FusionActivityEnricher
                 ? $"Execute Operation {op}"
                 : "Execute Operation";
     }
+
+    public virtual void EnrichExecuteOperationNode(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        string schemaName,
+        Activity activity)
+    {
+        activity.DisplayName = $"Execute Operation Node ({schemaName})";
+        activity.SetTag("graphql.fusion.node.id", node.Id);
+        activity.SetTag("graphql.fusion.node.type", node.Type.ToString());
+        activity.SetTag("graphql.fusion.node.schema", schemaName);
+    }
+
+    public virtual void EnrichExecuteOperationBatchNode(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        Activity activity)
+    {
+        activity.DisplayName = $"Execute Operation Batch Node ({schemaName})";
+        activity.SetTag("graphql.fusion.node.id", node.Id);
+        activity.SetTag("graphql.fusion.node.type", node.Type.ToString());
+        activity.SetTag("graphql.fusion.node.schema", schemaName);
+    }
+
+    public virtual void EnrichExecuteNodeFieldNode(
+        OperationPlanContext context,
+        NodeFieldExecutionNode node,
+        Activity activity)
+    {
+        activity.DisplayName = "Execute Node Field Node";
+        activity.SetTag("graphql.fusion.node.id", node.Id);
+        activity.SetTag("graphql.fusion.node.type", node.Type.ToString());
+    }
+
+    public virtual void EnrichExecuteIntrospectionNode(
+        OperationPlanContext context,
+        IntrospectionExecutionNode node,
+        Activity activity)
+    {
+        activity.DisplayName = "Execute Introspection Node";
+        activity.SetTag("graphql.fusion.node.id", node.Id);
+        activity.SetTag("graphql.fusion.node.type", node.Type.ToString());
+    }
+
+    public virtual void EnrichExecutionNodeError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        Exception error,
+        Activity activity)
+        => EnrichError(ErrorBuilder.FromException(error).Build(), activity);
+
+    public virtual void EnrichSourceSchemaError(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        Exception error,
+        Activity activity)
+        => EnrichError(ErrorBuilder.FromException(error).Build(), activity);
 
     protected virtual void EnrichError(IError error, Activity activity)
     {
