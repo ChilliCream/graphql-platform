@@ -9,19 +9,26 @@ namespace HotChocolate.Fusion.Execution;
 
 internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSource cts)
 {
+    private const byte NodeStateNone = 0;
+    private const byte NodeStateBacklog = 1;
+    private const byte NodeStateCompleted = 2;
+    private const byte NodeStateSkipped = 3;
+
     private readonly List<ExecutionNode> _stack = [];
 
     private readonly List<ExecutionNode> _ready = [];
 
-    private readonly HashSet<ExecutionNode> _backlog = [];
-
-    private readonly HashSet<ExecutionNode> _completed = [];
+    private readonly List<int> _trackedNodeStateSlots = [];
 
     private readonly List<int> _trackedDependencySlots = [];
+
+    private byte[] _nodeStates = [];
 
     private int[] _remainingDependencies = [];
 
     private readonly ConcurrentQueue<ExecutionNodeResult> _completedResults = new();
+
+    private int _backlogCount;
 
     private int _activeNodes;
 
@@ -32,15 +39,14 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     public void FillBacklog(OperationPlan plan)
     {
         _ready.Clear();
+        _backlogCount = 0;
 
-        if (_trackedDependencySlots.Count > 0)
+        ResetNodeStates();
+        ResetRemainingDependencies();
+
+        foreach (var node in plan.AllNodes)
         {
-            foreach (var slot in _trackedDependencySlots)
-            {
-                _remainingDependencies[slot] = -1;
-            }
-
-            _trackedDependencySlots.Clear();
+            TrackNodeStateSlot(node.Id);
         }
 
         switch (plan.Operation.Definition.Operation)
@@ -48,7 +54,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
             case OperationType.Query:
                 foreach (var node in plan.AllNodes)
                 {
-                    _backlog.Add(node);
+                    AddToBacklog(node.Id);
                 }
                 break;
 
@@ -62,17 +68,17 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
                         continue;
                     }
 
-                    _backlog.Add(node);
+                    AddToBacklog(node.Id);
                 }
                 break;
 
             case OperationType.Subscription:
                 foreach (var node in plan.AllNodes)
                 {
-                    _backlog.Add(node);
+                    AddToBacklog(node.Id);
                 }
 
-                _backlog.Remove(plan.RootNodes.Single());
+                RemoveFromBacklog(plan.RootNodes.Single().Id, NodeStateNone);
 
                 // The root node of a subscription is started outside the state.
                 // We cater to this fact and fix the state by stating with am active node count of 1.
@@ -83,8 +89,13 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
                 throw new ArgumentOutOfRangeException("Unexpected operation type.");
         }
 
-        foreach (var node in _backlog)
+        foreach (var node in plan.AllNodes)
         {
+            if (!IsInBacklog(node.Id))
+            {
+                continue;
+            }
+
             var remainingDependencies = node.Dependencies.Length;
             EnsureDependencyCapacity(node.Id + 1);
             _remainingDependencies[node.Id] = remainingDependencies;
@@ -101,18 +112,10 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     {
         _stack.Clear();
         _ready.Clear();
-        _backlog.Clear();
-        _completed.Clear();
+        _backlogCount = 0;
 
-        if (_trackedDependencySlots.Count > 0)
-        {
-            foreach (var slot in _trackedDependencySlots)
-            {
-                _remainingDependencies[slot] = -1;
-            }
-
-            _trackedDependencySlots.Clear();
-        }
+        ResetNodeStates();
+        ResetRemainingDependencies();
 
         _completedResults.Clear();
         _activeNodes = 0;
@@ -122,7 +125,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsProcessing() => _backlog.Count > 0 || Volatile.Read(ref _activeNodes) > 0;
+    public bool IsProcessing() => _backlogCount > 0 || Volatile.Read(ref _activeNodes) > 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool HasActiveNodes() => Volatile.Read(ref _activeNodes) > 0;
@@ -137,7 +140,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
             _remainingDependencies[node.Id] = -1;
         }
 
-        _backlog.Remove(node);
+        RemoveFromBacklog(node.Id, NodeStateNone);
         _ = node.ExecuteAsync(context, cancellationToken);
     }
 
@@ -189,7 +192,10 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
         if (result.Status is ExecutionStatus.Success or ExecutionStatus.PartialSuccess)
         {
-            _completed.Add(node);
+            if ((uint)node.Id < (uint)_nodeStates.Length)
+            {
+                _nodeStates[node.Id] = NodeStateCompleted;
+            }
 
             if (result.DependentsToExecute.Length > 0)
             {
@@ -248,9 +254,9 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
                 _remainingDependencies[current.Id] = -1;
             }
 
-            if (_backlog.Remove(current)
+            if (RemoveFromBacklog(current.Id, NodeStateSkipped)
                 && collectTelemetry
-                && !_completed.Contains(current)
+                && !IsCompleted(current.Id)
                 && !Traces.ContainsKey(current.Id))
             {
                 Traces.Add(
@@ -272,7 +278,7 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
                     continue;
                 }
 
-                if (_backlog.Contains(dependent))
+                if (IsInBacklog(dependent.Id))
                 {
                     _stack.Push(dependent);
                 }
@@ -351,5 +357,100 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         }
 
         _remainingDependencies = dependencies;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool IsInBacklog(int nodeId)
+        => (uint)nodeId < (uint)_nodeStates.Length
+            && _nodeStates[nodeId] == NodeStateBacklog;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool IsCompleted(int nodeId)
+        => (uint)nodeId < (uint)_nodeStates.Length
+            && _nodeStates[nodeId] == NodeStateCompleted;
+
+    private void TrackNodeStateSlot(int nodeId)
+    {
+        EnsureNodeStateCapacity(nodeId + 1);
+
+        if (_nodeStates[nodeId] == NodeStateNone)
+        {
+            _trackedNodeStateSlots.Add(nodeId);
+        }
+    }
+
+    private void AddToBacklog(int nodeId)
+    {
+        if (!IsInBacklog(nodeId))
+        {
+            _nodeStates[nodeId] = NodeStateBacklog;
+            _backlogCount++;
+        }
+    }
+
+    private bool RemoveFromBacklog(int nodeId, byte targetState)
+    {
+        if (!IsInBacklog(nodeId))
+        {
+            return false;
+        }
+
+        _nodeStates[nodeId] = targetState;
+        _backlogCount--;
+        return true;
+    }
+
+    private void ResetNodeStates()
+    {
+        if (_trackedNodeStateSlots.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var slot in _trackedNodeStateSlots)
+        {
+            _nodeStates[slot] = NodeStateNone;
+        }
+
+        _trackedNodeStateSlots.Clear();
+    }
+
+    private void ResetRemainingDependencies()
+    {
+        if (_trackedDependencySlots.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var slot in _trackedDependencySlots)
+        {
+            _remainingDependencies[slot] = -1;
+        }
+
+        _trackedDependencySlots.Clear();
+    }
+
+    private void EnsureNodeStateCapacity(int minCapacity)
+    {
+        if (_nodeStates.Length >= minCapacity)
+        {
+            return;
+        }
+
+        var newCapacity = _nodeStates.Length == 0 ? 8 : _nodeStates.Length;
+
+        while (newCapacity < minCapacity)
+        {
+            newCapacity *= 2;
+        }
+
+        var nodeStates = new byte[newCapacity];
+
+        if (_nodeStates.Length > 0)
+        {
+            Array.Copy(_nodeStates, nodeStates, _nodeStates.Length);
+        }
+
+        _nodeStates = nodeStates;
     }
 }
