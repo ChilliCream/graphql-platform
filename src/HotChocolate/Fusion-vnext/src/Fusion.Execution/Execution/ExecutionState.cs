@@ -264,11 +264,17 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
                     });
             }
 
-            foreach (var enqueuedNode in _backlog)
+            foreach (var dependent in current.Dependents)
             {
-                if (enqueuedNode.Dependencies.Contains(current))
+                if ((uint)dependent.Id >= (uint)_remainingDependencies.Length
+                    || _remainingDependencies[dependent.Id] < 0)
                 {
-                    _stack.Push(enqueuedNode);
+                    continue;
+                }
+
+                if (_backlog.Contains(dependent))
+                {
+                    _stack.Push(dependent);
                 }
             }
         }

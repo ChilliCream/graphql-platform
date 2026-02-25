@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Properties;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Execution.Clients.SourceSchemaClientCapabilities;
@@ -331,9 +332,16 @@ internal sealed class SourceSchemaRequestDispatcher
     {
         try
         {
+            var requests = new SourceSchemaClientRequest[pendingRequests.Length];
+
+            for (var i = 0; i < pendingRequests.Length; i++)
+            {
+                requests[i] = pendingRequests[i].Request;
+            }
+
             var responses = await client.ExecuteBatchAsync(
                     _context,
-                    [.. pendingRequests.Select(t => t.Request)],
+                    ImmutableCollectionsMarshal.AsImmutableArray(requests),
                     _requestAborted)
                 .ConfigureAwait(false);
 

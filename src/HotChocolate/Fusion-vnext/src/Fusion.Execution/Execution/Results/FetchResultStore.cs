@@ -100,16 +100,27 @@ internal sealed class FetchResultStore : IDisposable
                 nameof(results));
         }
 
-        var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
-        var errorTries = ArrayPool<ErrorTrie?>.Shared.Rent(results.Length);
-        var dataElementsSpan = dataElements.AsSpan()[..results.Length];
-        var errorTriesSpan = errorTries.AsSpan()[..results.Length];
+        var expandedCount = results.Length;
+        ref var countRef = ref MemoryMarshal.GetReference(results);
+        ref var countEnd = ref Unsafe.Add(ref countRef, results.Length);
+
+        while (Unsafe.IsAddressLessThan(ref countRef, ref countEnd))
+        {
+            expandedCount += countRef.AdditionalPaths.Length;
+            countRef = ref Unsafe.Add(ref countRef, 1)!;
+        }
+
+        var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(expandedCount);
+        var errorTries = ArrayPool<ErrorTrie?>.Shared.Rent(expandedCount);
+        var paths = ArrayPool<Path>.Shared.Rent(expandedCount);
+        var dataElementsSpan = dataElements.AsSpan()[..expandedCount];
+        var errorTriesSpan = errorTries.AsSpan()[..expandedCount];
+        var pathsSpan = paths.AsSpan()[..expandedCount];
+        var expandedIndex = 0;
 
         try
         {
             ref var result = ref MemoryMarshal.GetReference(results);
-            ref var dataElement = ref MemoryMarshal.GetReference(dataElementsSpan);
-            ref var errorTrie = ref MemoryMarshal.GetReference(errorTriesSpan);
             ref var end = ref Unsafe.Add(ref result, results.Length);
 
             while (Unsafe.IsAddressLessThan(ref result, ref end))
@@ -128,20 +139,35 @@ internal sealed class FetchResultStore : IDisposable
                     }
                 }
 
-                dataElement = GetDataElement(sourcePath, result.Data);
-                errorTrie = GetErrorTrie(sourcePath, errors?.Trie);
+                var dataElement = GetDataElement(sourcePath, result.Data);
+                var errorTrie = GetErrorTrie(sourcePath, errors?.Trie);
+
+                dataElementsSpan[expandedIndex] = dataElement;
+                errorTriesSpan[expandedIndex] = errorTrie;
+                pathsSpan[expandedIndex++] = result.Path;
+
+                foreach (var additionalPath in result.AdditionalPaths)
+                {
+                    dataElementsSpan[expandedIndex] = dataElement;
+                    errorTriesSpan[expandedIndex] = errorTrie;
+                    pathsSpan[expandedIndex++] = additionalPath;
+                }
 
                 result = ref Unsafe.Add(ref result, 1)!;
-                dataElement = ref Unsafe.Add(ref dataElement, 1);
-                errorTrie = ref Unsafe.Add(ref errorTrie, 1)!;
             }
 
-            return SaveSafe(results, dataElementsSpan, errorTriesSpan, responseNames);
+            return SaveSafe(
+                pathsSpan[..expandedIndex],
+                dataElementsSpan[..expandedIndex],
+                errorTriesSpan[..expandedIndex],
+                responseNames);
         }
         finally
         {
+            pathsSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
             ArrayPool<ErrorTrie?>.Shared.Return(errorTries);
+            ArrayPool<Path>.Shared.Return(paths);
         }
     }
 
@@ -224,27 +250,27 @@ AddErrors_Next:
     }
 
     private bool SaveSafe(
-        ReadOnlySpan<SourceSchemaResult> results,
+        ReadOnlySpan<Path> paths,
         ReadOnlySpan<SourceResultElement> dataElements,
         ReadOnlySpan<ErrorTrie?> errorTries,
         ReadOnlySpan<string> responseNames)
     {
         lock (_lock)
         {
-            ref var result = ref MemoryMarshal.GetReference(results);
+            ref var path = ref MemoryMarshal.GetReference(paths);
             ref var data = ref MemoryMarshal.GetReference(dataElements);
             ref var errorTrie = ref MemoryMarshal.GetReference(errorTries);
-            ref var end = ref Unsafe.Add(ref result, results.Length);
+            ref var end = ref Unsafe.Add(ref path, paths.Length);
             var resultData = _result.Data;
 
-            while (Unsafe.IsAddressLessThan(ref result, ref end))
+            while (Unsafe.IsAddressLessThan(ref path, ref end))
             {
                 if (resultData.IsNullOrInvalidated)
                 {
                     return false;
                 }
 
-                var element = result.Path.IsRoot ? resultData : GetStartObjectResult(result.Path);
+                var element = path.IsRoot ? resultData : GetStartObjectResult(path);
                 if (element.IsNullOrInvalidated)
                 {
                     goto SaveSafe_Next;
@@ -264,7 +290,7 @@ AddErrors_Next:
                 }
 
 SaveSafe_Next:
-                result = ref Unsafe.Add(ref result, 1)!;
+                path = ref Unsafe.Add(ref path, 1)!;
                 data = ref Unsafe.Add(ref data, 1);
                 errorTrie = ref Unsafe.Add(ref errorTrie, 1)!;
             }

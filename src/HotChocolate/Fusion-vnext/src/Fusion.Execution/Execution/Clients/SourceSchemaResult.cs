@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Clients;
@@ -14,8 +15,9 @@ public sealed class SourceSchemaResult : IDisposable
     public SourceSchemaResult(
         Path path,
         SourceResultDocument document,
-        FinalMessage final = FinalMessage.Undefined)
-        : this(path, document, final, ownsDocument: true)
+        FinalMessage final = FinalMessage.Undefined,
+        ImmutableArray<Path> additionalPaths = default)
+        : this(path, document, final, ownsDocument: true, additionalPaths)
     {
     }
 
@@ -23,18 +25,22 @@ public sealed class SourceSchemaResult : IDisposable
         Path path,
         SourceResultDocument document,
         FinalMessage final,
-        bool ownsDocument)
+        bool ownsDocument,
+        ImmutableArray<Path> additionalPaths)
     {
         ArgumentNullException.ThrowIfNull(path);
         ArgumentNullException.ThrowIfNull(document);
 
         _document = document;
         _ownsDocument = ownsDocument;
+        AdditionalPaths = additionalPaths.IsDefault ? [] : additionalPaths;
         Path = path;
         Final = final;
     }
 
     public Path Path { get; }
+
+    public ImmutableArray<Path> AdditionalPaths { get; }
 
     public SourceResultElement Data
     {
@@ -83,7 +89,8 @@ public sealed class SourceSchemaResult : IDisposable
 
     public FinalMessage Final { get; }
 
-    internal SourceSchemaResult WithPath(Path path) => new(path, _document, Final, ownsDocument: false);
+    internal SourceSchemaResult WithPath(Path path)
+        => new(path, _document, Final, ownsDocument: false, additionalPaths: []);
 
     public void Dispose()
     {
