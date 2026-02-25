@@ -283,7 +283,7 @@ public sealed class Selection : ISelection, IFeatureProvider
 
     /// <inheritdoc />
     public bool IsDeferred(ulong deferFlags)
-        => _deferMask != 0 && (_deferMask & deferFlags) == _deferMask;
+        => _deferMask != 0 && (_deferMask & deferFlags) != 0;
 
     /// <summary>
     /// Determines whether this selection is deferred relative to a parent defer usage.
@@ -305,17 +305,17 @@ public sealed class Selection : ISelection, IFeatureProvider
     /// </returns>
     public bool IsDeferred(ulong deferFlags, DeferUsage? parentDeferUsage)
     {
-        if (_deferMask != 0 && (_deferMask & deferFlags) == _deferMask)
+        if (_deferMask != 0 && (_deferMask & deferFlags) != 0)
         {
             if (parentDeferUsage is null)
             {
                 return true;
             }
 
-            // If the primary defer usage matches the parent's defer context,
-            // this selection is already being delivered in that context
-            // and does not need to be deferred separately.
-            if (ReferenceEquals(GetPrimaryDeferUsage(deferFlags), parentDeferUsage))
+            // If the parent's defer usage is in this selection's active defer usage set,
+            // this selection belongs to the parent's context and does not need to be
+            // deferred separately.
+            if (HasActiveDeferUsage(deferFlags, parentDeferUsage))
             {
                 return false;
             }
@@ -416,6 +416,188 @@ public sealed class Selection : ISelection, IFeatureProvider
         }
 
         return primary;
+    }
+
+    /// <summary>
+    /// Returns all active defer usages for this selection given the active defer flags.
+    /// If any occurrence of the field is non-deferred (i.e., a defer usage chain leads to no
+    /// active defer), returns <c>null</c> — the field belongs in the initial response.
+    /// Parent-child pruning is applied: if a parent and child defer are both active,
+    /// only the parent is kept.
+    /// </summary>
+    /// <param name="deferFlags">The active defer flags.</param>
+    /// <returns>
+    /// The array of active defer usages (pruned), or <c>null</c> if the field is not deferred.
+    /// </returns>
+    public DeferUsage[]? GetActiveDeferUsages(ulong deferFlags)
+    {
+        if (_deferUsage.Length == 0)
+        {
+            return null;
+        }
+
+        // Fast path for single defer usage (most common case).
+        if (_deferUsage.Length == 1)
+        {
+            var usage = _deferUsage[0];
+
+            while (usage is not null)
+            {
+                if ((deferFlags & (1UL << usage.DeferConditionIndex)) != 0)
+                {
+                    return [usage];
+                }
+
+                usage = usage.Parent;
+            }
+
+            return null;
+        }
+
+        // Multiple defer usages: resolve each to its nearest active ancestor.
+        DeferUsage[]? result = null;
+        var count = 0;
+
+        for (var i = 0; i < _deferUsage.Length; i++)
+        {
+            var effective = _deferUsage[i];
+
+            while (effective is not null)
+            {
+                if ((deferFlags & (1UL << effective.DeferConditionIndex)) != 0)
+                {
+                    break;
+                }
+
+                effective = effective.Parent;
+            }
+
+            if (effective is null)
+            {
+                // This occurrence has no active defer in its chain —
+                // the field appears non-deferred and belongs in the initial response.
+                return null;
+            }
+
+            // Check if we already have this effective usage (dedup).
+            var isDuplicate = false;
+            if (result is not null)
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    if (result[j] == effective)
+                    {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!isDuplicate)
+            {
+                result ??= new DeferUsage[_deferUsage.Length];
+                result[count++] = effective;
+            }
+        }
+
+        if (result is null || count == 0)
+        {
+            return null;
+        }
+
+        // Prune parent-child: if a parent and child are both in the set,
+        // remove the child (keep only the outermost).
+        for (var i = count - 1; i >= 0; i--)
+        {
+            var ancestor = result[i].Parent;
+
+            while (ancestor is not null)
+            {
+                for (var j = 0; j < count; j++)
+                {
+                    if (j != i && result[j] == ancestor)
+                    {
+                        // result[i] is a child of result[j] — remove result[i].
+                        result[i] = result[--count];
+                        goto nextItem;
+                    }
+                }
+
+                ancestor = ancestor.Parent;
+            }
+
+            nextItem:;
+        }
+
+        if (count == 0)
+        {
+            return null;
+        }
+
+        if (count < result.Length)
+        {
+            Array.Resize(ref result, count);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Determines whether the specified <paramref name="target"/> defer usage is among
+    /// this selection's active defer usages (after resolving inactive defers to their
+    /// nearest active ancestor and applying parent-child pruning).
+    /// </summary>
+    /// <param name="deferFlags">The active defer flags.</param>
+    /// <param name="target">The defer usage to look for.</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="target"/> is in the active defer usage set.
+    /// </returns>
+    public bool HasActiveDeferUsage(ulong deferFlags, DeferUsage target)
+    {
+        if (_deferUsage.Length == 0)
+        {
+            return false;
+        }
+
+        // Resolve each defer usage to its nearest active ancestor and check
+        // if any resolves to the target. We also need to check that no
+        // occurrence is non-deferred (which would make the whole field non-deferred).
+        var hasNonDeferred = false;
+        var found = false;
+
+        for (var i = 0; i < _deferUsage.Length; i++)
+        {
+            var effective = _deferUsage[i];
+
+            while (effective is not null)
+            {
+                if ((deferFlags & (1UL << effective.DeferConditionIndex)) != 0)
+                {
+                    break;
+                }
+
+                effective = effective.Parent;
+            }
+
+            if (effective is null)
+            {
+                hasNonDeferred = true;
+                break;
+            }
+
+            if (effective == target)
+            {
+                found = true;
+            }
+        }
+
+        // If any occurrence is non-deferred, the field is not deferred at all.
+        if (hasNonDeferred)
+        {
+            return false;
+        }
+
+        return found;
     }
 
     public Selection WithField(ObjectField field)
