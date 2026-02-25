@@ -459,4 +459,53 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         // assert
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task UseSingleOrDefault_Should_Respect_Explicit_Field_Type()
+    {
+        // arrange
+        var users = new SingleOrDefaultUser[]
+        {
+            new SingleOrDefaultActiveUser
+            {
+                Name = "Alice",
+                IsActive = true
+            }
+        }.AsQueryable();
+
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("user")
+                    .Type<ObjectType<SingleOrDefaultActiveUser>>()
+                    .Resolve(users)
+                    .UseSingleOrDefault())
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                user {
+                    name
+                    isActive
+                }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    public class SingleOrDefaultUser
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class SingleOrDefaultActiveUser : SingleOrDefaultUser
+    {
+        public bool IsActive { get; set; }
+    }
 }
