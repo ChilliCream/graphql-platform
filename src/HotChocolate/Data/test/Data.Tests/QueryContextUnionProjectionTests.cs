@@ -89,6 +89,27 @@ public class QueryContextUnionProjectionTests
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task AsSelector_With_Nested_Object_List_Projects_Data()
+    {
+        var executor = await CreateExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              inspectionTemplates {
+                fields {
+                  key
+                }
+              }
+            }
+            """);
+
+        var operationResult = result.ExpectOperationResult();
+        Assert.Empty(operationResult.Errors ?? []);
+        result.MatchSnapshot();
+    }
+
     private static async Task<IRequestExecutor> CreateExecutorAsync()
         => await new ServiceCollection()
             .AddGraphQL()
@@ -116,6 +137,10 @@ public class QueryContextUnionProjectionTests
         public IQueryable<InspectionGroup> GetPagedInspectionGroups(ISelection selection)
             => GroupData.AsQueryable()
                 .Select(selection.AsSelector<InspectionGroup>());
+
+        public IQueryable<InspectionTemplate> GetInspectionTemplates(ISelection selection)
+            => TemplateData.AsQueryable()
+                .Select(selection.AsSelector<InspectionTemplate>());
     }
 
     public class InspectionDefinition
@@ -134,6 +159,20 @@ public class QueryContextUnionProjectionTests
         public string Name { get; set; } = string.Empty;
 
         public IReadOnlyList<InspectionDefinition> Definitions { get; set; } = [];
+    }
+
+    public class InspectionTemplate
+    {
+        public int Id { get; set; }
+
+        public IReadOnlyList<InspectionTemplateField> Fields { get; set; } = [];
+    }
+
+    public class InspectionTemplateField
+    {
+        public string Key { get; set; } = string.Empty;
+
+        public string Label { get; set; } = string.Empty;
     }
 
     [ExtendObjectType<InspectionGroup>]
@@ -256,6 +295,27 @@ public class QueryContextUnionProjectionTests
             {
                 FieldModelKey = "field-2"
             }
+        }
+    ];
+
+    private static readonly InspectionTemplate[] TemplateData =
+    [
+        new()
+        {
+            Id = 1,
+            Fields =
+            [
+                new()
+                {
+                    Key = "field-1",
+                    Label = "Field 1"
+                },
+                new()
+                {
+                    Key = "field-2",
+                    Label = "Field 2"
+                }
+            ]
         }
     ];
 }

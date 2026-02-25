@@ -35,6 +35,21 @@ internal sealed class SelectionExpressionBuilder
         typeof(bool?),
         typeof(char?)
     ];
+    private static readonly MethodInfo s_selectMethod =
+        typeof(Enumerable)
+            .GetMethods()
+            .Where(m => m.Name == nameof(Enumerable.Select) && m.GetParameters().Length == 2)
+            .First(m => m.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Func<,>));
+    private static readonly MethodInfo s_toListMethod =
+        typeof(Enumerable)
+            .GetMethods()
+            .Where(m => m.Name == nameof(Enumerable.ToList) && m.GetParameters().Length == 1)
+            .Single();
+    private static readonly MethodInfo s_toArrayMethod =
+        typeof(Enumerable)
+            .GetMethods()
+            .Where(m => m.Name == nameof(Enumerable.ToArray) && m.GetParameters().Length == 1)
+            .Single();
 
     public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(
         Selection selection,
@@ -282,8 +297,7 @@ internal sealed class SelectionExpressionBuilder
     {
         var namedType = selection.Field.Type.NamedType();
 
-        if (selection.Field.Type.IsListType() && !namedType.IsLeafType()
-            || selection.Field.PureResolver is null
+        if (selection.Field.PureResolver is null
             || selection.Field.ResolverMember?.ReflectedType != selection.Field.DeclaringType.RuntimeType)
         {
             return;
@@ -396,9 +410,21 @@ internal sealed class SelectionExpressionBuilder
             return Expression.Bind(node.Property, propertyAccessor);
         }
 
-        if (node.IsArrayOrCollection)
+        if (TryGetCollectionElementType(node.Property.PropertyType, out var elementType))
         {
-            throw new NotSupportedException("List projections are not supported.");
+            var projectedCollection = BuildCollectionProjectionExpression(context, node, propertyAccessor, elementType);
+
+            if (IsNullableType(context, node.Property))
+            {
+                var nullCheck = Expression.Condition(
+                    Expression.Equal(propertyAccessor, Expression.Constant(null, node.Property.PropertyType)),
+                    Expression.Constant(null, node.Property.PropertyType),
+                    projectedCollection);
+
+                return Expression.Bind(node.Property, nullCheck);
+            }
+
+            return Expression.Bind(node.Property, projectedCollection);
         }
 
         var newContext = context with { Parent = propertyAccessor, ParentType = node.Property.PropertyType };
@@ -416,6 +442,162 @@ internal sealed class SelectionExpressionBuilder
 
         return nestedExpression is null ? null : Expression.Bind(node.Property, nestedExpression);
     }
+
+    private static Expression BuildCollectionProjectionExpression(
+        Context context,
+        PropertyNode node,
+        Expression source,
+        Type elementType)
+    {
+        var parameter = Expression.Parameter(elementType, "item");
+        var itemContext = context with { Parent = parameter, ParentType = elementType };
+        var nestedExpression = BuildTypeSwitchExpression(itemContext, node);
+
+        if (nestedExpression is null)
+        {
+            throw new InvalidOperationException(
+                $"Unable to build projection for collection property '{node.Property.Name}'.");
+        }
+
+        var projectedItem = nestedExpression.Type == elementType
+            ? nestedExpression
+            : Expression.Convert(nestedExpression, elementType);
+        var itemProjection = Expression.Lambda(projectedItem, parameter);
+        var projectedItems = Expression.Call(
+            s_selectMethod.MakeGenericMethod(elementType, elementType),
+            source,
+            itemProjection);
+
+        return CreateCollectionExpression(projectedItems, node.Property.PropertyType, elementType);
+    }
+
+    private static Expression CreateCollectionExpression(
+        Expression source,
+        Type targetType,
+        Type elementType)
+    {
+        if (targetType.IsArray)
+        {
+            return Expression.Call(s_toArrayMethod.MakeGenericMethod(elementType), source);
+        }
+
+        if (TryCreateSetExpression(source, targetType, elementType, out var setExpression))
+        {
+            return setExpression!;
+        }
+
+        var listExpression = Expression.Call(s_toListMethod.MakeGenericMethod(elementType), source);
+
+        if (targetType.IsAssignableFrom(listExpression.Type))
+        {
+            return listExpression.Type == targetType
+                ? listExpression
+                : Expression.Convert(listExpression, targetType);
+        }
+
+        var enumerableType = typeof(IEnumerable<>).MakeGenericType(elementType);
+        var enumerableCtor = targetType.GetConstructor([enumerableType]);
+
+        if (enumerableCtor is not null)
+        {
+            return Expression.New(enumerableCtor, source);
+        }
+
+        var listType = typeof(List<>).MakeGenericType(elementType);
+        var listCtor = targetType.GetConstructor([listType]);
+
+        if (listCtor is not null)
+        {
+            return Expression.New(listCtor, listExpression);
+        }
+
+        throw new NotSupportedException(
+            $"Collection projection for property type '{targetType.FullName}' is not supported.");
+    }
+
+    private static bool TryCreateSetExpression(
+        Expression source,
+        Type targetType,
+        Type elementType,
+        out Expression? expression)
+    {
+        var setFactoryType = default(Type);
+
+        if (targetType.IsGenericType)
+        {
+            var typeDefinition = targetType.GetGenericTypeDefinition();
+            if (typeDefinition == typeof(ISet<>)
+                || typeDefinition == typeof(HashSet<>))
+            {
+                setFactoryType = typeof(HashSet<>).MakeGenericType(elementType);
+            }
+            else if (typeDefinition == typeof(SortedSet<>))
+            {
+                setFactoryType = typeof(SortedSet<>).MakeGenericType(elementType);
+            }
+        }
+
+        if (setFactoryType is not null)
+        {
+            var constructor = setFactoryType.GetConstructor([source.Type]);
+
+            if (constructor is null)
+            {
+                expression = null;
+                return false;
+            }
+
+            var newSet = Expression.New(constructor, source);
+            expression = newSet.Type == targetType
+                ? newSet
+                : Expression.Convert(newSet, targetType);
+            return true;
+        }
+
+        expression = null;
+        return false;
+    }
+
+    private static bool TryGetCollectionElementType(
+        Type type,
+        out Type elementType)
+    {
+        if (type.IsArray)
+        {
+            elementType = type.GetElementType()!;
+            return true;
+        }
+
+        if (type.IsGenericType && IsSupportedCollectionDefinition(type.GetGenericTypeDefinition()))
+        {
+            elementType = type.GetGenericArguments()[0];
+            return true;
+        }
+
+        foreach (var interfaceType in type.GetInterfaces())
+        {
+            if (interfaceType.IsGenericType
+                && IsSupportedCollectionDefinition(interfaceType.GetGenericTypeDefinition()))
+            {
+                elementType = interfaceType.GetGenericArguments()[0];
+                return true;
+            }
+        }
+
+        elementType = default!;
+        return false;
+    }
+
+    private static bool IsSupportedCollectionDefinition(Type typeDefinition)
+        => typeDefinition == typeof(IEnumerable<>)
+            || typeDefinition == typeof(IReadOnlyCollection<>)
+            || typeDefinition == typeof(IReadOnlyList<>)
+            || typeDefinition == typeof(ICollection<>)
+            || typeDefinition == typeof(IList<>)
+            || typeDefinition == typeof(ISet<>)
+            || typeDefinition == typeof(List<>)
+            || typeDefinition == typeof(HashSet<>)
+            || typeDefinition == typeof(SortedSet<>);
 
     private static bool IsNullableType(Context context, PropertyInfo propertyInfo)
     {
