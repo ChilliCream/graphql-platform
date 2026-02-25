@@ -79,35 +79,33 @@ internal static class ResultDataMapper
         // system we would need to also cover raw field results.
         if (result.Selection is { IsLeaf: true })
         {
-            if (resultValueKind is JsonValueKind.Array)
-            {
-                var items = new List<IValueNode>(result.GetArrayLength());
-                var parser = default(JsonValueParser);
-                var parserInitialized = false;
-
-                foreach (var item in result.EnumerateArray())
-                {
-                    items.Add(
-                        ParseLeafValue(
-                            item,
-                            ref context.Writer,
-                            ref parser,
-                            ref parserInitialized));
-                }
-
-                return new ListValueNode(items);
-            }
-
-            var scalarParser = default(JsonValueParser);
-            var scalarParserInitialized = false;
-            return ParseLeafValue(
-                result,
-                ref context.Writer,
-                ref scalarParser,
-                ref scalarParserInitialized);
+            return MapLeafValue(result, ref context.Writer);
         }
 
         throw new InvalidSelectionMapPathException(node);
+    }
+
+    internal static IValueNode MapLeafValue(
+        CompositeResultElement value,
+        ref PooledArrayWriter? writer)
+    {
+        if (value.ValueKind is JsonValueKind.Array)
+        {
+            var items = new List<IValueNode>(value.GetArrayLength());
+            var parser = default(JsonValueParser);
+            var parserInitialized = false;
+
+            foreach (var item in value.EnumerateArray())
+            {
+                items.Add(ParseLeafValue(item, ref writer, ref parser, ref parserInitialized));
+            }
+
+            return new ListValueNode(items);
+        }
+
+        var scalarParser = default(JsonValueParser);
+        var scalarParserInitialized = false;
+        return ParseLeafValue(value, ref writer, ref scalarParser, ref scalarParserInitialized);
     }
 
     private static IValueNode ParseLeafValue(

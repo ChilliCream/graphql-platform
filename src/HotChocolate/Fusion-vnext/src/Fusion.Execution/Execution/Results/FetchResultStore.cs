@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -534,6 +535,81 @@ AddErrors_Next:
         OperationRequirement requirement,
         ref PooledArrayWriter? buffer)
     {
+        if (TryGetSimpleRequirementFieldName(requirement.Map, out var fieldName))
+        {
+            return BuildVariableValueSetsSingleRequirementFastPath(
+                elements,
+                requirement,
+                fieldName,
+                ref buffer);
+        }
+
+        return BuildVariableValueSetsSingleRequirementSlowPath(elements, requirement, ref buffer);
+    }
+
+    private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementFastPath(
+        List<CompositeResultElement> elements,
+        OperationRequirement requirement,
+        string fieldName,
+        ref PooledArrayWriter? buffer)
+    {
+        VariableValues[]? variableValueSets = null;
+        Dictionary<CompositeResultElement, int>? seen = null;
+        List<Path>?[]? additionalPaths = null;
+        var firstValue = default(CompositeResultElement);
+        var nextIndex = 0;
+
+        foreach (var result in elements)
+        {
+            if (!result.TryGetProperty(fieldName, out var value)
+                || value.ValueKind is JsonValueKind.Undefined)
+            {
+                continue;
+            }
+
+            if (value.ValueKind is JsonValueKind.Null && requirement.Type.Kind == SyntaxKind.NonNullType)
+            {
+                continue;
+            }
+
+            variableValueSets ??= new VariableValues[elements.Count];
+
+            if (nextIndex > 0)
+            {
+                seen ??= new Dictionary<CompositeResultElement, int>(CompositeResultElementValueComparer.Instance)
+                {
+                    [firstValue] = 0
+                };
+
+                if (seen.TryGetValue(value, out var existingIndex))
+                {
+                    additionalPaths ??= new List<Path>?[elements.Count];
+                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    continue;
+                }
+
+                seen[value] = nextIndex;
+            }
+
+            firstValue = value;
+
+            variableValueSets[nextIndex++] = new VariableValues(
+                result.Path,
+                new ObjectValueNode([
+                    new ObjectFieldNode(
+                        requirement.Key,
+                        ResultDataMapper.MapLeafValue(value, ref buffer))
+                ]));
+        }
+
+        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
+    }
+
+    private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementSlowPath(
+        List<CompositeResultElement> elements,
+        OperationRequirement requirement,
+        ref PooledArrayWriter? buffer)
+    {
         VariableValues[]? variableValueSets = null;
         Dictionary<IValueNode, int>? seen = null;
         List<Path>?[]? additionalPaths = null;
@@ -581,6 +657,97 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirements(
+        List<CompositeResultElement> elements,
+        OperationRequirement requirement1,
+        OperationRequirement requirement2,
+        ref PooledArrayWriter? buffer)
+    {
+        if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
+            && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2))
+        {
+            return BuildVariableValueSetsTwoRequirementsFastPath(
+                elements,
+                requirement1,
+                fieldName1,
+                requirement2,
+                fieldName2,
+                ref buffer);
+        }
+
+        return BuildVariableValueSetsTwoRequirementsSlowPath(
+            elements,
+            requirement1,
+            requirement2,
+            ref buffer);
+    }
+
+    private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsFastPath(
+        List<CompositeResultElement> elements,
+        OperationRequirement requirement1,
+        string fieldName1,
+        OperationRequirement requirement2,
+        string fieldName2,
+        ref PooledArrayWriter? buffer)
+    {
+        VariableValues[]? variableValueSets = null;
+        Dictionary<TwoResultElementTuple, int>? seen = null;
+        List<Path>?[]? additionalPaths = null;
+        var firstKey = default(TwoResultElementTuple);
+        var nextIndex = 0;
+
+        foreach (var result in elements)
+        {
+            if (!result.TryGetProperty(fieldName1, out var value1)
+                || value1.ValueKind is JsonValueKind.Undefined
+                || value1.ValueKind is JsonValueKind.Null
+                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
+            {
+                continue;
+            }
+
+            if (!result.TryGetProperty(fieldName2, out var value2)
+                || value2.ValueKind is JsonValueKind.Undefined
+                || value2.ValueKind is JsonValueKind.Null
+                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
+            {
+                continue;
+            }
+
+            variableValueSets ??= new VariableValues[elements.Count];
+
+            var key = new TwoResultElementTuple(value1, value2);
+
+            if (nextIndex > 0)
+            {
+                seen ??= new Dictionary<TwoResultElementTuple, int>(TwoResultElementTupleComparer.Instance)
+                {
+                    [firstKey] = 0
+                };
+
+                if (seen.TryGetValue(key, out var existingIndex))
+                {
+                    additionalPaths ??= new List<Path>?[elements.Count];
+                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    continue;
+                }
+
+                seen[key] = nextIndex;
+            }
+
+            firstKey = key;
+
+            variableValueSets[nextIndex++] = new VariableValues(
+                result.Path,
+                new ObjectValueNode([
+                    new ObjectFieldNode(requirement1.Key, ResultDataMapper.MapLeafValue(value1, ref buffer)),
+                    new ObjectFieldNode(requirement2.Key, ResultDataMapper.MapLeafValue(value2, ref buffer))
+                ]));
+        }
+
+        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
+    }
+
+    private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsSlowPath(
         List<CompositeResultElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2,
@@ -645,6 +812,113 @@ AddErrors_Next:
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirements(
+        List<CompositeResultElement> elements,
+        OperationRequirement requirement1,
+        OperationRequirement requirement2,
+        OperationRequirement requirement3,
+        ref PooledArrayWriter? buffer)
+    {
+        if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
+            && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2)
+            && TryGetSimpleRequirementFieldName(requirement3.Map, out var fieldName3))
+        {
+            return BuildVariableValueSetsThreeRequirementsFastPath(
+                elements,
+                requirement1,
+                fieldName1,
+                requirement2,
+                fieldName2,
+                requirement3,
+                fieldName3,
+                ref buffer);
+        }
+
+        return BuildVariableValueSetsThreeRequirementsSlowPath(
+            elements,
+            requirement1,
+            requirement2,
+            requirement3,
+            ref buffer);
+    }
+
+    private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsFastPath(
+        List<CompositeResultElement> elements,
+        OperationRequirement requirement1,
+        string fieldName1,
+        OperationRequirement requirement2,
+        string fieldName2,
+        OperationRequirement requirement3,
+        string fieldName3,
+        ref PooledArrayWriter? buffer)
+    {
+        VariableValues[]? variableValueSets = null;
+        Dictionary<ThreeResultElementTuple, int>? seen = null;
+        List<Path>?[]? additionalPaths = null;
+        var firstKey = default(ThreeResultElementTuple);
+        var nextIndex = 0;
+
+        foreach (var result in elements)
+        {
+            if (!result.TryGetProperty(fieldName1, out var value1)
+                || value1.ValueKind is JsonValueKind.Undefined
+                || value1.ValueKind is JsonValueKind.Null
+                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
+            {
+                continue;
+            }
+
+            if (!result.TryGetProperty(fieldName2, out var value2)
+                || value2.ValueKind is JsonValueKind.Undefined
+                || value2.ValueKind is JsonValueKind.Null
+                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
+            {
+                continue;
+            }
+
+            if (!result.TryGetProperty(fieldName3, out var value3)
+                || value3.ValueKind is JsonValueKind.Undefined
+                || value3.ValueKind is JsonValueKind.Null
+                    && requirement3.Type.Kind == SyntaxKind.NonNullType)
+            {
+                continue;
+            }
+
+            variableValueSets ??= new VariableValues[elements.Count];
+
+            var key = new ThreeResultElementTuple(value1, value2, value3);
+
+            if (nextIndex > 0)
+            {
+                seen ??= new Dictionary<ThreeResultElementTuple, int>(ThreeResultElementTupleComparer.Instance)
+                {
+                    [firstKey] = 0
+                };
+
+                if (seen.TryGetValue(key, out var existingIndex))
+                {
+                    additionalPaths ??= new List<Path>?[elements.Count];
+                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    continue;
+                }
+
+                seen[key] = nextIndex;
+            }
+
+            firstKey = key;
+
+            variableValueSets[nextIndex++] = new VariableValues(
+                result.Path,
+                new ObjectValueNode([
+                    new ObjectFieldNode(requirement1.Key, ResultDataMapper.MapLeafValue(value1, ref buffer)),
+                    new ObjectFieldNode(requirement2.Key, ResultDataMapper.MapLeafValue(value2, ref buffer)),
+                    new ObjectFieldNode(requirement3.Key, ResultDataMapper.MapLeafValue(value3, ref buffer))
+                ]));
+        }
+
+        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
+    }
+
+    private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsSlowPath(
         List<CompositeResultElement> elements,
         OperationRequirement requirement1,
         OperationRequirement requirement2,
@@ -769,6 +1043,28 @@ AddErrors_Next:
     {
         var value = ResultDataMapper.Map(result, path, _schema, ref buffer);
         return value is null ? null : new ObjectFieldNode(key, value);
+    }
+
+    private static bool TryGetSimpleRequirementFieldName(
+        IValueSelectionNode map,
+        [NotNullWhen(true)] out string? fieldName)
+    {
+        if (map is PathNode
+            {
+                TypeName: null,
+                PathSegment:
+                {
+                    TypeName: null,
+                    PathSegment: null
+                } pathSegment
+            })
+        {
+            fieldName = pathSegment.FieldName.Value;
+            return true;
+        }
+
+        fieldName = null;
+        return false;
     }
 
     private static void AppendUnrolledLists(
@@ -979,6 +1275,15 @@ AddErrors_Next:
         return ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets);
     }
 
+    private readonly record struct TwoResultElementTuple(
+        CompositeResultElement Value1,
+        CompositeResultElement Value2);
+
+    private readonly record struct ThreeResultElementTuple(
+        CompositeResultElement Value1,
+        CompositeResultElement Value2,
+        CompositeResultElement Value3);
+
     private readonly record struct TwoValueNodeTuple(IValueNode Value1, IValueNode Value2);
 
     private readonly record struct ThreeValueNodeTuple(
@@ -1014,5 +1319,83 @@ AddErrors_Next:
                 SyntaxComparer.BySyntax.GetHashCode(obj.Value1),
                 SyntaxComparer.BySyntax.GetHashCode(obj.Value2),
                 SyntaxComparer.BySyntax.GetHashCode(obj.Value3));
+    }
+
+    private sealed class CompositeResultElementValueComparer : IEqualityComparer<CompositeResultElement>
+    {
+        public static CompositeResultElementValueComparer Instance { get; } = new();
+
+        public bool Equals(CompositeResultElement x, CompositeResultElement y)
+        {
+            if (x.ValueKind != y.ValueKind)
+            {
+                return false;
+            }
+
+            return x.ValueKind switch
+            {
+                JsonValueKind.Null or JsonValueKind.True or JsonValueKind.False => true,
+                JsonValueKind.String => x.AssertString().Equals(y.AssertString(), StringComparison.Ordinal),
+                _ => x.GetRawValue(includeQuotes: true).SequenceEqual(y.GetRawValue(includeQuotes: true))
+            };
+        }
+
+        public int GetHashCode(CompositeResultElement obj)
+        {
+            return obj.ValueKind switch
+            {
+                JsonValueKind.Null => HashCode.Combine((int)JsonValueKind.Null),
+                JsonValueKind.True => HashCode.Combine((int)JsonValueKind.True),
+                JsonValueKind.False => HashCode.Combine((int)JsonValueKind.False),
+                JsonValueKind.String => HashCode.Combine(
+                    (int)JsonValueKind.String,
+                    StringComparer.Ordinal.GetHashCode(obj.AssertString())),
+                _ => HashCode.Combine(
+                    (int)obj.ValueKind,
+                    GetByteSpanHashCode(obj.GetRawValue(includeQuotes: true)))
+            };
+        }
+
+        private static int GetByteSpanHashCode(ReadOnlySpan<byte> value)
+        {
+            var hash = new HashCode();
+
+            for (var i = 0; i < value.Length; i++)
+            {
+                hash.Add(value[i]);
+            }
+
+            return hash.ToHashCode();
+        }
+    }
+
+    private sealed class TwoResultElementTupleComparer : IEqualityComparer<TwoResultElementTuple>
+    {
+        public static TwoResultElementTupleComparer Instance { get; } = new();
+
+        public bool Equals(TwoResultElementTuple x, TwoResultElementTuple y)
+            => CompositeResultElementValueComparer.Instance.Equals(x.Value1, y.Value1)
+                && CompositeResultElementValueComparer.Instance.Equals(x.Value2, y.Value2);
+
+        public int GetHashCode(TwoResultElementTuple obj)
+            => HashCode.Combine(
+                CompositeResultElementValueComparer.Instance.GetHashCode(obj.Value1),
+                CompositeResultElementValueComparer.Instance.GetHashCode(obj.Value2));
+    }
+
+    private sealed class ThreeResultElementTupleComparer : IEqualityComparer<ThreeResultElementTuple>
+    {
+        public static ThreeResultElementTupleComparer Instance { get; } = new();
+
+        public bool Equals(ThreeResultElementTuple x, ThreeResultElementTuple y)
+            => CompositeResultElementValueComparer.Instance.Equals(x.Value1, y.Value1)
+                && CompositeResultElementValueComparer.Instance.Equals(x.Value2, y.Value2)
+                && CompositeResultElementValueComparer.Instance.Equals(x.Value3, y.Value3);
+
+        public int GetHashCode(ThreeResultElementTuple obj)
+            => HashCode.Combine(
+                CompositeResultElementValueComparer.Instance.GetHashCode(obj.Value1),
+                CompositeResultElementValueComparer.Instance.GetHashCode(obj.Value2),
+                CompositeResultElementValueComparer.Instance.GetHashCode(obj.Value3));
     }
 }
