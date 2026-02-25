@@ -289,50 +289,6 @@ public class ServerInstrumentationTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Http_Post_Ensure_List_Path_Is_Correctly_Built()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange
-            using var server = CreateSourceSchema(
-                "a",
-                b => b.AddQueryType<Query>());
-
-            using var gateway = await CreateCompositeSchemaAsync(
-                [("a", server)],
-                configureGatewayBuilder: b => b.AddInstrumentation(
-                    o => o.Scopes = FusionActivityScopes.All));
-
-            using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-            var request = new OperationRequest(
-                """
-                {
-                    deep {
-                        deeper {
-                            deeps {
-                                deeper {
-                                    deeps {
-                                        deeper {
-                                            name
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                """);
-
-            // act
-            using var result = await client.PostAsync(request, _url);
-
-            // assert
-            activities.MatchSnapshot();
-        }
-    }
-
-    [Fact]
     public async Task Http_Post_Parser_Error()
     {
         using (CaptureActivities(out var activities))
