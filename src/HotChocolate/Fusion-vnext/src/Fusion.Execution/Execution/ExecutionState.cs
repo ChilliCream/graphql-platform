@@ -17,7 +17,9 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
     private readonly HashSet<ExecutionNode> _completed = [];
 
-    private readonly Dictionary<ExecutionNode, int> _remainingDependencies = [];
+    private readonly List<int> _trackedDependencySlots = [];
+
+    private int[] _remainingDependencies = [];
 
     private readonly ConcurrentQueue<ExecutionNodeResult> _completedResults = new();
 
@@ -30,7 +32,16 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     public void FillBacklog(OperationPlan plan)
     {
         _ready.Clear();
-        _remainingDependencies.Clear();
+
+        if (_trackedDependencySlots.Count > 0)
+        {
+            foreach (var slot in _trackedDependencySlots)
+            {
+                _remainingDependencies[slot] = -1;
+            }
+
+            _trackedDependencySlots.Clear();
+        }
 
         switch (plan.Operation.Definition.Operation)
         {
@@ -75,7 +86,9 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         foreach (var node in _backlog)
         {
             var remainingDependencies = node.Dependencies.Length;
-            _remainingDependencies[node] = remainingDependencies;
+            EnsureDependencyCapacity(node.Id + 1);
+            _remainingDependencies[node.Id] = remainingDependencies;
+            _trackedDependencySlots.Add(node.Id);
 
             if (remainingDependencies == 0)
             {
@@ -90,7 +103,17 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         _ready.Clear();
         _backlog.Clear();
         _completed.Clear();
-        _remainingDependencies.Clear();
+
+        if (_trackedDependencySlots.Count > 0)
+        {
+            foreach (var slot in _trackedDependencySlots)
+            {
+                _remainingDependencies[slot] = -1;
+            }
+
+            _trackedDependencySlots.Clear();
+        }
+
         _completedResults.Clear();
         _activeNodes = 0;
 
@@ -108,7 +131,12 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
     public void StartNode(OperationPlanContext context, ExecutionNode node, CancellationToken cancellationToken)
     {
         Interlocked.Increment(ref _activeNodes);
-        _remainingDependencies.Remove(node);
+
+        if ((uint)node.Id < (uint)_remainingDependencies.Length)
+        {
+            _remainingDependencies[node.Id] = -1;
+        }
+
         _backlog.Remove(node);
         _ = node.ExecuteAsync(context, cancellationToken);
     }
@@ -176,19 +204,26 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
             foreach (var dependent in node.Dependents)
             {
-                if (!_remainingDependencies.TryGetValue(dependent, out var remainingDependencies))
+                if ((uint)dependent.Id >= (uint)_remainingDependencies.Length)
+                {
+                    continue;
+                }
+
+                var remainingDependencies = _remainingDependencies[dependent.Id];
+
+                if (remainingDependencies <= 0)
                 {
                     continue;
                 }
 
                 if (remainingDependencies == 1)
                 {
-                    _remainingDependencies[dependent] = 0;
+                    _remainingDependencies[dependent.Id] = 0;
                     _ready.Add(dependent);
                 }
                 else if (remainingDependencies > 1)
                 {
-                    _remainingDependencies[dependent] = remainingDependencies - 1;
+                    _remainingDependencies[dependent.Id] = remainingDependencies - 1;
                 }
             }
         }
@@ -207,7 +242,11 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         while (_stack.TryPop(out var current))
         {
             context.SourceSchemaDispatcher.SkipNode(current.Id);
-            _remainingDependencies.Remove(current);
+
+            if ((uint)current.Id < (uint)_remainingDependencies.Length)
+            {
+                _remainingDependencies[current.Id] = -1;
+            }
 
             if (_backlog.Remove(current)
                 && collectTelemetry
@@ -246,8 +285,8 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
 
         foreach (var node in _ready)
         {
-            if (_remainingDependencies.TryGetValue(node, out var remainingDependencies)
-                && remainingDependencies == 0)
+            if ((uint)node.Id < (uint)_remainingDependencies.Length
+                && _remainingDependencies[node.Id] == 0)
             {
                 _stack.Push(node);
             }
@@ -268,5 +307,30 @@ internal sealed class ExecutionState(bool collectTelemetry, CancellationTokenSou
         }
 
         return true;
+    }
+
+    private void EnsureDependencyCapacity(int minCapacity)
+    {
+        if (_remainingDependencies.Length >= minCapacity)
+        {
+            return;
+        }
+
+        var newCapacity = _remainingDependencies.Length == 0 ? 8 : _remainingDependencies.Length;
+
+        while (newCapacity < minCapacity)
+        {
+            newCapacity *= 2;
+        }
+
+        var dependencies = new int[newCapacity];
+        Array.Fill(dependencies, -1);
+
+        if (_remainingDependencies.Length > 0)
+        {
+            Array.Copy(_remainingDependencies, dependencies, _remainingDependencies.Length);
+        }
+
+        _remainingDependencies = dependencies;
     }
 }
