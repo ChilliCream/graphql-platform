@@ -128,6 +128,14 @@ internal static class ResultDataMapper
             case JsonValueKind.String:
                 return new StringValueNode(value.AssertString());
 
+            case JsonValueKind.Number:
+                if (value.TryGetInt64(out var intValue))
+                {
+                    return new IntValueNode(intValue);
+                }
+
+                goto default;
+
             default:
                 writer ??= new PooledArrayWriter();
                 if (!parserInitialized)
