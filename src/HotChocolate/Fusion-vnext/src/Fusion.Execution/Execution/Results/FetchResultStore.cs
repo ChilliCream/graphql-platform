@@ -823,8 +823,6 @@ AddErrors_Next:
         ref PooledArrayWriter? buffer)
     {
         VariableValues[]? variableValueSets = null;
-        Dictionary<TwoStringTuple, int>? seenStrings = null;
-        Dictionary<TwoLongTuple, int>? seenIntegers = null;
         Dictionary<TwoValueNodeTuple, int>? seen = null;
         List<Path>?[]? additionalPaths = null;
         var nextIndex = 0;
@@ -844,61 +842,6 @@ AddErrors_Next:
                 || value2.ValueKind is JsonValueKind.Null
                     && requirement2.Type.Kind == SyntaxKind.NonNullType)
             {
-                continue;
-            }
-
-            if (value1.ValueKind is JsonValueKind.String && value2.ValueKind is JsonValueKind.String)
-            {
-                var stringValue1 = value1.AssertString();
-                var stringValue2 = value2.AssertString();
-                var stringKey = new TwoStringTuple(stringValue1, stringValue2);
-
-                if (seenStrings is not null
-                    && seenStrings.TryGetValue(stringKey, out var existingIndex))
-                {
-                    additionalPaths ??= new List<Path>?[elements.Count];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
-                    continue;
-                }
-
-                variableValueSets ??= new VariableValues[elements.Count];
-                var insertIndex = nextIndex++;
-                seenStrings ??= [];
-                seenStrings[stringKey] = insertIndex;
-                variableValueSets[insertIndex] = new VariableValues(
-                    result.Path,
-                    new ObjectValueNode([
-                        new ObjectFieldNode(requirement1.Key, ResultDataMapper.GetStringValueNode(stringValue1)),
-                        new ObjectFieldNode(requirement2.Key, ResultDataMapper.GetStringValueNode(stringValue2))
-                    ]));
-                continue;
-            }
-
-            if (value1.ValueKind is JsonValueKind.Number
-                && value2.ValueKind is JsonValueKind.Number
-                && value1.TryGetInt64(out var intValue1)
-                && value2.TryGetInt64(out var intValue2))
-            {
-                var intKey = new TwoLongTuple(intValue1, intValue2);
-
-                if (seenIntegers is not null
-                    && seenIntegers.TryGetValue(intKey, out var existingIndex))
-                {
-                    additionalPaths ??= new List<Path>?[elements.Count];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
-                    continue;
-                }
-
-                variableValueSets ??= new VariableValues[elements.Count];
-                var insertIndex = nextIndex++;
-                seenIntegers ??= [];
-                seenIntegers[intKey] = insertIndex;
-                variableValueSets[insertIndex] = new VariableValues(
-                    result.Path,
-                    new ObjectValueNode([
-                        new ObjectFieldNode(requirement1.Key, new IntValueNode(intValue1)),
-                        new ObjectFieldNode(requirement2.Key, new IntValueNode(intValue2))
-                    ]));
                 continue;
             }
 
@@ -1468,10 +1411,6 @@ AddErrors_Next:
     }
 
     private readonly record struct TwoValueNodeTuple(IValueNode Value1, IValueNode Value2);
-
-    private readonly record struct TwoLongTuple(long Value1, long Value2);
-
-    private readonly record struct TwoStringTuple(string Value1, string Value2);
 
     private readonly record struct ThreeValueNodeTuple(
         IValueNode Value1,
