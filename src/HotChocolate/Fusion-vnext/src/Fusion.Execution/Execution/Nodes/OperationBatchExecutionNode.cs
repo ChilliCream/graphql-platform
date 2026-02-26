@@ -127,7 +127,6 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         var index = 0;
         var bufferLength = 0;
         SourceSchemaResult[]? buffer = null;
-        SourceSchemaResult? singleResult = null;
         var hasSomeErrors = false;
 
         try
@@ -139,29 +138,19 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             context.TrackSourceSchemaClientResponse(this, response);
 
             // we read the responses from the response stream.
+            var totalPathCount = variables.Length;
+
+            for (var i = 0; i < variables.Length; i++)
+            {
+                totalPathCount += variables[i].AdditionalPaths.Length;
+            }
+
+            bufferLength = Math.Max(totalPathCount, 1);
+            buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
+
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
-                if (buffer is null)
-                {
-                    if (singleResult is null)
-                    {
-                        singleResult = result;
-                        index = 1;
-                    }
-                    else
-                    {
-                        bufferLength = Math.Max(GetExpectedResultCount(variables), 2);
-                        buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
-                        buffer[0] = singleResult;
-                        buffer[1] = result;
-                        singleResult = null;
-                        index = 2;
-                    }
-                }
-                else
-                {
-                    buffer[index++] = result;
-                }
+                buffer[index++] = result;
 
                 // Parsing errors here allows the result store to reuse the cached value
                 // and avoids a second document lookup per result.
@@ -195,10 +184,6 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 buffer.AsSpan(0, index).Clear();
                 ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
             }
-            else
-            {
-                singleResult?.Dispose();
-            }
 
             AddErrors(context, exception, variables, _responseNames);
             return ExecutionStatus.Failed;
@@ -206,28 +191,11 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
         try
         {
-            if (buffer is null)
-            {
-                if (singleResult is null)
-                {
-                    throw new InvalidOperationException("Expected at least one source schema result.");
-                }
-
-                context.AddPartialResult(
-                    _source,
-                    singleResult,
-                    _responseNames,
-                    hasSomeErrors);
-                singleResult = null;
-            }
-            else
-            {
-                context.AddPartialResults(
-                    _source,
-                    buffer.AsSpan(0, index),
-                    _responseNames,
-                    hasSomeErrors);
-            }
+            context.AddPartialResults(
+                _source,
+                buffer.AsSpan(0, index),
+                _responseNames,
+                hasSomeErrors);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -244,11 +212,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         }
         finally
         {
-            if (buffer is not null)
-            {
-                buffer.AsSpan(0, index).Clear();
-                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
-            }
+            buffer.AsSpan(0, index).Clear();
+            ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
         }
 
         return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
@@ -305,17 +270,5 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 ArrayPool<Path>.Shared.Return(pathBuffer);
             }
         }
-    }
-
-    private static int GetExpectedResultCount(ImmutableArray<VariableValues> variables)
-    {
-        var totalPathCount = variables.Length;
-
-        for (var i = 0; i < variables.Length; i++)
-        {
-            totalPathCount += variables[i].AdditionalPaths.Length;
-        }
-
-        return totalPathCount;
     }
 }
