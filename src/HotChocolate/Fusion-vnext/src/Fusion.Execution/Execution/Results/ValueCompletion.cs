@@ -58,6 +58,34 @@ internal sealed class ValueCompletion
             return BuildErrorResult(target, responseNames, error, target.Path);
         }
 
+        if (errorTrie is null)
+        {
+            foreach (var property in source.EnumerateObject())
+            {
+                if (!target.TryGetProperty(property.NameSpan, out var resultField))
+                {
+                    continue;
+                }
+
+                var selection = resultField.AssertSelection();
+
+                if (!TryCompleteValue(property.Value, resultField, null, selection, selection.Type, 0))
+                {
+                    switch (_errorHandlingMode)
+                    {
+                        case ErrorHandlingMode.Propagate:
+                            var didPropagateToRoot = PropagateNullValues(resultField);
+                            return !didPropagateToRoot;
+
+                        case ErrorHandlingMode.Halt:
+                            return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         foreach (var property in source.EnumerateObject())
         {
             if (!target.TryGetProperty(property.NameSpan, out var resultField))
@@ -66,8 +94,7 @@ internal sealed class ValueCompletion
             }
 
             var selection = resultField.AssertSelection();
-            ErrorTrie? errorTrieForResponseName = null;
-            errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
+            errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
 
             if (!TryCompleteValue(property.Value, resultField, errorTrieForResponseName, selection, selection.Type, 0))
             {
@@ -268,8 +295,43 @@ internal sealed class ValueCompletion
         var isNullable = elementType.IsNullableType();
         var isLeaf = elementType.IsLeafType();
         var isNested = elementType.IsListType();
+        var isAbstract = !isNested && !isLeaf && elementType.IsAbstractType();
 
         target.SetArrayValue(source.GetArrayLength());
+
+        if (errorTrie is null)
+        {
+            using var arrayEnumerator = target.EnumerateArray().GetEnumerator();
+            foreach (var element in source.EnumerateArray())
+            {
+                var success = arrayEnumerator.MoveNext();
+                Debug.Assert(success, "The lists must have the same size.");
+
+                if (element.IsNullOrUndefined())
+                {
+                    if (!isNullable && _errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                    {
+                        return false;
+                    }
+
+                    arrayEnumerator.Current.SetNullValue();
+                    continue;
+                }
+
+                if (!HandleElement(element, arrayEnumerator.Current, null))
+                {
+                    if (!isNullable)
+                    {
+                        return false;
+                    }
+
+                    arrayEnumerator.Current.SetNullValue();
+                    continue;
+                }
+            }
+
+            return true;
+        }
 
         var i = 0;
         using var enumerator = target.EnumerateArray().GetEnumerator();
@@ -278,8 +340,7 @@ internal sealed class ValueCompletion
             var success = enumerator.MoveNext();
             Debug.Assert(success, "The lists must have the same size.");
 
-            ErrorTrie? errorTrieForIndex = null;
-            errorTrie?.TryGetValue(i, out errorTrieForIndex);
+            errorTrie.TryGetValue(i, out var errorTrieForIndex);
 
             if (errorTrieForIndex?.Error is { } error)
             {
@@ -347,7 +408,7 @@ TryCompleteList_MoveNext:
                 return true;
             }
 
-            if (elementType.IsAbstractType())
+            if (isAbstract)
             {
                 return TryCompleteAbstractValue(sourceElement,
                     targetElement, errorTrieForIndex, selection, elementType, depth);
@@ -396,6 +457,27 @@ TryCompleteList_MoveNext:
             target.SetObjectValue(selectionSet);
         }
 
+        if (errorTrie is null)
+        {
+            foreach (var property in source.EnumerateObject())
+            {
+                if (!target.TryGetProperty(property.NameSpan, out var targetProperty))
+                {
+                    continue;
+                }
+
+                var selection = targetProperty.AssertSelection();
+
+                if (!TryCompleteValue(property.Value,
+                    targetProperty, null, selection, selection.Type, depth))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         foreach (var property in source.EnumerateObject())
         {
             if (!target.TryGetProperty(property.NameSpan, out var targetProperty))
@@ -404,9 +486,7 @@ TryCompleteList_MoveNext:
             }
 
             var selection = targetProperty.AssertSelection();
-
-            ErrorTrie? errorTrieForResponseName = null;
-            errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
+            errorTrie.TryGetValue(selection.ResponseName, out var errorTrieForResponseName);
 
             if (!TryCompleteValue(property.Value,
                 targetProperty, errorTrieForResponseName, selection, selection.Type, depth))
