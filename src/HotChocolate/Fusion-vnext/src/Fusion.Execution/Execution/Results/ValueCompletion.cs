@@ -317,44 +317,36 @@ internal sealed class ValueCompletion
                 goto TryCompleteList_MoveNext;
             }
 
-            var success = true;
-
-            switch (elementKind)
+            if (elementKind == 1)
             {
-                case 0:
-                    success = TryCompleteList(
-                        element,
-                        current,
-                        errorTrieForIndex,
-                        selection,
-                        elementType,
-                        depth);
-                    break;
-
-                case 1:
-                    current.SetLeafValue(element);
-                    break;
-
-                case 2:
-                    success = TryCompleteAbstractValue(
-                        element,
-                        current,
-                        errorTrieForIndex,
-                        selection,
-                        elementType,
-                        depth);
-                    break;
-
-                default:
-                    success = TryCompleteObjectValue(
-                        selection,
-                        elementType,
-                        element,
-                        errorTrieForIndex,
-                        depth,
-                        current);
-                    break;
+                current.SetLeafValue(element);
+                goto TryCompleteList_MoveNext;
             }
+
+            var success =
+                elementKind == 0
+                    ? TryCompleteList(
+                        element,
+                        current,
+                        errorTrieForIndex,
+                        selection,
+                        elementType,
+                        depth)
+                    : elementKind == 2
+                        ? TryCompleteAbstractValue(
+                            element,
+                            current,
+                            errorTrieForIndex,
+                            selection,
+                            elementType,
+                            depth)
+                        : TryCompleteObjectValue(
+                            selection,
+                            elementType,
+                            element,
+                            errorTrieForIndex,
+                            depth,
+                            current);
 
             if (!success)
             {
