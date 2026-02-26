@@ -2,7 +2,6 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reactive.Disposables;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
@@ -147,14 +146,15 @@ public sealed class OperationExecutionNode : ExecutionNode
             context.TrackSourceSchemaClientResponse(this, response);
 
             // we read the responses from the response stream.
-            // Keep stacktrace line alignment stable for diagnostics snapshot baselines.
-            // (no-op spacing)
-            //
-            //
-            //
-            //
-            //
-            //
+            var totalPathCount = variables.Length;
+
+            for (var i = 0; i < variables.Length; i++)
+            {
+                totalPathCount += variables[i].AdditionalPaths.Length;
+            }
+
+            var initialBufferLength = Math.Max(totalPathCount, 2);
+
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
                 // If there is only one response, we skip the buffer rental.
@@ -168,7 +168,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                     // If we have more than one response, we rent a buffer and move the first result into it.
                     if (buffer is null)
                     {
-                        bufferLength = Math.Max(GetExpectedResultCount(variables), 2);
+                        bufferLength = initialBufferLength;
                         buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
                         buffer[0] = singleResult!;
                     }
@@ -268,19 +268,6 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
 
         return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int GetExpectedResultCount(ImmutableArray<VariableValues> variables)
-    {
-        var totalPathCount = variables.Length;
-
-        for (var i = 0; i < variables.Length; i++)
-        {
-            totalPathCount += variables[i].AdditionalPaths.Length;
-        }
-
-        return totalPathCount;
     }
 
     protected override IDisposable CreateScope(OperationPlanContext context)
