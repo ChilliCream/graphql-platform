@@ -674,6 +674,7 @@ AddErrors_Next:
     {
         VariableValues[]? variableValueSets = null;
         Dictionary<IValueNode, int>? seen = null;
+        Dictionary<string, int>? seenStrings = null;
         List<Path>?[]? additionalPaths = null;
         var nextIndex = 0;
 
@@ -690,23 +691,38 @@ AddErrors_Next:
                 continue;
             }
 
-            var mappedValue = ResultDataMapper.MapLeafValue(value, ref buffer);
             variableValueSets ??= new VariableValues[elements.Count];
+            IValueNode mappedValue;
 
-            if (nextIndex > 0)
+            if (value.ValueKind is JsonValueKind.String)
             {
-                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance)
-                {
-                    [variableValueSets[0].Values.Fields[0].Value] = 0
-                };
+                var stringValue = value.AssertString();
 
-                if (seen.TryGetValue(mappedValue, out var existingIndex))
+                if (seenStrings is not null
+                    && seenStrings.TryGetValue(stringValue, out var existingIndex))
                 {
                     additionalPaths ??= new List<Path>?[elements.Count];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
                     continue;
                 }
 
+                mappedValue = new StringValueNode(stringValue);
+                seenStrings ??= new Dictionary<string, int>(StringComparer.Ordinal);
+                seenStrings[stringValue] = nextIndex;
+            }
+            else
+            {
+                mappedValue = ResultDataMapper.MapLeafValue(value, ref buffer);
+
+                if (seen is not null
+                    && seen.TryGetValue(mappedValue, out var existingIndex))
+                {
+                    additionalPaths ??= new List<Path>?[elements.Count];
+                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    continue;
+                }
+
+                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance);
                 seen[mappedValue] = nextIndex;
             }
 
