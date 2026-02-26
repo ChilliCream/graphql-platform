@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
-using HotChocolate.Fusion.Properties;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Execution.Clients.SourceSchemaClientCapabilities;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;

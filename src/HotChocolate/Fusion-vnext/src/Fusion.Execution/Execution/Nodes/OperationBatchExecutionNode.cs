@@ -151,6 +151,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
+                // Store the first result without renting a buffer,
+                // since it might be the only one (e.g. a request-level error).
                 if (index == 0)
                 {
                     singleResult = result;
@@ -158,6 +160,8 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 }
                 else
                 {
+                    // Once we see a second result, we know there are multiple,
+                    // so we rent a buffer and move the first result into it.
                     if (buffer is null)
                     {
                         bufferLength = initialBufferLength;
@@ -232,7 +236,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
             {
                 context.AddPartialResults(
                     _source,
-                    ReadOnlySpan<SourceSchemaResult>.Empty,
+                    [],
                     _responseNames,
                     hasSomeErrors);
             }
@@ -257,8 +261,6 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
                 buffer.AsSpan(0, index).Clear();
                 ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
             }
-
-            singleResult = null;
         }
 
         return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;

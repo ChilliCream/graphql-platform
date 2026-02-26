@@ -157,6 +157,7 @@ public sealed class OperationExecutionNode : ExecutionNode
 
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
+                // If there is only one response, we skip the buffer rental.
                 if (index == 0)
                 {
                     singleResult = result;
@@ -164,6 +165,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 }
                 else
                 {
+                    // If we have more than one response, we rent a buffer and move the first result into it.
                     if (buffer is null)
                     {
                         bufferLength = initialBufferLength;
@@ -238,7 +240,7 @@ public sealed class OperationExecutionNode : ExecutionNode
             {
                 context.AddPartialResults(
                     _source,
-                    ReadOnlySpan<SourceSchemaResult>.Empty,
+                    [],
                     _responseNames,
                     hasSomeErrors);
             }
@@ -263,8 +265,6 @@ public sealed class OperationExecutionNode : ExecutionNode
                 buffer.AsSpan(0, index).Clear();
                 ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
             }
-
-            singleResult = null;
         }
 
         return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
