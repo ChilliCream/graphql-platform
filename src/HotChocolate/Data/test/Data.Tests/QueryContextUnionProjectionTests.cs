@@ -110,6 +110,40 @@ public class QueryContextUnionProjectionTests
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task AsSelector_With_List_Of_Union_Field_Projects_Data()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<TenantQuery>()
+            .AddType<Entry>()
+            .AddType<FileEntry>()
+            .AddType<FolderEntry>()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              tenants {
+                name
+                entries {
+                  ... on FileEntry {
+                    fileName
+                  }
+                  ... on FolderEntry {
+                    folderName
+                  }
+                }
+              }
+            }
+            """);
+
+        var operationResult = result.ExpectOperationResult();
+        Assert.Empty(operationResult.Errors ?? []);
+        result.MatchSnapshot();
+    }
+
     private static async Task<IRequestExecutor> CreateExecutorAsync()
         => await new ServiceCollection()
             .AddGraphQL()
@@ -315,6 +349,57 @@ public class QueryContextUnionProjectionTests
                     Key = "field-2",
                     Label = "Field 2"
                 }
+            ]
+        }
+    ];
+
+    // --- List union projection types ---
+
+    public class TenantQuery
+    {
+        public IQueryable<Tenant> GetTenants(ISelection selection)
+            => TenantData.AsQueryable()
+                .Select(selection.AsSelector<Tenant>());
+    }
+
+    public class Tenant
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; } = string.Empty;
+
+        public List<Entry> Entries { get; set; } = [];
+    }
+
+    [UnionType]
+    public abstract class Entry
+    {
+        public int Id { get; set; }
+    }
+
+    [ObjectType]
+    public class FileEntry : Entry
+    {
+        public required string FileName { get; set; }
+    }
+
+    [ObjectType]
+    public class FolderEntry : Entry
+    {
+        public required string FolderName { get; set; }
+    }
+
+    private static readonly Tenant[] TenantData =
+    [
+        new()
+        {
+            Id = 1,
+            Name = "tenant-1",
+            Entries =
+            [
+                new FileEntry { Id = 1, FileName = "file-1.txt" },
+                new FolderEntry { Id = 2, FolderName = "folder-1" },
+                new FileEntry { Id = 3, FileName = "file-2.txt" }
             ]
         }
     ];
