@@ -675,7 +675,6 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         Dictionary<IValueNode, int>? seen = null;
         Dictionary<string, int>? seenStrings = null;
-        Dictionary<long, int>? seenIntegers = null;
         List<Path>?[]? additionalPaths = null;
         var nextIndex = 0;
 
@@ -710,20 +709,6 @@ AddErrors_Next:
                 mappedValue = new StringValueNode(stringValue);
                 seenStrings ??= new Dictionary<string, int>(StringComparer.Ordinal);
                 seenStrings[stringValue] = nextIndex;
-            }
-            else if (value.ValueKind is JsonValueKind.Number && value.TryGetInt64(out var intValue))
-            {
-                if (seenIntegers is not null
-                    && seenIntegers.TryGetValue(intValue, out var existingIndex))
-                {
-                    additionalPaths ??= new List<Path>?[elements.Count];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
-                    continue;
-                }
-
-                mappedValue = ResultDataMapper.GetIntValueNode(intValue);
-                seenIntegers ??= [];
-                seenIntegers[intValue] = nextIndex;
             }
             else
             {

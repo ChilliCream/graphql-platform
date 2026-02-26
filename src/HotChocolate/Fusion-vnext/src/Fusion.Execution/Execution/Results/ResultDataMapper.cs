@@ -9,10 +9,6 @@ namespace HotChocolate.Fusion.Execution.Results;
 
 internal static class ResultDataMapper
 {
-    private const int CachedIntMin = -128;
-    private const int CachedIntMax = 4096;
-    private static readonly IntValueNode[] s_cachedIntValues = CreateCachedIntValues();
-
     public static IValueNode? Map(
         CompositeResultElement result,
         IValueSelectionNode valueSelection,
@@ -135,7 +131,7 @@ internal static class ResultDataMapper
             case JsonValueKind.Number:
                 if (value.TryGetInt64(out var intValue))
                 {
-                    return GetIntValueNode(intValue);
+                    return new IntValueNode(intValue);
                 }
 
                 goto default;
@@ -150,28 +146,6 @@ internal static class ResultDataMapper
 
                 return parser.Parse(value.GetRawValue(includeQuotes: true));
         }
-    }
-
-    internal static IntValueNode GetIntValueNode(long value)
-    {
-        if (value >= CachedIntMin && value <= CachedIntMax)
-        {
-            return s_cachedIntValues[value - CachedIntMin];
-        }
-
-        return new IntValueNode(value);
-    }
-
-    private static IntValueNode[] CreateCachedIntValues()
-    {
-        var values = new IntValueNode[CachedIntMax - CachedIntMin + 1];
-
-        for (var i = 0; i < values.Length; i++)
-        {
-            values[i] = new IntValueNode(CachedIntMin + i);
-        }
-
-        return values;
     }
 
     private static IValueNode? Visit(ObjectValueSelectionNode node, Context context)
