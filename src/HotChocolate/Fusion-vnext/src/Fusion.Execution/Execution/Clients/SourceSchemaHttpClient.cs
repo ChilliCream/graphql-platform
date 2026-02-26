@@ -593,11 +593,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
                         yield return sourceSchemaResult;
 
-                        var additionalPaths = variable.AdditionalPaths;
-
-                        for (var i = 0; i < additionalPaths.Length; i++)
+                        foreach (var additionalPath in variable.AdditionalPaths)
                         {
-                            var additionalPath = additionalPaths[i];
                             var alias = sourceSchemaResult.WithPath(additionalPath);
                             configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
                             yield return alias;
@@ -630,11 +627,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
                                 yield return sourceSchemaResult;
 
-                                var additionalPaths = variable.AdditionalPaths;
-
-                                for (var i = 0; i < additionalPaths.Length; i++)
+                                foreach (var additionalPath in variable.AdditionalPaths)
                                 {
-                                    var additionalPath = additionalPaths[i];
                                     var alias = sourceSchemaResult.WithPath(additionalPath);
                                     configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
                                     yield return alias;
@@ -672,11 +666,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
                                 yield return sourceSchemaResult;
 
-                                var additionalPaths = variable.AdditionalPaths;
-
-                                for (var i = 0; i < additionalPaths.Length; i++)
+                                foreach (var additionalPath in variable.AdditionalPaths)
                                 {
-                                    var additionalPath = additionalPaths[i];
                                     var alias = sourceSchemaResult.WithPath(additionalPath);
                                     configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
                                     yield return alias;
@@ -688,11 +679,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                         {
                             yield return errorResult;
 
-                            var errorAdditionalPaths = variables[0].AdditionalPaths;
-
-                            for (var i = 0; i < errorAdditionalPaths.Length; i++)
+                            foreach (var additionalPath in variables[0].AdditionalPaths)
                             {
-                                var additionalPath = errorAdditionalPaths[i];
                                 var alias = errorResult.WithPath(additionalPath);
                                 configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
                                 yield return alias;
@@ -706,11 +694,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                                     SourceResultDocument.CreateEmptyObject());
                                 yield return sourceSchemaResult;
 
-                                var additionalPaths = variable.AdditionalPaths;
-
-                                for (var j = 0; j < additionalPaths.Length; j++)
+                                foreach (var additionalPath in variable.AdditionalPaths)
                                 {
-                                    var additionalPath = additionalPaths[j];
                                     var alias = sourceSchemaResult.WithPath(additionalPath);
                                     configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
                                     yield return alias;
