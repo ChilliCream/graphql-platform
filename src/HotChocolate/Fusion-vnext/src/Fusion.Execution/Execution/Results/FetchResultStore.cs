@@ -706,7 +706,7 @@ AddErrors_Next:
                     continue;
                 }
 
-                mappedValue = new StringValueNode(stringValue);
+                mappedValue = ResultDataMapper.GetStringValueNode(stringValue);
                 seenStrings ??= new Dictionary<string, int>(StringComparer.Ordinal);
                 seenStrings[stringValue] = nextIndex;
             }
