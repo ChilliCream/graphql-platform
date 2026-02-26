@@ -109,7 +109,11 @@ public sealed class OperationExecutionNode : ExecutionNode
         CancellationToken cancellationToken = default)
     {
         var diagnosticEvents = context.DiagnosticEvents;
-        var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
+        var variables = context.CreateVariableValueSets(
+            _target,
+            _forwardedVariables,
+            _requirements,
+            preferSerializedVariables: !_requiresFileUpload);
 
         if (variables.Length == 0 && (_requirements.Length > 0 || _forwardedVariables.Length > 0))
         {
@@ -230,7 +234,11 @@ public sealed class OperationExecutionNode : ExecutionNode
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var variables = context.CreateVariableValueSets(_target, _forwardedVariables, _requirements);
+        var variables = context.CreateVariableValueSets(
+            _target,
+            _forwardedVariables,
+            _requirements,
+            preferSerializedVariables: !_requiresFileUpload);
 
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
 

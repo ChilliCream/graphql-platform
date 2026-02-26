@@ -10,6 +10,7 @@ using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Language;
 using HotChocolate.Transport;
+using HotChocolate.Transport.Serialization;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -160,8 +161,21 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 };
 
             case 1:
-                var variableValues = originalRequest.Variables[0].Values;
-                return new GraphQLHttpRequest(CreateSingleRequest(operationSourceText, variableValues))
+                if (!originalRequest.RequiresFileUpload
+                    && originalRequest.Variables[0].HasSerializedValues)
+                {
+                    return new GraphQLHttpRequest(
+                        new SerializedOperationRequest(
+                            operationSourceText,
+                            originalRequest.Variables[0].SerializedValues))
+                    {
+                        Uri = _configuration.BaseAddress,
+                        Accept = defaultAccept
+                    };
+                }
+
+                var singleVariables = originalRequest.Variables[0].Values;
+                return new GraphQLHttpRequest(CreateSingleRequest(operationSourceText, singleVariables))
                 {
                     Uri = _configuration.BaseAddress,
                     Accept = defaultAccept,
@@ -169,13 +183,42 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 };
 
             default:
+                IReadOnlyList<ReadOnlyMemory<byte>>? serializedVariables = null;
+                var useSerializedVariables =
+                    !originalRequest.RequiresFileUpload
+                    && TryCreateSerializedVariableSet(
+                        originalRequest.Variables,
+                        out serializedVariables);
+
                 if (_configuration.BatchingMode == SourceSchemaHttpClientBatchingMode.ApolloRequestBatching)
                 {
+                    if (useSerializedVariables)
+                    {
+                        return new GraphQLHttpRequest(
+                            CreateSerializedOperationBatchRequest(operationSourceText, serializedVariables!))
+                        {
+                            Uri = _configuration.BaseAddress,
+                            Accept = _configuration.BatchingAcceptHeaderValues
+                        };
+                    }
+
                     return new GraphQLHttpRequest(CreateOperationBatchRequest(operationSourceText, originalRequest))
                     {
                         Uri = _configuration.BaseAddress,
                         Accept = _configuration.BatchingAcceptHeaderValues,
                         EnableFileUploads = originalRequest.RequiresFileUpload
+                    };
+                }
+
+                if (useSerializedVariables)
+                {
+                    return new GraphQLHttpRequest(
+                        new SerializedVariableBatchRequest(
+                            operationSourceText,
+                            serializedVariables!))
+                    {
+                        Uri = _configuration.BaseAddress,
+                        Accept = _configuration.BatchingAcceptHeaderValues
                     };
                 }
 
@@ -191,27 +234,44 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     private GraphQLHttpRequest CreateHttpBatchRequest(
         IReadOnlyList<SourceSchemaClientRequest> originalRequests)
     {
-        var batchRequests = new List<IOperationRequest>(originalRequests.Count);
-        var enableFileUploads = false;
+        var enableFileUploads = HasFileUploadRequest(originalRequests);
+        const bool allowSerializedVariables = true;
+        var batchRequests = new List<IRequestBody>(originalRequests.Count);
+        var containsCustomRequestBody = false;
 
         for (var i = 0; i < originalRequests.Count; i++)
         {
             var sourceRequest = originalRequests[i];
-            enableFileUploads |= sourceRequest.RequiresFileUpload;
 
-            var body = CreateRequestBody(sourceRequest);
-            if (body is IOperationRequest operationRequest)
-            {
-                batchRequests.Add(operationRequest);
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"The request body type '{body.GetType().Name}' cannot be included in an operation batch.");
-            }
+            var body = CreateRequestBody(sourceRequest, allowSerializedVariables);
+            containsCustomRequestBody |= body is not IOperationRequest;
+            batchRequests.Add(body);
         }
 
-        return new GraphQLHttpRequest(new OperationBatchRequest(batchRequests))
+        if (enableFileUploads && containsCustomRequestBody)
+        {
+            throw new NotSupportedException(
+                "Cannot batch file upload requests with serialized-variable requests.");
+        }
+
+        if (containsCustomRequestBody)
+        {
+            return new GraphQLHttpRequest(new RequestBodyBatchRequest(batchRequests))
+            {
+                Uri = _configuration.BaseAddress,
+                Accept = _configuration.BatchingAcceptHeaderValues,
+                EnableFileUploads = enableFileUploads
+            };
+        }
+
+        var operationRequests = new IOperationRequest[batchRequests.Count];
+
+        for (var i = 0; i < batchRequests.Count; i++)
+        {
+            operationRequests[i] = (IOperationRequest)batchRequests[i];
+        }
+
+        return new GraphQLHttpRequest(new OperationBatchRequest(operationRequests))
         {
             Uri = _configuration.BaseAddress,
             Accept = _configuration.BatchingAcceptHeaderValues,
@@ -220,7 +280,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     }
 
     private static IRequestBody CreateRequestBody(
-        SourceSchemaClientRequest originalRequest)
+        SourceSchemaClientRequest originalRequest,
+        bool allowSerializedVariables)
     {
         var operationSourceText = originalRequest.OperationSourceText;
 
@@ -230,10 +291,25 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 return CreateSingleRequest(operationSourceText);
 
             case 1:
-                var variableValues = originalRequest.Variables[0].Values;
-                return CreateSingleRequest(operationSourceText, variableValues);
+                if (allowSerializedVariables && originalRequest.Variables[0].HasSerializedValues)
+                {
+                    return new SerializedOperationRequest(
+                        operationSourceText,
+                        originalRequest.Variables[0].SerializedValues);
+                }
+
+                var singleVariables = originalRequest.Variables[0].Values;
+                return CreateSingleRequest(operationSourceText, singleVariables);
 
             default:
+                if (allowSerializedVariables
+                    && TryCreateSerializedVariableSet(originalRequest.Variables, out var serializedVariables))
+                {
+                    return new SerializedVariableBatchRequest(
+                        operationSourceText,
+                        serializedVariables!);
+                }
+
                 return CreateVariableBatchRequest(operationSourceText, originalRequest);
         }
     }
@@ -285,6 +361,60 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             onError: null,
             variables: variables,
             extensions: null);
+    }
+
+    private static IRequestBody CreateSerializedOperationBatchRequest(
+        string operationSourceText,
+        IReadOnlyList<ReadOnlyMemory<byte>> variableSet)
+    {
+        var requests = new IRequestBody[variableSet.Count];
+
+        for (var i = 0; i < variableSet.Count; i++)
+        {
+            requests[i] = new SerializedOperationRequest(operationSourceText, variableSet[i]);
+        }
+
+        return new RequestBodyBatchRequest(requests);
+    }
+
+    private static bool TryCreateSerializedVariableSet(
+        ImmutableArray<VariableValues> variableValues,
+        out IReadOnlyList<ReadOnlyMemory<byte>>? serializedVariables)
+    {
+        if (variableValues.Length == 0)
+        {
+            serializedVariables = null;
+            return false;
+        }
+
+        var serialized = new ReadOnlyMemory<byte>[variableValues.Length];
+
+        for (var i = 0; i < variableValues.Length; i++)
+        {
+            if (!variableValues[i].HasSerializedValues)
+            {
+                serializedVariables = null;
+                return false;
+            }
+
+            serialized[i] = variableValues[i].SerializedValues;
+        }
+
+        serializedVariables = serialized;
+        return true;
+    }
+
+    private static bool HasFileUploadRequest(IReadOnlyList<SourceSchemaClientRequest> requests)
+    {
+        for (var i = 0; i < requests.Count; i++)
+        {
+            if (requests[i].RequiresFileUpload)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private async Task ReadBatchStreamInBackgroundAsync(
@@ -532,6 +662,60 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         }
 
         return false;
+    }
+
+    private sealed class SerializedOperationRequest(
+        string query,
+        ReadOnlyMemory<byte> serializedVariables)
+        : IRequestBody
+    {
+        public void WriteTo(Utf8JsonWriter writer)
+        {
+            writer.WriteStartObject();
+            writer.WriteString(Utf8GraphQLRequestProperties.QueryProp, query);
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
+            writer.WriteRawValue(serializedVariables.Span, skipInputValidation: true);
+            writer.WriteEndObject();
+        }
+    }
+
+    private sealed class SerializedVariableBatchRequest(
+        string query,
+        IReadOnlyList<ReadOnlyMemory<byte>> serializedVariableSet)
+        : IRequestBody
+    {
+        public void WriteTo(Utf8JsonWriter writer)
+        {
+            writer.WriteStartObject();
+            writer.WriteString(Utf8GraphQLRequestProperties.QueryProp, query);
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
+            writer.WriteStartArray();
+
+            for (var i = 0; i < serializedVariableSet.Count; i++)
+            {
+                writer.WriteRawValue(serializedVariableSet[i].Span, skipInputValidation: true);
+            }
+
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+        }
+    }
+
+    private sealed class RequestBodyBatchRequest(
+        IReadOnlyList<IRequestBody> requests)
+        : IRequestBody
+    {
+        public void WriteTo(Utf8JsonWriter writer)
+        {
+            writer.WriteStartArray();
+
+            for (var i = 0; i < requests.Count; i++)
+            {
+                requests[i].WriteTo(writer);
+            }
+
+            writer.WriteEndArray();
+        }
     }
 
     /// <summary>

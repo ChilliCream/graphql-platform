@@ -214,7 +214,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     internal ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
         ReadOnlySpan<string> forwardedVariables,
-        ReadOnlySpan<OperationRequirement> requiredData)
+        ReadOnlySpan<OperationRequirement> requiredData,
+        bool preferSerializedVariables = true)
     {
         ArgumentNullException.ThrowIfNull(selectionSet);
 
@@ -231,14 +232,19 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         else
         {
             var variableValues = GetPathThroughVariables(forwardedVariables);
-            return _resultStore.CreateVariableValueSets(selectionSet, variableValues, requiredData);
+            return _resultStore.CreateVariableValueSets(
+                selectionSet,
+                variableValues,
+                requiredData,
+                preferSerializedVariables);
         }
     }
 
     internal ImmutableArray<VariableValues> CreateVariableValueSets(
         ReadOnlySpan<SelectionPath> selectionSets,
         ReadOnlySpan<string> forwardedVariables,
-        ReadOnlySpan<OperationRequirement> requiredData)
+        ReadOnlySpan<OperationRequirement> requiredData,
+        bool preferSerializedVariables = true)
     {
         if (requiredData.Length == 0)
         {
@@ -253,7 +259,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         else
         {
             var variableValues = GetPathThroughVariables(forwardedVariables);
-            return _resultStore.CreateVariableValueSets(selectionSets, variableValues, requiredData);
+            return _resultStore.CreateVariableValueSets(
+                selectionSets,
+                variableValues,
+                requiredData,
+                preferSerializedVariables);
         }
     }
 

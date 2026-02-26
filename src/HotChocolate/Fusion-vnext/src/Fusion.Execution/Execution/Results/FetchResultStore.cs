@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO.Hashing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -13,6 +14,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Results;
@@ -308,7 +310,8 @@ AddErrors_Next:
     public ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
         IReadOnlyList<ObjectFieldNode> requestVariables,
-        ReadOnlySpan<OperationRequirement> requiredData)
+        ReadOnlySpan<OperationRequirement> requiredData,
+        bool preferSerializedVariables = true)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(selectionSet);
@@ -330,7 +333,11 @@ AddErrors_Next:
                 return [];
             }
 
-            return BuildVariableValueSets(elements, requestVariables, requiredData);
+            return BuildVariableValueSets(
+                elements,
+                requestVariables,
+                requiredData,
+                preferSerializedVariables);
         }
     }
 
@@ -343,7 +350,8 @@ AddErrors_Next:
     public ImmutableArray<VariableValues> CreateVariableValueSets(
         ReadOnlySpan<SelectionPath> selectionSets,
         IReadOnlyList<ObjectFieldNode> requestVariables,
-        ReadOnlySpan<OperationRequirement> requiredData)
+        ReadOnlySpan<OperationRequirement> requiredData,
+        bool preferSerializedVariables = true)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(requestVariables);
@@ -375,7 +383,11 @@ AddErrors_Next:
                 return [];
             }
 
-            return BuildVariableValueSets(combined, requestVariables, requiredData);
+            return BuildVariableValueSets(
+                combined,
+                requestVariables,
+                requiredData,
+                preferSerializedVariables);
         }
     }
 
@@ -451,7 +463,8 @@ AddErrors_Next:
     private ImmutableArray<VariableValues> BuildVariableValueSets(
         List<CompositeResultElement> elements,
         IReadOnlyList<ObjectFieldNode> requestVariables,
-        ReadOnlySpan<OperationRequirement> requiredData)
+        ReadOnlySpan<OperationRequirement> requiredData,
+        bool preferSerializedVariables)
     {
         PooledArrayWriter? buffer = null;
 
@@ -462,6 +475,7 @@ AddErrors_Next:
                 1 => BuildVariableValueSetsSingleRequirement(
                     elements,
                     requiredData[0],
+                    preferSerializedVariables,
                     ref buffer),
 
                 2 => BuildVariableValueSetsTwoRequirements(
@@ -537,9 +551,11 @@ AddErrors_Next:
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirement(
         List<CompositeResultElement> elements,
         OperationRequirement requirement,
+        bool preferSerializedVariables,
         ref PooledArrayWriter? buffer)
     {
-        if (TryGetSimpleRequirementFieldName(requirement.Map, out var fieldName))
+        if (preferSerializedVariables
+            && TryGetSimpleRequirementFieldName(requirement.Map, out var fieldName))
         {
             return BuildVariableValueSetsSingleRequirementFastPath(
                 elements,
@@ -558,8 +574,13 @@ AddErrors_Next:
         ref PooledArrayWriter? buffer)
     {
         VariableValues[]? variableValueSets = null;
-        Dictionary<IValueNode, int>? seen = null;
+        Dictionary<RawResultValueKey, int>? seen = null;
+        CompositeResultElement[]? dedupeValues = null;
         List<Path>?[]? additionalPaths = null;
+        int[]? serializedOffsets = null;
+        int[]? serializedLengths = null;
+        PooledArrayWriter? serializedBuffer = null;
+        JsonWriter? serializedWriter = null;
         var nextIndex = 0;
 
         foreach (var result in elements)
@@ -575,36 +596,92 @@ AddErrors_Next:
                 continue;
             }
 
-            var mappedValue = ResultDataMapper.MapLeafValue(value, ref buffer);
-            variableValueSets ??= new VariableValues[elements.Count];
+            var key = CreateRawResultValueKey(value);
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance)
+                seen ??= new Dictionary<RawResultValueKey, int>(RawResultValueKeyComparer.Instance)
                 {
-                    [variableValueSets[0].Values.Fields[0].Value] = 0
+                    [CreateRawResultValueKey(dedupeValues![0])] = 0
                 };
 
-                if (seen.TryGetValue(mappedValue, out var existingIndex))
+                if (seen.TryGetValue(key, out var existingIndex))
                 {
                     additionalPaths ??= new List<Path>?[elements.Count];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
                     continue;
                 }
-
-                seen[mappedValue] = nextIndex;
             }
 
-            variableValueSets[nextIndex++] = new VariableValues(
-                result.Path,
-                new ObjectValueNode([
-                    new ObjectFieldNode(
-                        requirement.Key,
-                        mappedValue)
-                ]));
+            variableValueSets ??= new VariableValues[elements.Count];
+            dedupeValues ??= new CompositeResultElement[elements.Count];
+            serializedOffsets ??= new int[elements.Count];
+            serializedLengths ??= new int[elements.Count];
+
+            serializedBuffer ??= new PooledArrayWriter();
+            serializedWriter ??= new JsonWriter(serializedBuffer, default);
+
+            var start = serializedBuffer.Length;
+
+            WriteSerializedSingleRequirementVariableSet(
+                serializedWriter,
+                serializedBuffer,
+                requirement.Key,
+                value);
+
+            var length = serializedBuffer.Length - start;
+
+            dedupeValues[nextIndex] = value;
+            serializedOffsets[nextIndex] = start;
+            serializedLengths[nextIndex] = length;
+            variableValueSets[nextIndex] = VariableValues.CreateSerialized(result.Path);
+
+            if (nextIndex > 0)
+            {
+                seen![key] = nextIndex;
+            }
+
+            nextIndex++;
+        }
+
+        if (variableValueSets is not null
+            && serializedBuffer is not null
+            && serializedOffsets is not null
+            && serializedLengths is not null)
+        {
+            var backingBuffer = PooledArrayWriterMarshal.GetUnderlyingBuffer(serializedBuffer);
+
+            for (var i = 0; i < nextIndex; i++)
+            {
+                variableValueSets[i] = variableValueSets[i] with
+                {
+                    SerializedValues = backingBuffer.AsMemory(serializedOffsets[i], serializedLengths[i])
+                };
+            }
+
+            _memory.Push(serializedBuffer);
         }
 
         return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
+    }
+
+    private static RawResultValueKey CreateRawResultValueKey(CompositeResultElement value)
+    {
+        var rawValue = value.GetRawValue(includeQuotes: true);
+        return new RawResultValueKey(value, XxHash64.HashToUInt64(rawValue));
+    }
+
+    private static void WriteSerializedSingleRequirementVariableSet(
+        JsonWriter writer,
+        PooledArrayWriter buffer,
+        string key,
+        CompositeResultElement value)
+    {
+        writer.Reset(buffer);
+        writer.WriteStartObject();
+        writer.WritePropertyName(key);
+        writer.WriteRawValue(value.GetRawValue(includeQuotes: true));
+        writer.WriteEndObject();
     }
 
     private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementSlowPath(
@@ -1279,12 +1356,29 @@ AddErrors_Next:
         return ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets);
     }
 
+    private readonly record struct RawResultValueKey(
+        CompositeResultElement Value,
+        ulong Hash);
+
     private readonly record struct TwoValueNodeTuple(IValueNode Value1, IValueNode Value2);
 
     private readonly record struct ThreeValueNodeTuple(
         IValueNode Value1,
         IValueNode Value2,
         IValueNode Value3);
+
+    private sealed class RawResultValueKeyComparer : IEqualityComparer<RawResultValueKey>
+    {
+        public static RawResultValueKeyComparer Instance { get; } = new();
+
+        public bool Equals(RawResultValueKey x, RawResultValueKey y)
+            => x.Hash == y.Hash
+                && x.Value.GetRawValue(includeQuotes: true)
+                    .SequenceEqual(y.Value.GetRawValue(includeQuotes: true));
+
+        public int GetHashCode(RawResultValueKey obj)
+            => obj.Hash.GetHashCode();
+    }
 
     private sealed class TwoValueNodeTupleComparer : IEqualityComparer<TwoValueNodeTuple>
     {

@@ -137,6 +137,25 @@ public sealed class GraphQLHttpRequest
         Uri = requestUri;
     }
 
+#if FUSION
+    /// <summary>
+    /// Initializes a new instance of <see cref="GraphQLHttpRequest"/> with a custom request body.
+    /// </summary>
+    /// <param name="body">
+    /// The GraphQL request body.
+    /// </param>
+    /// <param name="requestUri">
+    /// The GraphQL request URI.
+    /// </param>
+    public GraphQLHttpRequest(IRequestBody body, Uri? requestUri = null)
+    {
+        ArgumentNullException.ThrowIfNull(body);
+
+        Body = body;
+        Uri = requestUri;
+    }
+#endif
+
     /// <summary>
     /// Gets the request body.
     /// </summary>

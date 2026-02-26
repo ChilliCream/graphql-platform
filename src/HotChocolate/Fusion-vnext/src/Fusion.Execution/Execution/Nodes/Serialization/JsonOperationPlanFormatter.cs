@@ -414,7 +414,15 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
                 foreach (var variableSet in trace.VariableSets)
                 {
                     jsonWriter.WritePropertyName(variableSet.Path.ToString());
-                    WriteObjectValueNode(jsonWriter, variableSet.Values);
+
+                    if (variableSet.HasSerializedValues)
+                    {
+                        jsonWriter.WriteRawValue(variableSet.SerializedValues.Span, skipInputValidation: true);
+                    }
+                    else
+                    {
+                        WriteObjectValueNode(jsonWriter, variableSet.Values);
+                    }
                 }
 
                 jsonWriter.WriteEndObject();
