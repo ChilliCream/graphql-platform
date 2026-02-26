@@ -328,42 +328,9 @@ internal sealed class OperationPlanExecutor
 
     private static void RegisterBatchingGroups(OperationPlanContext context, OperationPlan plan)
     {
-        Dictionary<int, List<int>>? groups = null;
-
-        foreach (var executionNode in plan.AllNodes)
+        foreach (var group in plan.BatchingGroups)
         {
-            var groupId = executionNode switch
-            {
-                OperationExecutionNode n => n.BatchingGroupId,
-                OperationBatchExecutionNode n => n.BatchingGroupId,
-                _ => null
-            };
-
-            if (groupId is null)
-            {
-                continue;
-            }
-
-            groups ??= [];
-
-            if (!groups.TryGetValue(groupId.Value, out var nodeIds))
-            {
-                nodeIds = [];
-                groups.Add(groupId.Value, nodeIds);
-            }
-
-            nodeIds.Add(executionNode.Id);
-        }
-
-        if (groups is null)
-        {
-            return;
-        }
-
-        foreach (var (groupId, nodeIds) in groups)
-        {
-            nodeIds.TrimExcess();
-            context.SourceSchemaDispatcher.RegisterGroup(groupId, nodeIds);
+            context.SourceSchemaDispatcher.RegisterGroup(group.GroupId, group.NodeIds);
         }
     }
 }

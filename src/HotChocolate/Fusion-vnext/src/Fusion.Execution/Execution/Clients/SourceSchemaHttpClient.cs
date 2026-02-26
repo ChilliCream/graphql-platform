@@ -117,20 +117,20 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         var contentType = httpResponse.ContentHeaders.ContentType?.ToString() ?? "unknown";
         var isSuccessful = httpResponse.IsSuccessStatusCode;
 
-        var nodeResponsesByNodeId = new Dictionary<int, NodeResponse>(requests.Length);
+        var nodeResponses = new NodeResponse[requests.Length];
         var builder = ImmutableArray.CreateBuilder<SourceSchemaClientResponse>(requests.Length);
 
         for (var i = 0; i < requests.Length; i++)
         {
             var nodeResponse = new NodeResponse(uri, contentType, isSuccessful);
-            nodeResponsesByNodeId[requests[i].Node.Id] = nodeResponse;
+            nodeResponses[i] = nodeResponse;
             builder.Add(nodeResponse);
         }
 
         _ = ReadBatchStreamInBackgroundAsync(
                 context,
                 requests,
-                nodeResponsesByNodeId,
+                nodeResponses,
                 httpResponse,
                 cancellationToken);
 
@@ -290,7 +290,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     private async Task ReadBatchStreamInBackgroundAsync(
         OperationPlanContext context,
         ImmutableArray<SourceSchemaClientRequest> requests,
-        Dictionary<int, NodeResponse> nodeResponses,
+        NodeResponse[] nodeResponses,
         GraphQLHttpResponse httpResponse,
         CancellationToken cancellationToken)
     {
@@ -311,15 +311,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 }
 
                 var request = requests[requestIndex];
-
-                if (!nodeResponses.TryGetValue(request.Node.Id, out var nodeResponse))
-                {
-                    result.Dispose();
-                    throw new InvalidOperationException(
-                        string.Format(
-                            FusionExecutionResources.SourceSchemaHttpClient_NoResponseChannelForNode,
-                            request.Node.Id));
-                }
+                var nodeResponse = nodeResponses[requestIndex];
 
                 var variableIndex = ResolveVariableIndex(request, result);
 
@@ -338,15 +330,17 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
             // Stream completed successfully. Complete all channels, failing any
             // that never received results (fail-loud).
-            foreach (var (nodeId, nodeResponse) in nodeResponses)
+            for (var i = 0; i < nodeResponses.Length; i++)
             {
+                var nodeResponse = nodeResponses[i];
+
                 if (!nodeResponse.HasReceivedResults)
                 {
                     nodeResponse.Complete(
                         new InvalidOperationException(
                             string.Format(
                                 FusionExecutionResources.SourceSchemaHttpClient_NoResultForNode,
-                                nodeId)));
+                                requests[i].Node.Id)));
                 }
                 else
                 {
@@ -356,9 +350,9 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         }
         catch (Exception ex)
         {
-            foreach (var nodeResponse in nodeResponses.Values)
+            for (var i = 0; i < nodeResponses.Length; i++)
             {
-                nodeResponse.Complete(ex);
+                nodeResponses[i].Complete(ex);
             }
         }
         finally
@@ -499,8 +493,12 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         ImmutableArray<Path> additionalPaths,
         SourceResultDocument document)
     {
-        var sourceSchemaResult = new SourceSchemaResult(path, document);
-        _configuration.OnSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
+        var sourceSchemaResult = additionalPaths.IsDefaultOrEmpty
+            ? new SourceSchemaResult(path, document)
+            : new SourceSchemaResult(path, document, additionalPaths: additionalPaths);
+        var onSourceSchemaResult = _configuration.OnSourceSchemaResult;
+
+        onSourceSchemaResult?.Invoke(context, node, sourceSchemaResult);
 
         if (!nodeResponse.TryWrite(sourceSchemaResult))
         {
@@ -510,17 +508,15 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
         nodeResponse.HasReceivedResults = true;
 
+        if (onSourceSchemaResult is null || additionalPaths.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        // Preserve callback behavior for all logical result paths without enqueueing aliases.
         foreach (var additionalPath in additionalPaths)
         {
-            var alias = sourceSchemaResult.WithPath(additionalPath);
-            _configuration.OnSourceSchemaResult?.Invoke(context, node, alias);
-
-            if (!nodeResponse.TryWrite(alias))
-            {
-                // alias does not own the document (ownsDocument: false via WithPath),
-                // so no disposal needed for the alias itself.
-                return;
-            }
+            onSourceSchemaResult(context, node, sourceSchemaResult.WithPath(additionalPath));
         }
     }
 

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -196,6 +197,38 @@ public class ErrorMiddlewareTests
     }
 
     [Fact]
+    public async Task ErrorMiddleware_Should_MapMultipleConstructors_FirstEx()
+    {
+        // Arrange
+        var executor =
+            await BuildSchemaAsync(
+                () => throw new InvalidOperationException(),
+                field => field.Error<CustomErrorWithMultipleConstructors>());
+
+        // Act
+        var res = await executor.ExecuteAsync(Query);
+
+        // Assert
+        AssertMappedPayloadError(res, "InvalidOperationException");
+    }
+
+    [Fact]
+    public async Task ErrorMiddleware_Should_MapMultipleConstructors_SecondEx()
+    {
+        // Arrange
+        var executor =
+            await BuildSchemaAsync(
+                () => throw new NullReferenceException(),
+                field => field.Error<CustomErrorWithMultipleConstructors>());
+
+        // Act
+        var res = await executor.ExecuteAsync(Query);
+
+        // Assert
+        AssertMappedPayloadError(res, "NullReferenceException");
+    }
+
+    [Fact]
     public async Task ErrorMiddleware_Should_MapMultipleFactories_When_InterfaceIsUsed()
     {
         // Arrange
@@ -366,6 +399,21 @@ public class ErrorMiddlewareTests
         }
     }
 
+    public class CustomErrorWithMultipleConstructors
+    {
+        public CustomErrorWithMultipleConstructors(InvalidOperationException _)
+        {
+            Message = "InvalidOperationException";
+        }
+
+        public CustomErrorWithMultipleConstructors(NullReferenceException _)
+        {
+            Message = "NullReferenceException";
+        }
+
+        public string Message { get; }
+    }
+
     public class CustomErrorPayloadErrorFactory
         : IPayloadErrorFactory<InvalidOperationException, CustomError>
         , IPayloadErrorFactory<NullReferenceException, CustomNullRef>
@@ -428,5 +476,21 @@ public class ErrorMiddlewareTests
     public class Payload
     {
         public string Foo() => "Bar";
+    }
+
+    private static void AssertMappedPayloadError(IExecutionResult result, string expectedMessage)
+    {
+        using var document = JsonDocument.Parse(result.ToJson());
+
+        Assert.False(document.RootElement.TryGetProperty("errors", out _));
+
+        var message = document.RootElement
+            .GetProperty("data")
+            .GetProperty("throw")
+            .GetProperty("errors")[0]
+            .GetProperty("message")
+            .GetString();
+
+        Assert.Equal(expectedMessage, message);
     }
 }

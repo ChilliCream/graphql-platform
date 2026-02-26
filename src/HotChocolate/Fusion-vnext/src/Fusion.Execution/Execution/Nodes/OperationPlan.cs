@@ -1,4 +1,3 @@
-using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 using HotChocolate.Buffers;
@@ -14,7 +13,8 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public sealed record OperationPlan
 {
     private static readonly JsonOperationPlanFormatter s_formatter = new();
-    private readonly FrozenDictionary<int, ExecutionNode> _nodes = FrozenDictionary<int, ExecutionNode>.Empty;
+    private readonly ExecutionNode?[] _nodesById = [];
+    private readonly ImmutableArray<BatchingGroupRegistration> _batchingGroups;
 
     private OperationPlan(
         string id,
@@ -30,7 +30,8 @@ public sealed record OperationPlan
         AllNodes = allNodes;
         SearchSpace = searchSpace;
         ExpandedNodes = expandedNodes;
-        _nodes = allNodes.ToFrozenDictionary(t => t.Id);
+        _nodesById = CreateNodeLookup(allNodes);
+        _batchingGroups = CreateBatchingGroups(allNodes);
     }
 
     /// <summary>
@@ -75,13 +76,28 @@ public sealed record OperationPlan
     public int ExpandedNodes { get; }
 
     /// <summary>
+    /// The batching groups derived from the execution nodes in this plan. Each group contains
+    /// the IDs of nodes that belong to the same batch and should be executed together.
+    /// </summary>
+    internal ImmutableArray<BatchingGroupRegistration> BatchingGroups
+        => _batchingGroups;
+
+    /// <summary>
     /// Retrieves an execution node by its unique identifier.
     /// </summary>
     /// <param name="id">The unique identifier of the execution node is unique within this plan.</param>
     /// <returns>The execution node with the specified identifier.</returns>
     /// <exception cref="KeyNotFoundException">Thrown when no node with the specified ID exists.</exception>
     public ExecutionNode GetNodeById(int id)
-        => _nodes[id];
+    {
+        if ((uint)id < (uint)_nodesById.Length
+            && _nodesById[id] is { } node)
+        {
+            return node;
+        }
+
+        throw new KeyNotFoundException();
+    }
 
     /// <summary>
     /// Creates a new operation plan with the specified identifier.
@@ -153,4 +169,77 @@ public sealed record OperationPlan
 
         return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace, expandedNodes);
     }
+
+    private static ImmutableArray<BatchingGroupRegistration> CreateBatchingGroups(
+        ImmutableArray<ExecutionNode> allNodes)
+    {
+        Dictionary<int, List<int>>? groups = null;
+
+        foreach (var executionNode in allNodes)
+        {
+            var groupId = executionNode switch
+            {
+                OperationExecutionNode n => n.BatchingGroupId,
+                OperationBatchExecutionNode n => n.BatchingGroupId,
+                _ => null
+            };
+
+            if (groupId is null)
+            {
+                continue;
+            }
+
+            groups ??= [];
+
+            if (!groups.TryGetValue(groupId.Value, out var nodeIds))
+            {
+                nodeIds = [];
+                groups.Add(groupId.Value, nodeIds);
+            }
+
+            nodeIds.Add(executionNode.Id);
+        }
+
+        if (groups is null)
+        {
+            return [];
+        }
+
+        var registrations = ImmutableArray.CreateBuilder<BatchingGroupRegistration>(groups.Count);
+
+        foreach (var (groupId, nodeIds) in groups)
+        {
+            registrations.Add(new BatchingGroupRegistration(groupId, [.. nodeIds]));
+        }
+
+        return registrations.MoveToImmutable();
+    }
+
+    private static ExecutionNode?[] CreateNodeLookup(ImmutableArray<ExecutionNode> allNodes)
+    {
+        if (allNodes.IsDefaultOrEmpty)
+        {
+            return [];
+        }
+
+        var maxId = 0;
+
+        foreach (var node in allNodes)
+        {
+            maxId = Math.Max(maxId, node.Id);
+        }
+
+        var nodesById = new ExecutionNode?[maxId + 1];
+
+        foreach (var node in allNodes)
+        {
+            nodesById[node.Id] = node;
+        }
+
+        return nodesById;
+    }
+
+    internal readonly record struct BatchingGroupRegistration(
+        int GroupId,
+        int[] NodeIds);
 }
