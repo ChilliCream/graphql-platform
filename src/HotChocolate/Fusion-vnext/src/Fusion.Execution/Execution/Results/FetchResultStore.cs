@@ -675,6 +675,8 @@ AddErrors_Next:
         VariableValues[]? variableValueSets = null;
         Dictionary<IValueNode, int>? seen = null;
         Dictionary<string, int>? seenStrings = null;
+        string? firstStringValue = null;
+        var firstStringIndex = -1;
         List<Path>?[]? additionalPaths = null;
         var nextIndex = 0;
 
@@ -706,9 +708,29 @@ AddErrors_Next:
                     continue;
                 }
 
+                if (firstStringIndex >= 0
+                    && string.Equals(firstStringValue, stringValue, StringComparison.Ordinal))
+                {
+                    additionalPaths ??= new List<Path>?[elements.Count];
+                    (additionalPaths[firstStringIndex] ??= []).Add(result.Path);
+                    continue;
+                }
+
                 mappedValue = ResultDataMapper.GetStringValueNode(stringValue);
-                seenStrings ??= new Dictionary<string, int>(StringComparer.Ordinal);
-                seenStrings[stringValue] = nextIndex;
+
+                if (firstStringIndex < 0)
+                {
+                    firstStringValue = stringValue;
+                    firstStringIndex = nextIndex;
+                }
+                else
+                {
+                    seenStrings ??= new Dictionary<string, int>(StringComparer.Ordinal)
+                    {
+                        [firstStringValue!] = firstStringIndex
+                    };
+                    seenStrings[stringValue] = nextIndex;
+                }
             }
             else
             {
