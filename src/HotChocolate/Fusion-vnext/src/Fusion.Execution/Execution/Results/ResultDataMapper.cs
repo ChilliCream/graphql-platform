@@ -79,32 +79,65 @@ internal static class ResultDataMapper
         // system we would need to also cover raw field results.
         if (result.Selection is { IsLeaf: true })
         {
-            if (resultValueKind is JsonValueKind.Array)
-            {
-                var items = new List<IValueNode>();
-                context.Writer ??= new PooledArrayWriter();
-                var parser = new JsonValueParser(buffer: context.Writer);
-
-                foreach (var item in result.EnumerateArray())
-                {
-                    if (item.ValueKind is JsonValueKind.Null)
-                    {
-                        items.Add(NullValueNode.Default);
-                        continue;
-                    }
-
-                    items.Add(parser.Parse(item.GetRawValue(includeQuotes: true)));
-                }
-
-                return new ListValueNode(items);
-            }
-
-            context.Writer ??= new PooledArrayWriter();
-            var scalarParser = new JsonValueParser(buffer: context.Writer);
-            return scalarParser.Parse(result.GetRawValue(includeQuotes: true));
+            return MapLeafValue(result, ref context.Writer);
         }
 
         throw new InvalidSelectionMapPathException(node);
+    }
+
+    internal static IValueNode MapLeafValue(
+        CompositeResultElement value,
+        ref PooledArrayWriter? writer)
+    {
+        if (value.ValueKind is JsonValueKind.Array)
+        {
+            var items = new List<IValueNode>(value.GetArrayLength());
+            var parser = default(JsonValueParser);
+            var parserInitialized = false;
+
+            foreach (var item in value.EnumerateArray())
+            {
+                items.Add(ParseLeafValue(item, ref writer, ref parser, ref parserInitialized));
+            }
+
+            return new ListValueNode(items);
+        }
+
+        var scalarParser = default(JsonValueParser);
+        var scalarParserInitialized = false;
+        return ParseLeafValue(value, ref writer, ref scalarParser, ref scalarParserInitialized);
+    }
+
+    private static IValueNode ParseLeafValue(
+        CompositeResultElement value,
+        ref PooledArrayWriter? writer,
+        ref JsonValueParser parser,
+        ref bool parserInitialized)
+    {
+        switch (value.ValueKind)
+        {
+            case JsonValueKind.Null:
+                return NullValueNode.Default;
+
+            case JsonValueKind.True:
+                return BooleanValueNode.True;
+
+            case JsonValueKind.False:
+                return BooleanValueNode.False;
+
+            case JsonValueKind.String:
+                return new StringValueNode(value.AssertString());
+
+            default:
+                writer ??= new PooledArrayWriter();
+                if (!parserInitialized)
+                {
+                    parser = new JsonValueParser(buffer: writer);
+                    parserInitialized = true;
+                }
+
+                return parser.Parse(value.GetRawValue(includeQuotes: true));
+        }
     }
 
     private static IValueNode? Visit(ObjectValueSelectionNode node, Context context)
@@ -117,7 +150,7 @@ internal static class ResultDataMapper
             throw new InvalidOperationException("Only object results are supported.");
         }
 
-        var fields = new List<ObjectFieldNode>();
+        var fields = new List<ObjectFieldNode>(node.Fields.Length);
 
         foreach (var field in node.Fields)
         {
@@ -133,7 +166,6 @@ internal static class ResultDataMapper
             fields.Add(new ObjectFieldNode(field.Name.Value, value));
         }
 
-        fields.Capacity = fields.Count;
         return new ObjectValueNode(fields);
     }
 
@@ -165,7 +197,7 @@ internal static class ResultDataMapper
             return null;
         }
 
-        var items = new List<IValueNode>();
+        var items = new List<IValueNode>(result.GetArrayLength());
 
         foreach (var item in result.EnumerateArray())
         {

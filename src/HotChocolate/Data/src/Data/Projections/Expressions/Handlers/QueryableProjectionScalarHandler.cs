@@ -9,7 +9,7 @@ public class QueryableProjectionScalarHandler
     : QueryableProjectionHandlerBase
 {
     public override bool CanHandle(Selection selection)
-        => selection.Field.Member is not null && selection.IsLeaf;
+        => selection.IsLeaf && CanProjectMember(selection);
 
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
