@@ -37,7 +37,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         Context context,
         ITypeDefinition type,
         SelectionSetNode selectionSetNode,
-        SelectionSetNode? providedSelectionSetNode)
+        SelectionSetNode? providedSelectionSetNode,
+        bool bubbleUnresolvableToParent = false)
     {
         var complexType = type as FusionComplexTypeDefinition;
         List<ISelectionNode>? resolvableSelections = null;
@@ -117,16 +118,19 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                     ..unresolvableSelections];
             }
 
-            var unresolvableSelectionSet = new SelectionSetNode(unresolvableSelections);
-            context.Register(selectionSetNode, unresolvableSelectionSet);
+            if (!bubbleUnresolvableToParent)
+            {
+                var unresolvableSelectionSet = new SelectionSetNode(unresolvableSelections);
+                context.Register(selectionSetNode, unresolvableSelectionSet);
 
-            var selectionSet = new SelectionSet(
-                context.GetId(selectionSetNode),
-                unresolvableSelectionSet,
-                type,
-                context.BuildPath());
-            context.Unresolvable = context.Unresolvable.Push(selectionSet);
-            unresolvableSelections = null;
+                var selectionSet = new SelectionSet(
+                    context.GetId(selectionSetNode),
+                    unresolvableSelectionSet,
+                    type,
+                    context.BuildPath());
+                context.Unresolvable = context.Unresolvable.Push(selectionSet);
+                unresolvableSelections = null;
+            }
         }
 
         resolvableSelections ??= [.. selectionSetNode.Selections];
@@ -298,7 +302,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 context,
                 typeCondition,
                 inlineFragmentNode.SelectionSet,
-                providedFieldNode);
+                providedFieldNode,
+                bubbleUnresolvableToParent: true);
 
         context.Nodes.Pop();
 
