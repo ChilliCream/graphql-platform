@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Execution.Clients.SourceSchemaClientCapabilities;
@@ -89,7 +90,7 @@ internal sealed class SourceSchemaRequestDispatcher
         }
 
         PendingRequest? pendingRequest = null;
-        List<PendingRequest>? pendingRequests = null;
+        ImmutableArray<PendingRequest> pendingRequests = [];
         var needsDispatch = false;
         Exception? abortError = null;
 
@@ -194,7 +195,7 @@ internal sealed class SourceSchemaRequestDispatcher
     /// <param name="nodeId">The execution node ID to skip.</param>
     public void SkipNode(int nodeId)
     {
-        List<PendingRequest>? pendingRequests = null;
+        ImmutableArray<PendingRequest> pendingRequests;
         var needsDispatch = false;
 
         lock (_sync)
@@ -283,10 +284,10 @@ internal sealed class SourceSchemaRequestDispatcher
         }
     }
 
-    private void BeginDispatchGroup(List<PendingRequest>? pendingRequests)
+    private void BeginDispatchGroup(ImmutableArray<PendingRequest> pendingRequests)
     {
         // if pending requests is 0 it mean the the whole group was skipped and we do not need to do anything.
-        if (pendingRequests is not { Count: > 0 })
+        if (pendingRequests.Length == 0)
         {
             return;
         }
@@ -295,11 +296,11 @@ internal sealed class SourceSchemaRequestDispatcher
         _ = DispatchGroupAsync(pendingRequests);
     }
 
-    private async Task DispatchGroupAsync(List<PendingRequest> pendingRequests)
+    private async Task DispatchGroupAsync(ImmutableArray<PendingRequest> pendingRequests)
     {
         try
         {
-            if (pendingRequests.Count == 1)
+            if (pendingRequests.Length == 1)
             {
                 var pendingRequest = pendingRequests[0];
 
@@ -356,13 +357,13 @@ internal sealed class SourceSchemaRequestDispatcher
 
     private async ValueTask DispatchBatchAsync(
         ISourceSchemaClient client,
-        List<PendingRequest> pendingRequests)
+        ImmutableArray<PendingRequest> pendingRequests)
     {
         try
         {
-            var requests = new SourceSchemaClientRequest[pendingRequests.Count];
+            var requests = new SourceSchemaClientRequest[pendingRequests.Length];
 
-            for (var i = 0; i < pendingRequests.Count; i++)
+            for (var i = 0; i < pendingRequests.Length; i++)
             {
                 requests[i] = pendingRequests[i].Request;
             }
@@ -373,13 +374,13 @@ internal sealed class SourceSchemaRequestDispatcher
                     _requestAborted)
                 .ConfigureAwait(false);
 
-            if (responses.Length != pendingRequests.Count)
+            if (responses.Length != pendingRequests.Length)
             {
                 throw new InvalidOperationException(
                     SourceSchemaRequestDispatcher_BatchResponseCountMismatch);
             }
 
-            for (var i = 0; i < pendingRequests.Count; i++)
+            for (var i = 0; i < pendingRequests.Length; i++)
             {
                 var pendingRequest = pendingRequests[i];
                 var response = responses[i];
@@ -534,16 +535,23 @@ internal sealed class SourceSchemaRequestDispatcher
             }
         }
 
-        public bool TryCreateDispatch(out List<PendingRequest>? pendingRequests)
+        public bool TryCreateDispatch(out ImmutableArray<PendingRequest> pendingRequests)
         {
             if (_dispatchCreated || _remainingNodes > 0)
             {
-                pendingRequests = null;
+                pendingRequests = [];
                 return false;
             }
 
             _dispatchCreated = true;
-            pendingRequests = _pendingRequests;
+
+            if (_pendingRequests.Count == 0)
+            {
+                pendingRequests = [];
+                return true;
+            }
+
+            pendingRequests = [.. _pendingRequests];
             return true;
         }
     }
