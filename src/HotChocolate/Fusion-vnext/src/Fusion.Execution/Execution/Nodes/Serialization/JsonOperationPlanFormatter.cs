@@ -4,8 +4,6 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Buffers;
-using HotChocolate.Language;
-using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
@@ -414,7 +412,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
                 foreach (var variableSet in trace.VariableSets)
                 {
                     jsonWriter.WritePropertyName(variableSet.Path.ToString());
-                    WriteObjectValueNode(jsonWriter, variableSet.Values);
+                    WriteJson(jsonWriter, variableSet.Variables.Span);
                 }
 
                 jsonWriter.WriteEndObject();
@@ -449,69 +447,82 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         }
     }
 
-    private static void WriteObjectValueNode(Utf8JsonWriter jsonWriter, ObjectValueNode node)
+    private static void WriteJson(Utf8JsonWriter writer, ReadOnlySpan<byte> json)
     {
-        jsonWriter.WriteStartObject();
+        var reader = new Utf8JsonReader(json);
 
-        foreach (var field in node.Fields)
+        while (reader.Read())
         {
-            if (field.Value is FileReferenceNode)
+            switch (reader.TokenType)
             {
-                continue;
+                case JsonTokenType.StartObject:
+                    writer.WriteStartObject();
+                    break;
+
+                case JsonTokenType.EndObject:
+                    writer.WriteEndObject();
+                    break;
+
+                case JsonTokenType.StartArray:
+                    writer.WriteStartArray();
+                    break;
+
+                case JsonTokenType.EndArray:
+                    writer.WriteEndArray();
+                    break;
+
+                case JsonTokenType.PropertyName:
+                    if (reader.ValueIsEscaped)
+                    {
+                        var propertyName = reader.GetString();
+
+                        if (propertyName is null)
+                        {
+                            throw new InvalidOperationException("The JSON property name is null.");
+                        }
+
+                        writer.WritePropertyName(propertyName);
+                    }
+                    else
+                    {
+                        writer.WritePropertyName(reader.ValueSpan);
+                    }
+                    break;
+
+                case JsonTokenType.String:
+                    if (reader.ValueIsEscaped)
+                    {
+                        var stringValue = reader.GetString();
+
+                        if (stringValue is null)
+                        {
+                            throw new InvalidOperationException("The JSON string value is null.");
+                        }
+
+                        writer.WriteStringValue(stringValue);
+                    }
+                    else
+                    {
+                        writer.WriteStringValue(reader.ValueSpan);
+                    }
+                    break;
+
+                case JsonTokenType.Number:
+                    writer.WriteRawValue(reader.ValueSpan);
+                    break;
+
+                case JsonTokenType.True:
+                    writer.WriteBooleanValue(true);
+                    break;
+
+                case JsonTokenType.False:
+                    writer.WriteBooleanValue(false);
+                    break;
+
+                case JsonTokenType.Null:
+                    writer.WriteNullValue();
+                    break;
             }
-
-            jsonWriter.WritePropertyName(field.Name.Value);
-            WriteValueNode(jsonWriter, field.Value);
-        }
-
-        jsonWriter.WriteEndObject();
-    }
-
-    private static void WriteValueNode(Utf8JsonWriter jsonWriter, IValueNode value)
-    {
-        switch (value)
-        {
-            case EnumValueNode enumValue:
-                jsonWriter.WriteStringValue(enumValue.Value);
-                break;
-
-            case FloatValueNode floatValue:
-                jsonWriter.WriteRawValue(floatValue.AsSpan());
-                break;
-
-            case IntValueNode intValue:
-                jsonWriter.WriteRawValue(intValue.AsSpan());
-                break;
-
-            case BooleanValueNode booleanValue:
-                jsonWriter.WriteBooleanValue(booleanValue.Value);
-                break;
-
-            case ListValueNode listValue:
-                jsonWriter.WriteStartArray();
-
-                foreach (var item in listValue.Items)
-                {
-                    WriteValueNode(jsonWriter, item);
-                }
-
-                jsonWriter.WriteEndArray();
-                break;
-
-            case NullValueNode:
-                jsonWriter.WriteNullValue();
-                break;
-
-            case ObjectValueNode objectValue:
-                WriteObjectValueNode(jsonWriter, objectValue);
-                break;
-
-            case StringValueNode stringValue:
-                jsonWriter.WriteStringValue(stringValue.AsSpan());
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(value));
         }
     }
 }

@@ -295,7 +295,13 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             sb.Append(GetErrorHandlingModeAsString(errorHandlingMode));
         }
 
-        if (or.VariablesNode is not null)
+        if (or.VariablesJson is { } variablesJson)
+        {
+            AppendAmpersand(sb, ref appendAmpersand);
+            sb.Append("variables=");
+            sb.Append(Uri.EscapeDataString(Encoding.UTF8.GetString(variablesJson.Span)));
+        }
+        else if (or.VariablesNode is not null)
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("variables=");

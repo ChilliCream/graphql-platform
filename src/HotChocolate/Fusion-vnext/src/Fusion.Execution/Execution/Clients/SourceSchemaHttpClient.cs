@@ -160,8 +160,12 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 };
 
             case 1:
-                var variableValues = originalRequest.Variables[0].Values;
-                return new GraphQLHttpRequest(CreateSingleRequest(operationSourceText, variableValues))
+                var variableValues = originalRequest.Variables[0];
+                return new GraphQLHttpRequest(
+                    CreateSingleRequest(
+                        operationSourceText,
+                        variableValues.Variables.Memory,
+                        variableValues.FileMapVariables))
                 {
                     Uri = _configuration.BaseAddress,
                     Accept = defaultAccept,
@@ -230,8 +234,11 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 return CreateSingleRequest(operationSourceText);
 
             case 1:
-                var variableValues = originalRequest.Variables[0].Values;
-                return CreateSingleRequest(operationSourceText, variableValues);
+                var variableValues = originalRequest.Variables[0];
+                return CreateSingleRequest(
+                    operationSourceText,
+                    variableValues.Variables.Memory,
+                    variableValues.FileMapVariables);
 
             default:
                 return CreateVariableBatchRequest(operationSourceText, originalRequest);
@@ -240,15 +247,28 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
     private static OperationRequest CreateSingleRequest(
         string operationSourceText,
+        ReadOnlyMemory<byte> variablesJson = default,
         ObjectValueNode? variables = null)
     {
+        if (variablesJson.IsEmpty && variables is null)
+        {
+            return new OperationRequest(
+                operationSourceText,
+                id: null,
+                operationName: null,
+                onError: null,
+                variables: (ObjectValueNode?)null,
+                extensions: null);
+        }
+
         return new OperationRequest(
             operationSourceText,
             id: null,
             operationName: null,
             onError: null,
-            variables: variables,
-            extensions: null);
+            variablesJson: variablesJson,
+            extensions: null,
+            variables: variables);
     }
 
     private static OperationBatchRequest CreateOperationBatchRequest(
@@ -259,9 +279,11 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
         for (var i = 0; i < requests.Length; i++)
         {
+            var variableValue = originalRequest.Variables[i];
             requests[i] = CreateSingleRequest(
                 operationSourceText,
-                originalRequest.Variables[i].Values);
+                variableValue.Variables.Memory,
+                variableValue.FileMapVariables);
         }
 
         return new OperationBatchRequest(requests);
@@ -271,11 +293,24 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         string operationSourceText,
         SourceSchemaClientRequest originalRequest)
     {
-        var variables = new ObjectValueNode[originalRequest.Variables.Length];
+        var variables = new ReadOnlyMemory<byte>[originalRequest.Variables.Length];
+        ObjectValueNode[]? fileMapVariables =
+            originalRequest.Variables.Length > 0
+                && originalRequest.Variables[0].FileMapVariables is not null
+                    ? new ObjectValueNode[originalRequest.Variables.Length]
+                    : null;
 
         for (var i = 0; i < originalRequest.Variables.Length; i++)
         {
-            variables[i] = originalRequest.Variables[i].Values;
+            var variableValue = originalRequest.Variables[i];
+            variables[i] = variableValue.Variables.Memory;
+
+            if (fileMapVariables is not null)
+            {
+                fileMapVariables[i] = variableValue.FileMapVariables
+                    ?? throw new InvalidOperationException(
+                        "Expected file-map variables for all variable value sets.");
+            }
         }
 
         return new VariableBatchRequest(
@@ -283,8 +318,9 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             id: null,
             operationName: null,
             onError: null,
-            variables: variables,
-            extensions: null);
+            variablesJson: variables,
+            extensions: null,
+            variables: fileMapVariables);
     }
 
     private async Task ReadBatchStreamInBackgroundAsync(

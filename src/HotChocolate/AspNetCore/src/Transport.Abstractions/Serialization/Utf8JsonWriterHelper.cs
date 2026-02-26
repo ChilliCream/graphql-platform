@@ -73,7 +73,12 @@ internal static class Utf8JsonWriterHelper
             WriteFieldValue(writer, request.Extensions);
         }
 
-        if (request.VariablesNode is not null)
+        if (request.VariablesJson is { } variablesJson)
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
+            WriteJsonBytes(writer, variablesJson.Span);
+        }
+        else if (request.VariablesNode is not null)
         {
             writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
             WriteFieldValue(writer, request.VariablesNode);
@@ -124,7 +129,19 @@ internal static class Utf8JsonWriterHelper
             WriteFieldValue(writer, request.Extensions);
         }
 
-        if (request.VariablesNode is not null)
+        if (request.VariablesJson is not null)
+        {
+            writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
+            writer.WriteStartArray();
+
+            for (var i = 0; i < request.VariablesJson.Count; i++)
+            {
+                WriteJsonBytes(writer, request.VariablesJson[i].Span);
+            }
+
+            writer.WriteEndArray();
+        }
+        else if (request.VariablesNode is not null)
         {
             writer.WritePropertyName(Utf8GraphQLRequestProperties.VariablesProp);
             WriteFieldValue(writer, request.VariablesNode);
@@ -136,6 +153,85 @@ internal static class Utf8JsonWriterHelper
         }
 
         writer.WriteEndObject();
+    }
+
+    private static void WriteJsonBytes(Utf8JsonWriter writer, ReadOnlySpan<byte> json)
+    {
+        var reader = new Utf8JsonReader(json);
+
+        while (reader.Read())
+        {
+            switch (reader.TokenType)
+            {
+                case JsonTokenType.StartObject:
+                    writer.WriteStartObject();
+                    break;
+
+                case JsonTokenType.EndObject:
+                    writer.WriteEndObject();
+                    break;
+
+                case JsonTokenType.StartArray:
+                    writer.WriteStartArray();
+                    break;
+
+                case JsonTokenType.EndArray:
+                    writer.WriteEndArray();
+                    break;
+
+                case JsonTokenType.PropertyName:
+                    if (reader.ValueIsEscaped)
+                    {
+                        var propertyName = reader.GetString();
+
+                        if (propertyName is null)
+                        {
+                            throw new InvalidOperationException("The JSON property name is null.");
+                        }
+
+                        writer.WritePropertyName(propertyName);
+                    }
+                    else
+                    {
+                        writer.WritePropertyName(reader.ValueSpan);
+                    }
+                    break;
+
+                case JsonTokenType.String:
+                    if (reader.ValueIsEscaped)
+                    {
+                        var stringValue = reader.GetString();
+
+                        if (stringValue is null)
+                        {
+                            throw new InvalidOperationException("The JSON string value is null.");
+                        }
+
+                        writer.WriteStringValue(stringValue);
+                    }
+                    else
+                    {
+                        writer.WriteStringValue(reader.ValueSpan);
+                    }
+                    break;
+
+                case JsonTokenType.Number:
+                    writer.WriteRawValue(reader.ValueSpan);
+                    break;
+
+                case JsonTokenType.True:
+                    writer.WriteBooleanValue(true);
+                    break;
+
+                case JsonTokenType.False:
+                    writer.WriteBooleanValue(false);
+                    break;
+
+                case JsonTokenType.Null:
+                    writer.WriteNullValue();
+                    break;
+            }
+        }
     }
 
     internal static void WriteFieldValue(

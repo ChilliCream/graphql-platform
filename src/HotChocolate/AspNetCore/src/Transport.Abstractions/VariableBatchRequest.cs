@@ -53,6 +53,48 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     /// Initializes a new instance of the <see cref="OperationRequest"/> struct.
     /// </summary>
     /// <param name="query">
+    /// The query document containing the operation to execute.
+    /// </param>
+    /// <param name="id">
+    /// The ID of a previously persisted operation that should be executed.
+    /// </param>
+    /// <param name="operationName">
+    /// The name of the operation to execute.
+    /// </param>
+    /// <param name="onError">
+    /// The requested error handling mode.
+    /// </param>
+    /// <param name="variablesJson">
+    /// The pre-serialized JSON variable value sets.
+    /// </param>
+    /// <param name="extensions">
+    /// A dictionary containing extension values to include with the operation.
+    /// </param>
+    /// <param name="variables">
+    /// Optional variables nodes, used for advanced cases like file mapping.
+    /// </param>
+    public VariableBatchRequest(
+        string? query,
+        string? id,
+        string? operationName,
+        ErrorHandlingMode? onError,
+        IReadOnlyList<ReadOnlyMemory<byte>> variablesJson,
+        ObjectValueNode? extensions,
+        IReadOnlyList<ObjectValueNode>? variables = null)
+    {
+        Query = query;
+        Id = id;
+        OperationName = operationName;
+        OnError = onError;
+        VariablesJson = variablesJson;
+        VariablesNode = variables;
+        ExtensionsNode = extensions;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OperationRequest"/> struct.
+    /// </summary>
+    /// <param name="query">
     /// The query string containing the operation to execute.
     /// </param>
     /// <param name="id">
@@ -121,6 +163,11 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
     public IReadOnlyList<ObjectValueNode>? VariablesNode { get; }
 
     /// <summary>
+    /// Gets pre-serialized JSON variable value sets.
+    /// </summary>
+    public IReadOnlyList<ReadOnlyMemory<byte>>? VariablesJson { get; }
+
+    /// <summary>
     /// Gets a dictionary containing extension values to include with the operation.
     /// </summary>
     public IReadOnlyDictionary<string, object?>? Extensions { get; }
@@ -163,6 +210,7 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
         return Id == other.Id
             && Query == other.Query
             && Equals(Variables, other.Variables)
+            && Equals(VariablesJson, other.VariablesJson)
             && Equals(Extensions, other.Extensions)
             && Equals(VariablesNode, other.VariablesNode)
             && Equals(ExtensionsNode, other.ExtensionsNode);
@@ -174,7 +222,14 @@ public sealed class VariableBatchRequest : IOperationRequest, IEquatable<Variabl
 
     /// <inheritdoc/>
     public override int GetHashCode()
-        => HashCode.Combine(Id, Query, Variables, Extensions, VariablesNode, ExtensionsNode);
+        => HashCode.Combine(
+            Id,
+            Query,
+            Variables,
+            VariablesJson,
+            Extensions,
+            VariablesNode,
+            ExtensionsNode);
 
     /// <summary>
     /// Determines whether two <see cref="OperationRequest"/> objects are equal.

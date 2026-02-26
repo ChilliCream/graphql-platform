@@ -2,6 +2,8 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Features;
@@ -13,6 +15,8 @@ using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
+using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
@@ -166,14 +170,14 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         => RequestContext.Schema.Features.GetRequired<NodeFallbackLookup>()
             .TryGetNodeLookupSchemaForType(typeName, out schemaName);
 
-    internal void TrackVariableValueSets(ExecutionNode node, ImmutableArray<VariableValues> variableValueSets)
+    internal void TrackVariableValueSets(ExecutionNode node, VariableValueSets variableValueSets)
     {
-        if (!CollectTelemetry || variableValueSets.IsEmpty)
+        if (!CollectTelemetry || variableValueSets.Values.IsEmpty)
         {
             return;
         }
 
-        _variableValueSets[node.Id] = variableValueSets;
+        _variableValueSets[node.Id] = CopyVariableValueSets(variableValueSets.Values);
     }
 
     internal ImmutableArray<VariableValues> GetVariableValueSets(ExecutionNode node)
@@ -211,7 +215,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     internal void CompleteNode(ExecutionNodeResult result)
         => _executionState.EnqueueForCompletion(result);
 
-    internal ImmutableArray<VariableValues> CreateVariableValueSets(
+    internal VariableValueSets CreateVariableValueSets(
         SelectionPath selectionSet,
         ReadOnlySpan<string> forwardedVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
@@ -222,11 +226,43 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         {
             if (forwardedVariables.Length == 0)
             {
-                return [];
+                return VariableValueSets.Empty;
             }
 
             var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [new VariableValues(Path.Root, new ObjectValueNode(variableValues))];
+            var buffer = new PooledArrayWriter();
+
+            try
+            {
+                var writer = new JsonWriter(buffer, new JsonWriterOptions());
+                writer.WriteStartObject();
+
+                for (var i = 0; i < variableValues.Count; i++)
+                {
+                    var field = variableValues[i];
+                    writer.WritePropertyName(field.Name.Value);
+                    WriteValueNode(writer, field.Value);
+                }
+
+                writer.WriteEndObject();
+
+                var fileMapVariables = ContainsFileReference(variableValues)
+                    ? new ObjectValueNode(variableValues)
+                    : null;
+
+                var values = ImmutableArray.Create(
+                    new VariableValues(
+                        Path.Root,
+                        buffer.GetWrittenMemorySegment(0, buffer.Length),
+                        fileMapVariables));
+
+                return new VariableValueSets(values, buffer);
+            }
+            catch
+            {
+                buffer.Dispose();
+                throw;
+            }
         }
         else
         {
@@ -235,7 +271,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal ImmutableArray<VariableValues> CreateVariableValueSets(
+    internal VariableValueSets CreateVariableValueSets(
         ReadOnlySpan<SelectionPath> selectionSets,
         ReadOnlySpan<string> forwardedVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
@@ -244,11 +280,43 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         {
             if (forwardedVariables.Length == 0)
             {
-                return [];
+                return VariableValueSets.Empty;
             }
 
             var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [new VariableValues(Path.Root, new ObjectValueNode(variableValues))];
+            var buffer = new PooledArrayWriter();
+
+            try
+            {
+                var writer = new JsonWriter(buffer, new JsonWriterOptions());
+                writer.WriteStartObject();
+
+                for (var i = 0; i < variableValues.Count; i++)
+                {
+                    var field = variableValues[i];
+                    writer.WritePropertyName(field.Name.Value);
+                    WriteValueNode(writer, field.Value);
+                }
+
+                writer.WriteEndObject();
+
+                var fileMapVariables = ContainsFileReference(variableValues)
+                    ? new ObjectValueNode(variableValues)
+                    : null;
+
+                var values = ImmutableArray.Create(
+                    new VariableValues(
+                        Path.Root,
+                        buffer.GetWrittenMemorySegment(0, buffer.Length),
+                        fileMapVariables));
+
+                return new VariableValueSets(values, buffer);
+            }
+            catch
+            {
+                buffer.Dispose();
+                throw;
+            }
         }
         else
         {
@@ -405,6 +473,137 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         return variables.Count == 0
             ? Array.Empty<ObjectFieldNode>()
             : variables;
+    }
+
+    private static ImmutableArray<VariableValues> CopyVariableValueSets(
+        ImmutableArray<VariableValues> variableValueSets)
+    {
+        if (variableValueSets.IsEmpty)
+        {
+            return [];
+        }
+
+        var copy = new VariableValues[variableValueSets.Length];
+
+        for (var i = 0; i < variableValueSets.Length; i++)
+        {
+            var variableSet = variableValueSets[i];
+
+            copy[i] = new VariableValues(
+                variableSet.Path,
+                new ReadOnlyMemorySegment(variableSet.Variables.Span.ToArray()),
+                variableSet.FileMapVariables)
+            {
+                AdditionalPaths = variableSet.AdditionalPaths
+            };
+        }
+
+        return ImmutableCollectionsMarshal.AsImmutableArray(copy);
+    }
+
+    private static void WriteValueNode(JsonWriter writer, IValueNode value)
+    {
+        switch (value)
+        {
+            case ObjectValueNode objectValue:
+                writer.WriteStartObject();
+
+                foreach (var field in objectValue.Fields)
+                {
+                    writer.WritePropertyName(field.Name.Value);
+                    WriteValueNode(writer, field.Value);
+                }
+
+                writer.WriteEndObject();
+                return;
+
+            case ListValueNode listValue:
+                writer.WriteStartArray();
+
+                foreach (var item in listValue.Items)
+                {
+                    WriteValueNode(writer, item);
+                }
+
+                writer.WriteEndArray();
+                return;
+
+            case StringValueNode stringValue:
+                writer.WriteStringValue(stringValue.AsSpan());
+                return;
+
+            case IntValueNode intValue:
+                writer.WriteNumberValue(intValue.AsSpan());
+                return;
+
+            case FloatValueNode floatValue:
+                writer.WriteNumberValue(floatValue.AsSpan());
+                return;
+
+            case BooleanValueNode booleanValue:
+                writer.WriteBooleanValue(booleanValue.Value);
+                return;
+
+            case EnumValueNode enumValue:
+                writer.WriteStringValue(enumValue.AsSpan());
+                return;
+
+            case FileReferenceNode:
+            case NullValueNode:
+                writer.WriteNullValue();
+                return;
+
+            default:
+                throw new NotSupportedException(
+                    $"The value node kind '{value.Kind}' is not supported.");
+        }
+    }
+
+    private static bool ContainsFileReference(IReadOnlyList<ObjectFieldNode> fields)
+    {
+        for (var i = 0; i < fields.Count; i++)
+        {
+            if (ContainsFileReference(fields[i].Value))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool ContainsFileReference(IValueNode value)
+    {
+        switch (value)
+        {
+            case FileReferenceNode:
+                return true;
+
+            case ObjectValueNode objectValue:
+                foreach (var field in objectValue.Fields)
+                {
+                    if (ContainsFileReference(field.Value))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+
+            case ListValueNode listValue:
+                foreach (var item in listValue.Items)
+                {
+                    if (ContainsFileReference(item))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+
+            default:
+                return false;
+        }
     }
 
     public ISourceSchemaClient GetClient(string schemaName, OperationType operationType)

@@ -2,7 +2,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+using System.IO.Hashing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -13,6 +13,8 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
+using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Results;
@@ -420,7 +422,7 @@ AddErrors_Next:
         return false;
     }
 
-    public ImmutableArray<VariableValues> CreateVariableValueSets(
+    public VariableValueSets CreateVariableValueSets(
         SelectionPath selectionSet,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
@@ -442,7 +444,7 @@ AddErrors_Next:
 
             if (elements is null)
             {
-                return [];
+                return VariableValueSets.Empty;
             }
 
             return BuildVariableValueSets(elements, requestVariables, requiredData);
@@ -455,7 +457,7 @@ AddErrors_Next:
     /// entities at different target locations that produce identical variable values are merged
     /// into a single <see cref="VariableValues"/> entry via <see cref="VariableValues.AdditionalPaths"/>.
     /// </summary>
-    public ImmutableArray<VariableValues> CreateVariableValueSets(
+    public VariableValueSets CreateVariableValueSets(
         ReadOnlySpan<SelectionPath> selectionSets,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
@@ -487,7 +489,7 @@ AddErrors_Next:
 
             if (combined.Count == 0)
             {
-                return [];
+                return VariableValueSets.Empty;
             }
 
             return BuildVariableValueSets(combined, requestVariables, requiredData);
@@ -563,643 +565,675 @@ AddErrors_Next:
         return current;
     }
 
-    private ImmutableArray<VariableValues> BuildVariableValueSets(
+    private VariableValueSets BuildVariableValueSets(
         List<CompositeResultElement> elements,
         IReadOnlyList<ObjectFieldNode> requestVariables,
         ReadOnlySpan<OperationRequirement> requiredData)
     {
-        PooledArrayWriter? buffer = null;
-
-        if (requestVariables.Count == 0)
-        {
-            var fastPathResult = requiredData.Length switch
-            {
-                1 => BuildVariableValueSetsSingleRequirement(
-                    elements,
-                    requiredData[0],
-                    ref buffer),
-
-                2 => BuildVariableValueSetsTwoRequirements(
-                    elements,
-                    requiredData[0],
-                    requiredData[1],
-                    ref buffer),
-
-                3 => BuildVariableValueSetsThreeRequirements(
-                    elements,
-                    requiredData[0],
-                    requiredData[1],
-                    requiredData[2],
-                    ref buffer),
-                _ => default
-            };
-
-            if (!fastPathResult.IsDefault)
-            {
-                if (buffer is not null)
-                {
-                    _memory.Push(buffer);
-                }
-
-                return fastPathResult;
-            }
-        }
+        var buffer = new PooledArrayWriter();
+        using var candidateBuffer = new PooledArrayWriter();
+        var candidateWriter = new JsonWriter(candidateBuffer, new JsonWriterOptions());
+        var fileMapVariables = ContainsFileReference(requestVariables)
+            ? new ObjectValueNode(requestVariables)
+            : null;
 
         VariableValues[]? variableValueSets = null;
-        Dictionary<ObjectValueNode, int>? seen = null;
+        Dictionary<ulong, List<int>>? seen = null;
         List<Path>?[]? additionalPaths = null;
         var nextIndex = 0;
 
-        foreach (var result in elements)
+        try
         {
-            var variables = MapRequirements(result, requestVariables, requiredData, ref buffer);
-
-            if (variables is null)
+            foreach (var result in elements)
             {
-                continue;
-            }
+                candidateBuffer.Reset();
+                candidateWriter.Reset(candidateBuffer);
+                candidateWriter.WriteStartObject();
 
-            variableValueSets ??= new VariableValues[elements.Count];
-
-            if (nextIndex > 0)
-            {
-                seen ??= new Dictionary<ObjectValueNode, int>(VariableValueComparer.Instance)
+                for (var i = 0; i < requestVariables.Count; i++)
                 {
-                    [variableValueSets[0].Values] = 0
-                };
+                    var field = requestVariables[i];
+                    candidateWriter.WritePropertyName(field.Name.Value);
+                    WriteValueNode(candidateWriter, field.Value);
+                }
 
-                if (seen.TryGetValue(variables, out var existingIndex))
+                var shouldSkip = false;
+
+                for (var i = 0; i < requiredData.Length; i++)
+                {
+                    var requirement = requiredData[i];
+                    candidateWriter.WritePropertyName(requirement.Key);
+
+                    var status = WriteMappedValue(candidateWriter, result, requirement.Map);
+
+                    if (status is MappingStatus.Missing
+                        || status is MappingStatus.Null
+                            && requirement.Type.Kind == SyntaxKind.NonNullType)
+                    {
+                        shouldSkip = true;
+                        break;
+                    }
+                }
+
+                if (shouldSkip)
+                {
+                    continue;
+                }
+
+                candidateWriter.WriteEndObject();
+
+                var candidate = candidateBuffer.WrittenSpan;
+                var hash = XxHash3.HashToUInt64(candidate);
+
+                if (TryGetExistingIndex(hash, candidate, variableValueSets, seen, out var existingIndex))
                 {
                     additionalPaths ??= new List<Path>?[elements.Count];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
                     continue;
                 }
 
-                seen[variables] = nextIndex;
-            }
+                variableValueSets ??= new VariableValues[elements.Count];
 
-            variableValueSets[nextIndex++] = new VariableValues(result.Path, variables);
-        }
+                var start = buffer.Length;
+                candidate.CopyTo(buffer.GetSpan(candidate.Length));
+                buffer.Advance(candidate.Length);
 
-        if (buffer is not null)
-        {
-            _memory.Push(buffer);
-        }
+                variableValueSets[nextIndex] = new VariableValues(
+                    result.Path,
+                    buffer.GetWrittenMemorySegment(start, candidate.Length),
+                    fileMapVariables);
 
-        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
-    }
+                seen ??= [];
 
-    private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirement(
-        List<CompositeResultElement> elements,
-        OperationRequirement requirement,
-        ref PooledArrayWriter? buffer)
-    {
-        if (TryGetSimpleRequirementFieldName(requirement.Map, out var fieldName))
-        {
-            return BuildVariableValueSetsSingleRequirementFastPath(
-                elements,
-                requirement,
-                fieldName,
-                ref buffer);
-        }
-
-        return BuildVariableValueSetsSingleRequirementSlowPath(elements, requirement, ref buffer);
-    }
-
-    private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementFastPath(
-        List<CompositeResultElement> elements,
-        OperationRequirement requirement,
-        string fieldName,
-        ref PooledArrayWriter? buffer)
-    {
-        VariableValues[]? variableValueSets = null;
-        Dictionary<IValueNode, int>? seen = null;
-        Dictionary<string, int>? seenStrings = null;
-        List<Path>?[]? additionalPaths = null;
-        var nextIndex = 0;
-
-        foreach (var result in elements)
-        {
-            if (!result.TryGetProperty(fieldName, out var value)
-                || value.ValueKind is JsonValueKind.Undefined)
-            {
-                continue;
-            }
-
-            if (value.ValueKind is JsonValueKind.Null && requirement.Type.Kind == SyntaxKind.NonNullType)
-            {
-                continue;
-            }
-
-            variableValueSets ??= new VariableValues[elements.Count];
-            IValueNode mappedValue;
-
-            if (value.ValueKind is JsonValueKind.String)
-            {
-                var stringValue = value.AssertString();
-
-                if (seenStrings is not null
-                    && seenStrings.TryGetValue(stringValue, out var existingIndex))
+                if (!seen.TryGetValue(hash, out var bucket))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Count];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
-                    continue;
+                    bucket = [];
+                    seen.Add(hash, bucket);
                 }
 
-                mappedValue = ResultDataMapper.GetStringValueNode(stringValue);
-                seenStrings ??= new Dictionary<string, int>(StringComparer.Ordinal);
-                seenStrings[stringValue] = nextIndex;
+                bucket.Add(nextIndex);
+                nextIndex++;
             }
-            else
-            {
-                mappedValue = ResultDataMapper.MapLeafValue(value, ref buffer);
 
-                if (seen is not null
-                    && seen.TryGetValue(mappedValue, out var existingIndex))
+            var values = FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
+
+            if (values.IsEmpty)
+            {
+                buffer.Dispose();
+                return VariableValueSets.Empty;
+            }
+
+            return new VariableValueSets(values, buffer);
+        }
+        catch
+        {
+            buffer.Dispose();
+            throw;
+        }
+    }
+
+    private static bool TryGetExistingIndex(
+        ulong hash,
+        ReadOnlySpan<byte> candidate,
+        VariableValues[]? variableValueSets,
+        Dictionary<ulong, List<int>>? seen,
+        out int existingIndex)
+    {
+        if (variableValueSets is not null
+            && seen is not null
+            && seen.TryGetValue(hash, out var bucket))
+        {
+            for (var i = 0; i < bucket.Count; i++)
+            {
+                var index = bucket[i];
+
+                if (variableValueSets[index].Variables.Span.SequenceEqual(candidate))
                 {
-                    additionalPaths ??= new List<Path>?[elements.Count];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
-                    continue;
+                    existingIndex = index;
+                    return true;
                 }
-
-                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance);
-                seen[mappedValue] = nextIndex;
             }
-
-            variableValueSets[nextIndex++] = new VariableValues(
-                result.Path,
-                new ObjectValueNode([
-                    new ObjectFieldNode(
-                        requirement.Key,
-                        mappedValue)
-                ]));
         }
 
-        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
-    }
-
-    private ImmutableArray<VariableValues> BuildVariableValueSetsSingleRequirementSlowPath(
-        List<CompositeResultElement> elements,
-        OperationRequirement requirement,
-        ref PooledArrayWriter? buffer)
-    {
-        VariableValues[]? variableValueSets = null;
-        Dictionary<IValueNode, int>? seen = null;
-        List<Path>?[]? additionalPaths = null;
-        var nextIndex = 0;
-
-        foreach (var result in elements)
-        {
-            var value = ResultDataMapper.Map(result, requirement.Map, _schema, ref buffer);
-
-            if (value is null)
-            {
-                continue;
-            }
-
-            if (value.Kind == SyntaxKind.NullValue && requirement.Type.Kind == SyntaxKind.NonNullType)
-            {
-                continue;
-            }
-
-            variableValueSets ??= new VariableValues[elements.Count];
-
-            if (nextIndex > 0)
-            {
-                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance)
-                {
-                    [variableValueSets[0].Values.Fields[0].Value] = 0
-                };
-
-                if (seen.TryGetValue(value, out var existingIndex))
-                {
-                    additionalPaths ??= new List<Path>?[elements.Count];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
-                    continue;
-                }
-
-                seen[value] = nextIndex;
-            }
-
-            variableValueSets[nextIndex++] = new VariableValues(
-                result.Path,
-                new ObjectValueNode([new ObjectFieldNode(requirement.Key, value)]));
-        }
-
-        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
-    }
-
-    private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirements(
-        List<CompositeResultElement> elements,
-        OperationRequirement requirement1,
-        OperationRequirement requirement2,
-        ref PooledArrayWriter? buffer)
-    {
-        if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
-            && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2))
-        {
-            return BuildVariableValueSetsTwoRequirementsFastPath(
-                elements,
-                requirement1,
-                fieldName1,
-                requirement2,
-                fieldName2,
-                ref buffer);
-        }
-
-        return BuildVariableValueSetsTwoRequirementsSlowPath(
-            elements,
-            requirement1,
-            requirement2,
-            ref buffer);
-    }
-
-    private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsFastPath(
-        List<CompositeResultElement> elements,
-        OperationRequirement requirement1,
-        string fieldName1,
-        OperationRequirement requirement2,
-        string fieldName2,
-        ref PooledArrayWriter? buffer)
-    {
-        VariableValues[]? variableValueSets = null;
-        Dictionary<TwoValueNodeTuple, int>? seen = null;
-        List<Path>?[]? additionalPaths = null;
-        var nextIndex = 0;
-
-        foreach (var result in elements)
-        {
-            if (!result.TryGetProperty(fieldName1, out var value1)
-                || value1.ValueKind is JsonValueKind.Undefined
-                || value1.ValueKind is JsonValueKind.Null
-                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
-            {
-                continue;
-            }
-
-            if (!result.TryGetProperty(fieldName2, out var value2)
-                || value2.ValueKind is JsonValueKind.Undefined
-                || value2.ValueKind is JsonValueKind.Null
-                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
-            {
-                continue;
-            }
-
-            var mappedValue1 = ResultDataMapper.MapLeafValue(value1, ref buffer);
-            var mappedValue2 = ResultDataMapper.MapLeafValue(value2, ref buffer);
-            variableValueSets ??= new VariableValues[elements.Count];
-            var key = new TwoValueNodeTuple(mappedValue1, mappedValue2);
-
-            if (nextIndex > 0)
-            {
-                seen ??= new Dictionary<TwoValueNodeTuple, int>(TwoValueNodeTupleComparer.Instance)
-                {
-                    [new TwoValueNodeTuple(
-                        variableValueSets[0].Values.Fields[0].Value,
-                        variableValueSets[0].Values.Fields[1].Value)] = 0
-                };
-
-                if (seen.TryGetValue(key, out var existingIndex))
-                {
-                    additionalPaths ??= new List<Path>?[elements.Count];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
-                    continue;
-                }
-
-                seen[key] = nextIndex;
-            }
-
-            variableValueSets[nextIndex++] = new VariableValues(
-                result.Path,
-                new ObjectValueNode([
-                    new ObjectFieldNode(requirement1.Key, mappedValue1),
-                    new ObjectFieldNode(requirement2.Key, mappedValue2)
-                ]));
-        }
-
-        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
-    }
-
-    private ImmutableArray<VariableValues> BuildVariableValueSetsTwoRequirementsSlowPath(
-        List<CompositeResultElement> elements,
-        OperationRequirement requirement1,
-        OperationRequirement requirement2,
-        ref PooledArrayWriter? buffer)
-    {
-        VariableValues[]? variableValueSets = null;
-        Dictionary<TwoValueNodeTuple, int>? seen = null;
-        List<Path>?[]? additionalPaths = null;
-        var nextIndex = 0;
-
-        foreach (var result in elements)
-        {
-            var value1 = ResultDataMapper.Map(result, requirement1.Map, _schema, ref buffer);
-
-            if (value1 is null
-                || value1.Kind == SyntaxKind.NullValue
-                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
-            {
-                continue;
-            }
-
-            var value2 = ResultDataMapper.Map(result, requirement2.Map, _schema, ref buffer);
-
-            if (value2 is null
-                || value2.Kind == SyntaxKind.NullValue
-                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
-            {
-                continue;
-            }
-
-            variableValueSets ??= new VariableValues[elements.Count];
-            var key = new TwoValueNodeTuple(value1, value2);
-
-            if (nextIndex > 0)
-            {
-                seen ??= new Dictionary<TwoValueNodeTuple, int>(TwoValueNodeTupleComparer.Instance)
-                {
-                    [new TwoValueNodeTuple(
-                        variableValueSets[0].Values.Fields[0].Value,
-                        variableValueSets[0].Values.Fields[1].Value)] = 0
-                };
-
-                if (seen.TryGetValue(key, out var existingIndex))
-                {
-                    additionalPaths ??= new List<Path>?[elements.Count];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
-                    continue;
-                }
-
-                seen[key] = nextIndex;
-            }
-
-            variableValueSets[nextIndex++] = new VariableValues(
-                result.Path,
-                new ObjectValueNode([
-                    new ObjectFieldNode(requirement1.Key, value1),
-                    new ObjectFieldNode(requirement2.Key, value2)
-                ]));
-        }
-
-        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
-    }
-
-    private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirements(
-        List<CompositeResultElement> elements,
-        OperationRequirement requirement1,
-        OperationRequirement requirement2,
-        OperationRequirement requirement3,
-        ref PooledArrayWriter? buffer)
-    {
-        if (TryGetSimpleRequirementFieldName(requirement1.Map, out var fieldName1)
-            && TryGetSimpleRequirementFieldName(requirement2.Map, out var fieldName2)
-            && TryGetSimpleRequirementFieldName(requirement3.Map, out var fieldName3))
-        {
-            return BuildVariableValueSetsThreeRequirementsFastPath(
-                elements,
-                requirement1,
-                fieldName1,
-                requirement2,
-                fieldName2,
-                requirement3,
-                fieldName3,
-                ref buffer);
-        }
-
-        return BuildVariableValueSetsThreeRequirementsSlowPath(
-            elements,
-            requirement1,
-            requirement2,
-            requirement3,
-            ref buffer);
-    }
-
-    private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsFastPath(
-        List<CompositeResultElement> elements,
-        OperationRequirement requirement1,
-        string fieldName1,
-        OperationRequirement requirement2,
-        string fieldName2,
-        OperationRequirement requirement3,
-        string fieldName3,
-        ref PooledArrayWriter? buffer)
-    {
-        VariableValues[]? variableValueSets = null;
-        Dictionary<ThreeValueNodeTuple, int>? seen = null;
-        List<Path>?[]? additionalPaths = null;
-        var nextIndex = 0;
-
-        foreach (var result in elements)
-        {
-            if (!result.TryGetProperty(fieldName1, out var value1)
-                || value1.ValueKind is JsonValueKind.Undefined
-                || value1.ValueKind is JsonValueKind.Null
-                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
-            {
-                continue;
-            }
-
-            if (!result.TryGetProperty(fieldName2, out var value2)
-                || value2.ValueKind is JsonValueKind.Undefined
-                || value2.ValueKind is JsonValueKind.Null
-                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
-            {
-                continue;
-            }
-
-            if (!result.TryGetProperty(fieldName3, out var value3)
-                || value3.ValueKind is JsonValueKind.Undefined
-                || value3.ValueKind is JsonValueKind.Null
-                    && requirement3.Type.Kind == SyntaxKind.NonNullType)
-            {
-                continue;
-            }
-
-            var mappedValue1 = ResultDataMapper.MapLeafValue(value1, ref buffer);
-            var mappedValue2 = ResultDataMapper.MapLeafValue(value2, ref buffer);
-            var mappedValue3 = ResultDataMapper.MapLeafValue(value3, ref buffer);
-            variableValueSets ??= new VariableValues[elements.Count];
-            var key = new ThreeValueNodeTuple(mappedValue1, mappedValue2, mappedValue3);
-
-            if (nextIndex > 0)
-            {
-                seen ??= new Dictionary<ThreeValueNodeTuple, int>(ThreeValueNodeTupleComparer.Instance)
-                {
-                    [new ThreeValueNodeTuple(
-                        variableValueSets[0].Values.Fields[0].Value,
-                        variableValueSets[0].Values.Fields[1].Value,
-                        variableValueSets[0].Values.Fields[2].Value)] = 0
-                };
-
-                if (seen.TryGetValue(key, out var existingIndex))
-                {
-                    additionalPaths ??= new List<Path>?[elements.Count];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
-                    continue;
-                }
-
-                seen[key] = nextIndex;
-            }
-
-            variableValueSets[nextIndex++] = new VariableValues(
-                result.Path,
-                new ObjectValueNode([
-                    new ObjectFieldNode(requirement1.Key, mappedValue1),
-                    new ObjectFieldNode(requirement2.Key, mappedValue2),
-                    new ObjectFieldNode(requirement3.Key, mappedValue3)
-                ]));
-        }
-
-        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
-    }
-
-    private ImmutableArray<VariableValues> BuildVariableValueSetsThreeRequirementsSlowPath(
-        List<CompositeResultElement> elements,
-        OperationRequirement requirement1,
-        OperationRequirement requirement2,
-        OperationRequirement requirement3,
-        ref PooledArrayWriter? buffer)
-    {
-        VariableValues[]? variableValueSets = null;
-        Dictionary<ThreeValueNodeTuple, int>? seen = null;
-        List<Path>?[]? additionalPaths = null;
-        var nextIndex = 0;
-
-        foreach (var result in elements)
-        {
-            var value1 = ResultDataMapper.Map(result, requirement1.Map, _schema, ref buffer);
-
-            if (value1 is null
-                || value1.Kind == SyntaxKind.NullValue
-                    && requirement1.Type.Kind == SyntaxKind.NonNullType)
-            {
-                continue;
-            }
-
-            var value2 = ResultDataMapper.Map(result, requirement2.Map, _schema, ref buffer);
-
-            if (value2 is null
-                || value2.Kind == SyntaxKind.NullValue
-                    && requirement2.Type.Kind == SyntaxKind.NonNullType)
-            {
-                continue;
-            }
-
-            var value3 = ResultDataMapper.Map(result, requirement3.Map, _schema, ref buffer);
-
-            if (value3 is null
-                || value3.Kind == SyntaxKind.NullValue
-                    && requirement3.Type.Kind == SyntaxKind.NonNullType)
-            {
-                continue;
-            }
-
-            variableValueSets ??= new VariableValues[elements.Count];
-            var key = new ThreeValueNodeTuple(value1, value2, value3);
-
-            if (nextIndex > 0)
-            {
-                seen ??= new Dictionary<ThreeValueNodeTuple, int>(ThreeValueNodeTupleComparer.Instance)
-                {
-                    [new ThreeValueNodeTuple(
-                        variableValueSets[0].Values.Fields[0].Value,
-                        variableValueSets[0].Values.Fields[1].Value,
-                        variableValueSets[0].Values.Fields[2].Value)] = 0
-                };
-
-                if (seen.TryGetValue(key, out var existingIndex))
-                {
-                    additionalPaths ??= new List<Path>?[elements.Count];
-                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
-                    continue;
-                }
-
-                seen[key] = nextIndex;
-            }
-
-            variableValueSets[nextIndex++] = new VariableValues(
-                result.Path,
-                new ObjectValueNode([
-                    new ObjectFieldNode(requirement1.Key, value1),
-                    new ObjectFieldNode(requirement2.Key, value2),
-                    new ObjectFieldNode(requirement3.Key, value3)
-                ]));
-        }
-
-        return FinalizeVariableValueSets(variableValueSets, additionalPaths, nextIndex);
-    }
-
-    private ObjectValueNode? MapRequirements(
-        CompositeResultElement result,
-        IReadOnlyList<ObjectFieldNode> forwardedVariables,
-        ReadOnlySpan<OperationRequirement> requirements,
-        ref PooledArrayWriter? buffer)
-    {
-        var fieldCount = forwardedVariables.Count + requirements.Length;
-
-        if (fieldCount == 0)
-        {
-            return new ObjectValueNode([]);
-        }
-
-        var fields = new ObjectFieldNode[fieldCount];
-        var index = 0;
-
-        for (var i = 0; i < forwardedVariables.Count; i++)
-        {
-            fields[index++] = forwardedVariables[i];
-        }
-
-        foreach (var requirement in requirements)
-        {
-            var field = MapRequirement(result, requirement.Key, requirement.Map, ref buffer);
-
-            if (field is null)
-            {
-                return null;
-            }
-
-            if (field.Value.Kind == SyntaxKind.NullValue && requirement.Type.Kind == SyntaxKind.NonNullType)
-            {
-                return null;
-            }
-
-            fields[index++] = field;
-        }
-
-        return new ObjectValueNode(fields);
-    }
-
-    private ObjectFieldNode? MapRequirement(
-        CompositeResultElement result,
-        string key,
-        IValueSelectionNode path,
-        ref PooledArrayWriter? buffer)
-    {
-        var value = ResultDataMapper.Map(result, path, _schema, ref buffer);
-        return value is null ? null : new ObjectFieldNode(key, value);
-    }
-
-    private static bool TryGetSimpleRequirementFieldName(
-        IValueSelectionNode map,
-        [NotNullWhen(true)] out string? fieldName)
-    {
-        if (map is PathNode
-            {
-                TypeName: null,
-                PathSegment:
-                {
-                    TypeName: null,
-                    PathSegment: null
-                } pathSegment
-            })
-        {
-            fieldName = pathSegment.FieldName.Value;
-            return true;
-        }
-
-        fieldName = null;
+        existingIndex = -1;
         return false;
+    }
+
+    private MappingStatus WriteMappedValue(
+        JsonWriter writer,
+        CompositeResultElement result,
+        IValueSelectionNode node)
+    {
+        switch (node)
+        {
+            case ChoiceValueSelectionNode choice:
+                foreach (var branch in choice.Branches)
+                {
+                    if (EvaluateMappedValue(result, branch) is not MappingStatus.Missing)
+                    {
+                        return WriteMappedValue(writer, result, branch);
+                    }
+                }
+
+                return MappingStatus.Missing;
+
+            case PathNode path:
+                var resolvedPath = ResolvePath(result, path);
+
+                if (resolvedPath.ValueKind is JsonValueKind.Undefined)
+                {
+                    return MappingStatus.Missing;
+                }
+
+                if (resolvedPath.ValueKind is JsonValueKind.Null)
+                {
+                    writer.WriteNullValue();
+                    return MappingStatus.Null;
+                }
+
+                // Note: to capture data from the introspection
+                // system we would need to also cover raw field results.
+                if (resolvedPath.Selection is { IsLeaf: true })
+                {
+                    WriteCompositeValue(writer, resolvedPath);
+                    return MappingStatus.Written;
+                }
+
+                throw new InvalidSelectionMapPathException(path);
+
+            case ObjectValueSelectionNode objectValue:
+                if (result.ValueKind is not JsonValueKind.Object)
+                {
+                    throw new InvalidOperationException("Only object results are supported.");
+                }
+
+                writer.WriteStartObject();
+
+                foreach (var field in objectValue.Fields)
+                {
+                    writer.WritePropertyName(field.Name.Value);
+
+                    var status = field.ValueSelection is null
+                        ? WriteFieldSelection(writer, result, field.Name.Value)
+                        : WriteMappedValue(writer, result, field.ValueSelection);
+
+                    if (status is MappingStatus.Missing)
+                    {
+                        return MappingStatus.Missing;
+                    }
+                }
+
+                writer.WriteEndObject();
+                return MappingStatus.Written;
+
+            case PathObjectValueSelectionNode pathObjectValue:
+                var resolvedObjectPath = ResolvePath(result, pathObjectValue.Path);
+                var valueKind = resolvedObjectPath.ValueKind;
+
+                if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+                {
+                    return MappingStatus.Missing;
+                }
+
+                if (valueKind is not JsonValueKind.Object)
+                {
+                    throw new InvalidOperationException("Only object results are supported.");
+                }
+
+                return WriteMappedValue(
+                    writer,
+                    resolvedObjectPath,
+                    pathObjectValue.ObjectValueSelection);
+
+            case ListValueSelectionNode listValue:
+                if (result.ValueKind is not JsonValueKind.Array)
+                {
+                    return MappingStatus.Missing;
+                }
+
+                writer.WriteStartArray();
+
+                foreach (var item in result.EnumerateArray())
+                {
+                    if (item.ValueKind is JsonValueKind.Null)
+                    {
+                        writer.WriteNullValue();
+                        continue;
+                    }
+
+                    var status = WriteMappedValue(writer, item, listValue.ElementSelection);
+
+                    if (status is MappingStatus.Missing)
+                    {
+                        return MappingStatus.Missing;
+                    }
+                }
+
+                writer.WriteEndArray();
+                return MappingStatus.Written;
+
+            case PathListValueSelectionNode pathListValue:
+                var resolvedListPath = ResolvePath(result, pathListValue.Path);
+                var resolvedListKind = resolvedListPath.ValueKind;
+
+                return resolvedListKind switch
+                {
+                    JsonValueKind.Undefined => MappingStatus.Missing,
+                    JsonValueKind.Null => WriteNull(writer),
+                    JsonValueKind.Array => WriteMappedValue(
+                        writer,
+                        resolvedListPath,
+                        pathListValue.ListValueSelection),
+                    _ => MappingStatus.Missing
+                };
+
+            default:
+                throw new NotSupportedException("Unknown value selection node type.");
+        }
+    }
+
+    private MappingStatus EvaluateMappedValue(
+        CompositeResultElement result,
+        IValueSelectionNode node)
+    {
+        switch (node)
+        {
+            case ChoiceValueSelectionNode choice:
+                foreach (var branch in choice.Branches)
+                {
+                    var status = EvaluateMappedValue(result, branch);
+
+                    if (status is not MappingStatus.Missing)
+                    {
+                        return status;
+                    }
+                }
+
+                return MappingStatus.Missing;
+
+            case PathNode path:
+                var resolvedPath = ResolvePath(result, path);
+
+                if (resolvedPath.ValueKind is JsonValueKind.Undefined)
+                {
+                    return MappingStatus.Missing;
+                }
+
+                if (resolvedPath.ValueKind is JsonValueKind.Null)
+                {
+                    return MappingStatus.Null;
+                }
+
+                // Note: to capture data from the introspection
+                // system we would need to also cover raw field results.
+                if (resolvedPath.Selection is { IsLeaf: true })
+                {
+                    return MappingStatus.Written;
+                }
+
+                throw new InvalidSelectionMapPathException(path);
+
+            case ObjectValueSelectionNode objectValue:
+                if (result.ValueKind is not JsonValueKind.Object)
+                {
+                    throw new InvalidOperationException("Only object results are supported.");
+                }
+
+                foreach (var field in objectValue.Fields)
+                {
+                    var status = field.ValueSelection is null
+                        ? EvaluateFieldSelection(result, field.Name.Value)
+                        : EvaluateMappedValue(result, field.ValueSelection);
+
+                    if (status is MappingStatus.Missing)
+                    {
+                        return MappingStatus.Missing;
+                    }
+                }
+
+                return MappingStatus.Written;
+
+            case PathObjectValueSelectionNode pathObjectValue:
+                var resolvedObjectPath = ResolvePath(result, pathObjectValue.Path);
+                var valueKind = resolvedObjectPath.ValueKind;
+
+                if (valueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+                {
+                    return MappingStatus.Missing;
+                }
+
+                if (valueKind is not JsonValueKind.Object)
+                {
+                    throw new InvalidOperationException("Only object results are supported.");
+                }
+
+                return EvaluateMappedValue(resolvedObjectPath, pathObjectValue.ObjectValueSelection);
+
+            case ListValueSelectionNode listValue:
+                if (result.ValueKind is not JsonValueKind.Array)
+                {
+                    return MappingStatus.Missing;
+                }
+
+                foreach (var item in result.EnumerateArray())
+                {
+                    if (item.ValueKind is JsonValueKind.Null)
+                    {
+                        continue;
+                    }
+
+                    if (EvaluateMappedValue(item, listValue.ElementSelection) is MappingStatus.Missing)
+                    {
+                        return MappingStatus.Missing;
+                    }
+                }
+
+                return MappingStatus.Written;
+
+            case PathListValueSelectionNode pathListValue:
+                var resolvedListPath = ResolvePath(result, pathListValue.Path);
+                var resolvedListKind = resolvedListPath.ValueKind;
+
+                return resolvedListKind switch
+                {
+                    JsonValueKind.Undefined => MappingStatus.Missing,
+                    JsonValueKind.Null => MappingStatus.Null,
+                    JsonValueKind.Array => EvaluateMappedValue(
+                        resolvedListPath,
+                        pathListValue.ListValueSelection),
+                    _ => MappingStatus.Missing
+                };
+
+            default:
+                throw new NotSupportedException("Unknown value selection node type.");
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static MappingStatus WriteNull(JsonWriter writer)
+    {
+        writer.WriteNullValue();
+        return MappingStatus.Null;
+    }
+
+    private static MappingStatus EvaluateFieldSelection(
+        CompositeResultElement result,
+        string fieldName)
+    {
+        if (!result.TryGetProperty(fieldName, out var fieldResult)
+            || fieldResult.ValueKind is JsonValueKind.Undefined)
+        {
+            return MappingStatus.Missing;
+        }
+
+        return fieldResult.ValueKind is JsonValueKind.Null
+            ? MappingStatus.Null
+            : MappingStatus.Written;
+    }
+
+    private static MappingStatus WriteFieldSelection(
+        JsonWriter writer,
+        CompositeResultElement result,
+        string fieldName)
+    {
+        if (!result.TryGetProperty(fieldName, out var fieldResult)
+            || fieldResult.ValueKind is JsonValueKind.Undefined)
+        {
+            return MappingStatus.Missing;
+        }
+
+        if (fieldResult.ValueKind is JsonValueKind.Null)
+        {
+            writer.WriteNullValue();
+            return MappingStatus.Null;
+        }
+
+        WriteCompositeValue(writer, fieldResult);
+        return MappingStatus.Written;
+    }
+
+    private static void WriteCompositeValue(
+        JsonWriter writer,
+        CompositeResultElement value)
+    {
+        switch (value.ValueKind)
+        {
+            case JsonValueKind.Object:
+                writer.WriteStartObject();
+
+                foreach (var property in value.EnumerateObject())
+                {
+                    writer.WritePropertyName(property.NameSpan);
+                    WriteCompositeValue(writer, property.Value);
+                }
+
+                writer.WriteEndObject();
+                break;
+
+            case JsonValueKind.Array:
+                writer.WriteStartArray();
+
+                foreach (var item in value.EnumerateArray())
+                {
+                    WriteCompositeValue(writer, item);
+                }
+
+                writer.WriteEndArray();
+                break;
+
+            case JsonValueKind.String:
+                writer.WriteStringValue(value.AssertString());
+                break;
+
+            case JsonValueKind.Number:
+                writer.WriteNumberValue(value.GetRawValue(includeQuotes: false));
+                break;
+
+            case JsonValueKind.True:
+                writer.WriteBooleanValue(true);
+                break;
+
+            case JsonValueKind.False:
+                writer.WriteBooleanValue(false);
+                break;
+
+            case JsonValueKind.Null:
+                writer.WriteNullValue();
+                break;
+
+            default:
+                throw new NotSupportedException(
+                    $"The JSON value kind '{value.ValueKind}' is not supported.");
+        }
+    }
+
+    private CompositeResultElement ResolvePath(
+        CompositeResultElement result,
+        PathNode path)
+    {
+        if (result.ValueKind is not JsonValueKind.Object)
+        {
+            throw new InvalidOperationException("Only object results are supported.");
+        }
+
+        if (path.TypeName is not null)
+        {
+            var type = _schema.Types.GetType<IOutputTypeDefinition>(path.TypeName.Value);
+
+            if (!type.IsAssignableFrom(result.AssertSelectionSet().Type))
+            {
+                return default;
+            }
+        }
+
+        var currentSegment = path.PathSegment;
+        var currentResult = result;
+        var currentValueKind = result.ValueKind;
+
+        while (currentSegment is not null
+            && currentValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined)
+        {
+            if (!currentResult.TryGetProperty(currentSegment.FieldName.Value, out var fieldResult))
+            {
+                return default;
+            }
+
+            var fieldResultValueKind = fieldResult.ValueKind;
+
+            if (fieldResultValueKind is JsonValueKind.Null)
+            {
+                return fieldResult;
+            }
+
+            if (currentSegment.TypeName is not null)
+            {
+                if (fieldResultValueKind is not JsonValueKind.Object)
+                {
+                    throw new InvalidSelectionMapPathException(path);
+                }
+
+                currentResult = fieldResult;
+                currentValueKind = fieldResultValueKind;
+
+                var type = _schema.Types.GetType<IOutputTypeDefinition>(currentSegment.TypeName.Value);
+
+                if (!type.IsAssignableFrom(currentResult.AssertSelectionSet().Type))
+                {
+                    return default;
+                }
+
+                currentSegment = currentSegment.PathSegment;
+                continue;
+            }
+
+            if (currentSegment.PathSegment is not null)
+            {
+                if (fieldResultValueKind is not JsonValueKind.Object)
+                {
+                    throw new InvalidSelectionMapPathException(path);
+                }
+
+                currentResult = fieldResult;
+                currentSegment = currentSegment.PathSegment;
+                continue;
+            }
+
+            return fieldResult;
+        }
+
+        return currentResult;
+    }
+
+    private static void WriteValueNode(JsonWriter writer, IValueNode value)
+    {
+        switch (value)
+        {
+            case ObjectValueNode objectValue:
+                writer.WriteStartObject();
+
+                foreach (var field in objectValue.Fields)
+                {
+                    writer.WritePropertyName(field.Name.Value);
+                    WriteValueNode(writer, field.Value);
+                }
+
+                writer.WriteEndObject();
+                return;
+
+            case ListValueNode listValue:
+                writer.WriteStartArray();
+
+                foreach (var item in listValue.Items)
+                {
+                    WriteValueNode(writer, item);
+                }
+
+                writer.WriteEndArray();
+                return;
+
+            case StringValueNode stringValue:
+                writer.WriteStringValue(stringValue.AsSpan());
+                return;
+
+            case IntValueNode intValue:
+                writer.WriteNumberValue(intValue.AsSpan());
+                return;
+
+            case FloatValueNode floatValue:
+                writer.WriteNumberValue(floatValue.AsSpan());
+                return;
+
+            case BooleanValueNode booleanValue:
+                writer.WriteBooleanValue(booleanValue.Value);
+                return;
+
+            case EnumValueNode enumValue:
+                writer.WriteStringValue(enumValue.AsSpan());
+                return;
+
+            case FileReferenceNode:
+            case NullValueNode:
+                writer.WriteNullValue();
+                return;
+
+            default:
+                throw new NotSupportedException(
+                    $"The value node kind '{value.Kind}' is not supported.");
+        }
+    }
+
+    private static bool ContainsFileReference(IReadOnlyList<ObjectFieldNode> fields)
+    {
+        for (var i = 0; i < fields.Count; i++)
+        {
+            if (ContainsFileReference(fields[i].Value))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool ContainsFileReference(IValueNode value)
+    {
+        switch (value)
+        {
+            case FileReferenceNode:
+                return true;
+
+            case ObjectValueNode objectValue:
+                foreach (var field in objectValue.Fields)
+                {
+                    if (ContainsFileReference(field.Value))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+
+            case ListValueNode listValue:
+                foreach (var item in listValue.Items)
+                {
+                    if (ContainsFileReference(item))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+
+            default:
+                return false;
+        }
+    }
+
+    private enum MappingStatus : byte
+    {
+        Missing,
+        Null,
+        Written
     }
 
     private static void AppendUnrolledLists(
@@ -1367,17 +1401,6 @@ AddErrors_Next:
         }
     }
 
-    private sealed class SingleValueNodeComparer : IEqualityComparer<IValueNode>
-    {
-        public static SingleValueNodeComparer Instance { get; } = new();
-
-        public bool Equals(IValueNode? x, IValueNode? y)
-            => SyntaxComparer.BySyntax.Equals(x, y);
-
-        public int GetHashCode(IValueNode obj)
-            => SyntaxComparer.BySyntax.GetHashCode(obj);
-    }
-
     private static ImmutableArray<VariableValues> FinalizeVariableValueSets(
         VariableValues[]? variableValueSets,
         List<Path>?[]? additionalPaths,
@@ -1394,7 +1417,11 @@ AddErrors_Next:
             {
                 if (additionalPaths[i] is { } paths)
                 {
-                    variableValueSets[i] = variableValueSets[i] with
+                    var variableValueSet = variableValueSets[i];
+                    variableValueSets[i] = new VariableValues(
+                        variableValueSet.Path,
+                        variableValueSet.Variables,
+                        variableValueSet.FileMapVariables)
                     {
                         AdditionalPaths = [.. paths]
                     };
@@ -1408,42 +1435,5 @@ AddErrors_Next:
         }
 
         return ImmutableCollectionsMarshal.AsImmutableArray(variableValueSets);
-    }
-
-    private readonly record struct TwoValueNodeTuple(IValueNode Value1, IValueNode Value2);
-
-    private readonly record struct ThreeValueNodeTuple(
-        IValueNode Value1,
-        IValueNode Value2,
-        IValueNode Value3);
-
-    private sealed class TwoValueNodeTupleComparer : IEqualityComparer<TwoValueNodeTuple>
-    {
-        public static TwoValueNodeTupleComparer Instance { get; } = new();
-
-        public bool Equals(TwoValueNodeTuple x, TwoValueNodeTuple y)
-            => SyntaxComparer.BySyntax.Equals(x.Value1, y.Value1)
-                && SyntaxComparer.BySyntax.Equals(x.Value2, y.Value2);
-
-        public int GetHashCode(TwoValueNodeTuple obj)
-            => HashCode.Combine(
-                SyntaxComparer.BySyntax.GetHashCode(obj.Value1),
-                SyntaxComparer.BySyntax.GetHashCode(obj.Value2));
-    }
-
-    private sealed class ThreeValueNodeTupleComparer : IEqualityComparer<ThreeValueNodeTuple>
-    {
-        public static ThreeValueNodeTupleComparer Instance { get; } = new();
-
-        public bool Equals(ThreeValueNodeTuple x, ThreeValueNodeTuple y)
-            => SyntaxComparer.BySyntax.Equals(x.Value1, y.Value1)
-                && SyntaxComparer.BySyntax.Equals(x.Value2, y.Value2)
-                && SyntaxComparer.BySyntax.Equals(x.Value3, y.Value3);
-
-        public int GetHashCode(ThreeValueNodeTuple obj)
-            => HashCode.Combine(
-                SyntaxComparer.BySyntax.GetHashCode(obj.Value1),
-                SyntaxComparer.BySyntax.GetHashCode(obj.Value2),
-                SyntaxComparer.BySyntax.GetHashCode(obj.Value3));
     }
 }

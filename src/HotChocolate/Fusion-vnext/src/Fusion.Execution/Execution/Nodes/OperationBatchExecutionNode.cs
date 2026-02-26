@@ -103,7 +103,11 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         CancellationToken cancellationToken = default)
     {
         var diagnosticEvents = context.DiagnosticEvents;
-        var variables = context.CreateVariableValueSets(_targets, _forwardedVariables, _requirements);
+        using var variableValueSets = context.CreateVariableValueSets(
+            _targets,
+            _forwardedVariables,
+            _requirements);
+        var variables = variableValueSets.Values;
 
         if (variables.Length == 0 && (_requirements.Length > 0 || _forwardedVariables.Length > 0))
         {
@@ -112,7 +116,7 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
 
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
 
-        context.TrackVariableValueSets(this, variables);
+        context.TrackVariableValueSets(this, variableValueSets);
 
         var request = new SourceSchemaClientRequest
         {
