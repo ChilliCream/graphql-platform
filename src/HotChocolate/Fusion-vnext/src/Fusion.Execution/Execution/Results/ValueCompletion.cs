@@ -407,6 +407,32 @@ TryCompleteList_MoveNext:
             target.SetObjectValue(selectionSet);
         }
 
+        if (errorTrie is null)
+        {
+            foreach (var property in source.EnumerateObject())
+            {
+                if (!target.TryGetProperty(property.NameSpan, out var targetProperty))
+                {
+                    continue;
+                }
+
+                var selection = targetProperty.AssertSelection();
+
+                if (!TryCompleteValue(
+                    property.Value,
+                    targetProperty,
+                    null,
+                    selection,
+                    selection.Type,
+                    depth))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         foreach (var property in source.EnumerateObject())
         {
             if (!target.TryGetProperty(property.NameSpan, out var targetProperty))
