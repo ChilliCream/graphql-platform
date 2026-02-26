@@ -95,6 +95,21 @@ internal sealed class FetchResultStore : IDisposable
         ReadOnlySpan<string> responseNames)
         => AddPartialResults(sourcePath, results, responseNames, containsErrors: true);
 
+    public bool AddPartialResult(
+        SelectionPath sourcePath,
+        SourceSchemaResult result,
+        ReadOnlySpan<string> responseNames,
+        bool containsErrors = true)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(sourcePath);
+        ArgumentNullException.ThrowIfNull(result);
+
+        return containsErrors
+            ? AddSinglePartialResult(sourcePath, result, responseNames)
+            : AddSinglePartialResultNoErrors(sourcePath, result, responseNames);
+    }
+
     public bool AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
@@ -120,7 +135,7 @@ internal sealed class FetchResultStore : IDisposable
 
         if (results.Length == 1)
         {
-            return AddSinglePartialResult(sourcePath, results[0], responseNames);
+            return AddPartialResult(sourcePath, results[0], responseNames);
         }
 
         var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
