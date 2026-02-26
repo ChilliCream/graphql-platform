@@ -124,4 +124,3 @@ type PageInfo {
     endCursor: String
 }
 ```
-

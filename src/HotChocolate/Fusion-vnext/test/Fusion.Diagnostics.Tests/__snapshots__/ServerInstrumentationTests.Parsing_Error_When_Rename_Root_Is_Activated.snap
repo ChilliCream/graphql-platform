@@ -2,14 +2,9 @@
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "GraphQL HTTP POST: Begin Parse HTTP Request",
-      "Status": "Ok",
-      "tags": [
-        {
-          "Key": "graphql.schema.name",
-          "Value": "_Default"
-        }
-      ],
+      "DisplayName": "ExecuteHttpRequest",
+      "Status": "Unset",
+      "tags": [],
       "event": [],
       "activities": [
         {
@@ -48,8 +43,8 @@
         },
         {
           "OperationName": "FormatHttpResponse",
-          "DisplayName": "Format HTTP Response",
-          "Status": "Ok",
+          "DisplayName": "FormatHttpResponse",
+          "Status": "Unset",
           "tags": [],
           "event": []
         }

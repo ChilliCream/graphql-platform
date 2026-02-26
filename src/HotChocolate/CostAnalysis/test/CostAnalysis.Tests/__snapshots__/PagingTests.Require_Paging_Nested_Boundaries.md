@@ -30,11 +30,7 @@
           "column": 13
         }
       ],
-      "path": [
-        "books",
-        "nodes",
-        "authors"
-      ],
+      "path": ["books", "nodes", "authors"],
       "extensions": {
         "code": "HC0082"
       }
@@ -42,4 +38,3 @@
   ]
 }
 ```
-

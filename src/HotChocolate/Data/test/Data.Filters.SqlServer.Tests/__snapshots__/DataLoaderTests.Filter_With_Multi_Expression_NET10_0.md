@@ -21,4 +21,3 @@ WHERE "b"."Id" = @keys1 AND "b"."Name" LIKE 'Brand%' AND "b"."Name" LIKE '%0'
   }
 }
 ```
-

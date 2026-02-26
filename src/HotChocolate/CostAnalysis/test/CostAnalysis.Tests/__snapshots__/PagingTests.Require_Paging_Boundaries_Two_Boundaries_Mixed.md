@@ -3,9 +3,7 @@
 ## Operation
 
 ```graphql
-query(
-  $first: Int
-) {
+query ($first: Int) {
   books(first: $first, last: 1) {
     nodes {
       title
@@ -27,9 +25,7 @@ query(
           "column": 5
         }
       ],
-      "path": [
-        "books"
-      ],
+      "path": ["books"],
       "extensions": {
         "code": "HC0082"
       }
@@ -37,4 +33,3 @@ query(
   ]
 }
 ```
-

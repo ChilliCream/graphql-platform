@@ -2,18 +2,9 @@
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "GraphQL HTTP GET",
-      "Status": "Ok",
-      "tags": [
-        {
-          "Key": "graphql.schema.name",
-          "Value": "_Default"
-        },
-        {
-          "Key": "graphql.http.request.type",
-          "Value": "single"
-        }
-      ],
+      "DisplayName": "ExecuteHttpRequest",
+      "Status": "Unset",
+      "tags": [],
       "event": [],
       "activities": [
         {
@@ -127,8 +118,8 @@
         },
         {
           "OperationName": "FormatHttpResponse",
-          "DisplayName": "Format HTTP Response",
-          "Status": "Ok",
+          "DisplayName": "FormatHttpResponse",
+          "Status": "Unset",
           "tags": [],
           "event": []
         }

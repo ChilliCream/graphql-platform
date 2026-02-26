@@ -42,12 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection
     "MessageFormat": "'{0}': static types cannot be used as type arguments",
     "Message": "'ProductNode': static types cannot be used as type arguments",
     "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
+    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
   }
 ]
 ```
-

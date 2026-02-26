@@ -14,11 +14,7 @@
     "MessageFormat": "Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'",
     "Message": "Inconsistent accessibility: return type 'Task<Product?>' is less accessible than method 'ProductService.GetProductAsync(int)'",
     "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
+    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
   }
 ]
 ```
@@ -37,11 +33,7 @@
     "MessageFormat": "Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'",
     "Message": "Inconsistent accessibility: return type 'Task<Product?>' is less accessible than method 'ProductService.GetProductAsync(int)'",
     "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
+    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
   },
   {
     "Id": "HC0092",
@@ -71,12 +63,7 @@
     "MessageFormat": "Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'",
     "Message": "Inconsistent accessibility: return type 'Task<Product?>' is less accessible than method 'ProductService.GetProductAsync(int)'",
     "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
+    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
   }
 ]
 ```
-

@@ -80,4 +80,3 @@ LEFT JOIN (
 ) AS p3 ON p1."BrandId" = p3."BrandId"
 ORDER BY p1."BrandId", p3."BrandId", p3."Id"
 ```
-

@@ -172,11 +172,7 @@ namespace TestNamespace
     "MessageFormat": "'{0}' does not contain a definition for '{1}'",
     "Message": "'Product' does not contain a definition for 'DoesNotExist'",
     "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
+    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
   }
 ]
 ```
@@ -206,11 +202,7 @@ namespace TestNamespace
     "MessageFormat": "'{0}' does not contain a definition for '{1}'",
     "Message": "'Product' does not contain a definition for 'DoesNotExist'",
     "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
+    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
   }
 ]
 ```
@@ -229,12 +221,7 @@ namespace TestNamespace
     "MessageFormat": "'{0}' does not contain a definition for '{1}'",
     "Message": "'Product' does not contain a definition for 'DoesNotExist'",
     "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
+    "CustomTags": ["Compiler", "Telemetry", "NotConfigurable"]
   }
 ]
 ```
-
