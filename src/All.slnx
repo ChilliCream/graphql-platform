@@ -114,6 +114,7 @@
     <Project Path="HotChocolate/Core/src/Types/HotChocolate.Types.csproj" />
     <Project Path="HotChocolate/Core/src/Validation/HotChocolate.Validation.csproj" />
   </Folder>
+  <Folder Name="/HotChocolate/Core/src/Types.OffsetPagination/" />
   <Folder Name="/HotChocolate/Core/test/">
     <Project Path="HotChocolate/Core/test/Abstractions.Tests/HotChocolate.Abstractions.Tests.csproj" />
     <Project Path="HotChocolate/Core/test/Authorization.Tests/HotChocolate.Authorization.Tests.csproj" />
@@ -156,6 +157,7 @@
     <Project Path="HotChocolate/Data/src/Data/HotChocolate.Data.csproj" />
     <Project Path="HotChocolate/Data/src/EntityFramework/HotChocolate.Data.EntityFramework.csproj" />
   </Folder>
+  <Folder Name="/HotChocolate/Data/src/Data/" />
   <Folder Name="/HotChocolate/Data/test/">
     <Project Path="HotChocolate/Data/test/Data.EntityFramework.Pagination.Tests/HotChocolate.Data.EntityFramework.Pagination.Tests.csproj" />
     <Project Path="HotChocolate/Data/test/Data.EntityFramework.Tests/HotChocolate.Data.EntityFramework.Tests.csproj" />
@@ -196,6 +198,18 @@
     <Project Path="HotChocolate/Adapters/test/Adapters.Mcp.Tests/HotChocolate.Adapters.Mcp.Tests.csproj" />
     <Project Path="HotChocolate/Adapters/test/Adapters.OpenApi.Packaging.Tests/HotChocolate.Adapters.OpenApi.Packaging.Tests.csproj" />
     <Project Path="HotChocolate/Adapters/test/Adapters.OpenApi.Tests/HotChocolate.Adapters.OpenApi.Tests.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/ElasticSearch/" />
+  <Folder Name="/HotChocolate/ElasticSearch/src/" />
+  <Folder Name="/HotChocolate/ElasticSearch/src/Data.ElasticSearch.Driver/">
+    <Project Path="HotChocolate/ElasticSearch/src/Data.ElasticSearch.Driver/HotChocolate.Data.ElasticSearch.Driver.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/ElasticSearch/src/Data.ElasticSearch/">
+    <Project Path="HotChocolate/ElasticSearch/src/Data.ElasticSearch/HotChocolate.Data.ElasticSearch.csproj" />
+  </Folder>
+  <Folder Name="/HotChocolate/ElasticSearch/test/" />
+  <Folder Name="/HotChocolate/ElasticSearch/test/Data.ElasticSearch.Tests/">
+    <Project Path="HotChocolate/ElasticSearch/test/Data.ElasticSearch.Tests/HotChocolate.Data.ElasticSearch.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/Fusion-vnext/" />
   <Folder Name="/HotChocolate/Fusion-vnext/benchmarks/">

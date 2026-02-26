@@ -38,6 +38,7 @@
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.1.0" />
     <PackageVersion Include="MongoDB.Driver" Version="3.0.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
+    <PackageVersion Include="NEST" Version="7.17.5" />
     <PackageVersion Include="NetTopologySuite" Version="2.0.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageVersion Include="NodaTime" Version="3.2.2" />
@@ -52,6 +53,7 @@
     <PackageVersion Include="sqlite-net-pcl" Version="1.9.172" />
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
     <PackageVersion Include="Squadron.AzureStorage" Version="0.27.1" />
+    <PackageVersion Include="Squadron.Elasticsearch" Version="1.0.1" />
     <PackageVersion Include="Squadron.Mongo" Version="0.27.1" />
     <PackageVersion Include="Squadron.Nats" Version="0.27.1" />
     <PackageVersion Include="Squadron.PostgreSql" Version="0.27.1" />

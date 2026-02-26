@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Data.ElasticSearch.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Data.ElasticSearch</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Data.ElasticSearch\HotChocolate.Data.ElasticSearch.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Squadron.Elasticsearch" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="__snapshots__" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,26 @@
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "bool": {
+            "must": [
+              {
+                "query_string": {
+                  "query": "bar.keyword:th*"
+                }
+              }
+            ],
+            "must_not": [
+              {
+                "query_string": {
+                  "query": "qux.keyword:do*"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
