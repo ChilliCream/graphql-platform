@@ -474,8 +474,8 @@ public sealed class Selection : ISelection, IFeatureProvider
 
             if (effective is null)
             {
-                // This occurrence has no active defer in its chain —
-                // the field appears non-deferred and belongs in the initial response.
+                // This occurrence has no active defer in its chain.
+                // The field appears non-deferred and belongs in the initial response.
                 return null;
             }
 
@@ -517,7 +517,8 @@ public sealed class Selection : ISelection, IFeatureProvider
                 {
                     if (j != i && result[j] == ancestor)
                     {
-                        // result[i] is a child of result[j] — remove result[i].
+                        // result[i] is a child of result[j] — remove it
+                        // and break out of both the inner for and while loops.
                         result[i] = result[--count];
                         goto nextItem;
                     }
@@ -526,7 +527,10 @@ public sealed class Selection : ISelection, IFeatureProvider
                 ancestor = ancestor.Parent;
             }
 
-            nextItem:;
+// We use goto to avoid an additional boolean condition check on every
+// while-loop iteration that a break+flag approach would require.
+nextItem:
+            ;
         }
 
         if (count == 0)
