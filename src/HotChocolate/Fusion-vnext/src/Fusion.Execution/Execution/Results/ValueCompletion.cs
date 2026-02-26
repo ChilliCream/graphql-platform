@@ -317,36 +317,44 @@ internal sealed class ValueCompletion
                 goto TryCompleteList_MoveNext;
             }
 
-            if (elementKind == 1)
-            {
-                current.SetLeafValue(element);
-                goto TryCompleteList_MoveNext;
-            }
+            var success = true;
 
-            var success =
-                elementKind == 0
-                    ? TryCompleteList(
+            switch (elementKind)
+            {
+                case 0:
+                    success = TryCompleteList(
                         element,
                         current,
                         errorTrieForIndex,
                         selection,
                         elementType,
-                        depth)
-                    : elementKind == 2
-                        ? TryCompleteAbstractValue(
-                            element,
-                            current,
-                            errorTrieForIndex,
-                            selection,
-                            elementType,
-                            depth)
-                        : TryCompleteObjectValue(
-                            selection,
-                            elementType,
-                            element,
-                            errorTrieForIndex,
-                            depth,
-                            current);
+                        depth);
+                    break;
+
+                case 1:
+                    current.SetLeafValue(element);
+                    break;
+
+                case 2:
+                    success = TryCompleteAbstractValue(
+                        element,
+                        current,
+                        errorTrieForIndex,
+                        selection,
+                        elementType,
+                        depth);
+                    break;
+
+                default:
+                    success = TryCompleteObjectValue(
+                        selection,
+                        elementType,
+                        element,
+                        errorTrieForIndex,
+                        depth,
+                        current);
+                    break;
+            }
 
             if (!success)
             {
