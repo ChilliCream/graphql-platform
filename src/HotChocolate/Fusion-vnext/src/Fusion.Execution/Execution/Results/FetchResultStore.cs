@@ -714,22 +714,16 @@ AddErrors_Next:
             {
                 mappedValue = ResultDataMapper.MapLeafValue(value, ref buffer);
 
-                if (nextIndex > 0)
+                if (seen is not null
+                    && seen.TryGetValue(mappedValue, out var existingIndex))
                 {
-                    seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance)
-                    {
-                        [variableValueSets[0].Values.Fields[0].Value] = 0
-                    };
-
-                    if (seen.TryGetValue(mappedValue, out var existingIndex))
-                    {
-                        additionalPaths ??= new List<Path>?[elements.Count];
-                        (additionalPaths[existingIndex] ??= []).Add(result.Path);
-                        continue;
-                    }
-
-                    seen[mappedValue] = nextIndex;
+                    additionalPaths ??= new List<Path>?[elements.Count];
+                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    continue;
                 }
+
+                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance);
+                seen[mappedValue] = nextIndex;
             }
 
             variableValueSets[nextIndex++] = new VariableValues(
