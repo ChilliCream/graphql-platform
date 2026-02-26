@@ -1,0 +1,297 @@
+title: Fetch_User_With_Node_Field_From_Two_Subgraphs
+request:
+  document: |
+    query FetchNode(
+      $id: ID!
+    ) {
+      node(id: $id) {
+        ... on User {
+          birthdate
+          reviews {
+            body
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "id": "VXNlcjox"
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "birthdate": "User: VXNlcjox",
+          "reviews": [
+            {
+              "body": "Review: UmV2aWV3OjE="
+            },
+            {
+              "body": "Review: UmV2aWV3OjI="
+            },
+            {
+              "body": "Review: UmV2aWV3OjM="
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        userById(id: ID!): User!
+        users: [User!]!
+        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String!
+        username: String!
+        birthdate: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query FetchNode_47e389d6_4(
+              $__fusion_1_id: ID!
+            ) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on User {
+                  birthdate
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "birthdate": "User: VXNlcjox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        reviews: [Review!]!
+        reviewCount: Int!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+        author: User!
+        product: Product!
+      }
+
+      type User implements Node {
+        id: ID!
+        reviews: [Review!]!
+        errorField: String @error
+      }
+    interactions:
+      - request:
+          document: |
+            query FetchNode_47e389d6_3(
+              $id: ID!
+            ) {
+              node(id: $id) {
+                __typename
+                ... on User {
+                  __typename
+                  reviews {
+                    body
+                  }
+                  id
+                }
+              }
+            }
+          variables: |
+            {
+              "id": "VXNlcjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3OjE="
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjI="
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjM="
+                      }
+                    ],
+                    "id": "VXNlcjox"
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String!
+        size: Int! @shareable
+        weight: Int! @shareable
+        repeat(num: Int!): String!
+        repeatData(data: RepeatDataInput!): RepeatDataPayload!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        productById(id: ID!): Product @lookup @shareable
+        topProducts(first: Int!): [Product!]!
+      }
+
+      type RepeatDataData {
+        num: Int!
+      }
+
+      type RepeatDataPayload {
+        data: RepeatDataData!
+      }
+
+      input RepeatDataDataInput {
+        num: Int!
+      }
+
+      input RepeatDataInput {
+        data: RepeatDataDataInput!
+      }
+operationPlan:
+  operation:
+    - document: |
+        query FetchNode(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename @fusion__requirement
+            id @fusion__requirement
+            ... on User {
+              birthdate
+              reviews {
+                body
+              }
+            }
+          }
+        }
+      name: FetchNode
+      hash: 47e389d6e8925aa3aecd4bb054a2ceec
+      searchSpace: 2
+      expandedNodes: 5
+  nodes:
+    - id: 1
+      type: Node
+      idValue: $id
+      responseName: node
+      branches:
+        - User: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query FetchNode_47e389d6_2(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+          }
+        }
+      forwardedVariables:
+        - id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query FetchNode_47e389d6_3(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            ... on User {
+              __typename
+              reviews {
+                body
+              }
+              id
+            }
+          }
+        }
+      forwardedVariables:
+        - id
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: A
+      operation: |
+        query FetchNode_47e389d6_4(
+          $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on User {
+              birthdate
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.node<User>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
