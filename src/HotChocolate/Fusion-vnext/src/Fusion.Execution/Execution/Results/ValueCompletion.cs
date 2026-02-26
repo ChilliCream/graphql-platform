@@ -275,6 +275,13 @@ internal sealed class ValueCompletion
                 : elementType.IsAbstractType()
                     ? 2
                     : 3;
+        IObjectTypeDefinition? objectElementType = null;
+
+        if (elementKind is 3)
+        {
+            var namedType = elementType.NamedType();
+            objectElementType = Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
+        }
 
         target.SetArrayValue(source.GetArrayLength());
 
@@ -347,12 +354,12 @@ internal sealed class ValueCompletion
 
                 default:
                     success = TryCompleteObjectValue(
-                        selection,
-                        elementType,
                         element,
+                        current,
                         errorTrieForIndex,
-                        depth,
-                        current);
+                        selection,
+                        objectElementType!,
+                        depth);
                     break;
             }
 
