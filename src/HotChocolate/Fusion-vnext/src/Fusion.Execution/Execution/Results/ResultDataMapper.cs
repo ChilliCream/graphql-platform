@@ -11,7 +11,10 @@ namespace HotChocolate.Fusion.Execution.Results;
 
 internal static class ResultDataMapper
 {
+    private const int CachedIntMin = -128;
+    private const int CachedIntMax = 4096;
     private const int CachedNumericStringMax = 4096;
+    private static readonly IntValueNode[] s_cachedIntValues = CreateCachedIntValues();
     private static readonly StringValueNode[] s_cachedNumericStrings = CreateCachedNumericStrings();
 
     public static IValueNode? Map(
@@ -136,7 +139,7 @@ internal static class ResultDataMapper
             case JsonValueKind.Number:
                 if (value.TryGetInt64(out var intValue))
                 {
-                    return new IntValueNode(intValue);
+                    return GetIntValueNode(intValue);
                 }
 
                 goto default;
@@ -161,6 +164,16 @@ internal static class ResultDataMapper
         }
 
         return new StringValueNode(value);
+    }
+
+    internal static IntValueNode GetIntValueNode(long value)
+    {
+        if (value >= CachedIntMin && value <= CachedIntMax)
+        {
+            return s_cachedIntValues[value - CachedIntMin];
+        }
+
+        return new IntValueNode(value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -219,6 +232,18 @@ internal static class ResultDataMapper
         for (var i = 0; i < values.Length; i++)
         {
             values[i] = new StringValueNode(i.ToString());
+        }
+
+        return values;
+    }
+
+    private static IntValueNode[] CreateCachedIntValues()
+    {
+        var values = new IntValueNode[CachedIntMax - CachedIntMin + 1];
+
+        for (var i = 0; i < values.Length; i++)
+        {
+            values[i] = new IntValueNode(CachedIntMin + i);
         }
 
         return values;
