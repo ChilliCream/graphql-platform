@@ -154,9 +154,7 @@ internal static class ResultDataMapper
 
         foreach (var field in node.Fields)
         {
-            var value = field.ValueSelection is null
-                ? Visit(new PathNode(new PathSegmentNode(field.Name)), context)
-                : Visit(field.ValueSelection, context);
+            var value = Visit(field, context);
 
             if (value is null)
             {
@@ -167,6 +165,38 @@ internal static class ResultDataMapper
         }
 
         return new ObjectValueNode(fields);
+    }
+
+    private static IValueNode? Visit(ObjectFieldSelectionNode field, Context context)
+    {
+        if (field.ValueSelection is { } valueSelection)
+        {
+            return Visit(valueSelection, context);
+        }
+
+        if (!context.Result.TryGetProperty(field.Name.Value, out var result))
+        {
+            return null;
+        }
+
+        var resultValueKind = result.ValueKind;
+
+        if (resultValueKind is JsonValueKind.Undefined)
+        {
+            return null;
+        }
+
+        if (resultValueKind is JsonValueKind.Null)
+        {
+            return NullValueNode.Default;
+        }
+
+        if (result.Selection is { IsLeaf: true })
+        {
+            return MapLeafValue(result, ref context.Writer);
+        }
+
+        throw new InvalidSelectionMapPathException(new PathNode(new PathSegmentNode(field.Name)));
     }
 
     private static IValueNode? Visit(PathObjectValueSelectionNode node, Context context)
