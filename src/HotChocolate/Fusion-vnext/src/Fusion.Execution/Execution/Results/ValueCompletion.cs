@@ -268,6 +268,13 @@ internal sealed class ValueCompletion
         var isNullable = elementType.IsNullableType();
         var isLeaf = elementType.IsLeafType();
         var isNested = elementType.IsListType();
+        var elementKind = isNested
+            ? 0
+            : isLeaf
+                ? 1
+                : elementType.IsAbstractType()
+                    ? 2
+                    : 3;
 
         target.SetArrayValue(source.GetArrayLength());
 
@@ -275,8 +282,8 @@ internal sealed class ValueCompletion
         using var enumerator = target.EnumerateArray().GetEnumerator();
         foreach (var element in source.EnumerateArray())
         {
-            var success = enumerator.MoveNext();
-            Debug.Assert(success, "The lists must have the same size.");
+            var movedNext = enumerator.MoveNext();
+            Debug.Assert(movedNext, "The lists must have the same size.");
 
             ErrorTrie? errorTrieForIndex = null;
             errorTrie?.TryGetValue(i, out errorTrieForIndex);
@@ -297,6 +304,8 @@ internal sealed class ValueCompletion
                 }
             }
 
+            var current = enumerator.Current;
+
             if (element.IsNullOrUndefined())
             {
                 if (!isNullable && _errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
@@ -304,18 +313,57 @@ internal sealed class ValueCompletion
                     return false;
                 }
 
-                enumerator.Current.SetNullValue();
+                current.SetNullValue();
                 goto TryCompleteList_MoveNext;
             }
 
-            if (!HandleElement(element, enumerator.Current, errorTrieForIndex))
+            var success = true;
+
+            switch (elementKind)
+            {
+                case 0:
+                    success = TryCompleteList(
+                        element,
+                        current,
+                        errorTrieForIndex,
+                        selection,
+                        elementType,
+                        depth);
+                    break;
+
+                case 1:
+                    current.SetLeafValue(element);
+                    break;
+
+                case 2:
+                    success = TryCompleteAbstractValue(
+                        element,
+                        current,
+                        errorTrieForIndex,
+                        selection,
+                        elementType,
+                        depth);
+                    break;
+
+                default:
+                    success = TryCompleteObjectValue(
+                        selection,
+                        elementType,
+                        element,
+                        errorTrieForIndex,
+                        depth,
+                        current);
+                    break;
+            }
+
+            if (!success)
             {
                 if (!isNullable)
                 {
                     return false;
                 }
 
-                enumerator.Current.SetNullValue();
+                current.SetNullValue();
                 goto TryCompleteList_MoveNext;
             }
 
@@ -324,43 +372,6 @@ TryCompleteList_MoveNext:
         }
 
         return true;
-
-        bool HandleElement(
-            SourceResultElement sourceElement,
-            CompositeResultElement targetElement,
-            ErrorTrie? errorTrieForIndex)
-        {
-            if (isNested)
-            {
-                return TryCompleteList(
-                    sourceElement,
-                    targetElement,
-                    errorTrieForIndex,
-                    selection,
-                    elementType,
-                    depth);
-            }
-
-            if (isLeaf)
-            {
-                targetElement.SetLeafValue(sourceElement);
-                return true;
-            }
-
-            if (elementType.IsAbstractType())
-            {
-                return TryCompleteAbstractValue(sourceElement,
-                    targetElement, errorTrieForIndex, selection, elementType, depth);
-            }
-
-            return TryCompleteObjectValue(
-                selection,
-                elementType,
-                sourceElement,
-                errorTrieForIndex,
-                depth,
-                targetElement);
-        }
     }
 
     private bool TryCompleteObjectValue(
