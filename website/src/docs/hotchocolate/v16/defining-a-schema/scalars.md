@@ -172,27 +172,27 @@ Notice how our code uses `int` for the `Id`, but in a request / response it woul
 
 In addition to the scalars defined by the specification, Hot Chocolate also supports the following set of scalar types:
 
-| Type          | Description                                                                                            |
-| ------------- | ------------------------------------------------------------------------------------------------------ |
-| Any           | The [Any][1] scalar type represents any valid GraphQL value.                                           |
-| Base64String  | The [Base64String][2] scalar type represents an array of bytes encoded as a Base64 string.             |
-| Byte          | The [Byte][3] scalar type represents a signed 8-bit integer.                                           |
-| Date          | The [Date][4] scalar type represents a date in UTC.                                                    |
-| DateTime      | The [DateTime][5] scalar type represents a date and time with time zone offset information.            |
-| Decimal       | The [Decimal][6] scalar type represents a decimal floating-point number with high precision.           |
-| LocalDate     | The [LocalDate][7] scalar type represents a date without time or time zone information.                |
-| LocalDateTime | The [LocalDateTime][8] scalar type represents a date and time without time zone information.           |
-| LocalTime     | The [LocalTime][9] scalar type represents a time of day without date or time zone information.         |
-| Long          | The [Long][10] scalar type represents a signed 64-bit integer.                                         |
-| Short         | The [Short][11] scalar type represents a signed 16-bit integer.                                        |
-| TimeSpan      | The [TimeSpan][12] scalar type represents a duration of time.                                          |
-| UnsignedByte  | The [UnsignedByte][13] scalar type represents an unsigned 8-bit integer.                               |
-| UnsignedInt   | The [UnsignedInt][14] scalar type represents an unsigned 32-bit integer.                               |
-| UnsignedLong  | The [UnsignedLong][15] scalar type represents an unsigned 64-bit integer.                              |
-| UnsignedShort | The [UnsignedShort][16] scalar type represents an unsigned 16-bit integer.                             |
-| URI           | The [URI][17] scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986.       |
-| URL           | The [URL][18] scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986.          |
-| UUID          | The [UUID][19] scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562.   |
+| Type          | Description                                                                                          |
+| ------------- | ---------------------------------------------------------------------------------------------------- |
+| Any           | The [Any][1] scalar type represents any valid GraphQL value.                                         |
+| Base64String  | The [Base64String][2] scalar type represents an array of bytes encoded as a Base64 string.           |
+| Byte          | The [Byte][3] scalar type represents a signed 8-bit integer.                                         |
+| Date          | The [Date][4] scalar type represents a date in UTC.                                                  |
+| DateTime      | The [DateTime][5] scalar type represents a date and time with time zone offset information.          |
+| Decimal       | The [Decimal][6] scalar type represents a decimal floating-point number with high precision.         |
+| LocalDate     | The [LocalDate][7] scalar type represents a date without time or time zone information.              |
+| LocalDateTime | The [LocalDateTime][8] scalar type represents a date and time without time zone information.         |
+| LocalTime     | The [LocalTime][9] scalar type represents a time of day without date or time zone information.       |
+| Long          | The [Long][10] scalar type represents a signed 64-bit integer.                                       |
+| Short         | The [Short][11] scalar type represents a signed 16-bit integer.                                      |
+| TimeSpan      | The [TimeSpan][12] scalar type represents a duration of time.                                        |
+| UnsignedByte  | The [UnsignedByte][13] scalar type represents an unsigned 8-bit integer.                             |
+| UnsignedInt   | The [UnsignedInt][14] scalar type represents an unsigned 32-bit integer.                             |
+| UnsignedLong  | The [UnsignedLong][15] scalar type represents an unsigned 64-bit integer.                            |
+| UnsignedShort | The [UnsignedShort][16] scalar type represents an unsigned 16-bit integer.                           |
+| URI           | The [URI][17] scalar type represents a Uniform Resource Identifier (URI) as defined by RFC 3986.     |
+| URL           | The [URL][18] scalar type represents a Uniform Resource Locator (URL) as defined by RFC 3986.        |
+| UUID          | The [UUID][19] scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562. |
 
 [1]: https://scalars.graphql.org/chillicream/any.html
 [2]: https://scalars.graphql.org/chillicream/base64-string.html
@@ -276,9 +276,65 @@ public enum ValueKind
 }
 ```
 
-If we want to access an object dynamically without serializing it to a strongly typed model we can get it as `IReadOnlyDictionary<string, object>` or as `ObjectValueNode`.
+To access the argument value dynamically, use `JsonElement`, which lets you navigate the structure without deserializing to a strongly typed model:
 
-Lists can be accessed generically by getting them as `IReadOnlyList<object>` or as `ListValueNode`.
+```csharp
+JsonElement value = context.ArgumentValue<JsonElement>("bar");
+
+if (value.ValueKind == JsonValueKind.Object)
+{
+    string? name = value.GetProperty("name").GetString();
+}
+```
+
+To deserialize directly into a strongly typed model, pass the target type to `ArgumentValue<T>`:
+
+```csharp
+Foo foo = context.ArgumentValue<Foo>("bar");
+```
+
+### Runtime Type
+
+The `Any` scalar uses `System.Text.Json.JsonElement` as its .NET runtime type. Fields inferred as or annotated with `Any` expect resolvers to return a `JsonElement`.
+
+### Returning Dictionaries and Arbitrary .NET Types
+
+To return common .NET types such as `Dictionary<string, object>` or `ExpandoObject` from an `Any` field, register the JSON type converter. It handles the conversion from arbitrary .NET types to `JsonElement` automatically:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddJsonTypeConverter();
+```
+
+With the converter registered, resolvers can return dictionaries or any JSON-serializable object directly:
+
+```csharp
+[GraphQLType<AnyType>]
+public object GetData() => new Dictionary<string, object>
+{
+    { "name", "John" },
+    { "age", 30 }
+};
+```
+
+### Custom Type Serialization
+
+For custom reference types, you can register a dedicated converter to control exactly how the type is serialized. For example, to serialize `TimeZoneInfo` as its string ID instead of a full JSON object:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeConverter<TimeZoneInfo, JsonElement>(
+        value => JsonSerializer.SerializeToElement(value.Id));
+```
+
+The resolver can then return the type directly and it will be serialized using the registered converter:
+
+```csharp
+[GraphQLType<AnyType>]
+public TimeZoneInfo GetTimezone() => TimeZoneInfo.Utc; // serializes as "UTC"
+```
 
 ## UUID Type
 
