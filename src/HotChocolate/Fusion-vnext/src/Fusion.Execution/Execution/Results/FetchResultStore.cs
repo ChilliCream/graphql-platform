@@ -93,6 +93,13 @@ internal sealed class FetchResultStore : IDisposable
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
         ReadOnlySpan<string> responseNames)
+        => AddPartialResults(sourcePath, results, responseNames, containsErrors: true);
+
+    public bool AddPartialResults(
+        SelectionPath sourcePath,
+        ReadOnlySpan<SourceSchemaResult> results,
+        ReadOnlySpan<string> responseNames,
+        bool containsErrors)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(sourcePath);
@@ -102,6 +109,18 @@ internal sealed class FetchResultStore : IDisposable
             throw new ArgumentException(
                 "The results span must contain at least one result.",
                 nameof(results));
+        }
+
+        if (!containsErrors)
+        {
+            return results.Length == 1
+                ? AddSinglePartialResultNoErrors(sourcePath, results[0], responseNames)
+                : AddPartialResultsNoErrors(sourcePath, results, responseNames);
+        }
+
+        if (results.Length == 1)
+        {
+            return AddSinglePartialResult(sourcePath, results[0], responseNames);
         }
 
         var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
@@ -166,6 +185,102 @@ internal sealed class FetchResultStore : IDisposable
             errorTriesSpan.Clear();
             ArrayPool<SourceResultElement>.Shared.Return(dataElements);
             ArrayPool<ErrorTrie?>.Shared.Return(errorTries);
+        }
+    }
+
+    private bool AddPartialResultsNoErrors(
+        SelectionPath sourcePath,
+        ReadOnlySpan<SourceSchemaResult> results,
+        ReadOnlySpan<string> responseNames)
+    {
+        var dataElements = ArrayPool<SourceResultElement>.Shared.Rent(results.Length);
+        var dataElementsSpan = dataElements.AsSpan(0, results.Length);
+
+        try
+        {
+            for (var i = 0; i < results.Length; i++)
+            {
+                var result = results[i];
+                _memory.Push(result);
+                dataElementsSpan[i] = GetDataElement(sourcePath, result.Data);
+            }
+
+            lock (_lock)
+            {
+                var resultData = _result.Data;
+
+                for (var i = 0; i < results.Length; i++)
+                {
+                    var result = results[i];
+
+                    if (!SaveSafeResult(
+                            resultData,
+                            result.Path,
+                            result.AdditionalPaths.AsSpan(),
+                            dataElementsSpan[i],
+                            errorTrie: null,
+                            responseNames))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+        finally
+        {
+            dataElementsSpan.Clear();
+            ArrayPool<SourceResultElement>.Shared.Return(dataElements);
+        }
+    }
+
+    private bool AddSinglePartialResult(
+        SelectionPath sourcePath,
+        SourceSchemaResult result,
+        ReadOnlySpan<string> responseNames)
+    {
+        _memory.Push(result);
+
+        var errors = result.Errors;
+        var dataElement = GetDataElement(sourcePath, result.Data);
+        var errorTrie = GetErrorTrie(sourcePath, errors?.Trie);
+
+        lock (_lock)
+        {
+            if (errors?.RootErrors is { Length: > 0 } rootErrors)
+            {
+                _errors ??= [];
+                _errors.AddRange(rootErrors);
+            }
+
+            return SaveSafeResult(
+                _result.Data,
+                result.Path,
+                result.AdditionalPaths.AsSpan(),
+                dataElement,
+                errorTrie,
+                responseNames);
+        }
+    }
+
+    private bool AddSinglePartialResultNoErrors(
+        SelectionPath sourcePath,
+        SourceSchemaResult result,
+        ReadOnlySpan<string> responseNames)
+    {
+        _memory.Push(result);
+        var dataElement = GetDataElement(sourcePath, result.Data);
+
+        lock (_lock)
+        {
+            return SaveSafeResult(
+                _result.Data,
+                result.Path,
+                result.AdditionalPaths.AsSpan(),
+                dataElement,
+                errorTrie: null,
+                responseNames);
         }
     }
 
@@ -559,6 +674,7 @@ AddErrors_Next:
     {
         VariableValues[]? variableValueSets = null;
         Dictionary<IValueNode, int>? seen = null;
+        Dictionary<string, int>? seenStrings = null;
         List<Path>?[]? additionalPaths = null;
         var nextIndex = 0;
 
@@ -575,23 +691,38 @@ AddErrors_Next:
                 continue;
             }
 
-            var mappedValue = ResultDataMapper.MapLeafValue(value, ref buffer);
             variableValueSets ??= new VariableValues[elements.Count];
+            IValueNode mappedValue;
 
-            if (nextIndex > 0)
+            if (value.ValueKind is JsonValueKind.String)
             {
-                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance)
-                {
-                    [variableValueSets[0].Values.Fields[0].Value] = 0
-                };
+                var stringValue = value.AssertString();
 
-                if (seen.TryGetValue(mappedValue, out var existingIndex))
+                if (seenStrings is not null
+                    && seenStrings.TryGetValue(stringValue, out var existingIndex))
                 {
                     additionalPaths ??= new List<Path>?[elements.Count];
                     (additionalPaths[existingIndex] ??= []).Add(result.Path);
                     continue;
                 }
 
+                mappedValue = ResultDataMapper.GetStringValueNode(stringValue);
+                seenStrings ??= new Dictionary<string, int>(StringComparer.Ordinal);
+                seenStrings[stringValue] = nextIndex;
+            }
+            else
+            {
+                mappedValue = ResultDataMapper.MapLeafValue(value, ref buffer);
+
+                if (seen is not null
+                    && seen.TryGetValue(mappedValue, out var existingIndex))
+                {
+                    additionalPaths ??= new List<Path>?[elements.Count];
+                    (additionalPaths[existingIndex] ??= []).Add(result.Path);
+                    continue;
+                }
+
+                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance);
                 seen[mappedValue] = nextIndex;
             }
 
