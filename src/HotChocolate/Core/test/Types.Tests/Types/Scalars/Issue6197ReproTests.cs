@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,7 +15,7 @@ public class Issue6197ReproTests
         var result = await new ServiceCollection()
             .AddGraphQLServer()
             .AddJsonTypeConverter()
-            .AddTypeConverter<TimeZoneInfo, string>(value => value.Id)
+            .AddTypeConverter<TimeZoneInfo, JsonElement>(value => JsonSerializer.SerializeToElement(value.Id))
             .AddQueryType<Query>()
             .ExecuteRequestAsync(
             """

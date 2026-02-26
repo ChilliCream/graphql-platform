@@ -25,18 +25,6 @@ internal sealed class JsonElementTypeChangeProvider : IChangeTypeProvider
     {
         if (target == typeof(JsonElement))
         {
-            // Prefer explicit reference-type -> string converters so AnyType can serialize
-            // custom runtime values (for example TimeZoneInfo) as strings.
-            if (source is { IsValueType: false }
-                && source != typeof(string)
-                && !typeof(IEnumerable).IsAssignableFrom(source)
-                && root(source, typeof(string), out var stringify)
-                && root(typeof(string), typeof(JsonElement), out var toJsonElement))
-            {
-                converter = sourceValue => toJsonElement(stringify(sourceValue));
-                return true;
-            }
-
             var serializeMethod = typeof(JsonElementTypeChangeProvider)
                 .GetMethod(nameof(Serialize), BindingFlags.NonPublic | BindingFlags.Static)!
                 .MakeGenericMethod(source);
