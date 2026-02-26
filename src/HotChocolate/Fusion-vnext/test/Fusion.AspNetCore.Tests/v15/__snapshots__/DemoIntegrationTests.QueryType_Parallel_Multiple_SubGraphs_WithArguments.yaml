@@ -1,0 +1,467 @@
+title: QueryType_Parallel_Multiple_SubGraphs_WithArguments
+request:
+  document: |
+    query TopProducts {
+      topProducts(first: 5) {
+        weight
+        deliveryEstimate(zip: "12345") {
+          min
+          max
+        }
+        reviews {
+          body
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "topProducts": [
+          {
+            "weight": 123,
+            "deliveryEstimate": {
+              "min": 123,
+              "max": 123
+            },
+            "reviews": [
+              {
+                "body": "Review: UmV2aWV3OjE="
+              },
+              {
+                "body": "Review: UmV2aWV3OjI="
+              },
+              {
+                "body": "Review: UmV2aWV3OjM="
+              }
+            ]
+          },
+          {
+            "weight": 123,
+            "deliveryEstimate": {
+              "min": 123,
+              "max": 123
+            },
+            "reviews": [
+              {
+                "body": "Review: UmV2aWV3OjQ="
+              },
+              {
+                "body": "Review: UmV2aWV3OjU="
+              },
+              {
+                "body": "Review: UmV2aWV3OjY="
+              }
+            ]
+          },
+          {
+            "weight": 123,
+            "deliveryEstimate": {
+              "min": 123,
+              "max": 123
+            },
+            "reviews": [
+              {
+                "body": "Review: UmV2aWV3Ojc="
+              },
+              {
+                "body": "Review: UmV2aWV3Ojg="
+              },
+              {
+                "body": "Review: UmV2aWV3Ojk="
+              }
+            ]
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        userById(id: ID!): User!
+        users: [User!]!
+        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String!
+        username: String!
+        birthdate: String!
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        reviews: [Review!]!
+        reviewCount: Int!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+        author: User!
+        product: Product!
+      }
+
+      type User implements Node {
+        id: ID!
+        reviews: [Review!]!
+        errorField: String @error
+      }
+    interactions:
+      - request:
+          document: |
+            query TopProducts_ca09eae1_3(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Product {
+                  reviews {
+                    body
+                  }
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3OjE="
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjI="
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjM="
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3OjQ="
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjU="
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjY="
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3Ojc="
+                      },
+                      {
+                        "body": "Review: UmV2aWV3Ojg="
+                      },
+                      {
+                        "body": "Review: UmV2aWV3Ojk="
+                      }
+                    ]
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String!
+        size: Int! @shareable
+        weight: Int! @shareable
+        repeat(num: Int!): String!
+        repeatData(data: RepeatDataInput!): RepeatDataPayload!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        productById(id: ID!): Product @lookup @shareable
+        topProducts(first: Int!): [Product!]!
+      }
+
+      type RepeatDataData {
+        num: Int!
+      }
+
+      type RepeatDataPayload {
+        data: RepeatDataData!
+      }
+
+      input RepeatDataDataInput {
+        num: Int!
+      }
+
+      input RepeatDataInput {
+        data: RepeatDataDataInput!
+      }
+    interactions:
+      - request:
+          document: |
+            query TopProducts_ca09eae1_1 {
+              topProducts(first: 5) {
+                weight
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "topProducts": [
+                    {
+                      "weight": 123,
+                      "id": "UHJvZHVjdDox"
+                    },
+                    {
+                      "weight": 123,
+                      "id": "UHJvZHVjdDoy"
+                    },
+                    {
+                      "weight": 123,
+                      "id": "UHJvZHVjdDoz"
+                    }
+                  ]
+                }
+              }
+  - name: D
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type DeliveryEstimate {
+        min: Int!
+        max: Int!
+      }
+
+      type Product implements Node {
+        id: ID!
+        size: Int! @shareable
+        weight: Int! @shareable
+        deliveryEstimate(size: Int weight: Int zip: String!): DeliveryEstimate!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+      }
+    interactions:
+      - request:
+          document: |
+            query TopProducts_ca09eae1_2(
+              $__fusion_1_id: ID!
+            ) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on Product {
+                  deliveryEstimate(zip: "12345") {
+                    min
+                    max
+                  }
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "deliveryEstimate": {
+                      "min": 123,
+                      "max": 123
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "deliveryEstimate": {
+                      "min": 123,
+                      "max": 123
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "deliveryEstimate": {
+                      "min": 123,
+                      "max": 123
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query TopProducts {
+          topProducts(first: 5) {
+            weight
+            deliveryEstimate(zip: "12345") {
+              min
+              max
+            }
+            reviews {
+              body
+            }
+            id @fusion__requirement
+          }
+        }
+      name: TopProducts
+      hash: ca09eae12d7fcd12534855b54bb04f05
+      searchSpace: 2
+      expandedNodes: 5
+  nodes:
+    - id: 1
+      type: Operation
+      schema: C
+      operation: |
+        query TopProducts_ca09eae1_1 {
+          topProducts(first: 5) {
+            weight
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: D
+      operation: |
+        query TopProducts_ca09eae1_2(
+          $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on Product {
+              deliveryEstimate(zip: "12345") {
+                min
+                max
+              }
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.topProducts
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query TopProducts_ca09eae1_3(
+          $__fusion_2_id: ID!
+        ) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on Product {
+              reviews {
+                body
+              }
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.topProducts
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -4,7 +4,7 @@ using HotChocolate.Transport.Http;
 
 namespace HotChocolate.Fusion;
 
-public class DemoIntegrationTests : FusionTestBase
+public partial class DemoIntegrationTests : FusionTestBase
 {
     [Fact]
     public async Task Same_Selection_On_Two_Object_Types_That_Require_Data_From_Another_Subgraph()
