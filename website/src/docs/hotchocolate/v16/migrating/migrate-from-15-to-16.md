@@ -131,6 +131,32 @@ builder.Services.AddGraphQLServer()
 
 If your application contains multiple GraphQL servers, the hash provider configuration has to be repeated for each one as the configuration is now scoped to a particular GraphQL server.
 
+## NATS subscriptions now use the official NATS v2 client
+
+The `HotChocolate.Subscriptions.Nats` package now uses the official NATS v2 client packages.
+If you are migrating an application that previously used `AlterNats.Hosting`, replace it with `NATS.Extensions.Microsoft.DependencyInjection` and update your NATS client registration from `AddNats(...)` to `AddNatsClient(...)`.
+
+```diff
+builder.Services
+-   .AddNats(poolSize: 1, opts => opts with
+-   {
+-       Url = "nats://localhost:4222"
+-   });
++   .AddNatsClient(nats => nats.ConfigureOptions(
++       options => options.Configure(
++           opts => opts.Opts = opts.Opts with
++           {
++               Url = "nats://localhost:4222"
++           })));
+
+builder.Services
+    .AddGraphQLServer()
+    .AddSubscriptionType<Subscription>()
+    .AddNatsSubscriptions();
+```
+
+If your code directly references NATS client types, add the `NATS.Client.Core` package as well.
+
 ## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
 
 ```diff
