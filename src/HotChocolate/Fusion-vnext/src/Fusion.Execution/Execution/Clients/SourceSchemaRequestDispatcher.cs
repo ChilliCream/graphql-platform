@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
-using HotChocolate.Fusion.Properties;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Execution.Clients.SourceSchemaClientCapabilities;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
@@ -21,6 +20,11 @@ internal sealed class SourceSchemaRequestDispatcher
     : ISourceSchemaScheduler
     , ISourceSchemaDispatcher
 {
+    private const int NodeStateUnregistered = -1;
+    private const int NodeStatePending = 0;
+    private const int NodeStateSubmitted = 1;
+    private const int NodeStateSkipped = 2;
+
 #if NET9_0_OR_GREATER
     private readonly Lock _sync = new();
 #else
@@ -179,7 +183,7 @@ internal sealed class SourceSchemaRequestDispatcher
                 }
 
                 _groupByNodeIdSlots[nodeId] = groupId;
-                _nodeStateSlots[nodeId] = 0;
+                _nodeStateSlots[nodeId] = NodeStatePending;
             }
         }
     }
@@ -415,7 +419,7 @@ internal sealed class SourceSchemaRequestDispatcher
             if ((uint)nodeId < (uint)_groupByNodeIdSlots.Length)
             {
                 _groupByNodeIdSlots[nodeId] = -1;
-                _nodeStateSlots[nodeId] = -1;
+                _nodeStateSlots[nodeId] = NodeStateUnregistered;
             }
         }
     }
@@ -432,7 +436,7 @@ internal sealed class SourceSchemaRequestDispatcher
             if ((uint)nodeId < (uint)_groupByNodeIdSlots.Length)
             {
                 _groupByNodeIdSlots[nodeId] = -1;
-                _nodeStateSlots[nodeId] = -1;
+                _nodeStateSlots[nodeId] = NodeStateUnregistered;
             }
         }
 
@@ -456,7 +460,7 @@ internal sealed class SourceSchemaRequestDispatcher
         var groupByNodeIdSlots = new int[newCapacity];
         var nodeStateSlots = new int[newCapacity];
         Array.Fill(groupByNodeIdSlots, -1);
-        Array.Fill(nodeStateSlots, -1);
+        Array.Fill(nodeStateSlots, NodeStateUnregistered);
 
         if (_groupByNodeIdSlots.Length > 0)
         {
@@ -471,7 +475,7 @@ internal sealed class SourceSchemaRequestDispatcher
     private sealed class GroupState(int id, int initialCapacity)
     {
         private readonly List<int> _nodeIds = new(initialCapacity);
-        private readonly Dictionary<int, PendingRequest> _pendingRequests = new(initialCapacity);
+        private readonly List<PendingRequest> _pendingRequests = new(initialCapacity);
         private int _remainingNodes;
         private bool _dispatchCreated;
 
@@ -479,7 +483,7 @@ internal sealed class SourceSchemaRequestDispatcher
 
         public IEnumerable<int> NodeIds => _nodeIds;
 
-        public IEnumerable<PendingRequest> PendingRequests => _pendingRequests.Values;
+        public IEnumerable<PendingRequest> PendingRequests => _pendingRequests;
 
         public void RegisterNode(int nodeId)
         {
@@ -493,8 +497,12 @@ internal sealed class SourceSchemaRequestDispatcher
             out PendingRequest? pendingRequest)
         {
             var nodeId = request.Node.Id;
+            var nodeState =
+                (uint)nodeId < (uint)nodeStateSlots.Length
+                    ? nodeStateSlots[nodeId]
+                    : NodeStateUnregistered;
 
-            if (_pendingRequests.ContainsKey(nodeId))
+            if (nodeState == NodeStateSubmitted)
             {
                 throw new InvalidOperationException(
                     string.Format(
@@ -502,26 +510,27 @@ internal sealed class SourceSchemaRequestDispatcher
                         nodeId));
             }
 
-            if ((uint)nodeId >= (uint)nodeStateSlots.Length || nodeStateSlots[nodeId] != 0)
+            if (nodeState != NodeStatePending)
             {
                 pendingRequest = null;
                 return false;
             }
 
-            nodeStateSlots[nodeId] = 1;
+            nodeStateSlots[nodeId] = NodeStateSubmitted;
             _remainingNodes--;
 
             pendingRequest = new PendingRequest(request);
-            _pendingRequests.Add(nodeId, pendingRequest);
+            _pendingRequests.Add(pendingRequest);
 
             return true;
         }
 
         public void Skip(int nodeId, int[] nodeStateSlots)
         {
-            if ((uint)nodeId < (uint)nodeStateSlots.Length && nodeStateSlots[nodeId] == 0)
+            if ((uint)nodeId < (uint)nodeStateSlots.Length
+                && nodeStateSlots[nodeId] == NodeStatePending)
             {
-                nodeStateSlots[nodeId] = 1;
+                nodeStateSlots[nodeId] = NodeStateSkipped;
                 _remainingNodes--;
             }
         }
@@ -542,7 +551,7 @@ internal sealed class SourceSchemaRequestDispatcher
                 return true;
             }
 
-            pendingRequests = [.. _pendingRequests.Values];
+            pendingRequests = [.. _pendingRequests];
             return true;
         }
     }
