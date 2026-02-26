@@ -336,10 +336,40 @@ NonNegativeInt
 
 TODO
 
-## AnyType
+## Any and Json scalars merged
 
-TODO
-`JsonElement` is now inferred as `Any` instead of `Json`.
+The `Json` scalar has been removed and its functionality merged into the `Any` scalar. The `Any` scalar now uses `System.Text.Json.JsonElement` as its .NET runtime type, which was previously the runtime type of the `Json` scalar.
+
+**`JsonElement` is now inferred as `Any` instead of `Json`.** If you used `[GraphQLType<JsonType>]` annotations or explicit `JsonType` bindings, replace them with `AnyType`:
+
+```csharp
+// before
+[GraphQLType<JsonType>]
+public JsonElement GetData() => ...;
+
+// after
+[GraphQLType<AnyType>]
+public JsonElement GetData() => ...;
+```
+
+### Returning dictionaries or arbitrary .NET types
+
+If you previously returned `Dictionary<string, object>` or other .NET types from a field typed as `Json` or `Any`, you now need to register the JSON type converter explicitly. Without it, the type system has no way to convert arbitrary .NET types to `JsonElement`:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddJsonTypeConverter();
+```
+
+For custom reference types that need specific serialization, register a dedicated converter instead:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeConverter<TimeZoneInfo, JsonElement>(
+        value => JsonSerializer.SerializeToElement(value.Id));
+```
 
 ## `Byte` and `SignedByte` types renamed
 
