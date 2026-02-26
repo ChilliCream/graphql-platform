@@ -164,7 +164,7 @@ internal sealed class SourceSchemaRequestDispatcher
 
             if (!_groups.TryGetValue(groupId, out var group))
             {
-                group = new GroupState(groupId, nodeIds.Count);
+                group = new GroupState(groupId, nodeIds);
                 _groups.Add(groupId, group);
             }
 
@@ -414,6 +414,15 @@ internal sealed class SourceSchemaRequestDispatcher
     private void RemoveGroup(GroupState group)
     {
         _groups.Remove(group.Id);
+
+        foreach (var nodeId in group.NodeIds)
+        {
+            if ((uint)nodeId < (uint)_groupByNodeIdSlots.Length)
+            {
+                _groupByNodeIdSlots[nodeId] = -1;
+                _nodeStateSlots[nodeId] = NodeStateUnregistered;
+            }
+        }
     }
 
     private void ClearNodeIdSlots()
@@ -464,13 +473,16 @@ internal sealed class SourceSchemaRequestDispatcher
         _nodeStateSlots = nodeStateSlots;
     }
 
-    private sealed class GroupState(int id, int initialCapacity)
+    private sealed class GroupState(int id, IReadOnlyList<int> nodeIds)
     {
-        private readonly List<PendingRequest> _pendingRequests = new(initialCapacity);
+        private readonly IReadOnlyList<int> _nodeIds = nodeIds;
+        private readonly List<PendingRequest> _pendingRequests = new(nodeIds.Count);
         private int _remainingNodes;
         private bool _dispatchCreated;
 
         public int Id { get; } = id;
+
+        public IReadOnlyList<int> NodeIds => _nodeIds;
 
         public IEnumerable<PendingRequest> PendingRequests => _pendingRequests;
 
