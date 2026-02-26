@@ -87,7 +87,11 @@ public class BatchingTests
             .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
             .AddMessageBus()
-            .AddBatchHandler<TestBatchHandler>(opts => opts.MaxBatchSize = messageCount)
+            .AddBatchHandler<TestBatchHandler>(opts =>
+            {
+                opts.MaxBatchSize = messageCount;
+                opts.BatchTimeout = TimeSpan.FromSeconds(30);
+            })
             .AddRabbitMQ(t =>
             {
                 t.Endpoint("batch-ep")

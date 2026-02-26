@@ -15,8 +15,7 @@ internal sealed class PostgresMessageBusOutboxWorker(
     PostgresMessageOutboxOptions options,
     PostgresOutboxProcessor processor) : IHostedService
 {
-    private readonly NpgsqlDataSource _dataSource = NpgsqlDataSource.Create(options.ConnectionString);
-
+    private NpgsqlDataSource? _dataSource;
     private ContinuousTask? _task;
 
     /// <summary>
@@ -32,6 +31,7 @@ internal sealed class PostgresMessageBusOutboxWorker(
             throw new InvalidOperationException("The worker is already running.");
         }
 
+        _dataSource = NpgsqlDataSource.Create(options.ConnectionString);
         _task = new ContinuousTask(ProcessAsync);
 
         return Task.CompletedTask;
@@ -50,12 +50,17 @@ internal sealed class PostgresMessageBusOutboxWorker(
 
         await _task.DisposeAsync();
         _task = null;
-        await _dataSource.DisposeAsync();
+
+        if (_dataSource is not null)
+        {
+            await _dataSource.DisposeAsync();
+            _dataSource = null;
+        }
     }
 
     private async Task ProcessAsync(CancellationToken stoppingToken)
     {
-        await using var connection = await _dataSource.OpenConnectionAsync(stoppingToken);
+        await using var connection = await _dataSource!.OpenConnectionAsync(stoppingToken);
 
         await processor.ProcessAsync(connection, stoppingToken);
     }

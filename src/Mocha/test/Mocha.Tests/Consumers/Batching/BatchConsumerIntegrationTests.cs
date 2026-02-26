@@ -244,7 +244,11 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
             b =>
             {
                 b.Services.AddSingleton(recorder);
-                b.AddBatchHandler<TestBatchHandler>(opts => opts.MaxBatchSize = messageCount);
+                b.AddBatchHandler<TestBatchHandler>(opts =>
+                {
+                    opts.MaxBatchSize = messageCount;
+                    opts.BatchTimeout = TimeSpan.FromSeconds(30);
+                });
             },
             t =>
                 t.Endpoint("batch-ep").Handler<TestBatchHandler>().MaxConcurrency(messageCount));
