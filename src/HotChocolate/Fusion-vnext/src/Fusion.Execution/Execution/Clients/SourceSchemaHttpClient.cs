@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -574,6 +573,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 {
                     case 0:
                     {
+
                         var result = await response.ReadAsResultAsync(cancellationToken);
                         var sourceSchemaResult = new SourceSchemaResult(Path.Root, result);
 
@@ -714,15 +714,20 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
     /// <summary>
     /// A streaming response for a single execution node within a batched HTTP request.
-    /// Results are pushed into a <see cref="ConcurrentQueue{T}"/> by the background stream
-    /// reader and signalled via a lightweight <see cref="AsyncAutoResetEvent"/>.
-    /// The execution node reads lazily via <see cref="ReadAsResultStreamAsync"/>.
+    /// Results are pushed by the background stream reader and signalled via a lightweight
+    /// <see cref="AsyncAutoResetEvent"/>. The execution node reads lazily via
+    /// <see cref="ReadAsResultStreamAsync"/>.
     /// </summary>
     private sealed class NodeResponse : SourceSchemaClientResponse
     {
-        private readonly ConcurrentQueue<SourceSchemaResult> _results = new();
+#if NET9_0_OR_GREATER
+        private readonly Lock _sync = new();
+#else
+        private readonly object _sync = new();
+#endif
+        private readonly Queue<SourceSchemaResult> _results = [];
         private readonly AsyncAutoResetEvent _signal = new();
-        private volatile bool _completed;
+        private bool _completed;
         private Exception? _error;
         private bool _disposed;
 
@@ -747,20 +752,28 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
         internal bool TryWrite(SourceSchemaResult result)
         {
-            if (_disposed)
+            lock (_sync)
             {
-                return false;
+                if (_disposed || _completed)
+                {
+                    return false;
+                }
+
+                _results.Enqueue(result);
             }
 
-            _results.Enqueue(result);
             _signal.Set();
             return true;
         }
 
         internal void Complete(Exception? error = null)
         {
-            _error = error;
-            _completed = true;
+            lock (_sync)
+            {
+                _error = error;
+                _completed = true;
+            }
+
             _signal.Set();
         }
 
@@ -771,23 +784,23 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                while (_results.TryDequeue(out var result))
+                while (TryDequeue(out var result))
                 {
                     yield return result;
                 }
 
-                if (_completed)
+                if (IsCompleted(out var error))
                 {
                     // Final drain — writer may have enqueued between our last
                     // TryDequeue and the completion flag becoming visible.
-                    while (_results.TryDequeue(out var result))
+                    while (TryDequeue(out var drained))
                     {
-                        yield return result;
+                        yield return drained;
                     }
 
-                    if (_error is not null)
+                    if (error is not null)
                     {
-                        ExceptionDispatchInfo.Throw(_error);
+                        ExceptionDispatchInfo.Throw(error);
                     }
 
                     yield break;
@@ -804,13 +817,61 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 return;
             }
 
-            _disposed = true;
+            Queue<SourceSchemaResult>? resultsToDispose = null;
 
-            Complete();
+            lock (_sync)
+            {
+                if (_disposed)
+                {
+                    return;
+                }
 
-            while (_results.TryDequeue(out var result))
+                _disposed = true;
+                _completed = true;
+
+                if (_results.Count > 0)
+                {
+                    resultsToDispose = new Queue<SourceSchemaResult>(_results);
+                    _results.Clear();
+                }
+            }
+
+            _signal.Set();
+
+            if (resultsToDispose is null)
+            {
+                return;
+            }
+
+            while (resultsToDispose.TryDequeue(out var result))
             {
                 result.Dispose();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool TryDequeue(out SourceSchemaResult result)
+        {
+            lock (_sync)
+            {
+                if (_results.Count > 0)
+                {
+                    result = _results.Dequeue();
+                    return true;
+                }
+            }
+
+            result = null!;
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool IsCompleted(out Exception? error)
+        {
+            lock (_sync)
+            {
+                error = _error;
+                return _completed;
             }
         }
     }
