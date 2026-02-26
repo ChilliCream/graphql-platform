@@ -176,11 +176,11 @@ internal sealed class SourceSchemaRequestDispatcher
                 if (existingGroupId < 0)
                 {
                     _trackedNodeIdSlots.Add(nodeId);
-                    group.RegisterNode(nodeId);
+                    group.RegisterNode();
                 }
                 else if (existingGroupId != groupId)
                 {
-                    group.RegisterNode(nodeId);
+                    group.RegisterNode();
                 }
 
                 _groupByNodeIdSlots[nodeId] = groupId;
@@ -414,15 +414,6 @@ internal sealed class SourceSchemaRequestDispatcher
     private void RemoveGroup(GroupState group)
     {
         _groups.Remove(group.Id);
-
-        foreach (var nodeId in group.NodeIds)
-        {
-            if ((uint)nodeId < (uint)_groupByNodeIdSlots.Length)
-            {
-                _groupByNodeIdSlots[nodeId] = -1;
-                _nodeStateSlots[nodeId] = NodeStateUnregistered;
-            }
-        }
     }
 
     private void ClearNodeIdSlots()
@@ -475,20 +466,16 @@ internal sealed class SourceSchemaRequestDispatcher
 
     private sealed class GroupState(int id, int initialCapacity)
     {
-        private readonly List<int> _nodeIds = new(initialCapacity);
         private readonly List<PendingRequest> _pendingRequests = new(initialCapacity);
         private int _remainingNodes;
         private bool _dispatchCreated;
 
         public int Id { get; } = id;
 
-        public IEnumerable<int> NodeIds => _nodeIds;
-
         public IEnumerable<PendingRequest> PendingRequests => _pendingRequests;
 
-        public void RegisterNode(int nodeId)
+        public void RegisterNode()
         {
-            _nodeIds.Add(nodeId);
             _remainingNodes++;
         }
 
