@@ -1,7 +1,9 @@
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Properties;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Execution.Clients.SourceSchemaClientCapabilities;
+using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -19,12 +21,18 @@ internal sealed class SourceSchemaRequestDispatcher
     : ISourceSchemaScheduler
     , ISourceSchemaDispatcher
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private readonly OperationPlanContext _context;
     private readonly ISourceSchemaClientScope _clientScope;
     private readonly CancellationToken _requestAborted;
     private readonly Dictionary<int, GroupState> _groups = [];
-    private readonly Dictionary<int, int> _groupByNodeId = [];
+    private readonly List<int> _trackedNodeIdSlots = [];
+    private int[] _groupByNodeIdSlots = [];
+    private int[] _nodeStateSlots = [];
     private Exception? _abortError;
     private bool _aborted;
 
@@ -91,7 +99,7 @@ internal sealed class SourceSchemaRequestDispatcher
             }
             // we register the node to be dispatched.
             else if (_groups.TryGetValue(groupId, out var group)
-                && group.TrySubmit(request, out pendingRequest))
+                && group.TrySubmit(request, _nodeStateSlots, out pendingRequest))
             {
                 if (group.TryCreateDispatch(out pendingRequests))
                 {
@@ -104,7 +112,7 @@ internal sealed class SourceSchemaRequestDispatcher
             {
                 abortError = new InvalidOperationException(
                     string.Format(
-                        FusionExecutionResources.SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup,
+                        SourceSchemaRequestDispatcher_NodeNotRegisteredInGroup,
                         request.Node.Id,
                         groupId));
             }
@@ -138,7 +146,7 @@ internal sealed class SourceSchemaRequestDispatcher
         if (nodeIds.Count == 0)
         {
             throw new ArgumentException(
-                FusionExecutionResources.SourceSchemaRequestDispatcher_RegisterGroupEmptyNodeIds,
+                SourceSchemaRequestDispatcher_RegisterGroupEmptyNodeIds,
                 nameof(nodeIds));
         }
 
@@ -151,15 +159,27 @@ internal sealed class SourceSchemaRequestDispatcher
 
             if (!_groups.TryGetValue(groupId, out var group))
             {
-                group = new GroupState(groupId);
+                group = new GroupState(groupId, nodeIds.Count);
                 _groups.Add(groupId, group);
             }
 
-            group.Register(nodeIds);
-
             foreach (var nodeId in nodeIds)
             {
-                _groupByNodeId[nodeId] = groupId;
+                EnsureNodeIdSlotCapacity(nodeId + 1);
+                var existingGroupId = _groupByNodeIdSlots[nodeId];
+
+                if (existingGroupId < 0)
+                {
+                    _trackedNodeIdSlots.Add(nodeId);
+                    group.RegisterNode(nodeId);
+                }
+                else if (existingGroupId != groupId)
+                {
+                    group.RegisterNode(nodeId);
+                }
+
+                _groupByNodeIdSlots[nodeId] = groupId;
+                _nodeStateSlots[nodeId] = 0;
             }
         }
     }
@@ -171,7 +191,7 @@ internal sealed class SourceSchemaRequestDispatcher
     /// <param name="nodeId">The execution node ID to skip.</param>
     public void SkipNode(int nodeId)
     {
-        ImmutableArray<PendingRequest> pendingRequests = [];
+        ImmutableArray<PendingRequest> pendingRequests;
         var needsDispatch = false;
 
         lock (_sync)
@@ -181,13 +201,19 @@ internal sealed class SourceSchemaRequestDispatcher
                 return;
             }
 
-            if (!_groupByNodeId.TryGetValue(nodeId, out var groupId)
-                || !_groups.TryGetValue(groupId, out var group))
+            if ((uint)nodeId >= (uint)_groupByNodeIdSlots.Length)
             {
                 return;
             }
 
-            group.Skip(nodeId);
+            var groupId = _groupByNodeIdSlots[nodeId];
+
+            if (groupId < 0 || !_groups.TryGetValue(groupId, out var group))
+            {
+                return;
+            }
+
+            group.Skip(nodeId, _nodeStateSlots);
 
             if (group.TryCreateDispatch(out pendingRequests))
             {
@@ -224,12 +250,12 @@ internal sealed class SourceSchemaRequestDispatcher
             }
 
             _aborted = true;
-            _abortError = error ?? new OperationCanceledException(FusionExecutionResources.SourceSchemaRequestDispatcher_OperationAborted);
+            _abortError = error ?? new OperationCanceledException(SourceSchemaRequestDispatcher_OperationAborted);
             abortError = _abortError;
             pendingRequests = [.. _groups.Values.SelectMany(static t => t.PendingRequests)];
 
             _groups.Clear();
-            _groupByNodeId.Clear();
+            ClearNodeIdSlots();
         }
 
         foreach (var pendingRequest in pendingRequests)
@@ -250,7 +276,7 @@ internal sealed class SourceSchemaRequestDispatcher
             _aborted = false;
             _abortError = null;
             _groups.Clear();
-            _groupByNodeId.Clear();
+            ClearNodeIdSlots();
         }
     }
 
@@ -331,16 +357,23 @@ internal sealed class SourceSchemaRequestDispatcher
     {
         try
         {
+            var requests = new SourceSchemaClientRequest[pendingRequests.Length];
+
+            for (var i = 0; i < pendingRequests.Length; i++)
+            {
+                requests[i] = pendingRequests[i].Request;
+            }
+
             var responses = await client.ExecuteBatchAsync(
                     _context,
-                    [.. pendingRequests.Select(t => t.Request)],
+                    ImmutableCollectionsMarshal.AsImmutableArray(requests),
                     _requestAborted)
                 .ConfigureAwait(false);
 
             if (responses.Length != pendingRequests.Length)
             {
                 throw new InvalidOperationException(
-                    FusionExecutionResources.SourceSchemaRequestDispatcher_BatchResponseCountMismatch);
+                    SourceSchemaRequestDispatcher_BatchResponseCountMismatch);
             }
 
             for (var i = 0; i < pendingRequests.Length; i++)
@@ -371,7 +404,7 @@ internal sealed class SourceSchemaRequestDispatcher
     }
 
     private Exception CreateAbortException()
-        => _abortError ?? new OperationCanceledException(FusionExecutionResources.SourceSchemaRequestDispatcher_OperationAborted);
+        => _abortError ?? new OperationCanceledException(SourceSchemaRequestDispatcher_OperationAborted);
 
     private void RemoveGroup(GroupState group)
     {
@@ -379,15 +412,67 @@ internal sealed class SourceSchemaRequestDispatcher
 
         foreach (var nodeId in group.NodeIds)
         {
-            _groupByNodeId.Remove(nodeId);
+            if ((uint)nodeId < (uint)_groupByNodeIdSlots.Length)
+            {
+                _groupByNodeIdSlots[nodeId] = -1;
+                _nodeStateSlots[nodeId] = -1;
+            }
         }
     }
 
-    private sealed class GroupState(int id)
+    private void ClearNodeIdSlots()
     {
-        private readonly HashSet<int> _nodeIds = [];
-        private readonly HashSet<int> _remainingNodeIds = [];
-        private readonly Dictionary<int, PendingRequest> _pendingRequests = [];
+        if (_trackedNodeIdSlots.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var nodeId in _trackedNodeIdSlots)
+        {
+            if ((uint)nodeId < (uint)_groupByNodeIdSlots.Length)
+            {
+                _groupByNodeIdSlots[nodeId] = -1;
+                _nodeStateSlots[nodeId] = -1;
+            }
+        }
+
+        _trackedNodeIdSlots.Clear();
+    }
+
+    private void EnsureNodeIdSlotCapacity(int minCapacity)
+    {
+        if (_groupByNodeIdSlots.Length >= minCapacity)
+        {
+            return;
+        }
+
+        var newCapacity = _groupByNodeIdSlots.Length == 0 ? 8 : _groupByNodeIdSlots.Length;
+
+        while (newCapacity < minCapacity)
+        {
+            newCapacity *= 2;
+        }
+
+        var groupByNodeIdSlots = new int[newCapacity];
+        var nodeStateSlots = new int[newCapacity];
+        Array.Fill(groupByNodeIdSlots, -1);
+        Array.Fill(nodeStateSlots, -1);
+
+        if (_groupByNodeIdSlots.Length > 0)
+        {
+            Array.Copy(_groupByNodeIdSlots, groupByNodeIdSlots, _groupByNodeIdSlots.Length);
+            Array.Copy(_nodeStateSlots, nodeStateSlots, _nodeStateSlots.Length);
+        }
+
+        _groupByNodeIdSlots = groupByNodeIdSlots;
+        _nodeStateSlots = nodeStateSlots;
+    }
+
+    private sealed class GroupState(int id, int initialCapacity)
+    {
+        private readonly List<int> _nodeIds = new(initialCapacity);
+        private readonly Dictionary<int, PendingRequest> _pendingRequests = new(initialCapacity);
+        private int _remainingNodes;
         private bool _dispatchCreated;
 
         public int Id { get; } = id;
@@ -396,36 +481,35 @@ internal sealed class SourceSchemaRequestDispatcher
 
         public IEnumerable<PendingRequest> PendingRequests => _pendingRequests.Values;
 
-        public void Register(IReadOnlyList<int> nodeIds)
+        public void RegisterNode(int nodeId)
         {
-            foreach (var nodeId in nodeIds)
-            {
-                _nodeIds.Add(nodeId);
-                _remainingNodeIds.Add(nodeId);
-            }
+            _nodeIds.Add(nodeId);
+            _remainingNodes++;
         }
 
         public bool TrySubmit(
             SourceSchemaClientRequest request,
+            int[] nodeStateSlots,
             out PendingRequest? pendingRequest)
         {
             var nodeId = request.Node.Id;
-
-            if (!_nodeIds.Contains(nodeId))
-            {
-                pendingRequest = null;
-                return false;
-            }
 
             if (_pendingRequests.ContainsKey(nodeId))
             {
                 throw new InvalidOperationException(
                     string.Format(
-                        FusionExecutionResources.SourceSchemaRequestDispatcher_DuplicateNodeSubmission,
+                        SourceSchemaRequestDispatcher_DuplicateNodeSubmission,
                         nodeId));
             }
 
-            _remainingNodeIds.Remove(nodeId);
+            if ((uint)nodeId >= (uint)nodeStateSlots.Length || nodeStateSlots[nodeId] != 0)
+            {
+                pendingRequest = null;
+                return false;
+            }
+
+            nodeStateSlots[nodeId] = 1;
+            _remainingNodes--;
 
             pendingRequest = new PendingRequest(request);
             _pendingRequests.Add(nodeId, pendingRequest);
@@ -433,12 +517,18 @@ internal sealed class SourceSchemaRequestDispatcher
             return true;
         }
 
-        public void Skip(int nodeId)
-            => _remainingNodeIds.Remove(nodeId);
+        public void Skip(int nodeId, int[] nodeStateSlots)
+        {
+            if ((uint)nodeId < (uint)nodeStateSlots.Length && nodeStateSlots[nodeId] == 0)
+            {
+                nodeStateSlots[nodeId] = 1;
+                _remainingNodes--;
+            }
+        }
 
         public bool TryCreateDispatch(out ImmutableArray<PendingRequest> pendingRequests)
         {
-            if (_dispatchCreated || _remainingNodeIds.Count > 0)
+            if (_dispatchCreated || _remainingNodes > 0)
             {
                 pendingRequests = [];
                 return false;
