@@ -129,31 +129,9 @@ internal static class ResultDataMapper
                 return new StringValueNode(value.AssertString());
 
             case JsonValueKind.Number:
-                var rawNumber = value.GetRawValue(includeQuotes: false);
-                var dot = rawNumber.IndexOf((byte)'.');
-                var exponent = rawNumber.IndexOfAny((byte)'e', (byte)'E');
-
-                if (dot < 0 && exponent < 0 && value.TryGetInt64(out var intValue))
+                if (value.TryGetInt64(out var intValue))
                 {
                     return new IntValueNode(intValue);
-                }
-
-                // Preserve float formatting by copying the original UTF-8 number literal.
-                if (dot >= 0 || exponent >= 0)
-                {
-                    writer ??= new PooledArrayWriter();
-
-                    var start = writer.Length;
-                    rawNumber.CopyTo(writer.GetSpan(rawNumber.Length));
-                    writer.Advance(rawNumber.Length);
-
-                    var format = exponent >= 0
-                        ? FloatFormat.Exponential
-                        : FloatFormat.FixedPoint;
-
-                    return new FloatValueNode(
-                        writer.GetWrittenMemorySegment(start, rawNumber.Length),
-                        format);
                 }
 
                 goto default;
