@@ -134,6 +134,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         var index = 0;
         var bufferLength = 0;
         SourceSchemaResult[]? buffer = null;
+        SourceSchemaResult? singleResult = null;
         var hasSomeErrors = false;
 
         try
@@ -152,14 +153,32 @@ public sealed class OperationExecutionNode : ExecutionNode
                 totalPathCount += variables[i].AdditionalPaths.Length;
             }
 
-            bufferLength = Math.Max(totalPathCount, 1);
-            buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
+            var initialBufferLength = Math.Max(totalPathCount, 2);
 
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
             {
-                buffer[index++] = result;
+                // If there is only one response, we skip the buffer rental.
+                if (index == 0)
+                {
+                    singleResult = result;
+                    index = 1;
+                }
+                else
+                {
+                    // If we have more than one response, we rent a buffer and move the first result into it.
+                    if (buffer is null)
+                    {
+                        bufferLength = initialBufferLength;
+                        buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
+                        buffer[0] = singleResult!;
+                    }
 
-                if (result.HasErrors)
+                    buffer[index++] = result;
+                }
+
+                // Parsing errors here allows the result store to reuse the cached value
+                // and avoids a second document lookup per result.
+                if (result.Errors is not null)
                 {
                     hasSomeErrors = true;
                 }
@@ -189,6 +208,10 @@ public sealed class OperationExecutionNode : ExecutionNode
                 buffer.AsSpan(0, index).Clear();
                 ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
             }
+            else if (singleResult is not null)
+            {
+                singleResult.Dispose();
+            }
 
             AddErrors(context, exception, variables, _responseNames);
             return ExecutionStatus.Failed;
@@ -196,7 +219,31 @@ public sealed class OperationExecutionNode : ExecutionNode
 
         try
         {
-            context.AddPartialResults(_source, buffer.AsSpan(0, index), _responseNames);
+            if (buffer is not null)
+            {
+                context.AddPartialResults(
+                    _source,
+                    buffer.AsSpan(0, index),
+                    _responseNames,
+                    hasSomeErrors);
+            }
+            else if (singleResult is not null)
+            {
+                var firstResult = singleResult;
+                context.AddPartialResults(
+                    _source,
+                    MemoryMarshal.CreateReadOnlySpan(ref firstResult, 1),
+                    _responseNames,
+                    hasSomeErrors);
+            }
+            else
+            {
+                context.AddPartialResults(
+                    _source,
+                    [],
+                    _responseNames,
+                    hasSomeErrors);
+            }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -213,8 +260,11 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         finally
         {
-            buffer.AsSpan(0, index).Clear();
-            ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
+            if (buffer is not null)
+            {
+                buffer.AsSpan(0, index).Clear();
+                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
+            }
         }
 
         return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
