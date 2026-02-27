@@ -455,6 +455,38 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
     }
 
     [Fact]
+    public async Task Query_InterfaceType_Derived_Implementation_Is_Resolved()
+    {
+        // act
+        var result = await ExecuteAsync(
+            """
+            {
+                statementTransaction {
+                    __typename
+                    id
+                    ... on DepositStatementTransaction {
+                        collectionAmount
+                    }
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "statementTransaction": {
+                  "__typename": "DepositStatementTransaction",
+                  "id": 1,
+                  "collectionAmount": 42
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task SecondLevelCache_Is_Used()
     {
         // arrange
