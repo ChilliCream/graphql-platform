@@ -344,7 +344,8 @@ internal sealed class FusionRequestExecutorManager
             return SourceSchemaHttpClientBatchingMode.ApolloRequestBatching;
         }
 
-        return SourceSchemaHttpClientBatchingMode.VariableBatching;
+        return SourceSchemaHttpClientBatchingMode.VariableBatching
+            | SourceSchemaHttpClientBatchingMode.RequestBatching;
     }
 
     private FeatureCollection CreateSchemaFeatures(
@@ -441,6 +442,11 @@ internal sealed class FusionRequestExecutorManager
             static _ => new DefaultObjectPool<PooledRequestContext>(
                 new RequestContextPooledObjectPolicy()));
 
+        services.TryAddSingleton<ObjectPoolProvider>(
+            static _ => new DefaultObjectPoolProvider());
+        services.AddSingleton(
+            static sp => sp.GetRequiredService<ObjectPoolProvider>().CreateStringBuilderPool());
+
         services.AddTransient<CompositeTypeInterceptor>(static _ => new IntrospectionFieldInterceptor());
     }
 
@@ -448,9 +454,6 @@ internal sealed class FusionRequestExecutorManager
         IServiceCollection services,
         OperationPlannerOptions plannerOptions)
     {
-        services.TryAddSingleton<ObjectPoolProvider>(
-            static _ => new DefaultObjectPoolProvider());
-
         services.AddSingleton(
             static sp => sp.GetRequiredService<ObjectPoolProvider>().CreateFieldMapPool());
 

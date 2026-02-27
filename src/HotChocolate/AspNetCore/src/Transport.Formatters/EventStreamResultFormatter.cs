@@ -1,8 +1,8 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.IO.Pipelines;
+using System.Runtime.ExceptionServices;
 using HotChocolate.Execution;
-using HotChocolate.Utilities;
 using static HotChocolate.Transport.Formatters.EventStreamResultFormatterEventSource;
 
 namespace HotChocolate.Transport.Formatters;
@@ -27,19 +27,24 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
     public ValueTask FormatAsync(
         IExecutionResult result,
         PipeWriter writer,
+        ExecutionResultFormatFlags flags,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(writer);
 
+        var useIncrementalRfc1 =
+            (flags & ExecutionResultFormatFlags.IncrementalRfc1)
+                == ExecutionResultFormatFlags.IncrementalRfc1;
+
         return result switch
         {
             OperationResult operationResult
-                => FormatOperationResultAsync(operationResult, writer, cancellationToken),
+                => FormatOperationResultAsync(operationResult, writer, useIncrementalRfc1, cancellationToken),
             OperationResultBatch resultBatch
-                => FormatResultBatchAsync(resultBatch, writer, cancellationToken),
+                => FormatResultBatchAsync(resultBatch, writer, useIncrementalRfc1, cancellationToken),
             IResponseStream responseStream
-                => FormatResponseStreamAsync(responseStream, writer, cancellationToken),
+                => FormatResponseStreamAsync(responseStream, writer, useIncrementalRfc1, cancellationToken),
             _ => throw new NotSupportedException()
         };
     }
@@ -47,13 +52,21 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
     private async ValueTask FormatOperationResultAsync(
         OperationResult operationResult,
         PipeWriter writer,
+        bool useIncrementalRfc1,
         CancellationToken ct)
     {
+        OperationResultFormatterContext? formatContext = null;
         var scope = Log.FormatOperationResultStart();
 
         try
         {
-            MessageHelper.FormatNextMessage(_payloadFormatter, operationResult, writer);
+            MessageHelper.FormatNextMessage(
+                _payloadFormatter,
+                operationResult,
+                writer,
+                useIncrementalRfc1,
+                ref formatContext);
+            MessageHelper.FormatCompleteMessage(writer);
             await writer.FlushAsync(ct).ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -70,6 +83,7 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
     private async ValueTask FormatResultBatchAsync(
         OperationResultBatch resultBatch,
         PipeWriter writer,
+        bool useIncrementalRfc1,
         CancellationToken ct)
     {
         Exception? exception = null;
@@ -90,7 +104,13 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
 
                         try
                         {
-                            MessageHelper.FormatNextMessage(_payloadFormatter, operationResult, writer);
+                            OperationResultFormatterContext? formatContext = null;
+                            MessageHelper.FormatNextMessage(
+                                _payloadFormatter,
+                                operationResult,
+                                writer,
+                                useIncrementalRfc1,
+                                ref formatContext);
                             await writer.FlushAsync(ct).ConfigureAwait(false);
                             keepAlive?.Reset();
                         }
@@ -111,6 +131,7 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
                         keepAlive ??= new KeepAliveJob(semaphore, writer);
                         var formatter = new StreamFormatter(
                             _payloadFormatter,
+                            useIncrementalRfc1,
                             keepAlive,
                             responseStream,
                             semaphore,
@@ -151,13 +172,14 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
         // we rethrow any stream exception that happened.
         if (exception is not null)
         {
-            throw exception;
+            ExceptionDispatchInfo.Capture(exception).Throw();
         }
     }
 
     private async ValueTask FormatResponseStreamAsync(
         IResponseStream responseStream,
         PipeWriter writer,
+        bool useIncrementalRfc1,
         CancellationToken ct)
     {
         Exception? exception = null;
@@ -167,7 +189,13 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
         {
             using (var keepAlive = new KeepAliveJob(semaphore, writer))
             {
-                var formatter = new StreamFormatter(_payloadFormatter, keepAlive, responseStream, semaphore, writer);
+                var formatter = new StreamFormatter(
+                    _payloadFormatter,
+                    useIncrementalRfc1,
+                    keepAlive,
+                    responseStream,
+                    semaphore,
+                    writer);
                 await formatter.ProcessAsync(ct).ConfigureAwait(false);
             }
 
@@ -240,11 +268,14 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
 
     private sealed class StreamFormatter(
         JsonResultFormatter payloadFormatter,
+        bool useIncrementalRfc1,
         KeepAliveJob keepAliveJob,
         IResponseStream responseStream,
         SemaphoreSlim semaphore,
         PipeWriter writer)
     {
+        private OperationResultFormatterContext? _formatContext;
+
         public async Task ProcessAsync(CancellationToken ct)
         {
             try
@@ -258,7 +289,12 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
 
                     try
                     {
-                        MessageHelper.FormatNextMessage(payloadFormatter, result, writer);
+                        MessageHelper.FormatNextMessage(
+                            payloadFormatter,
+                            result,
+                            writer,
+                            useIncrementalRfc1,
+                            ref _formatContext);
                         await writer.FlushAsync(ct).ConfigureAwait(false);
                         keepAliveJob.Reset();
                     }
@@ -318,7 +354,7 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
 
             if (DateTime.UtcNow - _lastWriteTime >= s_keepAlivePeriod)
             {
-                WriteKeepAliveAsync().FireAndForget();
+                _ = WriteKeepAliveAsync();
             }
 
             async Task WriteKeepAliveAsync()
@@ -358,35 +394,37 @@ public sealed class EventStreamResultFormatter(JsonResultFormatterOptions option
 
     private static class MessageHelper
     {
-        private static readonly byte[] s_nextEvent = "event: next\ndata: "u8.ToArray();
-        private static readonly byte[] s_completeEvent = "event: complete\n\n"u8.ToArray();
-        private static readonly byte[] s_newLine2 = "\n\n"u8.ToArray();
+        private static ReadOnlySpan<byte> NextEvent => "event: next\ndata: "u8;
+        private static ReadOnlySpan<byte> CompleteEvent => "event: complete\n\n"u8;
+        private static ReadOnlySpan<byte> NewLine2 => "\n\n"u8;
 
         public static void FormatNextMessage(
             JsonResultFormatter payloadFormatter,
             OperationResult result,
-            IBufferWriter<byte> writer)
+            IBufferWriter<byte> writer,
+            bool useIncrementalRfc1,
+            ref OperationResultFormatterContext? context)
         {
             // write the SSE event field
-            var span = writer.GetSpan(s_nextEvent.Length);
-            s_nextEvent.CopyTo(span);
-            writer.Advance(s_nextEvent.Length);
+            var span = writer.GetSpan(NextEvent.Length);
+            NextEvent.CopyTo(span);
+            writer.Advance(NextEvent.Length);
 
             // write the actual result data
-            payloadFormatter.Format(result, writer);
+            payloadFormatter.Format(result, writer, useIncrementalRfc1, ref context);
 
             // write the new line
-            span = writer.GetSpan(s_newLine2.Length);
-            s_newLine2.CopyTo(span);
-            writer.Advance(s_newLine2.Length);
+            span = writer.GetSpan(NewLine2.Length);
+            NewLine2.CopyTo(span);
+            writer.Advance(NewLine2.Length);
         }
 
         public static void FormatCompleteMessage(
             IBufferWriter<byte> writer)
         {
-            var span = writer.GetSpan(s_completeEvent.Length);
-            s_completeEvent.CopyTo(span);
-            writer.Advance(s_completeEvent.Length);
+            var span = writer.GetSpan(CompleteEvent.Length);
+            CompleteEvent.CopyTo(span);
+            writer.Advance(CompleteEvent.Length);
         }
 
         public static ReadOnlySpan<byte> KeepAlive => ":\n\n"u8;

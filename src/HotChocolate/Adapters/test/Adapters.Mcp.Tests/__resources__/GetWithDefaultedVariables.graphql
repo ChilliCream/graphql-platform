@@ -42,6 +42,14 @@ query GetWithDefaultedVariables(
   $timeSpan: TimeSpan! = "PT5M"
   "Unknown description"
   $unknown: Unknown! = "default"
+  "UnsignedByte description"
+  $unsignedByte: UnsignedByte! = 1
+  "UnsignedInt description"
+  $unsignedInt: UnsignedInt! = 65536
+  "UnsignedLong description"
+  $unsignedLong: UnsignedLong! = 4294967296
+  "UnsignedShort description"
+  $unsignedShort: UnsignedShort! = 256
   "URI description"
   $uri: URI! = "https://example.com"
   "URL description"
@@ -71,6 +79,10 @@ query GetWithDefaultedVariables(
     string: $string
     timeSpan: $timeSpan
     unknown: $unknown
+    unsignedByte: $unsignedByte
+    unsignedInt: $unsignedInt
+    unsignedLong: $unsignedLong
+    unsignedShort: $unsignedShort
     uri: $uri
     url: $url
     uuid: $uuid
@@ -102,6 +114,10 @@ query GetWithDefaultedVariables(
     string
     timeSpan
     unknown
+    unsignedByte
+    unsignedInt
+    unsignedLong
+    unsignedShort
     uri
     url
     uuid

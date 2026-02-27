@@ -29,4 +29,3 @@ FROM "Brands" AS b
 ORDER BY b."Name" DESC, b."Id"
 LIMIT @__p_0
 ```
-

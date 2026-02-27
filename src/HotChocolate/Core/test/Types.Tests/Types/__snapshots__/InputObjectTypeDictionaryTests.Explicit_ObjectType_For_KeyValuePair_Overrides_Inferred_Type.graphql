@@ -1,0 +1,12 @@
+schema {
+  query: CustomKvpOutputQuery
+}
+
+type CustomKvpOutputQuery {
+  items: [StringPair!]
+}
+
+type StringPair {
+  first: String!
+  second: String!
+}

@@ -5,7 +5,7 @@ using HotChocolate;
 var builder = WebApplication.CreateBuilder(args);
 
 builder
-    .AddGraphQL("products-api")
+    .AddGraphQL("products-api", disableDefaultSecurity: true)
     .AddProductTypes();
 
 var app = builder.Build();

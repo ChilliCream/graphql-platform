@@ -26,6 +26,7 @@ public static class ProjectionProviderDescriptorExtensions
         descriptor.RegisterFieldInterceptor(QueryableSingleOrDefaultInterceptor.Create);
 
         descriptor.RegisterOptimizer(IsProjectedProjectionOptimizer.Create);
+        descriptor.RegisterOptimizer(QueryableRequirementsProjectionOptimizer.Create);
         descriptor.RegisterOptimizer(QueryablePagingProjectionOptimizer.Create);
         descriptor.RegisterOptimizer(QueryableFilterProjectionOptimizer.Create);
         descriptor.RegisterOptimizer(QueryableSortProjectionOptimizer.Create);

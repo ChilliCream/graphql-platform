@@ -165,4 +165,3 @@ ORDER BY p1."BrandId", p3."BrandId", p3."Id"
 ```text
 [Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].Where(t => (((t.BrandId == 1) OrElse (t.BrandId == 2)) OrElse (t.BrandId == 3))).GroupBy(k => k.BrandId).Select(g => new Group`2() {Key = g.Key, Items = g.OrderBy(p => p.Id).Take(3).ToList()})
 ```
-
