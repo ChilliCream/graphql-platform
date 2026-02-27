@@ -125,7 +125,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             s.TryAddSingleton<IHttpResponseFormatter>(
                 sp => DefaultHttpResponseFormatter.Create(
                     new HttpResponseFormatterOptions { HttpTransportVersion = HttpTransportVersion.Latest },
-                    sp.GetRequiredService<ITimeProvider>()));
+                    sp.GetRequiredService<ITimeProvider>(),
+                    IncrementalDeliveryFormat.Version_0_2));
             s.TryAddSingleton<IHttpRequestParser>(
                 sp => new DefaultHttpRequestParser(
                     sp.GetRequiredService<IDocumentCache>(),
