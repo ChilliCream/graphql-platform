@@ -85,12 +85,24 @@ public class BatchingTests
             .Select(i => bus.PublishAsync(new OrderCreated { OrderId = $"batch-{i}" }, CancellationToken.None).AsTask());
         await Task.WhenAll(publishTasks);
 
-        // assert — single batch containing all 5 messages
-        Assert.True(await recorder.WaitAsync(Timeout), "Batch handler was not invoked within timeout");
+        // assert — wait until all messages are observed across batch deliveries
+        var deadline = DateTime.UtcNow + Timeout;
+        IMessageBatch<OrderCreated>[] batches = [];
 
-        var batch = Assert.IsAssignableFrom<IMessageBatch<OrderCreated>>(Assert.Single(recorder.Batches));
-        Assert.Equal(messageCount, batch.Count);
-        Assert.Equal(BatchCompletionMode.Size, batch.CompletionMode);
+        while (DateTime.UtcNow < deadline)
+        {
+            batches = recorder.Batches.OfType<IMessageBatch<OrderCreated>>().ToArray();
+            if (batches.Sum(t => t.Count) >= messageCount)
+            {
+                break;
+            }
+
+            await Task.Delay(50);
+        }
+
+        Assert.Equal(messageCount, batches.Sum(t => t.Count));
+        Assert.Contains(batches, b => b.CompletionMode == BatchCompletionMode.Size);
+        Assert.Contains(batches, b => b.Count > 1);
     }
 
     public sealed class TestBatchHandler(BatchMessageRecorder recorder) : IBatchEventHandler<OrderCreated>

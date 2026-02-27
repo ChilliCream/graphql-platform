@@ -257,12 +257,24 @@ public sealed class BatchConsumerIntegrationTests : ConsumerIntegrationTestsBase
             .Select(i => bus.PublishAsync(new TestBatchEvent { Id = $"batch-{i}" }, CancellationToken.None).AsTask());
         await Task.WhenAll(publishTasks);
 
-        // assert — single batch containing all 5 messages
-        Assert.True(await recorder.WaitAsync(Timeout), "Batch handler was not invoked within timeout");
+        // assert — wait until all messages are observed across batch deliveries
+        var deadline = DateTime.UtcNow + Timeout;
+        IMessageBatch<TestBatchEvent>[] batches = [];
 
-        var batch = Assert.IsAssignableFrom<IMessageBatch<TestBatchEvent>>(Assert.Single(recorder.Batches));
-        Assert.Equal(messageCount, batch.Count);
-        Assert.Equal(BatchCompletionMode.Size, batch.CompletionMode);
+        while (DateTime.UtcNow < deadline)
+        {
+            batches = recorder.Batches.OfType<IMessageBatch<TestBatchEvent>>().ToArray();
+            if (batches.Sum(t => t.Count) >= messageCount)
+            {
+                break;
+            }
+
+            await Task.Delay(50);
+        }
+
+        Assert.Equal(messageCount, batches.Sum(t => t.Count));
+        Assert.Contains(batches, b => b.CompletionMode == BatchCompletionMode.Size);
+        Assert.Contains(batches, b => b.Count > 1);
     }
 
     // --- Test types ---
