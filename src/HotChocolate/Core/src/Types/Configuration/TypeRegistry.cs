@@ -46,7 +46,7 @@ internal sealed class TypeRegistry
         }
 
         if (typeReference is ExtendedTypeReference extendedTypeRef
-            && _runtimeTypeRefs.TryGetValue(extendedTypeRef, out var reference))
+            && TryGetRuntimeTypeRefInternal(extendedTypeRef, out var reference))
         {
             return _typeRegister.ContainsKey(reference);
         }
@@ -61,7 +61,7 @@ internal sealed class TypeRegistry
         ArgumentNullException.ThrowIfNull(typeRef);
 
         if (typeRef is ExtendedTypeReference clrTypeRef
-            && _runtimeTypeRefs.TryGetValue(clrTypeRef, out var internalRef))
+            && TryGetRuntimeTypeRefInternal(clrTypeRef, out var internalRef))
         {
             typeRef = internalRef;
         }
@@ -75,14 +75,20 @@ internal sealed class TypeRegistry
     {
         ArgumentNullException.ThrowIfNull(runtimeTypeRef);
 
-        return _runtimeTypeRefs.TryGetValue(runtimeTypeRef, out typeRef);
+        return TryGetRuntimeTypeRefInternal(runtimeTypeRef, out typeRef);
     }
 
     public bool IsExplicitBinding(ExtendedTypeReference runtimeTypeRef)
     {
         ArgumentNullException.ThrowIfNull(runtimeTypeRef);
 
-        return _explicitRuntimeTypeRefs.Contains(runtimeTypeRef);
+        if (_explicitRuntimeTypeRefs.Contains(runtimeTypeRef))
+        {
+            return true;
+        }
+
+        return runtimeTypeRef.Context is not TypeContext.None
+            && _explicitRuntimeTypeRefs.Contains(runtimeTypeRef.WithContext());
     }
 
     public bool TryGetTypeRef(
@@ -101,6 +107,24 @@ internal sealed class TypeRegistry
     }
 
     public IEnumerable<TypeReference> GetTypeRefs() => _runtimeTypeRefs.Values;
+
+    private bool TryGetRuntimeTypeRefInternal(
+        ExtendedTypeReference runtimeTypeRef,
+        [NotNullWhen(true)] out TypeReference? typeRef)
+    {
+        if (_runtimeTypeRefs.TryGetValue(runtimeTypeRef, out typeRef))
+        {
+            return true;
+        }
+
+        if (runtimeTypeRef.Context is not TypeContext.None)
+        {
+            return _runtimeTypeRefs.TryGetValue(runtimeTypeRef.WithContext(), out typeRef);
+        }
+
+        typeRef = null;
+        return false;
+    }
 
     public void TryRegister(
         ExtendedTypeReference runtimeTypeRef,
