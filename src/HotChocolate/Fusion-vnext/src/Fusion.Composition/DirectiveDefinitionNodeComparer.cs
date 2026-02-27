@@ -39,22 +39,24 @@ internal sealed class DirectiveDefinitionNodeComparer
         hashCode.Add(obj.Name.Value, StringComparer.Ordinal);
         hashCode.Add(obj.IsRepeatable);
 
-        // Use XOR for order-independent hashing of arguments.
+        // Accumulate full argument hashes additively for order-independent hashing.
         var argumentsHash = 0;
         foreach (var argument in obj.Arguments)
         {
-            argumentsHash ^= StringComparer.Ordinal.GetHashCode(argument.Name.Value);
+            argumentsHash += s_syntaxComparer.GetHashCode(argument);
         }
 
+        hashCode.Add(obj.Arguments.Count);
         hashCode.Add(argumentsHash);
 
-        // Use XOR for order-independent hashing of locations.
+        // Accumulate location name hashes additively for order-independent hashing.
         var locationsHash = 0;
         foreach (var location in obj.Locations)
         {
-            locationsHash ^= StringComparer.Ordinal.GetHashCode(location.Value);
+            locationsHash += StringComparer.Ordinal.GetHashCode(location.Value);
         }
 
+        hashCode.Add(obj.Locations.Count);
         hashCode.Add(locationsHash);
 
         return hashCode.ToHashCode();
