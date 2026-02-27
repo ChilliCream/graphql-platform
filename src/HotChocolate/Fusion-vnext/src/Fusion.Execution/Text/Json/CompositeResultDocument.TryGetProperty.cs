@@ -56,12 +56,11 @@ public sealed partial class CompositeResultDocument
             var selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
             if (selectionSet.TryGetSelection(propertyName, out var selection))
             {
-                var propertyIndex = selection.Id - selectionSet.Id - 1;
-                var propertyRowIndex = (propertyIndex * 2) + 1;
-                var propertyCursor = startCursor + propertyRowIndex;
+                var valueCursor = startCursor + selection.ResultValueOffset;
+                var propertyCursor = valueCursor - 1;
                 Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
                 Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selection.Id);
-                value = new CompositeResultElement(this, propertyCursor + 1);
+                value = new CompositeResultElement(this, valueCursor);
                 return true;
             }
         }
@@ -164,12 +163,11 @@ public sealed partial class CompositeResultDocument
             var selectionSet = _operation.GetSelectionSetById(row.OperationReferenceId);
             if (selectionSet.TryGetSelection(propertyName, out var selection))
             {
-                var propertyIndex = selection.Id - selectionSet.Id - 1;
-                var propertyRowIndex = (propertyIndex * 2) + 1;
-                var propertyCursor = startCursor + propertyRowIndex;
+                var valueCursor = startCursor + selection.ResultValueOffset;
+                var propertyCursor = valueCursor - 1;
                 Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
                 Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selection.Id);
-                value = new CompositeResultElement(this, propertyCursor + 1);
+                value = new CompositeResultElement(this, valueCursor);
                 return true;
             }
         }

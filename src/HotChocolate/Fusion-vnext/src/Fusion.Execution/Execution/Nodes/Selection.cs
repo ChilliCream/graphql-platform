@@ -54,6 +54,7 @@ public sealed class Selection : ISelection
     public string ResponseName { get; }
 
     internal ReadOnlySpan<byte> Utf8ResponseName => _utf8ResponseName;
+    internal int ResultValueOffset { get; private set; }
 
     /// <inheritdoc />
     public bool IsInternal => (_flags & Flags.Internal) == Flags.Internal;
@@ -147,7 +148,7 @@ public sealed class Selection : ISelection
         return Field.Name;
     }
 
-    internal void Seal(SelectionSet selectionSet)
+    internal void Seal(SelectionSet selectionSet, int index)
     {
         if ((_flags & Flags.Sealed) == Flags.Sealed)
         {
@@ -156,6 +157,7 @@ public sealed class Selection : ISelection
 
         _flags |= Flags.Sealed;
         DeclaringSelectionSet = selectionSet;
+        ResultValueOffset = (index * 2) + 2;
     }
 
     public bool IsDeferred(ulong deferFlags)
