@@ -507,9 +507,9 @@ AddErrors_Next:
         {
             var segment = selectionSet.Segments[i];
 
-            foreach (var element in current)
+            if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
             {
-                if (segment.Kind is SelectionPathSegmentKind.InlineFragment)
+                foreach (var element in current)
                 {
                     if (element.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var value)
                         && value.ValueKind is JsonValueKind.String
@@ -518,7 +518,10 @@ AddErrors_Next:
                         next.Add(element);
                     }
                 }
-                else if (segment.Kind is SelectionPathSegmentKind.Field)
+            }
+            else if (segment.Kind is SelectionPathSegmentKind.Field)
+            {
+                foreach (var element in current)
                 {
                     if (!element.TryGetProperty(segment.Utf8Name, out var value))
                     {
