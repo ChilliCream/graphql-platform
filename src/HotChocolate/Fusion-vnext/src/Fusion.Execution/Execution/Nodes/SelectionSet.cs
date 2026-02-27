@@ -162,6 +162,42 @@ public sealed class SelectionSet : ISelectionSet
                 selection = default;
                 return false;
 
+            case 4:
+                var firstCandidate4 = selections[0];
+
+                if (utf8ResponseName.SequenceEqual(firstCandidate4.Utf8ResponseName))
+                {
+                    selection = firstCandidate4;
+                    return true;
+                }
+
+                var secondCandidate4 = selections[1];
+
+                if (utf8ResponseName.SequenceEqual(secondCandidate4.Utf8ResponseName))
+                {
+                    selection = secondCandidate4;
+                    return true;
+                }
+
+                var thirdCandidate4 = selections[2];
+
+                if (utf8ResponseName.SequenceEqual(thirdCandidate4.Utf8ResponseName))
+                {
+                    selection = thirdCandidate4;
+                    return true;
+                }
+
+                var fourthCandidate4 = selections[3];
+
+                if (utf8ResponseName.SequenceEqual(fourthCandidate4.Utf8ResponseName))
+                {
+                    selection = fourthCandidate4;
+                    return true;
+                }
+
+                selection = default;
+                return false;
+
             default:
                 return _utf8ResponseNameLookup.TryGetSelection(utf8ResponseName, out selection);
         }
