@@ -39,9 +39,13 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
             }
 
             var field = context.TypeContext.Fields[fieldName];
-            var selectionSet = field.Type.NamedType().IsCompositeType()
-                ? new SelectionSetNode([])
-                : null;
+
+            // Only inject leaf fields. Forcing internal object projections can create
+            // invalid EF Core tracking shapes (e.g. owned entities without owner materialization).
+            if (field.Type.NamedType().IsCompositeType())
+            {
+                continue;
+            }
 
             var fieldNode = new FieldNode(
                 null,
@@ -49,7 +53,7 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
                 new NameNode(alias),
                 [],
                 [],
-                selectionSet);
+                null);
 
             var nodesPipeline = context.CompileResolverPipeline(field, fieldNode);
 
