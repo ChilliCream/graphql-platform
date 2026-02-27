@@ -377,6 +377,48 @@ internal sealed class ValueCompletion
 
         if (errorTrie is null)
         {
+            if (elementKind is 3)
+            {
+                foreach (var element in source.EnumerateArray())
+                {
+                    var movedNext = enumerator.MoveNext();
+                    Debug.Assert(movedNext, "The lists must have the same size.");
+
+                    var current = enumerator.Current;
+
+                    if (element.IsNullOrUndefined())
+                    {
+                        if (!isNullable
+                            && _errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                        {
+                            return false;
+                        }
+
+                        current.SetNullValue();
+                        continue;
+                    }
+
+                    if (!TryCompleteObjectValue(
+                            element,
+                            current,
+                            null,
+                            selection,
+                            objectElementType!,
+                            objectElementSelectionSet,
+                            depth))
+                    {
+                        if (!isNullable)
+                        {
+                            return false;
+                        }
+
+                        current.SetNullValue();
+                    }
+                }
+
+                return true;
+            }
+
             foreach (var element in source.EnumerateArray())
             {
                 var movedNext = enumerator.MoveNext();
