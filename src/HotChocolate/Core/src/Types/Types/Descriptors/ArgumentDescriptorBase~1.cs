@@ -150,6 +150,11 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
         }
         else
         {
+            if (TryCoerceEnumUnderlyingValue(value, out var enumValue))
+            {
+                value = enumValue;
+            }
+
             var type = Context.TypeInspector.GetType(value.GetType());
             Configuration.SetMoreSpecificType(type, TypeContext.Input);
             Configuration.RuntimeDefaultValue = value;
@@ -168,4 +173,32 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
     /// <inheritdoc cref="IArgumentDescriptor.Directive(string, ArgumentNode[])"/>
     public void Directive(string name, params ArgumentNode[] arguments)
         => Configuration.AddDirective(name, arguments);
+
+    private bool TryCoerceEnumUnderlyingValue(object value, out object enumValue)
+    {
+        enumValue = default!;
+
+        if (Configuration.Type is not ExtendedTypeReference typeReference)
+        {
+            return false;
+        }
+
+        var clrType = Nullable.GetUnderlyingType(typeReference.Type.Source)
+            ?? typeReference.Type.Source;
+
+        if (!clrType.IsEnum)
+        {
+            return false;
+        }
+
+        var underlyingType = Enum.GetUnderlyingType(clrType);
+
+        if (value.GetType() != underlyingType)
+        {
+            return false;
+        }
+
+        enumValue = Enum.ToObject(clrType, value);
+        return true;
+    }
 }
