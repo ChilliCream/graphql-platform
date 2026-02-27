@@ -11,6 +11,7 @@ namespace HotChocolate.Types;
 public sealed class InputParser
 {
     private static readonly Path s_root = Path.Root.Append("root");
+    internal static readonly object MissingValue = new();
     private readonly ITypeConverter _converter;
     private readonly DictionaryToObjectConverter _dictToObjConverter;
     private readonly bool _ignoreAdditionalInputFields;
@@ -611,13 +612,21 @@ public sealed class InputParser
 
     private object? CreateDefaultValue(InputField field, Path path, int stack)
     {
-        if (field.DefaultValue is null || field.DefaultValue.Kind == SyntaxKind.NullValue)
+        if (field.DefaultValue is null)
         {
             if (field.Type.Kind == TypeKind.NonNull)
             {
                 throw RequiredInputFieldIsMissing(field, path);
             }
 
+            object? value = null;
+            return field.IsOptional
+                ? new Optional(value, false)
+                : MissingValue;
+        }
+
+        if (field.DefaultValue.Kind == SyntaxKind.NullValue)
+        {
             object? value = null;
             return field.IsOptional
                 ? new Optional(value, false)
