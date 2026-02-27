@@ -43,6 +43,14 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     /// </summary>
     public bool IgnoreRequiredAttribute { get; protected set; } = ignoreRequiredAttribute;
 
+    protected internal override void Initialize(IConventionContext context)
+    {
+        if (!IsInitialized)
+        {
+            base.Initialize(context);
+        }
+    }
+
     /// <inheritdoc />
     public ReadOnlySpan<MemberInfo> GetMembers(
         Type type,
