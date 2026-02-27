@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Language;
@@ -9,6 +11,9 @@ namespace HotChocolate.Fusion.Execution.Results;
 
 internal static class ResultDataMapper
 {
+    private const int CachedNumericStringMax = 4096;
+    private static readonly StringValueNode[] s_cachedNumericStrings = CreateCachedNumericStrings();
+
     public static IValueNode? Map(
         CompositeResultElement result,
         IValueSelectionNode valueSelection,
@@ -126,7 +131,15 @@ internal static class ResultDataMapper
                 return BooleanValueNode.False;
 
             case JsonValueKind.String:
-                return new StringValueNode(value.AssertString());
+                return GetStringValueNode(value.AssertString());
+
+            case JsonValueKind.Number:
+                if (value.TryGetInt64(out var intValue))
+                {
+                    return new IntValueNode(intValue);
+                }
+
+                goto default;
 
             default:
                 writer ??= new PooledArrayWriter();
@@ -138,6 +151,77 @@ internal static class ResultDataMapper
 
                 return parser.Parse(value.GetRawValue(includeQuotes: true));
         }
+    }
+
+    internal static StringValueNode GetStringValueNode(string value)
+    {
+        if (TryGetCachedNumericString(value, out var cached))
+        {
+            return cached;
+        }
+
+        return new StringValueNode(value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryGetCachedNumericString(
+        string value,
+        [NotNullWhen(true)] out StringValueNode? cached)
+    {
+        cached = null;
+
+        var length = value.Length;
+
+        if ((uint)(length - 1) > 3)
+        {
+            return false;
+        }
+
+        var c0 = value[0];
+
+        if ((uint)(c0 - '0') > 9)
+        {
+            return false;
+        }
+
+        if (length > 1 && c0 == '0')
+        {
+            return false;
+        }
+
+        var parsed = c0 - '0';
+
+        for (var i = 1; i < length; i++)
+        {
+            var c = value[i];
+
+            if ((uint)(c - '0') > 9)
+            {
+                return false;
+            }
+
+            parsed = (parsed * 10) + (c - '0');
+        }
+
+        if ((uint)parsed > CachedNumericStringMax)
+        {
+            return false;
+        }
+
+        cached = s_cachedNumericStrings[parsed];
+        return true;
+    }
+
+    private static StringValueNode[] CreateCachedNumericStrings()
+    {
+        var values = new StringValueNode[CachedNumericStringMax + 1];
+
+        for (var i = 0; i < values.Length; i++)
+        {
+            values[i] = new StringValueNode(i.ToString());
+        }
+
+        return values;
     }
 
     private static IValueNode? Visit(ObjectValueSelectionNode node, Context context)

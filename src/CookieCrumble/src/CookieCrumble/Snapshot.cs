@@ -469,6 +469,12 @@ public class Snapshot
         foreach (var segment in _segments)
         {
             i++;
+
+            if (i > 1)
+            {
+                writer.AppendLine();
+            }
+
             writer.Append(
                 string.IsNullOrEmpty(segment.Name)
                     ? $"## Result {i}"
@@ -499,8 +505,6 @@ public class Snapshot
                 default:
                     throw new NotSupportedException();
             }
-
-            writer.AppendLine();
         }
     }
 

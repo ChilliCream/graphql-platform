@@ -215,6 +215,17 @@ public class SortInputTypeDescriptor<T>
     /// <inheritdoc />
     public ISortFieldDescriptor Field<TField>(Expression<Func<T, TField>> propertyOrMember)
     {
+        if (propertyOrMember.Body is UnaryExpression { NodeType: ExpressionType.ArrayLength })
+        {
+            var arrayLengthFieldDescriptor =
+                SortFieldDescriptor.New(
+                    Context,
+                    Configuration.Scope,
+                    propertyOrMember);
+            Fields.Add(arrayLengthFieldDescriptor);
+            return arrayLengthFieldDescriptor;
+        }
+
         switch (propertyOrMember.TryExtractMember())
         {
             case PropertyInfo m:

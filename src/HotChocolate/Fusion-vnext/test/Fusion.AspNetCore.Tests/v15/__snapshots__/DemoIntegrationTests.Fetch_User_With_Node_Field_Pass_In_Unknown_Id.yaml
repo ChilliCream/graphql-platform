@@ -1,0 +1,192 @@
+title: Fetch_User_With_Node_Field_Pass_In_Unknown_Id
+request:
+  document: |
+    query FetchNode(
+      $id: ID!
+    ) {
+      node(id: $id) {
+        ... on User {
+          id
+        }
+      }
+    }
+  variables: |
+    {
+      "id": "VW5rbm93bjox"
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": null
+      },
+      "errors": [
+        {
+          "message": "The node ID string has an invalid format.",
+          "path": [
+            "node"
+          ],
+          "extensions": {
+            "originalValue": "VW5rbm93bjox"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        userById(id: ID!): User!
+        users: [User!]!
+        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String!
+        username: String!
+        birthdate: String!
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        reviews: [Review!]!
+        reviewCount: Int!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+        author: User!
+        product: Product!
+      }
+
+      type User implements Node {
+        id: ID!
+        reviews: [Review!]!
+        errorField: String @error
+      }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String!
+        size: Int! @shareable
+        weight: Int! @shareable
+        repeat(num: Int!): String!
+        repeatData(data: RepeatDataInput!): RepeatDataPayload!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        productById(id: ID!): Product @lookup @shareable
+        topProducts(first: Int!): [Product!]!
+      }
+
+      type RepeatDataData {
+        num: Int!
+      }
+
+      type RepeatDataPayload {
+        data: RepeatDataData!
+      }
+
+      input RepeatDataDataInput {
+        num: Int!
+      }
+
+      input RepeatDataInput {
+        data: RepeatDataDataInput!
+      }
+operationPlan:
+  operation:
+    - document: |
+        query FetchNode(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename @fusion__requirement
+            ... on User {
+              id
+            }
+          }
+        }
+      name: FetchNode
+      hash: 7eae38bd8fde86d9bed495a46e5cc83f
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: $id
+      responseName: node
+      branches:
+        - User: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query FetchNode_7eae38bd_2(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+          }
+        }
+      forwardedVariables:
+        - id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query FetchNode_7eae38bd_3(
+          $id: ID!
+        ) {
+          node(id: $id) {
+            __typename
+            ... on User {
+              __typename
+              id
+            }
+          }
+        }
+      forwardedVariables:
+        - id
+      dependencies:
+        - id: 1

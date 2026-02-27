@@ -24,4 +24,3 @@ WHERE "p"."BrandId" = @keys1 AND "p"."Name" LIKE @p_startswith ESCAPE '\'
   }
 }
 ```
-

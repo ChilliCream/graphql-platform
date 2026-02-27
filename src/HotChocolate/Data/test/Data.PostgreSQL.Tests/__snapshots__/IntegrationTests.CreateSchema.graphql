@@ -44,6 +44,12 @@ type BrandProductsEdge @shareable {
   cursor: String!
 }
 
+type CardReader {
+  cardReaderUidLength: Int! @cost(weight: "10")
+  id: Int!
+  cardReaderUid: [UnsignedByte!]!
+}
+
 """
 Represents the connection page info.
 This class provides additional information about pagination in a connection.
@@ -63,6 +69,13 @@ type ConnectionPageInfo {
   startCursor: String
   "When paginating forwards, the cursor to continue."
   endCursor: String
+}
+
+type ExpressionPerson {
+  fullName: String @cost(weight: "10")
+  id: Int!
+  firstName: String!
+  lastName: String!
 }
 
 "A cursor that points to a specific page."
@@ -156,6 +169,12 @@ input BrandFilterInput {
 
 input BrandSortInput {
   name: SortEnumType @cost(weight: "10")
+}
+
+input CardReaderFilterInput {
+  and: [CardReaderFilterInput!]
+  or: [CardReaderFilterInput!]
+  cardReaderUidLength: IntOperationFilterInput
 }
 
 input DecimalOperationFilterInput {
@@ -321,3 +340,6 @@ directive @specifiedBy("The specifiedBy URL points to a human-readable specifica
 
 "The `Decimal` scalar type represents a decimal floating-point number with high precision."
 scalar Decimal @serializeAs(type: FLOAT) @specifiedBy(url: "https://scalars.graphql.org/chillicream/decimal.html")
+
+"The `UnsignedByte` scalar type represents an unsigned 8-bit integer."
+scalar UnsignedByte @serializeAs(type: INT) @specifiedBy(url: "https://scalars.graphql.org/chillicream/unsigned-byte.html")

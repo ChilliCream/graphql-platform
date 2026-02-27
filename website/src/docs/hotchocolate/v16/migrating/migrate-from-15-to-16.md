@@ -131,6 +131,32 @@ builder.Services.AddGraphQLServer()
 
 If your application contains multiple GraphQL servers, the hash provider configuration has to be repeated for each one as the configuration is now scoped to a particular GraphQL server.
 
+## NATS subscriptions now use the official NATS v2 client
+
+The `HotChocolate.Subscriptions.Nats` package now uses the official NATS v2 client packages.
+If you are migrating an application that previously used `AlterNats.Hosting`, replace it with `NATS.Extensions.Microsoft.DependencyInjection` and update your NATS client registration from `AddNats(...)` to `AddNatsClient(...)`.
+
+```diff
+builder.Services
+-   .AddNats(poolSize: 1, opts => opts with
+-   {
+-       Url = "nats://localhost:4222"
+-   });
++   .AddNatsClient(nats => nats.ConfigureOptions(
++       options => options.Configure(
++           opts => opts.Opts = opts.Opts with
++           {
++               Url = "nats://localhost:4222"
++           })));
+
+builder.Services
+    .AddGraphQLServer()
+    .AddSubscriptionType<Subscription>()
+    .AddNatsSubscriptions();
+```
+
+If your code directly references NATS client types, add the `NATS.Client.Core` package as well.
+
 ## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
 
 ```diff
@@ -336,10 +362,40 @@ NonNegativeInt
 
 TODO
 
-## AnyType
+## Any and Json scalars merged
 
-TODO
-`JsonElement` is now inferred as `Any` instead of `Json`.
+The `Json` scalar has been removed and its functionality merged into the `Any` scalar. The `Any` scalar now uses `System.Text.Json.JsonElement` as its .NET runtime type, which was previously the runtime type of the `Json` scalar.
+
+**`JsonElement` is now inferred as `Any` instead of `Json`.** If you used `[GraphQLType<JsonType>]` annotations or explicit `JsonType` bindings, replace them with `AnyType`:
+
+```csharp
+// before
+[GraphQLType<JsonType>]
+public JsonElement GetData() => ...;
+
+// after
+[GraphQLType<AnyType>]
+public JsonElement GetData() => ...;
+```
+
+### Returning dictionaries or arbitrary .NET types
+
+If you previously returned `Dictionary<string, object>` or other .NET types from a field typed as `Json` or `Any`, you now need to register the JSON type converter explicitly. Without it, the type system has no way to convert arbitrary .NET types to `JsonElement`:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddJsonTypeConverter();
+```
+
+For custom reference types that need specific serialization, register a dedicated converter instead:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeConverter<TimeZoneInfo, JsonElement>(
+        value => JsonSerializer.SerializeToElement(value.Id));
+```
 
 ## `Byte` and `SignedByte` types renamed
 
@@ -382,6 +438,57 @@ The conversion from GUID to string in the default type converter has been update
 ## EnableOneOf option removed
 
 The `EnableOneOf` option has been removed, as the `@oneOf` directive is now built in.
+
+## New default incremental delivery format for `@defer` and `@stream`
+
+Hot Chocolate v16 changes the default wire format for incremental delivery (`@defer` / `@stream`) from the legacy path-based format (v0.1) to the newer id-based format (v0.2). This affects all streaming transports: multipart, SSE, and JSON Lines.
+
+**v0.1 (legacy)** used `path` and `label` to identify deferred fragments:
+
+```json
+{"data":{"product":{"name":"Abc"}},"hasNext":true}
+{"incremental":[{"data":{"description":"Abc desc"},"path":["product"]}],"hasNext":false}
+```
+
+**v0.2 (new default)** uses `pending`, `incremental` with `id`, and `completed`:
+
+```json
+{"data":{"product":{"name":"Abc"}},"pending":[{"id":"2","path":["product"]}],"hasNext":true}
+{"incremental":[{"id":"2","data":{"description":"Abc desc"}}],"completed":[{"id":"2"}],"hasNext":false}
+```
+
+If your clients depend on the legacy format, you have two options:
+
+**Option 1: Client sends `incrementalSpec=v0.1` in the `Accept` header**
+
+Clients can opt into the legacy format per-request by adding the `incrementalSpec` parameter to the `Accept` header:
+
+```text
+Accept: multipart/mixed; incrementalSpec=v0.1
+Accept: text/event-stream; incrementalSpec=v0.1
+Accept: application/jsonl; incrementalSpec=v0.1
+```
+
+**Option 2: Change the server default**
+
+To restore v0.1 as the server-wide default (used when the client doesn't specify `incrementalSpec`):
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddHttpResponseFormatter(
+        incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
+```
+
+Or with the options overload:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddHttpResponseFormatter(
+        new HttpResponseFormatterOptions { /* ... */ },
+        incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
+```
 
 # Deprecations
 
