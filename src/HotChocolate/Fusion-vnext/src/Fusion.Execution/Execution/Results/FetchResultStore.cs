@@ -1265,14 +1265,10 @@ AddErrors_Next:
 
                 case SelectionPathSegmentKind.InlineFragment:
                     if (!current.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeNameProperty)
-                            || typeNameProperty.ValueKind != JsonValueKind.String)
-                    {
-                        return default;
-                    }
-
-                    var typeName = typeNameProperty.GetString()!;
-
-                    if (typeName != segment.Name)
+                            || typeNameProperty.ValueKind != JsonValueKind.String
+                            || !typeNameProperty.TextEqualsHelper(
+                                segment.Name,
+                                isPropertyName: false))
                     {
                         return default;
                     }
