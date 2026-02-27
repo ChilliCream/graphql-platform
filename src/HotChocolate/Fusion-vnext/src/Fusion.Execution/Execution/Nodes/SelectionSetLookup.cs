@@ -7,11 +7,13 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 internal sealed class SelectionLookup
 {
     private readonly Entry[] _table;
+    private readonly Selection[]? _smallSelections;
     private readonly int _seed;
     private readonly int _mask;
 
-    private SelectionLookup(Entry[] table, int seed, int mask)
+    private SelectionLookup(Selection[]? smallSelections, Entry[] table, int seed, int mask)
     {
+        _smallSelections = smallSelections;
         _table = table;
         _seed = seed;
         _mask = mask;
@@ -20,6 +22,13 @@ internal sealed class SelectionLookup
     public static SelectionLookup Create(SelectionSet selectionSet)
     {
         var selections = selectionSet.Selections;
+
+        // Tiny selection sets are faster with linear scan than hashing/probing.
+        if (selections.Length <= 4)
+        {
+            return new SelectionLookup(selections.ToArray(), [], seed: 0, mask: 0);
+        }
+
         var tableSize = NextPowerOfTwo(Math.Max(selections.Length * 2, 4));
         var mask = tableSize - 1;
         var table = new Entry[tableSize];
@@ -79,12 +88,29 @@ internal sealed class SelectionLookup
             table[index] = new Entry(hashCode, selection);
         }
 
-        return new SelectionLookup(table, bestSeed, mask);
+        return new SelectionLookup(smallSelections: null, table, bestSeed, mask);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGetSelection(ReadOnlySpan<byte> name, [NotNullWhen(true)] out Selection? selection)
     {
+        if (_smallSelections is { } smallSelections)
+        {
+            for (var i = 0; i < smallSelections.Length; i++)
+            {
+                var candidate = smallSelections[i];
+
+                if (name.SequenceEqual(candidate.Utf8ResponseName))
+                {
+                    selection = candidate;
+                    return true;
+                }
+            }
+
+            selection = default;
+            return false;
+        }
+
         var table = _table;
 
         var hashCode = ComputeHash(name, _seed);
