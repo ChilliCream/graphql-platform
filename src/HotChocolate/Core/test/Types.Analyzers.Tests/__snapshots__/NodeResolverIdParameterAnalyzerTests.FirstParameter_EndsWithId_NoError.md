@@ -1,4 +1,4 @@
-# ParameterEndingWithId_NotInFirstPosition_RaisesError
+# FirstParameter_EndsWithId_NoError
 
 ## HotChocolateTypeModule.735550c.g.cs
 
@@ -71,12 +71,10 @@ namespace TestNamespace
         private sealed class __Resolvers
         {
             private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetProductAsync_productService;
-            private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetProductAsync_nodeId;
 
             public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
             {
                 _binding_GetProductAsync_productService = bindingResolver.GetBinding(CreateParameterDescriptor_GetProductAsync_productService());
-                _binding_GetProductAsync_nodeId = bindingResolver.GetBinding(CreateParameterDescriptor_GetProductAsync_nodeId());
             }
 
             public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetProductAsync_productService()
@@ -85,20 +83,14 @@ namespace TestNamespace
                     typeof(global::TestNamespace.ProductService),
                     isNullable: false,
                     []);
-            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetProductAsync_nodeId()
-                => new HotChocolate.Internal.ParameterDescriptor(
-                    "nodeId",
-                    typeof(int),
-                    isNullable: false,
-                    []);
 
             public HotChocolate.Resolvers.FieldResolverDelegates GetProductAsync()
                 => new global::HotChocolate.Resolvers.FieldResolverDelegates(resolver: GetProductAsync);
 
             private async global::System.Threading.Tasks.ValueTask<global::System.Object?> GetProductAsync(global::HotChocolate.Resolvers.IResolverContext context)
             {
-                var args0 = _binding_GetProductAsync_productService.Execute<global::TestNamespace.ProductService>(context);
-                var args1 = _binding_GetProductAsync_nodeId.Execute<int>(context);
+                var args0 = context.GetLocalState<string>(global::HotChocolate.WellKnownContextData.InternalId);
+                var args1 = _binding_GetProductAsync_productService.Execute<global::TestNamespace.ProductService>(context);
                 var args2_selection = context.Selection;
                 var args2_filter = global::HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);
                 var args2_sorting = global::HotChocolate.Data.Sorting.SortingContextResolverContextExtensions.GetSortingContext(context);
@@ -115,22 +107,4 @@ namespace TestNamespace
 }
 
 
-```
-
-## Analyzer Diagnostics
-
-```json
-[
-  {
-    "Id": "HC0104",
-    "Title": "NodeResolver First Parameter Must Be Named 'id'",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": ": (14,8)-(14,37)",
-    "MessageFormat": "The first parameter of a node resolver must be the node ID and must be named 'id'",
-    "Message": "The first parameter of a node resolver must be the node ID and must be named 'id'",
-    "Category": "TypeSystem",
-    "CustomTags": []
-  }
-]
 ```

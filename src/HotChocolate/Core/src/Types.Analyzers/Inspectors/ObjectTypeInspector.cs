@@ -303,6 +303,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         var parameters = resolverMethod.Parameters;
         var buffer = new ResolverParameter[parameters.Length];
         var resolverParameters = ImmutableCollectionsMarshal.AsImmutableArray(buffer);
+        var hasNamedIdParameter = HasNamedNodeIdParameter(compilation, parameters);
 
         for (var i = 0; i < parameters.Length; i++)
         {
@@ -319,7 +320,7 @@ public class ObjectTypeInspector : ISyntaxInspector
 
             if (resolverParameter.Kind == ResolverParameterKind.Argument)
             {
-                if (resolverParameter.Name != "id" && resolverParameter.Key != "id")
+                if (!IsNodeIdParameter(resolverParameter, i, hasNamedIdParameter))
                 {
                     var location = parameter.Locations[0];
 
@@ -331,7 +332,7 @@ public class ObjectTypeInspector : ISyntaxInspector
             }
 
             if (resolverParameter.Kind is ResolverParameterKind.Unknown
-                && (resolverParameter.Name == "id" || resolverParameter.Key == "id"))
+                && IsNodeIdParameter(resolverParameter, i, hasNamedIdParameter))
             {
                 resolverParameter = new ResolverParameter(
                     parameter,
@@ -365,6 +366,43 @@ public class ObjectTypeInspector : ISyntaxInspector
             resolverMethod.GetMemberBindings(),
             compilation.CreateTypeReference(resolverMethod),
             kind: ResolverKind.NodeResolver);
+    }
+
+    private static bool HasNamedNodeIdParameter(
+        Compilation compilation,
+        ImmutableArray<IParameterSymbol> parameters)
+    {
+        foreach (var parameter in parameters)
+        {
+            var kind = compilation.GetParameterKind(parameter, out var key);
+
+            if (kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown
+                && (parameter.Name == "id" || key == "id"))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsNodeIdParameter(
+        ResolverParameter parameter,
+        int parameterIndex,
+        bool hasNamedIdParameter)
+    {
+        if (parameter.Name == "id" || parameter.Key == "id")
+        {
+            return true;
+        }
+
+        if (parameterIndex != 0 || hasNamedIdParameter)
+        {
+            return false;
+        }
+
+        return parameter.Name.EndsWith("Id", Ordinal)
+            || (parameter.Key?.EndsWith("Id", Ordinal) ?? false);
     }
 
     public static ImmutableArray<MemberBinding> GetMemberBindings(ISymbol member)
