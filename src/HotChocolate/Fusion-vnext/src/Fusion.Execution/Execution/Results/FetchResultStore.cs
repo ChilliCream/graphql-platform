@@ -1323,33 +1323,60 @@ AddErrors_Next:
             return _result.Data;
         }
 
-        var parent = path.Parent;
-        var element = GetStartResult(parent);
-        var elementKind = element.ValueKind;
+        var segmentCount = path.Length;
+        var rented = ArrayPool<Path>.Shared.Rent(segmentCount);
 
-        if (elementKind is JsonValueKind.Null)
+        try
         {
-            return element;
-        }
+            var segments = rented.AsSpan(0, segmentCount);
+            var currentPath = path;
 
-        if (elementKind is JsonValueKind.Object && path is NamePathSegment nameSegment)
-        {
-            return element.TryGetProperty(nameSegment.Name, out var field) ? field : default;
-        }
-
-        if (elementKind is JsonValueKind.Array && path is IndexerPathSegment indexSegment)
-        {
-            if (element.GetArrayLength() <= indexSegment.Index)
+            for (var i = segmentCount - 1; i >= 0; i--)
             {
-                throw new InvalidOperationException(
-                    $"The path segment '{indexSegment}' does not exist in the data.");
+                segments[i] = currentPath;
+                currentPath = currentPath.Parent;
             }
 
-            return element[indexSegment.Index];
-        }
+            var element = _result.Data;
 
-        throw new InvalidOperationException(
-            $"The path segment '{parent}' does not exist in the data.");
+            for (var i = 0; i < segments.Length; i++)
+            {
+                var segment = segments[i];
+                var elementKind = element.ValueKind;
+
+                if (elementKind is JsonValueKind.Null)
+                {
+                    return element;
+                }
+
+                if (elementKind is JsonValueKind.Object && segment is NamePathSegment nameSegment)
+                {
+                    element = element.TryGetProperty(nameSegment.Name, out var field) ? field : default;
+                    continue;
+                }
+
+                if (elementKind is JsonValueKind.Array && segment is IndexerPathSegment indexSegment)
+                {
+                    if (element.GetArrayLength() <= indexSegment.Index)
+                    {
+                        throw new InvalidOperationException(
+                            $"The path segment '{indexSegment}' does not exist in the data.");
+                    }
+
+                    element = element[indexSegment.Index];
+                    continue;
+                }
+
+                throw new InvalidOperationException(
+                    $"The path segment '{segment.Parent}' does not exist in the data.");
+            }
+
+            return element;
+        }
+        finally
+        {
+            ArrayPool<Path>.Shared.Return(rented);
+        }
     }
 
     public void Dispose()
