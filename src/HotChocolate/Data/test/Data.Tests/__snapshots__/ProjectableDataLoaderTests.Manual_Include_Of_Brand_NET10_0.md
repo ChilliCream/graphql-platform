@@ -21,4 +21,3 @@ WHERE p."Id" = ANY (@keys)
   }
 }
 ```
-

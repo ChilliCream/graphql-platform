@@ -237,4 +237,3 @@ namespace TestNamespace
   }
 ]
 ```
-
