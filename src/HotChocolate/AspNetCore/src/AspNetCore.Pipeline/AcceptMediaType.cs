@@ -7,6 +7,8 @@ namespace HotChocolate.AspNetCore;
 /// </summary>
 public readonly struct AcceptMediaType
 {
+    private const string Utf8 = "utf-8";
+
     /// <summary>
     /// Initializes a new instance of <see cref="AcceptMediaType"/>.
     /// </summary>
@@ -22,6 +24,9 @@ public readonly struct AcceptMediaType
     /// <param name="charset">
     /// The charset.
     /// </param>
+    /// <param name="incrementalDeliveryFormat">
+    /// The incremental delivery format version.
+    /// </param>
     /// <exception cref="ArgumentNullException">
     /// Type or subtype are empty.
     /// </exception>
@@ -29,7 +34,8 @@ public readonly struct AcceptMediaType
         StringSegment type,
         StringSegment subType,
         double? quality,
-        StringSegment charset)
+        StringSegment charset,
+        IncrementalDeliveryFormat incrementalDeliveryFormat = IncrementalDeliveryFormat.Undefined)
     {
         if (!type.HasValue)
         {
@@ -41,60 +47,13 @@ public readonly struct AcceptMediaType
             throw new ArgumentNullException(nameof(subType));
         }
 
-        Type = type.Value;
-        SubType = subType.Value;
+        Kind = ResolveKind(type, subType);
+        Type = ResolveType(type, Kind);
+        SubType = ResolveSubType(subType, Kind);
         Quality = quality;
-        Charset = charset.HasValue ? charset.Value : null;
-        IsUtf8 = Charset?.Equals("utf-8", StringComparison.OrdinalIgnoreCase) ?? true;
-
-        if (Type.Equals(ContentType.Types.All, StringComparison.Ordinal)
-            && SubType.Equals(ContentType.Types.All, StringComparison.Ordinal))
-        {
-            Kind = AcceptMediaTypeKind.All;
-        }
-        else if (Type.Equals(ContentType.Types.Application, StringComparison.Ordinal))
-        {
-            if (SubType.Equals(ContentType.Types.All, StringComparison.Ordinal))
-            {
-                Kind = AcceptMediaTypeKind.AllApplication;
-            }
-            else if (SubType.Equals(ContentType.SubTypes.GraphQLResponse, StringComparison.Ordinal))
-            {
-                Kind = AcceptMediaTypeKind.ApplicationGraphQL;
-            }
-            else if (SubType.Equals(ContentType.SubTypes.GraphQLResponseStream, StringComparison.Ordinal))
-            {
-                Kind = AcceptMediaTypeKind.ApplicationGraphQLStream;
-            }
-            else if (SubType.Equals(ContentType.SubTypes.Json, StringComparison.Ordinal))
-            {
-                Kind = AcceptMediaTypeKind.ApplicationJson;
-            }
-            else if (SubType.Equals(ContentType.SubTypes.JsonLines, StringComparison.Ordinal))
-            {
-                Kind = AcceptMediaTypeKind.ApplicationJsonLines;
-            }
-        }
-        else if (Type.Equals(ContentType.Types.MultiPart, StringComparison.Ordinal))
-        {
-            if (SubType.Equals(ContentType.Types.All, StringComparison.Ordinal))
-            {
-                Kind = AcceptMediaTypeKind.AllMultiPart;
-            }
-            else if (SubType.Equals(ContentType.SubTypes.Mixed, StringComparison.Ordinal))
-            {
-                Kind = AcceptMediaTypeKind.MultiPartMixed;
-            }
-        }
-        else if (Type.Equals(ContentType.Types.Text, StringComparison.Ordinal)
-            && SubType.Equals(ContentType.SubTypes.EventStream, StringComparison.Ordinal))
-        {
-            Kind = AcceptMediaTypeKind.EventStream;
-        }
-        else
-        {
-            Kind = AcceptMediaTypeKind.Unknown;
-        }
+        Charset = ResolveCharset(charset);
+        IncrementalDeliveryFormat = incrementalDeliveryFormat;
+        IsUtf8 = Charset?.Equals(Utf8, StringComparison.OrdinalIgnoreCase) ?? true;
     }
 
     /// <summary>
@@ -141,7 +100,112 @@ public readonly struct AcceptMediaType
     public string? Charset { get; }
 
     /// <summary>
+    /// Gets the incremental delivery format version.
+    /// </summary>
+    public IncrementalDeliveryFormat IncrementalDeliveryFormat { get; }
+
+    /// <summary>
     /// Defines if the charset is UTF-8.
     /// </summary>
     public bool IsUtf8 { get; }
+
+    private static AcceptMediaTypeKind ResolveKind(StringSegment type, StringSegment subType)
+    {
+        if (type.Equals(ContentType.Types.All, StringComparison.Ordinal)
+            && subType.Equals(ContentType.Types.All, StringComparison.Ordinal))
+        {
+            return AcceptMediaTypeKind.All;
+        }
+
+        if (type.Equals(ContentType.Types.Application, StringComparison.OrdinalIgnoreCase))
+        {
+            if (subType.Equals(ContentType.Types.All, StringComparison.Ordinal))
+            {
+                return AcceptMediaTypeKind.AllApplication;
+            }
+
+            if (subType.Equals(ContentType.SubTypes.GraphQLResponse, StringComparison.OrdinalIgnoreCase))
+            {
+                return AcceptMediaTypeKind.ApplicationGraphQL;
+            }
+
+            if (subType.Equals(ContentType.SubTypes.GraphQLResponseStream, StringComparison.OrdinalIgnoreCase))
+            {
+                return AcceptMediaTypeKind.ApplicationGraphQLStream;
+            }
+
+            if (subType.Equals(ContentType.SubTypes.Json, StringComparison.OrdinalIgnoreCase))
+            {
+                return AcceptMediaTypeKind.ApplicationJson;
+            }
+
+            if (subType.Equals(ContentType.SubTypes.JsonLines, StringComparison.OrdinalIgnoreCase))
+            {
+                return AcceptMediaTypeKind.ApplicationJsonLines;
+            }
+        }
+
+        if (type.Equals(ContentType.Types.MultiPart, StringComparison.OrdinalIgnoreCase))
+        {
+            if (subType.Equals(ContentType.Types.All, StringComparison.Ordinal))
+            {
+                return AcceptMediaTypeKind.AllMultiPart;
+            }
+
+            if (subType.Equals(ContentType.SubTypes.Mixed, StringComparison.OrdinalIgnoreCase))
+            {
+                return AcceptMediaTypeKind.MultiPartMixed;
+            }
+        }
+
+        if (type.Equals(ContentType.Types.Text, StringComparison.OrdinalIgnoreCase)
+            && subType.Equals(ContentType.SubTypes.EventStream, StringComparison.OrdinalIgnoreCase))
+        {
+            return AcceptMediaTypeKind.EventStream;
+        }
+
+        return AcceptMediaTypeKind.Unknown;
+    }
+
+    private static string ResolveType(StringSegment type, AcceptMediaTypeKind kind)
+        => kind switch
+        {
+            AcceptMediaTypeKind.All => ContentType.Types.All,
+            AcceptMediaTypeKind.AllApplication
+                or AcceptMediaTypeKind.ApplicationGraphQL
+                or AcceptMediaTypeKind.ApplicationGraphQLStream
+                or AcceptMediaTypeKind.ApplicationJson
+                or AcceptMediaTypeKind.ApplicationJsonLines => ContentType.Types.Application,
+            AcceptMediaTypeKind.AllMultiPart
+                or AcceptMediaTypeKind.MultiPartMixed => ContentType.Types.MultiPart,
+            AcceptMediaTypeKind.EventStream => ContentType.Types.Text,
+            _ => type.Value!
+        };
+
+    private static string ResolveSubType(StringSegment subType, AcceptMediaTypeKind kind)
+        => kind switch
+        {
+            AcceptMediaTypeKind.All
+                or AcceptMediaTypeKind.AllApplication
+                or AcceptMediaTypeKind.AllMultiPart => ContentType.Types.All,
+            AcceptMediaTypeKind.ApplicationGraphQL => ContentType.SubTypes.GraphQLResponse,
+            AcceptMediaTypeKind.ApplicationGraphQLStream => ContentType.SubTypes.GraphQLResponseStream,
+            AcceptMediaTypeKind.ApplicationJson => ContentType.SubTypes.Json,
+            AcceptMediaTypeKind.ApplicationJsonLines => ContentType.SubTypes.JsonLines,
+            AcceptMediaTypeKind.MultiPartMixed => ContentType.SubTypes.Mixed,
+            AcceptMediaTypeKind.EventStream => ContentType.SubTypes.EventStream,
+            _ => subType.Value!
+        };
+
+    private static string? ResolveCharset(StringSegment charset)
+    {
+        if (!charset.HasValue)
+        {
+            return null;
+        }
+
+        return charset.Equals(Utf8, StringComparison.OrdinalIgnoreCase)
+            ? Utf8
+            : charset.Value;
+    }
 }
