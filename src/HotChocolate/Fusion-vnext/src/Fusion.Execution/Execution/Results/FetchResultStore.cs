@@ -623,7 +623,7 @@ AddErrors_Next:
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<ObjectValueNode, int>(VariableValueComparer.Instance)
+                seen ??= new Dictionary<ObjectValueNode, int>(elements.Count, VariableValueComparer.Instance)
                 {
                     [variableValueSets[0].Values] = 0
                 };
@@ -707,7 +707,7 @@ AddErrors_Next:
                 }
 
                 mappedValue = ResultDataMapper.GetStringValueNode(stringValue);
-                seenStrings ??= new Dictionary<string, int>(StringComparer.Ordinal);
+                seenStrings ??= new Dictionary<string, int>(elements.Count, StringComparer.Ordinal);
                 seenStrings[stringValue] = nextIndex;
             }
             else
@@ -722,7 +722,7 @@ AddErrors_Next:
                     continue;
                 }
 
-                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance);
+                seen ??= new Dictionary<IValueNode, int>(elements.Count, SingleValueNodeComparer.Instance);
                 seen[mappedValue] = nextIndex;
             }
 
@@ -766,7 +766,7 @@ AddErrors_Next:
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<IValueNode, int>(SingleValueNodeComparer.Instance)
+                seen ??= new Dictionary<IValueNode, int>(elements.Count, SingleValueNodeComparer.Instance)
                 {
                     [variableValueSets[0].Values.Fields[0].Value] = 0
                 };
@@ -852,7 +852,7 @@ AddErrors_Next:
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<TwoValueNodeTuple, int>(TwoValueNodeTupleComparer.Instance)
+                seen ??= new Dictionary<TwoValueNodeTuple, int>(elements.Count, TwoValueNodeTupleComparer.Instance)
                 {
                     [new TwoValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
@@ -916,7 +916,7 @@ AddErrors_Next:
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<TwoValueNodeTuple, int>(TwoValueNodeTupleComparer.Instance)
+                seen ??= new Dictionary<TwoValueNodeTuple, int>(elements.Count, TwoValueNodeTupleComparer.Instance)
                 {
                     [new TwoValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
@@ -1023,7 +1023,7 @@ AddErrors_Next:
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<ThreeValueNodeTuple, int>(ThreeValueNodeTupleComparer.Instance)
+                seen ??= new Dictionary<ThreeValueNodeTuple, int>(elements.Count, ThreeValueNodeTupleComparer.Instance)
                 {
                     [new ThreeValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
@@ -1099,7 +1099,7 @@ AddErrors_Next:
 
             if (nextIndex > 0)
             {
-                seen ??= new Dictionary<ThreeValueNodeTuple, int>(ThreeValueNodeTupleComparer.Instance)
+                seen ??= new Dictionary<ThreeValueNodeTuple, int>(elements.Count, ThreeValueNodeTupleComparer.Instance)
                 {
                     [new ThreeValueNodeTuple(
                         variableValueSets[0].Values.Fields[0].Value,
