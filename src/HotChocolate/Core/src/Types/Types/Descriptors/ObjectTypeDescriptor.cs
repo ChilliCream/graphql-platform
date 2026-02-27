@@ -322,6 +322,17 @@ public class ObjectTypeDescriptor
     {
         ArgumentNullException.ThrowIfNull(propertyOrMethod);
 
+        if (propertyOrMethod.Body is UnaryExpression { NodeType: ExpressionType.ArrayLength })
+        {
+            var fieldDescriptor = ObjectFieldDescriptor.New(
+                Context,
+                propertyOrMethod,
+                Configuration.RuntimeType,
+                typeof(TResolver));
+            _fields.Add(fieldDescriptor);
+            return fieldDescriptor;
+        }
+
         var member = propertyOrMethod.TryExtractMember();
 
         if (member is PropertyInfo or MethodInfo)

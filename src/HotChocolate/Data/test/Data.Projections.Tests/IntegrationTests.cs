@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
@@ -109,6 +110,43 @@ public class IntegrationTests
             ");
 
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Projection_Should_Project_ArrayLength_Expression_Fields()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithExpressionProjection>()
+            .AddType<CardReaderType>()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                cardReaders {
+                    cardReaderUidLength
+                }
+            }
+            """);
+
+        using var document = JsonDocument.Parse(result.ToJson());
+        var readers = document.RootElement
+            .GetProperty("data")
+            .GetProperty("cardReaders");
+
+        // assert
+        Assert.Equal(2, readers.GetArrayLength());
+
+        var enumerator = readers.EnumerateArray();
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal(3, enumerator.Current.GetProperty("cardReaderUidLength").GetInt32());
+        Assert.True(enumerator.MoveNext());
+        Assert.Equal(1, enumerator.Current.GetProperty("cardReaderUidLength").GetInt32());
+        Assert.False(enumerator.MoveNext());
     }
 
     [Fact]
@@ -468,6 +506,30 @@ public class Query
     [UseProjection]
     public IQueryable<Foo> Foos
         => new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
+}
+
+public class QueryWithExpressionProjection
+{
+    [UseProjection]
+    public IQueryable<CardReader> CardReaders
+        => new[]
+        {
+            new CardReader { CardReaderUid = [1, 2, 3] },
+            new CardReader { CardReaderUid = [1] }
+        }.AsQueryable();
+}
+
+public class CardReaderType : ObjectType<CardReader>
+{
+    protected override void Configure(IObjectTypeDescriptor<CardReader> descriptor)
+    {
+        descriptor.Field(x => x.CardReaderUid.Length).Name("cardReaderUidLength");
+    }
+}
+
+public class CardReader
+{
+    public byte[] CardReaderUid { get; set; } = [];
 }
 
 public class Mutation
