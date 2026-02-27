@@ -199,23 +199,6 @@ public sealed class SelectionSet : ISelectionSet
                 return false;
 
             default:
-                if (selections.Length <= 8)
-                {
-                    for (var i = 0; i < selections.Length; i++)
-                    {
-                        var candidateN = selections[i];
-
-                        if (utf8ResponseName.SequenceEqual(candidateN.Utf8ResponseName))
-                        {
-                            selection = candidateN;
-                            return true;
-                        }
-                    }
-
-                    selection = default;
-                    return false;
-                }
-
                 return _utf8ResponseNameLookup.TryGetSelection(utf8ResponseName, out selection);
         }
     }
