@@ -373,16 +373,89 @@ internal sealed class ValueCompletion
         }
 
         target.SetArrayValue(source.GetArrayLength());
+        using var enumerator = target.EnumerateArray().GetEnumerator();
+
+        if (errorTrie is null)
+        {
+            foreach (var element in source.EnumerateArray())
+            {
+                var movedNext = enumerator.MoveNext();
+                Debug.Assert(movedNext, "The lists must have the same size.");
+
+                var current = enumerator.Current;
+
+                if (element.IsNullOrUndefined())
+                {
+                    if (!isNullable && _errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt)
+                    {
+                        return false;
+                    }
+
+                    current.SetNullValue();
+                    continue;
+                }
+
+                var success = true;
+
+                switch (elementKind)
+                {
+                    case 0:
+                        success = TryCompleteList(
+                            element,
+                            current,
+                            null,
+                            selection,
+                            elementType,
+                            depth);
+                        break;
+
+                    case 1:
+                        current.SetLeafValue(element);
+                        break;
+
+                    case 2:
+                        success = TryCompleteAbstractValue(
+                            element,
+                            current,
+                            null,
+                            selection,
+                            elementType,
+                            depth);
+                        break;
+
+                    default:
+                        success = TryCompleteObjectValue(
+                            element,
+                            current,
+                            null,
+                            selection,
+                            objectElementType!,
+                            objectElementSelectionSet,
+                            depth);
+                        break;
+                }
+
+                if (!success)
+                {
+                    if (!isNullable)
+                    {
+                        return false;
+                    }
+
+                    current.SetNullValue();
+                }
+            }
+
+            return true;
+        }
 
         var i = 0;
-        using var enumerator = target.EnumerateArray().GetEnumerator();
         foreach (var element in source.EnumerateArray())
         {
             var movedNext = enumerator.MoveNext();
             Debug.Assert(movedNext, "The lists must have the same size.");
 
-            ErrorTrie? errorTrieForIndex = null;
-            errorTrie?.TryGetValue(i, out errorTrieForIndex);
+            errorTrie.TryGetValue(i, out var errorTrieForIndex);
 
             if (errorTrieForIndex?.Error is { } error)
             {
@@ -410,7 +483,8 @@ internal sealed class ValueCompletion
                 }
 
                 current.SetNullValue();
-                goto TryCompleteList_MoveNext;
+                i++;
+                continue;
             }
 
             var success = true;
@@ -461,10 +535,8 @@ internal sealed class ValueCompletion
                 }
 
                 current.SetNullValue();
-                goto TryCompleteList_MoveNext;
             }
 
-TryCompleteList_MoveNext:
             i++;
         }
 
