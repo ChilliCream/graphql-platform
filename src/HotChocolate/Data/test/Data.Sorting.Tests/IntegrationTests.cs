@@ -1,3 +1,4 @@
+using System.Text.Json;
 using GreenDonut.Data;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -58,6 +59,53 @@ public class IntegrationTests
 
         // assert
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Sorting_Should_Work_When_UsedOnAsyncResolver()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                d => d
+                    .Name(OperationTypeNames.Query)
+                    .Field("foos")
+                        .Type(typeof(List<Foo>))
+                        .Resolve(async _ => await Task.FromResult(new List<Foo>(
+                            [
+                                new Foo { CreatedUtc = new DateTime(2000, 1, 1, 1, 1, 1) },
+                                new Foo { CreatedUtc = new DateTime(2010, 1, 1, 1, 1, 1) },
+                                new Foo { CreatedUtc = new DateTime(2020, 1, 1, 1, 1, 1) }
+                            ])))
+                        .UseSorting())
+            .AddSorting()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                foos(order: { createdUtc: DESC }) {
+                    createdUtc
+                }
+            }
+            """);
+
+        // assert
+        using var document = JsonDocument.Parse(result.ToJson());
+        Assert.False(
+            document.RootElement.TryGetProperty("errors", out _),
+            result.ToJson());
+
+        var values = document.RootElement
+            .GetProperty("data")
+            .GetProperty("foos")
+            .EnumerateArray()
+            .Select(t => DateTime.Parse(t.GetProperty("createdUtc").GetString()!))
+            .ToArray();
+
+        Assert.Equal(values.OrderByDescending(t => t).ToArray(), values);
     }
 }
 

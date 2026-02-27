@@ -209,9 +209,7 @@ public static class SortingObjectFieldDescriptorExtensions
                     {
                         var convention = c.GetSortConvention(scope);
 
-                        if (definition.ResultType is null
-                            || definition.ResultType == typeof(object)
-                            || !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
+                        if (!TryGetTypeInfo(c, definition, out var typeInfo))
                         {
                             throw new ArgumentException(
                                 SortObjectFieldDescriptorExtensions_UseSorting_CannotHandleType,
@@ -270,6 +268,92 @@ public static class SortingObjectFieldDescriptorExtensions
                 });
 
         return descriptor;
+    }
+
+    private static bool TryGetTypeInfo(
+        IDescriptorContext context,
+        ObjectFieldConfiguration definition,
+        [NotNullWhen(true)]
+        out ITypeInfo? typeInfo)
+    {
+        if (definition.ResultType is not null
+            && definition.ResultType != typeof(object)
+            && context.TypeInspector.TryCreateTypeInfo(definition.ResultType, out typeInfo))
+        {
+            return true;
+        }
+
+        if (definition.Type is ExtendedTypeReference typeRef
+            && TryResolveRuntimeType(typeRef.Type, out var runtimeType)
+            && context.TypeInspector.TryCreateTypeInfo(runtimeType, out typeInfo))
+        {
+            return true;
+        }
+
+        if (definition.Member is not null
+            && context.TypeInspector.TryCreateTypeInfo(
+                context.TypeInspector.GetReturnType(definition.Member),
+                out typeInfo))
+        {
+            return true;
+        }
+
+        typeInfo = null;
+        return false;
+    }
+
+    private static bool TryResolveRuntimeType(
+        IExtendedType type,
+        [NotNullWhen(true)] out Type? runtimeType)
+    {
+        var current = type;
+
+        while (current.IsArrayOrList && current.ElementType is not null)
+        {
+            current = current.ElementType;
+        }
+
+        if (current.IsSchemaType)
+        {
+            return TryResolveRuntimeTypeFromSchemaType(current.Source, out runtimeType)
+                || TryResolveRuntimeTypeFromSchemaType(current.Type, out runtimeType);
+        }
+
+        runtimeType = current.Source;
+        return true;
+    }
+
+    private static bool TryResolveRuntimeTypeFromSchemaType(
+        Type schemaType,
+        [NotNullWhen(true)] out Type? runtimeType)
+    {
+        var current = schemaType;
+
+        while (current is not null && current != typeof(object))
+        {
+            if (current.IsGenericType)
+            {
+                var definition = current.GetGenericTypeDefinition();
+                if (definition == typeof(ObjectType<>)
+                    || definition == typeof(ObjectTypeExtension<>)
+                    || definition == typeof(InterfaceType<>)
+                    || definition == typeof(InputObjectType<>)
+                    || definition == typeof(UnionType<>)
+                    || definition == typeof(DirectiveType<>)
+                    || definition == typeof(EnumType<>)
+                    || definition == typeof(ScalarType<>)
+                    || definition == typeof(ScalarType<,>))
+                {
+                    runtimeType = current.GetGenericArguments()[0];
+                    return true;
+                }
+            }
+
+            current = current.BaseType;
+        }
+
+        runtimeType = null;
+        return false;
     }
 
     private static bool TryGetTypeInfo(
