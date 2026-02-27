@@ -3,7 +3,7 @@ request:
   document: |
     query testQuery(
       $skip1: Boolean!
-      $skip2: Boolean!
+        $skip2: Boolean!
     ) {
       viewer {
         ... @skip(if: $skip1) {
@@ -34,7 +34,7 @@ sourceSchemas:
       }
 
       type Query {
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
 
       type Viewer {
@@ -45,7 +45,7 @@ sourceSchemas:
           document: |
             query testQuery_c099bff0_1(
               $skip1: Boolean!
-              $skip2: Boolean!
+                $skip2: Boolean!
             ) {
               viewer {
                 ... @skip(if: $skip1) {
@@ -75,7 +75,7 @@ sourceSchemas:
       }
 
       type Query {
-        viewer: Viewer
+        viewer: Viewer @shareable
       }
 
       type Viewer {
@@ -84,19 +84,29 @@ sourceSchemas:
     interactions:
       - request:
           document: |
-            query testQuery_c099bff0_2 {
+            query testQuery_c099bff0_2(
+              $skip1: Boolean!
+                $skip2: Boolean!
+            ) {
               viewer {
-                fieldB
+                ... @skip(if: $skip1) {
+                  ... @skip(if: $skip2) {
+                    fieldB
+                  }
+                }
               }
+            }
+          variables: |
+            {
+              "skip1": true,
+              "skip2": true
             }
         response:
           results:
             - |
               {
                 "data": {
-                  "viewer": {
-                    "fieldB": "Viewer"
-                  }
+                  "viewer": {}
                 }
               }
 operationPlan:
@@ -104,7 +114,7 @@ operationPlan:
     - document: |
         query testQuery(
           $skip1: Boolean!
-          $skip2: Boolean!
+            $skip2: Boolean!
         ) {
           viewer {
             ... @skip(if: $skip1) {
@@ -118,6 +128,7 @@ operationPlan:
       name: testQuery
       hash: c099bff074b026e46b9754ca9feb8322
       searchSpace: 2
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -125,7 +136,7 @@ operationPlan:
       operation: |
         query testQuery_c099bff0_1(
           $skip1: Boolean!
-          $skip2: Boolean!
+            $skip2: Boolean!
         ) {
           viewer {
             ... @skip(if: $skip1) {
@@ -142,8 +153,18 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_c099bff0_2 {
+        query testQuery_c099bff0_2(
+          $skip1: Boolean!
+            $skip2: Boolean!
+        ) {
           viewer {
-            fieldB
+            ... @skip(if: $skip1) {
+              ... @skip(if: $skip2) {
+                fieldB
+              }
+            }
           }
         }
+      forwardedVariables:
+        - skip1
+        - skip2

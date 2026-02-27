@@ -3,7 +3,7 @@ request:
   document: |
     query testQuery(
       $skip1: Boolean!
-      $skip2: Boolean!
+        $skip2: Boolean!
     ) {
       ... @skip(if: $skip1) {
         ... @skip(if: $skip2) {
@@ -54,30 +54,12 @@ sourceSchemas:
       type Viewer {
         name: String!
       }
-    interactions:
-      - request:
-          document: |
-            query testQuery_03eeda2f_2 {
-              viewer {
-                name
-              }
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "viewer": {
-                    "name": "Viewer"
-                  }
-                }
-              }
 operationPlan:
   operation:
     - document: |
         query testQuery(
           $skip1: Boolean!
-          $skip2: Boolean!
+            $skip2: Boolean!
         ) {
           ... @skip(if: $skip1) {
             ... @skip(if: $skip2) {
@@ -93,6 +75,7 @@ operationPlan:
       name: testQuery
       hash: 03eeda2f0b0a096f8dcad71b1d847d5c
       searchSpace: 2
+      expandedNodes: 2
   nodes:
     - id: 1
       type: Operation
@@ -117,3 +100,8 @@ operationPlan:
             name
           }
         }
+      conditions:
+        - variable: $skip2
+          passingValue: false
+        - variable: $skip1
+          passingValue: false

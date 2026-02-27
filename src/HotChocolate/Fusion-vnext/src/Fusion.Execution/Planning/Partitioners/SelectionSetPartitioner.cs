@@ -118,7 +118,20 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             }
 
             var unresolvableSelectionSet = new SelectionSetNode(unresolvableSelections);
+
+            if (context.FragmentPath is { Count: > 0 })
+            {
+                foreach (var fragmentNode in context.FragmentPath)
+                {
+                    unresolvableSelectionSet = new SelectionSetNode(
+                    [
+                        fragmentNode.WithSelectionSet(unresolvableSelectionSet)
+                    ]);
+                }
+            }
+
             context.Register(selectionSetNode, unresolvableSelectionSet);
+            context.RegisterNested(unresolvableSelectionSet);
 
             var selectionSet = new SelectionSet(
                 context.GetId(selectionSetNode),
@@ -291,6 +304,13 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             return (null, null);
         }
 
+        var trackFragmentPath = inlineFragmentNode.TypeCondition is null;
+        if (trackFragmentPath)
+        {
+            context.FragmentPath ??= [];
+            context.FragmentPath.Push(inlineFragmentNode);
+        }
+
         context.Nodes.Push(inlineFragmentNode);
 
         var (resolvable, unresolvable) =
@@ -301,6 +321,11 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 providedFieldNode);
 
         context.Nodes.Pop();
+
+        if (trackFragmentPath)
+        {
+            context.FragmentPath!.Pop();
+        }
 
         if (resolvable is null)
         {
@@ -343,6 +368,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         public List<ISyntaxNode> Nodes { get; } = [];
 
+        public Stack<InlineFragmentNode>? FragmentPath { get; set; }
+
         public SelectionPath BuildPath()
         {
             var builder = SelectionPath.CreateBuilder(RootPath);
@@ -380,6 +407,35 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             }
 
             SelectionSetIndexBuilder.Register(original, branch);
+        }
+
+        public void RegisterNested(SelectionSetNode selectionSetNode)
+        {
+            foreach (var selection in selectionSetNode.Selections)
+            {
+                switch (selection)
+                {
+                    case FieldNode { SelectionSet: { } fieldSelectionSet }:
+                        RegisterSelectionSet(fieldSelectionSet);
+                        RegisterNested(fieldSelectionSet);
+                        break;
+
+                    case InlineFragmentNode inlineFragmentNode:
+                        RegisterSelectionSet(inlineFragmentNode.SelectionSet);
+                        RegisterNested(inlineFragmentNode.SelectionSet);
+                        break;
+                }
+            }
+        }
+
+        private void RegisterSelectionSet(SelectionSetNode selectionSetNode)
+        {
+            if (SelectionSetIndex.IsRegistered(selectionSetNode))
+            {
+                return;
+            }
+
+            SelectionSetIndexBuilder.Register(selectionSetNode);
         }
     }
 }
