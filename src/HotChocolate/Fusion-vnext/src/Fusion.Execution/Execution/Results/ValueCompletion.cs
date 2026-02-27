@@ -268,6 +268,7 @@ internal sealed class ValueCompletion
         var isNullable = elementType.IsNullableType();
         var isLeaf = elementType.IsLeafType();
         var isNested = elementType.IsListType();
+        var isAbstract = elementType.IsAbstractType();
 
         target.SetArrayValue(source.GetArrayLength());
 
@@ -308,14 +309,53 @@ internal sealed class ValueCompletion
                 goto TryCompleteList_MoveNext;
             }
 
-            if (!HandleElement(element, enumerator.Current, errorTrieForIndex))
+            var targetElement = enumerator.Current;
+            bool completed;
+
+            if (isNested)
+            {
+                completed = TryCompleteList(
+                    element,
+                    targetElement,
+                    errorTrieForIndex,
+                    selection,
+                    elementType,
+                    depth);
+            }
+            else if (isLeaf)
+            {
+                targetElement.SetLeafValue(element);
+                completed = true;
+            }
+            else if (isAbstract)
+            {
+                completed = TryCompleteAbstractValue(
+                    element,
+                    targetElement,
+                    errorTrieForIndex,
+                    selection,
+                    elementType,
+                    depth);
+            }
+            else
+            {
+                completed = TryCompleteObjectValue(
+                    selection,
+                    elementType,
+                    element,
+                    errorTrieForIndex,
+                    depth,
+                    targetElement);
+            }
+
+            if (!completed)
             {
                 if (!isNullable)
                 {
                     return false;
                 }
 
-                enumerator.Current.SetNullValue();
+                targetElement.SetNullValue();
                 goto TryCompleteList_MoveNext;
             }
 
@@ -325,42 +365,6 @@ TryCompleteList_MoveNext:
 
         return true;
 
-        bool HandleElement(
-            SourceResultElement sourceElement,
-            CompositeResultElement targetElement,
-            ErrorTrie? errorTrieForIndex)
-        {
-            if (isNested)
-            {
-                return TryCompleteList(
-                    sourceElement,
-                    targetElement,
-                    errorTrieForIndex,
-                    selection,
-                    elementType,
-                    depth);
-            }
-
-            if (isLeaf)
-            {
-                targetElement.SetLeafValue(sourceElement);
-                return true;
-            }
-
-            if (elementType.IsAbstractType())
-            {
-                return TryCompleteAbstractValue(sourceElement,
-                    targetElement, errorTrieForIndex, selection, elementType, depth);
-            }
-
-            return TryCompleteObjectValue(
-                selection,
-                elementType,
-                sourceElement,
-                errorTrieForIndex,
-                depth,
-                targetElement);
-        }
     }
 
     private bool TryCompleteObjectValue(
