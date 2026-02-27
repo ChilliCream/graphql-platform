@@ -35,4 +35,3 @@ FROM (
 INNER JOIN "Brands" AS b ON p0."BrandId" = b."Id"
 ORDER BY p0."Name" DESC, p0."Id"
 ```
-
