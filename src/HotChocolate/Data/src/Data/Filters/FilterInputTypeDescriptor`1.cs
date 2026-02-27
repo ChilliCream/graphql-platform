@@ -98,6 +98,17 @@ public class FilterInputTypeDescriptor<T>
     /// <inheritdoc />
     public IFilterFieldDescriptor Field<TField>(Expression<Func<T, TField>> propertyOrMember)
     {
+        if (propertyOrMember.Body is UnaryExpression { NodeType: ExpressionType.ArrayLength })
+        {
+            var arrayLengthFieldDescriptor =
+                FilterFieldDescriptor.New(
+                    Context,
+                    Configuration.Scope,
+                    propertyOrMember);
+            Fields.Add(arrayLengthFieldDescriptor);
+            return arrayLengthFieldDescriptor;
+        }
+
         switch (propertyOrMember.TryExtractMember())
         {
             case PropertyInfo m:
