@@ -254,9 +254,12 @@ internal sealed class ValueCompletion
         IType type,
         int depth)
     {
+        var sourceValueKind = source.ValueKind;
+        var isNullOrUndefined = sourceValueKind is JsonValueKind.Null or JsonValueKind.Undefined;
+
         if (type.Kind is TypeKind.NonNull)
         {
-            if (source.IsNullOrUndefined())
+            if (isNullOrUndefined)
             {
                 IError error;
                 if (errorTrie?.FindFirstError() is { } errorFromPath)
@@ -291,7 +294,7 @@ internal sealed class ValueCompletion
             type = type.InnerType();
         }
 
-        if (source.IsNullOrUndefined())
+        if (isNullOrUndefined)
         {
             // If the value is null, it might've been nulled due to a
             // down-stream null propagation.
