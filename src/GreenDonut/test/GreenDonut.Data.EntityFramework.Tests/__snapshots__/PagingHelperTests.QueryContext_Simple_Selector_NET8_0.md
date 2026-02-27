@@ -15,4 +15,3 @@ LIMIT @__p_0
 ```text
 [Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(t => t.Id).Select(t => new Product() {Id = t.Id, Name = t.Name}).Take(3)
 ```
-
