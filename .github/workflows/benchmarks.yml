@@ -2,7 +2,7 @@ name: Benchmarks
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, closed]
     branches:
       - main
       - main-version-*
@@ -17,7 +17,7 @@ concurrency:
 jobs:
   setup:
     name: "Initialize Benchmark Report"
-    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    if: github.event.action != 'closed' && github.event_name == 'pull_request' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -110,7 +110,7 @@ jobs:
   benchmark:
     name: "${{ matrix.test-name }} ${{ matrix.mode-label }} (${{ matrix.runner-label }})"
     needs: [setup]
-    if: "!cancelled() && (github.event_name == 'push' || github.event.pull_request.draft == false)"
+    if: "!cancelled() && github.event.action != 'closed' && (github.event_name == 'push' || github.event.pull_request.draft == false)"
     runs-on:
       group: ${{ matrix.runner-group }}
     permissions:
@@ -331,7 +331,7 @@ jobs:
   report:
     name: "Final Performance Report"
     needs: [setup, benchmark]
-    if: "!cancelled() && github.event_name == 'pull_request'"
+    if: "!cancelled() && github.event.action != 'closed' && github.event_name == 'pull_request'"
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
