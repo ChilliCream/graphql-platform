@@ -14,7 +14,7 @@ public static class NatsPubSubExtensions
 {
     /// <summary>
     /// Adds support for using NATS as a subscription provider.
-    /// Ensure you have configured the NATS client using <code>AddNats(...)</code>
+    /// Ensure you have configured the NATS client using <code>AddNatsClient(...)</code>
     /// before calling this method.
     /// </summary>
     /// <param name="builder">

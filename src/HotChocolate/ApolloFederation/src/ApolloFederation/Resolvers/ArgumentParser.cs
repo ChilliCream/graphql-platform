@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -34,6 +35,11 @@ internal static class ArgumentParser
         switch (valueNode.Kind)
         {
             case SyntaxKind.ObjectValue:
+                if (path.Length <= i)
+                {
+                    break;
+                }
+
                 var current = path[i];
 
                 if (type is not IComplexTypeDefinition complexType
@@ -54,6 +60,68 @@ internal static class ArgumentParser
                         return TryGetValue(fieldValue.Value, field.Type, path, i, out value);
                     }
                 }
+                break;
+
+            case SyntaxKind.ListValue:
+                if (type is not ListType listType
+                    || path.Length > i
+                    || !TryGetListElementType(typeof(T), out var elementType))
+                {
+                    break;
+                }
+
+                var itemType = typeof(List<>).MakeGenericType(elementType);
+                var items = (IList)Activator.CreateInstance(itemType)!;
+                var listValue = (ListValueNode)valueNode;
+
+                foreach (var itemNode in listValue.Items)
+                {
+                    if (!TryGetValue<object?>(itemNode, listType.ElementType, path, i, out var itemValue))
+                    {
+                        value = default;
+                        return false;
+                    }
+
+                    if (itemValue is null)
+                    {
+                        items.Add(null);
+                        continue;
+                    }
+
+                    if (elementType.IsInstanceOfType(itemValue))
+                    {
+                        items.Add(itemValue);
+                        continue;
+                    }
+
+                    if (DefaultTypeConverter.Default.TryConvert(
+                        elementType,
+                        itemValue,
+                        out var convertedItem))
+                    {
+                        items.Add(convertedItem);
+                        continue;
+                    }
+
+                    value = default;
+                    return false;
+                }
+
+                if (items is T castedItems)
+                {
+                    value = castedItems;
+                    return true;
+                }
+
+                if (DefaultTypeConverter.Default.TryConvert(
+                    typeof(T),
+                    items,
+                    out var convertedList))
+                {
+                    value = (T)convertedList;
+                    return true;
+                }
+
                 break;
 
             case SyntaxKind.NullValue:
@@ -90,6 +158,36 @@ internal static class ArgumentParser
         }
 
         value = default;
+        return false;
+    }
+
+    private static bool TryGetListElementType(Type type, out Type elementType)
+    {
+        if (type.IsArray)
+        {
+            elementType = type.GetElementType()!;
+            return true;
+        }
+
+        if (type.IsGenericType
+            && type.GetGenericArguments() is [var genericElement]
+            && type.GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+        {
+            elementType = genericElement;
+            return true;
+        }
+
+        var enumerableType = type
+            .GetInterfaces()
+            .FirstOrDefault(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+
+        if (enumerableType is not null)
+        {
+            elementType = enumerableType.GetGenericArguments()[0];
+            return true;
+        }
+
+        elementType = null!;
         return false;
     }
 

@@ -2,9 +2,18 @@
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "ExecuteHttpRequest",
-      "Status": "Unset",
-      "tags": [],
+      "DisplayName": "GraphQL HTTP POST",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "graphql.schema.name",
+          "Value": "_Default"
+        },
+        {
+          "Key": "graphql.http.request.type",
+          "Value": "single"
+        }
+      ],
       "event": [],
       "activities": [
         {
