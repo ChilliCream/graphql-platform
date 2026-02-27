@@ -102,8 +102,6 @@ public class QueryableProjectionFieldHandler
         }
 
         var memberInit = queryableScope.CreateMemberInit();
-
-        // TODO: Use existing utility function/extension method? Cache?
         var nullabilityInfo = s_nullabilityInfoContext.Create(propertyInfo);
 
         if (context.InMemory && nullabilityInfo.ReadState == NullabilityState.Nullable)
