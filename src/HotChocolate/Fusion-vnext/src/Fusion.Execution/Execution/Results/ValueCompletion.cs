@@ -58,6 +58,34 @@ internal sealed class ValueCompletion
             return BuildErrorResult(target, responseNames, error, target.Path);
         }
 
+        if (errorTrie is null)
+        {
+            foreach (var property in source.EnumerateObject())
+            {
+                if (!target.TryGetProperty(property.NameSpan, out var resultField))
+                {
+                    continue;
+                }
+
+                var selection = resultField.AssertSelection();
+
+                if (!TryCompleteValue(property.Value, resultField, errorTrie: null, selection, selection.Type, 0))
+                {
+                    switch (_errorHandlingMode)
+                    {
+                        case ErrorHandlingMode.Propagate:
+                            var didPropagateToRoot = PropagateNullValues(resultField);
+                            return !didPropagateToRoot;
+
+                        case ErrorHandlingMode.Halt:
+                            return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         foreach (var property in source.EnumerateObject())
         {
             if (!target.TryGetProperty(property.NameSpan, out var resultField))
@@ -67,7 +95,7 @@ internal sealed class ValueCompletion
 
             var selection = resultField.AssertSelection();
             ErrorTrie? errorTrieForResponseName = null;
-            errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
+            errorTrie.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
             if (!TryCompleteValue(property.Value, resultField, errorTrieForResponseName, selection, selection.Type, 0))
             {
