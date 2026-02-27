@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -84,13 +85,7 @@ internal sealed class SelectionLookup
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGetSelection(ReadOnlySpan<byte> name, [NotNullWhen(true)] out Selection? selection)
     {
-        var table = _table.AsSpan();
-
-        if (table.Length == 0)
-        {
-            selection = default!;
-            return false;
-        }
+        var table = _table;
 
         var hashCode = ComputeHash(name, _seed);
         var index = hashCode & _mask;
@@ -98,17 +93,18 @@ internal sealed class SelectionLookup
         while (true)
         {
             ref var entry = ref table[index];
+            var candidate = entry.Selection;
 
             // if we hit an empty slot, then there is no selection with the specified name.
-            if (entry.Selection is null)
+            if (candidate is null)
             {
                 selection = default;
                 return false;
             }
 
-            if (entry.HashCode == hashCode && name.SequenceEqual(entry.Selection.Utf8ResponseName))
+            if (entry.HashCode == hashCode && name.SequenceEqual(candidate.Utf8ResponseName))
             {
-                selection = entry.Selection;
+                selection = candidate;
                 return true;
             }
 
@@ -121,10 +117,11 @@ internal sealed class SelectionLookup
     private static int ComputeHash(ReadOnlySpan<byte> bytes, int seed)
     {
         var hash = (uint)seed;
+        ref var start = ref MemoryMarshal.GetReference(bytes);
 
-        foreach (var b in bytes)
+        for (var i = 0; i < bytes.Length; i++)
         {
-            hash = hash * 31 + b;
+            hash = (hash * 31) + Unsafe.Add(ref start, i);
         }
 
         return (int)(hash & 0x7FFFFFFF);
