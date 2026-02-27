@@ -1,3 +1,5 @@
+using HotChocolate.Features;
+
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -24,6 +26,11 @@ public static class MutationObjectFieldDescriptorExtensions
         MutationFieldOptions options = default)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
+
+        // Type modules create field configurations early; enabling these features here
+        // makes .Error<T>() work reliably when chained after .UseMutationConvention(...).
+        descriptor.Extend().Context.Features.GetOrSet<MutationConventionOptions>();
+        descriptor.Extend().Context.Features.GetOrSet<ErrorSchemaFeature>();
 
         descriptor.Extend().OnBeforeNaming((ctx, cfg) =>
         {
