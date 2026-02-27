@@ -87,7 +87,11 @@ public class BatchingTests
             .AddSingleton(vhost.ConnectionFactory)
             .AddSingleton(recorder)
             .AddMessageBus()
-            .AddBatchHandler<TestBatchHandler>(opts => opts.MaxBatchSize = messageCount)
+            .AddBatchHandler<TestBatchHandler>(opts =>
+            {
+                opts.MaxBatchSize = messageCount;
+                opts.BatchTimeout = TimeSpan.FromSeconds(60);
+            })
             .AddRabbitMQ(t =>
             {
                 t.Endpoint("batch-ep")
@@ -102,7 +106,8 @@ public class BatchingTests
 
         // act
         var publishTasks = Enumerable.Range(0, messageCount)
-            .Select(i => messageBus.PublishAsync(new OrderCreated { OrderId = $"batch-{i}" }, CancellationToken.None).AsTask());
+            .Select(i => messageBus.PublishAsync(new OrderCreated { OrderId = $"batch-{i}" }, CancellationToken.None)
+                .AsTask());
         await Task.WhenAll(publishTasks);
 
         // assert — wait until all messages are observed across batch deliveries

@@ -73,7 +73,11 @@ public class BatchingTests
             b =>
             {
                 b.Services.AddSingleton(recorder);
-                b.AddBatchHandler<TestBatchHandler>(opts => opts.MaxBatchSize = messageCount);
+                b.AddBatchHandler<TestBatchHandler>(opts =>
+                {
+                    opts.MaxBatchSize = messageCount;
+                    opts.BatchTimeout = TimeSpan.FromSeconds(60);
+                });
             },
             t => t.Endpoint("batch-ep").Handler<TestBatchHandler>().MaxConcurrency(messageCount));
 
