@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text;
+using HotChocolate.Fusion.Text;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -355,7 +356,13 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     /// </summary>
     /// <param name="Name">The name of the field or type for this segment.</param>
     /// <param name="Kind">The kind of segment (field or inline fragment).</param>
-    public sealed record Segment(string Name, SelectionPathSegmentKind Kind);
+    public sealed record Segment(string Name, SelectionPathSegmentKind Kind)
+    {
+        private byte[]? _utf8Name;
+
+        public ReadOnlySpan<byte> Utf8Name
+            => _utf8Name ??= Utf8StringCache.GetUtf8String(Name);
+    }
 
     /// <summary>
     /// Creates a new builder for creating <see cref="SelectionPath"/> instances.

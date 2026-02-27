@@ -1256,7 +1256,7 @@ AddErrors_Next:
             switch (segment.Kind)
             {
                 case SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field:
-                    if (!current.TryGetProperty(segment.Name, out current))
+                    if (!current.TryGetProperty(segment.Utf8Name, out current))
                     {
                         return default;
                     }
@@ -1265,14 +1265,8 @@ AddErrors_Next:
 
                 case SelectionPathSegmentKind.InlineFragment:
                     if (!current.TryGetProperty(IntrospectionFieldNames.TypeNameSpan, out var typeNameProperty)
-                            || typeNameProperty.ValueKind != JsonValueKind.String)
-                    {
-                        return default;
-                    }
-
-                    var typeName = typeNameProperty.GetString()!;
-
-                    if (typeName != segment.Name)
+                        || typeNameProperty.ValueKind != JsonValueKind.String
+                        || !typeNameProperty.ValueEquals(segment.Utf8Name))
                     {
                         return default;
                     }
