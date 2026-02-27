@@ -9,6 +9,8 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers;
 public class QueryableProjectionFieldHandler
     : QueryableProjectionHandlerBase
 {
+    private static readonly NullabilityInfoContext s_nullability = new();
+
     public override bool CanHandle(Selection selection)
         => !selection.IsLeaf && CanProjectMember(selection);
 
@@ -74,17 +76,14 @@ public class QueryableProjectionFieldHandler
             throw ThrowHelper.ProjectionVisitor_InvalidState_NoParentScope();
         }
 
-        Expression nestedProperty;
-        if (field.Member is PropertyInfo propertyInfo)
-        {
-            nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
-        }
-        else
+        if (field.Member is not PropertyInfo propertyInfo)
         {
             action = SelectionVisitor.Skip;
 
             return true;
         }
+
+        var nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
 
         // If the nested scope has no projectable members we keep the original value.
         // This happens for members like JsonDocument where selected subfields are read-only.
@@ -101,7 +100,7 @@ public class QueryableProjectionFieldHandler
 
         var memberInit = queryableScope.CreateMemberInit();
 
-        if (context.InMemory)
+        if (context.InMemory && ShouldApplyNullGuard(propertyInfo))
         {
             parentScope.Level
                 .Peek()
@@ -118,6 +117,30 @@ public class QueryableProjectionFieldHandler
 
         return true;
     }
+
+    private static bool ShouldApplyNullGuard(PropertyInfo property)
+    {
+        if (property.PropertyType.IsValueType)
+        {
+            return false;
+        }
+
+        // Preserve the existing null-guard behavior for entity-like references. For
+        // value-object/complex-like references (non-null and no identity member), the guard
+        // generates unsupported complex-type null comparisons on EF Core 8/9.
+        if (s_nullability.Create(property).ReadState is not NullabilityState.NotNull)
+        {
+            return true;
+        }
+
+        return HasIdentityMember(property.PropertyType);
+    }
+
+    private static bool HasIdentityMember(Type type)
+        => type.GetProperty(
+                "Id",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase)
+            is not null;
 
     public static QueryableProjectionFieldHandler Create(ProjectionProviderContext context) => new();
 }
