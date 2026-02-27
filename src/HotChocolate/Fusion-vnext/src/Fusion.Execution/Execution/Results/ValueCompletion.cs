@@ -276,11 +276,14 @@ internal sealed class ValueCompletion
                     ? 2
                     : 3;
         IObjectTypeDefinition? objectElementType = null;
+        SelectionSet? objectElementSelectionSet = null;
 
         if (elementKind is 3)
         {
             var namedType = elementType.NamedType();
             objectElementType = Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
+            var operation = selection.DeclaringSelectionSet.DeclaringOperation;
+            objectElementSelectionSet = operation.GetSelectionSet(selection, objectElementType);
         }
 
         target.SetArrayValue(source.GetArrayLength());
@@ -359,6 +362,7 @@ internal sealed class ValueCompletion
                         errorTrieForIndex,
                         selection,
                         objectElementType!,
+                        objectElementSelectionSet,
                         depth);
                     break;
             }
@@ -392,7 +396,14 @@ TryCompleteList_MoveNext:
         var namedType = type.NamedType();
         var objectType = Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
 
-        return TryCompleteObjectValue(source, target, errorTrie, parentSelection, objectType, depth);
+        return TryCompleteObjectValue(
+            source,
+            target,
+            errorTrie,
+            parentSelection,
+            objectType,
+            precomputedSelectionSet: null,
+            depth);
     }
 
     private bool TryCompleteObjectValue(
@@ -401,6 +412,7 @@ TryCompleteList_MoveNext:
         ErrorTrie? errorTrie,
         Selection parentSelection,
         IObjectTypeDefinition objectType,
+        SelectionSet? precomputedSelectionSet,
         int depth)
     {
         AssertDepthAllowed(ref depth);
@@ -409,9 +421,13 @@ TryCompleteList_MoveNext:
         // with the current selection set.
         if (target.ValueKind is JsonValueKind.Undefined)
         {
-            var operation = parentSelection.DeclaringSelectionSet.DeclaringOperation;
-            var selectionSet = operation.GetSelectionSet(parentSelection, objectType);
-            target.SetObjectValue(selectionSet);
+            if (precomputedSelectionSet is null)
+            {
+                var operation = parentSelection.DeclaringSelectionSet.DeclaringOperation;
+                precomputedSelectionSet = operation.GetSelectionSet(parentSelection, objectType);
+            }
+
+            target.SetObjectValue(precomputedSelectionSet);
         }
 
         foreach (var property in source.EnumerateObject())
@@ -443,7 +459,14 @@ TryCompleteList_MoveNext:
         Selection selection,
         IType type,
         int depth)
-        => TryCompleteObjectValue(source, target, errorTrie, selection, GetType(type, source), depth);
+        => TryCompleteObjectValue(
+            source,
+            target,
+            errorTrie,
+            selection,
+            GetType(type, source),
+            precomputedSelectionSet: null,
+            depth);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IObjectTypeDefinition GetType(IType type, SourceResultElement data)
