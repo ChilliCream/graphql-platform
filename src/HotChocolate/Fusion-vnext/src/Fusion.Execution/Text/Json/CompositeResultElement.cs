@@ -424,9 +424,13 @@ public readonly partial struct CompositeResultElement
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal CompositeResultElement GetSelectionProperty(
         Selection selection,
+        int selectionSetId,
         CompositeResultDocument.Cursor startCursor)
     {
-        return new CompositeResultElement(_parent, startCursor + selection.ResultCursorOffset);
+        var propertyIndex = selection.Id - selectionSetId - 1;
+        var propertyRowIndex = (propertyIndex * 2) + 1;
+        var propertyCursor = startCursor + propertyRowIndex;
+        return new CompositeResultElement(_parent, propertyCursor + 1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

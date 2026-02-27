@@ -13,7 +13,6 @@ public sealed class Selection : ISelection
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
     private readonly byte[] _utf8ResponseName;
-    private int _resultCursorOffset;
     private Flags _flags;
 
     public Selection(
@@ -86,8 +85,6 @@ public sealed class Selection : ISelection
 
     internal ResolveFieldValue? Resolver => Field.Features.Get<ResolveFieldValue>();
 
-    internal int ResultCursorOffset => _resultCursorOffset;
-
     IEnumerable<FieldNode> ISelection.GetSyntaxNodes()
     {
         for (var i = 0; i < SyntaxNodes.Length; i++)
@@ -159,7 +156,6 @@ public sealed class Selection : ISelection
 
         _flags |= Flags.Sealed;
         DeclaringSelectionSet = selectionSet;
-        _resultCursorOffset = ((Id - selectionSet.Id - 1) * 2) + 2;
     }
 
     public bool IsDeferred(ulong deferFlags)
