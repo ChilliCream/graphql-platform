@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Execution;
@@ -376,18 +375,16 @@ internal sealed class ValueCompletion
         }
 
         target.SetArrayValue(source.GetArrayLength());
-        using var enumerator = target.EnumerateArray().GetEnumerator();
+        var arrayStartCursor = target.GetStartCursor();
 
         if (errorTrie is null)
         {
             if (elementKind is 3)
             {
+                var elementIndex = 0;
                 foreach (var element in source.EnumerateArray())
                 {
-                    var movedNext = enumerator.MoveNext();
-                    Debug.Assert(movedNext, "The lists must have the same size.");
-
-                    var current = enumerator.Current;
+                    var current = target.GetArrayElement(arrayStartCursor, elementIndex++);
 
                     if (element.IsNullOrUndefined())
                     {
@@ -422,12 +419,10 @@ internal sealed class ValueCompletion
                 return true;
             }
 
+            var j = 0;
             foreach (var element in source.EnumerateArray())
             {
-                var movedNext = enumerator.MoveNext();
-                Debug.Assert(movedNext, "The lists must have the same size.");
-
-                var current = enumerator.Current;
+                var current = target.GetArrayElement(arrayStartCursor, j++);
 
                 if (element.IsNullOrUndefined())
                 {
@@ -497,8 +492,7 @@ internal sealed class ValueCompletion
         var i = 0;
         foreach (var element in source.EnumerateArray())
         {
-            var movedNext = enumerator.MoveNext();
-            Debug.Assert(movedNext, "The lists must have the same size.");
+            var current = target.GetArrayElement(arrayStartCursor, i);
 
             errorTrie.TryGetValue(i, out var errorTrieForIndex);
 
@@ -517,8 +511,6 @@ internal sealed class ValueCompletion
                     return false;
                 }
             }
-
-            var current = enumerator.Current;
 
             if (element.IsNullOrUndefined())
             {
