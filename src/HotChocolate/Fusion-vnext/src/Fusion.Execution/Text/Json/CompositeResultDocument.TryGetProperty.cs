@@ -31,36 +31,6 @@ public sealed partial class CompositeResultDocument
         return true;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal bool TryGetSelectionPropertyValue(
-        Cursor startCursor,
-        Selection selection,
-        out CompositeResultElement value)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        (startCursor, var tokenType) = _metaDb.GetStartCursor(startCursor);
-        CheckExpectedType(ElementTokenType.StartObject, tokenType);
-
-        var row = _metaDb.Get(startCursor);
-        if (row.OperationReferenceType is not OperationReferenceType.SelectionSet
-            || row.OperationReferenceId != selection.DeclaringSelectionSet.Id)
-        {
-            value = default;
-            return false;
-        }
-
-        var propertyIndex = selection.Id - selection.DeclaringSelectionSet.Id - 1;
-        var propertyRowIndex = (propertyIndex * 2) + 1;
-        var propertyCursor = startCursor + propertyRowIndex;
-
-        Debug.Assert(_metaDb.GetElementTokenType(propertyCursor) is ElementTokenType.PropertyName);
-        Debug.Assert(_metaDb.Get(propertyCursor).OperationReferenceId == selection.Id);
-
-        value = new CompositeResultElement(this, propertyCursor + 1);
-        return true;
-    }
-
     internal bool TryGetNamedPropertyValue(
         Cursor startCursor,
         string propertyName,

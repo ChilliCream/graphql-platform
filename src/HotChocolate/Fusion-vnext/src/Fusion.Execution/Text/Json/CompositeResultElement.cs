@@ -415,10 +415,22 @@ public readonly partial struct CompositeResultElement
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal bool TryGetProperty(Selection selection, out CompositeResultElement value)
+    internal CompositeResultDocument.Cursor GetStartCursor()
     {
         CheckValidInstance();
-        return _parent.TryGetSelectionPropertyValue(_cursor, selection, out value);
+        return _parent.GetStartCursor(_cursor);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal CompositeResultElement GetSelectionProperty(
+        Selection selection,
+        int selectionSetId,
+        CompositeResultDocument.Cursor startCursor)
+    {
+        var propertyIndex = selection.Id - selectionSetId - 1;
+        var propertyRowIndex = (propertyIndex * 2) + 1;
+        var propertyCursor = startCursor + propertyRowIndex;
+        return new CompositeResultElement(_parent, propertyCursor + 1);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -60,14 +60,17 @@ internal sealed class ValueCompletion
 
         if (target.TryGetSelectionSet(out var targetSelectionSet))
         {
+            var selectionSetId = targetSelectionSet.Id;
+            var startCursor = target.GetStartCursor();
+
             foreach (var property in source.EnumerateObject())
             {
-                if (!targetSelectionSet.TryGetSelection(property.NameSpan, out var selection)
-                    || !target.TryGetProperty(selection, out var resultField))
+                if (!targetSelectionSet.TryGetSelection(property.NameSpan, out var selection))
                 {
                     continue;
                 }
 
+                var resultField = target.GetSelectionProperty(selection, selectionSetId, startCursor);
                 ErrorTrie? errorTrieForResponseName = null;
                 errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
@@ -468,14 +471,17 @@ TryCompleteList_MoveNext:
 
         if (selectionSet is not null)
         {
+            var selectionSetId = selectionSet.Id;
+            var startCursor = target.GetStartCursor();
+
             foreach (var property in source.EnumerateObject())
             {
-                if (!selectionSet.TryGetSelection(property.NameSpan, out var selection)
-                    || !target.TryGetProperty(selection, out var targetProperty))
+                if (!selectionSet.TryGetSelection(property.NameSpan, out var selection))
                 {
                     continue;
                 }
 
+                var targetProperty = target.GetSelectionProperty(selection, selectionSetId, startCursor);
                 ErrorTrie? errorTrieForResponseName = null;
                 errorTrie?.TryGetValue(selection.ResponseName, out errorTrieForResponseName);
 
