@@ -513,7 +513,7 @@ public sealed partial class ResultDocument : IDisposable
             {
                 if (selection.IsIncluded(includeFlags)
                     && selection.IsDeferred(deferFlags)
-                    && selection.GetPrimaryDeferUsage(deferFlags) == deferUsage)
+                    && selection.HasActiveDeferUsage(deferFlags, deferUsage))
                 {
                     WriteEmptyProperty(startObjectCursor, selection);
                     selectionCount++;

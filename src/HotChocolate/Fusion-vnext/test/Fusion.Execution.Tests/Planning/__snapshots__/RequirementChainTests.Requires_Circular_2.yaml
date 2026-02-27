@@ -11,7 +11,7 @@ operation:
         }
       }
     hash: 123456789101112
-    searchSpace: 1
+    searchSpace: 2
     expandedNodes: 8
 nodes:
   - id: 1
@@ -64,6 +64,7 @@ nodes:
       }
     source: $.postById
     target: $.feed
+    batchingGroupId: 1
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -86,6 +87,7 @@ nodes:
       }
     source: $.postById
     target: $.feed
+    batchingGroupId: 1
     requirements:
       - name: __fusion_5_id
         selectionMap: >-

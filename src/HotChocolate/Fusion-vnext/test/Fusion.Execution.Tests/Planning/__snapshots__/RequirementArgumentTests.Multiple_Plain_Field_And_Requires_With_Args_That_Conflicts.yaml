@@ -11,7 +11,7 @@ operation:
         }
       }
     hash: 123456789101112
-    searchSpace: 1
+    searchSpace: 2
     expandedNodes: 9
 nodes:
   - id: 1
@@ -37,6 +37,7 @@ nodes:
       }
     source: $.testById
     target: $.test
+    batchingGroupId: 1
     requirements:
       - name: __fusion_1_otherField
         selectionMap: >-
@@ -61,6 +62,7 @@ nodes:
       }
     source: $.testById
     target: $.test
+    batchingGroupId: 2
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -80,6 +82,7 @@ nodes:
       }
     source: $.testById
     target: $.test
+    batchingGroupId: 2
     requirements:
       - name: __fusion_4_id
         selectionMap: >-
@@ -100,6 +103,7 @@ nodes:
       }
     source: $.testById
     target: $.test
+    batchingGroupId: 1
     requirements:
       - name: __fusion_5_otherField
         selectionMap: >-
@@ -123,6 +127,7 @@ nodes:
       }
     source: $.testById
     target: $.test
+    batchingGroupId: 2
     requirements:
       - name: __fusion_7_id
         selectionMap: >-
@@ -142,6 +147,7 @@ nodes:
       }
     source: $.testById
     target: $.test
+    batchingGroupId: 2
     requirements:
       - name: __fusion_8_id
         selectionMap: >-

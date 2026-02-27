@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace HotChocolate;
 
 /// <summary>
@@ -136,7 +134,8 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
             return "/";
         }
 
-        var sb = new StringBuilder();
+        // On first pass we calculate the total length
+        var totalLength = 0;
         var current = this;
 
         while (current is not RootPathSegment)
@@ -144,15 +143,11 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
             switch (current)
             {
                 case IndexerPathSegment indexer:
-                    var numberValue = indexer.Index.ToString();
-                    sb.Insert(0, '[');
-                    sb.Insert(1, numberValue);
-                    sb.Insert(1 + numberValue.Length, ']');
+                    totalLength += 2 + CountDigits(indexer.Index); // '[' + digits + ']'
                     break;
 
                 case NamePathSegment name:
-                    sb.Insert(0, '/');
-                    sb.Insert(1, name.Name);
+                    totalLength += 1 + name.Name.Length; // '/' + name
                     break;
 
                 default:
@@ -162,7 +157,60 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
             current = current.Parent;
         }
 
-        return sb.ToString();
+        // On second pass we fill from right to left using string.Create
+        return string.Create(totalLength, this, static (span, path) =>
+        {
+            var pos = span.Length;
+            var current = path;
+
+            while (current is not RootPathSegment)
+            {
+                switch (current)
+                {
+                    case IndexerPathSegment indexer:
+                        span[--pos] = ']';
+                        var idx = indexer.Index;
+                        if (idx == 0)
+                        {
+                            span[--pos] = '0';
+                        }
+                        else
+                        {
+                            while (idx > 0)
+                            {
+                                span[--pos] = (char)('0' + (idx % 10));
+                                idx /= 10;
+                            }
+                        }
+                        span[--pos] = '[';
+                        break;
+
+                    case NamePathSegment name:
+                        pos -= name.Name.Length;
+                        name.Name.AsSpan().CopyTo(span[pos..]);
+                        span[--pos] = '/';
+                        break;
+                }
+
+                current = current.Parent;
+            }
+        });
+
+        static int CountDigits(int n)
+        {
+            if (n == 0)
+            {
+                return 1;
+            }
+
+            var count = 0;
+            while (n > 0)
+            {
+                count++;
+                n /= 10;
+            }
+            return count;
+        }
     }
 
     /// <summary>
@@ -178,19 +226,20 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
             return Array.Empty<object>();
         }
 
-        var stack = new List<object>();
+        var result = new object[Length];
         var current = this;
+        var i = Length - 1;
 
         while (!current.IsRoot)
         {
             switch (current)
             {
                 case IndexerPathSegment indexer:
-                    stack.Insert(0, indexer.Index);
+                    result[i--] = indexer.Index;
                     break;
 
                 case NamePathSegment name:
-                    stack.Insert(0, name.Name);
+                    result[i--] = name.Name;
                     break;
 
                 default:
@@ -200,7 +249,7 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
             current = current.Parent;
         }
 
-        return stack;
+        return result;
     }
 
     /// <summary>
@@ -247,26 +296,31 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
     }
 
     public IEnumerable<Path> EnumerateSegments()
-        => EnumerateSegmentsBackwards().Reverse();
-
-    private IEnumerable<Path> EnumerateSegmentsBackwards()
     {
         if (IsRoot)
         {
-            yield break;
+            return [];
         }
 
+        var segments = new Path[Length];
         var current = this;
+        var i = Length - 1;
 
         while (!current.IsRoot)
         {
-            yield return current;
+            segments[i--] = current;
             current = current.Parent;
         }
+
+        return segments;
     }
 
-    /// <summary>Returns a string that represents the current <see cref="Path"/>.</summary>
-    /// <returns>A string that represents the current <see cref="Path"/>.</returns>
+    /// <summary>
+    /// Returns a string that represents the current <see cref="Path"/>.
+    /// </summary>
+    /// <returns>
+    /// A string that represents the current <see cref="Path"/>.
+    /// </returns>
     public override string ToString() => Print();
 
     public virtual bool Equals(Path? other)
@@ -323,7 +377,7 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
             return 1;
         }
 
-        // 1. Align to the same depth
+        // First we align the paths to the the same depth
         var a = this;
         var b = other;
 
@@ -339,14 +393,13 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
             b = b.Skip(lenB - lenA);
         }
 
-        // 2. Walk aligned segments from root to leaf
+        // Then we walk aligned segments from root to leaf
         var cmp = CompareFromRoot(a, b);
         if (cmp != 0)
         {
             return cmp;
         }
 
-        // 3. Same segments → shorter path wins
         return Length.CompareTo(other.Length);
     }
 

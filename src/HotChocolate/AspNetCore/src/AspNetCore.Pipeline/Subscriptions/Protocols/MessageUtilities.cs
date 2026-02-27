@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
@@ -9,7 +10,11 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
 internal static class MessageUtilities
 {
     public static JsonWriterOptions WriterOptions { get; } =
-        new() { Indented = false };
+        new()
+        {
+            Indented = false,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
 
     public static void SerializeMessage(
         PooledArrayWriter pooledArrayWriter,

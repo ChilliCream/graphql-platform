@@ -114,6 +114,26 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
         string schemaName);
 
     /// <summary>
+    /// Called when executing an operation plan node that batches or deduplicates source schema requests.
+    /// </summary>
+    /// <param name="context">
+    /// The operation plan context.
+    /// </param>
+    /// <param name="node">
+    /// The batch or deduplicated execution node being executed.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the source schema being queried.
+    /// </param>
+    /// <returns>
+    /// Returns a scope that is disposed when the node execution is completed.
+    /// </returns>
+    IDisposable ExecuteOperationBatchNode(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName);
+
+    /// <summary>
     /// Called when executing an operation plan node that subscribes to a source schema subscription.
     /// </summary>
     /// <param name="context">
@@ -133,7 +153,7 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
     /// </returns>
     IDisposable ExecuteSubscriptionNode(
         OperationPlanContext context,
-        OperationExecutionNode node,
+        ExecutionNode node,
         string schemaName,
         ulong subscriptionId);
 
@@ -213,29 +233,6 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
         ExecutionNode node,
         string schemaName,
         Exception error);
-
-    /// <summary>
-    /// Called when GraphQL errors are present in the source schema result.
-    /// These are application-level errors returned by the source schema,
-    /// not transport or communication errors.
-    /// </summary>
-    /// <param name="context">
-    /// The operation plan context.
-    /// </param>
-    /// <param name="node">
-    /// The execution node that received the erroneous response.
-    /// </param>
-    /// <param name="schemaName">
-    /// The name of the source schema that returned the errors.
-    /// </param>
-    /// <param name="errors">
-    /// The collection of GraphQL errors from the source schema response.
-    /// </param>
-    void SourceSchemaResultError(
-        OperationPlanContext context,
-        ExecutionNode node,
-        string schemaName,
-        IReadOnlyList<IError> errors);
 
     /// <summary>
     /// Called when a transport error occurs while communicating with a source schema

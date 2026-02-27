@@ -12,7 +12,7 @@ public class QueryableProjectionFieldHandler
     private static readonly NullabilityInfoContext _nullabilityInfoContext = new();
 
     public override bool CanHandle(Selection selection)
-        => selection.Field.Member is not null && !selection.IsLeaf;
+        => !selection.IsLeaf && CanProjectMember(selection);
 
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
@@ -71,8 +71,6 @@ public class QueryableProjectionFieldHandler
             return false;
         }
 
-        var memberInit = queryableScope.CreateMemberInit();
-
         if (!context.TryGetQueryableScope(out var parentScope))
         {
             throw ThrowHelper.ProjectionVisitor_InvalidState_NoParentScope();
@@ -89,6 +87,21 @@ public class QueryableProjectionFieldHandler
 
             return true;
         }
+
+        // If the nested scope has no projectable members we keep the original value.
+        // This happens for members like JsonDocument where selected subfields are read-only.
+        if (!queryableScope.HasAbstractTypes() && queryableScope.Level.Peek().Count == 0)
+        {
+            parentScope.Level
+                .Peek()
+                .Enqueue(Expression.Bind(field.Member, nestedProperty));
+
+            action = SelectionVisitor.Continue;
+
+            return true;
+        }
+
+        var memberInit = queryableScope.CreateMemberInit();
 
         // TODO: Use existing utility function/extension method? Cache?
         var nullabilityInfo = _nullabilityInfoContext.Create(propertyInfo);

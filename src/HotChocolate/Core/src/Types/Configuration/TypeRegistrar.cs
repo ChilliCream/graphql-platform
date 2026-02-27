@@ -221,4 +221,11 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
                     .Build());
         }
     }
+
+    public bool HasRuntimeTypeBinding(ExtendedTypeReference typeReference)
+    {
+        ArgumentNullException.ThrowIfNull(typeReference);
+
+        return _typeRegistry.TryGetTypeRef(typeReference, out _);
+    }
 }

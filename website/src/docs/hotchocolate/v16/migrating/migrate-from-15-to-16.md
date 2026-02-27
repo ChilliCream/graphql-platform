@@ -131,6 +131,32 @@ builder.Services.AddGraphQLServer()
 
 If your application contains multiple GraphQL servers, the hash provider configuration has to be repeated for each one as the configuration is now scoped to a particular GraphQL server.
 
+## NATS subscriptions now use the official NATS v2 client
+
+The `HotChocolate.Subscriptions.Nats` package now uses the official NATS v2 client packages.
+If you are migrating an application that previously used `AlterNats.Hosting`, replace it with `NATS.Extensions.Microsoft.DependencyInjection` and update your NATS client registration from `AddNats(...)` to `AddNatsClient(...)`.
+
+```diff
+builder.Services
+-   .AddNats(poolSize: 1, opts => opts with
+-   {
+-       Url = "nats://localhost:4222"
+-   });
++   .AddNatsClient(nats => nats.ConfigureOptions(
++       options => options.Configure(
++           opts => opts.Opts = opts.Opts with
++           {
++               Url = "nats://localhost:4222"
++           })));
+
+builder.Services
+    .AddGraphQLServer()
+    .AddSubscriptionType<Subscription>()
+    .AddNatsSubscriptions();
+```
+
+If your code directly references NATS client types, add the `NATS.Client.Core` package as well.
+
 ## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
 
 ```diff
@@ -177,6 +203,39 @@ public class CustomRequestMiddleware
     }
 }
 ```
+
+## OperationResultBuilder is now internal
+
+If you've previously used the `OperationResultBuilder` to construct an `OperationResult`, switch to constructing it directly instead:
+
+```csharp
+var errors = ImmutableList.Create<IError>([]);
+var extensions = ImmutableOrderedDictionary.Create([]);
+
+context.Result = new OperationResult(errors, extensions);
+```
+
+If you've used `OperationResultBuilder.FromResult()` to alter an existing `OperationResult`, switch to directly modifying the `OperationResult`:
+
+```diff
+if (context.Result is OperationResult result)
+{
+-    var resultBuilder = OperationResultBuilder.FromResult(result);
+-    resultBuilder.SetExtension("foo", "bar");
+-    context.Result = resultBuilder.Build();
++    result.Extensions = result.Extensions.SetItem("foo", "bar");
+}
+```
+
+Most of the properties you'd want to modify are now immutable data structures that can be modified.
+
+`OperationResultBuilder.CreateError(error)` can be simply replaced with `new OperationResult([error])`.
+
+## OperationResult changes
+
+We've removed the `IOperationResult` abstraction. If you've previously pattern-matched on this, you can simply replace it with `OperationResult`. To assert that an `IExecutionResult` is an `OperationResult` in tests, use `result.ExpectOperationResult();`.
+
+We've also switched the `OperationResult.Errors` and `OperationResult.Extensions` properties to always be initialized instead of being nullable. If you were previously asserting these properties as `null` in tests, switch to asserting them as empty instead.
 
 ## Skip/include disallowed on root subscription fields
 
@@ -303,10 +362,40 @@ NonNegativeInt
 
 TODO
 
-## AnyType
+## Any and Json scalars merged
 
-TODO
-`JsonElement` is now inferred as `Any` instead of `Json`.
+The `Json` scalar has been removed and its functionality merged into the `Any` scalar. The `Any` scalar now uses `System.Text.Json.JsonElement` as its .NET runtime type, which was previously the runtime type of the `Json` scalar.
+
+**`JsonElement` is now inferred as `Any` instead of `Json`.** If you used `[GraphQLType<JsonType>]` annotations or explicit `JsonType` bindings, replace them with `AnyType`:
+
+```csharp
+// before
+[GraphQLType<JsonType>]
+public JsonElement GetData() => ...;
+
+// after
+[GraphQLType<AnyType>]
+public JsonElement GetData() => ...;
+```
+
+### Returning dictionaries or arbitrary .NET types
+
+If you previously returned `Dictionary<string, object>` or other .NET types from a field typed as `Json` or `Any`, you now need to register the JSON type converter explicitly. Without it, the type system has no way to convert arbitrary .NET types to `JsonElement`:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddJsonTypeConverter();
+```
+
+For custom reference types that need specific serialization, register a dedicated converter instead:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddTypeConverter<TimeZoneInfo, JsonElement>(
+        value => JsonSerializer.SerializeToElement(value.Id));
+```
 
 ## `Byte` and `SignedByte` types renamed
 
@@ -337,6 +426,18 @@ Note that this option is likely to be removed in a later release, so it's recomm
 ## DateTime scalar serialization
 
 The `DateTime` scalar now serializes with up to 7 fractional seconds (`FFFFFFF`) as opposed to exactly 3 (`fff`).
+
+## IHasRuntimeType is now IRuntimeTypeProvider
+
+In an effort to standardize our abstractions, we've renamed `IHasRuntimeType` to `IRuntimeTypeProvider`.
+
+## GUIDs converted to strings using the "D" format
+
+The conversion from GUID to string in the default type converter has been updated to format with hyphens (format "D") instead of without (format "N"), to follow the documented behavior.
+
+## EnableOneOf option removed
+
+The `EnableOneOf` option has been removed, as the `@oneOf` directive is now built in.
 
 # Deprecations
 

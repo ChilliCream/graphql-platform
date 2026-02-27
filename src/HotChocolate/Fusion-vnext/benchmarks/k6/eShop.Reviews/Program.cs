@@ -5,7 +5,7 @@ using HotChocolate;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
-    .AddGraphQLServer("reviews-api")
+    .AddGraphQLServer("reviews-api", disableDefaultSecurity: true)
     .AddReviewTypes();
 
 var app = builder.Build();
