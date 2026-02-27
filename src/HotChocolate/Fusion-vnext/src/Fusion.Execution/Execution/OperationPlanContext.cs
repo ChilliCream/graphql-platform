@@ -222,7 +222,12 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         {
             if (forwardedVariables.Length == 0)
             {
-                return [];
+                if (selectionSet.IsRoot)
+                {
+                    return [];
+                }
+
+                return [new VariableValues(ToResultPath(selectionSet), new ObjectValueNode([]))];
             }
 
             var variableValues = GetPathThroughVariables(forwardedVariables);
@@ -255,6 +260,21 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             var variableValues = GetPathThroughVariables(forwardedVariables);
             return _resultStore.CreateVariableValueSets(selectionSets, variableValues, requiredData);
         }
+    }
+
+    private static Path ToResultPath(SelectionPath selectionSet)
+    {
+        var resultPath = Path.Root;
+
+        foreach (var segment in selectionSet.Segments)
+        {
+            if (segment.Kind is SelectionPathSegmentKind.Root or SelectionPathSegmentKind.Field)
+            {
+                resultPath = resultPath.Append(segment.Name);
+            }
+        }
+
+        return resultPath;
     }
 
     internal void AddPartialResults(
