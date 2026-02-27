@@ -17,7 +17,6 @@ public sealed class Operation : IOperation
 #else
     private readonly object _sync = new();
 #endif
-    private readonly ConcurrentDictionary<int, SelectionSet> _objectSelectionSets = [];
     private readonly ConcurrentDictionary<(int, string), SelectionSet> _selectionSets = [];
     private readonly OperationCompiler _compiler;
     private readonly IncludeConditionCollection _includeConditions;
@@ -152,34 +151,6 @@ public sealed class Operation : IOperation
         ArgumentNullException.ThrowIfNull(selection);
         ArgumentNullException.ThrowIfNull(typeContext);
         Debug.Assert(typeContext is FusionObjectTypeDefinition);
-
-        // Object fields always resolve against a single concrete type context.
-        // We can avoid tuple/string keyed lookups for this common case.
-        if (selection.Field.Type.NamedType() is IObjectTypeDefinition objectType
-            && (ReferenceEquals(objectType, typeContext)
-                || string.Equals(objectType.Name, typeContext.Name, StringComparison.Ordinal)))
-        {
-            if (!_objectSelectionSets.TryGetValue(selection.Id, out var objectSelectionSet))
-            {
-                lock (_sync)
-                {
-                    if (!_objectSelectionSets.TryGetValue(selection.Id, out objectSelectionSet))
-                    {
-                        objectSelectionSet =
-                            _compiler.CompileSelectionSet(
-                                selection,
-                                (FusionObjectTypeDefinition)typeContext,
-                                _includeConditions,
-                                ref _elementsById,
-                                ref _lastId);
-                        objectSelectionSet.Seal(this);
-                        _objectSelectionSets.TryAdd(selection.Id, objectSelectionSet);
-                    }
-                }
-            }
-
-            return objectSelectionSet;
-        }
 
         var key = (selection.Id, typeContext.Name);
 
